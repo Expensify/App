@@ -315,7 +315,6 @@ const SCREENS = {
         CHRONOS_SCHEDULE_OOO: 'Chronos_Schedule_OOO',
         AVATAR_CROP: 'AvatarCrop',
     },
-    // Neutral placeholder screen shown under the RHP while a destination is pre-mounted.
     PRE_MOUNT_BUFFER: 'PreMountBuffer',
     REPORT_CARD_ACTIVATE: 'Report_Card_Activate_Root',
     SAML_SIGN_IN: 'SAMLSignIn',

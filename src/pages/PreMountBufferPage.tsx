@@ -14,6 +14,4 @@ function PreMountBufferPage() {
     );
 }
 
-PreMountBufferPage.displayName = 'PreMountBufferPage';
-
 export default PreMountBufferPage;

@@ -6,19 +6,21 @@ import type {OnyxCollection, OnyxMultiSetInput} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 /** Startup cleanup for speculative report rows left by interrupted draft promotions. */
-function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>) {
-    const cleanupData: Record<string, null> = {};
+function getPromotedDraftReportCleanupData(promotions: OnyxCollection<boolean>, reportDrafts: OnyxCollection<Report>): OnyxMultiSetInput {
+    const cleanupData: OnyxMultiSetInput = {};
 
-    for (const promotionKey of Object.keys(promotions ?? {})) {
-        const reportID = promotionKey.slice(ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION.length);
+    for (const key of Object.keys(promotions ?? {})) {
+        const reportID = key.slice(ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION.length);
+        const promotionKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`;
         cleanupData[promotionKey] = null;
 
         if (reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportID}`]) {
-            cleanupData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] = null;
+            const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+            cleanupData[reportKey] = null;
         }
     }
 
-    return cleanupData as OnyxMultiSetInput;
+    return cleanupData;
 }
 
 function cleanupReportDrafts(promotions: OnyxCollection<boolean>) {

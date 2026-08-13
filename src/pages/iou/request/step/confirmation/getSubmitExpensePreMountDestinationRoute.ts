@@ -93,7 +93,8 @@ function getSubmitExpensePreMountDestinationRoute({
     // isPendingCreation tells ReportFetchHandler to skip openReport for this ID until the real report exists locally
     // (see the isOptimisticNewChatDestination comment above) - openReport would 403 against a client-only ID and
     // latch the not-found page instead of leaving the pre-inserted screen in its normal loading state.
-    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID, undefined, undefined, undefined, undefined, isOptimisticNewChatDestination);
+    const [reportActionID, referrer, backTo, secureKey] = [undefined, undefined, undefined, undefined];
+    return ROUTES.REPORT_WITH_ID.getRoute(destinationReportID, reportActionID, referrer, backTo, secureKey, isOptimisticNewChatDestination);
 }
 
 export default getSubmitExpensePreMountDestinationRoute;

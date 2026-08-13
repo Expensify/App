@@ -2828,7 +2828,6 @@ type ReportsSplitNavigatorParamList = {
         secureKey?: string;
         /**
          * Set when reportID is a client-generated optimistic ID for a chat that doesn't exist on the server yet
-         * (e.g. pre-mounting the destination for a brand-new 1:1 recipient before submit).
          * Suppresses openReport until the report exists locally.
          */
         isPendingCreation?: string;

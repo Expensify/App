@@ -147,6 +147,14 @@ type UseExpenseSubmissionParams = {
 
     // Navigation
     backToReport?: string;
+
+    /**
+     * Called once trackExpense/requestMoney have passed all their upfront validation and a real optimistic write is
+     * guaranteed to run. A caller holding a pre-mount promotion marker (see promoteDraftReportForPreMount) must only
+     * clear it here - clearing any earlier risks leaving an orphaned promoted report row if validation then bails
+     * with no write, since nothing else is left to reconcile that marker afterward.
+     */
+    onExpenseWriteWillStart?: () => void;
 };
 
 type SendMoneyReportIDs = {
@@ -195,6 +203,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart,
     } = params;
 
     // Localization
@@ -405,6 +414,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
 
         // For a brand-new P2P recipient (no existing chat), the confirmation screen has already committed the draft
         // transaction to a freshly generated optimistic reportID via setTransactionReport. Build the optimistic chat
@@ -719,6 +729,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (requiresLinkedTracked && !transactions.every((item) => item.linkedTrackedExpenseReportAction && item.linkedTrackedExpenseReportID)) {
             return;
         }
+        onExpenseWriteWillStart?.();
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
         // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
         // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.

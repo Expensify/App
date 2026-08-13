@@ -3082,13 +3082,9 @@ function saveReportDraft(reportID: string, report: Report) {
 }
 
 /**
- * Client-only render aid: copies an already-built draft report (e.g. the zero-workspace "Submit to my employer"
- * flow's draft policy expense chat) into COLLECTION.REPORT so a pre-mounted destination screen can render
- * immediately. Not a new entity and not an API write - the eventual backend success handler overwrites this same
- * key with confirmed data.
+ * Copies an already-built draft report into COLLECTION.REPORT so a pre-mounted destination screen can render immediately.
  */
 function promoteDraftReportForPreMount(reportID: string, draftReport: Report) {
-    // Write both values together so cancellation cannot run between the marker and report writes.
     const promotionKey: `${typeof ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${string}` = `${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`;
     const reportKey: `${typeof ONYXKEYS.COLLECTION.REPORT}${string}` = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
     const promotionData: OnyxMultiSetInput = {};
@@ -3107,9 +3103,7 @@ async function clearPromotedDraftReportForPreMount(reportID: string) {
 }
 
 /**
- * Clears only the promotion marker left by `promoteDraftReportForPreMount`, once the caller has handed off to the
- * real submission for this reportID. The REPORT row is left alone - it is no longer speculative, and the real
- * submission's own optimistic/success data owns it from here.
+ * Clears only the promotion marker left by `promoteDraftReportForPreMount`.
  */
 function clearPromotedDraftReportPreMountMarker(reportID: string) {
     return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_PRE_MOUNT_PROMOTION}${reportID}`, null);

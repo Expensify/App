@@ -922,6 +922,13 @@ const dismissModalWithReport = (
         const isReportsSplitTopmostFullScreen = isReportTopmostSplitNavigator();
         if (topmostReportID === reportID && areReportsIDsDefined && isReportsSplitTopmostFullScreen) {
             options?.onBeforeNavigate?.(false);
+            // The topmost fullscreen already being this report means a live pre-insert/buffer transaction (if any)
+            // targets it too. Clear it through the same path reveal() uses before this dismiss fires - otherwise the
+            // buffer's 'state' listener sees the RHP disappear with no owner, treats it as an external dismissal, and
+            // atomically strips this same destination back to the pre-insert origin.
+            if (getIsFullscreenPreInsertedUnderRHP()) {
+                clearFullscreenPreInsertedFlag();
+            }
             dismissModal({afterTransition: options?.afterTransition});
             return;
         }

@@ -2128,9 +2128,6 @@ const ROUTES = {
             if (secureKey) {
                 queryParams.push(`secureKey=${encodeURIComponent(secureKey)}`);
             }
-            // The reportID is a client-generated optimistic ID for a chat that doesn't exist on the server yet (e.g.
-            // pre-mounting the destination for a brand-new 1:1 recipient before submit). Calling openReport for it
-            // would 403 and latch the not-found page - see ReportFetchHandler's isPendingCreationFromRoute guard.
             if (isPendingCreation) {
                 queryParams.push('isPendingCreation=true');
             }

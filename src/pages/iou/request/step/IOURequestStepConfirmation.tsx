@@ -61,7 +61,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import {findSelfDMReportID, generateReportID, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
+import {findSelfDMReportID, generateReportID, getChatByParticipants, getReportOrDraftReport, isMoneyRequestReport, isPolicyExpenseChat as isPolicyExpenseChatUtils} from '@libs/ReportUtils';
 import {cancelTracking, getPendingSubmitFollowUpAction, isTracking} from '@libs/telemetry/submitFollowUpAction';
 import {
     getRequestType,
@@ -579,6 +579,8 @@ function IOURequestStepConfirmation({
     // excluded too. Pre-inserting the Search route would leave a stale entry in the navigation stack.
     const canPreInsertSearch = iouType !== CONST.IOU.TYPE.PAY && iouType !== CONST.IOU.TYPE.SPLIT && iouType !== CONST.IOU.TYPE.TRACK && !isSelfDMDestination;
 
+    const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
+
     const {createTransaction, sendMoney, isConfirmed, setIsConfirmed, formHasBeenSubmitted} = useExpenseSubmission({
         transaction,
         transactions,
@@ -607,6 +609,14 @@ function IOURequestStepConfirmation({
         draftTransactionIDs,
         privateIsArchivedMap,
         backToReport,
+        onExpenseWriteWillStart: () => {
+            const promotedReportID = promotedDraftReportIDRef.current;
+            if (!promotedReportID) {
+                return;
+            }
+            promotedDraftReportIDRef.current = undefined;
+            clearPromotedDraftReportPreMountMarker(promotedReportID);
+        },
     });
 
     // handleSearchDismiss doesn't pre-insert - it just dismisses the modal when search is
@@ -630,15 +640,13 @@ function IOURequestStepConfirmation({
     // Split creates or resolves its own group chat report ID, so it cannot reuse the transaction's P2P report ID.
     const isP2PDestination = iouType !== CONST.IOU.TYPE.SPLIT && !!firstParticipant && !firstParticipant.isPolicyExpenseChat;
     const reusableP2PReportID = isP2PDestination ? getReusableP2PReportID(firstParticipant, transaction?.reportID) : undefined;
-    const resolvedP2PReportIDs = isP2PDestination
-        ? resolveOptimisticChatReportID([firstParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID], undefined, reusableP2PReportID)
+    const existingP2PDestinationReportID = isP2PDestination
+        ? getChatByParticipants([firstParticipant.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserPersonalDetails.accountID])?.reportID
         : undefined;
-    const optimisticP2PDestinationReportID = reusableP2PReportID && resolvedP2PReportIDs?.optimisticChatReportID === reusableP2PReportID ? reusableP2PReportID : undefined;
-    const existingP2PDestinationReportID = resolvedP2PReportIDs && !resolvedP2PReportIDs.optimisticChatReportID ? resolvedP2PReportIDs.chatReportID : undefined;
+    const optimisticP2PDestinationReportID = !existingP2PDestinationReportID && reusableP2PReportID ? reusableP2PReportID : undefined;
     const preMountDestinationReportID = optimisticP2PDestinationReportID ?? existingP2PDestinationReportID ?? destinationReportID;
     const [destinationReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${preMountDestinationReportID}`);
     const destinationReportDraft = reportDrafts?.[`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${preMountDestinationReportID}`];
-    const promotedDraftReportIDRef = useRef<string | undefined>(undefined);
 
     // All reactive inputs are in the deps; the builder's own live Navigation reads aren't reactive values so they don't belong
     // here. A recompute driven by a non-route-determining dep yields the same string route - a no-op for usePreMountDestination's
@@ -692,22 +700,6 @@ function IOURequestStepConfirmation({
         shouldPreservePreInsertedRouteOnUnmount: () => formHasBeenSubmitted.current,
     });
 
-    // Wraps createTransaction so the promotion marker is cleared at the exact moment the real optimistic write
-    // fires, not merely when submit intent is set. Both intent and this unmount effect react to the same
-    // transition-end event as createTransaction, so their relative order is a race - clearing here instead of in
-    // the cleanup below means the marker only drops once the real write has actually run.
-    const createTransactionAndClearPromotionMarker = useCallback(
-        (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => {
-            const promotedReportID = promotedDraftReportIDRef.current;
-            if (promotedReportID) {
-                promotedDraftReportIDRef.current = undefined;
-                clearPromotedDraftReportPreMountMarker(promotedReportID);
-            }
-            return createTransaction(locationPermissionGranted, shouldHandleNavigation);
-        },
-        [createTransaction],
-    );
-
     // Register this after usePreMountDestination so its route cleanup removes the pre-mounted screen first. Only
     // then is it safe to remove the speculative report row that screen may have been reading.
     useEffect(() => {
@@ -721,9 +713,9 @@ function IOURequestStepConfirmation({
 
             // eslint-disable-next-line react-hooks/exhaustive-deps
             if (hasSubmitIntent || formHasBeenSubmitted.current) {
-                // createTransactionAndClearPromotionMarker owns clearing the marker once the real write runs - it may
-                // race this cleanup, so leave both the ref and the marker alone here. Clearing early would leave the
-                // speculative row unmarked if the app dies before that write actually happens.
+                // onExpenseWriteWillStart (passed to useExpenseSubmission) owns clearing the marker once the real
+                // write runs - it may race this cleanup, so leave both the ref and the marker alone here. Clearing
+                // early would leave the speculative row unmarked if the app dies before that write actually happens.
                 return;
             }
 
@@ -1045,7 +1037,7 @@ function IOURequestStepConfirmation({
                         />
                     </DragAndDropConsumer>
                     <SubmitExpenseOrchestrator
-                        createTransaction={createTransactionAndClearPromotionMarker}
+                        createTransaction={createTransaction}
                         destinationReportID={preMountDestinationReportID}
                         isFromGlobalCreate={isFromGlobalCreate}
                         iouType={iouType}

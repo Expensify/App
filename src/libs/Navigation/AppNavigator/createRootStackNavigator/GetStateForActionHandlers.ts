@@ -419,11 +419,11 @@ function markFocusedTabRouteForRemount(tabState: TabStateForReplacement, existin
  * buffer afterward - inserting one there would strand it on top after the dismiss instead of the
  * revealed destination.
  */
-function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined) {
+function buildPreMountBufferRoute(rhpRouteKey: string, shouldInsertPreMountBuffer: boolean | undefined): StackNavigationState<ParamListBase>['routes'][number] | undefined {
     if (Platform.OS === 'web' || !shouldInsertPreMountBuffer) {
         return undefined;
     }
-    return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`} as StackNavigationState<ParamListBase>['routes'][number];
+    return {name: SCREENS.PRE_MOUNT_BUFFER, key: `pre-mount-buffer-${rhpRouteKey}`};
 }
 
 function handleReplaceFullscreenUnderRHP(
@@ -545,9 +545,6 @@ function handleRemoveFullscreenUnderRHP(
         return null;
     }
 
-    // The caller (removePreInsertedFullscreenIfNeeded) always strips the buffer route via
-    // removeBufferRouteOnly() before dispatching this action, so this should already be a no-op.
-    // Filtering defensively here means a caller that forgets that step still can't strand the buffer.
     const routesWithoutRHP = state.routes.slice(0, -1).filter((r) => r.name !== SCREENS.PRE_MOUNT_BUFFER);
 
     // Tab-switch path: restore the original TAB_NAVIGATOR route saved during pre-insertion.
