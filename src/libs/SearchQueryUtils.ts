@@ -56,6 +56,7 @@ import Onyx from 'react-native-onyx';
 
 import type {SearchFullscreenNavigatorParamList} from './Navigation/types';
 
+import {getStandardExportTemplateDisplayName} from './AccountingUtils';
 import {getBankAccountSearchLabel, isBankAccountPartiallySetup} from './BankAccountUtils';
 import {getCardFeedsForDisplay} from './CardFeedUtils';
 import {getCardDescription} from './CardUtils';
@@ -1756,13 +1757,8 @@ function getFilterDisplayValue({
         return getPolicyNameWithFallback(filterValue, policies, reports);
     }
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO) {
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT;
-        }
-        if (filterValue === CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT) {
-            return CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT;
-        }
-        return filterValue;
+        // A query can carry a standard template's ID, so display the label the backend records for it. Custom template names are returned as-is.
+        return getStandardExportTemplateDisplayName(filterValue);
     }
     return filterValue;
 }

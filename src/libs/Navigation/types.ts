@@ -2385,11 +2385,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         transactionID: string;
 
-        // These are not used in the screen, but are needed for the navigation
-        // for IOURequestStepDistanceMap component
+        // This is not used in the screen, but is needed for navigation in IOURequestStepDistanceMap.
         // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
         backTo: never;
-        action: never;
+        action: IOUAction;
         pageIndex?: string;
         backToReport?: string;
         reportActionID?: string;
@@ -3020,6 +3019,9 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.RULES]: {
         policyID: string;
+
+        /** Preselects a Rules tab. The page otherwise restores the last one used. */
+        tab?: string;
     };
     [SCREENS.WORKSPACE.TIME_TRACKING]: {
         policyID: string;
