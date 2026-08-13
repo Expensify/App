@@ -61,14 +61,14 @@ describe('OnyxDerived self-healing after a compute throws', () => {
         await waitForBatchedUpdates();
 
         // The failed flush did not persist anything.
-        let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+        let derived = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
         expect(derived?.rA?.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]?.amount).toBe(100);
 
         // A later, unrelated change triggers a successful flush that must include the previously-failed delta.
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}B`, transactionB);
         await waitForBatchedUpdates();
 
-        derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+        derived = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
         // A's amount change (from the failed flush) is recovered, and B is added.
         expect(derived?.rA?.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}A`]?.amount).toBe(999);
         expect(derived?.rA?.transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}B`]?.amount).toBe(200);

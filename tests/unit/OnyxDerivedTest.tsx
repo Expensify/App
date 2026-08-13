@@ -155,7 +155,7 @@ describe('OnyxDerived', () => {
                 expect(countRecomputes(setDerivedValueSpy, ONYXKEYS.DERIVED.REPORT_ATTRIBUTES)).toBeLessThan(3);
 
                 // And the coalesced compute must not drop any of the batched changes.
-                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derived = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed report');
 
                 setDerivedValueSpy.mockRestore();
@@ -174,7 +174,7 @@ describe('OnyxDerived', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${mockReport.reportID}`, {isOptimisticReport: false});
                 await waitForBatchedUpdates();
 
-                const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
+                const derived = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
                 expect(derived?.reports?.[mockReport.reportID]?.reportName).toBe('Renamed again');
             });
         });
@@ -534,7 +534,7 @@ describe('OnyxDerived', () => {
             await Onyx.update(updates);
             await waitForBatchedUpdates();
 
-            const derived = await OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
+            const derived = OnyxUtils.get(ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS);
 
             // The batched violations change for B must not be dropped...
             expect(derived?.rB?.violations?.[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}B`]).toEqual([violation]);
@@ -569,7 +569,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // Precondition: while it is a CHAT, no transaction thread is resolved for the report.
-            let derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            let derived = OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBeUndefined();
 
             // One logical update: flip the report to EXPENSE (a REPORT change that resolves its thread) batched
@@ -586,7 +586,7 @@ describe('OnyxDerived', () => {
             await waitForBatchedUpdates();
 
             // The batched REPORT change must be applied: the expense report's transaction thread now resolves.
-            derived = await OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
+            derived = OnyxUtils.get(ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS);
             expect(derived?.transactionThreadIDs?.[expenseReportID]).toBe(threadReportID);
         });
     });

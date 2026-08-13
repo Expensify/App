@@ -2710,7 +2710,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, reportAction, {[reportAction.reportActionID]: reportAction}, 'edited message');
             await waitForBatchedUpdates();
 
-            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts?.['draft-local-action']?.message).toBe('edited message');
         });
 
@@ -2726,9 +2726,9 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(threadReportID, parentReportAction, {}, 'edited thread parent');
             await waitForBatchedUpdates();
 
-            const parentDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
+            const parentDrafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
             expect(parentDrafts?.['draft-thread-parent-action']?.message).toBe('edited thread parent');
-            const threadDrafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
+            const threadDrafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
             expect(threadDrafts?.['draft-thread-parent-action']).toBeUndefined();
         });
 
@@ -2738,7 +2738,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, null, undefined, 'should not be saved');
             await waitForBatchedUpdates();
 
-            const drafts = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts).toBeFalsy();
         });
     });
@@ -2762,7 +2762,7 @@ describe('actions/Report', () => {
             toggleEmojiReaction(threadReportID, parentReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, {});
             await waitForBatchedUpdates();
 
-            const reactions = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
+            const reactions = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
             expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
         });
     });
