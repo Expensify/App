@@ -8,7 +8,6 @@ import type {OriginalMessageIOU, Policy, Report, ReportAction, ReportLoadingStat
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {hasDeferredWriteForReport} from './deferredLayoutWrite';
 import {isPaidGroupPolicy} from './PolicyUtils';
 import {getIOUActionForTransactionID, getOriginalMessage, isDeletedAction, isDeletedParentAction, isMoneyRequestAction} from './ReportActionsUtils';
 import {
@@ -23,6 +22,7 @@ import {
     isOneTransactionReport,
     isReportTransactionThread,
 } from './ReportUtils';
+import {hasPendingWriteForReport} from './submitWriteSession';
 import {getSupersededPendingCardTransactionIDs, isTransactionPendingDelete} from './TransactionUtils';
 
 function isBillableEnabledOnPolicy(policy: Policy | OnyxEntry<Policy> | undefined): boolean {
@@ -153,7 +153,7 @@ function shouldWaitForTransactions(
     const isTransactionThreadView = isReportTransactionThread(report);
     // Scope the dismiss-write check to *this* report so an unrelated submit flow that's
     // mid-dismiss doesn't make every empty money-request/invoice report look like it's loading.
-    const hasPendingDismissWrite = hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
+    const hasPendingDismissWrite = hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, report?.reportID);
     const isStillLoadingData = transactions?.length === 0 && ((isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions) || report?.total !== 0 || hasPendingDismissWrite);
     return (
         (isMoneyRequestReport(report) || isInvoiceReport(report)) &&

@@ -2,11 +2,9 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -20,6 +18,7 @@ import {
     getPersonalDetailsForAccountID,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {scheduleWrite} from '@libs/submitWriteSession';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
@@ -867,11 +866,7 @@ function sendInvoice({
 
     playSound(SOUNDS.DONE);
 
-    const apiWrite = () => {
-        API.write(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData);
-    };
-
-    deferOrExecuteWrite(apiWrite, {
+    scheduleWrite(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData, {
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),

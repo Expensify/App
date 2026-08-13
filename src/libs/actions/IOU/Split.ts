@@ -9,7 +9,6 @@ import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillPara
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {calculateAmount as calculateIOUAmount, updateIOUOwnerAndTotal} from '@libs/IOUUtils';
 import * as Localize from '@libs/Localize';
@@ -48,6 +47,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {scheduleWrite} from '@libs/submitWriteSession';
 import {addOptimization, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
@@ -367,16 +367,11 @@ function splitBill({
     };
 
     playSound(SOUNDS.DONE);
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData);
-        },
-        {
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
-    );
+    scheduleWrite(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData, {
+        shouldDeferForSearch,
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+    });
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
@@ -485,16 +480,11 @@ function splitBillAndOpenReport({
     };
 
     playSound(SOUNDS.DONE);
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData);
-        },
-        {
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
-    );
+    scheduleWrite(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData, {
+        shouldDeferForSearch,
+        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
+        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+    });
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
@@ -887,10 +877,10 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    deferOrExecuteWrite(
-        () => {
-            API.write(WRITE_COMMANDS.START_SPLIT_BILL, parameters, {optimisticData, successData, failureData});
-        },
+    scheduleWrite(
+        WRITE_COMMANDS.START_SPLIT_BILL,
+        parameters,
+        {optimisticData, successData, failureData},
         {
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
@@ -2321,17 +2311,13 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         playSound(SOUNDS.DONE);
     }
 
-    const apiWrite = () => {
-        API.write(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData);
-    };
-
     const activeReportID = isMoneyRequestReport && report?.reportID ? report.reportID : parameters.chatReportID;
 
     if (isOneToTwoTransactionTransition(isMoneyRequestReport, getReportTransactions(moneyRequestReportID))) {
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 
-    deferOrExecuteWrite(apiWrite, {
+    scheduleWrite(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData, {
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),

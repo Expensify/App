@@ -1,4 +1,4 @@
-import {reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {reserveWriteSession} from '@libs/submitWriteSession';
 
 import CONST from '@src/CONST';
 
@@ -9,7 +9,7 @@ function reserveSearchChannelIfGlobalCreate(isFromGlobalCreate: boolean) {
     if (!isFromGlobalCreate || isReportTopmostSplitNavigator()) {
         return;
     }
-    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 }
 
 export default reserveSearchChannelIfGlobalCreate;

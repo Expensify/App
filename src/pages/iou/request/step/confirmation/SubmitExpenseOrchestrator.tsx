@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import DateUtils from '@libs/DateUtils';
-import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -15,6 +14,7 @@ import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserve
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
+import {cancelWriteSession, flushWriteSession, reserveWriteSession} from '@libs/submitWriteSession';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
@@ -216,7 +216,7 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         revealPreMountDestination(() => {
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
@@ -229,7 +229,7 @@ function SubmitExpenseOrchestrator({
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const afterTransition = () => {
             createTransaction(locationPermissionGranted, false);
@@ -245,7 +245,7 @@ function SubmitExpenseOrchestrator({
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
-        reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        reserveWriteSession(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
@@ -276,7 +276,7 @@ function SubmitExpenseOrchestrator({
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
@@ -371,16 +371,16 @@ function SubmitExpenseOrchestrator({
         const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
         if (isDestinationEmpty) {
-            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
         }
 
         const runAfterDismiss = () => {
-            // Flush signals readiness on the reserved channel. Since no real write was
-            // registered, the channel transitions to flushRequested. When createTransaction
-            // below calls deferOrExecuteWrite, it sees the flushed channel and executes
+            // Flush signals readiness on the reserved session. Since no real write was
+            // registered, the session transitions to flushRequested. When createTransaction
+            // below calls scheduleWrite, it sees the flushed session and executes
             // the write immediately instead of deferring.
             if (isDestinationEmpty) {
-                flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+                flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             }
             createTransaction(locationPermissionGranted, false);
             setIsConfirming(false);
@@ -398,7 +398,7 @@ function SubmitExpenseOrchestrator({
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
         if (isDestinationEmpty) {
-            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            cancelWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
         }
         handleDefaultSubmit(locationPermissionGranted);
     };

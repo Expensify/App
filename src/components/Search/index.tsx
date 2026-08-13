@@ -25,7 +25,6 @@ import {turnOffMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {setOptimisticDataForTransactionThreadPreview} from '@libs/actions/Search';
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Log from '@libs/Log';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
@@ -53,6 +52,7 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
+import {flushWriteSession, hasPendingWrite} from '@libs/submitWriteSession';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {
     cancelNavigateToReportsSpans,
@@ -413,9 +413,9 @@ function Search({
         // When mounting after the pre-insert fast path, the deferred write hasn't
         // been flushed yet. Triggering a search now would race with the CREATE
         // API call and return stale results that overwrite the optimistic row.
-        // Skip this call; the optimistic data from flushDeferredWrite will populate
+        // Skip this call; the optimistic data from flushWriteSession will populate
         // the list, and the next user-driven search will refresh from the server.
-        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
 
@@ -814,7 +814,7 @@ function Search({
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
-            callback: () => flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+            callback: () => flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
         });
     }, [onDestinationVisible]);
 
@@ -856,11 +856,11 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
-        if (!hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     });
 
     const onLayoutChart = useCallback(() => {
@@ -888,7 +888,7 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+            if (hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
                 setSkeletonWasDisplayed(true);
@@ -901,7 +901,7 @@ function Search({
             endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -911,7 +911,7 @@ function Search({
     // write channel is gone (write executed) and sortedData has updated, then
     // signals overlay readiness.
     useEffect(() => {
-        if (!wasRearmedRef.current || hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!wasRearmedRef.current || hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
             return;
         }
         wasRearmedRef.current = false;

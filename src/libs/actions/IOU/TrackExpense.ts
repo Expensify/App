@@ -6,9 +6,9 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
 import type {AddTrackedExpenseToPolicyParams, CreateWorkspaceParams, DeleteMoneyRequestParams, RequestMoneyParams, ShareTrackedExpenseParams, TrackExpenseParams} from '@libs/API/parameters';
+import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import getWorkspaceCreatedAnalyticsEvent from '@libs/getWorkspaceCreatedAnalyticsEvent';
@@ -62,6 +62,8 @@ import {
     updateReportPreview,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {scheduleWrite} from '@libs/submitWriteSession';
+import type {ScheduleWriteOptions} from '@libs/submitWriteSession';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
@@ -1411,25 +1413,6 @@ type ConvertTrackedWorkspaceParams = {
     reimbursable?: boolean;
 };
 
-type AddTrackedExpenseToPolicyParam = {
-    amount: number;
-    currency: string;
-    comment: string;
-    created: string;
-    merchant: string;
-    transactionID: string;
-    reimbursable: boolean;
-    actionableWhisperReportActionID: string | undefined;
-    moneyRequestReportID: string;
-    reportPreviewReportActionID: string;
-    modifiedExpenseReportActionID: string;
-    moneyRequestCreatedReportActionID: string | undefined;
-    moneyRequestPreviewReportActionID: string;
-    distance: number | undefined;
-    attendees: string | undefined;
-    shouldDeferAutoSubmit?: boolean;
-} & ConvertTrackedWorkspaceParams;
-
 type ConvertTrackedExpenseToRequestParams = {
     payerParams: {
         accountID: number;
@@ -1467,11 +1450,10 @@ type ConvertTrackedExpenseToRequestParams = {
     workspaceParams?: ConvertTrackedWorkspaceParams;
     currentUserAccountID: number;
     shouldDeferAutoSubmit?: boolean;
-};
 
-function addTrackedExpenseToPolicy(parameters: AddTrackedExpenseToPolicyParam, onyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) {
-    API.write(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, parameters, onyxData);
-}
+    /** When provided, the write is scheduled through submitWriteSession instead of firing immediately. */
+    scheduleOptions?: ScheduleWriteOptions;
+};
 
 /**
  * Returns `true` when `customUnit.quantity` (in `distanceUnit`) diverges from
@@ -1496,8 +1478,15 @@ function hasManualDistanceOverride(transaction: OnyxEntry<OnyxTypes.Transaction>
 }
 
 function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrackedExpenseToRequestParams) {
-    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit} = convertTrackedExpenseParams;
+    const {payerParams, transactionParams, chatParams, iouParams, onyxData, workspaceParams, currentUserAccountID, shouldDeferAutoSubmit, scheduleOptions} = convertTrackedExpenseParams;
     const {accountID: payerAccountID, email: payerEmail} = payerParams;
+    const dispatchWrite = <TCommand extends WriteCommand>(command: TCommand, params: ApiRequestCommandParameters[TCommand], writeOnyxData: OnyxData<BuildOnyxDataForMoneyRequestKeys>) => {
+        if (scheduleOptions) {
+            scheduleWrite(command, params, writeOnyxData, scheduleOptions);
+            return;
+        }
+        API.write(command, params, writeOnyxData);
+    };
     const {
         transactionID,
         actionableWhisperReportActionID,
@@ -1610,7 +1599,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
             ...workspaceParamsForAPI,
         };
 
-        addTrackedExpenseToPolicy(params, {optimisticData, successData, failureData});
+        dispatchWrite(WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY, params, {optimisticData, successData, failureData});
         return;
     }
 
@@ -1638,7 +1627,7 @@ function convertTrackedExpenseToRequest(convertTrackedExpenseParams: ConvertTrac
         customUnitRateID,
         waypoints: hasManualDistanceOverrideForRequest ? undefined : waypoints,
     };
-    API.write(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
+    dispatchWrite(WRITE_COMMANDS.CONVERT_TRACKED_EXPENSE_TO_REQUEST, parameters, {optimisticData, successData, failureData});
 }
 
 /**
@@ -1795,10 +1784,10 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         playSound(SOUNDS.DONE);
     }
 
-    // API.write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
-    // optimistic updates don't block the JS thread during the skeleton→content transition. The Search
+    // The API write is deferred until the Search screen's actual content (not skeleton) lays out, so Onyx
+    // optimistic updates don't block the JS thread during the skeleton-to-content transition. The Search
     // component flushes the registered write from its content onLayout callback. Wrapped in a closure
-    // so `deferOrExecuteWrite` can register it against a SEARCH/DISMISS_MODAL channel when the UI
+    // so `scheduleWrite` can register it against a SEARCH/DISMISS_MODAL session when the UI
     // reserved one; otherwise it runs synchronously below.
     let deferredAPIWrite: (() => void) | undefined;
 
@@ -1832,6 +1821,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                       }
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
+            const scheduleOptions: ScheduleWriteOptions = {
+                shouldDeferForSearch: false,
+                isRetry: requestMoneyInformation.isRetry,
+                optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            };
             deferredAPIWrite = () => {
                 convertTrackedExpenseToRequest({
                     payerParams: {
@@ -1870,6 +1865,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     workspaceParams,
                     currentUserAccountID: currentUserAccountIDParam,
                     shouldDeferAutoSubmit,
+                    scheduleOptions,
                 });
             };
             break;
@@ -1931,7 +1927,12 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             };
 
             deferredAPIWrite = () => {
-                API.write(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData);
+                scheduleWrite(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData, {
+                    shouldDeferForSearch: false,
+                    isRetry: requestMoneyInformation.isRetry,
+                    optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
+                    onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+                });
             };
         }
     }
@@ -1940,14 +1941,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         addPendingNewTransactionIDs(activeReportID, transaction.transactionID);
     }
 
-    if (deferredAPIWrite) {
-        deferOrExecuteWrite(deferredAPIWrite, {
-            shouldDeferForSearch: false,
-            isRetry: requestMoneyInformation.isRetry,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        });
-    }
+    deferredAPIWrite?.();
 
     if (!requestMoneyInformation.isRetry) {
         highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transaction.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
@@ -2895,11 +2889,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 parameters.actionableWhisperReportActionID = actionableWhisperReportActionIDParam;
             }
 
-            const apiWrite = () => {
-                API.write(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData);
-            };
-
-            deferOrExecuteWrite(apiWrite, {
+            scheduleWrite(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData, {
                 shouldDeferForSearch: false,
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,

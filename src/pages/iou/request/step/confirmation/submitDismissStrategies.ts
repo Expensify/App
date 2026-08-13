@@ -1,4 +1,3 @@
-import {flushDeferredWrite} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import getTopmostReportParams from '@libs/Navigation/helpers/getTopmostReportParams';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
@@ -6,6 +5,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
+import {flushWriteSession} from '@libs/submitWriteSession';
 import {endSubmitFollowUpActionSpan, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -17,19 +17,19 @@ function dismissOnly(runAfterDismiss: () => void) {
     Navigation.dismissModal({
         afterTransition: () => {
             endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             runAfterDismiss();
         },
     });
 }
 
-// Flush ordering: The DISMISS_MODAL deferred-write channel is flushed by
+// Flush ordering: The DISMISS_MODAL write session is flushed by
 // ReportScreen.useFlushDeferredWriteOnFocus (on focus gain) or TransitionTracker (wide layout
-// fallback). createTransaction (via runAfterDismiss) calls deferOrExecuteWrite
-// which either registers the write on the channel or executes immediately:
-//   - Focus fires first -> flushRequested is set -> deferOrExecuteWrite executes immediately
+// fallback). createTransaction (via runAfterDismiss) calls scheduleWrite
+// which either registers the write on the session or executes immediately:
+//   - Focus fires first -> flushRequested is set -> scheduleWrite executes immediately
 //   - TransitionTracker fires first -> write is registered -> focus flush executes it later
-// Both orderings are correct. The 5s safety timeout in deferredLayoutWrite covers
+// Both orderings are correct. The 5s safety timeout in submitWriteSession covers
 // edge cases where neither trigger fires (e.g. ReportScreen never mounts).
 function dismissNarrowWithReport(reportID: string, runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
@@ -54,7 +54,7 @@ function dismissWideToSameReport(reportID: string, runAfterDismiss: () => void) 
     Navigation.dismissModal({
         afterTransition: () => {
             endSubmitFollowUpActionSpan(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY, reportID);
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             runAfterDismiss();
         },
     });
@@ -64,7 +64,7 @@ function dismissWideToNewReport(reportID: string, runAfterDismiss: () => void) {
     setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, reportID);
     Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(reportID), {
         afterTransition: () => {
-            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             runAfterDismiss();
         },
     });

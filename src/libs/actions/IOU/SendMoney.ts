@@ -2,11 +2,9 @@ import type {PaymentMethodType} from '@components/KYCWall/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import * as API from '@libs/API';
 import type {SendMoneyParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
-import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {getReportActionHtml, getReportActionText} from '@libs/ReportActionsUtils';
@@ -20,6 +18,7 @@ import {
     getParsedComment,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
+import {scheduleWrite} from '@libs/submitWriteSession';
 import {addOptimization, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
@@ -554,15 +553,15 @@ function executeSendMoney(
     // Sound acknowledges the action immediately, even when the write is deferred.
     playSound(SOUNDS.DONE);
     const chatReportIDForNotification = params.chatReportID;
-    deferOrExecuteWrite(
-        () => {
-            API.write(writeCommand, params, {optimisticData, successData, failureData});
-            notifyNewAction(chatReportIDForNotification, undefined, true);
-        },
+    scheduleWrite(
+        writeCommand,
+        params,
+        {optimisticData, successData, failureData},
         {
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            onWriteStarted: () => notifyNewAction(chatReportIDForNotification, undefined, true),
         },
     );
 }
