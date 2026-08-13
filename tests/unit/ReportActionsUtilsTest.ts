@@ -50,6 +50,8 @@ import {
     getRenamedCardFeedMessage,
     getReportActionActorAccountID,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getSendMoneyFlowAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
@@ -5026,6 +5028,70 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequireCompanyCardsEnabledMessage(translateLocal, action);
             expect(result).toBe('disabled the company card purchases requirement');
+        });
+    });
+
+    describe('getRequiresCategoryMessage', () => {
+        it('should return enabled message when the category requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresCategoryMessage(translateLocal, action);
+            expect(result).toBe('enabled the expense categorization requirement');
+        });
+
+        it('should return disabled message when the category requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresCategoryMessage(translateLocal, action);
+            expect(result).toBe('disabled the expense categorization requirement');
+        });
+    });
+
+    describe('getRequiresTagMessage', () => {
+        it('should return enabled message when the tag requirement is enabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: true,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresTagMessage(translateLocal, action);
+            expect(result).toBe('enabled the expense tagging requirement');
+        });
+
+        it('should return disabled message when the tag requirement is disabled', () => {
+            const action = {
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: '1',
+                created: '',
+                originalMessage: {
+                    enabled: false,
+                },
+                message: [],
+            } as ReportAction;
+
+            const result = getRequiresTagMessage(translateLocal, action);
+            expect(result).toBe('disabled the expense tagging requirement');
         });
     });
 
