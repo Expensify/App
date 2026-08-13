@@ -1366,22 +1366,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
+                    Log.info('[BulkPay] Skipping report: item has no reportID');
                     continue;
                 }
 
                 const iouReport = getReportFromSearchSnapshot(item.reportID, searchData, allReports);
                 if (!iouReport) {
+                    Log.info('[BulkPay] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID: item.reportID});
                     continue;
                 }
 
                 const chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
                 if (!chatReport) {
+                    Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
+                        reportID: item.reportID,
+                        chatReportID: item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID,
+                    });
                     continue;
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
                 const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
                 if (!resolvedPayment) {
+                    Log.info('[BulkPay] Skipping report: could not resolve a payment method', false, {reportID: item.reportID, policyID: item.policyID, rawPaymentMethod});
                     continue;
                 }
 
@@ -1476,6 +1483,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                 });
                 paidReportCount += 1;
+            }
+
+            if (paidReportCount < itemsToPay.length) {
+                Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
             if (paidReportCount > 0) {
