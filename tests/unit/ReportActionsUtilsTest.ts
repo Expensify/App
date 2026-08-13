@@ -3780,6 +3780,85 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getDelegateSubmitMessage', () => {
+        const originalManagerEmail = 'manager@example.com';
+        const delegateEmail = 'delegate@example.com';
+        const thirdPartyEmail = 'thirdparty@example.com';
+
+        const buildDelegateSubmitAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+            created: '2026-06-05 10:00:00',
+            reportActionID: '1',
+            originalMessage: {
+                originalManager: originalManagerEmail,
+                delegate: delegateEmail,
+                ...originalMessage,
+            },
+        });
+
+        it('returns an empty string when originalManager is missing', () => {
+            const action = buildDelegateSubmitAction({originalManager: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns an empty string when delegate is missing', () => {
+            const action = buildDelegateSubmitAction({delegate: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns the wingman message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyAsOriginalManager', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the third-party message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicy', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the wingman message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegateEmail),
+            );
+        });
+
+        it('returns the third-party message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManagerEmail, delegateEmail),
+            );
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {

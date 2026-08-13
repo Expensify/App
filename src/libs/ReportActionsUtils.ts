@@ -4575,6 +4575,41 @@ function getChangedApproverActionMessage(translate: LocalizedTranslate, reportAc
     return translate('iou.changeApprover.changedApproverMessage', actorAccountID);
 }
 
+function getDelegateSubmitMessage(
+    translate: LocalizedTranslate,
+    reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>>,
+    currentUserEmail: string | undefined,
+): string {
+    const originalMessage = getOriginalMessage(reportAction);
+    const {originalManager, delegate, isOnPolicy = true} = originalMessage ?? {};
+
+    if (!originalManager || !delegate) {
+        Log.warn('ACTION_DELEGATE_SUBMIT action missing originalManager or delegate');
+        return '';
+    }
+
+    const isWingman = currentUserEmail === delegate;
+    const isOriginalManager = currentUserEmail === originalManager;
+
+    if (!isOnPolicy) {
+        if (isWingman) {
+            return translate('iou.changeApprover.delegateSubmitNotOnPolicyForWingman', originalManager);
+        }
+        if (isOriginalManager) {
+            return translate('iou.changeApprover.delegateSubmitNotOnPolicyAsOriginalManager', originalManager, delegate);
+        }
+        return translate('iou.changeApprover.delegateSubmitNotOnPolicy', originalManager, delegate);
+    }
+
+    if (isWingman) {
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManager);
+    }
+    if (isOriginalManager) {
+        return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegate);
+    }
+    return translate('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManager, delegate);
+}
+
 function getHarvestCreatedExpenseReportMessage(reportID: string | undefined, reportName: string, translate: LocalizedTranslate) {
     const reportUrl = getReportURLForCurrentContext(reportID);
     const resolvedName = reportName || (reportID ? `#${reportID}` : '');
@@ -5159,6 +5194,7 @@ export {
     getVacationer,
     getSubmittedTo,
     getChangedApproverActionMessage,
+    getDelegateSubmitMessage,
     getUpdatedOwnershipMessage,
     getUpdatedDefaultTitleMessage,
     getUpdatedAutoHarvestingMessage,
