@@ -1,8 +1,8 @@
 // Cases for the local rule, in the same shape as the upstream eslint-plugin-expensify tests, so
-// oxlint-probe/rule-tester replays them through both linters (npm run oxlint-rule-tester).
+// oxlint-migration/rule-tester replays them through both linters (npm run oxlint-rule-tester).
 import {RuleTester} from 'eslint';
 
-// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-probe harness imports it, so the extension is required
+// eslint-disable-next-line import/extensions -- Node resolves this file directly when the oxlint-migration harness imports it, so the extension is required
 import {create, meta} from '../no-useOnyx-dependencies-arg.js';
 
 const ruleTester = new RuleTester({
