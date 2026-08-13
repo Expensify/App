@@ -357,6 +357,6 @@ Use the `/agent-device` skill to drive the App on iOS and Android (simulators or
 
 ### With Backend Services
 
-- RESTful API communication
+- REST API communication
 - WebSocket connections via Pusher
 - Real-time synchronization
