@@ -165,17 +165,16 @@ function getUserFriendlyValue(value: string | undefined): UserFriendlyValue {
 
 /**
  * @private
- * Returns string value wrapped in quotes "", if the value contains space, &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set.
+ * Escapes the characters the parser would otherwise act on, then wraps the value in quotes "" if it contains a space,
+ * &nbsp; (no-breaking space), or a comma when shouldQuoteComma is set. A comma inside quotes needs no escape, so a
+ * value that held one before still serializes the same way and keeps its query hash.
  */
 function sanitizeSearchValue(str: string, shouldQuoteComma = false) {
-    if (str.includes(' ') || str.includes(`\xA0`) || (shouldQuoteComma && str.includes(','))) {
-        return `"${str}"`;
+    const escaped = str.replaceAll(/[\\"“”]/g, '\\$&');
+    if (escaped.includes(' ') || escaped.includes(`\xA0`) || (shouldQuoteComma && escaped.includes(','))) {
+        return `"${escaped}"`;
     }
-    return str;
-}
-
-function stripSearchValueQuotes(str: string) {
-    return str.replaceAll(/["“”]/g, '');
+    return escaped;
 }
 
 const syntaxRegex = new RegExp(`^-?(${Object.values(CONST.SEARCH.SEARCH_USER_FRIENDLY_KEYS).join('|')}|report-?field(-.+)+)[:><=].+$`);
@@ -458,11 +457,33 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
     return {value, isNegated};
 }
 
+let allPolicies: OnyxCollection<OnyxTypes.Policy> = {};
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.POLICY,
+    callback: (policies) => {
+        allPolicies = policies ?? {};
+    },
+});
+
+/**
+ * Resolves a typed workspace name to its ID. Names are not unique, so an ambiguous one is left alone rather than
+ * guessing which workspace was meant.
+ */
+function resolvePolicyIDFromName(value: string, policies: OnyxCollection<OnyxTypes.Policy>) {
+    if (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${value}`]) {
+        return value;
+    }
+
+    const matches = Object.values(policies ?? {}).filter((policy) => policy?.name?.toLowerCase() === value.toLowerCase());
+    return matches.length === 1 ? (matches.at(0)?.id ?? value) : value;
+}
+
 /**
  * @private
  * Returns an updated filter value for some query filters.
  * - for `AMOUNT` it formats value to "backend" amount
  * - for personal filters it tries to substitute any user emails with accountIDs
+ * - for `POLICY_ID` it tries to substitute an unambiguous workspace name with its ID
  */
 function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string | string[], shouldSkipAmountConversion = false) {
     if (AMOUNT_FILTER_KEYS.includes(filterName as SearchAmountFilterKeys)) {
@@ -491,6 +512,13 @@ function getUpdatedFilterValue(filterName: SyntaxFilterKey, filterValue: string 
         }
 
         return filterValue.map((email) => getPersonalDetailByEmail(email)?.accountID.toString() ?? email);
+    }
+
+    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID) {
+        if (typeof filterValue === 'string') {
+            return resolvePolicyIDFromName(filterValue, allPolicies);
+        }
+        return filterValue.map((value) => resolvePolicyIDFromName(value, allPolicies));
     }
 
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.REPORT_ID || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_ID) {
@@ -2611,8 +2639,8 @@ export {
     buildQueryStringFromFilterFormValues,
     buildFilterFormValuesFromQuery,
     buildCannedSearchQuery,
+    resolvePolicyIDFromName,
     sanitizeSearchValue,
-    stripSearchValueQuotes,
     getQueryWithUpdatedValues,
     getKeywordQueryWithCurrentSearchContext,
     getCurrentSearchQueryJSON,
