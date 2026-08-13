@@ -41,6 +41,9 @@ jest.mock('@libs/openTravelDotLink', () => ({
     shouldOpenTravelDotLinkWeb: jest.fn(() => true),
 }));
 
+const mockShowConfirmModal = jest.fn<void, [{prompt?: string}]>();
+jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()})));
+
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -185,7 +188,7 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('sends the user to the trips page instead of opening travel when the default workspace has no travel', async () => {
+    it('blocks opening travel when the default workspace has no travel', async () => {
         await seedTravelWorkspaces(MOCK_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
@@ -194,7 +197,7 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openTravelDotLink).not.toHaveBeenCalled();
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(TRAVEL_POLICY_ID));
+        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toContain('default workspace');
     });
 
     it('opens travel when the travel-enabled workspace is the default one', async () => {
