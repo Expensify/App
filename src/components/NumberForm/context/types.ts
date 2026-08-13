@@ -9,7 +9,7 @@ type NumberFormStateContextValue = {
 
 type NumberFormActionsContextValue = {
     onBlur?: BaseTextInputProps['onBlur'];
-    setValue: (value: string, options?: {notify?: boolean; key?: string}) => void;
+    setValue: (value: string, options?: {notify?: boolean}) => void;
 };
 
 type NumberFormContext = NumberFormStateContextValue & NumberFormActionsContextValue;

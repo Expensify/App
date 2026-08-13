@@ -14,14 +14,10 @@ function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorT
         setCurrentValue(value);
     }
 
-    const setValue = (nextValue: string, options?: {notify?: boolean; key?: string}) => {
+    const setValue = (nextValue: string, options?: {notify?: boolean}) => {
         setCurrentValue(nextValue);
         if (options?.notify !== false) {
-            if (options?.key === undefined) {
-                onInputChange?.(nextValue);
-            } else {
-                onInputChange?.(nextValue, options.key);
-            }
+            onInputChange?.(nextValue);
         }
     };
 

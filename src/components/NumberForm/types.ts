@@ -9,7 +9,7 @@ type NumberFormProps = {
     value?: string;
 
     /** Called when a composed primitive changes the canonical value. */
-    onInputChange?: (value: string, key?: string) => void;
+    onInputChange?: (value: string) => void;
 
     /** Describes whether the negative sign is stored in the value or managed externally. */
     negativeMode?: NumberFormNegativeMode;
