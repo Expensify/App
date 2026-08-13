@@ -87,6 +87,12 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         linkPlaidToBankAccount(bankAccountID, publicToken, account?.mask, policyID);
     };
 
+    const onTryAgain = () => {
+        clearLinkPlaidBankAccountErrors(bankAccountID);
+        setHasSubmitted(false);
+        clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
+    };
+
     const handlePlaidSuccess = ({publicToken, accounts}: {publicToken: string; accounts: PlaidLinkAccount[]}) => {
         submit(publicToken, accounts.at(0));
     };
@@ -101,6 +107,26 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     shouldShowButton
                     onButtonPress={() => Navigation.goBack(backPath)}
                     buttonText={translate('common.buttonConfirm')}
+                    containerStyle={styles.h100}
+                />
+            </ScrollView>
+        );
+    }
+
+    if (hasError) {
+        return (
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ConfirmationPage
+                    heading={translate('walletPage.linkPlaid.failureHeading')}
+                    illustration={illustrations.BrokenMagnifyingGlass}
+                    descriptionComponent={
+                        <View style={[styles.renderHTML, styles.textAlignCenter, styles.mh5]}>
+                            <RenderHTML html={translate('walletPage.linkPlaid.failureDescription')} />
+                        </View>
+                    }
+                    shouldShowButton
+                    onButtonPress={onTryAgain}
+                    buttonText={translate('common.tryAgain')}
                     containerStyle={styles.h100}
                 />
             </ScrollView>
