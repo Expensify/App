@@ -14,6 +14,7 @@ import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirm
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -58,6 +59,8 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
     const role = canMemberAssignRole(policy, currentUserLogin, roleFromOnyx) ? roleFromOnyx : CONST.POLICY.ROLE.USER;
     const [isImporting, setIsImporting] = useState(false);
     const {isOffline} = useNetwork();
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const personalDetails = usePersonalDetails();
     const {setIsClosing} = useCloseImportPage();
@@ -110,7 +113,7 @@ function ImportedMembersConfirmationPage({route}: ImportedMembersConfirmationPag
         setIsClosing(true);
         setIsImporting(false);
         closeImportPage();
-        if (isWorkflowsImport) {
+        if (isWorkflowsImport && isRulesRevampEnabled) {
             Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
         }
         Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID));
