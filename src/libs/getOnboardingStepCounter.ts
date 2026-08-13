@@ -22,7 +22,6 @@ type OnboardingFlowContext = {
 
 type OnboardingStepResult = {
     stepCounter: StepCounterParams;
-    progressBarPercentage: number;
 };
 
 const {ONBOARDING} = SCREENS;
@@ -64,9 +63,6 @@ const qualifierSuffixes = {
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
 
-const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.length));
-const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
-
 function getAdjustedSuffix(suffix: OnboardingScreen[], context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isAccountingEnabled === false) {
         return suffix.filter((screen) => screen !== ONBOARDING.ACCOUNTING);
@@ -96,7 +92,7 @@ function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     }
     if (context.hasAccessibleDomainPolicies) {
         // A private-domain user reaches exactly one of PRIVATE_DOMAIN / WORKSPACES before EMPLOYEES, and only when it
-        // is actually shown. Unvalidated users see PRIVATE_DOMAIN and skip straight to EMPLOYEES on the magic-code
+        // is actually shown. Unvalidated users see PRIVATE_DOMAIN and skip straight to EMPLOYEES on the validateCode
         // screen. Validated users skip PRIVATE_DOMAIN and see WORKSPACES only when joinable workspaces exist; with
         // none, that screen auto-skips too. Keeping a never-traversed screen in the flow makes the EMPLOYEES back
         // button resolve to a blank, never-visited screen and inflates the step counter.
@@ -137,11 +133,8 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
         if (index === -1) {
             return undefined;
         }
-        const isPrivateDomain = !context.isFromPublicDomain && !!context.hasAccessibleDomainPolicies;
-        const maxFlowLength = prefix.length + 1 + (isPrivateDomain ? maxPrivateSuffixLength : maxSuffixLength);
         return {
             stepCounter: {step: index + 1},
-            progressBarPercentage: Math.round(((index + 1) / maxFlowLength) * 100),
         };
     }
 
@@ -151,7 +144,6 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     }
     return {
         stepCounter: {step: index + 1, total: flow.length},
-        progressBarPercentage: Math.round(((index + 1) / flow.length) * 100),
     };
 }
 

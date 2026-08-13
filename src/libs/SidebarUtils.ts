@@ -1,5 +1,6 @@
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {ReportsToDisplayInLHN} from '@hooks/useSidebarOrderedReports';
 
 import CONST from '@src/CONST';
@@ -24,6 +25,7 @@ import type PriorityMode from '@src/types/onyx/PriorityMode';
 import type Report from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
@@ -32,7 +34,7 @@ import {Str} from 'expensify-common';
 import type {OptionData} from './ReportUtils';
 
 import {isAnonymousUser} from './actions/Session';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
+import {getAddAgentRuleMessage, getDeleteAgentRuleMessage, getUpdateAgentRuleMessage} from './AgentRuleChangeLogUtils';
 import {formatList} from './Localize';
 import {
     getLastActorDisplayName,
@@ -95,6 +97,8 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getRoomAvatarUpdatedMessage,
     getSetAutoJoinMessage,
     getSettlementAccountLockedMessage,
@@ -144,6 +148,7 @@ import {
     getWorkspaceUpdateFieldMessage,
     isActionOfType,
     isCardIssuedAction,
+    isCategoryModificationAction,
     isInviteOrRemovedAction,
     isLeavePolicyAction,
     isOldDotReportAction,
@@ -152,7 +157,7 @@ import {
     isTagModificationAction,
     isTaskAction,
 } from './ReportActionsUtils';
-import {deprecatedGetReportName} from './ReportNameUtils';
+import {deprecatedGetReportName, getReportName} from './ReportNameUtils';
 import {
     canUserPerformWriteAction as canUserPerformWriteActionUtil,
     excludeParticipantsForDisplay,
@@ -223,13 +228,14 @@ type WelcomeMessageParams = {
     translate: LocalizedTranslate;
     localeCompare: LocaleContextProps['localeCompare'];
     conciergeReportID: string | undefined;
-    reportAttributes?: ReportAttributesDerivedValue['reports'];
+    derivedReportName?: string;
     isReportArchived?: boolean;
     reportDetailsLink?: string;
     shouldShowUsePlusButtonText?: boolean;
     additionalText?: string;
     isTrackIntentUser?: boolean;
     currentUserAccountID?: number;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function compareStringDates(a: string, b: string): 0 | 1 | -1 {
@@ -755,6 +761,8 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
+// TODO: Refactor to use options object parameter to reduce parameter count
+// eslint-disable-next-line @typescript-eslint/max-params
 function getReasonAndReportActionThatHasRedBrickRoad(
     report: Report,
     chatReport: OnyxEntry<Report>,
@@ -763,6 +771,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
     reportErrors: Errors,
     transactions: OnyxCollection<Transaction>,
     isOffline: boolean,
+    currentUserAccountID: number,
     transactionViolations?: OnyxCollection<TransactionViolation[]>,
     isReportArchived = false,
     reports?: OnyxCollection<Report>,
@@ -780,7 +789,7 @@ function getReasonAndReportActionThatHasRedBrickRoad(
         };
     }
 
-    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, isReportArchived, reports);
+    const {reportAction} = getAllReportActionsErrorsAndReportActionThatRequiresAttention(report, reportActions, transactions, currentUserAccountID, isReportArchived, reports);
     const errors = reportErrors;
     const hasErrors = Object.keys(errors).length !== 0;
 
@@ -817,6 +826,8 @@ function getOptionData({
     card,
     lastAction,
     translate,
+    dateFnsLocale,
+    convertToDisplayString,
     localeCompare,
     isReportArchived,
     lastActionReport,
@@ -828,6 +839,7 @@ function getOptionData({
     policyTags,
     currentUserLogin,
     isTrackIntentUser,
+    formatPhoneNumber,
 }: {
     report: OnyxEntry<Report>;
     oneTransactionThreadReport: OnyxEntry<Report>;
@@ -842,6 +854,8 @@ function getOptionData({
     card: Card | undefined;
     lastAction: ReportAction | undefined;
     translate: LocalizedTranslate;
+    dateFnsLocale: DateFnsLocale | undefined;
+    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     localeCompare: LocaleContextProps['localeCompare'];
     isReportArchived: boolean | undefined;
     lastActionReport: OnyxEntry<Report>;
@@ -853,6 +867,7 @@ function getOptionData({
     policyTags?: OnyxEntry<PolicyTagLists>;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): OptionData | undefined {
     // When a user signs out, Onyx is cleared. Due to the lazy rendering with a virtual list, it's possible for
     // this method to be called after the Onyx data has been cleared out. In that case, it's fine to do
@@ -974,7 +989,7 @@ function getOptionData({
         (participantPersonalDetailList || []).slice(0, 10),
         hasMultipleParticipants,
         localeCompare,
-        formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
         translate,
         undefined,
         isSelfDM(report),
@@ -1001,9 +1016,11 @@ function getOptionData({
     if (!lastMessageTextFromReport) {
         lastMessageTextFromReport = getLastMessageTextForReport({
             translate,
+            dateFnsLocale,
             report,
             personalDetails,
             lastActorDetails,
+            conciergeReportID,
             movedFromReport,
             movedToReport,
             policy,
@@ -1094,12 +1111,7 @@ function getOptionData({
             result.alternateText = Parser.htmlToText(getCompanyCardConnectionBrokenMessage(translate, lastAction));
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE)) {
             result.alternateText = Parser.htmlToText(getPlaidBalanceFailureMessage(translate, lastAction));
-        } else if (
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY) ||
-            isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME)
-        ) {
+        } else if (lastAction?.actionName && isCategoryModificationAction(lastAction.actionName)) {
             result.alternateText = getWorkspaceCategoryUpdateMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORIES)) {
             result.alternateText = getWorkspaceCategoriesUpdatedMessage(translate, lastAction);
@@ -1132,9 +1144,9 @@ function getOptionData({
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES)) {
             result.alternateText = getWorkspaceCustomUnitRateImportedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateAddedMessage(translate, dateFnsLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE)) {
-            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, lastAction);
+            result.alternateText = getWorkspaceCustomUnitRateUpdatedMessage(translate, dateFnsLocale, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE)) {
             result.alternateText = getWorkspaceCustomUnitRateDeletedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE)) {
@@ -1155,10 +1167,14 @@ function getOptionData({
             result.alternateText = getWorkspaceAttendeeTrackingUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED) {
             result.alternateText = getRequireCompanyCardsEnabledMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY) {
+            result.alternateText = getRequiresCategoryMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
+            result.alternateText = getRequiresTagMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
-            result.alternateText = getAutoReimbursementMessage(translate, lastAction);
+            result.alternateText = getAutoReimbursementMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
             result.alternateText = getCategoryTaxRateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY) {
@@ -1182,11 +1198,11 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_ADDRESS) {
             result.alternateText = getCompanyAddressUpdateMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoReceiptMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT_NO_ITEMIZED_RECEIPT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountNoItemizedReceiptMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AMOUNT) {
-            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastAction);
+            result.alternateText = getPolicyChangeLogMaxExpenseAmountMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MAX_EXPENSE_AGE) {
             result.alternateText = getPolicyChangeLogMaxExpenseAgeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_BILLABLE) {
@@ -1198,7 +1214,7 @@ function getOptionData({
         } else if (isLeavePolicyAction(lastAction)) {
             result.alternateText = getPolicyChangeLogEmployeeLeftMessage(translate, lastAction, getPersonalDetailsByID(lastAction.actorAccountID, personalDetails), true);
         } else if (isCardIssuedAction(lastAction)) {
-            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate});
+            result.alternateText = getCardIssuedMessage({reportAction: lastAction, expensifyCard: card, translate, currentUserAccountID});
         } else if (lastAction && isOldDotReportAction(lastAction)) {
             result.alternateText = getMessageOfOldDotReportAction(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.UPDATE_ROOM_DESCRIPTION) {
@@ -1247,8 +1263,14 @@ function getOptionData({
             result.alternateText = getUpdateExpensifyCardRuleMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_EXPENSIFY_CARD_RULE) {
             result.alternateText = getRemoveExpensifyCardRuleMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getAddAgentRuleMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getUpdateAgentRuleMessage(translate, lastAction));
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_AGENT_RULE) {
+            result.alternateText = StringUtils.lineBreaksToSpaces(getDeleteAgentRuleMessage(translate, lastAction));
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MANUAL_APPROVAL_THRESHOLD) {
-            result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction);
+            result.alternateText = getUpdatedManualApprovalThresholdMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_BUDGET) {
             result.alternateText = getAddedBudgetMessage(translate, lastAction, policy);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_BUDGET) {
@@ -1258,7 +1280,7 @@ function getOptionData({
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED) {
             result.alternateText = getUpdatedTimeEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_RATE) {
-            result.alternateText = getUpdatedTimeRateMessage(translate, lastAction);
+            result.alternateText = getUpdatedTimeRateMessage(translate, lastAction, convertToDisplayString);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_PROHIBITED_EXPENSES) {
             result.alternateText = getUpdatedProhibitedExpensesMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REIMBURSEMENT_CHOICE) {
@@ -1324,10 +1346,11 @@ function getOptionData({
                         translate,
                         localeCompare,
                         conciergeReportID,
-                        reportAttributes: reportAttributesDerived,
+                        derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                         isReportArchived,
                         isTrackIntentUser,
                         currentUserAccountID,
+                        formatPhoneNumber,
                     }).messageText ?? translate('report.noActivityYet'),
                 );
             }
@@ -1344,8 +1367,9 @@ function getOptionData({
                     translate,
                     localeCompare,
                     conciergeReportID,
-                    reportAttributes: reportAttributesDerived,
+                    derivedReportName: reportAttributesDerived?.[report.reportID]?.reportName,
                     isReportArchived,
+                    formatPhoneNumber,
                     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 }).messageText || translate('report.noActivityYet'),
             );
@@ -1390,7 +1414,7 @@ function getOptionData({
 
     const reportIcons = getIcons(
         report,
-        formatPhoneNumberPhoneUtils,
+        formatPhoneNumber,
         translate,
         personalDetails,
         personalDetail?.avatar,
@@ -1430,13 +1454,14 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         translate,
         localeCompare,
         conciergeReportID,
-        reportAttributes,
+        derivedReportName,
         isReportArchived = false,
         reportDetailsLink = '',
         shouldShowUsePlusButtonText = false,
         additionalText = '',
         isTrackIntentUser = false,
         currentUserAccountID,
+        formatPhoneNumber,
     } = params;
 
     const welcomeMessage: WelcomeMessage = {};
@@ -1445,7 +1470,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
     }
 
     if (isChatRoom(report)) {
-        return getRoomWelcomeMessage(translate, report, invoiceReceiverPolicy, reportAttributes, isReportArchived, reportDetailsLink);
+        return getRoomWelcomeMessage({translate, report, invoiceReceiverPolicy, derivedReportName, isReportArchived, reportDetailsLink, formatPhoneNumber});
     }
 
     if (isPolicyExpenseChat(report)) {
@@ -1458,8 +1483,8 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         } else {
             welcomeMessage.messageHtml = translate(
                 'reportActionsView.beginningOfChatHistoryPolicyExpenseChat',
-                getPolicyName({report, policy}),
-                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}),
+                getPolicyName({report, policy, unavailableTranslation: translate('workspace.common.unavailable')}),
+                getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber, translate}),
             );
             welcomeMessage.messageText = Parser.htmlToText(welcomeMessage.messageHtml);
         }
@@ -1476,7 +1501,7 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
         return welcomeMessage;
     }
     const isMultipleParticipant = participantPersonalDetailList.length > 1;
-    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumberPhoneUtils, translate);
+    const displayNamesWithTooltips = getDisplayNamesWithTooltips(participantPersonalDetailList, isMultipleParticipant, localeCompare, formatPhoneNumber, translate);
 
     if (!displayNamesWithTooltips.length) {
         return welcomeMessage;
@@ -1503,17 +1528,28 @@ function getWelcomeMessage(params: WelcomeMessageParams): WelcomeMessage {
 /**
  * Get welcome message based on room type
  */
-function getRoomWelcomeMessage(
-    translate: LocalizedTranslate,
-    report: OnyxEntry<Report>,
-    invoiceReceiverPolicy: OnyxEntry<Policy>,
-    reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
+type GetRoomWelcomeMessageParams = {
+    translate: LocalizedTranslate;
+    report: OnyxEntry<Report>;
+    invoiceReceiverPolicy: OnyxEntry<Policy>;
+    derivedReportName: string | undefined;
+    isReportArchived?: boolean;
+    reportDetailsLink?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
+
+function getRoomWelcomeMessage({
+    translate,
+    report,
+    invoiceReceiverPolicy,
+    derivedReportName,
     isReportArchived = false,
     reportDetailsLink = '',
-): WelcomeMessage {
+    formatPhoneNumber,
+}: GetRoomWelcomeMessageParams): WelcomeMessage {
     const welcomeMessage: WelcomeMessage = {};
-    const workspaceName = getPolicyName({report});
-    const reportName = deprecatedGetReportName(report ?? undefined, reportAttributes);
+    const workspaceName = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
+    const reportName = getReportName(report ?? undefined, derivedReportName);
 
     if (report?.description) {
         welcomeMessage.messageHtml = getReportDescription(report);
@@ -1532,9 +1568,9 @@ function getRoomWelcomeMessage(
     } else if (isInvoiceRoom(report)) {
         const payer =
             report?.invoiceReceiver?.type === CONST.REPORT.INVOICE_RECEIVER_TYPE.INDIVIDUAL
-                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
+                ? getDisplayNameForParticipant({accountID: report?.invoiceReceiver?.accountID, formatPhoneNumber, translate})
                 : invoiceReceiverPolicy?.name;
-        const receiver = getPolicyName({report});
+        const receiver = getPolicyName({report, unavailableTranslation: translate('workspace.common.unavailable')});
         welcomeMessage.messageHtml = translate('reportActionsView.beginningOfChatHistoryInvoiceRoom', payer ?? '', receiver);
     } else {
         // Message for user created rooms or other room types.

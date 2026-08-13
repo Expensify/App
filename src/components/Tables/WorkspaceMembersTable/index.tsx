@@ -4,7 +4,7 @@ import Table from '@components/Table';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -203,6 +203,8 @@ export default function WorkspaceMembersTable({
         return results.length > 0;
     };
 
+    const approverLogins = getPolicyApproverLogins(policy);
+
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
             return true;
@@ -213,8 +215,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isApprover = isPolicyApprover(policy, item.login);
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && approverLogins.has(item.login)) {
             return true;
         }
 

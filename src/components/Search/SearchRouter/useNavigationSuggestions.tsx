@@ -1,5 +1,5 @@
 /**
- * Builds the top-level and Spend navigation suggestions shown in the Search Router.
+ * Builds the top-level, Spend, and Create navigation suggestions shown in the Search Router.
  */
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -19,6 +19,8 @@ import type {SearchTypeMenuItem, SearchTypeMenuSection} from '@libs/SearchUIUtil
 
 import navigationRef from '@navigation/navigationRef';
 
+import variables from '@styles/variables';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
@@ -31,6 +33,7 @@ import React from 'react';
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
@@ -126,6 +129,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const createItems = useCreateNavigationSuggestions(query);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
 
@@ -149,8 +153,9 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
             <TextWithIconCell
                 text={translate('common.spend')}
                 icon={icons.ReceiptMultiple}
+                iconSize={variables.fontSizeLabel}
                 showTooltip={false}
-                textStyle={styles.textLabelSupporting}
+                textStyle={[styles.textLabelSupporting, styles.label]}
             />
         ),
         getItemText: (item) => translate(item.translationPath),
@@ -158,7 +163,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems], localeCompare);
+    return buildNavigationSuggestions(query, [topLevelItems, spendItems, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;

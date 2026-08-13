@@ -37,7 +37,6 @@ function ExpenseReportListItemRowWide({
     isActionLoading,
     chatReport,
     containerStyle,
-    showTooltip,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
@@ -65,7 +64,6 @@ function ExpenseReportListItemRowWide({
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <ExpenseReportListItemAvatar
                 item={item}
-                showTooltip={showTooltip}
                 isHovered={isHovered}
                 isFocused={isFocused}
                 isLargeScreenWidth
@@ -86,6 +84,7 @@ function ExpenseReportListItemRowWide({
                     date={item.submitted ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -95,6 +94,7 @@ function ExpenseReportListItemRowWide({
                     date={item.approved ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),
@@ -125,6 +125,7 @@ function ExpenseReportListItemRowWide({
                     date={item.exported ?? ''}
                     showTooltip
                     isLargeScreenWidth
+                    shouldUseLocalTimeZone
                 />
             </View>
         ),

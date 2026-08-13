@@ -15,11 +15,11 @@ namespace margelo::nitro::utils {
   using namespace facebook;
 
   /**
-   * The C++ JNI bridge between the C++ enum "ContactFields" and the the Kotlin enum "ContactFields".
+   * The C++ JNI bridge between the C++ enum "ContactFields" and the Kotlin enum "ContactFields".
    */
   struct JContactFields final: public jni::JavaClass<JContactFields> {
   public:
-    static auto constexpr kJavaDescriptor = "Lcom/margelo/nitro/utils/ContactFields;";
+    static constexpr auto kJavaDescriptor = "Lcom/margelo/nitro/utils/ContactFields;";
 
   public:
     /**

@@ -1,11 +1,10 @@
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import ValidateCodeForm from '@components/ValidateCodeActionModal/ValidateCodeForm';
 
 import useLocalize from '@hooks/useLocalize';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -23,7 +22,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useCallback, useEffect, useState} from 'react';
@@ -32,7 +30,7 @@ import {View} from 'react-native';
 import type {BaseOnboardingPrivateDomainProps} from './types';
 
 function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboardingPrivateDomainProps) {
-    const [hasMagicCodeBeenSent, setHasMagicCodeBeenSent] = useState(false);
+    const [hasValidateCodeBeenSent, setHasValidateCodeBeenSent] = useState(false);
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
@@ -51,7 +49,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
     const joinablePoliciesLength = getVisibleJoinablePoliciesCount(joinablePolicies, canUseSubmit2026);
 
     const {onboardingIsMediumOrLargerScreenWidth} = useResponsiveLayout();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.PRIVATE_DOMAIN);
 
     const email = session?.email ?? '';
     const domain = email.split('@').at(1) ?? '';
@@ -137,12 +134,9 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={false}
             />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
@@ -161,15 +155,15 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
                         validateCodeActionErrorField="getAccessiblePolicies"
                         handleSubmitForm={(code) => {
                             getAccessiblePolicies(code);
-                            setHasMagicCodeBeenSent(false);
+                            setHasValidateCodeBeenSent(false);
                         }}
                         sendValidateCode={() => {
                             sendValidateCode();
-                            setHasMagicCodeBeenSent(true);
+                            setHasValidateCodeBeenSent(true);
                         }}
                         clearError={() => clearGetAccessiblePoliciesErrors()}
                         validateError={getAccessiblePoliciesAction?.errors}
-                        hasMagicCodeBeenSent={hasMagicCodeBeenSent}
+                        hasValidateCodeBeenSent={hasValidateCodeBeenSent}
                         shouldShowSkipButton
                         handleSkipButtonPress={() => navigateToNextOnboardingStep(route.params?.backTo)}
                         buttonStyles={[styles.flex2, styles.justifyContentEnd]}
