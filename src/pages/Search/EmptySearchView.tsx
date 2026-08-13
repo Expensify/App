@@ -7,6 +7,7 @@ import Text from '@components/Text';
 import TextLink from '@components/TextLink';
 
 import useCreateReport from '@hooks/useCreateReport';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -135,7 +136,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -146,6 +147,7 @@ function EmptySearchViewContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID} = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, accountID, '');
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [hasTransactions] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION, {
@@ -178,6 +180,7 @@ function EmptySearchViewContent({
             defaultChatEnabledPolicy,
             betas,
             isTrackIntentUser,
+            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
         );
@@ -217,7 +220,10 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
+            subtitle: translate(
+                'search.searchResults.emptyViolationSnapshotResults.subtitle',
+                DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone, dateFnsLocale),
+            ),
         };
     }
 

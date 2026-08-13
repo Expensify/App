@@ -1,3 +1,4 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarButtonWithIcon from '@components/AvatarButtonWithIcon';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -152,6 +153,14 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         Navigation.navigate(ROUTES.AGENT_REPORT.getRoute(optimisticReportID), {forceReplace: true});
     };
 
+    const agentAvatar = avatarSource ? (
+        <UserAvatar
+            source={avatarSource}
+            size={CONST.AVATAR_SIZE.XXXX_LARGE}
+            accountID={CONST.DEFAULT_NUMBER_ID}
+        />
+    ) : null;
+
     return (
         <ScreenWrapper
             testID={AddAgentPage.displayName}
@@ -181,10 +190,8 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
                     <View style={[styles.alignItemsCenter]}>
                         <AvatarButtonWithIcon
                             text={translate('addAgentPage.editAvatar')}
-                            source={avatarSource}
+                            avatar={agentAvatar}
                             onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD_AVATAR)}
-                            size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                            avatarStyle={styles.alignSelfCenter}
                             editIcon={expensifyIcons.Pencil}
                             editIconStyle={styles.smallEditIconAccount}
                             sentryLabel={CONST.SENTRY_LABEL.ADD_AGENT_PAGE.AVATAR}
@@ -229,12 +236,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'AddAgentPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (

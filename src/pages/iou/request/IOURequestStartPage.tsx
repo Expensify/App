@@ -145,7 +145,11 @@ function IOURequestStartPage({
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
     // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
-    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
+    const [latchedDraftStaleness, setLatchedDraftStaleness] = useState<{reportID: string; isStale: boolean}>();
+    if (!isLoadingTransaction && latchedDraftStaleness?.reportID !== reportID) {
+        setLatchedDraftStaleness({reportID, isStale: !!transaction?.reportID && transaction.reportID !== reportID});
+    }
+    const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
 
     const transactionRequestType = useMemo(() => {
         if (transaction?.iouRequestType && !isStaleTransactionDraft) {
@@ -244,7 +248,6 @@ function IOURequestStartPage({
                 <ActivityIndicator
                     testID="manualTabPendingReset"
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
                 />
             </View>
         );
