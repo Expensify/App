@@ -63,8 +63,8 @@ jest.mock('@libs/submitWriteSession', () => ({
     hasPendingWriteForReport: () => false,
     getOptimisticWatchKey: () => undefined,
     scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
-        const {write} = jest.requireActual<typeof import('@libs/API')>('@libs/API');
-        write(command as never, params as never, onyxData as never);
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- requireActual is untyped by design in a mock factory
+        jest.requireActual('@libs/API').write(command, params, onyxData);
         options?.onWriteStarted?.();
     },
     resetForTesting: jest.fn(),

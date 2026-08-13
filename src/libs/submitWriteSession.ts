@@ -1,17 +1,17 @@
-import * as API from '@libs/API';
-import type {ReleaseReason, WriteReadyBarrier} from '@libs/API';
-import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
-
 import CONST from '@src/CONST';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import type {ReleaseReason, WriteReadyBarrier} from './API';
+import type {ApiRequestCommandParameters, WriteCommand} from './API/types';
+
+import {write, writeWhenReady} from './API';
 import Log from './Log';
 
 /**
- * Coordinates deferred API.writeWhenReady() calls with screen content layout transitions.
+ * Coordinates deferred writeWhenReady() calls with screen content layout transitions.
  * Successor to deferredLayoutWrite.ts - same external shape and timing (reserve at dispatch time,
  * flush from the destination's layout/focus lifecycle), but write dispatch goes through
  * API.writeWhenReady instead of a bare setTimeout + callback.
@@ -147,7 +147,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 if (optimisticWatchKey) {
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
-                API.write(command, params, onyxData);
+                write(command, params, onyxData);
                 onWriteStarted?.();
                 return;
             }
@@ -166,7 +166,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
     const session: Session = {release: () => release(), optimisticWatchKey, destinationReportID, isReserved: false, flushRequested: false};
     sessions.set(key, session);
 
-    API.writeWhenReady(command, params, onyxData, barrier, {
+    writeWhenReady(command, params, onyxData, barrier, {
         safetyTimeoutMs: DEFAULT_SAFETY_TIMEOUT_MS,
         onRelease: (reason: ReleaseReason) => {
             // A later scheduleWrite call may have already superseded this session (flush-and-replace) -
@@ -233,7 +233,7 @@ function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
         return;
     }
 
-    API.write(command, params, onyxData);
+    write(command, params, onyxData);
     onWriteStarted?.();
 }
 

@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {WriteReadyBarrier} from '@libs/API';
+import type {WriteReadyBarrier, WriteWhenReadyOptions} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -30,6 +30,13 @@ const mockRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransition
 type DeferWriteOnyxData = Parameters<typeof API.writeWhenReady>[2];
 function deferWrite(barrier?: WriteReadyBarrier, safetyTimeoutMs?: number, onyxData: DeferWriteOnyxData = {}) {
     return API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, barrier, safetyTimeoutMs);
+}
+
+// Same as deferWrite, but for the onRelease/onWriteStarted describe block, which needs the options-object
+// overload rather than a bare safetyTimeoutMs number. Routed through one helper (rather than each test
+// calling API.writeWhenReady directly) to keep the no-multiple-api-calls token count down across this describe block.
+function deferWriteWithOptions(barrier: WriteReadyBarrier, options: WriteWhenReadyOptions, onyxData: DeferWriteOnyxData = {}) {
+    return API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, barrier, options);
 }
 
 // Built at module scope: the no-multiple-api-calls lint rule counts `API` tokens per function body, and the
@@ -485,7 +492,7 @@ describe('API.writeWhenReady', () => {
                 return Promise.resolve();
             });
 
-            await API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onRelease, onWriteStarted});
+            await deferWriteWithOptions(() => Promise.resolve(), {onRelease, onWriteStarted});
             await flushMicrotasks(pushHappened);
 
             expect(onRelease).toHaveBeenCalledWith('success');
@@ -497,7 +504,7 @@ describe('API.writeWhenReady', () => {
             jest.useFakeTimers();
             try {
                 const onRelease = jest.fn();
-                API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, neverSettlingBarrier(), {onRelease});
+                deferWriteWithOptions(neverSettlingBarrier(), {onRelease});
                 await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
                 await flushMicrotasks(pushHappened);
 
@@ -512,7 +519,7 @@ describe('API.writeWhenReady', () => {
             emitAppState('background');
             const onRelease = jest.fn();
 
-            API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, neverSettlingBarrier(), {onRelease});
+            deferWriteWithOptions(neverSettlingBarrier(), {onRelease});
             await flushMicrotasks(pushHappened);
 
             expect(onRelease).toHaveBeenCalledTimes(1);
@@ -522,7 +529,7 @@ describe('API.writeWhenReady', () => {
         it('calls onRelease with "rejected" when the barrier rejects', async () => {
             const onRelease = jest.fn();
 
-            API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.reject(new Error('barrier failed')), {onRelease});
+            deferWriteWithOptions(() => Promise.reject(new Error('barrier failed')), {onRelease});
             await flushMicrotasks(pushHappened);
 
             expect(onRelease).toHaveBeenCalledTimes(1);
@@ -533,10 +540,13 @@ describe('API.writeWhenReady', () => {
             jest.useFakeTimers();
             try {
                 let releaseBarrier: () => void = () => {};
-                const barrier: WriteReadyBarrier = () => new Promise<void>((resolve) => (releaseBarrier = resolve));
+                const barrier: WriteReadyBarrier = () =>
+                    new Promise<void>((resolve) => {
+                        releaseBarrier = resolve;
+                    });
                 const onRelease = jest.fn();
 
-                API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, barrier, {onRelease});
+                deferWriteWithOptions(barrier, {onRelease});
                 await flushMicrotasks();
                 releaseBarrier();
                 await flushMicrotasks(pushHappened);
@@ -554,7 +564,7 @@ describe('API.writeWhenReady', () => {
                 throw new Error('onRelease boom');
             });
 
-            const promise = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onRelease});
+            const promise = deferWriteWithOptions(() => Promise.resolve(), {onRelease});
             await flushMicrotasks(pushHappened);
 
             expect(mockPush).toHaveBeenCalledTimes(1);
@@ -566,7 +576,7 @@ describe('API.writeWhenReady', () => {
                 throw new Error('onWriteStarted boom');
             });
 
-            const promise = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, () => Promise.resolve(), {onWriteStarted});
+            const promise = deferWriteWithOptions(() => Promise.resolve(), {onWriteStarted});
             await flushMicrotasks(pushHappened);
 
             expect(onWriteStarted).toHaveBeenCalledTimes(1);
@@ -583,7 +593,7 @@ describe('API.writeWhenReady', () => {
                     optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: CONST.LOCALES.EN}],
                 };
 
-                const outcome = API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, () => Promise.resolve(), {onWriteStarted}).then(
+                const outcome = deferWriteWithOptions(() => Promise.resolve(), {onWriteStarted}, onyxData).then(
                     () => 'resolved',
                     () => 'rejected',
                 );

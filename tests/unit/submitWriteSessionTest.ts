@@ -56,8 +56,8 @@ beforeEach(() => {
 afterEach(() => {
     // Defensive: drain any write a test left pending (its barrier never released) via the background
     // flush, so writeWhenReady's own pendingWrites bookkeeping cannot leak into the next test's counts.
-    (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
-    (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('active');
+    AppState.emitCurrentTestState('background');
+    AppState.emitCurrentTestState('active');
     resetForTesting();
 });
 
@@ -222,7 +222,7 @@ describe('submitWriteSession', () => {
 
         expect(mockPush).not.toHaveBeenCalled();
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+        AppState.emitCurrentTestState('background');
         await flushMicrotasks(() => pushCount() >= 2);
 
         expect(mockPush).toHaveBeenCalledTimes(2);
