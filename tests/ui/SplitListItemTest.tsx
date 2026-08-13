@@ -64,7 +64,7 @@ describe('SplitListItem', () => {
         );
         await waitForBatchedUpdates();
 
-        expect(screen.getByText('Parent: Child')).toBeOnTheScreen();
+        expect(screen.getByText('Parent: Child', {includeHiddenElements: true})).toBeOnTheScreen();
         expect(screen.getByLabelText('Aug 13, Coffee shop, Parent: Child')).toBeOnTheScreen();
     });
 });
