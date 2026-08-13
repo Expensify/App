@@ -4116,6 +4116,8 @@ ${amount} dla ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Dowód beneficjenta rzeczywistego',
         proofOfBeneficialOwnerDescription:
             'Prosimy o dostarczenie podpisanego oświadczenia oraz schematu organizacyjnego od biegłego rewidenta, notariusza lub prawnika, potwierdzających posiadanie 25% lub więcej udziałów w firmie. Dokument musi być opatrzony datą z ostatnich trzech miesięcy i zawierać numer licencji osoby podpisującej.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Prześlij formularz Schedule 50 (Shareholder Information) z najnowszej deklaracji podatkowej spółki T2, wskazujący każdą osobę posiadającą 25% lub więcej udziałów w firmie.',
         copyOfID: 'Kopia dokumentu tożsamości rzeczywistego właściciela',
         copyOfIDDescription: 'Przykłady: paszport, prawo jazdy itp.',
         proofOfAddress: 'Potwierdzenie adresu rzeczywistego właściciela',

@@ -4065,6 +4065,8 @@ ${amount} para ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Prueba del propietario beneficiario',
         proofOfBeneficialOwnerDescription:
             'Por favor, proporciona una declaración firmada y un organigrama de un contador público, notario o abogado que verifique la propiedad del 25% o más del negocio. Debe estar fechado dentro de los últimos tres meses e incluir el número de licencia del firmante.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Por favor, proporciona tu Schedule 50 (Shareholder Information) de tu declaración de impuestos corporativos T2 más reciente, que muestre a cada persona que posee el 25% o más del negocio.',
         copyOfID: 'Copia de la identificación del propietario beneficiario',
         copyOfIDDescription: 'Ejemplos: Pasaporte, licencia de conducir, etc.',
         proofOfAddress: 'Prueba de la dirección del propietario beneficiario',

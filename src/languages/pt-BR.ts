@@ -4119,6 +4119,8 @@ ${amount} para ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Comprovante de beneficiário final',
         proofOfBeneficialOwnerDescription:
             'Forneça uma declaração assinada e um organograma emitidos por um contador público, tabelião ou advogado comprovando a titularidade de 25% ou mais do negócio. Eles devem estar datados dos últimos três meses e incluir o número da licença do signatário.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Forneça seu Schedule 50 (Shareholder Information) da sua declaração de imposto de renda corporativa T2 mais recente, mostrando cada pessoa que possui 25% ou mais do negócio.',
         copyOfID: 'Cópia do documento de identificação do beneficiário final',
         copyOfIDDescription: 'Exemplos: Passaporte, carteira de motorista, etc.',
         proofOfAddress: 'Comprovante de endereço do beneficiário final',

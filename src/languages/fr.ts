@@ -4157,6 +4157,8 @@ ${amount} pour ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Preuve du bénéficiaire effectif',
         proofOfBeneficialOwnerDescription:
             'Veuillez fournir une attestation signée et un organigramme émis par un expert-comptable, un notaire ou un avocat, confirmant la détention de 25 % ou plus de l’entreprise. Le document doit être daté de moins de trois mois et inclure le numéro de licence du signataire.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Veuillez fournir votre annexe 50 (Renseignements sur les actionnaires) de votre plus récente déclaration de revenus des sociétés T2, indiquant chaque personne qui détient 25 % ou plus de l’entreprise.',
         copyOfID: 'Copie de la pièce d’identité du bénéficiaire effectif',
         copyOfIDDescription: 'Exemples : passeport, permis de conduire, etc.',
         proofOfAddress: 'Justificatif de domicile du bénéficiaire effectif',

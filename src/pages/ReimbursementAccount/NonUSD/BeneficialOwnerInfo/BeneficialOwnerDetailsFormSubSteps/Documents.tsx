@@ -141,7 +141,9 @@ function Documents({onNext, isEditing, ownerBeingModifiedID}: DocumentsProps) {
                         value={defaultValues[proofOfOwnershipInputID]}
                         inputID={proofOfOwnershipInputID}
                     />
-                    <Text style={[styles.mutedTextLabel, styles.mt6]}>{translate('ownershipInfoStep.proofOfBeneficialOwnerDescription')}</Text>
+                    <Text style={[styles.mutedTextLabel, styles.mt6]}>
+                        {translate(country === CONST.COUNTRY.CA ? 'ownershipInfoStep.proofOfBeneficialOwnerDescriptionCA' : 'ownershipInfoStep.proofOfBeneficialOwnerDescription')}
+                    </Text>
                     {(isDocumentNeededStatus.isCopyOfIDNeeded || isDocumentNeededStatus.isProofOfAddressNeeded || isDocumentNeededStatus.isCodiceFiscaleNeeded) && (
                         <View style={[styles.sectionDividerLine, styles.mv6]} />
                     )}

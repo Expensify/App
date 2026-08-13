@@ -4248,6 +4248,8 @@ const translations = {
         proofOfBeneficialOwner: 'Proof of beneficial owner',
         proofOfBeneficialOwnerDescription:
             "Please provide a signed attestation and org chart from a public accountant, notary, or lawyer verifying ownership of 25% or more of the business. It must be dated within the last three months and include the signer's license number.",
+        proofOfBeneficialOwnerDescriptionCA:
+            'Please provide your Schedule 50 (Shareholder Information) from your most recent T2 corporate income tax return, showing every individual who owns 25% or more of the business.',
         copyOfID: 'Copy of ID for beneficial owner',
         copyOfIDDescription: "Examples: Passport, driver's license, etc.",
         proofOfAddress: 'Address proof for beneficial owner',

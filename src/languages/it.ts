@@ -4131,6 +4131,8 @@ ${amount} per ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Prova del titolare effettivo',
         proofOfBeneficialOwnerDescription:
             'Fornisci un’attestazione firmata e un organigramma da parte di un commercialista, notaio o avvocato che verifichi la titolarità del 25% o più dell’azienda. Il documento deve essere datato negli ultimi tre mesi e includere il numero di licenza del firmatario.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Fornisci il tuo Schedule 50 (Shareholder Information) della tua più recente dichiarazione dei redditi societaria T2, che indichi ogni persona che detiene il 25% o più dell’azienda.',
         copyOfID: 'Copia del documento d’identità del titolare effettivo',
         copyOfIDDescription: 'Esempi: passaporto, patente di guida, ecc.',
         proofOfAddress: 'Prova di indirizzo per il titolare effettivo',

@@ -4130,6 +4130,8 @@ ${amount} voor ${merchant} - ${date}`,
         proofOfBeneficialOwner: 'Bewijs van uiteindelijk belanghebbende',
         proofOfBeneficialOwnerDescription:
             'Geef een ondertekende verklaring en een organisatieschema van een openbare accountant, notaris of advocaat waarin wordt bevestigd wie 25% of meer van het bedrijf bezit. Deze moeten dateren van binnen de laatste drie maanden en het licentienummer van de ondertekenaar bevatten.',
+        proofOfBeneficialOwnerDescriptionCA:
+            'Lever je Schedule 50 (Shareholder Information) aan uit je meest recente T2-aangifte vennootschapsbelasting, waarin iedere persoon staat die 25% of meer van het bedrijf bezit.',
         copyOfID: 'Kopie van identiteitsbewijs van uiteindelijk belanghebbende',
         copyOfIDDescription: 'Voorbeelden: paspoort, rijbewijs, enz.',
         proofOfAddress: 'Adresbewijs voor uiteindelijke belanghebbende',

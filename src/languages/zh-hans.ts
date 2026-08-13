@@ -4008,6 +4008,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         proofOfBeneficialOwner: '受益所有人证明',
         proofOfBeneficialOwnerDescription:
             '请提供由注册会计师、公证人或律师出具并签署的声明和组织结构图，以核实对该企业25%或以上的持股情况。文件日期必须在最近三个月内，并包含签署人的执业证书号码。',
+        proofOfBeneficialOwnerDescriptionCA: '请提供您最近一期 T2 企业所得税申报表中的 Schedule 50（股东信息），列明持有该企业 25% 或以上股份的每一位个人。',
         copyOfID: '受益所有人身份证复印件',
         copyOfIDDescription: '示例：护照、驾驶证等。',
         proofOfAddress: '实益所有人地址证明',
