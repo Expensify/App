@@ -27,6 +27,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
+import Onyx from 'react-native-onyx';
 
 type PayActionCellProps = {
     isLoading: boolean;
@@ -47,10 +48,6 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [iouReport, transactions] = useReportWithTransactionsAndViolations(reportID);
     const policy = usePolicy(policyID);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
@@ -90,6 +87,19 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             showDelegateNoAccessModal();
             return;
         }
+
+        // Read everything this handler needs here, in one block, before anything below writes. These four are read
+        // rather than subscribed because none of them reaches rendered output: they exist only to be handed to
+        // payInvoice or payMoneyRequest. Reading them at click time also matches what the payment already assumes,
+        // since payAsBusiness is only known once the user picks a menu item.
+        //
+        // The source is the global collection, not the Search snapshot under `snapshot_${hash}`, which is what the
+        // replaced subscriptions read. `hash` stays a write-side concern: getSearchPayOnyxData below uses it to build
+        // the optimistic update for the snapshot the row is rendered from.
+        const allReports = Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+        const allReportActions = Onyx.get(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+        const reportNameValuePairs = Onyx.get(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+        const isTrackIntentUser = isTrackIntentUserSelector(Onyx.get(ONYXKEYS.NVP_INTRO_SELECTED));
 
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
