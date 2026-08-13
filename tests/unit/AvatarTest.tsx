@@ -13,6 +13,9 @@ import {USER_AVATARS} from '@libs/Avatars/UserAvatarCatalog';
 import {getDefaultWorkspaceAvatarTestID} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import createThemeStyles from '@src/styles';
+import {defaultTheme} from '@src/styles/theme';
+import createStyleUtils from '@src/styles/utils';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -28,6 +31,9 @@ const FALLBACK_ICON_TEST_ID = 'SvgFallbackAvatar Icon';
 const CUSTOM_FALLBACK_ICON_TEST_ID = 'CustomFallback Icon';
 const AVATAR_IMAGE_TEST_ID = 'AvatarImage';
 const WORKSPACE_NAME = "Cathy's Croissants";
+const HEX_POLICY_ID_STARTING_WITH_LETTER = 'A1B2C3D4E5F67890';
+
+const {getDefaultWorkspaceAvatarColor} = createStyleUtils(defaultTheme, createThemeStyles(defaultTheme));
 
 function CustomFallbackIcon() {
     return mockRenderView({testID: 'CustomFallbackIconSvg'});
@@ -330,6 +336,27 @@ describe('Avatar', () => {
 
             expect(screen.queryByTestId(AVATAR_IMAGE_TEST_ID)).toBeNull();
             expect(getHiddenTestId(workspaceFallbackTestID)).toBeTruthy();
+        });
+
+        it('assigns different workspace avatar colors for distinct hex policy IDs', () => {
+            const naNColor = getDefaultWorkspaceAvatarColor('NaN');
+            const hexPolicyColor = getDefaultWorkspaceAvatarColor(HEX_POLICY_ID_STARTING_WITH_LETTER);
+
+            // parseInt('A1B2...', 10) is NaN — workspace avatars must not collapse to the NaN palette entry.
+            expect(hexPolicyColor.fill).not.toBe(naNColor.fill);
+
+            let secondDistinctFill: string | undefined;
+            for (let index = 0; index < 32; index += 1) {
+                const candidateID = index.toString(16).padStart(16, '0');
+                const candidateColor = getDefaultWorkspaceAvatarColor(candidateID);
+
+                if (candidateColor.fill !== hexPolicyColor.fill) {
+                    secondDistinctFill = candidateColor.fill;
+                    break;
+                }
+            }
+
+            expect(secondDistinctFill).toBeDefined();
         });
     });
 });

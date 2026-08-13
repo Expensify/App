@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
 
@@ -49,18 +49,19 @@ function SignUpWelcomeForm() {
             <View style={[styles.mt3, styles.mb2]}>
                 <Button
                     isDisabled={network.isOffline || !!account?.message}
-                    success
-                    large
-                    text={translate('welcomeSignUpForm.join')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
                         signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
                         setReadyToShowAuthScreens(true);
                     }}
-                    pressOnEnter
                     style={[styles.mb2]}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.JOIN}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('welcomeSignUpForm.join')}</Button.Text>
+                </Button>
                 {!!serverErrorText && (
                     <FormHelpMessage
                         isError

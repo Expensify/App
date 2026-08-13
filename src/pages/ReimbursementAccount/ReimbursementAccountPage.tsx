@@ -27,7 +27,6 @@ import type {ReimbursementAccountNavigatorParamList} from '@libs/Navigation/type
 import {canMemberWrite, goBackFromInvalidPolicy, isPendingDeletePolicy} from '@libs/PolicyUtils';
 import {hasInProgressUSDVBBA, hasInProgressVBBA, REIMBURSEMENT_ACCOUNT_ROUTE_NAMES} from '@libs/ReimbursementAccountUtils';
 import shouldReopenOnfido from '@libs/shouldReopenOnfido';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {isFullScreenName} from '@navigation/helpers/isNavigatorName';
 
@@ -561,11 +560,7 @@ function ReimbursementAccountPage({route, policy, isLoadingPolicy}: Reimbursemen
     }
 
     if (isLoadingPolicy) {
-        const loadingPolicyReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'ReimbursementAccountPage',
-            isLoadingPolicy,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={loadingPolicyReasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     // Show loading indicator when page is first time being opened and props.reimbursementAccount yet to be loaded from the server

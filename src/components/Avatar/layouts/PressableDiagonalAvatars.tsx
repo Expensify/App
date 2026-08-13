@@ -1,5 +1,5 @@
+import AvatarTooltip from '@components/Avatar/tooltips/AvatarTooltip';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
-import UserDetailsTooltip from '@components/UserDetailsTooltip';
 
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -12,7 +12,6 @@ import type {Icon as IconType} from '@src/types/onyx/OnyxCommon';
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import Avatar from '..';
 import DiagonalAvatarsFrame from './DiagonalAvatarsFrame';
@@ -50,35 +49,26 @@ function PressableDiagonalAvatars({size, primaryAvatar, secondaryAvatar, iconCou
     const getAccessibilityLabel = (avatar: IconType) => translate(avatar.type === CONST.ICON_TYPE_WORKSPACE ? 'common.workspaces' : 'common.profile');
 
     const renderPressableAvatar = (avatar: IconType, testID: string) => (
-        <UserDetailsTooltip
-            shouldRender
-            accountID={Number(avatar.id ?? CONST.DEFAULT_NUMBER_ID)}
-            icon={avatar}
-            fallbackUserDetails={{
-                displayName: avatar.name,
-            }}
-        >
-            <View>
-                <PressableWithoutFocus
-                    onPress={() => onAvatarPress(avatar)}
-                    accessibilityLabel={getAccessibilityLabel(avatar)}
-                    accessibilityRole={CONST.ROLE.BUTTON}
-                    sentryLabel={sentryLabel}
-                >
-                    <Avatar
-                        type={avatar.type}
-                        source={avatar.source}
-                        name={avatar.name ?? ''}
-                        avatarID={avatar.id ?? CONST.DEFAULT_NUMBER_ID}
-                        fallbackIcon={avatar.fallbackIcon}
-                        fill={avatar.fill}
-                        size={avatarSize}
-                        imageStyles={styles[singleAvatarStyleKey]}
-                        testID={testID}
-                    />
-                </PressableWithoutFocus>
-            </View>
-        </UserDetailsTooltip>
+        <AvatarTooltip avatar={avatar}>
+            <PressableWithoutFocus
+                onPress={() => onAvatarPress(avatar)}
+                accessibilityLabel={getAccessibilityLabel(avatar)}
+                accessibilityRole={CONST.ROLE.BUTTON}
+                sentryLabel={sentryLabel}
+            >
+                <Avatar
+                    type={avatar.type}
+                    source={avatar.source}
+                    name={avatar.name ?? ''}
+                    avatarID={avatar.id ?? CONST.DEFAULT_NUMBER_ID}
+                    fallbackIcon={avatar.fallbackIcon}
+                    fill={avatar.fill}
+                    size={avatarSize}
+                    imageStyles={styles[singleAvatarStyleKey]}
+                    testID={testID}
+                />
+            </PressableWithoutFocus>
+        </AvatarTooltip>
     );
 
     return (

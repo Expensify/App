@@ -14,7 +14,6 @@ import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -38,7 +37,7 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.rillet, date) : translate('workspace.accounting.rillet'),
@@ -56,12 +55,12 @@ function RilletExistingConnectionsPage({route}: RilletExistingConnectionsPagePro
             testID="RilletExistingConnectionsPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.RILLET})}
+                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.RILLET)}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.RILLET})}</Text>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.RILLET)}</Text>
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}

@@ -17,7 +17,6 @@ import {normalizeCountryCode} from '@libs/CountryUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {findPageIndex} from '@libs/SubPageUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -141,8 +140,7 @@ function MissingPersonalDetailsContent({privatePersonalDetails, draftValues, hea
     });
 
     if (isRedirecting) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MissingPersonalDetailsContent', isRedirecting};
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     const handleBackButtonPress = () => {

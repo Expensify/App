@@ -50,7 +50,7 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
-    const {isNewManualExpenseFlowEnabled, isEditingSplitBill} = useConfirmationFields();
+    const {isNewManualExpenseFlowEnabled, isEditingSplitBill, onTaxAmountEmptyChange} = useConfirmationFields();
     const numberFormRef = useRef<NumberWithSymbolFormRef | null>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -88,8 +88,9 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
 
         const taxAmountInSmallestCurrencyUnits = toBackendTaxAmount(newAmount);
 
-        // Clear a previously surfaced tax error as the user edits; validation re-runs on submit.
-        clearFormErrors(['iou.error.invalidTaxAmount']);
+        onTaxAmountEmptyChange?.(newAmount.trim() === '');
+
+        clearFormErrors(['iou.error.invalidTaxAmount', 'iou.error.invalidAmount']);
 
         // When editing a split expense, persist directly to the split draft so that
         // SplitBillDetailsPage and completeSplitBill read the latest value.
@@ -117,7 +118,15 @@ function TaxFields({policy, policyForMovingExpenses, iouCurrencyCode, canModifyT
             }
         }
         numberFormRef.current?.updateNumber(taxAmountInput);
-    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput]);
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, taxAmount, taxAmountInput, onTaxAmountEmptyChange]);
+
+    useEffect(() => {
+        if (isNewManualExpenseFlowEnabled && canModifyTaxFields) {
+            return () => onTaxAmountEmptyChange?.(false);
+        }
+        onTaxAmountEmptyChange?.(false);
+    }, [isNewManualExpenseFlowEnabled, canModifyTaxFields, onTaxAmountEmptyChange]);
 
     useEffect(() => {
         if (!isNewManualExpenseFlowEnabled || formError !== 'iou.error.invalidTaxAmount' || taxAmount > maxTaxAmount) {

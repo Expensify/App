@@ -26,17 +26,17 @@ type UseSyncModalWithHistoryParams = {
 };
 
 /**
- * Web: represents a `shouldHandleNavigationBack` modal's back-guard as a uniquely-tagged sentinel in the
+ * Web: represents a `shouldHandleNavigationBack` modal's back-guard as a uniquely-tagged history entry in the
  * root navigator's `state.history` (dispatched via `TOGGLE_MODAL_WITH_HISTORY`). React Navigation's
  * `useLinking` mirrors the history length delta into the browser, so opening the modal pushes a browser
- * entry and browser Back removes it. The router consumes the sentinel on forward navigation
+ * entry and browser Back removes it. The router consumes the guard entry on forward navigation
  * (history length unchanged → `replaceState`) so no orphaned entry is left behind.
  *
  * The per-instance tag lets nested modals add/remove their own guard independently (LIFO).
  */
 export default function useSyncModalWithHistory({isVisible, shouldHandleNavigationBack, onClose, onOpen}: UseSyncModalWithHistoryParams) {
     const modalId = useId();
-    const sentinel = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}`;
+    const guardEntry = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${modalId}`;
 
     const guardStateRef = useRef<ModalGuardState>(MODAL_GUARD_STATE.CLOSED);
 
@@ -50,7 +50,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
 
     const snapshotKey = useSyncExternalStore(
         subscribeToRootNavigation,
-        () => getModalGuardSnapshotKey(sentinel),
+        () => getModalGuardSnapshotKey(guardEntry),
         () => EMPTY_MODAL_GUARD_SNAPSHOT_KEY,
     );
     // We can't use usePrevious here because we need to imperatively reset this ref mid-effect
@@ -89,7 +89,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         }
         guardStateRef.current = MODAL_GUARD_STATE.CLOSING_BY_DISPATCH;
         // Defer (microtask via isNavigationReady) so any forward navigation fired from the same close
-        // handler is dispatched first; the router then consumes our sentinel during that push and this
+        // handler is dispatched first; the router then consumes our guard entry during that push and this
         // toggle(false) becomes a no-op, avoiding an extra browser back().
         Navigation.isNavigationReady().then(() => {
             navigationRef.dispatch({
@@ -99,7 +99,7 @@ export default function useSyncModalWithHistory({isVisible, shouldHandleNavigati
         });
     }, [isVisible, shouldHandleNavigationBack, modalId]);
 
-    // Browser Back/Forward changes the guard sentinel in root history — react via snapshot transitions.
+    // Browser Back/Forward changes the guard entry in root history, so we react via snapshot transitions.
     useEffect(() => {
         if (!shouldHandleNavigationBack) {
             prevSnapshotKeyRef.current = snapshotKey;

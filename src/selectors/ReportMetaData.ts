@@ -15,11 +15,13 @@ const reportActionsLoadingStateSelector = (loadingState: OnyxEntry<ReportLoading
 
 const reportActionsListLoadingStateSelector = (
     loadingState: OnyxEntry<ReportLoadingState>,
-): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions'> | undefined =>
+): Pick<ReportLoadingState, 'hasOnceLoadedReportActions' | 'isLoadingInitialReportActions' | 'isLoadingOlderReportActions' | 'hasLoadingOlderReportActionsError'> | undefined =>
     loadingState
         ? {
               hasOnceLoadedReportActions: loadingState.hasOnceLoadedReportActions,
               isLoadingInitialReportActions: loadingState.isLoadingInitialReportActions,
+              isLoadingOlderReportActions: loadingState.isLoadingOlderReportActions,
+              hasLoadingOlderReportActionsError: loadingState.hasLoadingOlderReportActionsError,
           }
         : undefined;
 

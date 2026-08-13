@@ -5,6 +5,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
@@ -59,7 +60,7 @@ const POPOVER_HEADER_TEXT = 'Switch accounts:';
 
 function renderAccountSwitcher() {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider, CurrentReportIDContextProvider, CurrentUserPersonalDetailsProvider]}>
             <PortalProvider>
                 <AccountSwitcher isScreenFocused />
             </PortalProvider>

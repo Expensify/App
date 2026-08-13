@@ -1,6 +1,6 @@
 import AddressSearch from '@components/AddressSearch';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapperWithRef from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -238,15 +238,16 @@ function IOURequestStepWaypoint({
                     footerContent={
                         !!waypointAddress && (
                             <Button
-                                text={translate('common.remove')}
                                 style={[styles.mb3]}
                                 onPress={() => {
                                     removeWaypoint(transaction, pageIndex, shouldUseTransactionDraft(action), shouldPassSplitDraft ? splitDraftTransaction : undefined);
                                     goBack();
                                 }}
-                                large
+                                size={CONST.BUTTON_SIZE.LARGE}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.WAYPOINT_REMOVE_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('common.remove')}</Button.Text>
+                            </Button>
                         )
                     }
                 >

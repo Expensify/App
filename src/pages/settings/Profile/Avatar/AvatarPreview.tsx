@@ -36,7 +36,7 @@ type AvatarPreviewProps = {
     /** The image data */
     imageData: ImageData;
     /** The function to set the error */
-    setError: (error: TranslationPaths | null, phraseParam: Record<string, unknown>) => void;
+    setError: (error: TranslationPaths | null, phraseParam?: Record<string, unknown>) => void;
     /** Opens the avatar crop screen for the picked image */
     openCropper: (image: FileObject) => void;
 };
@@ -97,16 +97,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     return;
                 }
 
-                setError(null, {});
+                setError(null);
                 openCropper(image);
             })
             .catch(() => {
-                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment', {});
+                setError('attachmentPicker.errorWhileSelectingCorruptedAttachment');
             });
     };
 
     const clearError = () => {
-        setError(null, {});
+        setError(null);
     };
 
     const {createMenuItems} = useAvatarMenu({

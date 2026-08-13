@@ -1,6 +1,6 @@
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection, isExpensifyCardStatementSearch} from '@libs/ExpensifyCardStatementUtils';
 
-import type {SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
+import type {QueryFilter, SearchQueryJSON, SelectedTransactions} from '@src/components/Search/types';
 import CONST from '@src/CONST';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
@@ -352,6 +352,68 @@ describe('ExpensifyCardStatementUtils', () => {
 
         const selection = getExpensifyCardStatementSelection(scopeFilteredQueryJSON, selectedTransactions, searchData);
         expect(selection?.feeds).toEqual([{policyID: 'policy1', feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
+    });
+
+    it('keeps the export when a bank account filter is active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // A settlement debits exactly one bank account, so bankAccount keeps or drops whole settlements, never rows
+        // inside one - the PDF still matches the on-screen rows. That holds for every operator and account count, so a
+        // multi-account or negated filter is exportable too, unlike policyID which the statement has to scope.
+        const bankAccountFilterVariants: QueryFilter[][] = [
+            [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: '123456789'}],
+            [
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: '123456789'},
+                {operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: '987654321'},
+            ],
+            [{operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: '123456789'}],
+        ];
+
+        for (const filters of bankAccountFilterVariants) {
+            const bankAccountFilteredQueryJSON: SearchQueryJSON = {
+                ...expensifyCardStatementQueryJSON,
+                flatFilters: [...expensifyCardStatementQueryJSON.flatFilters, {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT, filters}],
+            };
+
+            const selection = getExpensifyCardStatementSelection(bankAccountFilteredQueryJSON, selectedTransactions, searchData);
+            expect(selection?.feeds).toEqual([{policyID: undefined, feedCountry: 'US', fundID: 1, entryIDs: [123], canExportStatement: true}]);
+        }
+    });
+
+    it('keeps the export scoped to the workspace when a bank account filter is also active', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // Isolating one card program by its settlement account and then narrowing to a workspace is the reason the
+        // filter is allowed, so the statement still has to come back scoped to that workspace.
+        const scopedBankAccountQueryJSON: SearchQueryJSON = {
+            ...scopedQueryJSON,
+            flatFilters: [
+                ...scopedQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: '123456789'}]},
+            ],
+        };
+
+        expect(getStatementParamsForExport(scopedBankAccountQueryJSON, selectedTransactions, searchData)).toEqual({policyID: 'policy1', feedCountry: 'US', entryIDs: [123]});
+    });
+
+    it('hides the export when a bank account filter is mixed with a transaction-narrowing filter', () => {
+        const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
+        const selectedTransactions = makeSettlementSelection(groupKey, 2);
+        const searchData = makeSearchData({[groupKey]: makeSettlementGroup({entryID: 123, count: 2})});
+        // Allowing bankAccount must not make the rest of the query exportable: category still narrows the rows inside
+        // the settlement, so the PDF would disagree with them.
+        const mixedQueryJSON: SearchQueryJSON = {
+            ...expensifyCardStatementQueryJSON,
+            flatFilters: [
+                ...expensifyCardStatementQueryJSON.flatFilters,
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.BANK_ACCOUNT, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: '123456789'}]},
+                {key: CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY, filters: [{operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, value: 'Travel'}]},
+            ],
+        };
+
+        expect(getExpensifyCardStatementSelection(mixedQueryJSON, selectedTransactions, searchData)).toBeUndefined();
     });
 
     it('includes failed settlements in the selection (the statement labels their status)', () => {

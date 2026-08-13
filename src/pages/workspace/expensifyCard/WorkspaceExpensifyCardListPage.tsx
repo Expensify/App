@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import CardFeedIcon from '@components/CardFeedIcon';
@@ -70,7 +70,7 @@ type WorkspaceExpensifyCardListPageProps = {
 function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExpensifyCardListPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Export', 'Gear', 'Plus']);
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
@@ -136,6 +136,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                           defaultValue: '',
                           shouldFallbackToHidden: false,
                           translate,
+                          formatPhoneNumber,
                       }) || undefined
                     : undefined;
 
@@ -160,7 +161,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     onClose: () => clearDeletePaymentMethodError(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${defaultFundID}_${CONST.EXPENSIFY_CARD.BANK}`, card.cardID),
                 };
             }),
-        [allCards, defaultFundID, personalDetails, settlementCurrency, translate],
+        [allCards, defaultFundID, personalDetails, settlementCurrency, translate, formatPhoneNumber],
     );
 
     const bulkExportOptions: Array<DropdownOption<typeof CONST.EXPENSIFY_CARD.BULK_ACTIONS.EXPORT_CSV>> = [
@@ -176,6 +177,7 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
                     personalDetailsList: personalDetails,
                     settlementCurrency,
                     translate,
+                    formatPhoneNumber,
                 });
             },
         },
@@ -237,15 +239,16 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             <View style={headerButtonsRowStyle}>
                 {!isCardListEmpty && (
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={handleIssueCardPress}
-                        icon={icons.Plus}
-                        text={translate('workspace.expensifyCard.issueCard')}
                         style={shouldDisplayButtonsInSeparateLine && styles.flex1}
                         innerStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                         hoverStyles={!canWriteExpensifyCard ? styles.buttonOpacityDisabled : undefined}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
-                    />
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.expensifyCard.issueCard')}</Button.Text>
+                    </Button>
                 )}
                 {secondaryActions.length > 0 && (
                     <ButtonWithDropdownMenu

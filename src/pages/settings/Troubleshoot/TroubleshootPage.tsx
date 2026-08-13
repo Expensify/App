@@ -30,7 +30,6 @@ import {openTroubleshootSettingsPage} from '@libs/actions/User';
 import ExportOnyxState from '@libs/ExportOnyxState';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
 
 import colors from '@styles/theme/colors';
@@ -252,10 +251,7 @@ function TroubleshootPage() {
                 </ScrollView>
                 {isLoading && (
                     <View style={[StyleSheet.absoluteFill, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'TroubleshootPage', isLoading} satisfies SkeletonSpanReasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 )}
             </View>

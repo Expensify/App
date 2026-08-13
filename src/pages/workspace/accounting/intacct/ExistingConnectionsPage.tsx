@@ -15,7 +15,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
@@ -41,7 +40,7 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             title: policy.name,
             key: policy.id,
             avatarID: policy.id,
-            icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+            icon: policy.avatarURL,
             iconType: CONST.ICON_TYPE_WORKSPACE,
             shouldShowRightIcon: true,
             description: date ? translate('workspace.common.lastSyncDate', CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.intacct, date) : translate('workspace.accounting.intacct'),
@@ -59,12 +58,12 @@ function ExistingConnectionsPage({route}: ExistingConnectionsPageProps) {
             testID="ExistingConnectionsPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}
+                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT})}</Text>
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT)}</Text>
                 <MenuItem
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}

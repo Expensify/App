@@ -9,8 +9,6 @@ import Text from '@components/Text';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
@@ -153,13 +151,9 @@ function PieChartContent({data, isLoading, valueUnit, valueUnitPosition, onSlice
     };
 
     if (isLoading) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PieChartContent', isLoading};
         return (
             <View style={styles.chartActivityIndicator}>
-                <ActivityIndicator
-                    size="large"
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size="large" />
             </View>
         );
     }

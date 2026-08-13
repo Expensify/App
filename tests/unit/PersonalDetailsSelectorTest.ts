@@ -8,7 +8,6 @@ import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 import {
     createDisplayDetailsByAccountIDsSelector,
     multiPersonalDetailsSelector,
-    personalDetailByLoginSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsListSelector,
     personalDetailsLoginSelector,
@@ -17,7 +16,7 @@ import {
 } from '@selectors/PersonalDetails';
 
 import createMock from '../utils/createMock';
-import {translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
 
 describe('PersonalDetailsSelector', () => {
     const accountID = 123;
@@ -48,8 +47,8 @@ describe('PersonalDetailsSelector', () => {
 
     describe('personalDetailsDisplayNameSelector', () => {
         it('should return the display name for the given accountID', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate: translateLocal}));
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(personalDetailsList);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate: translateLocal, formatPhoneNumber}));
         });
 
         it('should return concierge display name for concierge accountID', () => {
@@ -62,7 +61,7 @@ describe('PersonalDetailsSelector', () => {
                 [CONST.ACCOUNT_ID.CONCIERGE]: conciergeDetails,
             });
 
-            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal)(list);
+            const result = personalDetailsDisplayNameSelector(CONST.ACCOUNT_ID.CONCIERGE, translateLocal, formatPhoneNumber)(list);
             expect(result).toBe(CONST.CONCIERGE_DISPLAY_NAME);
         });
 
@@ -75,24 +74,24 @@ describe('PersonalDetailsSelector', () => {
                 [accountID]: personalDetailsWithLoginOnly,
             });
 
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(list);
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(list);
             expect(result).toBe('fallback@user.com');
         });
 
         it('should return default display name if the accountID is not in the list', () => {
-            const result = personalDetailsDisplayNameSelector(999, translateLocal)(personalDetailsList);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal}));
+            const result = personalDetailsDisplayNameSelector(999, translateLocal, formatPhoneNumber)(personalDetailsList);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
         });
 
         it('should return default display name if the personalDetailsList is undefined', () => {
-            const result = personalDetailsDisplayNameSelector(accountID, translateLocal)(undefined);
-            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal}));
+            const result = personalDetailsDisplayNameSelector(accountID, translateLocal, formatPhoneNumber)(undefined);
+            expect(result).toEqual(temporaryGetDisplayNameOrDefault({translate: translateLocal, formatPhoneNumber}));
         });
 
         it('should resolve the hidden fallback through the provided translate function', () => {
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker)(personalDetailsList);
+            const result = personalDetailsDisplayNameSelector(999, translateWithHiddenMarker, formatPhoneNumber)(personalDetailsList);
 
             expect(result).toBe('HiddenMarker');
         });
@@ -145,41 +144,6 @@ describe('PersonalDetailsSelector', () => {
         it('should return an empty array if none of the accountIDs exist in the list', () => {
             const result = personalDetailsLoginsSelector([888, 999])(multiPersonalDetailsList);
             expect(result).toEqual([]);
-        });
-    });
-
-    describe('personalDetailByLoginSelector', () => {
-        it('should return the personal details for the given login', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should match the login case-insensitively', () => {
-            const result = personalDetailByLoginSelector('TEST@USER.COM')(personalDetailsList);
-            expect(result).toEqual(personalDetails);
-        });
-
-        it('should return undefined if the login is not in the list', () => {
-            const result = personalDetailByLoginSelector('missing@user.com')(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the login is undefined', () => {
-            const result = personalDetailByLoginSelector(undefined)(personalDetailsList);
-            expect(result).toBeUndefined();
-        });
-
-        it('should return undefined if the personalDetailsList is undefined', () => {
-            const result = personalDetailByLoginSelector('test@user.com')(undefined);
-            expect(result).toBeUndefined();
-        });
-
-        it('should skip null entries in the list', () => {
-            const listWithNull: PersonalDetailsList = {
-                [accountID]: null,
-            };
-            const result = personalDetailByLoginSelector('test@user.com')(listWithNull);
-            expect(result).toBeUndefined();
         });
     });
 

@@ -41,7 +41,7 @@ const LOCATION_PUCK_PULSING = {
 const CURRENT_LOCATION_PUCK_IMAGE = 'current-location-puck-image';
 
 function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, waypoints, directionCoordinates: directionCoordinatesProp, isTrackingGPS}: GPSMapViewProps) {
-    const directionCoordinates = !directionCoordinatesProp || utils.isSingleSegmentRoute(directionCoordinatesProp) ? directionCoordinatesProp : directionCoordinatesProp.flat();
+    const directionCoordinates = utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinatesProp);
     const noWaypoints = !waypoints || waypoints.length === 0;
 
     const {isOffline} = useNetwork();

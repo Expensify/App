@@ -40,7 +40,6 @@ jest.mock('@components/AttachmentPicker', () => {
 jest.mock('@hooks/useFilesValidation', () => (onFilesValidated: (files: FileObject[]) => void) => ({
     validateFiles: onFilesValidated,
     PDFValidationComponent: null,
-    ErrorModal: null,
 }));
 
 jest.mock(
@@ -72,6 +71,7 @@ jest.mock('@src/languages/IntlStore', () => {
     cache.set('en', flatten(en));
     return {
         getCurrentLocale: jest.fn(() => 'en'),
+        getDateFnsLocale: jest.fn(() => undefined),
         load: jest.fn(() => Promise.resolve()),
         get: jest.fn((key: string, locale?: string) => {
             const translations = cache.get(locale ?? 'en');

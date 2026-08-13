@@ -27,7 +27,6 @@ import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/type
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getLinkedTransactionID, getReportAction} from '@libs/ReportActionsUtils';
 import {isReportIDApproved, isSettled} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {doesDeleteNavigateBackUrlIncludeSpecificDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
 import {getReviewNavigationRoute} from '@libs/TransactionPreviewUtils';
 
@@ -115,18 +114,12 @@ function DynamicReviewPage() {
 
     const shouldShowNotFound = !isNavigatingBackToDeletedReview && (wasTransactionDeleted || (!isLoadingPage && !transactionID));
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'DynamicReviewPage',
-        hasLoadedThreadReportActions,
-        hasLoadedParentReportActions,
-    };
-
     useEffect(() => {
         if (!route.params.reportID || report?.reportID) {
             return;
         }
-        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions});
-    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions]);
+        openReport({reportID: route.params.reportID, introSelected, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
+    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions, currentPersonalDetails.accountID]);
 
     useEffect(() => {
         if (!transactionID) {
@@ -217,10 +210,7 @@ function DynamicReviewPage() {
             <ScreenWrapper testID="DynamicReviewPage">
                 <View style={[styles.flex1]}>
                     <View style={[styles.appContentHeader, styles.borderBottom]}>
-                        <ReportHeaderSkeletonView
-                            onBackButtonPress={() => {}}
-                            reasonAttributes={reasonAttributes}
-                        />
+                        <ReportHeaderSkeletonView onBackButtonPress={() => {}} />
                     </View>
                     <ReportActionsSkeletonView />
                 </View>

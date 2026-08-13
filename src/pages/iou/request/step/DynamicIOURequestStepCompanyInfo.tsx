@@ -53,7 +53,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
 
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -111,6 +111,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
         reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
         sendInvoice({
+            getCurrencyDecimals,
             currentUserAccountID: currentUserPersonalDetails.accountID,
             transaction,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],

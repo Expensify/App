@@ -4,8 +4,6 @@ import SkeletonViewContentLoader from '@components/SkeletonViewContentLoader';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
-
 import React from 'react';
 import {View} from 'react-native';
 import Animated, {FadeIn} from 'react-native-reanimated';
@@ -39,7 +37,6 @@ function ActionableItemSkeleton() {
 
 function FollowupListSkeleton() {
     const styles = useThemeStyles();
-    useSkeletonSpan('FollowupListSkeleton', {context: 'ReportScreen.ChatActionableButtons'});
 
     return (
         <Animated.View entering={FadeIn}>

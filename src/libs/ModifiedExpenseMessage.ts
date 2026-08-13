@@ -93,7 +93,7 @@ function buildDateChangeFragment(
     if (!oldCreated || !created) {
         return;
     }
-    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    const formattedOldCreated = DateUtils.formatMachineDateWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
     buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
 }
 
@@ -171,7 +171,7 @@ function getForExpenseMovedFromSelfDM(translate: LocalizedTranslate, destination
     if (isEmpty(policyName) && !reportName) {
         return translate('iou.changedTheExpense');
     }
-    return translate('iou.movedFromPersonalSpace', {reportName, workspaceName: !isEmpty(policyName) ? policyName : undefined});
+    return translate('iou.movedFromPersonalSpace', reportName, !isEmpty(policyName) ? policyName : undefined);
 }
 
 function getMovedReportID(reportAction: OnyxEntry<ReportAction>, type: ValueOf<typeof CONST.REPORT.MOVE_TYPE>): string | undefined {

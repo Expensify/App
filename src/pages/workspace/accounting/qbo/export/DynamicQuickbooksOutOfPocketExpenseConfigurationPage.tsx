@@ -116,7 +116,7 @@ function DynamicQuickbooksOutOfPocketExpenseConfigurationPage({policy}: WithPoli
             displayName="QuickbooksOutOfPocketExpenseConfigurationPage"
             headerTitle="workspace.accounting.exportOutOfPocket"
             title="workspace.qbo.exportOutOfPocketExpensesDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.exportOutOfPocketExpensesDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.exportOutOfPocketExpensesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}

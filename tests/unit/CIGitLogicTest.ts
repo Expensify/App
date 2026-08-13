@@ -5,8 +5,6 @@ import GitUtils from '@github/libs/GitUtils';
 import * as VersionUpdater from '@github/libs/versionUpdater';
 import type {SemverLevel} from '@github/libs/versionUpdater';
 
-import type {PackageJson} from 'type-fest';
-
 /**
  * @jest-environment node
  * @jest-config bail=true
@@ -18,28 +16,29 @@ import os from 'os';
 import path from 'path';
 
 import * as Log from '../../scripts/utils/Logger';
+import createMock from '../utils/createMock';
 
 const DUMMY_DIR = path.resolve(os.homedir(), 'DumDumRepo');
 const GIT_REMOTE = path.resolve(os.homedir(), 'dummyGitRemotes/DumDumRepo');
 
 // Used to mock the Octokit GithubAPI
 const mockGetInput = jest.fn<string | undefined, [string]>();
+type CompareCommitsCommit = NonNullable<Awaited<ReturnType<typeof GithubUtils.octokit.repos.compareCommits>>['data']['commits']>[number];
 
 const isVerbose = process.env.JEST_VERBOSE === 'true';
-
-type ExecSyncError = {stderr: Buffer};
 
 function exec(command: string) {
     try {
         Log.info(command);
         execSync(command, {stdio: isVerbose ? 'inherit' : 'pipe'});
     } catch (error) {
-        if ((error as ExecSyncError).stderr) {
-            Log.error((error as ExecSyncError).stderr.toString());
+        const stderr = typeof error === 'object' && error !== null && 'stderr' in error ? error.stderr : undefined;
+        if ((typeof stderr === 'string' || Buffer.isBuffer(stderr)) && stderr) {
+            Log.error(stderr.toString());
         } else {
             Log.error('Error:', error);
         }
-        throw new Error(error as string);
+        throw new Error(String(error));
     }
 }
 
@@ -56,9 +55,9 @@ function setupGitAsOSBotify() {
 }
 
 function getVersion(): string {
-    const packageJson = JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'})) as PackageJson;
+    const packageJson: unknown = JSON.parse(fs.readFileSync('package.json', {encoding: 'utf-8'}));
 
-    if (!packageJson.version) {
+    if (typeof packageJson !== 'object' || packageJson === null || !('version' in packageJson) || typeof packageJson.version !== 'string' || !packageJson.version) {
         throw new Error('package.json does not contain a version field');
     }
 
@@ -79,8 +78,7 @@ function initGithubAPIMocking() {
         const head = params?.head;
         const tagPairKey = `${base}...${head}`;
 
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const mockCommits: any[] = (() => {
+        const mockCommits = (() => {
             switch (tagPairKey) {
                 case '2.0.0-0...2.0.0-1-staging':
                     return [{sha: 'sha_pr1_merge', commit: {message: 'Merge pull request #1 from Expensify/pr-1', author: {name: 'Test Author'}}, author: {login: 'email'}}];
@@ -174,15 +172,16 @@ function initGithubAPIMocking() {
             }
         })();
 
-        return Promise.resolve({
-            data: {
-                commits: mockCommits,
-            },
-            status: 200,
-            headers: {},
-            url: '',
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        } as any);
+        return Promise.resolve(
+            createMock<Awaited<ReturnType<typeof GithubUtils.octokit.repos.compareCommits>>>({
+                data: {
+                    commits: mockCommits.map((commit) => createMock<CompareCommitsCommit>(commit)),
+                },
+                status: 200,
+                headers: {},
+                url: '',
+            }),
+        );
     });
 }
 

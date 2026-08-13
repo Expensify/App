@@ -10,6 +10,7 @@ import React from 'react';
 import ParentNavigationSubtitle from '../../src/components/ParentNavigationSubtitle';
 import NAVIGATORS from '../../src/NAVIGATORS';
 import SCREENS from '../../src/SCREENS';
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
@@ -101,7 +102,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
-        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: 'SearchReport'}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'ReportsSplitNavigator'};
             if (selector) {
@@ -136,7 +137,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => parentReportID);
-        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: 'SearchReport'}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'SettingsSplitNavigator'};
             if (selector) {
@@ -167,7 +168,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Report Name';
         const workspaceName = 'Workspace Name';
         Navigation.getTopmostReportId = jest.fn(() => '999');
-        mockUseRoute.mockReturnValue({name: 'SearchReport'} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: 'SearchReport'}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockRoute = {name: 'ReportsSplitNavigator'};
             if (selector) {
@@ -202,7 +203,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Parent chat';
         const workspaceName = 'Workspace';
 
-        mockUseRoute.mockReturnValue({name: SCREENS.REPORT} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockState = getMockRootStateWithReportsSplitStack(parentReportID, expenseReportID);
             if (selector) {
@@ -239,7 +240,7 @@ describe('ParentNavigationSubtitle', () => {
 
         jest.mocked(isReportActionVisible).mockReturnValue(true);
 
-        mockUseRoute.mockReturnValue({name: SCREENS.REPORT} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockState = getMockRootStateWithReportsSplitStack(parentReportID, expenseReportID);
             if (selector) {
@@ -274,7 +275,7 @@ describe('ParentNavigationSubtitle', () => {
         const reportName = 'Parent chat';
         const workspaceName = 'Workspace';
 
-        mockUseRoute.mockReturnValue({name: SCREENS.REPORT} as AnyRoute);
+        mockUseRoute.mockReturnValue(createMock<AnyRoute>({name: SCREENS.REPORT}));
         mockUseRootNavigationState.mockImplementation((selector?: (state: unknown) => unknown) => {
             const mockState = getMockRootStateWithReportsSplitStack('other-report', expenseReportID);
             if (selector) {

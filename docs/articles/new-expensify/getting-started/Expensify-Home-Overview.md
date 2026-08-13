@@ -50,6 +50,7 @@ The **Time-sensitive alerts** section appears only when there is something that 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
 - A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
+- A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 

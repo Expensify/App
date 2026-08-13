@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ComposeProviders from '@components/ComposeProviders';
+import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ScrollView from '@components/ScrollView';
@@ -111,7 +112,7 @@ const Stack = createPlatformStackNavigator<SettingsSplitNavigatorParamList>();
 
 function renderPage() {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer ref={navigationRef}>
                     <Stack.Navigator initialRouteName={SCREENS.SETTINGS.ROOT}>
@@ -146,7 +147,7 @@ describe('InitialSettingsPage - agent account', () => {
         mockUseSubscriptionPlan.mockImplementation(() => null);
     });
 
-    async function setupUser(email: string) {
+    async function setupUser(email: string, isCustomAgent = false) {
         await TestHelper.signInWithTestUser(accountID, email);
 
         const personalDetails: PersonalDetailsList = {
@@ -156,6 +157,7 @@ describe('InitialSettingsPage - agent account', () => {
                 displayName: email,
                 avatar: 'https://example.com/avatar.png',
                 avatarThumbnail: 'https://example.com/avatar.png',
+                isCustomAgent,
             } as PersonalDetails,
         };
 
@@ -168,7 +170,7 @@ describe('InitialSettingsPage - agent account', () => {
     }
 
     it('shows Wallet, Preferences and Security for agent account', async () => {
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
@@ -181,7 +183,7 @@ describe('InitialSettingsPage - agent account', () => {
     });
 
     it('shows Copilot for agent account', async () => {
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
@@ -206,7 +208,7 @@ describe('InitialSettingsPage - agent account', () => {
 
     it('shows Subscription for agent account', async () => {
         mockUseSubscriptionPlan.mockReturnValue(CONST.POLICY.TYPE.TEAM);
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPage();
         await waitForBatchedUpdatesWithAct();
@@ -230,7 +232,7 @@ describe('InitialSettingsPage - agent account', () => {
 
     it('hides Agents for agent account when CUSTOM_AGENT beta is enabled', async () => {
         mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
-        await setupUser('agent_123@expensify.ai');
+        await setupUser('testbot_123@expensify.ai', true);
 
         renderPage();
         await waitForBatchedUpdatesWithAct();

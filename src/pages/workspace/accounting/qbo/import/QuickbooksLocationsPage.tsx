@@ -62,7 +62,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
             displayName="QuickbooksLocationsPage"
             headerTitle="workspace.qbo.locations"
             title="workspace.qbo.locationsDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.locationsDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.locationsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -101,7 +101,7 @@ function QuickbooksLocationsPage({policy}: WithPolicyProps) {
                         shouldShowRightIcon={canUseTagsForLocations}
                         wrapperStyle={[styles.sectionMenuItemTopDescription, styles.mt4]}
                         brickRoadIndicator={areSettingsInErrorFields([CONST.QUICKBOOKS_CONFIG.SYNC_LOCATIONS], qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
-                        hintText={translate('workspace.qbo.locationsLineItemsRestrictionDescription', {integrationName})}
+                        hintText={translate('workspace.qbo.locationsLineItemsRestrictionDescription', integrationName)}
                     />
                 </OfflineWithFeedback>
             </Accordion>

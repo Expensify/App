@@ -48,7 +48,7 @@ function DomainAdminDetailsPage({route}: DomainAdminDetailsPageProps) {
     });
 
     const domainHasOnlyOneAdmin = adminAccountIDs?.length === 1;
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: adminPersonalDetails, translate, formatPhoneNumber});
     const memberLogin = adminPersonalDetails?.login ?? '';
     const isCurrentUserPrimaryContact = primaryContact === memberLogin;
 

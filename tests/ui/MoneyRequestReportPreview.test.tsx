@@ -178,7 +178,7 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
 
 const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
-    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
+    const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;

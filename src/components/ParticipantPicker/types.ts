@@ -38,6 +38,12 @@ type ParticipantPickerProps = {
 
     /** Callback fired when the modal backdrop (the area outside the picker) is pressed. Falls back to onClose when omitted. */
     onBackdropPress?: () => void;
+
+    /**
+     * Called before committing a participant/workspace selection.
+     * Return true to block the selection (e.g. manual/odometer distance into a commuter-exclusion workspace).
+     */
+    shouldBlockParticipantSelection?: (policyID?: string) => boolean;
 };
 
 // eslint-disable-next-line import/prefer-default-export

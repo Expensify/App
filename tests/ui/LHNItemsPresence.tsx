@@ -611,6 +611,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReportR14932.reportID,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: 100,
                 total: 122,
@@ -625,6 +626,7 @@ describe('SidebarLinksData', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',

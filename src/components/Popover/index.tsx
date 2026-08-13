@@ -67,7 +67,7 @@ function Popover(props: PopoverProps) {
         // changes, without intercepting that navigation.
         //
         // We subscribe to React Navigation state events rather than raw `popstate` so that
-        // `navigationRef.getCurrentRoute()` is already fresh when the callback fires. Sentinel-only
+        // `navigationRef.getCurrentRoute()` is already fresh when the callback fires. History changes from guard entries only
         // history changes (e.g. a nested YearPickerModal opening/closing) do NOT change the focused
         // route key, so the calendar popover stays open. A real navigation away changes the key and
         // closes the popover.

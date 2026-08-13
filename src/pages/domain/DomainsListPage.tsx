@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -76,11 +75,6 @@ function DomainsListPage() {
         }
     }
 
-    const activityIndicatorReasonAttributes = {
-        context: 'DomainsListPage',
-        isOffline,
-    } satisfies SkeletonSpanReasonAttributes;
-
     const headerButton = !!domainRows.length && (
         <Button
             success
@@ -100,10 +94,7 @@ function DomainsListPage() {
             <View style={styles.flex1}>
                 {shouldShowLoadingIndicator && (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={activityIndicatorReasonAttributes}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 )}
 

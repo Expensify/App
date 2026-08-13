@@ -4,13 +4,9 @@ import * as SequentialQueue from '@libs/Network/SequentialQueue';
 
 import type {AppActionsMock} from '@userActions/__mocks__/App';
 import type {OnyxUpdatesMock} from '@userActions/__mocks__/OnyxUpdates';
-import * as AppImport from '@userActions/App';
 import * as OnyxUpdateManager from '@userActions/OnyxUpdateManager';
-import * as OnyxUpdateManagerUtilsImport from '@userActions/OnyxUpdateManager/utils';
 import type {OnyxUpdateManagerUtilsMock} from '@userActions/OnyxUpdateManager/utils/__mocks__';
 import type {ApplyUpdatesMock} from '@userActions/OnyxUpdateManager/utils/__mocks__/applyUpdates';
-import * as ApplyUpdatesImport from '@userActions/OnyxUpdateManager/utils/applyUpdates';
-import * as OnyxUpdatesImport from '@userActions/OnyxUpdates';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -44,11 +40,10 @@ jest.mock('@libs/ActiveClientManager', () => ({
 }));
 const mockedIsClientTheLeader = jest.mocked(isClientTheLeader);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const OnyxUpdates = OnyxUpdatesImport as OnyxUpdatesMock<any>;
-const App = AppImport as AppActionsMock;
-const ApplyUpdates = ApplyUpdatesImport as ApplyUpdatesMock;
-const OnyxUpdateManagerUtils = OnyxUpdateManagerUtilsImport as OnyxUpdateManagerUtilsMock;
+const OnyxUpdates = jest.requireMock<OnyxUpdatesMock<never>>('@userActions/OnyxUpdates');
+const App = jest.requireMock<AppActionsMock>('@userActions/App');
+const ApplyUpdates = jest.requireMock<ApplyUpdatesMock>('@userActions/OnyxUpdateManager/utils/applyUpdates');
+const OnyxUpdateManagerUtils = jest.requireMock<OnyxUpdateManagerUtilsMock>('@userActions/OnyxUpdateManager/utils');
 
 const update2: OnyxUpdatesFromServer<never> = OnyxUpdateMockUtils.createUpdate(2);
 const pendingUpdateUpTo2 = OnyxUpdateMockUtils.createPendingUpdate(2);

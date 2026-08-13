@@ -12,6 +12,7 @@ import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -26,7 +27,6 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -100,6 +100,7 @@ function DynamicConfirmationPage() {
     const [mergeErrorMessage, setMergeErrorMessage] = useState('');
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails?.login;
+    const delegateAccountID = useDelegateAccountID();
     const childReportID = reportAction?.childReportID;
 
     const handleMergeDuplicates = useCallback(() => {
@@ -125,9 +126,9 @@ function DynamicConfirmationPage() {
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions});
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActions]);
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActions, delegateAccountID]);
 
     const contextMenuStateValue = useMemo(
         () => ({
@@ -159,13 +160,7 @@ function DynamicConfirmationPage() {
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionDuplicate.Confirmation',
-            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
-            isLoadingReport: isLoadingOnyxValue(reportResult),
-            hasNewTransaction: !!newTransaction?.transactionID,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

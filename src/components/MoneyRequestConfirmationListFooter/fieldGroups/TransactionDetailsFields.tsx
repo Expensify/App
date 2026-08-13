@@ -143,7 +143,6 @@ function TransactionDetailsFields({
                     hasRoute={distanceData.hasRoute}
                     distance={distanceData.distance}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     isManualDistanceRequest={isManualDistanceRequest}
                     isOdometerDistanceRequest={isOdometerDistanceRequest}
                     isGPSDistanceRequest={isGPSDistanceRequest}
@@ -154,6 +153,7 @@ function TransactionDetailsFields({
                     iouType={iouType}
                     reportID={reportID}
                     reportActionID={reportActionID}
+                    customUnit={distanceData.customUnit}
                 />
             )}
 
@@ -162,7 +162,6 @@ function TransactionDetailsFields({
                     distanceRateName={distanceData.distanceRateName}
                     distanceRateCurrency={distanceData.distanceRateCurrency}
                     unit={distanceData.unit}
-                    rate={distanceData.rate}
                     mileageRate={distanceData.mileageRate}
                     expenseDate={distanceData.expenseDate}
                     customUnitRateID={distanceData.customUnitRateID}

@@ -24,6 +24,7 @@ import {
     isActionableVirtualExpensifyCard,
     isBrokenConnectionPastDismissThreshold,
     isCardConnectionBroken,
+    doesCardConnectionNeedReauthentication,
     isCardFrozen,
     isCardInactive,
     isExpensifyCard,
@@ -322,6 +323,7 @@ function PaymentMethodList({
                     isCardInactive: isCardInactiveState,
                     isPersonalCard: isUserPersonalCard,
                     isAdminForCardPolicy,
+                    doesCardNeedReauthentication: doesCardConnectionNeedReauthentication(card),
                     policyID: policyIDForCard,
                 });
                 const shouldShowCardConnectionMessage = !!cardConnectionStatusDisplay?.messageKey;
@@ -340,6 +342,8 @@ function PaymentMethodList({
                     let cardConnectionMessage: string | undefined;
                     if (cardConnectionStatusDisplay.shouldUseCompanyCardsLink && policyIDForCard) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnectionIn', `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyIDForCard)}`);
+                    } else if (cardConnectionStatusDisplay.shouldUseReauthMessage) {
+                        cardConnectionMessage = translate('walletPage.cardStatus.reconnectBank');
                     } else if (cardConnectionStatusDisplay.shouldUsePersonalCardFix) {
                         cardConnectionMessage = translate('walletPage.cardStatus.fixConnection');
                     } else if (cardConnectionStatusDisplay.messageKey) {

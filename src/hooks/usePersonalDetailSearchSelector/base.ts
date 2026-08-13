@@ -36,6 +36,9 @@ type UseSearchSelectorConfig = {
     /** Logins to exclude from suggestions only (soft exclusions - can still be manually entered) */
     excludeFromSuggestionsOnly?: Record<string, boolean>;
 
+    /** When set, only the logins in this set are turned into options */
+    includeLoginsOnly?: Set<string>;
+
     /** Whether to include recent reports */
     includeRecentReports?: boolean;
 
@@ -159,6 +162,7 @@ function usePersonalDetailSearchSelectorBase({
     includeDomainEmail = false,
     excludeLogins = CONST.EMPTY_OBJECT,
     excludeFromSuggestionsOnly = CONST.EMPTY_OBJECT,
+    includeLoginsOnly,
     includeRecentReports = true,
     onSelectionChange,
     onSingleSelect,
@@ -174,23 +178,25 @@ function usePersonalDetailSearchSelectorBase({
     initialSearchPhrase = '',
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
     const {translate, formatPhoneNumber} = useLocalize();
-    const {options: defaultOptions, currentOption} = usePersonalDetailOptions({enabled: shouldInitialize});
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {options: defaultOptions, currentOption, isLoading: isPersonalDetailsOptionsLoading} = usePersonalDetailOptions({enabled: shouldInitialize, includeLoginsOnly});
+    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
+
+    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
+    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
+    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
+    const currentUserEmail = currentUserPersonalDetails.email ?? '';
 
     const optionsWithContacts = (() => {
         if (!contactOptions?.length || !shouldInitialize) {
             return defaultOptions;
         }
-        return (defaultOptions ?? []).concat(contactOptions);
+        // Phone contacts are built outside of usePersonalDetailOptions, so they need the allowlist applied here.
+        const allowedContactOptions = includeLoginsOnly ? contactOptions.filter((option) => !!option.login && includeLoginsOnly.has(option.login)) : contactOptions;
+        return (defaultOptions ?? []).concat(allowedContactOptions);
     })();
-    const areOptionsInitialized = (optionsWithContacts?.length ?? 0) > 0;
-    const [selectedAccountIDs, setSelectedAccountIDs] = useState<Set<string>>(initialSelected);
-    const [extraOptions, setExtraOptions] = useState<OptionData[]>(initialExtraOptions);
-    const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState(initialSearchPhrase);
-    const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
-    const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const currentUserEmail = currentUserPersonalDetails.email ?? '';
-
+    const areOptionsInitialized = !isPersonalDetailsOptionsLoading;
     const transformedOptions: OptionData[] =
         optionsWithContacts?.map((option) => ({
             ...option,

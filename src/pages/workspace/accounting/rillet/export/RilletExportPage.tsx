@@ -39,7 +39,7 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
     const exporter = rilletConfig?.export?.exporter ?? policyOwner;
     const exportReimbursable = rilletConfig?.export?.reimbursable ?? CONST.RILLET_EXPORT_REIMBURSABLE.VENDOR_BILL;
     const exportDate = rilletConfig?.export?.exportDate ?? CONST.RILLET_EXPORT_DATE.LAST_EXPENSE;
-    const exportCompanyCard = rilletConfig?.export?.companyCard ?? CONST.RILLET_EXPORT_COMPANY_CARD.CREDIT_CARD;
+    const exportNonReimbursable = rilletConfig?.export?.nonReimbursable ?? CONST.RILLET_EXPORT_NON_REIMBURSABLE.CREDIT_CARD_CHARGE;
     const defaultCompanyCardVendor = rilletData?.vendors?.find((vendor) => vendor.id === rilletConfig?.export?.defaultVendorID);
     const companyCardAccount = rilletData?.accounts?.find((account) => account.code === rilletConfig?.export?.creditCardAccountCode);
     const exportToMultipleAccounts = rilletConfig?.export?.exportToMultipleAccounts ?? false;
@@ -97,13 +97,13 @@ function RilletExportPage({policy}: WithPolicyConnectionsProps) {
                 />
             </OfflineWithFeedback>
             <View style={[styles.mv3, styles.mh5, styles.borderTop]} />
-            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.pendingFields)}>
+            <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.NON_REIMBURSABLE], rilletConfig?.pendingFields)}>
                 <MenuItemWithTopDescription
-                    title={translate(`workspace.rillet.exportCompanyCard.values.${exportCompanyCard}.label`)}
-                    description={translate('workspace.rillet.exportCompanyCard.label')}
+                    title={translate(`workspace.rillet.exportNonReimbursable.values.${exportNonReimbursable}.label`)}
+                    description={translate('workspace.rillet.exportNonReimbursable.label')}
                     onPress={() => {}}
                     interactive={false}
-                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.COMPANY_CARD], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
+                    brickRoadIndicator={areSettingsInErrorFields([CONST.RILLET_CONFIG.NON_REIMBURSABLE], rilletConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined}
                 />
             </OfflineWithFeedback>
             <OfflineWithFeedback pendingAction={settingsPendingAction([CONST.RILLET_CONFIG.DEFAULT_VENDORID], rilletConfig?.pendingFields)}>

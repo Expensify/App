@@ -46,7 +46,17 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const {showConfirmModal} = useConfirmModal();
     const styles = useThemeStyles();
     const lazyIllustrations = useMemoizedLazyIllustrations(['LaptopWithSecondScreenAndHourglass']);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtil(report);
@@ -68,7 +78,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         async (type: ExportType) => {
             const result = await showConfirmModal({
                 title: translate('workspace.exportAgainModal.title'),
-                prompt: translate('workspace.exportAgainModal.description', {reportName: report?.reportName ?? '', connectionName}),
+                prompt: translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName),
                 confirmText: translate('workspace.exportAgainModal.confirmText'),
                 cancelText: translate('workspace.exportAgainModal.cancelText'),
             });
@@ -82,7 +92,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const exportSelectorOptions: ExportSelectorType[] = [
         {
             value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-            text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
+            text: translate('workspace.common.exportIntegrationSelected', connectionName),
             icons: [
                 {
                     source: iconToDisplay ?? '',

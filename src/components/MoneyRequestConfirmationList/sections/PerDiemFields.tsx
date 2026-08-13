@@ -35,7 +35,7 @@ type PerDiemFieldsProps = {
 
 function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, transactionID, action, iouType, reportID, shouldDisplayFieldError, formError}: PerDiemFieldsProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Stopwatch', 'CalendarSolid']);
 
     const subRates = getSubratesFields(perDiemCustomUnit, transaction);
@@ -118,7 +118,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
             <View style={styles.dividerLine} />
             <MenuItemWithTopDescription
                 shouldShowRightIcon={!isReadOnly}
-                title={getTimeForDisplay(transaction)}
+                title={getTimeForDisplay(transaction, dateFnsLocale)}
                 description={translate('iou.time')}
                 style={[styles.moneyRequestMenuItem]}
                 titleStyle={styles.flex1}
@@ -126,7 +126,7 @@ function PerDiemFields({perDiemCustomUnit, transaction, isReadOnly, didConfirm, 
                     if (!transactionID) {
                         return;
                     }
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.getRoute(action, iouType, transactionID, reportID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME_EDIT.path));
                 }}
                 disabled={didConfirm}
                 interactive={!isReadOnly}

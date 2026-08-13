@@ -11,6 +11,7 @@ import type {NavigationState} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock Navigation
@@ -68,7 +69,7 @@ describe('useCurrentReportID', () => {
         );
         await waitForBatchedUpdatesWithAct();
         // Given the navigation state is set
-        const navigationState = {
+        const navigationState = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -77,7 +78,7 @@ describe('useCurrentReportID', () => {
                     params: {reportID: '123'},
                 },
             ],
-        } as NavigationState;
+        });
 
         mockGetTopmostReportId.mockReturnValue('123');
 
@@ -114,7 +115,7 @@ describe('useCurrentReportID', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
-        const navigationState = {
+        const navigationState = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -123,7 +124,7 @@ describe('useCurrentReportID', () => {
                     params: {},
                 },
             ],
-        } as NavigationState;
+        });
 
         mockGetTopmostReportId.mockReturnValue(undefined);
 
@@ -158,7 +159,7 @@ describe('useCurrentReportID', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
-        const state1 = {
+        const state1 = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -167,9 +168,9 @@ describe('useCurrentReportID', () => {
                     params: {reportID: '123'},
                 },
             ],
-        } as NavigationState;
+        });
 
-        const state2 = {
+        const state2 = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -178,7 +179,7 @@ describe('useCurrentReportID', () => {
                     params: {reportID: '456'},
                 },
             ],
-        } as NavigationState;
+        });
 
         mockGetTopmostReportId.mockReturnValueOnce('123').mockReturnValueOnce('456');
 
@@ -213,7 +214,7 @@ describe('useCurrentReportID', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
-        const settingsState = {
+        const settingsState = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -224,7 +225,7 @@ describe('useCurrentReportID', () => {
                     },
                 },
             ],
-        } as NavigationState;
+        });
 
         mockGetTopmostReportId.mockReturnValue('123');
 
@@ -251,7 +252,7 @@ describe('useCurrentReportID', () => {
         await waitForBatchedUpdatesWithAct();
 
         // Given the navigation state is set
-        const reportState = {
+        const reportState = createMock<NavigationState>({
             index: 0,
             routes: [
                 {
@@ -260,7 +261,7 @@ describe('useCurrentReportID', () => {
                     params: {reportID: '123'},
                 },
             ],
-        } as NavigationState;
+        });
 
         mockGetTopmostReportId.mockReturnValue('123');
 

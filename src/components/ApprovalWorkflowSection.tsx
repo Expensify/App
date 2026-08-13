@@ -62,7 +62,7 @@ function ApprovalWorkflowSection({
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'Lightbulb', 'Pencil', 'Users', 'UserCheck']);
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, toLocaleOrdinal, localeCompare} = useLocalize();
+    const {translate, toLocaleOrdinalWithWords, localeCompare} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const approverTitle = (index: number) => {
@@ -79,7 +79,7 @@ function ApprovalWorkflowSection({
             const fromProviderSuffix = hrProviderName ? ` (${translate('workflowsPage.approverFromProvider', {provider: hrProviderName})})` : '';
             return `${translate('workflowsPage.manager')}${fromProviderSuffix}`;
         }
-        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinal(index + 1, true)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
+        return approvalWorkflow.approvers.length > 1 ? `${toLocaleOrdinalWithWords(index + 1)} ${translate('workflowsPage.approver').toLowerCase()}` : translate('workflowsPage.approver');
     };
 
     const sortedMembers = approvalWorkflow.isDefault ? [] : sortAlphabetically(approvalWorkflow.members, 'displayName', localeCompare);

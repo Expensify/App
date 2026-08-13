@@ -31,10 +31,23 @@ import {
 } from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import {isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
+import {getReportOwnerAccountIDAsAttendee, getReportOwnerAsAttendee, isDistanceRequest, isTransactionPendingDelete} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {CardList, MergeTransaction, Policy, PolicyCategories, PolicyTagLists, Report, ReportActions, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {
+    CardList,
+    MergeTransaction,
+    PersonalDetailsList,
+    Policy,
+    PolicyCategories,
+    PolicyTagLists,
+    Report,
+    ReportAction,
+    ReportActions,
+    Transaction,
+    TransactionViolations,
+} from '@src/types/onyx';
+import type {Attendee} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection, OnyxEntry, OnyxMergeInput, OnyxUpdate} from 'react-native-onyx';
 
@@ -46,6 +59,20 @@ import type {UpdateMoneyRequestData, UpdateMoneyRequestDataKeys} from './IOU/Upd
 import {getCleanUpTransactionThreadReportOnyxData} from './IOU/DeleteMoneyRequest';
 import {getDeleteTrackExpenseInformation} from './IOU/TrackExpense';
 import {getUpdateMoneyRequestParams, getUpdateTrackExpenseParams} from './IOU/UpdateMoneyRequest';
+
+/**
+ * Resolve a transaction's report owner as a default attendee, mirroring the `useReportOwnerAsAttendee` hook so the
+ * non-React merge entry point can apply the same empty-attendee fallback the details/receipt pages use. The Onyx data
+ * is passed in by the caller rather than read from a module subscription.
+ */
+function getReportOwnerAsAttendeeForTransaction(
+    transaction: OnyxEntry<Transaction>,
+    currentUserAccountID: number | undefined,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+): Attendee | undefined {
+    const ownerAccountID = getReportOwnerAccountIDAsAttendee(transaction, currentUserAccountID);
+    return getReportOwnerAsAttendee(ownerAccountID ? (personalDetails?.[ownerAccountID] ?? undefined) : undefined);
+}
 
 /**
  * Setup merge transaction data for merging flow
@@ -91,6 +118,8 @@ function setupMergeTransactionDataAndNavigate(
     isSelectingSourceTransaction?: boolean,
     isOnSearch?: boolean,
     policies?: Array<OnyxEntry<Policy>>,
+    currentUserAccountID?: number,
+    personalDetails?: OnyxEntry<PersonalDetailsList>,
 ) {
     if (!transactions.length || transactions.length > 2) {
         return;
@@ -139,6 +168,8 @@ function setupMergeTransactionDataAndNavigate(
             searchReports,
             targetTransactionPolicy,
             sourceTransactionPolicy,
+            getReportOwnerAsAttendeeForTransaction(targetTransaction, currentUserAccountID, personalDetails),
+            getReportOwnerAsAttendeeForTransaction(sourceTransaction, currentUserAccountID, personalDetails),
         );
         if (!conflictFields.length) {
             // If there are no conflict fields, we should set mergeable data and navigate to the confirmation page
@@ -377,6 +408,9 @@ type MergeTransactionRequestParams = {
     selfDMReportActions: OnyxEntry<ReportActions>;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    sourceTransactionThreadReportActions: OnyxEntry<ReportActions>;
+    sourceIOUAction: OnyxEntry<ReportAction>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -407,6 +441,9 @@ function mergeTransactionRequest({
     selfDMReportActions,
     reportPolicyTags,
     isTrackIntentUser,
+    sourceTransactionThreadReportActions,
+    sourceIOUAction,
+    getCurrencyDecimals,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -569,14 +606,14 @@ function mergeTransactionRequest({
 
         // Only clear the transaction thread report if we select the target report for merging
         if (mergeTransaction.reportID === targetTransaction.reportID) {
-            const sourceIouAction = getIOUActionForReportID(sourceTransaction.reportID, sourceTransaction.transactionID);
-            const sourceTransactionThreadReportID = sourceIouAction?.childReportID;
+            const sourceTransactionThreadReportID = sourceIOUAction?.childReportID;
             const shouldDeleteTransactionThread = !!sourceTransactionThreadReportID;
             const cleanUpSourceTransactionThreadReportOnyxData = getCleanUpTransactionThreadReportOnyxData({
                 transactionThreadID: sourceTransactionThreadReportID,
                 shouldDeleteTransactionThread,
-                reportAction: sourceIouAction,
+                reportAction: sourceIOUAction,
                 currentUserAccountID: currentUserAccountIDParam,
+                transactionThreadReportActionsParam: sourceTransactionThreadReportActions,
             });
             optimisticSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.optimisticData);
             successSourceReportActionData.push(...cleanUpSourceTransactionThreadReportOnyxData.successData);
@@ -672,6 +709,7 @@ function mergeTransactionRequest({
             iouReportID: mergeTransaction.reportID,
             // delegateAccountIDParam: will be threaded in PR 11; buildOptimisticIOUReportAction falls back to module-level Onyx.connect value (https://github.com/Expensify/App/issues/66425)
             delegateAccountIDParam: undefined,
+            getCurrencyDecimals,
         });
 
         // IOU action for the surviving expense on its original report (not on mergeTransaction.reportID yet).

@@ -81,7 +81,23 @@ jest.mock('@hooks/useLocalize', () =>
         formatPhoneNumber: (value: string) => value,
     })),
 );
-jest.mock('@hooks/useOnyx', () => jest.fn((key: string) => (key === 'countryCode' ? ['US'] : [false])));
+jest.mock('@hooks/useOnyx', () =>
+    jest.fn((key: string) => {
+        if (key === 'countryCode') {
+            return ['US'];
+        }
+        return [false];
+    }),
+);
+jest.mock('@hooks/usePersonalDetailByLogin', () =>
+    jest.fn((login?: string) => {
+        const personalDetailsByLogin: Record<string, unknown> = {
+            [mockDelegateDetails.login]: mockDelegateDetails,
+            [mockContactDetails.login]: mockContactDetails,
+        };
+        return login ? personalDetailsByLogin[login] : undefined;
+    }),
+);
 jest.mock('@hooks/usePersonalDetailSearchSelector', () =>
     jest.fn((config: SearchSelectorConfig) => {
         mockSearchSelectorConfig = config;

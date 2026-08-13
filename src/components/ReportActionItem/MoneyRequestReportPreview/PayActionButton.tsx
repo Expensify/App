@@ -55,7 +55,7 @@ function PayActionButton() {
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
@@ -102,6 +102,7 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
@@ -124,6 +125,7 @@ function PayActionButton() {
                 });
             } else {
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,

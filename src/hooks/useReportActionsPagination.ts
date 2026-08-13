@@ -1,4 +1,4 @@
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getCombinedReportActions, getFilteredReportActionsForReportView, isCreatedAction} from '@libs/ReportActionsUtils';
 import {isConciergeChatReport, isInvoiceReport, isMoneyRequestReport, isReportTransactionThread as isReportTransactionThreadUtil, shouldReportAlignToTop} from '@libs/ReportUtils';
@@ -12,6 +12,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useMemo, useState} from 'react';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
@@ -37,6 +38,7 @@ type UseReportActionsPaginationResult = {
 function useReportActionsPagination(reportID: string | undefined, reportActionIDFromRoute: string | undefined): UseReportActionsPaginationResult {
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const {isOffline} = useNetwork();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const parentReportAction = useParentReportAction(report);
 
     const [treatAsNoPaginationAnchor, setTreatAsNoPaginationAnchor] = useState(false);
@@ -69,7 +71,10 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     const shouldAddCreatedAction = !isCreatedAction(lastAction) && (isMoneyRequestReport(report) || isInvoiceReport(report) || isReportTransactionThread || isConciergeChat);
 
     const [chatReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
-    const reportPreviewAction = useMemo(() => getReportPreviewAction(report?.chatReportID, report?.reportID, chatReportActions), [report?.chatReportID, report?.reportID, chatReportActions]);
+    const reportPreviewAction = useMemo(
+        () => getReportPreviewReportAction(report?.chatReportID, report?.reportID, chatReportActions),
+        [report?.chatReportID, report?.reportID, chatReportActions],
+    );
 
     // When we are offline before opening an IOU/Expense report,
     // the total of the report and sometimes the expense aren't displayed because these actions aren't returned until `OpenReport` API is complete.
@@ -77,8 +82,8 @@ function useReportActionsPagination(reportID: string | undefined, reportActionID
     // and we also generate an expense action if the number of expenses in allReportActions is less than the total number of expenses
     // to display at least one expense action to match the total data.
     const reportActionsToDisplay = useMemo(
-        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction),
-        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport],
+        () => getReportActionsToDisplay(allReportActions, lastAction, report, reportPreviewAction, thread.transactionThreadReport, shouldAddCreatedAction, getCurrencyDecimals),
+        [allReportActions, lastAction, report, reportPreviewAction, shouldAddCreatedAction, thread.transactionThreadReport, getCurrencyDecimals],
     );
 
     const reportActions = useMemo(

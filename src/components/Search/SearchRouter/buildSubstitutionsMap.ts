@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {SearchAutocompleteQueryRange} from '@components/Search/types';
 
 import {parse} from '@libs/SearchParser/autocompleteParser';
@@ -41,6 +41,7 @@ function buildSubstitutionsMap(
     policies: OnyxCollection<Policy>,
     currentUserAccountID: number,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAttributes: ReportAttributesDerivedValue['reports'] | undefined,
     bankAccountList?: BankAccountList,
 ): SubstitutionMap {
@@ -97,6 +98,7 @@ function buildSubstitutionsMap(
                 policies,
                 currentUserAccountID,
                 translate,
+                formatPhoneNumber,
                 reportAttributes,
                 bankAccountList,
             });

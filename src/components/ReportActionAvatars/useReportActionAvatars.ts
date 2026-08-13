@@ -7,7 +7,6 @@ import usePolicy from '@hooks/usePolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {addSMSDomainIfPhoneNumber} from '@libs/PhoneNumber';
 import {
     getDelegateAccountIDFromReportAction,
     getHumanAgentAccountIDFromReportAction,
@@ -28,7 +27,7 @@ import {
     isTripRoom,
     shouldReportShowSubscript,
 } from '@libs/ReportUtils';
-import {getDefaultAvatar} from '@libs/UserAvatarUtils';
+import {buildUserIcon} from '@libs/UserAvatarUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -51,7 +50,6 @@ function useReportActionAvatars({
     policy: policyProp,
     fallbackDisplayName = '',
     invitedEmailsToAccountIDs,
-    shouldUseCustomFallbackAvatar = false,
     chatReportID: passedChatReportID,
     shouldUseRealActor = false,
 }: {
@@ -64,7 +62,6 @@ function useReportActionAvatars({
     policy?: OnyxInputOrEntry<Policy>;
     fallbackDisplayName?: string;
     invitedEmailsToAccountIDs?: InvitedEmailsToAccountIDs;
-    shouldUseCustomFallbackAvatar?: boolean;
     chatReportID?: string;
     /** When true, returns the action's real author instead of the Concierge display override used in inbox timelines. */
     shouldUseRealActor?: boolean;
@@ -137,13 +134,14 @@ function useReportActionAvatars({
 
     const avatarsForAccountIDs: IconType[] = accountIDsToMap.map((id) => {
         const invitedEmail = invitedEmailsToAccountIDs ? Object.keys(invitedEmailsToAccountIDs).find((email) => invitedEmailsToAccountIDs[email] === id) : undefined;
-        return {
-            id,
-            type: CONST.ICON_TYPE_AVATAR,
-            source: personalDetails?.[id]?.avatar ?? defaultAvatars.FallbackAvatar,
-            name: personalDetails?.[id]?.[shouldUseActorAccountID ? 'displayName' : 'login'] ?? invitedEmail ?? '',
-            fallbackIcon: shouldUseCustomFallbackAvatar ? getDefaultAvatar({accountID: id, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail ?? ''), defaultAvatars}) : undefined,
-        };
+        return buildUserIcon({
+            accountID: id,
+            personalDetails,
+            defaultAvatars,
+            invitedEmail,
+            // Invoice actors are named after their display name; every other icon falls back to the login inside `buildUserIcon`.
+            name: shouldUseActorAccountID ? (personalDetails?.[id]?.displayName ?? invitedEmail ?? '') : undefined,
+        });
     });
 
     const fallbackWorkspaceAvatar: IconType = {

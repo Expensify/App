@@ -337,7 +337,7 @@ describe('DynamicReportDetailsPage', () => {
             await waitForBatchedUpdatesWithAct();
 
             // Press "Delete expense" and confirm (the confirm modal is auto-confirmed via the useConfirmModal mock).
-            const deleteLabel = translateLocal('reportActionContextMenu.deleteAction', {action: iouAction});
+            const deleteLabel = translateLocal('reportActionContextMenu.deleteAction', iouAction);
             const deleteButton = await screen.findByRole(CONST.ROLE.BUTTON, {name: new RegExp(deleteLabel)});
             // MenuItem's onPress only runs when it receives a truthy press event, so pass one explicitly.
             fireEvent.press(deleteButton, {nativeEvent: {}});

@@ -58,6 +58,7 @@ const PARTS_TO_POLICY_FIELDS = {
         'preventSelfApproval',
         'disabledFields',
         'glCodes',
+        'showTagGLCodes',
         'shouldShowAutoApprovalOptions',
         'shouldShowAutoReimbursementLimitOption',
         'customRules',

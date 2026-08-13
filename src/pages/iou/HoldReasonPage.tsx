@@ -3,6 +3,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -37,6 +38,7 @@ type HoldReasonPageProps =
 function HoldReasonPage({route}: HoldReasonPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const {transactionID, reportID, backTo} = route.params;
 
@@ -73,7 +75,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
             return;
         }
 
-        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, ancestors);
+        putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
         Navigation.goBack(backTo);
     };
 

@@ -11,11 +11,12 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePersonalDetailSearchSelector from '@hooks/usePersonalDetailSearchSelector';
+import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearInviteDraft, setWorkspaceInviteMembersDraft} from '@libs/actions/Policy/Member';
 import {searchInServer} from '@libs/actions/Report';
-import {setApprovalWorkflowMembers} from '@libs/actions/Workflow';
+import {clearApprovalWorkflow, setApprovalWorkflowMembers} from '@libs/actions/Workflow';
 import {isAnyHRReadOnlyWorkflowMode} from '@libs/HRUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -63,14 +64,15 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
     const icons = useMemoizedLazyExpensifyIcons(['FallbackAvatar']);
     const {showConfirmModal} = useConfirmModal();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-
-    const personalDetailLogins = useMemo(() => Object.fromEntries(Object.entries(personalDetails ?? {}).map(([id, details]) => [id, details?.login])), [personalDetails]);
+    const shouldInitializeSearch = useRunAfterTransitions(true);
 
     const isLoadingApprovalWorkflow = isLoadingOnyxValue(approvalWorkflowResults);
     const canWriteApprovals = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_APPROVALS);
     // Set true when nextStep navigates to the invite-message page so the cleanup
     // effect below knows to leave the draft intact for that page to consume.
     const isHandingOffToInviteRef = useRef(false);
+    // Tracks whether we're still on the very first step of the create flow
+    const isInitialCreationFlowRef = useRef(false);
 
     const excludedUsers = useMemo(() => {
         return getExcludedUsers(policy?.employeeList);
@@ -86,7 +88,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         includeUserToInvite: true,
         excludeLogins: excludedUsers,
         includeRecentReports: false,
-        shouldInitialize: true,
+        shouldInitialize: shouldInitializeSearch,
     });
 
     useEffect(() => {
@@ -151,7 +153,7 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                     }
                 }
 
-                const login = personalDetailLogins?.[accountID] ?? member.email;
+                const login = personalDetails?.[accountID]?.login ?? member.email;
                 const displayName = member.displayName ?? personalDetail?.displayName ?? member.email;
                 const avatar = member.avatar ?? personalDetail?.avatar;
 
@@ -428,6 +430,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
         );
     }, [isInitialCreationFlow, translate, shouldShowListEmptyContent, selectedMembers.length, nextStep, styles]);
 
+    // Keep the ref in sync so the unmount cleanup below reads the latest value.
+    useEffect(() => {
+        isInitialCreationFlowRef.current = !!isInitialCreationFlow;
+    }, [isInitialCreationFlow]);
+
     // Clean up invite draft when leaving the expenses-from page to prevent
     // stale non-member data from persisting in the approval workflow. Skip
     // when handing off to the invite-message page, which still needs the draft.
@@ -437,6 +444,11 @@ function DynamicWorkspaceWorkflowsApprovalsExpensesFromPage({policy, isLoadingRe
                 return;
             }
             clearInviteDraft(route.params.policyID);
+            // Abandoning the initial create step must discard the eagerly-seeded approvalWorkflow
+            // draft, otherwise a stale draft stays in Onyx and pollutes the next session.
+            if (isInitialCreationFlowRef.current) {
+                clearApprovalWorkflow();
+            }
         };
     }, [route.params.policyID]);
 

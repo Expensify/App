@@ -4,7 +4,7 @@ type LoadTestParameters = {
 };
 
 /**
- * Hard upper bound on how many copies of a single API request we will fan out per real request.
+ * Hard upper bound on how many copies of a single API request we will send per real request.
  * Defends against a malicious or misconfigured server returning an oversized (or `Infinity`)
  * `multiplier` and turning the client into a self-DDOS / freezing the JS thread in `triggerDuplicates`.
  * 100 is well above any plausible legitimate load-test value (typically 3-10) but small enough that

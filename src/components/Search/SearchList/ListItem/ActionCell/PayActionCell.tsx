@@ -40,7 +40,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -110,6 +110,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
@@ -135,6 +136,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         }
 
         payMoneyRequest({
+            getCurrencyDecimals,
             paymentType: type,
             chatReport,
             iouReport,

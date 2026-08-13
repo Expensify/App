@@ -19,12 +19,12 @@ type ReimbursedContentProps = {
 };
 
 function ReimbursedContent({action, reportOwnerAccountID}: ReimbursedContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportOwnerAccountID)});
     const [actorLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(action.actorAccountID)});
-    const message = getReimbursedMessage(translate, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
+    const message = getReimbursedMessage(translate, dateFnsLocale, action, reportOwnerAccountID, submitterLogin, actorLogin, convertToDisplayString, currentUserAccountID);
 
     return <ReportActionItemBasicMessage message={message} />;
 }

@@ -32,12 +32,6 @@ jest.mock('@hooks/useThemeStyles', () =>
     ),
 );
 
-jest.mock('@hooks/useStyleUtils', () =>
-    jest.fn(() => ({
-        getBackgroundAndBorderStyle: jest.fn(() => ({})),
-    })),
-);
-
 jest.mock('@hooks/useTheme', () =>
     jest.fn(() => ({
         sidebar: '#fff',
@@ -72,11 +66,11 @@ jest.mock('@components/Table/TableContext', () => ({
     })),
 }));
 
-jest.mock('@components/ReportActionAvatars', () => {
-    function MockReportActionAvatars() {
+jest.mock('@components/Avatar/connected/AccountAvatar', () => {
+    function MockAccountAvatar() {
         return null;
     }
-    return MockReportActionAvatars;
+    return MockAccountAvatar;
 });
 
 jest.mock('@components/Icon', () => {

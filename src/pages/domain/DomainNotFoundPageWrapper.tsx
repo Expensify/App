@@ -4,8 +4,6 @@ import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import Navigation from '@navigation/Navigation';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
@@ -51,11 +49,7 @@ function DomainNotFoundPageWrapper({domainAccountID, shouldBeBlocked, fullPageNo
     }, [domain, isAdmin, shouldShowFullScreenLoadingIndicator]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DomainNotFoundPageWrapper',
-            shouldShowFullScreenLoadingIndicator,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     if (shouldShowNotFoundPage) {

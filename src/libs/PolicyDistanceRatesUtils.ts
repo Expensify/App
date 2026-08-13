@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {CustomUnit, Rate, RateAttributes} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -203,4 +204,16 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-export {validateRateValue, validateTaxClaimableValue, validateCreateDistanceRateForm, buildOnyxDataForPolicyDistanceRateUpdates, getRateStatus, isGovernmentRateUnmodified};
+function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
+    return !!policy?.id && !!policy.commuterExclusions;
+}
+
+export {
+    validateRateValue,
+    validateTaxClaimableValue,
+    validateCreateDistanceRateForm,
+    buildOnyxDataForPolicyDistanceRateUpdates,
+    getRateStatus,
+    isCommuterExclusionEnabled,
+    isGovernmentRateUnmodified,
+};

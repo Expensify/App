@@ -16,7 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import cropOrRotateImage from '@libs/cropOrRotateImage';
 import type {CustomRNImageManipulatorResult} from '@libs/cropOrRotateImage/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -24,7 +23,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {LayoutChangeEvent} from 'react-native';
 import type {GestureUpdateEvent, PanGestureChangeEventPayload, PanGestureHandlerEventPayload} from 'react-native-gesture-handler';
 
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View} from 'react-native';
 import {Gesture, GestureHandlerRootView} from 'react-native-gesture-handler';
 import ImageSize from 'react-native-image-size';
@@ -333,15 +332,6 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
         updateImageOffset(newX, newY);
     };
 
-    const reasonAttributes = useMemo<SkeletonSpanReasonAttributes>(
-        () => ({
-            context: 'AvatarCropModal',
-            isImageInitialized,
-            isImageContainerInitialized,
-        }),
-        [isImageInitialized, isImageContainerInitialized],
-    );
-
     return (
         <ScreenWrapper
             style={styles.pb0}
@@ -364,7 +354,6 @@ function AvatarCropView({imageUri = '', imageName = '', imageType = '', onClose,
                         <ActivityIndicator
                             style={styles.flex1}
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={reasonAttributes}
                         />
                     ) : (
                         <>

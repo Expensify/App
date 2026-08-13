@@ -1,3 +1,5 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -96,6 +98,7 @@ function ReportFetchHandler() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
@@ -212,6 +215,7 @@ function ReportFetchHandler() {
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            personalDetails,
         });
     });
 
@@ -491,12 +495,14 @@ function ReportFetchHandler() {
             betas,
             iouReport: report,
             transaction,
+            personalDetails,
         });
     }, [
         introSelected,
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         visibleTransactions,
         transactionThreadReport,

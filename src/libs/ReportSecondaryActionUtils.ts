@@ -927,7 +927,7 @@ function getSecondaryReportActions({
     violations,
     bankAccountList,
     policy,
-    reportNameValuePairs,
+    moveExpenseReportNameValuePairs,
     reportActions,
     reportMetadata,
     policies,
@@ -947,7 +947,7 @@ function getSecondaryReportActions({
     violations: OnyxCollection<TransactionViolation[]>;
     bankAccountList: OnyxEntry<BankAccountList>;
     policy?: Policy;
-    reportNameValuePairs?: ReportNameValuePairs;
+    moveExpenseReportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportActions?: ReportAction[];
     reportMetadata?: OnyxEntry<ReportMetadata>;
     policies?: OnyxCollection<Policy>;
@@ -960,6 +960,7 @@ function getSecondaryReportActions({
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {
     const options: Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> = [];
+    const reportNameValuePairs = moveExpenseReportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`];
 
     const isExported = isExportedUtils(reportActions, report);
     const hasExportError = hasExportErrorUtils(reportActions, report);
@@ -1104,6 +1105,7 @@ function getSecondaryReportActions({
                 fieldToEdit: CONST.EDIT_REQUEST_FIELD.REPORT,
                 isChatReportArchived,
                 outstandingReportsByPolicyID,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
                 transaction,
             });
             const canUserPerformWriteAction = canUserPerformWriteActionReportUtils(report, isChatReportArchived);

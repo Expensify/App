@@ -10,6 +10,9 @@ const TRIGGER_MAP_MAX = 64;
 /** A click long before a timer-triggered nav must not be captured as that nav's trigger (web mouse modality). */
 const MOUSE_TRIGGER_TTL_MS = 3_000;
 
+/** Freshness window for the Enter/Space activation latch, measured from the last keydown or keyup. Backstops async activation-to-nav that state changes and focus-moving keys haven't already invalidated. */
+const KEYBOARD_TRIGGER_TTL_MS = 500;
+
 /** Same window on native — the press that started a forward nav is consumed within this many ms. */
 const PRESS_TRIGGER_TTL_MS = 3_000;
 
@@ -22,4 +25,14 @@ const LAUNCHER_CLEAR_DELAY_MS = 1_000;
 /** Soft cap on the LauncherStack; warned once-per-session if exceeded (signals a pathological trap loop). */
 const LAUNCHER_STACK_MAX = 8;
 
-export {MAX_RESTORE_FRAMES, MAX_INITIAL_FOCUS_FRAMES, TRIGGER_MAP_MAX, MOUSE_TRIGGER_TTL_MS, PRESS_TRIGGER_TTL_MS, RETURN_HOLD_MS, LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX};
+export {
+    MAX_RESTORE_FRAMES,
+    MAX_INITIAL_FOCUS_FRAMES,
+    TRIGGER_MAP_MAX,
+    MOUSE_TRIGGER_TTL_MS,
+    KEYBOARD_TRIGGER_TTL_MS,
+    PRESS_TRIGGER_TTL_MS,
+    RETURN_HOLD_MS,
+    LAUNCHER_CLEAR_DELAY_MS,
+    LAUNCHER_STACK_MAX,
+};

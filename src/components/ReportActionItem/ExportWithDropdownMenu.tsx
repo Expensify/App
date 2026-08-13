@@ -57,7 +57,17 @@ function ExportWithDropdownMenu({
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
     const [exportMethods] = useOnyx(ONYXKEYS.LAST_EXPORT_METHOD);
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['XeroSquare', 'QBOSquare', 'NetSuiteSquare', 'IntacctSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'GustoSquare']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([
+        'XeroSquare',
+        'QBOSquare',
+        'NetSuiteSquare',
+        'IntacctSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+        'GustoSquare',
+    ]);
 
     const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
     const canBeExported = canBeExportedUtils(report);
@@ -76,7 +86,7 @@ function ExportWithDropdownMenu({
         const options = [
             {
                 value: CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION,
-                text: translate('workspace.common.exportIntegrationSelected', {connectionName}),
+                text: translate('workspace.common.exportIntegrationSelected', connectionName),
                 ...optionTemplate,
             },
             {
@@ -122,7 +132,7 @@ function ExportWithDropdownMenu({
                 if (isExported) {
                     showConfirmModal({
                         title: translate('workspace.exportAgainModal.title'),
-                        prompt: translate('workspace.exportAgainModal.description', {connectionName, reportName: report?.reportName ?? ''}),
+                        prompt: translate('workspace.exportAgainModal.description', report?.reportName ?? '', connectionName),
                         confirmText: translate('workspace.exportAgainModal.confirmText'),
                         cancelText: translate('workspace.exportAgainModal.cancelText'),
                     }).then(({action}) => {

@@ -51,7 +51,7 @@ function QuickbooksExportTravelPayableAccountSelectPage({policy}: WithPolicyConn
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             emptyStateTitle="workspace.qbo.noAccountsFound"
             emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
-            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             onSelect={selectAccount}
             onBack={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT], qboConfig?.pendingFields)}

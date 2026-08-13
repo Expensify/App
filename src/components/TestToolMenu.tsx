@@ -1,3 +1,4 @@
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import useIsAuthenticated from '@hooks/useIsAuthenticated';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -5,7 +6,6 @@ import {useSidebarOrderedReportsActions} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isUsingStagingApi} from '@libs/ApiUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 
 import {setShouldFailAllRequests, setShouldForceOffline, setShouldSimulatePoorConnection} from '@userActions/Network';
 import {expireSessionWithDelay, invalidateAuthToken, invalidateCredentials} from '@userActions/Session';
@@ -111,7 +111,7 @@ function TestToolMenu() {
                     </TestToolRow>
 
                     {/* Allows testing and revoking biometric multifactor authentication */}
-                    {!isAgentAccount && <BiometricsTestToolRow />}
+                    {isAgentAccount === false && <BiometricsTestToolRow />}
                 </>
             )}
 

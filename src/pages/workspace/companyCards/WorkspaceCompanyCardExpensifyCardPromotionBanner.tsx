@@ -54,9 +54,13 @@ function WorkspaceCompanyCardExpensifyCardPromotionBanner({policy, canWriteCompa
     }, [policyID, areExpensifyCardsEnabled]);
 
     const rightComponent = useMemo(() => {
-        const smallScreenStyle = shouldUseNarrowLayout && !isInLandscapeMode ? [styles.flex0, styles.flexBasis100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
+        const shouldDisplayActionInSeparateLine = shouldUseNarrowLayout && !isInLandscapeMode;
+        const smallScreenStyle = shouldDisplayActionInSeparateLine ? [styles.flex0, styles.mnw100, styles.maxWidth100Percentage, styles.justifyContentCenter] : [];
         return (
-            <View style={[styles.flexRow, styles.gap2, smallScreenStyle]}>
+            <View
+                key={shouldDisplayActionInSeparateLine ? 'separate-line' : 'inline'}
+                style={[styles.flexRow, styles.gap2, smallScreenStyle]}
+            >
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={canUseLearnMore ? handleLearnMore : onReadOnlyAction}

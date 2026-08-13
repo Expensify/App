@@ -1,7 +1,5 @@
 import type {ActionHandledType} from '@components/ProcessMoneyReportHoldMenu';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type CONST from '@src/CONST';
 import type {PersonalDetails, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
@@ -55,8 +53,6 @@ type ReportPreviewUIState = {
     shouldShowCarouselArrows: boolean;
     isScanning: boolean;
     previewCarouselMinWidth: number;
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-    carouselReasonAttributes: SkeletonSpanReasonAttributes;
     previewMessageStyle: ReturnType<typeof usePreviewMessageAnimation>['previewMessageStyle'];
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     buttonMaxWidth: {maxWidth?: number};

@@ -3,6 +3,7 @@ import {useSearchSelectionActions} from '@components/Search/SearchContext';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
@@ -13,11 +14,18 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
 import {createNewReport} from '@libs/actions/Report';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {getPersonalDetailsForAccountID, getReportOrDraftReport, isPolicyExpenseChat, isReportOutstanding} from '@libs/ReportUtils';
-import {isPerDiemRequest, isTimeRequest as isTimeRequestUtil, isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil} from '@libs/TransactionUtils';
+import {
+    isManualDistanceRequest as isManualDistanceRequestUtil,
+    isOdometerDistanceRequest as isOdometerDistanceRequestUtil,
+    isPerDiemRequest,
+    isTimeRequest as isTimeRequestUtil,
+    isUnreportedManagedCardTransaction as isUnreportedManagedCardTransactionUtil,
+} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -57,9 +65,10 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const [transactionReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${transaction?.reportID}`);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
     const participantReportID = transaction?.participants?.at(0)?.reportID;
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${participantReportID}`);
-    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID)) || isUnreported;
+    const shouldUseTransactionReport = (!!transactionReport && isReportOutstanding(transactionReport, transactionReport?.policyID, reportNameValuePair)) || isUnreported;
     const outstandingReportID = isPolicyExpenseChat(participantReport) ? participantReport?.iouReportID : participantReportID;
     const selectedReportID = shouldUseTransactionReport ? transactionReport?.reportID : outstandingReportID;
     const [selectedReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
@@ -105,6 +114,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const isCreateReportRestricted = useCreateReportRestrictionCheck(session);
     const handleGoBack = () => {
         if (isEditing) {
@@ -170,6 +180,7 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             policyForNewReport,
             betas,
             isTrackIntentUser,
+            getCurrencyDecimals,
             false,
             shouldDismissEmptyReportsConfirmation,
             {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
@@ -217,6 +228,8 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
             backTo={backPath}
             selectReport={selectReport}
             transactionIDs={transaction ? [transaction.transactionID] : []}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectedPolicyID={selectedPolicyID}
             transactionPolicyID={targetExpensePolicyID}

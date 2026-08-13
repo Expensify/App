@@ -1,5 +1,6 @@
 import AddPaymentMethodMenu from '@components/AddPaymentMethodMenu';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -88,6 +89,7 @@ function KYCWall({
     const [doesSubmitterPersonalDetailExist] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: doesSubmitterPersonalDetailExistSelector});
 
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
@@ -178,6 +180,7 @@ function KYCWall({
                             currentUserAccountID,
                             employeeLogin,
                             doesSubmitterPersonalDetailExist ?? false,
+                            getCurrencyDecimals,
                             reportTransactions,
                         );
                         if (inviteResult?.policyExpenseChatReportID) {
@@ -189,7 +192,7 @@ function KYCWall({
                                 Navigation.navigate(ROUTES.BANK_ACCOUNT_WITH_STEP_TO_OPEN.getRoute({policyID: adminPolicy.id}));
                             });
                         } else {
-                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, true, reportTransactions);
+                            const moveResult = moveIOUReportToPolicy(iouReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, true, reportTransactions);
                             savePreferredPaymentMethod(iouReport.policyID, adminPolicy.id, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[adminPolicy.id]);
 
                             if (moveResult?.policyExpenseChatReportID && !moveResult.useTemporaryOptimisticExpenseChatReportID) {
@@ -218,6 +221,7 @@ function KYCWall({
                             localeTranslate: translate,
                             reportActionsList: filteredReportActions,
                             doesEmployeePersonalDetailExist: doesSubmitterPersonalDetailExist ?? false,
+                            getCurrencyDecimals,
                         }) ?? {};
                     if (policyID && iouReport?.policyID) {
                         savePreferredPaymentMethod(iouReport.policyID, policyID, CONST.LAST_PAYMENT_METHOD.IOU, lastPaymentMethod?.[iouReport?.policyID]);
@@ -285,6 +289,7 @@ function KYCWall({
             betas,
             conciergeChat,
             localCurrency,
+            getCurrencyDecimals,
         ],
     );
 

@@ -102,10 +102,7 @@ function SetDefaultWorkspacePage({route}: SetDefaultWorkspacePageProps) {
                     />
                     {shouldShowLoadingIndicator ? (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'SetDefaultWorkspacePage', isLoadingApp: isAppLoadPending}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     ) : (
                         <SelectionList<WorkspaceListItemType>

@@ -8,7 +8,6 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -128,17 +127,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    const reasonAttributes: SkeletonSpanReasonAttributes = {
-                        context: 'withReportOrNotFound',
-                        isLoadingReportData: isLoadingReportData !== false,
-                        shouldFetchReport,
-                    };
-                    return (
-                        <FullscreenLoadingIndicator
-                            shouldUseGoBackButton
-                            reasonAttributes={reasonAttributes}
-                        />
-                    );
+                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
                 }
 
                 if (shouldShowNotFoundPage) {

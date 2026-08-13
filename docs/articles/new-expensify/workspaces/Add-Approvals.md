@@ -75,7 +75,7 @@ You can update or remove approval workflows at any time as your team or process 
 3. Select a new member or deselect one to remove them.
 4. Click **Save**.
 
-**Note:** When you change an approver in a workflow, any reports currently pending approval with the previous approver are automatically reassigned to the new approver. A system message will appear in the report confirming the reassignment.
+**Note:** When you change an approver in a workflow, any Outstanding reports assigned to the approver you replaced are reassigned to the new approver. A system message appears in the report confirming the reassignment. Reports are also reassigned when you remove an approver from the workspace or shorten an approval chain. Some reports are intentionally excluded — see the FAQ below for the full list of triggers and exclusions.
 
 ## Delete a Workflow
 
@@ -151,7 +151,20 @@ You’ll need to be on the Control plan, as this feature isn’t available on Co
 
 ## What happens to pending reports when I change an approver?
 
-Any reports currently awaiting approval from the previous approver are automatically reassigned to the new approver. A system message appears in the report indicating the approver was reassigned via a workflow update.
+Outstanding reports are automatically reassigned to the new approver, with no prompt or confirmation required. A system message appears in each report indicating the approver was reassigned. This applies to reports that are already in the approval process, not just new reports, and it happens in these situations:
+
+- **You change an approver in a workflow:** reports pending with the previous approver move to the new approver.
+- **You remove an approver from the workspace:** if you remove a member who is an approver on pending reports, those reports are reassigned to the **workspace owner**.
+- **You shorten an approval chain:** if you remove a downstream approver from a chain, reports already partway through move to the appropriate remaining approver. For example, in an Alice → Bob → Claire chain where Bob has already approved and you remove Claire, the report returns to Bob for final approval.
+- **The workflow changes through an integration:** the same reassignment happens when the workflow changes through an HR integration such as Gusto or TriNet, or through a bulk member update. In that case, the report's system message indicates the change came from the integration rather than from a specific person.
+
+## Are there cases where reports are not automatically reassigned?
+
+Yes. Reports are not automatically reassigned in these cases:
+
+- **The current approver is a Category or Tag approver:** reports awaiting a Category or Tag approver are not reassigned. Those approval steps run before, and take precedence over, the workspace approval workflow.
+- ​**The report already moved past the approver you changed:** If it's further along the approval chain, it stays where it is.
+- **​You changed the default workspace approver, but the employee has their own approver set:**​ Employees with a specific approver aren't affected by default-approver changes; only employees using the default are.
 
 ## What happens when a report exceeds the over-limit threshold?
 

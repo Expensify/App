@@ -21,6 +21,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: jest.fn(() => ({currentSearchKey: undefined})),
+    useSearchResultsContext: jest.fn(() => ({currentSearchTransactionsByReportID: new Map(), currentSearchViolations: {}})),
 }));
 
 jest.mock('@libs/SearchUIUtils', () => ({

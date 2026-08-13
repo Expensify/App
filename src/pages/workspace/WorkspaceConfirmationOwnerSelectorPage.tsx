@@ -166,7 +166,7 @@ function WorkspaceConfirmationOwnerSelectorPage() {
 
     // Wait for the draft to load so the initial owner selection is seeded correctly on mount
     if (isLoadingOnyxValue(draftValuesMetadata)) {
-        return <FullscreenLoadingIndicator reasonAttributes={{context: 'WorkspaceConfirmationOwnerSelectorPage', isLoadingDraftValues: true}} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return <WorkspaceConfirmationOwnerSelectorPageContent currentOwner={draftValues?.owner ?? currentUserLogin ?? ''} />;

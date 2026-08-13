@@ -16,7 +16,6 @@ import getPlaidOAuthReceivedRedirectURI from '@libs/getPlaidOAuthReceivedRedirec
 import KeyboardShortcut from '@libs/KeyboardShortcut';
 import Log from '@libs/Log';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -201,16 +200,9 @@ function PlaidConnectionStep({feed, policyID, onExit, title}: PlaidConnectionSte
         }
 
         if (plaidData?.isLoading) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'PlaidConnectionStep.renderPlaidLink',
-                isPlaidDataLoading: plaidData?.isLoading,
-            };
             return (
                 <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             );
         }

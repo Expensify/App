@@ -30,6 +30,7 @@ import truncate from 'lodash/truncate';
 import {useContext, useEffect, useRef} from 'react';
 
 import useActiveAdminPolicies from './useActiveAdminPolicies';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
@@ -79,6 +80,7 @@ function useSelectionModePayment({
     confirmApproval,
 }: UseSelectionModePaymentParams) {
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -185,6 +187,7 @@ function useSelectionModePayment({
 
         if (isInvoiceReport) {
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: moneyRequestReport,
@@ -207,6 +210,7 @@ function useSelectionModePayment({
             });
         } else {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType: type,
                 chatReport,
                 iouReport: moneyRequestReport,
@@ -299,6 +303,7 @@ function useSelectionModePayment({
 
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
+            getCurrencyDecimals,
             event,
             iouPaymentType,
             triggerKYCFlow,

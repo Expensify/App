@@ -15,7 +15,6 @@ import {setPolicyTimeTrackingDefaultRate} from '@libs/actions/Policy/Policy';
 import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDefaultTimeTrackingRate} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -48,12 +47,7 @@ function WorkspaceTimeTrackingDefaultRatePage({
     const currency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
 
     if (!policy || isLoadingOnyxValue(policyFetchStatus)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WorkspaceTimeTrackingDefaultRatePage',
-            isPolicyMissing: !policy,
-            isPolicyLoading: isLoadingOnyxValue(policyFetchStatus),
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

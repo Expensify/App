@@ -29,6 +29,8 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
     const bankAccountID = reimbursementAccount?.achData?.bankAccountID ?? CONST.DEFAULT_NUMBER_ID;
     const isDocusignStepRequired = requiresDocusignStep(currency);
     const isSubmittingRef = useRef(false);
+    const isBankStatementNeeded = currency === CONST.CURRENCY.AUD;
+    const bankStatementDefaultValue = reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT] ?? [];
 
     const submit = () => {
         if (isDocusignStepRequired) {
@@ -85,6 +87,8 @@ function Agreements({onBackButtonPress, onSubmit, stepNames, currency}: NonUSDPa
             currency={currency ?? ''}
             startStepIndex={5}
             stepNames={stepNames}
+            bankStatementInputID={isBankStatementNeeded ? INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT : undefined}
+            bankStatementDefaultValue={bankStatementDefaultValue}
         />
     );
 }

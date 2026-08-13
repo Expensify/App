@@ -44,7 +44,6 @@ import {
     hasDependentTags as hasDependentTagsPolicyUtils,
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -210,11 +209,6 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
     }
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'DynamicWorkspaceViewTagsPage',
-        isOffline,
-        isPolicyTagsUndefined: policyTags === undefined,
-    };
 
     const getHeaderButtons = () => {
         if (!canWriteTags || (!isSmallScreenWidth && selectedTags.length === 0) || (isSmallScreenWidth && !isMobileSelectionModeEnabled)) {
@@ -433,7 +427,6 @@ function DynamicWorkspaceViewTagsPage({route}: DynamicWorkspaceViewTagsProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {tagRows.length > 0 && !isLoading && (

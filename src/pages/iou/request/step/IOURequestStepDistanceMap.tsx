@@ -354,6 +354,7 @@ function IOURequestStepDistanceMap({
                 buttonText={buttonText}
                 errorState={errorState}
                 loadingState={loadingState}
+                transactionState={transactionState}
             />
         </StepScreenWrapper>
     );

@@ -43,7 +43,6 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.mw100, styles.overflowHidden]}>
                                     <OptionRow.Title
                                         optionItem={optionItem}
-                                        isOptionFocused={isOptionFocused}
                                         testID={testID}
                                     />
                                     <OptionRow.OnboardingBadge optionItem={optionItem} />
@@ -52,7 +51,6 @@ function OptionRowLHN({isOptionFocused = false, onSelectRow = () => {}, optionIt
                                 <OptionRow.Subtitle
                                     optionItem={optionItem}
                                     viewMode={viewMode}
-                                    isOptionFocused={isOptionFocused}
                                 />
                             </View>
                             <OptionRow.DescriptiveText optionItem={optionItem} />

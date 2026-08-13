@@ -15,6 +15,12 @@ function useRunAfterTransitions(ready: boolean): boolean {
             return;
         }
         const handle = TransitionTracker.runAfterTransitions({
+            // The mount effect runs before the nav animation's `transitionStart` fires, so without waiting
+            // for the upcoming navigation transition the callback would run synchronously right here
+            // (no transitions are active yet) and the deferral would be a no-op. If no navigation
+            // transition starts (e.g. remount without navigating), the tracker's start-wait timeout
+            // fires the callback anyway.
+            waitForUpcomingTransition: 'navigation',
             callback: () => setActive(true),
         });
         return () => handle.cancel();

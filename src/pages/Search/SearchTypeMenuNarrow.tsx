@@ -79,7 +79,7 @@ function SearchTypeMenuNarrowContent({tabs, activeTabKey, onActiveTabPress, onTa
 function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps) {
     const {isOffline} = useNetwork();
     const navigation = useNavigation();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const {typeMenuSections, activeKey: activeTypeMenuKey} = useSearchTypeMenuSections(
@@ -119,6 +119,7 @@ function SearchTypeMenuNarrow({queryJSON, onTabPress}: SearchTypeMenuNarrowProps
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,

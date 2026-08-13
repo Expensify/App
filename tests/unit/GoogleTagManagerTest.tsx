@@ -18,6 +18,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
 import getOnyxValue from '../utils/getOnyxValue';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/GoogleTagManager');
@@ -267,6 +268,7 @@ describe('GoogleTagManagerTest', () => {
 
         trackExpense({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             report: {reportID: '123'},
             isDraftPolicy: true,
             action: CONST.IOU.ACTION.CATEGORIZE,

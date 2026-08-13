@@ -108,4 +108,34 @@ describe('getSuggestedAgentRuleIcon', () => {
             }),
         ).toBe('ThumbsUp');
     });
+
+    it('overrides number-of-expenses to Flag even though its title has no keyword match', () => {
+        expect(
+            getSuggestedAgentRuleIcon({
+                id: 'number-of-expenses',
+                title: 'Too many expenses',
+                prompt: 'Reject reports that contain more than 5 expenses; they must be split into smaller reports. Approve reports with 5 or fewer expenses.',
+            }),
+        ).toBe('Flag');
+    });
+
+    it('overrides receipt-transaction-mismatch to Flag even though its title also matches a Coins keyword', () => {
+        expect(
+            getSuggestedAgentRuleIcon({
+                id: 'receipt-transaction-mismatch',
+                title: 'Receipt total mismatch',
+                prompt: 'Reject an expense when the total shown on its receipt does not match the expense amount, noting the discrepancy. Approve when the receipt total matches the expense amount.',
+            }),
+        ).toBe('Flag');
+    });
+
+    it('overrides itemized-split-recommended to Flag even though its title also matches a CircleSlash keyword', () => {
+        expect(
+            getSuggestedAgentRuleIcon({
+                id: 'itemized-split-recommended',
+                title: 'Mixed business / personal items',
+                prompt: 'When a single receipt mixes clearly business items with clearly personal items, reject it and ask the submitter to split out the personal items. Approve all-business receipts.',
+            }),
+        ).toBe('Flag');
+    });
 });

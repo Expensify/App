@@ -1,6 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
-import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
+import type {FormInputErrors, FormOnyxKeys, FormOnyxValues} from '@components/Form/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
@@ -52,7 +52,12 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM> => {
-            const errors = getFieldRequiredErrors(values, shouldGatherBothEmails ? [SIGNER_EMAIL, SECOND_SIGNER_EMAIL] : [SIGNER_EMAIL], translate);
+            // The single visible input writes to SECOND_SIGNER_EMAIL when only the second signer's email is gathered, so require that field instead of the (hidden, unpopulated) SIGNER_EMAIL.
+            const primaryEmailField = shouldGatherOnlySecondSignerEmail ? SECOND_SIGNER_EMAIL : SIGNER_EMAIL;
+            const requiredFields: Array<FormOnyxKeys<typeof ONYXKEYS.FORMS.REIMBURSEMENT_ACCOUNT_FORM>> = shouldGatherBothEmails
+                ? [primaryEmailField, SECOND_SIGNER_EMAIL]
+                : [primaryEmailField];
+            const errors = getFieldRequiredErrors(values, requiredFields, translate);
             if (!shouldGatherOnlySecondSignerEmail && values[SIGNER_EMAIL] && !Str.isValidEmail(values[SIGNER_EMAIL])) {
                 errors[SIGNER_EMAIL] = translate('bankAccount.error.email');
             }
@@ -86,6 +91,8 @@ function EnterEmail({onSubmit, isUserDirector, isLoading}: EnterEmailProps) {
         >
             <Text style={[styles.textHeadlineLineHeightXXL]}>{translate(shouldGatherBothEmails ? 'signerInfoStep.enterTwoEmails' : 'signerInfoStep.enterOneEmail', companyName)}</Text>
             {!shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.regulationRequiresOneMoreDirector')}</Text>}
+            {shouldGatherBothEmails && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.bothSignersMustBeOnIllionReport')}</Text>}
+            {shouldGatherOnlySecondSignerEmail && <Text style={[styles.pv3, styles.textSupporting]}>{translate('signerInfoStep.signerMustBeOnIllionReport')}</Text>}
             <InputWrapper
                 InputComponent={TextInput}
                 label={shouldGatherBothEmails ? `${translate('common.email')} 1` : translate('common.email')}

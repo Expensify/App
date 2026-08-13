@@ -17,6 +17,7 @@ import useTripTransactions from '@hooks/useTripTransactions';
 import ControlSelection from '@libs/ControlSelection';
 import DateUtils from '@libs/DateUtils';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import getReportRouteForCurrentContext from '@libs/Navigation/helpers/getReportRouteForCurrentContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOriginalMessage} from '@libs/ReportActionsUtils';
 import type {ReservationData} from '@libs/TripReservationUtils';
@@ -26,7 +27,6 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import type {Report, ReportAction} from '@src/types/onyx';
 import type {Reservation} from '@src/types/onyx/Transaction';
 
@@ -121,7 +121,7 @@ function ReservationView({reservation, onPress, isCancelled}: ReservationViewPro
 
 function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomPreviewProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const {anchor: contextMenuAnchorRef, shouldDisplayContextMenu = true, originalReportID} = useShowContextMenuState();
     const {checkIfContextMenuActive} = useShowContextMenuActions();
@@ -131,13 +131,13 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${linkedReportID}`);
     const [iouReportCurrency] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReport?.iouReportID}`, {selector: selectCurrency});
 
-    const chatReportID = chatReport?.reportID;
+    const chatReportID = chatReport?.reportID ?? linkedReportID;
     const tripTransactions = useTripTransactions(chatReportID);
 
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
+            ? DateUtils.getFormattedDateRange(translate, dateFnsLocale, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate))
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 
@@ -154,7 +154,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
         );
     }, [convertToDisplayString, currency, totalDisplaySpend, tripTransactions]);
 
-    const navigateToTrip = () => Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(chatReportID, undefined, undefined, Navigation.getActiveRoute()));
+    const navigateToTrip = () => Navigation.navigate(getReportRouteForCurrentContext({reportID: chatReportID}));
     const renderItem = ({item}: ListRenderItemInfo<ReservationData>) => (
         <ReservationView
             reservation={item.reservation}

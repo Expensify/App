@@ -11,7 +11,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getSamlSettings, setSamlIdentity} from '@libs/actions/Domain';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import StringUtils from '@libs/StringUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -48,17 +47,7 @@ function SamlConfigurationDetailsSectionContent({accountID, domainName, shouldSh
     }, [accountID, domainName]);
 
     if (samlMetadata?.isLoading || isLoadingOnyxValue(samlMetadataResults)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SamlConfigurationDetailsSectionContent.loading',
-            isSamlMetadataLoading: !!samlMetadata?.isLoading,
-            isLoadingOnyxValue: isLoadingOnyxValue(samlMetadataResults),
-        };
-        return (
-            <ActivityIndicator
-                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />;
     }
 
     if (samlMetadata?.errors) {

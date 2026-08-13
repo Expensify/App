@@ -145,12 +145,11 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
-    it('should upgrade a Submit workspace to Collect when unlocking a Collect-tier feature', async () => {
+    it('should show Collect pricing and upgrade a beta-off Submit workspace when unlocking a Collect-tier feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
-        // Given a Submit workspace and the Submit 2026 beta enabled
+        // Given a Submit workspace without the Submit 2026 beta
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
 
@@ -159,6 +158,13 @@ describe('WorkspaceUpgrade', () => {
             policyID: policy.id,
             featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias,
         });
+
+        // Then the Team (Collect) annual price is shown
+        const teamPrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(teamPrice, {exact: false})).toBeTruthy();
 
         // When the workspace is upgraded by clicking on the Upgrade button
         fireEvent.press(screen.getByTestId('upgrade-button'));

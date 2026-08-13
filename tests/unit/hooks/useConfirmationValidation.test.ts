@@ -104,6 +104,7 @@ const baseParams = {
     isNewManualExpenseFlowEnabled: false,
     isReadOnly: false,
     shouldShowDate: true,
+    isTaxAmountEmpty: false,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -904,6 +905,57 @@ describe('useConfirmationValidation', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {isNewManualExpenseFlowEnabled: false}, {created: '', isAmountSet: true})),
             );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
+    describe('tax validation — inline tax amount in new manual expense flow', () => {
+        function createTaxValidationParams(overrides: ValidationParamsOverrides = {}): UseConfirmationValidationParams {
+            return createValidationParamsForParticipant(
+                POLICY_EXPENSE_CHAT_PARTICIPANT,
+                {isNewManualExpenseFlowEnabled: true, shouldShowTax: true, ...overrides},
+                {amount: 100, isAmountSet: true},
+            );
+        }
+
+        it('returns invalidAmount when the inline tax amount is left empty', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+        });
+
+        it('does not block confirmation when the inline tax amount is populated', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isTaxAmountEmpty: false})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block distance requests, whose tax amount is not inline-editable', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isNewManualExpenseFlowEnabled: true,
+                    shouldShowTax: true,
+                    isTaxAmountEmpty: true,
+                    isDistanceRequest: true,
+                    iouAmount: 1000,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block when the tax section is hidden for this policy', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({shouldShowTax: false, isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isNewManualExpenseFlowEnabled: false, isTaxAmountEmpty: true})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });
     });

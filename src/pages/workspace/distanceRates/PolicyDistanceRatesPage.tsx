@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {DropdownOption, WorkspaceDistanceRatesBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {loadIllustration} from '@components/Icon/IllustrationLoader';
@@ -39,7 +39,6 @@ import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
@@ -383,7 +382,6 @@ function PolicyDistanceRatesPage({
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'PolicyDistanceRatesPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     const secondaryActions = useMemo(
         () => [
@@ -404,13 +402,14 @@ function PolicyDistanceRatesPage({
             {(shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedDistanceRates.length === 0) ? (
                 <>
                     <Button
-                        text={translate('workspace.distanceRates.addRate')}
                         onPress={addRate}
                         sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.DISTANCE_RATES.ADD_BUTTON}
                         style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        icon={icons.Plus}
-                        success
-                    />
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.distanceRates.addRate')}</Button.Text>
+                    </Button>
                     <ButtonWithDropdownMenu
                         onPress={() => {}}
                         shouldUseOptionIcon
@@ -478,7 +477,6 @@ function PolicyDistanceRatesPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (

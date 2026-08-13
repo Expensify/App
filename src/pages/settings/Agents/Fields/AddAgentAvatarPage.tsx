@@ -42,7 +42,7 @@ function AddAgentAvatarPage() {
     };
 
     if (isLoadingOnyxValue(avatarDraftMetadata)) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'AddAgentAvatarPage'}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (

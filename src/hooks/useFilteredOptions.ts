@@ -6,6 +6,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import {useCallback, useMemo, useState} from 'react';
 
+import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePrivateIsArchivedMap from './usePrivateIsArchivedMap';
@@ -87,11 +88,12 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
     // Option building is locale-dependent, so a consumer that stays mounted through a language switch recomputes.
-    const {preferredLocale} = useLocalize();
+    const {preferredLocale, dateFnsLocale} = useLocalize();
 
     // Sorted report actions from the RAM_ONLY_SORTED_REPORT_ACTIONS derived value; a new reference on
     // every recompute, so it doubles as the report-actions invalidation signal for the option-list cache.
     const sortedActions = useSortedActions();
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -107,7 +109,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
+                      {currentUserAccountID, dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
                       undefined,
                       undefined,
                       isTrackIntentUser,
@@ -129,6 +131,8 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             preferredLocale,
             isTrackIntentUser,
             sortedActions,
+            currentUserAccountID,
+            dateFnsLocale,
         ],
     );
 

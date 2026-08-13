@@ -73,7 +73,7 @@ function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMen
 
 function SavedSearchList({hash}: SavedSearchListProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isVisuallyCollapsed} = useSearchSidebarCollapse();
 
@@ -107,6 +107,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         policies: allPolicies,
         currentUserAccountID,
         translate,
+        formatPhoneNumber,
         feedKeysWithCards,
         reportAttributes,
         bankAccountList,

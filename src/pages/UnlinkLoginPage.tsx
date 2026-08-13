@@ -5,7 +5,6 @@ import usePrevious from '@hooks/usePrevious';
 
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {PublicScreensParamList} from '@navigation/types';
 
@@ -40,10 +39,7 @@ function UnlinkLoginPage({route}: UnlinkLoginPageProps) {
         Navigation.goBack();
     }, [prevIsLoading, account?.isLoading]);
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'UnlinkLoginPage',
-    };
-    return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+    return <FullScreenLoadingIndicator />;
 }
 
 export default UnlinkLoginPage;

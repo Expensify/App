@@ -15,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {openPersonalBankAccountSetupView} from '@userActions/BankAccounts';
 import {saveWalletTransferAccountTypeAndID} from '@userActions/PaymentMethods';
@@ -102,8 +101,7 @@ function ChooseTransferAccountPage() {
     }, [bankAccountOptions, selectedAccountID]);
 
     if (isLoadingOnyxValue(walletTransferResult)) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'ChooseTransferAccountPage', walletTransferLoaded: false};
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
     }
 
     return (

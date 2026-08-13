@@ -2,11 +2,13 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import SelectionListWithSections from '@components/SelectionList/SelectionListWithSections';
 
 import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useLocalize from '@hooks/useLocalize';
 
 import getMatchScore from '@libs/getMatchScore';
 
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+import getEmptyArray from '@src/types/utils/getEmptyArray';
 
 import {Str} from 'expensify-common';
 import React, {useState} from 'react';
@@ -18,7 +20,7 @@ function CurrencySelectionList({
     initiallySelectedCurrencyCode,
     onSelect,
     didScreenTransitionEnd = true,
-    selectedCurrencies = [],
+    selectedCurrencies = getEmptyArray<string>(),
     recentlyUsedCurrencies,
     excludedCurrencies = [],
     ...restProps
@@ -26,8 +28,11 @@ function CurrencySelectionList({
     const {currencyList} = useCurrencyListState();
     const {getCurrencySymbol} = useCurrencyListActions();
     const [searchValue, setSearchValue] = useState('');
+    const selectedCurrencyCodes = [initiallySelectedCurrencyCode, ...selectedCurrencies].filter(Boolean);
+    const initiallyPinnedCurrencyCodes = useInitialSelection(selectedCurrencyCodes, {resetOnFocus: true});
     const {translate} = useLocalize();
-    const getUnselectedOptions = (options: CurrencyListItem[]) => options.filter((option) => !option.isSelected);
+    const initiallyPinnedCurrencyCodeSet = new Set(initiallyPinnedCurrencyCodes);
+    const getUnpinnedOptions = (options: CurrencyListItem[]) => options.filter((option) => !initiallyPinnedCurrencyCodeSet.has(option.currencyCode));
 
     const currencyOptions: CurrencyListItem[] = Object.entries(currencyList).reduce((acc, [currencyCode, currencyInfo]) => {
         const isSelectedCurrency = currencyCode === initiallySelectedCurrencyCode || selectedCurrencies.includes(currencyCode);
@@ -64,15 +69,15 @@ function CurrencySelectionList({
 
     const isEmpty = searchValue.trim() && !filteredCurrencies.length;
     const shouldDisplayRecentlyOptions = !isEmptyObject(recentlyUsedCurrencyOptions) && !searchValue;
-    const selectedOptions = filteredCurrencies.filter((option) => option.isSelected);
-    const shouldDisplaySelectedOptionOnTop = selectedOptions.length > 0;
-    const unselectedOptions = getUnselectedOptions(filteredCurrencies);
+    const initiallyPinnedOptions = filteredCurrencies.filter((option) => initiallyPinnedCurrencyCodeSet.has(option.currencyCode));
+    const shouldDisplayInitiallyPinnedOptionsOnTop = initiallyPinnedOptions.length > 0;
+    const unpinnedOptions = getUnpinnedOptions(filteredCurrencies);
     const sections = [];
 
-    if (shouldDisplaySelectedOptionOnTop) {
+    if (shouldDisplayInitiallyPinnedOptionsOnTop) {
         sections.push({
             title: undefined,
-            data: selectedOptions,
+            data: initiallyPinnedOptions,
             sectionIndex: 0,
         });
     }
@@ -82,15 +87,15 @@ function CurrencySelectionList({
             sections.push(
                 {
                     title: translate('common.recents'),
-                    data: shouldDisplaySelectedOptionOnTop ? getUnselectedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
+                    data: shouldDisplayInitiallyPinnedOptionsOnTop ? getUnpinnedOptions(recentlyUsedCurrencyOptions) : recentlyUsedCurrencyOptions,
                     sectionIndex: 1,
                 },
-                {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unselectedOptions : filteredCurrencies, sectionIndex: 2},
+                {title: translate('common.all'), data: shouldDisplayRecentlyOptions ? unpinnedOptions : filteredCurrencies, sectionIndex: 2},
             );
         }
     } else if (!isEmpty) {
         sections.push({
-            data: shouldDisplaySelectedOptionOnTop ? unselectedOptions : filteredCurrencies,
+            data: shouldDisplayInitiallyPinnedOptionsOnTop ? unpinnedOptions : filteredCurrencies,
             sectionIndex: 3,
         });
     }
@@ -110,6 +115,7 @@ function CurrencySelectionList({
             textInputOptions={textInputOptions}
             shouldShowTextInput={!!searchInputLabel}
             shouldSingleExecuteRowSelect
+            shouldUpdateFocusedIndex
             initiallyFocusedItemKey={initiallySelectedCurrencyCode}
             shouldShowLoadingPlaceholder={!didScreenTransitionEnd}
         />

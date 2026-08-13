@@ -30,7 +30,7 @@ type IconMap = Record<IconName, IconAsset>;
 function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Hourglass', 'Checkmark', 'Stopwatch']);
     const iconMap: IconMap = useMemo(
         () => ({
@@ -48,8 +48,8 @@ function MoneyReportHeaderStatusBar({nextStep}: MoneyReportHeaderStatusBarProps)
             return '';
         }
 
-        return buildNextStepMessage(nextStep, translate, currentUserAccountID, formatPhoneNumber);
-    }, [nextStep, translate, currentUserAccountID, formatPhoneNumber]);
+        return buildNextStepMessage(nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber);
+    }, [nextStep, translate, dateFnsLocale, currentUserAccountID, formatPhoneNumber]);
 
     return (
         <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.overflowHidden, styles.w100, styles.headerStatusBarContainer]}>

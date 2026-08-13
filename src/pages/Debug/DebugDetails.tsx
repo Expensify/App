@@ -112,7 +112,12 @@ function DebugDetails({formType, data, policyHasEnabledTags, policyID, children,
                 try {
                     validate(key, DebugUtils.onyxDataToString(value));
                 } catch (e) {
-                    const {cause, message} = e as SyntaxError;
+                    if (!(e instanceof Error)) {
+                        newErrors[key] = String(e);
+                        continue;
+                    }
+
+                    const {message, cause} = e;
                     newErrors[key] = cause || message === 'debug.missingValue' ? translate(message as TranslationPaths, cause as never) : message;
                 }
             }

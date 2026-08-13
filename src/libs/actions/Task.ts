@@ -87,6 +87,11 @@ type CreateTaskAndNavigateParams = {
     taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
 };
 
+type DeleteTaskOptions = {
+    ancestors?: ReportUtils.Ancestor[];
+    shouldNavigateBack?: boolean;
+};
+
 /**
  * Clears out the task info from the store
  */
@@ -1134,7 +1139,7 @@ function getAssignee(
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
         subtitle: details.login ?? '',
     };
 }
@@ -1225,7 +1230,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    ancestors: ReportUtils.Ancestor[] = [],
+    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;
@@ -1350,7 +1355,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
+    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

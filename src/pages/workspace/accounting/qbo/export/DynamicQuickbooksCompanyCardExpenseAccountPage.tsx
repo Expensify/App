@@ -49,9 +49,9 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
     const {isAccordionExpanded, shouldAnimateAccordionSection} = useAccordionAnimation(!!qboConfig?.autoCreateVendor);
     let nonReimbursableExportDescription;
     if (qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD) {
-        nonReimbursableExportDescription = translate('workspace.qbo.creditCardExportDescription', {integrationName});
+        nonReimbursableExportDescription = translate('workspace.qbo.creditCardExportDescription', integrationName);
     } else if (qboNonReimbursableDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD) {
-        nonReimbursableExportDescription = translate('workspace.qbo.debitCardExportDescription', {integrationName});
+        nonReimbursableExportDescription = translate('workspace.qbo.debitCardExportDescription', integrationName);
     } else if (qboNonReimbursableDestination) {
         nonReimbursableExportDescription = translate(`workspace.qbo.accounts.${qboNonReimbursableDestination}Description`);
     }
@@ -83,7 +83,7 @@ function DynamicQuickbooksCompanyCardExpenseAccountPage({policy}: WithPolicyConn
             displayName="DynamicQuickbooksCompanyCardExpenseAccountPage"
             headerTitle="workspace.accounting.exportCompanyCard"
             title="workspace.qbo.exportCompanyCardsDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.exportCompanyCardsDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.exportCompanyCardsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={styles.pb2}

@@ -33,7 +33,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
             displayName="QuickbooksTaxesPage"
             headerTitle="workspace.accounting.taxes"
             title="workspace.qbo.taxesDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.taxesDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.taxesDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
@@ -51,7 +51,7 @@ function QuickbooksTaxesPage({policy}: WithPolicyProps) {
                 onCloseError={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_TAX)}
             />
             {!qboConfig?.syncTax && isJournalExportEntity && (
-                <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote', {integrationName})}</Text>
+                <Text style={[styles.mutedNormalTextLabel, styles.pt2]}>{translate('workspace.qbo.taxesJournalEntrySwitchNote', integrationName)}</Text>
             )}
         </ConnectionLayout>
     );

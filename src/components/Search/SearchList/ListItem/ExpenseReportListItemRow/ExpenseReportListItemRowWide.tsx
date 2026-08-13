@@ -37,7 +37,6 @@ function ExpenseReportListItemRowWide({
     isActionLoading,
     chatReport,
     containerStyle,
-    showTooltip,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
@@ -65,7 +64,6 @@ function ExpenseReportListItemRowWide({
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <ExpenseReportListItemAvatar
                 item={item}
-                showTooltip={showTooltip}
                 isHovered={isHovered}
                 isFocused={isFocused}
                 isLargeScreenWidth

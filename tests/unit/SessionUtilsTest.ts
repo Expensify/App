@@ -30,6 +30,7 @@ describe('SessionUtils', () => {
     describe('isAgentEmail', () => {
         test.each([
             ['matches valid agent email', 'agent_123@expensify.ai', true],
+            ['matches name-based agent email', 'testbot_12345678@expensify.ai', true],
             ['matches agent email with multiple digits', 'agent_9999999@expensify.ai', true],
             ['returns false for non-agent email', 'user@expensify.com', false],
             ['returns false for non-agent expensify.ai email', 'user@expensify.ai', false],
@@ -37,7 +38,7 @@ describe('SessionUtils', () => {
             ['returns false for agent prefix without digits', 'agent_@expensify.ai', false],
             ['returns false for empty string', '', false],
             ['returns false for undefined', undefined, false],
-            ['returns false when agent pattern has extra prefix', 'prefix_agent_123@expensify.ai', false],
+            ['returns false when agent name contains an underscore', 'prefix_agent_123@expensify.ai', false],
             ['returns false when agent pattern has extra suffix', 'agent_123@expensify.ai.evil.com', false],
         ])('%s', (_description, email, expectedResult) => {
             expect(isAgentEmail(email)).toBe(expectedResult);

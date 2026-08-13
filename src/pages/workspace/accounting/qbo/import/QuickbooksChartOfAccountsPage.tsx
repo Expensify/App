@@ -35,7 +35,7 @@ function QuickbooksChartOfAccountsPage({policy}: WithPolicyProps) {
             displayName="QuickbooksChartOfAccountsPage"
             headerTitle="workspace.accounting.accounts"
             title="workspace.qbo.accountsDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.accountsDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.accountsDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             contentContainerStyle={[styles.pb2, styles.ph5]}

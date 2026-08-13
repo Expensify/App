@@ -1,5 +1,5 @@
 import BookTravelButton from '@components/BookTravelButton';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {FeatureListItem} from '@components/FeatureList';
 import FeatureList from '@components/FeatureList';
 import LottieAnimations from '@components/LottieAnimations';
@@ -84,12 +84,13 @@ function ManageTrips({policyID}: ManageTripsProps) {
                         footer={
                             <>
                                 <Button
-                                    text={translate('travel.bookDemo')}
                                     onPress={navigateToBookTravelDemo}
                                     accessibilityLabel={translate('travel.bookDemo')}
                                     style={[styles.w100, styles.mb3]}
-                                    large
-                                />
+                                    size={CONST.BUTTON_SIZE.LARGE}
+                                >
+                                    <Button.Text>{translate('travel.bookDemo')}</Button.Text>
+                                </Button>
                                 <BookTravelButton
                                     text={translate('travel.bookTravel')}
                                     shouldRenderErrorMessageBelowButton

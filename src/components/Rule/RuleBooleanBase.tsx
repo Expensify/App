@@ -56,7 +56,7 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
     const formValue = (form as Record<string, boolean | string | undefined>)?.[fieldID];
 
     let selectedItem = null;
-    if (formValue !== undefined) {
+    if (formValue !== undefined && formValue !== '') {
         // Handle both string ('true'/'false') and boolean (true/false) values
         const isTruthy = useStringValues ? formValue === 'true' : formValue === true;
         const booleanValue = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;

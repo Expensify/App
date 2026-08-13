@@ -31,7 +31,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -154,7 +153,6 @@ function WorkspaceReportFieldsPage({
         );
 
     const isLoading = !isOffline && policy === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
 
     const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -235,7 +233,6 @@ function WorkspaceReportFieldsPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (

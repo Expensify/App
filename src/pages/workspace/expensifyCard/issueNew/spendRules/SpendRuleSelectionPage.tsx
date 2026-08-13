@@ -145,10 +145,6 @@ function SpendRuleSelectionPage({route}: SpendRuleSelectionPageProps) {
                             color={theme.spinner}
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.pl3]}
-                            reasonAttributes={{
-                                context: 'SpendRuleSelectionPage',
-                                isLoadingFromOnyx: true,
-                            }}
                         />
                     </View>
                 )}

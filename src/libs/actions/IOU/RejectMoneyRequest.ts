@@ -1,3 +1,5 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {MarkTransactionViolationAsResolvedParams, RejectExpenseReportParams, RejectMoneyRequestParams, SetNameValuePairParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -111,18 +113,33 @@ function dismissRejectUseExplanation() {
  *   - sharedRejectedToReportID: When rejecting multiple expenses sequentially, pass a single shared destination reportID so all rejections land in the same new report.
  * @returns optimisticData, successData, failureData, parameters, urlToNavigateBack
  */
-function prepareRejectMoneyRequestData(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    delegateAccountID: number | undefined,
-    options?: RejectMoneyRequestOptions,
-    shouldUseBulkAction?: boolean,
-): RejectMoneyRequestData | undefined {
+type PrepareRejectMoneyRequestDataParams = {
+    transactionID: string;
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    options?: RejectMoneyRequestOptions;
+    shouldUseBulkAction?: boolean;
+};
+
+function prepareRejectMoneyRequestData({
+    transactionID,
+    reportID,
+    comment,
+    policy,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+    options,
+    shouldUseBulkAction,
+}: PrepareRejectMoneyRequestDataParams): RejectMoneyRequestData | undefined {
     const allTransactions = getAllTransactions();
     const allReports = getAllReports();
     // TODO: https://github.com/Expensify/App/issues/66512
@@ -189,9 +206,9 @@ function prepareRejectMoneyRequestData(
     // Create system messages in both expense report and expense thread
     // The "rejected this expense" action should come before the reject comment
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectReportAction = buildOptimisticRejectReportAction(baseTimestamp);
+    const optimisticRejectReportAction = buildOptimisticRejectReportAction(delegateAccountID, baseTimestamp);
     const parsedComment = getParsedComment(comment);
-    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
+    const optimisticRejectReportActionComment = buildOptimisticRejectReportActionComment(comment, delegateAccountID, DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1));
     let movedTransactionAction;
 
     // Build successData and failureData to prevent duplication
@@ -386,6 +403,7 @@ function prepareRejectMoneyRequestData(
             rejectedToReportID = existingOpenReport.reportID;
 
             const [, , iouAction] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: movedToReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -480,8 +498,10 @@ function prepareRejectMoneyRequestData(
                 optimisticIOUReportID: rejectedToReportID,
                 reportTransactions,
                 betas,
+                getCurrencyDecimals,
             });
             const [, createdActionForExpenseReport, iouAction] = buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: newExpenseReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: transactionAmount,
@@ -496,7 +516,7 @@ function prepareRejectMoneyRequestData(
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -920,9 +940,21 @@ function rejectMoneyRequest(
     currentUserLogin: string,
     betas: OnyxEntry<OnyxTypes.Beta[]>,
     delegateAccountID: number | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     options?: RejectMoneyRequestOptions,
 ): Route | undefined {
-    const data = prepareRejectMoneyRequestData(transactionID, reportID, comment, policy, currentUserAccountIDParam, currentUserLogin, betas, delegateAccountID, options);
+    const data = prepareRejectMoneyRequestData({
+        transactionID,
+        reportID,
+        comment,
+        policy,
+        currentUserAccountIDParam,
+        currentUserLogin,
+        betas,
+        delegateAccountID,
+        getCurrencyDecimals,
+        options,
+    });
     if (!data) {
         return;
     }
@@ -1009,17 +1041,26 @@ function rejectExpenseReport(
     currentUserDisplayName: string | undefined,
     currentUserAvatarSource: AvatarSource | undefined,
     isTrackIntentUser: boolean | undefined,
+    delegateAccountID: number | undefined,
 ) {
     const {reportID} = report;
     const isRejectToSubmitter = targetAccountID === report.ownerAccountID;
     const baseTimestamp = DateUtils.getDBTime();
-    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(isRejectToSubmitter, currentUserAccountID, currentUserDisplayName, currentUserAvatarSource, baseTimestamp);
+    const optimisticRejectAction = buildOptimisticReportLevelRejectAction(
+        isRejectToSubmitter,
+        currentUserAccountID,
+        currentUserDisplayName,
+        currentUserAvatarSource,
+        delegateAccountID,
+        baseTimestamp,
+    );
     const parsedComment = getParsedComment(comment);
     const optimisticCommentAction = buildOptimisticReportLevelRejectCommentAction(
         parsedComment,
         currentUserAccountID,
         currentUserDisplayName,
         currentUserAvatarSource,
+        delegateAccountID,
         DateUtils.addMillisecondsFromDateTime(baseTimestamp, 1),
     );
 

@@ -1,7 +1,7 @@
 import {openApp} from '@libs/actions/App';
 import clearOnyxAndSeedFullReconnect from '@libs/actions/clearOnyxAndSeedFullReconnect';
 import {flushQueue, queueOnyxUpdates} from '@libs/actions/QueuedOnyxUpdates';
-import {writeWithNoDuplicatesConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
+import {writeWithNoDuplicatesOpenAppConflictAction, writeWithNoDuplicatesReconnectConflictAction} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {recordFullReconnectTimeFromResponse} from '@libs/FullReconnectUtils';
@@ -18,10 +18,10 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 jest.mock('@libs/API');
 jest.mock('@libs/Log');
 
-// reconnectApp() goes through the reconnect wrapper; openApp() goes through the generic one. Both are
-// recorded into capturedCommands/capturedOnyxData in call order so the index-based helpers below work.
+// reconnectApp() and openApp() each go through their own wrapper. Both are recorded into
+// capturedCommands/capturedOnyxData in call order so the index-based helpers below work.
 const mockReconnectWriteCommand = jest.mocked(writeWithNoDuplicatesReconnectConflictAction);
-const mockOpenAppWriteCommand = jest.mocked(writeWithNoDuplicatesConflictAction);
+const mockOpenAppWriteCommand = jest.mocked(writeWithNoDuplicatesOpenAppConflictAction);
 
 // The case under test: this device's clock is behind the server, so the server cutoff is ahead of "now".
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
@@ -115,9 +115,10 @@ describe('subscribeToFullReconnect', () => {
             capturedOnyxData.push(onyxData ?? {});
             return Promise.resolve();
         });
-        mockOpenAppWriteCommand.mockImplementation((command, params, onyxData) => {
-            events.push({type: 'request', value: String(command)});
-            capturedCommands.push(String(command));
+        // The OpenApp wrapper has the command baked in, so record it rather than reading it off the call.
+        mockOpenAppWriteCommand.mockImplementation((params, onyxData) => {
+            events.push({type: 'request', value: WRITE_COMMANDS.OPEN_APP});
+            capturedCommands.push(WRITE_COMMANDS.OPEN_APP);
             capturedOnyxData.push(onyxData ?? {});
             return Promise.resolve();
         });

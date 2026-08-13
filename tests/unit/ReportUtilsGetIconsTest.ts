@@ -182,7 +182,7 @@ describe('getIcons', () => {
 
         const icons = getIcons(report, formatPhoneNumber, translateLocal, FAKE_PERSONAL_DETAILS);
         expect(icons).toHaveLength(1);
-        expect(icons.at(0)?.name).toBe('Email\u00A0Two');
+        expect(icons.at(0)?.name).toBe('Email Two');
     });
 
     it('should return the correct icons for a task report', () => {

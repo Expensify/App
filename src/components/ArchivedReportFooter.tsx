@@ -25,7 +25,7 @@ type ArchivedReportFooterProps = {
 
 function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
@@ -34,14 +34,14 @@ function ArchivedReportFooter({reportID}: ArchivedReportFooterProps) {
     const originalMessage = isClosedAction(reportClosedAction) ? getOriginalMessage(reportClosedAction) : null;
     const archiveReason = originalMessage?.reason ?? CONST.REPORT.ARCHIVE_REASON.DEFAULT;
     const actorPersonalDetails = personalDetails?.[reportClosedAction?.actorAccountID ?? CONST.DEFAULT_NUMBER_ID];
-    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, translate});
+    let displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: actorPersonalDetails, translate, formatPhoneNumber});
 
     let oldDisplayName: string | undefined;
     if (archiveReason === CONST.REPORT.ARCHIVE_REASON.ACCOUNT_MERGED) {
         const newAccountID = originalMessage?.newAccountID;
         const oldAccountID = originalMessage?.oldAccountID;
-        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
-        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], translate});
+        displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[newAccountID ?? CONST.DEFAULT_NUMBER_ID], translate, formatPhoneNumber});
+        oldDisplayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[oldAccountID ?? CONST.DEFAULT_NUMBER_ID], translate, formatPhoneNumber});
     }
 
     const shouldRenderHTML = archiveReason !== CONST.REPORT.ARCHIVE_REASON.DEFAULT && archiveReason !== CONST.REPORT.ARCHIVE_REASON.BOOKING_END_DATE_HAS_PASSED;

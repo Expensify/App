@@ -49,7 +49,7 @@ type ReportWelcomeTextProps = {
 };
 
 function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {environmentURL} = useEnvironment();
     const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
@@ -136,6 +136,7 @@ function ReportWelcomeText({report, policy}: ReportWelcomeTextProps) {
         additionalText,
         isTrackIntentUser: !!isTrackIntentUser,
         currentUserAccountID,
+        formatPhoneNumber,
     });
 
     return (

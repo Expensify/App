@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxKeys, FormOnyxValues, FormRef} from '@components/Form/types';
@@ -131,14 +131,15 @@ function DocusignFullStepImpl({defaultValue, formID, inputID, isLoading, onBackB
                     </>
                 )}
                 <Button
-                    success
-                    large
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     style={[styles.w100, styles.mb15]}
                     onPress={() => {
                         openLink(CONST.DOCUSIGN_POWERFORM_LINK[country as 'CA' | 'AU' | 'US'], environmentURL);
                     }}
-                    text={translate('docusignStep.takeMeTo')}
-                />
+                >
+                    <Button.Text>{translate('docusignStep.takeMeTo')}</Button.Text>
+                </Button>
                 {(country === CONST.COUNTRY.CA || country === CONST.COUNTRY.US) && (
                     <Text style={[styles.textHeadlineLineHeightXXL, styles.mb5]}>{translate('docusignStep.uploadAdditional')}</Text>
                 )}

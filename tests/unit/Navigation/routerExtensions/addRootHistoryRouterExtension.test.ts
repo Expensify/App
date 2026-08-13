@@ -131,7 +131,7 @@ const makeNavigateAction = (name: string): RootStackNavigatorAction => ({type: '
 
 // Tiny mirror of `countLeadingRevealPadding` from production. We don't import the production
 // helper because it lives inside the extension's module closure and is not exported; this
-// re-implementation is identical by inspection. If the production sentinel ever changes,
+// re-implementation is identical by inspection. If the production padding value ever changes,
 // `REVEAL_PADDING` (which we DO import) is the single point of update for both copies.
 function countLeadingPadding(history: CustomHistoryEntry[] | unknown[] | undefined): number {
     if (!history) {
@@ -349,7 +349,7 @@ describe('addRootHistoryRouterExtension', () => {
             expect(afterDismiss?.routes.length).toBe(1);
             // …but history.length is held at the pre-dismiss length so useLinking's historyDelta = 0.
             expect(afterDismiss?.history?.length).toBe(3);
-            // The phantom entries are now sentinel padding at the front, NOT stale route mirrors.
+            // The phantom entries are now placeholder padding at the front, NOT stale route mirrors.
             expect(countLeadingPadding(afterDismiss?.history)).toBe(2);
             // Trailing entries reflect the new (post-dismiss) routes.
             const lastHistoryEntry = afterDismiss?.history?.at(-1);
@@ -454,7 +454,7 @@ describe('addRootHistoryRouterExtension', () => {
             expect(countLeadingPadding(afterDismiss.history)).toBe(0);
         });
 
-        it('handles two consecutive reveal sequences - offset accumulates correctly via leading sentinels', () => {
+        it('handles two consecutive reveal sequences - offset accumulates correctly via leading padding entries', () => {
             const tabA = makeRoute('TabA', 'tab-a-1');
             const tabB = makeRoute('TabB', 'tab-b-1');
             const tabC = makeRoute('TabC', 'tab-c-1');
@@ -628,7 +628,7 @@ describe('addRootHistoryRouterExtension', () => {
             const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // pre-dismiss state.history.length = 2; post-dismiss rehydrated.history.length = 1.
-            // lengthDelta = 1 → freeze with offset 1 (one sentinel padding entry).
+            // lengthDelta of 1 means we freeze with offset 1 (one padding entry).
             // This validates the boundary: we still pad when delta is exactly 1.
             expect(afterDismiss.routes.length).toBe(1);
             expect(afterDismiss.history?.length).toBe(2);
@@ -636,10 +636,10 @@ describe('addRootHistoryRouterExtension', () => {
         });
 
         it('correctly accounts for trailing CUSTOM_HISTORY_ENTRY_SIDE_PANEL when computing the offset', () => {
-            // Side-panel sentinel is a string entry appended to history. It must NOT inflate
+            // Side-panel entry is a string entry appended to history. It must NOT inflate
             // the reveal offset - getRehydratedState already preserves it on the new state, so
             // lengthDelta is computed against rehydrated.history.length (which includes the
-            // sentinel) rather than rehydrated.routes.length.
+            // side-panel entry) rather than rehydrated.routes.length.
             const tabA = makeRoute('TabA', 'tab-a-1');
             const tabB = makeRoute('TabB', 'tab-b-1');
             const rhp = makeRoute(NAVIGATORS.RIGHT_MODAL_NAVIGATOR, 'rhp-1');
@@ -660,7 +660,7 @@ describe('addRootHistoryRouterExtension', () => {
             const afterDismiss = getTestStateForAction(enhancedRouter, afterReplace, makeDismissAction());
 
             // Post-dismiss: routes=[TabB], rehydrated.history=[TabB-mirror, SIDE_PANEL] (length 2).
-            // lengthDelta = 4 - 2 = 2 sentinel padding entries. Final shape:
+            // lengthDelta = 4 - 2 = 2 padding entries. Final shape:
             // [PAD, PAD, TabB-mirror, SIDE_PANEL] (length 4).
             expect(afterDismiss.history?.length).toBe(4);
             expect(countLeadingPadding(afterDismiss.history)).toBe(2);
@@ -699,14 +699,14 @@ describe('addRootHistoryRouterExtension', () => {
             const afterDismiss = getTestStateForAction(enhancedRouter, tamperedState, makeDismissAction());
 
             // Freeze is rejected (history depth mismatch); routes shrink naturally,
-            // history is rebuilt from routes (no padding sentinels).
+            // history is rebuilt from routes (no padding entries).
             expect(afterDismiss.routes.length).toBe(1);
             expect(countLeadingPadding(afterDismiss.history)).toBe(0);
         });
 
-        it('lets a fresh state install via getRehydratedState shed leading reveal-padding sentinels', () => {
+        it('lets a fresh state install via getRehydratedState shed leading reveal-padding entries', () => {
             // resetRoot / popstate scenarios install a new state via getRehydratedState. If the
-            // installed partial state does NOT carry padding sentinels in its history, the
+            // installed partial state does NOT carry padding entries in its history, the
             // resulting state's history is rebuilt from routes by enhanceStateWithHistory and
             // the offset dies naturally - this is the documented contract.
             const factory = createMockRouterFactory();
@@ -715,7 +715,7 @@ describe('addRootHistoryRouterExtension', () => {
             const partialState: PartialState<TestState> = {
                 routes: [{name: 'ScreenA', key: 'a-1'}],
                 stale: true as const,
-                // partial state arrives WITHOUT padding sentinels (i.e., a fresh resetRoot).
+                // partial state arrives WITHOUT padding entries (i.e., a fresh resetRoot).
             };
 
             const rehydrated = enhancedRouter.getRehydratedState(partialState, CONFIG_OPTIONS);
@@ -725,9 +725,9 @@ describe('addRootHistoryRouterExtension', () => {
             expect(rehydrated.history?.length).toBe(1);
         });
 
-        it('drops leading reveal-padding sentinels when a partial state carries them through getRehydratedState', () => {
+        it('drops leading reveal-padding entries when a partial state carries them through getRehydratedState', () => {
             // Symmetric to the previous test: even if a resetRoot installs state whose history
-            // includes leading reveal-padding sentinels (e.g. a captured snapshot),
+            // includes leading reveal-padding entries (e.g. a captured snapshot),
             // enhanceStateWithHistory rebuilds history from routes and drops that offset at
             // the rehydration boundary.
             const factory = createMockRouterFactory();
@@ -748,12 +748,12 @@ describe('addRootHistoryRouterExtension', () => {
         });
     });
 
-    describe('modal back-guard sentinel (#90776)', () => {
+    describe('modal back-guard entry (#90776)', () => {
         const MODAL = CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL;
         const modalTag = (modalId: string): CustomHistoryEntry => `${MODAL}:${modalId}`;
 
         // Mirrors production RN StackRouter: spreads `state` so the custom `history` field is carried
-        // forward through a forward navigation (the reason the sentinel would otherwise be re-appended).
+        // forward through a forward navigation (the reason the entry would otherwise be re-appended).
         function makeForwardNavRouter() {
             return createMockRouterFactory((state, action) => {
                 if (action.type === 'NAVIGATE') {
@@ -765,7 +765,7 @@ describe('addRootHistoryRouterExtension', () => {
             });
         }
 
-        it('preserves a trailing modal sentinel through getRehydratedState (RESET/resize parity)', () => {
+        it('preserves a trailing modal guard entry through getRehydratedState (RESET/resize parity)', () => {
             const factory = createMockRouterFactory();
             const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
@@ -782,7 +782,7 @@ describe('addRootHistoryRouterExtension', () => {
             expect(routeEntries).toHaveLength(1);
         });
 
-        it('preserves multiple trailing modal sentinels (nested modals) through getRehydratedState', () => {
+        it('preserves multiple trailing modal guard entries (nested modals) through getRehydratedState', () => {
             const factory = createMockRouterFactory();
             const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
 
@@ -797,7 +797,7 @@ describe('addRootHistoryRouterExtension', () => {
             expect(state.history?.slice(-2)).toEqual([modalTag('m1'), modalTag('m2')]);
         });
 
-        it('consumes the trailing modal sentinel on forward navigation so historyDelta === 0 (replaceState)', () => {
+        it('consumes the trailing modal guard entry on forward navigation so historyDelta === 0 (replaceState)', () => {
             const enhancedRouter = addRootHistoryRouterExtension(makeForwardNavRouter())(createMock<PlatformStackRouterOptions>({}));
 
             const routeA = makeRoute('ScreenA', 'a-1');
@@ -807,12 +807,12 @@ describe('addRootHistoryRouterExtension', () => {
 
             // Route was really pushed (in-app back unaffected)...
             expect(newState?.routes).toHaveLength(2);
-            // ...but the guard sentinel is gone and history length is unchanged → useLinking does a replace.
+            // ...but the guard entry is gone and history length is unchanged, so useLinking does a replace.
             expect(newState?.history?.some((entry) => typeof entry === 'string' && entry.startsWith(`${MODAL}:`))).toBe(false);
             expect(newState?.history).toHaveLength(state.history?.length ?? -1);
         });
 
-        it('does NOT consume the sentinel on a non-forward action (e.g. side panel toggle)', () => {
+        it('does NOT consume the guard entry on a non-forward action (e.g. side panel toggle)', () => {
             // A passthrough router that keeps history intact for non-NAVIGATE actions.
             const factory = createMockRouterFactory((state) => state);
             const enhancedRouter = addRootHistoryRouterExtension(factory)(createMock<PlatformStackRouterOptions>({}));
