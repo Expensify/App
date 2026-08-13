@@ -29,9 +29,9 @@ import type * as OnyxTypes from '@src/types/onyx';
 import type {CardLimitType} from '@src/types/onyx/Card';
 import KeyboardUtils from '@src/utils/keyboard';
 
-import {emailSelector} from '@selectors/Session';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {emailSelector} from '@selectors/Session';
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 

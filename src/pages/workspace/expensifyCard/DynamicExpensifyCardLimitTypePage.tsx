@@ -45,8 +45,8 @@ import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/EditExpensifyCardLimitTypeForm';
 import type {CardLimitType} from '@src/types/onyx/Card';
 
-import {emailSelector} from '@selectors/Session';
 import {useFocusEffect} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
 import {format, toZonedTime} from 'date-fns-tz';
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
