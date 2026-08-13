@@ -92,7 +92,7 @@ function ReportCardLostConfirmValidateCodePage({
             isLoading={formData?.isLoading}
             title={translate('cardPage.validateCardTitle')}
             descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REPLACE_CARD, reasonCardID: Number.parseInt(cardID, 10)})}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REPLACE_CARD, reasonCardID: Number(cardID)})}
             validateError={validateError}
             clearError={() => {
                 if (!physicalCard?.cardID) {

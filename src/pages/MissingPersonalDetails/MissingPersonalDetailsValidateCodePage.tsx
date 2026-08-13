@@ -117,10 +117,9 @@ function MissingPersonalDetailsValidateCodePage({
         [countryCode, values, isVirtualCard, cardID],
     );
 
-    // The validate code minted here must carry the reasonCode of the command handleSubmitForm will
-    // dispatch: virtual cards verify via SetPersonalDetailsAndRevealExpensifyCard (reveal_card_details)
-    // and physical cards via SetPersonalDetailsAndShipExpensifyCards (ship_card). The reasonCode is
-    // baked into the validate-code hash, so this branch must stay in lockstep with handleSubmitForm.
+    // The validate code generated here must carry the reasonCode of the command handleSubmitForm will
+    // call: virtual cards verify via SetPersonalDetailsAndRevealExpensifyCard (reveal_card_details)
+    // and physical cards via SetPersonalDetailsAndShipExpensifyCards (ship_card)
     const resendValidateCodeParams: ResendValidateCodeParams = isVirtualCard
         ? {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REVEAL_CARD_DETAILS, reasonCardID: Number(cardID)}
         : {reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.SHIP_CARD};
