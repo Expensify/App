@@ -244,6 +244,7 @@ function PaymentMethodList({
         status: BankAccountConnectionStatus,
         onActionPress: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
         onUnlockPress?: (e: GestureResponderEvent | KeyboardEvent | undefined) => void,
+        onPlaidPress?: () => void,
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
@@ -253,6 +254,10 @@ function PaymentMethodList({
         onActionPress: () => {
             if (status.requiresUnlockHandler) {
                 (onUnlockPress ?? onActionPress)(undefined);
+                return;
+            }
+            if (status.requiresPlaidHandler && onPlaidPress) {
+                onPlaidPress();
                 return;
             }
             onActionPress(undefined);
@@ -597,6 +602,11 @@ function PaymentMethodList({
                         event: e,
                         ...paymentMethodData,
                     }));
+            const methodID = paymentMethod.methodID;
+            const onPlaidPress =
+                bankConnectionStatus?.requiresPlaidHandler && methodID !== undefined
+                    ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.BANK_ACCOUNT_LINK_PLAID.getRoute(methodID.toString())))
+                    : undefined;
 
             return {
                 ...paymentMethod,
@@ -610,7 +620,7 @@ function PaymentMethodList({
                 canDismissError: true,
                 isMissingPersonalInfo,
                 brickRoadIndicator: shouldShowConnectionStatus ? (bankConnectionStatus?.brickRoadIndicator ?? existingBrickRoadIndicator) : existingBrickRoadIndicator,
-                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress) : undefined,
+                connectionStatus: bankConnectionStatus ? mapBankStatusToRowStatus(bankConnectionStatus, paymentMethodPress, paymentMethodThreeDotsPress, onPlaidPress) : undefined,
             };
         });
         return combinedPaymentMethods;
