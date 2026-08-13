@@ -25,7 +25,7 @@ import Onyx from 'react-native-onyx';
 import type {MockFetch} from '../../utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -98,7 +98,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -117,6 +117,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -132,7 +133,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -161,7 +162,7 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should create transaction thread optimistically when initialReportID is undefined', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -179,6 +180,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const actions: OnyxInputValue<ReportActions> = {[iouAction.reportActionID]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -193,7 +195,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -215,7 +217,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putTransactionsOnHold', () => {
         test('should call putOnHold for each transaction ID', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -238,6 +240,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -246,6 +249,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -271,7 +275,17 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When multiple transactions are put on hold
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putTransactionsOnHold(
+                        [transaction1.transactionID, transaction2.transactionID],
+                        comment,
+                        iouReport.reportID,
+                        false,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        undefined,
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -307,7 +321,7 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should invoke navigation for each transaction when isOffline is true', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -329,6 +343,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -337,6 +352,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -363,7 +379,17 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putTransactionsOnHold(
+                        [transaction1.transactionID, transaction2.transactionID],
+                        comment,
+                        iouReport.reportID,
+                        true,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        undefined,
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -376,7 +402,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold with isOffline', () => {
         test('should pass isOffline to getDisplayedReportID affecting which reportID is used for navigation', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -391,6 +417,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -408,7 +435,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -416,7 +443,7 @@ describe('actions/IOU/Hold', () => {
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -433,7 +460,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -454,6 +481,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -468,7 +496,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -482,6 +510,7 @@ describe('actions/IOU/Hold', () => {
                         RORY_ACCOUNT_ID,
                         [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                         false,
+                        undefined,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -515,7 +544,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -536,6 +565,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -550,7 +580,7 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -565,6 +595,7 @@ describe('actions/IOU/Hold', () => {
                         RORY_ACCOUNT_ID,
                         [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
                         false,
+                        undefined,
                     );
                     return waitForBatchedUpdates();
                 })
@@ -608,7 +639,7 @@ describe('actions/IOU/Hold', () => {
             unheldReimbursableTotal?: number;
             heldAmount?: number;
         }) => {
-            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD');
+            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD', getCurrencyDecimalsLocal);
             const iouReport: Report = {
                 ...baseIouReport,
                 total: overrides.total,
@@ -634,6 +665,7 @@ describe('actions/IOU/Hold', () => {
                       comment: '',
                       participants: [],
                       transactionID: heldTransaction.transactionID,
+                      getCurrencyDecimals: getCurrencyDecimalsLocal,
                   })
                 : undefined;
 
@@ -672,6 +704,7 @@ describe('actions/IOU/Hold', () => {
                         policy: undefined,
                         delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
@@ -698,6 +731,7 @@ describe('actions/IOU/Hold', () => {
                         policy: undefined,
                         delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const restorationEntries = result.failureData.filter(
                         (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -729,6 +763,7 @@ describe('actions/IOU/Hold', () => {
                         policy: undefined,
                         delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value as Partial<Report> | undefined;
@@ -757,6 +792,7 @@ describe('actions/IOU/Hold', () => {
                         policy: undefined,
                         delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value as Partial<Report> | undefined;
