@@ -590,8 +590,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
-        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
-    }, [areAllMatchingItemsSelected, queryJSON, selectedReports, selectedTransactions, policies]);
+        return selectedItems.every((item) => {
+            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const policyID = item.policyID ?? report?.policyID;
+            if (!policyID) {
+                return false;
+            }
+
+            // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense
+            // report's currency is the workspace's output currency, so the template stays available after archiving.
+            return (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? report?.currency) === CONST.CURRENCY.CAD;
+        });
+    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);

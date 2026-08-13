@@ -64,8 +64,20 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
+    // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense report's
+    // currency is the workspace's output currency, so it keeps the Canadian Multiple Tax Export available after archiving.
+    const doesWorkspaceOutputCAD = (policy?.outputCurrency ?? moneyRequestReport?.currency) === CONST.CURRENCY.CAD;
     // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
-    const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, true, true);
+    const {customTemplates, defaultTemplates} = getExportTemplates(
+        integrationsExportTemplates ?? [],
+        csvExportLayouts ?? {},
+        translate,
+        localeCompare,
+        policy,
+        true,
+        true,
+        doesWorkspaceOutputCAD,
+    );
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
