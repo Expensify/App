@@ -9,9 +9,12 @@ import asMutable from '@src/types/utils/asMutable';
  */
 import * as core from '@actions/core';
 
-type CommentData = {body: string};
+import createMock from '../utils/createMock';
 
-type Comment = {data?: CommentData[]};
+type GetIssueMethod = InternalOctokit['rest']['issues']['get'];
+type ListCommentsMethod = InternalOctokit['rest']['issues']['listComments'];
+type GetIssueResponse = Awaited<ReturnType<GetIssueMethod>>;
+type ListCommentsResponse = Awaited<ReturnType<ListCommentsMethod>>;
 
 type PullRequest = {url: string; isQASuccess: boolean};
 
@@ -27,30 +30,25 @@ const mockGetInput = jest.fn().mockImplementation((arg: string): string | number
 });
 
 const mockSetOutput = jest.fn();
-const mockGetIssue = jest.fn();
-const mockListComments = jest.fn();
+let mockGetIssue: jest.SpiedFunction<GetIssueMethod>;
+let mockListComments: jest.SpiedFunction<ListCommentsMethod>;
 
 beforeAll(() => {
     // Mock core module
     asMutable(core).getInput = mockGetInput;
     asMutable(core).setOutput = mockSetOutput;
 
-    // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            issues: {
-                get: mockGetIssue,
-                listComments: mockListComments,
-            },
-        },
-    } as unknown as InternalOctokit;
-
-    GithubUtils.internalOctokit = mockOctokit;
+    GithubUtils.initOctokitWithToken('fake_token');
+    if (!GithubUtils.internalOctokit) {
+        throw new Error('Expected GitHubUtils to initialize Octokit');
+    }
+    mockGetIssue = jest.spyOn(GithubUtils.internalOctokit.rest.issues, 'get');
+    mockListComments = jest.spyOn(GithubUtils.internalOctokit.rest.issues, 'listComments');
 });
 
-let baseComments: Comment = {};
+let baseComments: ListCommentsResponse;
 beforeEach(() => {
-    baseComments = {
+    baseComments = createMock<ListCommentsResponse>({
         data: [
             {
                 body: 'foo',
@@ -62,7 +60,7 @@ beforeEach(() => {
                 body: ':shipit:',
             },
         ],
-    };
+    });
 });
 
 afterEach(() => {
@@ -79,8 +77,8 @@ function checkbox(isClosed: boolean): string {
     return isClosed ? '[x]' : '[ ]';
 }
 
-function mockIssue(prList: PullRequest[], deployBlockerList?: PullRequest[]) {
-    return {
+function mockIssue(prList: PullRequest[], deployBlockerList?: PullRequest[]): GetIssueResponse {
+    return createMock<GetIssueResponse>({
         data: {
             number: 1,
             title: "Scott's QA Checklist",
@@ -113,7 +111,7 @@ ${deployBlockerList
 cc @Expensify/applauseleads
 `,
         },
-    };
+    });
 }
 
 describe('checkDeployBlockers', () => {
@@ -129,9 +127,9 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all boxes checked but no :shipit:', async () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
-            const extraComments = {
+            const extraComments = createMock<ListCommentsResponse>({
                 data: [...(baseComments?.data ?? []), {body: 'This issue either has unchecked QA steps or has not yet been stamped with a :shipit: comment. Reopening!'}],
-            };
+            });
             mockListComments.mockResolvedValue(extraComments);
             await expect(run()).resolves.toBeUndefined();
             expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
@@ -139,7 +137,7 @@ describe('checkDeployBlockers', () => {
 
         test('Test an issue with all boxes checked but no comments', async () => {
             mockGetIssue.mockResolvedValue(allClearIssue);
-            mockListComments.mockResolvedValue({data: []});
+            mockListComments.mockResolvedValue(createMock<ListCommentsResponse>({data: []}));
             await expect(run()).resolves.toBeUndefined();
             expect(mockSetOutput).toHaveBeenCalledWith('HAS_DEPLOY_BLOCKERS', true);
         });
