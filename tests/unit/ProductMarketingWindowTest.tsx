@@ -32,10 +32,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+import type {Connections} from '@src/types/onyx/Policy';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {buildPersonalDetails} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -110,14 +112,14 @@ function buildVendorEnabledAdminPolicy(policyID = POLICY_ID): Policy {
     return {
         ...buildAdminPolicy(policyID),
         areConnectionsEnabled: true,
-        connections: {
+        connections: createMock<Connections>({
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                 config: {
                     nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD,
                 },
             },
-        },
-    } as Policy;
+        }),
+    };
 }
 
 const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutSystem = CONST.THEME.LIGHT) =>
