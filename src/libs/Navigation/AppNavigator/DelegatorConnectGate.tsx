@@ -4,7 +4,6 @@ import useOnyx from '@hooks/useOnyx';
 
 import {connect} from '@libs/actions/Delegate';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getSearchParamFromUrl} from '@libs/Url';
 
 import * as App from '@userActions/App';
@@ -64,7 +63,7 @@ function DelegatorConnectGuard({children}: {children: React.ReactNode}) {
     }
 
     return (
-        <Suspense fallback={<FullScreenLoadingIndicator reasonAttributes={{context: 'DelegatorConnectGate'} satisfies SkeletonSpanReasonAttributes} />}>
+        <Suspense fallback={<FullScreenLoadingIndicator />}>
             <DelegatorConnectGate delegatorEmail={delegatorEmail}>{children}</DelegatorConnectGate>
         </Suspense>
     );

@@ -79,8 +79,7 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
-    } = useNativeCamera({context: 'Camera', onFocusStart, onFocusCleanup});
+    } = useNativeCamera({onFocusStart, onFocusCleanup});
 
     // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
     // format. videoResolution is platform-specific:
@@ -233,7 +232,6 @@ function Camera({onCapture, onPicked, shouldAcceptMultipleFiles = false, onLayou
                                 size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                                 style={[styles.flex1]}
                                 color={theme.textSupporting}
-                                reasonAttributes={cameraLoadingReasonAttributes}
                             />
                         </View>
                     )}

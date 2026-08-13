@@ -352,7 +352,6 @@ function AttachmentModalBaseContent({
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             testID="attachment-loading-spinner"
-                            reasonAttributes={{context: 'AttachmentModalBaseContent'}}
                         />
                     </View>
                 )}

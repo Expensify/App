@@ -1,7 +1,5 @@
 import type {FullScreenLoadingIndicatorIconSize} from '@components/FullscreenLoadingIndicator';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import type CONST from '@src/CONST';
 
 import type {ImagePrefetchOptions, ImageSource} from 'expo-image';
@@ -56,9 +54,6 @@ type ImageOwnProps = BaseImageProps & {
 
     /** The style of the loading indicator */
     loadingIndicatorStyles?: StyleProp<ViewStyle>;
-
-    /** Reason attributes for skeleton span telemetry */
-    reasonAttributes?: SkeletonSpanReasonAttributes;
 
     /** Event for when the image begins loading */
     onLoadStart?: () => void;

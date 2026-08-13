@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
 import ImageSVG from '@components/ImageSVG';
@@ -84,9 +84,7 @@ function IOURequestStepOdometerImage({
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
     } = useNativeCamera({
-        context: 'IOURequestStepOdometerImage',
         onFocusCleanup: () => {
             cancelSpan(CONST.TELEMETRY.SPAN_ODOMETER_IMAGE_CAPTURE);
         },
@@ -152,7 +150,7 @@ function IOURequestStepOdometerImage({
             });
     };
 
-    const {validateFiles, ErrorModal} = useFilesValidation(handleImageSelected);
+    const {validateFiles} = useFilesValidation(handleImageSelected);
 
     const capturePhoto = () => {
         if (!camera.current && (cameraPermissionStatus === RESULTS.DENIED || cameraPermissionStatus === RESULTS.BLOCKED)) {
@@ -272,13 +270,14 @@ function IOURequestStepOdometerImage({
                             <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
                             <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
                             <Button
-                                success
-                                text={translate('common.continue')}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 accessibilityLabel={translate('common.continue')}
                                 style={[styles.p9, styles.pt5]}
                                 onPress={capturePhoto}
                                 sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
-                            />
+                            >
+                                <Button.Text>{translate('common.continue')}</Button.Text>
+                            </Button>
                         </View>
                     </ScrollView>
                 )}
@@ -288,7 +287,6 @@ function IOURequestStepOdometerImage({
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
                             color={theme.textSupporting}
-                            reasonAttributes={cameraLoadingReasonAttributes}
                         />
                     </View>
                 )}
@@ -400,7 +398,6 @@ function IOURequestStepOdometerImage({
                         }}
                     />
                 </View>
-                {ErrorModal}
             </View>
         </StepScreenWrapper>
     );
