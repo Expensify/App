@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ImageSVG from '@components/ImageSVG';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
@@ -319,10 +319,14 @@ function GPSMapView({accessToken, style, mapPadding, styleURL, pitchEnabled, way
             <View style={[styles.pAbsolute, styles.p5, styles.t0, styles.r0, styles.zIndex1]}>
                 <Button
                     onPress={centerMap}
-                    iconFill={theme.icon}
-                    icon={expensifyIcons.Crosshair}
                     accessibilityLabel={translate('common.center')}
-                />
+                >
+                    <Button.Icon
+                        src={expensifyIcons.Crosshair}
+                        fill={theme.icon}
+                        hoverFill={theme.icon}
+                    />
+                </Button>
             </View>
         </View>
     ) : (
