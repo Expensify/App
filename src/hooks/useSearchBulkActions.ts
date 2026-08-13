@@ -576,8 +576,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
     // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
     const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
+        const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
         if (areAllMatchingItemsSelected) {
-            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
             if (!policyIDFilter.value?.length || policyIDFilter.isNegated) {
                 return false;
             }
@@ -585,13 +586,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return policyIDFilter.value.every((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
         }
 
-        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
         if (selectedItems.length === 0) {
             return false;
         }
 
-        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
-    }, [areAllMatchingItemsSelected, queryJSON, selectedReports, selectedTransactions, policies]);
+        return selectedItems.every((item) => {
+            const policyID = item.policyID ?? getReportFromSearchSnapshot(item.reportID, currentSearchResults?.data, allReports)?.policyID;
+            return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
+        });
+    }, [areAllMatchingItemsSelected, currentSearchResults?.data, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
