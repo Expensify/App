@@ -591,8 +591,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return selectedItems.every((item) => {
-            // Expense rows never carry a policyID, so a selection built from them has none either. The report the row belongs
-            // to is what holds it, which is also how the neighboring fields on those selection entries are derived.
+            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived fields on this selection entry.
             const policyID = item.policyID ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]?.policyID;
             return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
         });
