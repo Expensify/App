@@ -2664,6 +2664,15 @@ const translations = {
             plaidConnectForLimit: 'Connect to Plaid for a more accurate Expensify Card limit',
             connect: 'Connect',
         },
+        linkPlaid: {
+            title: 'Connect to Plaid',
+            successHeading: 'Successful connection',
+            successDescription: 'Thanks for connecting to Plaid!',
+            failureHeading: 'Unsuccessful connection',
+            failureDescription: 'Please try again or <concierge-link>reach out to Concierge</concierge-link>.',
+            wrongAccountHeading: 'Wrong bank account',
+            wrongAccountDescription: 'Please select the matching bank account in Plaid.',
+        },
         assignedCards: 'Cards',
         assignedCardsDescription: 'Transactions from assigned cards sync automatically.',
         addVirtualCardPersonalDetails: {
