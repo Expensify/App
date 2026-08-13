@@ -1,5 +1,7 @@
 import {render} from '@testing-library/react-native';
 
+import type * as AppActions from '@libs/actions/App';
+
 import SignInModal from '@pages/signin/SignInModal';
 import type {SignInPageRef} from '@pages/signin/SignInPage';
 import {SignInPage} from '@pages/signin/SignInPage';
@@ -16,12 +18,23 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         goBack: () => {
             mockGoBack();
         },
+        dismissModal: jest.fn(),
+        navigate: jest.fn(),
+        isNavigationReady: () => Promise.resolve(),
     },
     navigationRef: {
         get current() {
             return {canGoBack: () => mockCanGoBack};
         },
     },
+}));
+
+// SignInModal fires a real OpenApp request on mount. The global fetch mock in jest/setup.ts resolves it,
+// so `finallyData` merges IS_LOADING_APP: false, which re-runs the effect that dismisses the modal while
+// the test is still running. Stubbing openApp keeps that async work out of this unit test.
+jest.mock('@libs/actions/App', () => ({
+    ...jest.requireActual<typeof AppActions>('@libs/actions/App'),
+    openApp: jest.fn(),
 }));
 
 // Record the callbacks handed to the hook so the test can replay them. Jest resolves the platform-neutral
