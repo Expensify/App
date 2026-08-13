@@ -64,6 +64,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const isLoading = !!bankAccountList?.[bankAccountID]?.isLoading;
     const bankAccountErrorMessages = Object.values(bankAccountList?.[bankAccountID]?.errors ?? {}).filter((message): message is string => !!message);
     const hasError = bankAccountErrorMessages.length > 0;
+    const isWrongAccountError = bankAccountErrorMessages.includes(CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT);
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const isSuccess =
@@ -87,7 +88,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         linkPlaidToBankAccount(bankAccountID, publicToken, account?.mask, policyID);
     };
 
-    const onTryAgain = () => {
+    const onRetry = () => {
         clearLinkPlaidBankAccountErrors(bankAccountID);
         setHasSubmitted(false);
         clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
@@ -113,6 +114,22 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         );
     }
 
+    if (isWrongAccountError) {
+        return (
+            <ScrollView contentContainerStyle={styles.flexGrow1}>
+                <ConfirmationPage
+                    heading={translate('walletPage.linkPlaid.wrongAccountHeading')}
+                    description={translate('walletPage.linkPlaid.wrongAccountDescription')}
+                    illustration={illustrations.BrokenMagnifyingGlass}
+                    shouldShowButton
+                    onButtonPress={onRetry}
+                    buttonText={translate('common.tryAgain')}
+                    containerStyle={styles.h100}
+                />
+            </ScrollView>
+        );
+    }
+
     if (hasError) {
         return (
             <ScrollView contentContainerStyle={styles.flexGrow1}>
@@ -125,7 +142,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                         </View>
                     }
                     shouldShowButton
-                    onButtonPress={onTryAgain}
+                    onButtonPress={onRetry}
                     buttonText={translate('common.tryAgain')}
                     containerStyle={styles.h100}
                 />

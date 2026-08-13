@@ -514,7 +514,7 @@ function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask
     API.write(WRITE_COMMANDS.LINK_PLAID_TO_BANK_ACCOUNT, parameters, onyxData);
 }
 
-function clearLinkPlaidState(bankAccountID: number) {
+function clearLinkPlaidBankAccountErrors(bankAccountID: number) {
     return Onyx.merge(ONYXKEYS.BANK_ACCOUNT_LIST, {[bankAccountID]: {isLoading: false, errors: null}});
 }
 
@@ -1921,7 +1921,7 @@ export {
     connectBankAccountWithPlaid,
     clearPlaid,
     linkPlaidToBankAccount,
-    clearLinkPlaidState,
+    clearLinkPlaidBankAccountErrors,
     createCorpayBankAccount,
     deletePaymentBankAccount,
     handlePlaidError,
