@@ -1895,14 +1895,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `conto bancario in ${requiredDepositCurrency}` : 'conto bancario';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `In attesa che <strong>tu</strong> aggiunga un conto bancario.`;
+                        return `In attesa che <strong>tu</strong> aggiunga un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `In attesa che <strong>${actor}</strong> aggiunga un conto bancario.`;
+                        return `In attesa che <strong>${actor}</strong> aggiunga un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `In attesa che un amministratore aggiunga un conto bancario.`;
+                        return `In attesa che un amministratore aggiunga un ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2948,7 +2950,7 @@ ${amount} per ${merchant} - ${date}`,
         editAvatar: 'Cambia avatar',
         defaultAgentName: (displayName: string) => `Agente di ${displayName}`,
         defaultPrompt:
-            "Rifiuta le spese relative a gioco d'azzardo, cinema o altri motivi chiaramente non legati all'attività.\n\nRicorda all'utente di includere sempre un'immagine della ricevuta in cui la mancia sia ben visibile.\n\nApprova il report se è molto simile ai report precedenti dello stesso utente.\n\nRifiuta i report con più di 500 $ di spese di viaggio.",
+            'Classifica tutte le spese al bar come Pasti.\n\nPer ogni corsa condivisa, imposta la descrizione su «Viaggio cliente».\n\nTagga qualsiasi cosa compro al negozio di elettronica come Attrezzatura.\n\nContrassegna qualsiasi spesa senza ricevuta così posso aggiungerne una prima di inviarla.',
         copilotNote: 'Questo agente verrà aggiunto come Copilot con accesso completo al tuo account, così potrà agire per tuo conto.',
     },
     editAgentPage: {
@@ -8805,6 +8807,8 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni fattura copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `impostazioni di viaggio copiate da <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di categorizzazione della spesa`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di assegnazione etichette alle spese`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },

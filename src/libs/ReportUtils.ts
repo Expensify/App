@@ -291,6 +291,7 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTransactionPendingDelete,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -9558,13 +9559,15 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
-            const transactions = getReportTransactions(potentialReport.reportID);
-
             // Allow both open and processing reports to show RBR for violations
             if (!isOpenOrProcessingReport(potentialReport)) {
                 return false;
             }
+
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
+            // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
+            const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
             const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
@@ -11845,7 +11848,9 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
+        );
     } else {
         // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
         // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
@@ -11966,7 +11971,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                        ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                    ),
+                );
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11999,7 +12009,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
+            );
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }

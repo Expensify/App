@@ -1850,6 +1850,15 @@ function isTaskAction(reportAction: OnyxEntry<ReportAction>): boolean {
  * @param actionName - The name of the action
  * @returns - Whether the action is a tag modification action
  * */
+function isCategoryModificationAction(actionName: string): boolean {
+    return (
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY ||
+        actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_CATEGORY_NAME
+    );
+}
+
 function isTagModificationAction(actionName: string): boolean {
     return (
         actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAG ||
@@ -3040,7 +3049,10 @@ function getWorkspaceCategoryUpdateMessage(translate: LocalizedTranslate, action
 
     if (action.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY && categoryName) {
         if (updatedField === 'commentHint') {
-            return translate('workspaceActions.updatedDescriptionHint', decodedOptionName, newValue as string | undefined, oldValue as string | undefined);
+            // Description hints are stored as HTML, so they have to be converted back to plain text to read correctly in a message
+            const newHint = typeof newValue === 'string' && newValue ? Parser.htmlToText(newValue) : undefined;
+            const oldHint = typeof oldValue === 'string' && oldValue ? Parser.htmlToText(oldValue) : undefined;
+            return translate('workspaceActions.updatedDescriptionHint', decodedOptionName, newHint, oldHint);
         }
 
         if (updatedField === 'enabled') {
@@ -3321,13 +3333,38 @@ function getCustomUnitRateDateRangeForMessage(translate: LocalizedTranslate, dat
 }
 
 function getWorkspaceCustomUnitRateUpdatedMessage(translate: LocalizedTranslate, dateFnsLocale: DateFnsLocale | undefined, action: ReportAction): string {
-    const {customUnitName, customUnitRateName, updatedField, oldValue, newValue, newTaxPercentage, oldTaxPercentage, newStartDate, newEndDate, oldStartDate, oldEndDate} =
-        getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
+    const {
+        customUnitName,
+        customUnitRateName,
+        updatedField,
+        oldValue,
+        newValue,
+        oldRate,
+        newRate,
+        currency,
+        newTaxPercentage,
+        oldTaxPercentage,
+        newStartDate,
+        newEndDate,
+        oldStartDate,
+        oldEndDate,
+    } = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE>) ?? {};
 
     const {RATE_CHANGELOG_UPDATED_FIELD} = CONST.CUSTOM_UNITS;
 
     if (customUnitName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.NAME && typeof oldValue === 'string' && typeof newValue === 'string') {
         return translate('workspaceActions.updatedCustomUnitRateName', customUnitName, oldValue, newValue);
+    }
+
+    if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldRate === 'number' && typeof newRate === 'number' && currency) {
+        return translate(
+            'workspaceActions.updatedCustomUnitRate',
+            customUnitName,
+            customUnitRateName,
+            updatedField,
+            convertAmountToDisplayString(newRate, currency),
+            convertAmountToDisplayString(oldRate, currency),
+        );
     }
 
     if (customUnitName && customUnitRateName && updatedField === RATE_CHANGELOG_UPDATED_FIELD.RATE && typeof oldValue === 'string' && typeof newValue === 'string') {
@@ -3571,6 +3608,24 @@ function getWorkspaceAttendeeTrackingUpdateMessage(translate: LocalizedTranslate
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED>) ?? {};
 
     return translate('workspaceActions.updatedAttendeeTracking', {enabled: !!enabled});
+}
+
+function getRequiresCategoryMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
+        return getReportActionText(action);
+    }
+
+    const {enabled} = getOriginalMessage(action) ?? {};
+    return translate('workspaceActions.updatedRequiresCategory', {enabled: !!enabled});
+}
+
+function getRequiresTagMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    if (!isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
+        return getReportActionText(action);
+    }
+
+    const {enabled} = getOriginalMessage(action) ?? {};
+    return translate('workspaceActions.updatedRequiresTag', {enabled: !!enabled});
 }
 
 function getRequireCompanyCardsEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
@@ -4987,6 +5042,7 @@ export {
     getMostRecentActiveDEWApproveFailedAction,
     hasPendingDEWApprove,
     isWhisperActionTargetedToOthers,
+    isCategoryModificationAction,
     isTagModificationAction,
     isIOUActionMatchingTransactionList,
     isResolvedActionableWhisper,
@@ -5025,6 +5081,8 @@ export {
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceAttendeeTrackingUpdateMessage,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCategoryTaxRateMessage,

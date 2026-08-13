@@ -1888,14 +1888,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `konto bankowe w ${requiredDepositCurrency}` : 'konto bankowe';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Czekamy, aż <strong>dodasz</strong> konto bankowe.`;
+                        return `Czekamy, aż <strong>dodasz</strong> ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Oczekiwanie, aż <strong>${actor}</strong> doda konto bankowe.`;
+                        return `Oczekiwanie, aż <strong>${actor}</strong> doda ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Oczekiwanie na dodanie konta bankowego przez administratora.`;
+                        return `Oczekiwanie na dodanie ${account} przez administratora.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2936,7 +2938,7 @@ ${amount} dla ${merchant} - ${date}`,
         editAvatar: 'Zmień awatar',
         defaultAgentName: (displayName: string) => `Agent ${displayName}`,
         defaultPrompt:
-            'Odrzucaj wydatki związane z hazardem, filmami lub innymi oczywistymi celami niezwiązanymi z działalnością biznesową.\n\nPrzypominaj użytkownikowi, aby zawsze dołączał zdjęcie paragonu, na którym wysokość napiwku jest wyraźnie widoczna.\n\nZatwierdź raport, jeśli jest bardzo podobny do wcześniejszych raportów tego samego użytkownika.\n\nOdrzucaj raporty zawierające więcej niż 500 USD wydatków na podróże.',
+            'Skategoryzuj wszystkie wydatki z kawiarni jako Posiłki.\n\nDla każdego przejazdu współdzielonego ustaw opis na „Podróż klienta”.\n\nOznacz wszystko, co kupuję w sklepie elektronicznym, jako Sprzęt.\n\nOznacz jako wymagające uwagi każdy wydatek bez paragonu, żebym mógł dodać go przed wysłaniem.',
         copilotNote: 'Ten agent zostanie dodany jako Copilot z pełnym dostępem do Twojego konta, aby mógł działać w Twoim imieniu.',
     },
     editAgentPage: {
@@ -8753,6 +8755,8 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano ustawienia faktur z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `skopiowano ustawienia podróży z <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg kategoryzacji wydatków`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'włączone' : 'wyłączone'} wymóg tagowania wydatków`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `zmienił uczestników kategorii „${categoryName}” na ${newValue ? 'wymagane' : 'niewymagane'} (wcześniej ${newValue ? 'niewymagane' : 'wymagane'})`;
         },
