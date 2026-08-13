@@ -2381,6 +2381,17 @@ describe('SearchQueryUtils', () => {
             expect(getFilterFromQuery(newQueryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS).value).toBe(undefined);
         });
 
+        test.each([
+            ['a straight quote', 'A"B'],
+            ['a curly quote', 'A“B'],
+            ['a backslash', 'A\\B'],
+        ])('round-trips a bare keyword containing %s', (_label, keyword) => {
+            const result = buildSearchQueryString(buildSearchQueryJSON(`type:expense ${keyword}`));
+
+            const keywordFilter = buildSearchQueryJSON(result)?.flatFilters.find((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD);
+            expect(keywordFilter?.filters.at(0)?.value).toBe(keyword);
+        });
+
         test('does not add quotes to non-keyword filter values', () => {
             const queryJSON = buildSearchQueryJSON('type:expense merchant:Amazon');
 
