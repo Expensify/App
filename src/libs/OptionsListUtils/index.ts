@@ -1744,7 +1744,18 @@ registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
 /** Builds the display option from the shell's captured inputs. */
 function buildFullOption(accountID: number, item: PersonalDetails | null, report: Report | undefined, context: LazyHydrationContext): HydratedPersonalDetailOption {
-    const {personalDetails, policiesCollection, reportAttributesDerived, policyTags, visibleReportActionsData, privateIsArchivedMap, conciergeReportID, currentUserAccountID, dateFnsLocale, translate} = context;
+    const {
+        personalDetails,
+        policiesCollection,
+        reportAttributesDerived,
+        policyTags,
+        visibleReportActionsData,
+        privateIsArchivedMap,
+        conciergeReportID,
+        currentUserAccountID,
+        dateFnsLocale,
+        translate,
+    } = context;
     const privateIsArchived = report ? privateIsArchivedMap[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`] : undefined;
     const policy = policiesCollection?.[`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`];
     const reportPolicyTags = policyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(report?.policyID)}`];
