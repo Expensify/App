@@ -490,7 +490,7 @@ const CURRENT_USER_ACCOUNT_ID = 1;
 const CURRENT_USER_EMAIL = 'current@expensify.com';
 const PUBLIC_PROFILE_ACCOUNT_ID = 123;
 
-describe('ProfilePage - search this user', () => {
+describe('ProfilePage - View user history', () => {
     beforeAll(async () => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -556,8 +556,8 @@ describe('ProfilePage - search this user', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('Search this user')).toBeOnTheScreen();
-        expect(screen.queryByText('Search this agent')).not.toBeOnTheScreen();
+        expect(screen.getByText('View user history')).toBeOnTheScreen();
+        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 
     it('shows the agent wording for an agent account', async () => {
@@ -566,8 +566,8 @@ describe('ProfilePage - search this user', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('Search this agent')).toBeOnTheScreen();
-        expect(screen.queryByText('Search this user')).not.toBeOnTheScreen();
+        expect(screen.getByText('View agent history')).toBeOnTheScreen();
+        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
     });
 
     it('navigates to a chat search filtered by the profile account when pressed', async () => {
@@ -577,7 +577,7 @@ describe('ProfilePage - search this user', () => {
         await waitForBatchedUpdatesWithAct();
 
         // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByText('Search this user'), {nativeEvent: {}});
+        fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`}));
@@ -594,7 +594,7 @@ describe('ProfilePage - search this user', () => {
         renderPublicProfilePage();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText('Search this user')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
     });
 });
 
