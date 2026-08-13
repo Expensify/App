@@ -177,6 +177,22 @@ describe('A1: synchronous read in the same tick as a write', () => {
  * merge reads previous values synchronously. `Promise.all(promises.map((p) => p()))` invokes the
  * thunks in array order, so array order is execution order.
  */
+describe('A5: get() on the public Onyx export', () => {
+    // The five existing call sites reach in through `react-native-onyx/dist/OnyxUtils`, which is not part of
+    // the package's public surface. These two guard the patch hunk that puts `get` on the exported object,
+    // so a regenerated patch that drops it fails here rather than in whichever conversion imported it.
+    it('exposes get as a function', () => {
+        expect(typeof Onyx.get).toBe('function');
+    });
+
+    it('returns the same value as the deep import it replaces', async () => {
+        await Onyx.merge(KEY, {primaryLogin: 'public@example.com'});
+
+        expect(Onyx.get(KEY)).toEqual(OnyxUtils.get(KEY));
+        expect(Onyx.get(KEY)?.primaryLogin).toBe('public@example.com');
+    });
+});
+
 describe('A2: update() operation ordering', () => {
     it('applies a merge on top of a set on the same key in one batch', async () => {
         await Onyx.update([

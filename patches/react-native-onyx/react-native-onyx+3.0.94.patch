@@ -1,5 +1,32 @@
+diff --git a/node_modules/react-native-onyx/dist/Onyx.d.ts b/node_modules/react-native-onyx/dist/Onyx.d.ts
+index e8da12e..44e8443 100644
+--- a/node_modules/react-native-onyx/dist/Onyx.d.ts
++++ b/node_modules/react-native-onyx/dist/Onyx.d.ts
+@@ -1,5 +1,5 @@
+ import * as Logger from './Logger';
+-import type { CollectionKeyBase, ConnectOptions, InitOptions, OnyxKey, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMergeInput, OnyxMultiSetInput, OnyxSetInput, OnyxUpdate, SetOptions } from './types';
++import type { CollectionKeyBase, ConnectOptions, InitOptions, OnyxKey, OnyxMergeCollectionInput, OnyxSetCollectionInput, OnyxMergeInput, OnyxMultiSetInput, OnyxSetInput, OnyxUpdate, OnyxValue, SetOptions } from './types';
+ import type { Connection } from './OnyxConnectionManager';
+ /** Initialize the store with actions and listening for storage events */
+ declare function init({ keys, initialKeyStates, evictableKeys, shouldSyncMultipleInstances, enableDevTools, skippableCollectionMemberIDs, ramOnlyKeys, snapshotMergeKeys, }: InitOptions): void;
+@@ -152,6 +152,7 @@ declare function update<TKey extends OnyxKey>(data: Array<OnyxUpdate<TKey>>): Pr
+  * @param collection Object collection keyed by individual collection member keys and values
+  */
+ declare function setCollection<TKey extends CollectionKeyBase>(collectionKey: TKey, collection: OnyxSetCollectionInput<TKey>): Promise<void>;
++declare function get<TKey extends OnyxKey, TValue extends OnyxValue<TKey>>(key: TKey): TValue;
+ declare const Onyx: {
+     METHOD: {
+         readonly SET: "set";
+@@ -163,6 +164,7 @@ declare const Onyx: {
+     };
+     connect: typeof connect;
+     connectWithoutView: typeof connectWithoutView;
++    get: typeof get;
+     disconnect: typeof disconnect;
+     set: typeof set;
+     multiSet: typeof multiSet;
 diff --git a/node_modules/react-native-onyx/dist/Onyx.js b/node_modules/react-native-onyx/dist/Onyx.js
-index ee33551..baee2b5 100644
+index ee33551..72360cb 100644
 --- a/node_modules/react-native-onyx/dist/Onyx.js
 +++ b/node_modules/react-native-onyx/dist/Onyx.js
 @@ -209,11 +209,14 @@ function merge(key, changes) {
@@ -196,6 +223,25 @@ index ee33551..baee2b5 100644
          }
          for (const [key, operations] of Object.entries(updateQueue)) {
              if (operations[0] === null) {
+@@ -520,10 +530,18 @@ function update(data) {
+ function setCollection(collectionKey, collection) {
+     return OnyxUtils_1.default.afterInit(() => OnyxUtils_1.default.setCollectionWithRetry({ collectionKey, collection }));
+ }
++/**
++ * Reads a value out of the Onyx cache synchronously. Returns undefined for a key that has no value,
++ * and also for any key at all before init() has hydrated the cache from storage.
++ */
++function get(key) {
++    return OnyxUtils_1.default.get(key);
++}
+ const Onyx = {
+     METHOD: OnyxUtils_1.default.METHOD,
+     connect,
+     connectWithoutView,
++    get,
+     disconnect,
+     set,
+     multiSet,
 diff --git a/node_modules/react-native-onyx/dist/OnyxCache.d.ts b/node_modules/react-native-onyx/dist/OnyxCache.d.ts
 index e2c4c9a..fb38cf2 100644
 --- a/node_modules/react-native-onyx/dist/OnyxCache.d.ts
@@ -210,7 +256,7 @@ index e2c4c9a..fb38cf2 100644
       * Finds the least recently accessed key that can be safely evicted from storage.
       * `excludeKeys` skips keys that must not be evicted (e.g. the in-flight write's own keys,
 diff --git a/node_modules/react-native-onyx/dist/OnyxCache.js b/node_modules/react-native-onyx/dist/OnyxCache.js
-index 102fe93..11f0a1c 100644
+index c3bede4..85009d9 100644
 --- a/node_modules/react-native-onyx/dist/OnyxCache.js
 +++ b/node_modules/react-native-onyx/dist/OnyxCache.js
 @@ -252,16 +252,15 @@ class OnyxCache {
