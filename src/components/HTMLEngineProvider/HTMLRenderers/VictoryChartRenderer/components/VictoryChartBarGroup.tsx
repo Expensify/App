@@ -1,6 +1,5 @@
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -19,8 +18,7 @@ type VictoryChartBarGroupProps = {
 };
 
 function VictoryChartBarGroup({tnode, isHorizontal}: VictoryChartBarGroupProps) {
-    const {points, chartBounds} = useVictoryChartRenderArgs();
-    const {pixelScale} = useVictoryChartContext();
+    const {points, chartBounds, pixelScale} = useVictoryChartRenderArgs();
     const barChildren = tnode.children.filter((child) => child.tagName === 'victorybar');
     const firstBarChild = barChildren.at(0);
 

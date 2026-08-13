@@ -1,6 +1,5 @@
 import BAR_INNER_PADDING from '@components/Charts/barChartConstants';
 import VictoryTheme from '@components/Charts/VictoryTheme';
-import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {useVictoryChartRenderArgs} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
 import getYKey from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getYKey';
 import {parseAttributeAsNumber} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/parseAttribute';
@@ -15,8 +14,7 @@ import {Bar} from 'victory-native';
 type VictoryChartBarProps = {tnode: TNode};
 
 function VictoryChartBar({tnode}: VictoryChartBarProps) {
-    const {points, chartBounds} = useVictoryChartRenderArgs();
-    const {pixelScale} = useVictoryChartContext();
+    const {points, chartBounds, pixelScale} = useVictoryChartRenderArgs();
     const yKey = getYKey(tnode);
     const {nodeStyles} = parseStyles(tnode);
     const barWidth = parseAttributeAsNumber(tnode.attributes.barwidth);
