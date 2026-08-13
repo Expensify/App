@@ -24,6 +24,8 @@ await mock.module('fs', () => ({...memfsFs, default: memfsFs}));
 // Must be imported after the mock.module() call above so it picks up the mock.
 const {default: run} = await import('@scripts/createOrUpdateDeployChecklist');
 
+type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
+
 const mockGetInput = jest.fn();
 
 type ListForRepoParameters = Parameters<ListForRepoMethod>;
@@ -40,6 +42,7 @@ const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 let mockCreateIssue: Mock<InternalOctokit['rest']['issues']['create']>;
 let mockUpdateIssue: Mock<InternalOctokit['rest']['issues']['update']>;
 let mockListIssues: Mock<ListForRepoMethod>;
+let listForRepoStatics: Pick<ListForRepoMethod, 'defaults' | 'endpoint'>;
 const mockGetMergedPRsDeployedBetween = jest.fn<typeof GitUtils.getMergedPRsDeployedBetween>();
 const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
@@ -55,8 +58,7 @@ beforeAll(() => {
     }
 
     // Octokit endpoint methods carry `defaults`/`endpoint` statics. A Bun mock doesn't, and `paginate` reads them
-    // off the method, so they're copied back onto each mock below. mockImplementation insists on the statics too,
-    // which a plain stub can't provide - only the call signature matters here.
+    // off the method, so the real ones are copied back onto each mock and stub below.
     const createIssue = (...args: CreateIssueParameters): Promise<CreateIssueResponse> => {
         const [arg] = args;
         if (!arg) {
@@ -83,15 +85,12 @@ beforeAll(() => {
             }),
         );
     };
-    mockCreateIssue = jest
-        .spyOn(mockOctokit.rest.issues, 'create')
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described above
-        .mockImplementation(createIssue as unknown as InternalOctokit['rest']['issues']['create']);
-    mockUpdateIssue = jest
-        .spyOn(mockOctokit.rest.issues, 'update')
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described above
-        .mockImplementation(updateIssue as unknown as InternalOctokit['rest']['issues']['update']);
+    const {endpoint: createEndpoint, defaults: createDefaults} = mockOctokit.rest.issues.create;
+    const {endpoint: updateEndpoint, defaults: updateDefaults} = mockOctokit.rest.issues.update;
+    mockCreateIssue = jest.spyOn(mockOctokit.rest.issues, 'create').mockImplementation(Object.assign(createIssue, {endpoint: createEndpoint, defaults: createDefaults}));
+    mockUpdateIssue = jest.spyOn(mockOctokit.rest.issues, 'update').mockImplementation(Object.assign(updateIssue, {endpoint: updateEndpoint, defaults: updateDefaults}));
     const {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults} = mockOctokit.rest.issues.listForRepo;
+    listForRepoStatics = {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults};
     const {endpoint: pullsListEndpoint, defaults: pullsListDefaults} = mockOctokit.rest.pulls.list;
     mockListIssues = Object.assign(jest.spyOn(mockOctokit.rest.issues, 'listForRepo'), {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults});
     const mockListPullRequests = Object.assign(jest.spyOn(mockOctokit.rest.pulls, 'list'), {endpoint: pullsListEndpoint, defaults: pullsListDefaults});
@@ -151,8 +150,7 @@ function mockDeployChecklistIssuesByLabel(responseByLabel: Partial<Record<string
         const data = labels === undefined ? [] : (responseByLabel[labels] ?? []);
         return Promise.resolve(createMock<ListForRepoResponse>({data, headers: {}}));
     };
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described in beforeAll
-    mockListIssues.mockImplementation(listForRepo as unknown as ListForRepoMethod);
+    mockListIssues.mockImplementation(Object.assign(listForRepo, listForRepoStatics));
 }
 
 const LABELS = {
@@ -342,9 +340,11 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
         });
-        expect(result as unknown).toStrictEqual({
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-        });
+        expect(result).toStrictEqual(
+            createMock<IssuesCreateResponse>({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            }),
+        );
     });
 
     test('creates new issue when there are no Mobile-Expensify PRs', async () => {
@@ -388,9 +388,11 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
         });
-        expect(result as unknown).toStrictEqual({
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-        });
+        expect(result).toStrictEqual(
+            createMock<IssuesCreateResponse>({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            }),
+        );
     });
 
     describe('updates existing issue when there is one open', () => {
@@ -507,9 +509,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${openCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
 
         test('without NPM_VERSION input, just a new deploy blocker', async () => {
@@ -575,9 +579,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
 
         test('without Mobile-Expensify PRs, just app PRs and deploy blockers', async () => {
@@ -624,9 +630,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
     });
 
@@ -685,9 +693,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -753,9 +763,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -824,9 +836,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -874,9 +888,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -950,9 +966,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const updateCall = mockUpdateIssue.mock.lastCall;
             if (!updateCall || !updateCall[0]) {
                 throw new Error('Expected issues.update to receive a request payload.');
@@ -1028,9 +1046,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -1090,9 +1110,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result as unknown).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
