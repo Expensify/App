@@ -8,7 +8,7 @@ import type {TextStyle} from 'react-native';
 
 import type {ChartLabelFontWeight} from './normalizeChartFontWeight';
 
-import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS from './chartTypefaceFallbacks';
+import CHART_TYPEFACE_SAME_FAMILY_FALLBACKS, {CHART_TYPEFACE_GLYPH_FALLBACKS} from './chartTypefaceFallbacks';
 import normalizeChartFontWeight from './normalizeChartFontWeight';
 
 type ChartLabelFontStyle = 'normal' | 'italic';
@@ -66,15 +66,7 @@ function canTypefaceRenderText(typeface: SkTypeface, text: string): boolean {
  * character renders incorrectly.
  */
 function getGlyphFallbackKey(typefaceKey: ChartSkiaTypefaceKey): ChartSkiaTypefaceKey {
-    if (typefaceKey === 'EXP_NEW_KANSAS_MEDIUM_ITALIC') {
-        return 'EXP_NEUE_BOLD_ITALIC';
-    }
-
-    if (typefaceKey === 'EXP_NEW_KANSAS_MEDIUM') {
-        return 'EXP_NEUE_BOLD';
-    }
-
-    return 'EXP_NEUE';
+    return CHART_TYPEFACE_GLYPH_FALLBACKS[typefaceKey] ?? 'EXP_NEUE';
 }
 
 function getFirstAvailableTypeface(typefaces: ChartDefaultTypeface): SkTypeface | null {
