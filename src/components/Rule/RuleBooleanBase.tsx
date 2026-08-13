@@ -60,7 +60,7 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
 
     // When the field is unset the selector defaults to "Don't change" - it is a true radio group that can never be cleared to nothing
     let selectedItem: ValueOf<typeof CONST.SEARCH.BOOLEAN> | typeof KEEP_UNCHANGED = KEEP_UNCHANGED;
-    if (formValue !== undefined) {
+    if (formValue !== undefined && formValue !== '') {
         // Handle both string ('true'/'false') and boolean (true/false) values
         const isTruthy = useStringValues ? formValue === 'true' : formValue === true;
         selectedItem = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;
