@@ -3,12 +3,14 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-na
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import * as Browser from '@libs/Browser';
 import Navigation from '@libs/Navigation/Navigation';
 
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
@@ -48,6 +50,7 @@ TestHelper.setupGlobalFetchMock();
 const Stack = createStackNavigator<OnboardingModalNavigatorParamList>();
 const navigate = jest.spyOn(Navigation, 'navigate');
 const goBack = jest.spyOn(Navigation, 'goBack');
+const isMobileSafari = jest.spyOn(Browser, 'isMobileSafari');
 jest.spyOn(Navigation, 'getTopmostReportId').mockReturnValue(undefined);
 
 function renderInterestedFeaturesPage() {
@@ -96,6 +99,7 @@ describe('Onboarding interested features and accounting pages', () => {
     });
 
     beforeEach(() => {
+        isMobileSafari.mockReturnValue(false);
         jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
             isSmallScreenWidth: false,
             shouldUseNarrowLayout: false,
@@ -179,6 +183,16 @@ describe('Onboarding interested features and accounting pages', () => {
                 userReportedIntegrationName: 'Acme Books',
             });
         });
+    });
+
+    it('disables max-height and virtual-viewport scroll suppression on mobile Safari', async () => {
+        isMobileSafari.mockReturnValue(true);
+        const renderResult = renderAccountingPage();
+
+        await waitForBatchedUpdatesWithAct();
+        const screenWrapper = renderResult.UNSAFE_getByType(ScreenWrapper);
+        expect(screenWrapper.props.shouldEnableMaxHeight).toBe(false);
+        expect(screenWrapper.props.shouldAvoidScrollOnVirtualViewport).toBe(false);
     });
 
     it('omits a whitespace-only Other integration name', async () => {
