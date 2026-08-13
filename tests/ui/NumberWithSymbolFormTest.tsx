@@ -8,6 +8,9 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import Text from '@components/Text';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
+import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -22,11 +25,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const mockIsFocused = jest.fn(() => true);
 
 jest.mock('@libs/DeviceCapabilities', () => ({
-    ...jest.requireActual('@libs/DeviceCapabilities'),
+    ...jest.requireActual<typeof DeviceCapabilities>('@libs/DeviceCapabilities'),
     canUseTouchScreen: () => true,
 }));
 jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
-    ...jest.requireActual('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
+    ...jest.requireActual<{default: ShouldIgnoreSelectionWhenUpdatedManually}>('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
     __esModule: true,
     default: true,
 }));
@@ -68,6 +71,34 @@ function queryAllById(id: string) {
 
 function getTextInput() {
     return screen.getByTestId(INPUT_TEST_ID);
+}
+
+type TextSelection = {
+    start: number;
+    end: number;
+};
+
+type AccessibilityStateProps = {
+    accessibilityState?: {
+        disabled?: boolean;
+    };
+};
+
+function isTextSelection(value: unknown): value is TextSelection {
+    if (typeof value !== 'object' || value === null) {
+        return false;
+    }
+
+    return typeof Reflect.get(value, 'start') === 'number' && typeof Reflect.get(value, 'end') === 'number';
+}
+
+function getTextInputSelection(input: ReturnType<typeof getTextInput>): TextSelection {
+    const {selection} = input.props;
+    if (!isTextSelection(selection)) {
+        throw new Error('Expected text input selection');
+    }
+
+    return selection;
 }
 
 describe('NumberWithSymbolForm', () => {
@@ -231,12 +262,12 @@ describe('NumberWithSymbolForm', () => {
         });
 
         it('assigns the text input instance via a callback `ref` prop', async () => {
-            const ref = jest.fn();
+            const ref = jest.fn<void, [BaseTextInputRef | null]>();
             renderForm({displayAsTextInput: true, value: '10', ref});
             await waitForBatchedUpdatesWithAct();
 
             expect(ref).toHaveBeenCalled();
-            expect(ref.mock.calls.at(-1)?.[0]).toBeTruthy();
+            expect(jest.mocked(ref).mock.calls.at(-1)?.[0]).toBeTruthy();
         });
 
         describe('setFormattedNumber / addLeadingZero', () => {
@@ -372,7 +403,7 @@ describe('NumberWithSymbolForm', () => {
             function typeAtSelection(key: string) {
                 const input = getTextInput();
                 const value = String(input.props.value ?? '');
-                const {start, end} = input.props.selection as {start: number; end: number};
+                const {start, end} = getTextInputSelection(input);
                 fireEvent.changeText(input, `${value.slice(0, start)}${key}${value.slice(end)}`);
             }
 
@@ -514,7 +545,8 @@ describe('NumberWithSymbolForm', () => {
             expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
             // Flip is labeled on both the icon and the button; none should report disabled.
             for (const node of screen.getAllByLabelText(getFlipLabel())) {
-                expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
+                const {accessibilityState} = node.props as AccessibilityStateProps;
+                expect(accessibilityState?.disabled ?? false).toBe(false);
             }
 
             fireEvent.press(currencyButton);
@@ -669,7 +701,8 @@ describe('NumberWithSymbolForm', () => {
             expect(currencyButton.props.accessibilityState).toEqual(expect.objectContaining({disabled: false}));
             // Flip is labeled on both the icon and the button; none should report disabled.
             for (const node of screen.getAllByLabelText(getFlipLabel())) {
-                expect(node.props.accessibilityState?.disabled ?? false).toBe(false);
+                const {accessibilityState} = node.props as AccessibilityStateProps;
+                expect(accessibilityState?.disabled ?? false).toBe(false);
             }
 
             fireEvent.press(currencyButton);
@@ -704,12 +737,12 @@ describe('NumberWithSymbolForm', () => {
         });
 
         it('assigns the text input instance via a callback `ref` prop', async () => {
-            const ref = jest.fn();
+            const ref = jest.fn<void, [BaseTextInputRef | null]>();
             renderForm({value: '10', ref});
             await waitForBatchedUpdatesWithAct();
 
             expect(ref).toHaveBeenCalled();
-            expect(ref.mock.calls.at(-1)?.[0]).toBeTruthy();
+            expect(jest.mocked(ref).mock.calls.at(-1)?.[0]).toBeTruthy();
         });
 
         it('renders the negative symbol when `isNegative` is set', async () => {

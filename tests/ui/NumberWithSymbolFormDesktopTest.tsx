@@ -5,6 +5,9 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as DeviceCapabilities from '@libs/DeviceCapabilities';
+import type ShouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually/types';
+
 import type * as NativeNavigation from '@react-navigation/native';
 
 import React from 'react';
@@ -13,11 +16,11 @@ import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/DeviceCapabilities', () => ({
-    ...jest.requireActual('@libs/DeviceCapabilities'),
+    ...jest.requireActual<typeof DeviceCapabilities>('@libs/DeviceCapabilities'),
     canUseTouchScreen: () => false,
 }));
 jest.mock('@libs/shouldIgnoreSelectionWhenUpdatedManually', () => ({
-    ...jest.requireActual('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
+    ...jest.requireActual<{default: ShouldIgnoreSelectionWhenUpdatedManually}>('@libs/shouldIgnoreSelectionWhenUpdatedManually'),
     __esModule: true,
     default: false,
 }));
