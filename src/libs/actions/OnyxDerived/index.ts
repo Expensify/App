@@ -1,6 +1,7 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -147,6 +148,8 @@ function init() {
                 for (const index of pendingDependencyIndexes) {
                     triggeredKeys.add(dependencies[index]);
                 }
+
+                detectOnyxDerivedLoop(key, triggeredKeys);
 
                 if (hasFlushedOnce) {
                     for (const index of pendingDependencyIndexes) {
