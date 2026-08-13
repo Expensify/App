@@ -12,6 +12,7 @@ type MockConfirmModalOptions = {
     imageHeight?: number;
     imageStyles?: unknown;
     imageWidth?: number;
+    promptStyles?: unknown;
 };
 
 const mockShowConfirmModal = jest.fn<void, [MockConfirmModalOptions]>();
@@ -60,8 +61,14 @@ describe('useCommuterExclusionGuard', () => {
 
         expect(result.current('policy_forced')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-        expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({imageWidth: 160, imageHeight: 140}));
-        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)).not.toHaveProperty('imageStyles');
+        expect(mockShowConfirmModal).toHaveBeenCalledWith(
+            expect.objectContaining({
+                imageHeight: 140,
+                imageStyles: expect.arrayContaining([expect.objectContaining({marginTop: 20}), expect.objectContaining({marginHorizontal: 20})]),
+                imageWidth: 160,
+                promptStyles: expect.arrayContaining([expect.objectContaining({marginBottom: 16})]),
+            }),
+        );
     });
 
     it('does not block selecting a workspace without commuter exclusions', async () => {
