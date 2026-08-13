@@ -3,7 +3,6 @@ import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
 
 import run from '@github/actions/javascript/awaitStagingDeploys/awaitStagingDeploys';
 import CONST from '@github/libs/CONST';
-import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
 /* eslint-disable @typescript-eslint/naming-convention */
@@ -67,17 +66,11 @@ beforeAll(() => {
     // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
     jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
-    // Mock octokit module
-    const mockOctokit = {
-        rest: {
-            actions: {
-                ...(GithubUtils.internalOctokit as unknown as typeof GithubUtils.octokit.actions),
-                listWorkflowRuns: mockListWorkflowRuns as unknown as typeof GithubUtils.octokit.actions.listWorkflowRuns,
-            },
-        },
-    };
-
-    GithubUtils.internalOctokit = mockOctokit as InternalOctokit;
+    // Octokit endpoint methods carry `defaults`/`endpoint` statics that a bare mock doesn't, so the real ones are
+    // copied onto the stub rather than asserted away.
+    GithubUtils.initOctokitWithToken('fake_token');
+    const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;
+    jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(mockListWorkflowRuns, {endpoint, defaults}));
 });
 
 beforeEach(() => {
