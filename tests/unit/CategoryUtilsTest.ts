@@ -3,6 +3,7 @@ import {
     getAvailableNonPersonalPolicyCategories,
     getCategoryGLCode,
     getDecodedFullCategoryName,
+    getDecodedLeafCategoryName,
     hasAnyCategoryRules,
     isCategoryDescriptionRequired,
     isCategoryMissing,
@@ -219,7 +220,7 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
         expect(result[keyOther]?.TestCategory3).toBeDefined();
     });
 
-    describe('processCategoryNameSegments and getDecodedFullCategoryName', () => {
+    describe('category name formatting', () => {
         describe('processCategoryNameSegments', () => {
             it('returns a single segment for colon‑only names', () => {
                 expect(processCategoryNameSegments(':')).toEqual([':']);
@@ -230,6 +231,18 @@ describe('getAvailableNonPersonalPolicyCategories', () => {
                 expect(processCategoryNameSegments('Food: Meat')).toEqual(['Food', ' Meat']);
                 expect(processCategoryNameSegments('A: B:')).toEqual(['A', ' B:']);
                 expect(processCategoryNameSegments('Parent:Child')).toEqual(['Parent', 'Child']);
+            });
+        });
+
+        describe('getDecodedLeafCategoryName', () => {
+            it('returns the leaf name for colon‑only categories', () => {
+                expect(getDecodedLeafCategoryName(':')).toEqual(':');
+                expect(getDecodedLeafCategoryName('::')).toEqual('::');
+            });
+
+            it('returns the leaf for normal hierarchies (trimmed)', () => {
+                expect(getDecodedLeafCategoryName('Food: Meat')).toEqual('Meat');
+                expect(getDecodedLeafCategoryName('A: B:')).toEqual('B:');
             });
         });
 

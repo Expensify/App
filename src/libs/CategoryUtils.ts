@@ -202,6 +202,12 @@ function processCategoryNameSegments(categoryName: string): string[] {
     return result;
 }
 
+function getDecodedLeafCategoryName(categoryName: string): string {
+    const segments = processCategoryNameSegments(categoryName);
+    const leaf = segments.at(segments.length - 1) ?? '';
+    return Str.htmlDecode(leaf.trim());
+}
+
 function getDecodedFullCategoryName(categoryName: string): string {
     const segments = processCategoryNameSegments(categoryName).map((segment) => segment.trim());
     return Str.htmlDecode(segments.join(`${CONST.PARENT_CHILD_SEPARATOR} `));
@@ -251,6 +257,7 @@ export {
     isCategoryDescriptionRequired,
     getCategoryGLCode,
     getDecodedCategoryName,
+    getDecodedLeafCategoryName,
     getDecodedFullCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,

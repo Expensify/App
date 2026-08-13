@@ -50,7 +50,7 @@ import {openExternalLink} from '@libs/actions/Link';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {enrichAndSortAttendees, getIsMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import {getBrokenConnectionUrlToFixPersonalCard, getCompanyCardDescription} from '@libs/CardUtils';
-import {getDecodedFullCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
+import {getDecodedLeafCategoryName, isCategoryMissing} from '@libs/CategoryUtils';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {insertTagIntoTransactionTagsString} from '@libs/IOUUtils';
@@ -945,7 +945,7 @@ function MoneyRequestView({
     const merchantCopyValue = !canEditMerchant ? updatedMerchantTitle : undefined;
     const dateCopyValue = !canEditDate ? transactionDate : undefined;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
-    const decodedCategoryName = getDecodedFullCategoryName(categoryValue);
+    const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
     const categoryCopyValue = !canEdit ? decodedCategoryName : undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
