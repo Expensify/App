@@ -40,7 +40,7 @@ function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitle
     return (
         <Header
             title={children}
-            subtitle={stepCounter ? translate('stepCounter', stepCounter) : subtitle}
+            subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle}
             textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
             subTitleLink={subTitleLink}
             numberOfTitleLines={1}

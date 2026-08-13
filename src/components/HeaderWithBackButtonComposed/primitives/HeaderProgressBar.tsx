@@ -18,7 +18,7 @@ function HeaderProgressBar({percentageProgress, stepCounter}: HeaderProgressBarP
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
-    const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter)}` : undefined;
+    const progressBarLabel = stepCounter ? `${translate('common.progressBarLabel')}, ${translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text)}` : undefined;
 
     return (
         <>
