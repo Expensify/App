@@ -15,6 +15,7 @@ import Onyx from 'react-native-onyx';
 
 import * as PersonalDetailsActions from '../../src/libs/actions/PersonalDetails';
 import createMock from '../utils/createMock';
+import getOnyxValue from '../utils/getOnyxValue';
 import {getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -855,37 +856,46 @@ describe('actions/PersonalDetails', () => {
             );
         });
 
-        it('should merge invalidCardLimit error to Onyx when backend returns 400', async () => {
+        it('should write invalidCardLimit error to Onyx when backend returns 400', async () => {
+            // Given the backend returns a 400 for an invalid (zero) card limit
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.BAD_REQUEST} as never);
-            const mergeSpy = jest.spyOn(Onyx, 'merge');
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.BAD_REQUEST});
 
+            // When we submit personal details and request a physical card
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
+            // Then the invalid-card-limit error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeTruthy();
         });
 
-        it('should not merge error to Onyx when backend returns 200', async () => {
+        it('should not write any error to Onyx when backend returns 200', async () => {
+            // Given the backend returns a successful 200 response
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
-            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS} as never);
-            const mergeSpy = jest.spyOn(Onyx, 'merge');
+            jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue({jsonCode: CONST.JSON_CODE.SUCCESS});
 
+            // When we submit personal details and request a physical card
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
+            // Then no error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeFalsy();
         });
 
-        it('should not merge error to Onyx when response is undefined (e.g. network error)', async () => {
+        it('should not write any error to Onyx when the response is undefined (e.g. network error)', async () => {
+            // Given the request resolves with no response (e.g. a network failure)
             // eslint-disable-next-line rulesdir/no-multiple-api-calls
             jest.spyOn(API, 'makeRequestWithSideEffects').mockResolvedValue(undefined);
-            const mergeSpy = jest.spyOn(Onyx, 'merge');
 
+            // When we submit personal details and request a physical card
             PersonalDetailsActions.updatePersonalDetailsAndShipExpensifyCards(mockValues, 'VALIDATE123', 1);
             await waitForBatchedUpdates();
 
-            expect(mergeSpy).not.toHaveBeenCalledWith(ONYXKEYS.PRIVATE_PERSONAL_DETAILS, expect.objectContaining({errors: expect.anything() as Record<string, string>}));
+            // Then no error is written to the private personal details
+            const privatePersonalDetails = await getOnyxValue(ONYXKEYS.PRIVATE_PERSONAL_DETAILS);
+            expect(privatePersonalDetails?.errors).toBeFalsy();
         });
     });
 
