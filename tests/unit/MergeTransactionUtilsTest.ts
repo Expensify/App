@@ -399,7 +399,7 @@ describe('MergeTransactionUtils', () => {
             expect(result.conflictFields).not.toContain('merchant');
             expect(result.mergeableData).toMatchObject({
                 amount: 920,
-                customUnit: expect.objectContaining({commuterExclusion: 1, reimbursableDistance: 9.2}) as unknown,
+                customUnit: expect.objectContaining({commuterExclusion: 1, reimbursableDistance: 9.2}),
             });
         });
 
