@@ -5989,8 +5989,8 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             addNewBankAccount: 'Ajouter un nouveau compte bancaire',
             settlementAccount: 'Compte de règlement',
             settlementAccountDescription: 'Choisissez un compte pour payer le solde de votre Carte Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
-                `Assurez-vous que ce compte correspond à votre <a href="${reconciliationAccountSettingsLink}">Compte de rapprochement</a> (${accountNumber}) afin que le rapprochement continu fonctionne correctement.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Assurez-vous que ce compte correspond à votre ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">Compte de rapprochement</a>` : 'Compte de rapprochement'} (${accountNumber}) afin que le rapprochement continu fonctionne correctement.`,
             settlementFrequency: 'Fréquence de règlement',
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous réglerez le solde de votre Carte Expensify.',
             settlementFrequencyInfo:
@@ -6740,8 +6740,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseLimitType: 'Choisissez un type de limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Dépenser jusqu’à un certain montant avant de nécessiter une approbation',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. <a href="${workspaceWorkflowsLink}">Activez les approbations</a> pour sélectionner cette option.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Activez les approbations</a>` : 'Activez les approbations'} pour sélectionner cette option.</muted-text-label>`,
                 monthly: 'Mensuel',
                 monthlyDescription: 'Dépenser jusqu’à un certain montant par mois',
                 fixedAmount: 'Montant fixe',

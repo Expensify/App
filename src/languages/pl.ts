@@ -5915,8 +5915,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addNewBankAccount: 'Dodaj nowe konto bankowe',
             settlementAccount: 'Konto rozliczeniowe',
             settlementAccountDescription: 'Wybierz konto, z którego spłacisz saldo swojej Karty Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
-                `Upewnij się, że to konto jest takie samo jak <a href="${reconciliationAccountSettingsLink}">konto do uzgadniania</a> (${accountNumber}), aby Ciągłe uzgadnianie działało poprawnie.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Upewnij się, że to konto jest takie samo jak ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">konto do uzgadniania</a>` : 'konto do uzgadniania'} (${accountNumber}), aby Ciągłe uzgadnianie działało poprawnie.`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             settlementFrequencyDescription: 'Wybierz, jak często będziesz spłacać saldo swojej Karty Expensify.',
             settlementFrequencyInfo: 'Jeśli chcesz przejść na miesięczne rozliczenie, musisz podłączyć swoje konto bankowe przez Plaid i mieć dodatnią historię salda z ostatnich 90 dni.',
@@ -6653,8 +6653,8 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
                 chooseLimitType: 'Wybierz typ limitu',
                 smartLimit: 'Inteligentny limit',
                 smartLimitDescription: 'Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. <a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>, aby wybrać tę opcję.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Wydawaj do określonej kwoty przed wymaganiem zatwierdzenia. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Włącz zatwierdzanie</a>` : 'Włącz zatwierdzanie'}, aby wybrać tę opcję.</muted-text-label>`,
                 monthly: 'Miesięcznie',
                 monthlyDescription: 'Wydawaj do określonej kwoty miesięcznie',
                 fixedAmount: 'Stała kwota',

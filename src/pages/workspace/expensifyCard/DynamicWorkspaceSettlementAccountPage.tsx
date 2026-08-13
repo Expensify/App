@@ -19,7 +19,7 @@ import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getEligibleBankAccountsForCard, getEligibleBankAccountsForUkEuCard} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getDomainNameForPolicy} from '@libs/PolicyUtils';
+import {getDomainNameForPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -134,6 +134,12 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         const connectionName = reconciliationConnection ?? '';
         const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
+        // The Card reconciliation page is admin-only, so only link to it for policy admins; card admins without
+        // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
+        const reconciliationAccountSettingsLink = isPolicyAdmin(policy)
+            ? `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`
+            : undefined;
+
         return (
             <>
                 <Text style={[styles.mh5, styles.mv4]}>{translate('workspace.expensifyCard.settlementAccountDescription')}</Text>
@@ -142,7 +148,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
                         <RenderHTML
                             html={translate(
                                 'workspace.expensifyCard.settlementAccountInfo',
-                                `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`,
+                                reconciliationAccountSettingsLink,
                                 `${CONST.MASKED_PAN_PREFIX}${getLastFourDigits(paymentBankAccountNumber)}`,
                             )}
                         />

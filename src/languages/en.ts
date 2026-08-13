@@ -6065,8 +6065,8 @@ const translations = {
             addNewBankAccount: 'Add a new bank account',
             settlementAccount: 'Settlement account',
             settlementAccountDescription: 'Choose an account to pay your Expensify Card balance.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
-                `Make sure this account matches your <a href="${reconciliationAccountSettingsLink}">Reconciliation account</a> (${accountNumber}) so Continuous Reconciliation works properly.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Make sure this account matches your ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">Reconciliation account</a>` : 'Reconciliation account'} (${accountNumber}) so Continuous Reconciliation works properly.`,
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
             settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
@@ -6819,8 +6819,8 @@ const translations = {
                 chooseLimitType: 'Choose a limit type',
                 smartLimit: 'Smart Limit',
                 smartLimitDescription: 'Spend up to a certain amount before requiring approval',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Spend up to a certain amount before requiring approval. <a href="${workspaceWorkflowsLink}">Enable approvals</a> to select this option.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Spend up to a certain amount before requiring approval. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Enable approvals</a>` : 'Enable approvals'} to select this option.</muted-text-label>`,
                 monthly: 'Monthly',
                 monthlyDescription: 'Limit renews monthly',
                 fixedAmount: 'Fixed amount',

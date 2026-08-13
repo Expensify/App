@@ -5852,8 +5852,8 @@ ${amount} para ${merchant} - ${date}`,
             addNewBankAccount: 'Añadir nueva cuenta bancaria',
             settlementAccount: 'Cuenta de liquidación',
             settlementAccountDescription: 'Elige una cuenta para pagar el saldo de tu Tarjeta Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink, accountNumber) =>
-                `Asegúrate de que esta cuenta coincide con tu <a href="${reconciliationAccountSettingsLink}">Cuenta de conciliación</a> (${accountNumber}) para que Reconciliación Continua funcione correctamente.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Asegúrate de que esta cuenta coincide con tu ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">Cuenta de conciliación</a>` : 'Cuenta de conciliación'} (${accountNumber}) para que Reconciliación Continua funcione correctamente.`,
             settlementFrequency: 'Frecuencia de liquidación',
             settlementFrequencyDescription: 'Elige con qué frecuencia pagarás el saldo de tu Tarjeta Expensify',
             settlementFrequencyInfo:
@@ -6886,8 +6886,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 chooseLimitType: 'Elegir un tipo de límite',
                 smartLimit: 'Límite inteligente',
                 smartLimitDescription: 'Gasta hasta un determinado importe antes de requerir aprobación',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. <a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a> para seleccionar esta opción.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Gasta hasta un determinado importe antes de requerir aprobación. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Habilita las aprobaciones</a>` : 'Habilita las aprobaciones'} para seleccionar esta opción.</muted-text-label>`,
                 monthly: 'Mensual',
                 monthlyDescription: 'Gasta hasta un determinado importe al mes',
                 fixedAmount: 'Importe fijo',

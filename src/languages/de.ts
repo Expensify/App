@@ -5976,8 +5976,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             addNewBankAccount: 'Neues Bankkonto hinzufügen',
             settlementAccount: 'Verrechnungskonto',
             settlementAccountDescription: 'Wählen Sie ein Konto aus, um den Saldo Ihrer Expensify Karte zu begleichen.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
-                `Stelle sicher, dass dieses Konto mit deinem <a href="${reconciliationAccountSettingsLink}">Abstimmungskonto</a> (${accountNumber}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Stelle sicher, dass dieses Konto mit deinem ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">Abstimmungskonto</a>` : 'Abstimmungskonto'} (${accountNumber}) übereinstimmt, damit die kontinuierliche Abstimmung ordnungsgemäß funktioniert.`,
             settlementFrequency: 'Auszahlungsfrequenz',
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
@@ -6715,8 +6715,8 @@ Der Control-Tarif beginnt bei 9 $ pro aktivem Mitglied und Monat.`,
                 chooseLimitType: 'Wähle einen Limittyp',
                 smartLimit: 'Intelligentes Limit',
                 smartLimitDescription: 'Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. <a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>, um diese Option auszuwählen.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Bis zu einem bestimmten Betrag ausgeben, bevor eine Genehmigung erforderlich ist. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Aktiviere Genehmigungen</a>` : 'Aktiviere Genehmigungen'}, um diese Option auszuwählen.</muted-text-label>`,
                 monthly: 'Monatlich',
                 monthlyDescription: 'Bis zu einem bestimmten Betrag pro Monat ausgeben',
                 fixedAmount: 'Fester Betrag',

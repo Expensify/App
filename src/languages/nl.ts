@@ -5937,8 +5937,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             addNewBankAccount: 'Nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
             settlementAccountDescription: 'Kies een rekening om je saldo van de Expensify Kaart te betalen.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
-                `Zorg ervoor dat deze rekening overeenkomt met je <a href="${reconciliationAccountSettingsLink}">afstemmingsrekening</a> (${accountNumber}), zodat Continue Afstemming correct werkt.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
+                `Zorg ervoor dat deze rekening overeenkomt met je ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">afstemmingsrekening</a>` : 'afstemmingsrekening'} (${accountNumber}), zodat Continue Afstemming correct werkt.`,
             settlementFrequency: 'Uitbetalingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je het saldo van je Expensify Kaart betaalt.',
             settlementFrequencyInfo: 'Als je wilt overschakelen naar maandelijkse afrekening, moet je je bankrekening koppelen via Plaid en een positieve saldohistorie van 90 dagen hebben.',
@@ -6674,8 +6674,8 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
                 chooseLimitType: 'Kies een limiettype',
                 smartLimit: 'Slimme limiet',
                 smartLimitDescription: 'Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is',
-                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
-                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. <a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a> om deze optie te selecteren.</muted-text-label>`,
+                smartLimitDisabledDescription: (workspaceWorkflowsLink?: string) =>
+                    `<muted-text-label>Tot een bepaald bedrag uitgeven voordat goedkeuring vereist is. ${workspaceWorkflowsLink ? `<a href="${workspaceWorkflowsLink}">Schakel goedkeuringen in</a>` : 'Schakel goedkeuringen in'} om deze optie te selecteren.</muted-text-label>`,
                 monthly: 'Maandelijks',
                 monthlyDescription: 'Geef per maand tot een bepaald bedrag uit',
                 fixedAmount: 'Vast bedrag',
