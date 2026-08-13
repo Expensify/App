@@ -591,7 +591,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         return selectedItems.every((item) => {
-            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            // A selection entry built from a search row carries that row's report, which is the only copy available when the
+            // report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
+            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
             const policyID = item.policyID ?? report?.policyID;
             if (!policyID) {
                 return false;
