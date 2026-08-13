@@ -118,6 +118,9 @@ function useSearchHighlightAndScroll({
                 hasPendingSearchRef.current = true;
                 return;
             }
+            // A deferred refetch is its own reason to search. `usePrevious` advances while Search is inactive, so by
+            // the time it becomes active again the change that set the flag has washed out of the comparisons below.
+            const hadPendingSearch = hasPendingSearchRef.current;
             hasPendingSearchRef.current = false;
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
@@ -143,7 +146,7 @@ function useSearchHighlightAndScroll({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && currentSearchResultIDs.length > 0) {
+            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hadPendingSearch && currentSearchResultIDs.length > 0) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {

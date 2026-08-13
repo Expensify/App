@@ -24,10 +24,14 @@ jest.mock('@rnmapbox/maps', () => ({
     setAccessToken: jest.fn(),
 }));
 
+let mockIsOffline = false;
+jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: mockIsOffline})));
+
 const mockUseIsFocused = jest.fn().mockReturnValue(true);
 
 afterEach(() => {
     jest.clearAllMocks();
+    mockIsOffline = false;
 });
 
 describe('useSearchHighlightAndScroll', () => {
@@ -322,6 +326,47 @@ describe('useSearchHighlightAndScroll', () => {
         // @ts-expect-error
         rerender(updatedProps);
         expect(search).not.toHaveBeenCalled();
+    });
+
+    it('should trigger the deferred search once Search is active again, after previousTransactions caught up', () => {
+        const transaction = {transactionID: '1', amount: 100};
+        const editedTransaction = {transactionID: '1', amount: 250};
+        const initialProps = {
+            ...baseProps,
+            searchResults: {
+                ...baseProps.searchResults,
+                data: {
+                    transactions_1: {transactionID: '1'},
+                },
+            },
+            transactions: {transactions_1: transaction},
+            previousTransactions: {transactions_1: transaction},
+        };
+
+        mockIsOffline = true;
+        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+            // @ts-expect-error
+            initialProps,
+        });
+
+        const editedProps = {...initialProps, transactions: {transactions_1: editedTransaction}};
+
+        // @ts-expect-error
+        rerender(editedProps);
+        expect(search).not.toHaveBeenCalled();
+
+        // `usePrevious` catches up while Search is inactive, so the edit is no longer visible to the comparisons.
+        const settledProps = {...editedProps, previousTransactions: {transactions_1: editedTransaction}};
+
+        // @ts-expect-error
+        rerender(settledProps);
+        expect(search).not.toHaveBeenCalled();
+
+        mockIsOffline = false;
+
+        // @ts-expect-error
+        rerender({...settledProps});
+        expect(search).toHaveBeenCalledTimes(1);
     });
 
     it('should not trigger search on a non-chat search when a report action was added and Onyx holds a transaction the query filters out', () => {
