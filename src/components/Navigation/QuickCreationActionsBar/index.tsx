@@ -99,18 +99,19 @@ function QuickCreationActionsBar() {
                 return;
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
-                allBetas,
+                policy: defaultChatEnabledPolicy,
+                betas: allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
                 formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute());

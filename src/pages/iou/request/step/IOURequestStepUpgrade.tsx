@@ -142,17 +142,18 @@ function IOURequestStepUpgrade({
         if (upgradePath === CONST.UPGRADE_PATHS.REPORTS && policyID && selectedTransactionsKeys.includes(transactionID)) {
             const newPolicy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
 
-            const optimisticReport = createNewReport(
+            const optimisticReport = createNewReport({
                 ownerPersonalDetails,
-                hasViolations,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
-                newPolicy,
+                policy: newPolicy,
                 betas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
                 formatPhoneNumber,
-            );
+                options: {},
+            });
 
             const policyTagList = policyID ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] : {};
             const reportsForCall = {

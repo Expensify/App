@@ -168,19 +168,19 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             return;
         }
 
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
-            hasViolations,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
             formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            options: {managedCardTransactionID},
+        });
         selectReport(
             {
                 value: optimisticReport.reportID,

@@ -83,18 +83,19 @@ function SearchActionsBarCreateButton() {
                 return;
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
-                allBetas,
+                policy: defaultChatEnabledPolicy,
+                betas: allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
                 formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
                     isSearchTopmostFullScreenRoute()

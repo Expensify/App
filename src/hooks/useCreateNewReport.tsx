@@ -36,18 +36,19 @@ function useCreateNewReport() {
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
+            return createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
                 policy,
                 betas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
                 formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
         },
         [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber],
     );

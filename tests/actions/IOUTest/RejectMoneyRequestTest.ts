@@ -154,18 +154,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            const result = rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
+            const result = rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
                 formatPhoneNumber,
-                getCurrencyDecimalsLocal,
-            );
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
 
             // Then: Should return navigation route to chat report
             expect(result).toBe(ROUTES.REPORT_WITH_ID.getRoute(iouReport.reportID));
@@ -181,18 +181,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
                 formatPhoneNumber,
-                getCurrencyDecimalsLocal,
-            );
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
             await waitForBatchedUpdates();
 
             // Then: Verify violation is added
@@ -248,18 +248,18 @@ describe('actions/IOU/RejectMoneyRequest', () => {
             if (!transaction?.transactionID || !iouReport?.reportID) {
                 throw new Error('Required transaction or report data is missing');
             }
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
                 formatPhoneNumber,
-                getCurrencyDecimalsLocal,
-            );
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+            });
             await waitForBatchedUpdates();
 
             // Then: createdIOUReportActionID shouldn't be undefined
@@ -298,41 +298,41 @@ describe('actions/IOU/RejectMoneyRequest', () => {
                 throw new Error('Required transaction or report data is missing');
             }
 
-            rejectMoneyRequest(
-                transaction.transactionID,
-                iouReport.reportID,
+            rejectMoneyRequest({
+                transactionID: transaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
                 formatPhoneNumber,
-                getCurrencyDecimalsLocal,
-                {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
                 },
-            );
+            });
 
-            rejectMoneyRequest(
-                secondTransaction.transactionID,
-                iouReport.reportID,
+            rejectMoneyRequest({
+                transactionID: secondTransaction.transactionID,
+                reportID: iouReport.reportID,
                 comment,
                 policy,
-                TEST_USER_ACCOUNT_ID,
-                TEST_USER_EMAIL,
-                [CONST.BETAS.ALL],
-                undefined,
+                currentUserAccountIDParam: TEST_USER_ACCOUNT_ID,
+                currentUserLogin: TEST_USER_EMAIL,
+                betas: [CONST.BETAS.ALL],
+                delegateAccountID: undefined,
                 formatPhoneNumber,
-                getCurrencyDecimalsLocal,
-                {
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                options: {
                     sharedRejectedToReportID,
                     existingRejectedReport,
                     setExistingRejectedReport,
                 },
-            );
+            });
             await waitForBatchedUpdates();
 
             let allReports: OnyxCollection<Report>;

@@ -215,7 +215,18 @@ describe('actions/Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            createNewReport(creatorPersonalDetails, true, false, mockPolicy, [CONST.BETAS.ALL], false, getCurrencyDecimalsLocal, false, formatPhoneNumber);
+            createNewReport({
+                ownerPersonalDetails: creatorPersonalDetails,
+                hasViolationsParam: true,
+                isASAPSubmitBetaEnabled: false,
+                policy: mockPolicy,
+                betas: [CONST.BETAS.ALL],
+                isTrackIntentUser: false,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                shouldNotifyNewAction: false,
+                formatPhoneNumber,
+                options: {},
+            });
             // Create a tracked expense
             const selfDMReport: Report = {
                 ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.SELF_DM),

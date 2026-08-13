@@ -207,18 +207,19 @@ function AttachmentPickerWithMenuItems({
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
                 () =>
-                    createNewReport(
-                        currentUserPersonalDetails,
+                    createNewReport({
+                        ownerPersonalDetails: currentUserPersonalDetails,
+                        hasViolationsParam: hasViolations,
                         isASAPSubmitBetaEnabled,
-                        hasViolations,
                         policy,
                         betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
-                        true,
+                        shouldNotifyNewAction: true,
                         formatPhoneNumber,
                         shouldDismissEmptyReportsConfirmation,
-                    ),
+                        options: {},
+                    }),
                 true,
             ),
     });
@@ -227,7 +228,19 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, formatPhoneNumber, false);
+            createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy,
+                betas,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                shouldNotifyNewAction: true,
+                formatPhoneNumber,
+                shouldDismissEmptyReportsConfirmation: false,
+                options: {},
+            });
         }
     };
 

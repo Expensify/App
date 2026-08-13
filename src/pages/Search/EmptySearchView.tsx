@@ -173,18 +173,19 @@ function EmptySearchViewContent({
             return;
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
-            hasViolations,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            defaultChatEnabledPolicy,
+            policy: defaultChatEnabledPolicy,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
             formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-        );
+            options: {},
+        });
         Navigation.setNavigationActionToMicrotaskQueue(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_MONEY_REQUEST_REPORT.getRoute({

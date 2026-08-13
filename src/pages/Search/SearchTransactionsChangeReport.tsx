@@ -156,19 +156,19 @@ function SearchTransactionsChangeReport() {
     }, []);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            targetOwnerPersonalDetails,
-            hasViolations,
+        const optimisticReport = createNewReport({
+            ownerPersonalDetails: targetOwnerPersonalDetails,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
             formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            options: {managedCardTransactionID},
+        });
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,

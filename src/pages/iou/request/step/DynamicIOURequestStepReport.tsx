@@ -175,19 +175,19 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
-            hasViolations,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForNewReport,
+            policy: policyForNewReport,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
             formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
-        );
+            options: {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
+        });
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 
