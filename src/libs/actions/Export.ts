@@ -67,10 +67,13 @@ function clearStaleExportDownloads() {
             }
             for (const key of Object.keys(exportDownloads)) {
                 const exportDownload = exportDownloads[key];
+                if (!exportDownload) {
+                    continue;
+                }
                 // Keep preparing and ready exports: preparing is still in flight, and ready is a finished file the
-                // user may not have seen yet (they closed or reloaded before it surfaced), so ExportDownloadStatusManager
+                // user may not have seen yet (they closed or reloaded before it surfaced), so the status manager
                 // can re-surface it. Only failed leftovers are cleared here.
-                if (!exportDownload || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
+                if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
                 const exportID = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');

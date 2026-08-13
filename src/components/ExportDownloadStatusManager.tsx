@@ -5,7 +5,7 @@ import {clearExportDownload} from '@libs/actions/Export';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useState} from 'react';
+import React from 'react';
 
 import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 
@@ -19,21 +19,16 @@ import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 function ExportDownloadStatusManager() {
     const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
 
-    // Locally dismissed exports, so closing the modal hides them even when the record must stay in Onyx (the
-    // Concierge path, where the worker still needs to read it). A set, not a single ID, so several lingering
-    // records (e.g. multiple Concierge hand-offs) all stay hidden instead of taking turns re-surfacing. Reset on
-    // reload, so a genuinely leftover ready export still re-surfaces.
-    const [dismissedExportIDs, setDismissedExportIDs] = useState<ReadonlySet<string>>(() => new Set<string>());
-
-    const activeEntry = Object.entries(exportDownloads ?? {}).find(([key, exportDownload]) => {
-        const id = key.replace(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD, '');
-        return (
-            !dismissedExportIDs.has(id) &&
+    // Skip Concierge hand-offs: once the user opts into Concierge delivery, the file (or the error) is delivered
+    // through the Concierge chat, so the modal has nothing left to show. Setting shouldSendFromConcierge is what
+    // closes the modal, and the worker deletes the record once it is done.
+    const activeEntry = Object.entries(exportDownloads ?? {}).find(
+        ([, exportDownload]) =>
+            !exportDownload?.shouldSendFromConcierge &&
             (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING ||
                 exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.READY ||
-                exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.FAILED)
-        );
-    });
+                exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.FAILED),
+    );
 
     if (!activeEntry) {
         return null;
@@ -43,21 +38,11 @@ function ExportDownloadStatusManager() {
     const exportDownload = activeEntry[1];
 
     const handleClose = () => {
-        // The modal blocks dismissal while still preparing (unless handed to Concierge), so this is belt-and-suspenders.
-        if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !exportDownload?.shouldSendFromConcierge) {
+        // The modal blocks dismissal while still preparing, so this is belt-and-suspenders.
+        if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
             return;
         }
-        // Hide the modal locally. For the Concierge path the worker deletes the record after sending, so clearing
-        // it here would wipe shouldSendFromConcierge before the worker reads it; dismissing locally closes the
-        // modal (and lets "Go to Concierge" navigate) without touching the record.
-        setDismissedExportIDs((prev) => {
-            const next = new Set(prev);
-            next.add(exportID);
-            return next;
-        });
-        if (!exportDownload?.shouldSendFromConcierge) {
-            clearExportDownload(exportID, exportDownload);
-        }
+        clearExportDownload(exportID, exportDownload);
     };
 
     return (

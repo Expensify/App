@@ -30,14 +30,6 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     isTopmostRouteModalScreen: jest.fn(() => false),
     getActiveRouteWithoutParams: jest.fn(() => ''),
 }));
-const mockOpenConciergeAnywhere = jest.fn();
-jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
-    __esModule: true,
-    default: () => ({
-        openConciergeAnywhere: mockOpenConciergeAnywhere,
-        isInSidePanel: false,
-    }),
-}));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
@@ -100,7 +92,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 
-    it('transitions to Concierge state on Send button press', async () => {
+    it('calls sendExportFileFromConcierge when the Send button is pressed', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
 
         renderModal();
@@ -109,18 +101,6 @@ describe('ExportDownloadStatusModal', () => {
         fireEvent.press(screen.getByText('exportDownload.sendFromConcierge'));
 
         expect(mockSendFromConcierge).toHaveBeenCalledWith(EXPORT_ID, expect.objectContaining({state: 'preparing'}));
-    });
-
-    it('shows Concierge state when shouldSendFromConcierge is true', async () => {
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
-
-        renderModal();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
-        expect(screen.getByText('exportDownload.conciergeBody')).toBeTruthy();
-        expect(screen.getByText('exportDownload.goToConcierge')).toBeTruthy();
-        expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
     it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
@@ -204,19 +184,6 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
-    });
-
-    it('"Go to Concierge" navigates and closes', async () => {
-        const onClose = jest.fn();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
-
-        renderModal({onClose});
-        await waitForBatchedUpdatesWithAct();
-
-        fireEvent.press(screen.getByText('exportDownload.goToConcierge'));
-
-        expect(onClose).toHaveBeenCalled();
-        expect(mockOpenConciergeAnywhere).toHaveBeenCalled();
     });
 
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {

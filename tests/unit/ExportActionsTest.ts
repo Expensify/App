@@ -124,4 +124,18 @@ describe('Export actions', () => {
         expect(value2).toBeUndefined();
         expect(value3).toEqual(expect.objectContaining({state: 'preparing'}));
     });
+
+    test('clearStaleExportDownloads leaves a preparing Concierge hand-off untouched', async () => {
+        const key = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge` as const;
+        await Onyx.merge(key, {state: 'preparing', shouldSendFromConcierge: true});
+        await waitForBatchedUpdates();
+
+        Export.clearStaleExportDownloads();
+        await waitForBatchedUpdates();
+
+        // Concierge delivery is owned by the worker, so the record is left as-is; the status manager skips it by
+        // checking shouldSendFromConcierge.
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge`);
+        expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true});
+    });
 });
