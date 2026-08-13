@@ -47,6 +47,8 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
 
     const handleDuplicateReports = () => {
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
@@ -77,6 +79,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,
+            conciergeChat,
         });
 
         clearSelectedTransactions(undefined, true);

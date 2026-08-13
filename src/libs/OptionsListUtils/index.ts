@@ -70,6 +70,8 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
     getSortedReportActions,
@@ -80,6 +82,7 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceCategoryUpdateMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -89,6 +92,7 @@ import {
     isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
+    isCategoryModificationAction,
     isClosedAction,
     isCreatedAction,
     isCreatedTaskReportAction,
@@ -963,6 +967,12 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
+        lastMessageTextFromReport = getRequiresCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
+        lastMessageTextFromReport = getRequiresTagMessage(translate, lastReportAction);
+    }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE)) {
         lastMessageTextFromReport = getCurrencyConversionFeeMessage(translate, lastReportAction);
     }
@@ -978,6 +988,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
+        lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
     }
     if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||
@@ -1601,7 +1614,9 @@ function processReport(
         visibleReportActionsData = {},
         isTrackIntentUser,
         sortedActions,
+        currentUserAccountID,
     }: {
+        currentUserAccountID: number;
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
         policyTags?: OnyxEntry<PolicyTagLists>;
         visibleReportActionsData?: VisibleReportActionsDerivedValue;
@@ -1645,6 +1660,7 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                currentUserAccountID,
             }),
         },
     };
@@ -1754,6 +1770,7 @@ function createFilteredOptionList(
     privateIsArchivedMap: PrivateIsArchivedMap,
     policiesCollection: OnyxCollection<Policy>,
     options: {
+        currentUserAccountID: number;
         dateFnsLocale: DateFnsLocale | undefined;
         conciergeReportID: string | undefined;
         maxRecentReports?: number;
@@ -1774,7 +1791,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1804,6 +1821,7 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        currentUserAccountID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1863,6 +1881,7 @@ function createFilteredOptionList(
             visibleReportActionsData,
             isTrackIntentUser,
             sortedActions,
+            currentUserAccountID,
         });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1908,6 +1927,7 @@ function createFilteredOptionList(
                       reportAttributesDerived,
                       policyTags: reportPolicyTags,
                       visibleReportActionsData,
+                      currentUserAccountID,
                   }),
               };
           })
