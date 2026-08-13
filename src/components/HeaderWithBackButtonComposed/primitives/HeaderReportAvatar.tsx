@@ -1,5 +1,7 @@
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 
+import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
+
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -19,6 +21,9 @@ type HeaderReportAvatarProps = {
 };
 
 function HeaderReportAvatar({report, shouldDisplayStatus, shouldEnableDetailPageNavigation = false, openParentReportInCurrentTab = false}: HeaderReportAvatarProps) {
+    // This block replaces the plain title, which registers its own dialog label — register ours here instead.
+    useDialogLabelRegistration(report?.reportName ?? '');
+
     return (
         <AvatarWithDisplayName
             report={report}

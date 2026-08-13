@@ -1,17 +1,15 @@
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
-import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
-import {Keyboard, StyleSheet, View} from 'react-native';
+import {View} from 'react-native';
 
-import {HeaderContext} from './context';
+import Header from './Header';
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
@@ -78,102 +76,92 @@ function HeaderWithBackButton({
     openParentReportInCurrentTab = false,
     shouldSkipFocusAfterTransition = false,
 }: HeaderWithBackButtonProps) {
-    // Avatar-header routes skip Header, so register the dialog label here.
-    useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
-
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {containerStyle, innerRowStyle, rightZoneStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, shouldOverlay, style});
+    const {rightZoneStyle} = useHeaderStyles();
 
     return (
-        <View
-            style={containerStyle}
-            onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
+        <Header
+            shouldShowBorderBottom={shouldShowBorderBottom}
+            shouldUseHeadlineHeader={shouldUseHeadlineHeader}
+            shouldOverlay={shouldOverlay}
+            iconFill={iconFill}
+            style={style}
         >
-            <View style={innerRowStyle}>
-                <HeaderContext.Provider
-                    value={{
-                        iconFill,
-                        shouldUseHeadlineHeader,
-                    }}
+            {shouldShowBackButton && (
+                <HeaderBackButton
+                    onPress={onBackButtonPress}
+                    shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
+                    shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+                />
+            )}
+            {!!icon && (
+                <HeaderIcon
+                    src={icon}
+                    width={iconWidth}
+                    height={iconHeight}
+                    style={iconStyles}
+                />
+            )}
+            {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
+            {shouldShowReportAvatarWithDisplay ? (
+                <HeaderReportAvatar
+                    report={report}
+                    shouldDisplayStatus={shouldDisplayStatus}
+                    shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
+                    openParentReportInCurrentTab={openParentReportInCurrentTab}
+                />
+            ) : (
+                <HeaderTitle
+                    subtitle={subtitle}
+                    stepCounter={stepCounter}
+                    titleColor={titleColor}
+                    subTitleLink={subTitleLink}
+                    shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                 >
-                    {shouldShowBackButton && (
-                        <HeaderBackButton
-                            onPress={onBackButtonPress}
-                            shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
-                            shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
+                    {title}
+                </HeaderTitle>
+            )}
+            <View style={rightZoneStyle}>
+                <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
+                    {children}
+                    {shouldShowDownloadButton && (
+                        <HeaderDownloadButton
+                            onPress={onDownloadButtonPress}
+                            isLoading={isDownloading}
                         />
                     )}
-                    {!!icon && (
-                        <HeaderIcon
-                            src={icon}
-                            width={iconWidth}
-                            height={iconHeight}
-                            style={iconStyles}
+                    {shouldShowRotateButton && (
+                        <HeaderRotateButton
+                            onPress={onRotateButtonPress}
+                            isLoading={isRotating}
                         />
                     )}
-                    {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
-                    {shouldShowReportAvatarWithDisplay ? (
-                        <HeaderReportAvatar
-                            report={report}
-                            shouldDisplayStatus={shouldDisplayStatus}
-                            shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
-                            openParentReportInCurrentTab={openParentReportInCurrentTab}
-                        />
-                    ) : (
-                        <HeaderTitle
-                            subtitle={subtitle}
-                            stepCounter={stepCounter}
-                            titleColor={titleColor}
-                            subTitleLink={subTitleLink}
-                            shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
-                        >
-                            {title}
-                        </HeaderTitle>
-                    )}
-                    <View style={rightZoneStyle}>
-                        <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
-                            {children}
-                            {shouldShowDownloadButton && (
-                                <HeaderDownloadButton
-                                    onPress={onDownloadButtonPress}
-                                    isLoading={isDownloading}
-                                />
-                            )}
-                            {shouldShowRotateButton && (
-                                <HeaderRotateButton
-                                    onPress={onRotateButtonPress}
-                                    isLoading={isRotating}
-                                />
-                            )}
-                            {shouldShowPinButton && <HeaderPinButton report={report} />}
-                        </View>
+                    {shouldShowPinButton && <HeaderPinButton report={report} />}
+                </View>
 
-                        {shouldShowThreeDotsButton &&
-                            threeDotsMenuItems.length === 1 &&
-                            shouldMinimizeMenuButton && (
-                                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                                <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
-                            )}
-                        {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
-                            <HeaderThreeDotsMenu
-                                icon={threeDotsMenuIcon}
-                                iconFill={threeDotsMenuIconFill}
-                                disabled={shouldDisableThreeDotsButton}
-                                items={threeDotsMenuItems}
-                                onIconPress={onThreeDotsButtonPress}
-                                shouldOverlay={shouldOverlayDots}
-                                anchorAlignment={threeDotsAnchorAlignment}
-                                shouldSetModalVisibility={shouldSetModalVisibility}
-                            />
-                        )}
-                        {shouldShowCloseButton && <HeaderCloseButtonTooltip onPress={onCloseButtonPress} />}
-                    </View>
-                    {shouldDisplaySearchRouter && <HeaderSearchRouter />}
-                    {shouldDisplayHelpButton && <HeaderHelpButton />}
-                </HeaderContext.Provider>
+                {shouldShowThreeDotsButton &&
+                    threeDotsMenuItems.length === 1 &&
+                    shouldMinimizeMenuButton && (
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                        <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
+                    )}
+                {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
+                    <HeaderThreeDotsMenu
+                        icon={threeDotsMenuIcon}
+                        iconFill={threeDotsMenuIconFill}
+                        disabled={shouldDisableThreeDotsButton}
+                        items={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay={shouldOverlayDots}
+                        anchorAlignment={threeDotsAnchorAlignment}
+                        shouldSetModalVisibility={shouldSetModalVisibility}
+                    />
+                )}
+                {shouldShowCloseButton && <HeaderCloseButtonTooltip onPress={onCloseButtonPress} />}
             </View>
-        </View>
+            {shouldDisplaySearchRouter && <HeaderSearchRouter />}
+            {shouldDisplayHelpButton && <HeaderHelpButton />}
+        </Header>
     );
 }
 
