@@ -273,7 +273,7 @@ function getSearchOnyxUpdate({
         writeForQuery(currentSearchQueryJSON, allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`]);
     }
 
-    // 2. Fan out to every other loaded snapshot whose recorded query also matches this transaction.
+    // 2. Update every other loaded snapshot whose recorded query also matches this transaction.
     //    This catches cases like creating an expense from a chat while a `from:<me>` filter or
     //    `groupBy:from` view is loaded but not the currently active search. The hash→query map is
     //    stored in a dedicated Onyx key (not on the snapshot) so SEARCH API responses can't wipe it.

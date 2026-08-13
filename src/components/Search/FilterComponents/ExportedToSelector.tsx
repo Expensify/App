@@ -9,7 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getSearchValueForConnection} from '@libs/AccountingUtils';
+import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate} from '@libs/AccountingUtils';
 import {getIntegrationIcon} from '@libs/ReportUtils';
 import {getAllPolicyValues, getConnectedIntegrationNamesForPolicies} from '@libs/SearchQueryUtils';
 
@@ -28,11 +28,6 @@ type ExportedToSelectorProps = SearchFilterCommonProps<string[] | undefined> & {
     policyID: Filter | undefined;
 };
 
-const STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL: Record<string, string> = {
-    [CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT,
-    [CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT]: CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT,
-};
-
 function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: ExportedToSelectorProps) {
     const styles = useThemeStyles();
     const {localeCompare} = useLocalize();
@@ -46,6 +41,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Table',
         'TablePencil',
@@ -105,13 +101,15 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             }
 
             const displayName = template.name ?? template.templateName ?? '';
-            const filterValue = STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName] ?? displayName;
+
+            // Standard templates are filtered on by the label the backend records for them, while custom templates are filtered on by their display name
+            const isStandardTemplate = isStandardExportTemplate(template.templateName);
+            const filterValue = isStandardTemplate ? getStandardExportTemplateDisplayName(template.templateName) : displayName;
             if (usedPickerValueKeys.has(filterValue)) {
                 continue;
             }
 
             usedPickerValueKeys.add(filterValue);
-            const isStandardTemplate = !!STANDARD_EXPORT_TEMPLATE_ID_TO_DISPLAY_LABEL[template.templateName];
             standardAndIntegrationCustomTemplatePickerItems.push({
                 text: displayName,
                 value: filterValue,

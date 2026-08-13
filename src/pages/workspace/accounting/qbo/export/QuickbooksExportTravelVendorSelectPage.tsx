@@ -50,7 +50,7 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             emptyStateTitle="workspace.qbo.noAccountsFound"
             emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
-            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             onSelect={selectVendor}
             onBack={() => Navigation.goBack(backPath)}
             pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR], qboConfig?.pendingFields)}

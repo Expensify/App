@@ -8,6 +8,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, Transaction} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -33,6 +34,13 @@ type UseDefaultParticipantsParams = {
     isNewManualExpenseFlowEnabled?: boolean;
 };
 
+type UseDefaultParticipantsResult = {
+    /** The participants the expense should be created with (empty until they can be resolved). */
+    participants: Participant[];
+
+    isLoading: boolean;
+};
+
 /**
  * Resolves the participants an expense should be created with.
  *
@@ -43,18 +51,22 @@ type UseDefaultParticipantsParams = {
  * Shared by `useResetIOUType` (to seed the freshly-rebuilt transaction so the confirmation's auto-assign effect
  * short-circuits) and `IOURequestStepConfirmation` (to compute the participants it auto-assigns) so both stay in sync.
  */
-function useDefaultParticipants({sourceReport, transaction, iouType, isNewManualExpenseFlowEnabled = true}: UseDefaultParticipantsParams): Participant[] {
+function useDefaultParticipants({sourceReport, transaction, iouType, isNewManualExpenseFlowEnabled = true}: UseDefaultParticipantsParams): UseDefaultParticipantsResult {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const defaultExpensePolicy = useDefaultExpensePolicy();
     const personalPolicy = usePersonalPolicy();
     const selfDMReport = useSelfDMReport();
-    const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
-    const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
-    const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [amountOwed, amountOwedResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
+    const [userBillingGracePeriodEnds, userBillingGracePeriodEndsResult] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
+    const [ownerBillingGracePeriodEnd, ownerBillingGracePeriodEndResult] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
+    const [, policyCollectionResult] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: () => null});
 
     const accountID = currentUserPersonalDetails.accountID;
 
-    return useMemo(() => {
+    const isLoading =
+        isNewManualExpenseFlowEnabled && (!accountID || isLoadingOnyxValue(policyCollectionResult, amountOwedResult, userBillingGracePeriodEndsResult, ownerBillingGracePeriodEndResult));
+
+    const participants = useMemo(() => {
         if (!isNewManualExpenseFlowEnabled) {
             return [];
         }
@@ -69,7 +81,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
             return [];
         }
 
-        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(iouType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
+        const globalCreateIOUType = iouType === CONST.IOU.TYPE.TRACK ? CONST.IOU.TYPE.CREATE : iouType;
+        const canUseDefaultPolicy = shouldUseDefaultExpensePolicy(globalCreateIOUType, defaultExpensePolicy, amountOwed, userBillingGracePeriodEnds, ownerBillingGracePeriodEnd, accountID);
         if (!canUseDefaultPolicy) {
             return [];
         }
@@ -91,6 +104,8 @@ function useDefaultParticipants({sourceReport, transaction, iouType, isNewManual
         personalPolicy?.autoReporting,
         selfDMReport,
     ]);
+
+    return useMemo(() => ({participants, isLoading}), [participants, isLoading]);
 }
 
 export default useDefaultParticipants;

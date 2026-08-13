@@ -1,3 +1,5 @@
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+
 import {openReport} from '@libs/actions/Report';
 import {createBackupTransaction, removeBackupTransaction, restoreOriginalTransactionFromBackup} from '@libs/actions/TransactionEdit';
 import {hasRoute} from '@libs/TransactionUtils';
@@ -32,6 +34,7 @@ type UseDistanceTransactionBackupParams = {
 };
 
 function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEditingSplit, isDraft, introSelected, betas, transactionWasSavedRef}: UseDistanceTransactionBackupParams): void {
+    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     // This effect runs when the component is mounted and unmounted. It's purpose is to be able to properly
     // discard changes if the user cancels out of making any changes. This is accomplished by backing up the
     // original transaction, letting the user modify the current transaction, and then if the user ever
@@ -57,7 +60,7 @@ function useDistanceTransactionBackup({transaction, isCreatingNewRequest, isEdit
             if (!transaction?.reportID || hasRoute(transaction, true)) {
                 return;
             }
-            openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true});
+            openReport({reportID: transaction?.reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
         };
         // eslint-disable-next-line react-hooks/exhaustive-deps -- mount/unmount-only effect: backup on mount, restore-or-drop on unmount, never re-runs
     }, []);
