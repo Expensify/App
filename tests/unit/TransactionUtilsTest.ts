@@ -1256,10 +1256,13 @@ describe('TransactionUtils', () => {
             expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {}, errorFields: {}}))).toBe(false);
         });
 
-        it('returns true for a transaction, route or waypoint error', () => {
-            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(true);
+        it('returns true for a route or waypoint error', () => {
             expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
             expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errorFields: {waypoints: {someError: 'Bad waypoint'}}}))).toBe(true);
+        });
+
+        it('ignores errors that say nothing about the route, such as a failed payment', () => {
+            expect(TransactionUtils.hasDistanceRouteErrors(generateTransaction({errors: {someError: 'Something went wrong'}}))).toBe(false);
         });
     });
 
@@ -1291,6 +1294,12 @@ describe('TransactionUtils', () => {
         it('returns true for an older expense that stored the bare map image', () => {
             const imageReceipt = {source: 'https://www.expensify.com/receipts/w_abc123.jpg', filename: 'w_abc123.jpg'};
             expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({receipt: imageReceipt}))).toBe(true);
+            // That file is still the one the card draws, so it stays downloadable.
+            expect(TransactionUtils.hasUsableStoredDistanceReceipt(generateMapDistanceTransaction({receipt: imageReceipt}))).toBe(true);
+        });
+
+        it('keeps showing the generated receipt when an unrelated error lands on the expense', () => {
+            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({errors: {someError: 'Payment failed'}}))).toBe(false);
         });
 
         it('returns false for odometer, manual distance and non-distance expenses', () => {

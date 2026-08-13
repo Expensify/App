@@ -1283,11 +1283,20 @@ function hasPendingDistanceReceiptRegeneration(transaction: OnyxInputOrEntry<Tra
 }
 
 /**
- * Whether the route of a distance expense failed. The stored map receipt is then missing or wrong, so the
- * surfaces draw the route locally instead.
+ * Whether the route of a distance expense failed. The stored receipt then describes a different trip, or the
+ * server never built one. This covers the route only, because `transaction.errors` also carries failures that
+ * say nothing about the receipt, such as a failed payment or an invalid rate.
  */
 function hasDistanceRouteErrors(transaction: OnyxInputOrEntry<Transaction>): boolean {
-    return !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+    return !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
+}
+
+/**
+ * Whether the receipt file that the server generated for a distance expense can be shown. It cannot when there
+ * is no file, when the server is building a new one after an edit, or when the route failed.
+ */
+function hasUsableStoredDistanceReceipt(transaction: OnyxEntry<Transaction>): boolean {
+    return hasReceiptSource(transaction) && !hasPendingDistanceReceiptRegeneration(transaction) && !hasDistanceRouteErrors(transaction);
 }
 
 /**
@@ -1306,8 +1315,7 @@ function shouldRenderLocalDistanceEReceipt(transaction: OnyxEntry<Transaction>):
         return false;
     }
 
-    // There is no file yet, the server is building a new one after an edit, or the route failed.
-    if (!hasReceiptSource(transaction) || hasPendingDistanceReceiptRegeneration(transaction) || hasDistanceRouteErrors(transaction)) {
+    if (!hasUsableStoredDistanceReceipt(transaction)) {
         return true;
     }
 
@@ -3464,6 +3472,7 @@ export {
     hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     hasDistanceRouteErrors,
+    hasUsableStoredDistanceReceipt,
     shouldRenderLocalDistanceEReceipt,
     isExpensifyCardTransaction,
     isManagedCardTransaction,

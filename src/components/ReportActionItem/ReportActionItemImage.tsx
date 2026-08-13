@@ -29,6 +29,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {Report, Transaction} from '@src/types/onyx';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -137,9 +138,12 @@ function ReportActionItemImage({
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
+    // Any error on the expense keeps the tile on the live route, not the route errors alone, because a tile that
+    // shows a red dot next to a stale receipt reads as though the receipt itself failed.
+    const hasErrors = !isEmptyObject(transaction?.errors) || hasDistanceRouteErrors(transaction);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
-    const showMapAsImage = isMapDistanceRequest && (hasDistanceRouteErrors(transaction) || hasPendingDistanceReceiptRegeneration(transaction));
+    const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
     const navigateToReceipt = () => {
         deferReceiptNavigation(() => {
             Navigation.navigate(

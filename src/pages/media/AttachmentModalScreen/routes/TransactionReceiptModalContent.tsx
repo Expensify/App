@@ -32,6 +32,7 @@ import {
     hasOdometerImageSource,
     hasReceipt,
     hasReceiptSource,
+    hasUsableStoredDistanceReceipt,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
     shouldRenderLocalDistanceEReceipt,
@@ -293,9 +294,9 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         draftTransactionID,
     });
 
-    // A distance expense that falls back to the local card has no receipt file to hand over, or has one that the
-    // server is rebuilding. Downloading it would save a file that does not match what is on screen.
-    const allowDownload = !isEReceipt && !shouldRenderLocalDistanceEReceipt(transaction);
+    // Withhold Download only when the card on screen is not backed by a stored file. An older distance expense
+    // also shows the card, but around the very image it would download, so that one stays available.
+    const allowDownload = !isEReceipt && (!shouldRenderLocalDistanceEReceipt(transaction) || hasUsableStoredDistanceReceipt(transaction));
 
     const applyDurableReceipt = useCallback(
         (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {
