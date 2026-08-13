@@ -23,12 +23,14 @@ export default function addUtilsToWindow() {
             return;
         }
 
-        window.Onyx = Onyx as typeof Onyx & {
+        window.Onyx = Onyx as Omit<typeof Onyx, 'get'> & {
             get: (key: CollectionKeyBase) => Promise<unknown>;
             log: (key: CollectionKeyBase) => void;
         };
 
-        // We intentionally do not offer an Onyx.get API because we believe it will lead to code patterns we don't want to use in this repo, but we can offer a workaround for the sake of debugging
+        // This console helper subscribes once and resolves, which is what a debugging read needed before the library
+        // offered a synchronous read of its own. It shadows `Onyx.get` on the window copy only, so application code is
+        // unaffected, and `await Onyx.get(key)` keeps working in the console whichever one a debugger reaches.
         window.Onyx.get = function (key: CollectionKeyBase) {
             return new Promise((resolve) => {
                 // We have opted for `connectWithoutView` here as this is a debugging utility and does not relate to any view.
