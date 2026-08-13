@@ -626,10 +626,6 @@ const staticStyles = (theme: ThemeColors) =>
             lineHeight: variables.lineHeightSizeH2,
         },
 
-        whiteSpaceNoWrap: {
-            ...whiteSpace.noWrap,
-        },
-
         textHeadlineH1: {
             ...headlineFont,
             ...whiteSpace.preWrap,
