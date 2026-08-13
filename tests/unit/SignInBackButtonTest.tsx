@@ -16,6 +16,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
         goBack: () => {
             mockGoBack();
         },
+        // SignInModal dismisses and redirects once the app finishes loading after sign-in. That effect is
+        // state driven, so it can fire here depending on what earlier suites left in Onyx.
+        dismissModal: () => {},
+        navigate: () => {},
     },
     navigationRef: {
         get current() {
