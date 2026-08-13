@@ -12,7 +12,6 @@ function FeatureTraining({
     onConfirm,
     onClose,
     onWillShowAgainChange,
-    shouldCloseOnConfirm = true,
     shouldUseScrollView = false,
     width = variables.featureTrainingModalWidth,
     confirmSentryLabel,
@@ -26,12 +25,10 @@ function FeatureTraining({
         setWillShowAgain((prev) => !prev);
     }, [onWillShowAgainChange, willShowAgain]);
 
+    // Closing after confirm is the consumer's responsibility — call it inside onConfirm when desired.
     const handleConfirm = useCallback(() => {
         onConfirm?.(willShowAgain);
-        if (shouldCloseOnConfirm) {
-            onClose?.();
-        }
-    }, [onConfirm, onClose, shouldCloseOnConfirm, willShowAgain]);
+    }, [onConfirm, willShowAgain]);
 
     const handleClose = useCallback(() => onClose?.(), [onClose]);
 

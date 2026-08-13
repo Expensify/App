@@ -78,7 +78,6 @@ function FeatureTrainingCarousel({
     onConfirm,
     onClose,
     onPageChange,
-    shouldCloseOnConfirm = true,
     shouldUseScrollView = false,
     width = variables.featureTrainingModalWidth,
     confirmSentryLabel,
@@ -161,10 +160,7 @@ function FeatureTrainingCarousel({
 
     const handleConfirm = useCallback(() => {
         onConfirm?.(false);
-        if (shouldCloseOnConfirm) {
-            onClose?.();
-        }
-    }, [onConfirm, onClose, shouldCloseOnConfirm]);
+    }, [onConfirm]);
 
     const handleClose = useCallback(() => onClose?.(), [onClose]);
 

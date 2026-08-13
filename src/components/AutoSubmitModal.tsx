@@ -69,6 +69,7 @@ function AutoSubmitModal() {
 
     const onConfirm = (willShowAgain: boolean) => {
         willShowAgainRef.current = willShowAgain;
+        handleClose();
     };
 
     const shouldShowDismissOption = dismissedASAPSubmitExplanation === false;

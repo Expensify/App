@@ -41,6 +41,7 @@ function ChangePolicyEducationalModal() {
             contentStyle={[styles.pt0, styles.pb0]}
         >
             <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
                 width={variables.changePolicyEducationModalWidth}
                 shouldUseScrollView

@@ -118,8 +118,13 @@ function FeatureTrainingModal({
         >
             <FeatureTraining
                 shouldUseScrollView={shouldUseScrollViewProp}
-                shouldCloseOnConfirm={shouldCloseOnConfirm}
-                onConfirm={onConfirm}
+                onConfirm={(willShowAgain) => {
+                    onConfirm?.(willShowAgain);
+                    if (!shouldCloseOnConfirm) {
+                        return;
+                    }
+                    closeModal();
+                }}
                 onClose={closeModal}
                 width={width}
             >

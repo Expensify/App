@@ -58,7 +58,6 @@ function SubmitPlanWelcomeModal() {
             <FeatureTraining
                 onConfirm={handleConfirm}
                 onClose={handleClose}
-                shouldCloseOnConfirm={false}
                 shouldUseScrollView
             >
                 <FeatureTraining.Illustration

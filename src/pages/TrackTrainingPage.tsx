@@ -39,6 +39,7 @@ function TrackTrainingPage() {
     return (
         <CenteredModalLayout onBackdropPress={handleClose}>
             <FeatureTraining
+                onConfirm={handleClose}
                 onClose={handleClose}
                 onWillShowAgainChange={(willShowAgain) => {
                     willShowAgainRef.current = willShowAgain;

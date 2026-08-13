@@ -10,9 +10,6 @@ type FeatureTrainingProps = {
     /** Called when the DismissOption checkbox is toggled */
     onWillShowAgainChange?: (willShowAgain: boolean) => void;
 
-    /** Whether the modal should close after confirm (defaults to true) */
-    shouldCloseOnConfirm?: boolean;
-
     /** Whether the content should render inside a ScrollView (auto-enabled in landscape) */
     shouldUseScrollView?: boolean;
 
