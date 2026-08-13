@@ -10,6 +10,7 @@ import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 type MockConfirmModalOptions = {
     imageHeight?: number;
+    imageStyles?: unknown;
     imageWidth?: number;
 };
 
@@ -60,6 +61,7 @@ describe('useCommuterExclusionGuard', () => {
         expect(result.current('policy_forced')).toBe(true);
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         expect(mockShowConfirmModal).toHaveBeenCalledWith(expect.objectContaining({imageWidth: 160, imageHeight: 140}));
+        expect(mockShowConfirmModal.mock.calls.at(0)?.at(0)).not.toHaveProperty('imageStyles');
     });
 
     it('does not block selecting a workspace without commuter exclusions', async () => {

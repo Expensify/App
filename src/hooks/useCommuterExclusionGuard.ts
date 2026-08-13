@@ -71,7 +71,6 @@ function useCommuterExclusionGuard({policyID, isManualDistanceRequest = false, i
                 image: illustrations.HouseWithMap,
                 shouldUseSuccessStyleForConfirm: true,
                 shouldFitImageToContainer: true,
-                imageStyles: styles.commuterExclusionStaticIllustration,
                 imageWidth: 160,
                 imageHeight: 140,
             });
