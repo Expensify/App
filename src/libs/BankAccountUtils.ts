@@ -82,7 +82,35 @@ function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean
     return !!accountData.allowDebit;
 }
 
-function getBankAccountConnectionStatus(state: string | undefined): BankAccountConnectionStatus | undefined {
+function getBankAccountConnectionStatus(accountData: AccountData | undefined): BankAccountConnectionStatus | undefined {
+    if (!accountData) {
+        return undefined;
+    }
+
+    const {state, type, additionalData: {country = CONST.COUNTRY.US} = {}} = accountData;
+    if (country === CONST.COUNTRY.US && state === CONST.BANK_ACCOUNT.STATE.OPEN && type === CONST.BANK_ACCOUNT.TYPE.BUSINESS) {
+        if (hasBrokenPlaidConnection(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
+                actionKey: 'walletPage.bankAccountStatus.fix',
+                tone: 'danger',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
+            };
+        }
+        if (isConnectedViaPlaid(accountData)) {
+            return {
+                requiresPlaidHandler: true,
+                labelKey: 'walletPage.bankAccountStatus.active',
+                messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
+                actionKey: 'walletPage.bankAccountStatus.connect',
+                tone: 'success',
+                brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.INFO,
+            };
+        }
+    }
+
     switch (state) {
         case CONST.BANK_ACCOUNT.STATE.OPEN:
             return {
