@@ -18,7 +18,6 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
     const hasAlternateDirection = !!alternateDirection && !!alternateDirectionCoordinates?.length;
     const isAlternateDirectionSelected = !!alternateDirection?.isSelected;
 
-    // Both symbols are placed at once, so that they are never anchored on a stretch of the map the two routes share.
     const {primary: distanceSymbolCoordinate, alternate: alternateDistanceSymbolCoordinate} = utils.getDistanceSymbolCoordinates(
         waypoints?.map((waypoint) => waypoint.coordinate) ?? [],
         utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates),
