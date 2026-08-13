@@ -709,7 +709,7 @@ function DynamicIOURequestStepDistance({
             waypoints,
             ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
+            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overridden with the primary one
             ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
             transactionBackup,
             policy,
