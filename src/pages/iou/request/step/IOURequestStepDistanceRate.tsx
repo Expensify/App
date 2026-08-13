@@ -81,7 +81,14 @@ function IOURequestStepDistanceRate({
     const [currentTransactionViolations] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${getNonEmptyStringOnyxID(transaction?.transactionID)}`);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: report?.policyID, action, iouType, policyDraft});
+    // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new manual-expense flow
+    // seeds the expense onto the self-DM, whose route report carries the placeholder '_FAKE_' policy. After selecting
+    // that workspace chat via the in-place "To" picker, the route report is still that self-DM, so we must resolve the
+    // policy from the selected participant instead of the fake route policyID or the rate list renders empty. This
+    // mirrors selectedWorkspacePolicyID on the confirmation page. See #96576 and #98323.
+    const selectedWorkspacePolicyID =
+        transaction?.participants?.find((participant) => participant?.isSender)?.policyID ?? transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+    const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: selectedWorkspacePolicyID ?? report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
     const styles = useThemeStyles();
