@@ -65,7 +65,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         const personalDetail = getPersonalDetailByEmail(invitingMemberEmail);
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? invitingMemberEmail);
         const defaultCardName = getDefaultCardName(memberName);
-        // Keep the name the user manually typed in CardNameStep; otherwise always recompute it from the inviting member.
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the inviting member.
         const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,

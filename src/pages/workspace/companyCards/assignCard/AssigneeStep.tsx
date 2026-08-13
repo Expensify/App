@@ -87,7 +87,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const defaultCardName = getDefaultCardName(memberName);
-        // Keep the name the user manually typed in CardNameStep; otherwise always recompute it from the currently selected assignee.
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
         const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
