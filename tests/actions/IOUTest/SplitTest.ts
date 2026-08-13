@@ -3764,6 +3764,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let allTransactions: OnyxCollection<Transaction>;
         let allReports: OnyxCollection<Report>;
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
             callback: (value) => {
@@ -3782,6 +3783,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 allReportNameValuePairs = value;
             },
         });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            callback: (value) => {
+                allReportActions = value;
+            },
+        });
 
         const reportID = originalReportID ?? String(CONST.DEFAULT_NUMBER_ID);
         const allPolicyTags = await getAllPolicyTags();
@@ -3792,7 +3799,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3839,8 +3846,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         const splitTx1 = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`];
         await getOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTx1?.reportID}`,
-            callback: (allReportActions) => {
-                const iouAction = Object.values(allReportActions ?? {}).find(
+            callback: (reportActions) => {
+                const iouAction = Object.values(reportActions ?? {}).find(
                     (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                         isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === splitTransactionID1,
                 );
@@ -3894,6 +3901,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 allReportNameValuePairs = value;
             },
         });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            callback: (value) => {
+                allReportActions = value;
+            },
+        });
 
         reports = getTransactionAndExpenseReports(reportID);
 
@@ -3902,7 +3915,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             allTransactionsList: allTransactions,
             betas: [CONST.BETAS.ALL],
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -3951,8 +3964,8 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let newIOUAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> | undefined;
         await getOnyxData({
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${revertExpenseReportID}`,
-            callback: (allReportActions) => {
-                newIOUAction = Object.values(allReportActions ?? {}).findLast(
+            callback: (reportActions) => {
+                newIOUAction = Object.values(reportActions ?? {}).findLast(
                     (action): action is ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> =>
                         isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === originalTransactionID,
                 );
@@ -4969,6 +4982,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
         let allTransactions: OnyxCollection<Transaction>;
         let allReports: OnyxCollection<Report>;
         let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+        let allReportActions: OnyxCollection<ReportActions>;
 
         await getOnyxData({
             key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -4988,6 +5002,12 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
                 allReportNameValuePairs = value;
             },
         });
+        await getOnyxData({
+            key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+            callback: (value) => {
+                allReportActions = value;
+            },
+        });
 
         const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
         const allPolicyTags = await getAllPolicyTags();
@@ -4998,7 +5018,7 @@ describe('updateSplitTransactionsFromSplitExpensesFlow', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID,
@@ -5639,7 +5659,7 @@ describe('updateSplitTransactions', () => {
 
     const splitToN = async (numberOfSplitTransaction: number, expenseReport: OnyxEntry<Report>, originalTransactionID: string, firstIOU?: ReportAction) => {
         const splitTransactionIDs = new Array(numberOfSplitTransaction).fill(true).map(() => rand64());
-        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getCollections();
         const reportID = expenseReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
         const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(reportID);
@@ -5648,7 +5668,7 @@ describe('updateSplitTransactions', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -6022,7 +6042,7 @@ describe('updateSplitTransactions', () => {
         const writeSpy = jest.spyOn(APIlib, 'write');
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
-        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports, allReportNameValuePairs, allReportActions} = await getCollections();
         const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
@@ -6031,7 +6051,7 @@ describe('updateSplitTransactions', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -6144,7 +6164,7 @@ describe('updateSplitTransactions', () => {
         await waitForBatchedUpdates();
 
         const remainingSplitTransaction = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${splitTransactionID1}`);
-        const {allTransactions, allReports: allReports2, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports: allReports2, allReportNameValuePairs, allReportActions: allReportActions2} = await getCollections();
         const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
         const splitExpenses: SplitExpense[] = [{transactionID: splitTransactionID1, reportID: remainingSplitTransaction?.reportID, amount, created: DateUtils.getDBTime()}];
@@ -6153,7 +6173,7 @@ describe('updateSplitTransactions', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports2,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions2,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,
@@ -6221,7 +6241,7 @@ describe('updateSplitTransactions', () => {
 
         // Split the original transaction into three parts, then delete one without reverting.
         const {splitTransactionID1, splitTransactionID2} = await splitToThree(expenseReport, originalTransactionID, iouAction);
-        const {allTransactions, allReports, allReportNameValuePairs} = await getCollections();
+        const {allTransactions, allReports, allReportNameValuePairs, allReportActions: allReportActions2} = await getCollections();
         const allPolicyTags = await getAllPolicyTags();
         const reports = getTransactionAndExpenseReports(expenseReport.reportID);
 
@@ -6229,7 +6249,7 @@ describe('updateSplitTransactions', () => {
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
-            allReportActionsList: undefined,
+            allReportActionsList: allReportActions2,
             allReportNameValuePairsList: allReportNameValuePairs,
             transactionData: {
                 reportID: expenseReport.reportID,

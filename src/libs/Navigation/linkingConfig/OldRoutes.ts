@@ -141,9 +141,11 @@ const oldRoutes: Record<string, string> = {
     '/settings/wallet/enable-payments/terms*': '/settings/wallet/enable-payments/fees-and-terms/terms$1',
     '/missing-personal-details/*': '/settings/wallet/missing-personal-details/$1',
     '/workspaces/*/workflows/approvals/expenses-from': '/workspaces/$1/workflows/approvals/new/expenses-from',
+    '/*/*/category/new/*/*/*': '/r/$4/category/add-category?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/category/new/*/*': '/r/$4/category/add-category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/category/*/*/*': '/r/$4/category?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/category/*/*': '/r/$4/category?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/report/*/edit*': '/r/$3/expense-report-edit?action=$1&iouType=$2&reportID=$3',
-    // Optional reportActionID segment must be matched by a more-specific pattern BEFORE the broad one,
-    // otherwise the broad pattern's trailing `*` swallows "<reportID>/<reportActionID>" together.
     '/*/*/report/*/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/report/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/tag/*/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5&reportActionID=$6',
