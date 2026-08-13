@@ -590,8 +590,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
-        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
-    }, [areAllMatchingItemsSelected, queryJSON, selectedReports, selectedTransactions, policies]);
+        return selectedItems.every((item) => {
+            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived fields on this selection entry.
+            const policyID = item.policyID ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`]?.policyID;
+            return !!policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD;
+        });
+    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
