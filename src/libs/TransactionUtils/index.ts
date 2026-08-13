@@ -1481,12 +1481,22 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
+ * Caps an exchange rate at 4 decimals for display, matching Expensify Classic, which rounds and pads to
+ * exactly 4 decimals (`0.272294077603812` -> `0.2723`, `1.5` -> `1.5000`). `toFixed` handles the exponential
+ * form small rates stringify into (`7.27431439586819e-7` -> `0.0000`), and a finite guard passes a
+ * non-numeric rate through untouched so we never render `NaN`.
+ */
+function formatExchangeRateForDisplay(rate: string | number): string {
+    const parsedRate = Number(rate);
+    return Number.isFinite(parsedRate) ? parsedRate.toFixed(CONST.EXCHANGE_RATE_DISPLAY_DECIMALS) : String(rate);
+}
+
+/**
  * Returns the exchange rate for a transaction, based on its group or currencyConversionRate.
  *
  * When `shouldFormatRate` is true (display only), the rate is rounded and padded to exactly 4 decimals
- * to match Expensify Classic (e.g. `0.272294077603812` → `0.2723`, `1.5` → `1.5000`). The default (false)
- * keeps the raw value so the non-display consumers — the search/report sort keys and the emptiness
- * predicate — compare on the full precision exactly as they do today.
+ * to match Expensify Classic. The default (false) keeps the raw value so the non-display consumers, the
+ * search/report sort keys and the emptiness predicate, compare on the full precision exactly as they do today.
  */
 function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string, shouldFormatRate = false) {
     const fromCurrency = getCurrency(transaction);
@@ -1498,22 +1508,12 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
         return '';
     }
 
-    // Round and pad the rate to exactly 4 decimals for display, matching Classic. `toFixed` handles
-    // exponential values correctly (`7.27431439586819e-7` → `0.0000`), and a finite guard keeps a
-    // non-numeric backend string rendering verbatim rather than as `NaN`.
-    const formatRate = (rate: string | number): string => {
-        if (!shouldFormatRate) {
-            return String(rate);
-        }
-        const parsedRate = Number(rate);
-        return Number.isFinite(parsedRate) ? parsedRate.toFixed(4) : String(rate);
-    };
-
     // groupExchangeRate: search-page rate (fromCurrency → groupCurrency).
     if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
         const groupRate = Number(transaction.groupExchangeRate);
         if (groupRate !== 1) {
-            return `${formatRate(transaction.groupExchangeRate)} ${fromCurrency}/${transaction.groupCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.groupExchangeRate) : transaction.groupExchangeRate;
+            return `${rate} ${fromCurrency}/${transaction.groupCurrency}`;
         }
     }
 
@@ -1525,7 +1525,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
         const conversionRate = Number(transaction.currencyConversionRate);
         if (conversionRate !== 1) {
-            return `${formatRate(transaction.currencyConversionRate)} ${fromCurrency}/${conversionToCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.currencyConversionRate) : transaction.currencyConversionRate;
+            return `${rate} ${fromCurrency}/${conversionToCurrency}`;
         }
     }
 
