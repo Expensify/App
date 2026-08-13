@@ -58,6 +58,22 @@ function getBankAccountState(accountData: AccountData | undefined): string | und
     return accountData.state;
 }
 
+function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.plaidAccountID || !!accountData.additionalData?.plaidAccountID;
+}
+
+function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
+}
+
 function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean {
     if (!accountData) {
         return false;
