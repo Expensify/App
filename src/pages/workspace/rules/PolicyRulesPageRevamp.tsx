@@ -76,7 +76,7 @@ const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTra
 
 function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     const {translate} = useLocalize();
-    const {policyID} = route.params;
+    const {policyID, tab: requestedTab} = route.params;
     const policy = usePolicy(policyID);
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
@@ -113,6 +113,15 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
 
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, RULES_TAB.GENERAL);
     }, [activeTab, policy]);
+
+    useEffect(() => {
+        // The tab param is an entry hint (deep link, post-upgrade bounce-back); the selected tab itself lives in Onyx.
+        if (!requestedTab || !isRulesTab(requestedTab)) {
+            return;
+        }
+
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, requestedTab);
+    }, [requestedTab]);
 
     const clearAllTableSelection = useCallback(() => {
         setSelectedRuleKeysByTab((prev) => (Object.keys(prev).length > 0 ? {} : prev));
@@ -260,13 +269,19 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
             return;
         }
 
-        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, rulesUpgradeBackTo)) {
+        // Come back to the tab the user asked for, so upgrading lands them where they were headed.
+        if (key !== RULES_TAB.GENERAL && tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, ROUTES.WORKSPACE_RULES.getRoute(policyID, key))) {
             return;
         }
 
         setSelectedRuleKeysByTab({});
         turnOffMobileSelectionMode();
         Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, key);
+
+        // Drop the entry hint once the user picks their own tab, otherwise a refresh would re-apply it over that choice.
+        if (requestedTab) {
+            Navigation.setParams({tab: undefined});
+        }
     };
 
     const getHeaderContent = () => {
