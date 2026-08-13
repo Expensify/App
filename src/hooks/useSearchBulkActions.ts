@@ -1481,6 +1481,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 paidReportCount += 1;
             }
 
+            if (paidReportCount < itemsToPay.length) {
+                Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
+            }
+
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
