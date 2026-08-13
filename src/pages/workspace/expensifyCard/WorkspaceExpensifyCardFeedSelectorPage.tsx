@@ -202,8 +202,8 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    // Suppress the new-program (bank-account setup) branch on unsupported currencies: setting up a brand-new card program requires a USD/UK/EU workspace.
-    // Issuing a card on an existing feed (issueCardFundID !== undefined) is safe on any currency, so keep the button in that case.
+    // Suppress the new-program branch on workspaces with unsupported currencies
+    // These workspaces may only issue cards on existing feeds
     const shouldShowIssueCardButton = issueCardFundID !== undefined || policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported;
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (

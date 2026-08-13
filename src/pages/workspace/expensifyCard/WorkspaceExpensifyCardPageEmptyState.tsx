@@ -176,8 +176,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             showLockedAccountModal();
                             return;
                         }
-                        // The USD requirement only applies to enrolling a brand-new card program (which needs a USD bank account).
-                        // Linking an existing feed doesn't require it, so skip the currency prompt when the workspace has accessible feeds.
+                        // The supported currency restriction only applies to enrolling a brand-new card program.
+                        // If hasAccessibleFeeds is true, allow the flow to start in order to link an existing feed
                         if (!hasAccessibleFeeds && !(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
                             promptCurrencyChangeAndStartFlow();
                             return;
