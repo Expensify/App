@@ -12,7 +12,7 @@ import {Pressable, Text, View} from 'react-native';
 const mockBlurEvent = {nativeEvent: {text: ''}} as NativeSyntheticEvent<TextInputFocusEventData>;
 
 function ContextReadout() {
-    const {value, negativeMode, errorText, onInputChange, setValue, onBlur} = useNumberFormContext();
+    const {value, negativeMode, errorText, setValue, onBlur} = useNumberFormContext();
 
     return (
         <View>
@@ -21,12 +21,8 @@ function ContextReadout() {
             <Text testID="ctx-errorText">{errorText ?? ''}</Text>
             <Text testID="ctx-hasOnBlur">{String(!!onBlur)}</Text>
             <Pressable
-                testID="ctx-onInputChange"
-                onPress={() => onInputChange('7')}
-            />
-            <Pressable
                 testID="ctx-setValue"
-                onPress={() => setValue('42')}
+                onPress={() => setValue('7')}
             />
             <Pressable
                 testID="ctx-setValueSilent"
@@ -117,28 +113,16 @@ describe('NumberForm', () => {
     });
 
     describe('value updates', () => {
-        it('updates context and notifies the parent when onInputChange is called from a child', () => {
-            renderNumberForm();
-
-            act(() => {
-                fireEvent.press(screen.getByTestId('ctx-onInputChange'));
-            });
-
-            expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
-            expect(onInputChange).toHaveBeenCalledTimes(1);
-            expect(onInputChange).toHaveBeenCalledWith('7');
-        });
-
-        it('updates context and notifies the parent when setValue is called without options', () => {
+        it('updates context and notifies the parent when setValue is called', () => {
             renderNumberForm();
 
             act(() => {
                 fireEvent.press(screen.getByTestId('ctx-setValue'));
             });
 
-            expect(screen.getByTestId('ctx-value')).toHaveTextContent('42');
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
             expect(onInputChange).toHaveBeenCalledTimes(1);
-            expect(onInputChange).toHaveBeenCalledWith('42');
+            expect(onInputChange).toHaveBeenCalledWith('7');
         });
 
         it('updates context without notifying the parent when setValue is called with notify: false', () => {

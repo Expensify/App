@@ -14,15 +14,14 @@ function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorT
         setCurrentValue(value);
     }
 
-    const handleInputChange = (nextValue: string) => {
-        setCurrentValue(nextValue);
-        onInputChange?.(nextValue);
-    };
-
-    const setValue = (nextValue: string, options?: {notify?: boolean}) => {
+    const setValue = (nextValue: string, options?: {notify?: boolean; key?: string}) => {
         setCurrentValue(nextValue);
         if (options?.notify !== false) {
-            onInputChange?.(nextValue);
+            if (options?.key === undefined) {
+                onInputChange?.(nextValue);
+            } else {
+                onInputChange?.(nextValue, options.key);
+            }
         }
     };
 
@@ -32,7 +31,7 @@ function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorT
         errorText,
     };
 
-    const actionsContextValue = {onBlur, onInputChange: handleInputChange, setValue};
+    const actionsContextValue = {onBlur, setValue};
 
     return (
         <NumberFormStateContext.Provider value={stateContextValue}>
