@@ -153,6 +153,34 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined): B
     }
 }
 /**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
+    if (!bankAccount) {
+        return false;
+    }
+
+    if (bankAccount.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && onCardWaitlistPolicyIDs?.includes(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (onCardWaitlistPolicyIDs?.includes(id)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+/**
  * A BUSINESS account in a state that has actually been usable for paying expenses (anything other than SETUP / VERIFYING / PENDING).
  * Used by the search picker, the autocomplete suggestions, and the advanced-filter visibility gate so all three surfaces accept and count the same set of accounts.
  */
@@ -319,6 +347,7 @@ export {
     getBankAccountState,
     hasBankAccountAllowDebit,
     getBankAccountConnectionStatus,
+    canLinkPlaid,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
