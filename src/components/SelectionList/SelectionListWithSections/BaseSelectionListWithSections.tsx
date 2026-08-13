@@ -205,7 +205,7 @@ function BaseSelectionListWithSectionsImpl({
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
-        focusedIndex,
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !confirmButtonOptions?.onConfirm || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: itemsCount > 0 && !getFocusedItem(),
