@@ -1,5 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
+import HeaderBackButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderBackButton';
 import HeaderCloseButtonTooltip from '@components/HeaderWithBackButtonComposed/primitives/HeaderCloseButtonTooltip';
 import HeaderHelpButton from '@components/HeaderWithBackButtonComposed/primitives/HeaderHelpButton';
 import HeaderIcon from '@components/HeaderWithBackButtonComposed/primitives/HeaderIcon';
@@ -22,7 +23,6 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useStyleUtils from '@hooks/useStyleUtils';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useThrottledButtonState from '@hooks/useThrottledButtonState';
 
@@ -30,7 +30,6 @@ import getButtonState from '@libs/getButtonState';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import {Keyboard, StyleSheet, View} from 'react-native';
 
@@ -90,7 +89,6 @@ function HeaderWithBackButton({
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'Rotate', 'BackArrow', 'Close']);
-    const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const [isDownloadButtonActive, temporarilyDisableDownloadButton] = useThrottledButtonState();
@@ -143,31 +141,11 @@ function HeaderWithBackButton({
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 {shouldShowBackButton && (
-                    <Tooltip text={translate('common.back')}>
-                        <PressableWithoutFeedback
-                            onPress={() => {
-                                if (Keyboard.isVisible()) {
-                                    Keyboard.dismiss();
-                                }
-                                const topmostReportId = Navigation.getTopmostReportId();
-                                if (shouldNavigateToTopMostReport && topmostReportId) {
-                                    Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
-                                } else {
-                                    onBackButtonPress();
-                                }
-                            }}
-                            style={[styles.touchableButtonImage]}
-                            role={CONST.ROLE.BUTTON}
-                            accessibilityLabel={translate('common.back')}
-                            id={CONST.BACK_BUTTON_NATIVE_ID}
-                            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
-                        >
-                            <Icon
-                                src={icons.BackArrow}
-                                fill={iconFill ?? theme.icon}
-                            />
-                        </PressableWithoutFeedback>
-                    </Tooltip>
+                    <HeaderBackButton
+                        onPress={onBackButtonPress}
+                        shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
+                        iconFill={iconFill}
+                    />
                 )}
                 {!!icon && (
                     <HeaderIcon
