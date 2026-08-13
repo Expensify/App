@@ -129,6 +129,7 @@ function HeaderWithBackButton({
                         onPress={onBackButtonPress}
                         shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
                         iconFill={iconFill}
+                        shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                     />
                 )}
                 {!!icon && (

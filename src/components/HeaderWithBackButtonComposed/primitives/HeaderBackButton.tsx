@@ -2,6 +2,7 @@ import Icon from '@components/Icon';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
 import Tooltip from '@components/Tooltip';
 
+import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
@@ -23,17 +24,22 @@ type HeaderBackButtonProps = {
 
     /** Optional fill color for the icon. */
     iconFill?: string;
+
+    /** Whether to skip focus of the back button after the RHP transition (screen reader). */
+    shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateToTopMostReport = false, iconFill}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateToTopMostReport = false, iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
+    const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     return (
         <Tooltip text={translate('common.back')}>
             <PressableWithoutFeedback
+                ref={setBackButtonRef}
                 onPress={() => {
                     if (Keyboard.isVisible()) {
                         Keyboard.dismiss();
