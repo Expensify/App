@@ -19,4 +19,4 @@ function cardOnWaitlistPolicyIDsSelector(collection: OnyxCollection<CardOnWaitli
     return policyIDs;
 }
 
-export {cardOnWaitlistPolicyIDsSelector};
+export default cardOnWaitlistPolicyIDsSelector;

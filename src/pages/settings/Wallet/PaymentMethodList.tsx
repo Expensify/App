@@ -59,7 +59,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import {isActingAsDelegateSelector, isUserValidatedSelector} from '@selectors/Account';
-import {cardOnWaitlistPolicyIDsSelector} from '@selectors/CardOnWaitlist';
+import cardOnWaitlistPolicyIDsSelector from '@selectors/CardOnWaitlist';
 import {createPoliciesForDomainCardsSelector} from '@selectors/Policy';
 import {FlashList} from '@shopify/flash-list';
 import lodashSortBy from 'lodash/sortBy';
