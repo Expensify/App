@@ -17,7 +17,7 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
-import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
+import {getDefaultTaxCode, getDistanceRequestType, getIsFromGlobalCreate, getSelectedRouteDistance, getValidWaypoints, hasAppliedCommuterExclusion} from '@libs/TransactionUtils';
 
 import {setTransactionReport} from '@userActions/Transaction';
 
@@ -94,6 +94,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     action: IOUAction;
@@ -196,6 +197,7 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
     action,
@@ -212,6 +214,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
+    const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
         resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
@@ -307,6 +310,7 @@ function handleMoneyRequestStepDistanceNavigation({
                                 attendees: transaction?.comment?.attendees,
                                 gpsCoordinates,
                                 distanceRequestType,
+                                selectedRouteDistance,
                                 odometerStart,
                                 odometerEnd,
                                 taxCode: distanceTaxCode,
@@ -316,8 +320,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
-                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                            conciergeChat: undefined,
+                            conciergeChat,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,
@@ -389,6 +392,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             attendees: transaction?.comment?.attendees,
                             gpsCoordinates,
                             distanceRequestType,
+                            selectedRouteDistance,
                             odometerStart,
                             odometerEnd,
                             taxCode: distanceTaxCode,

@@ -104,12 +104,16 @@ type CreateTransactionParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    conciergeChat: OnyxEntry<Report>;
 };
 
 type SetMoneyRequestCommuterExclusionFieldsParams = {
     transactionID: string;
     transaction: OnyxEntry<Transaction>;
     policy: OnyxEntry<Policy>;
+
+    /** Whether the expense is being created on a workspace chat. Commuter exclusions only apply to workspace expenses */
+    isPolicyExpenseChat: boolean;
     customUnitRateID: string;
     routeDistanceMeters: number;
     distanceUnit: Unit;
@@ -149,6 +153,7 @@ function createTransaction({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
+    conciergeChat,
 }: CreateTransactionParams) {
     const draftTransactionIDs = Object.keys(allTransactionDrafts ?? {});
 
@@ -200,8 +205,7 @@ function createTransaction({
                     email: currentUserEmail ?? '',
                 },
                 introSelected,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -251,8 +255,7 @@ function createTransaction({
                 existingTransactionDraft,
                 existingTransaction: transaction,
                 isSelfTourViewed,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 personalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
@@ -807,6 +810,7 @@ function setMoneyRequestCommuterExclusionFields({
     transactionID,
     transaction,
     policy,
+    isPolicyExpenseChat,
     customUnitRateID,
     routeDistanceMeters,
     distanceUnit,
@@ -815,20 +819,24 @@ function setMoneyRequestCommuterExclusionFields({
     getCurrencySymbol,
     personalPolicyOutputCurrency,
 }: SetMoneyRequestCommuterExclusionFieldsParams) {
-    const fields = DistanceRequestUtils.getTransactionCommuterExclusionData({
-        transaction,
-        policy,
-        customUnit: {
-            ...transaction?.comment?.customUnit,
-            customUnitRateID,
-            routeDistanceMeters,
-            distanceUnit,
-        },
-        translate,
-        toLocaleDigit,
-        getCurrencySymbol,
-        personalPolicyOutputCurrency,
-    });
+    // A self-DM or P2P expense is personal: it can use a workspace rate, but that workspace's commuter
+    // exclusions don't govern it, so fall through to clear any fields a previous participant selection left.
+    const fields = isPolicyExpenseChat
+        ? DistanceRequestUtils.getTransactionCommuterExclusionData({
+              transaction,
+              policy,
+              customUnit: {
+                  ...transaction?.comment?.customUnit,
+                  customUnitRateID,
+                  routeDistanceMeters,
+                  distanceUnit,
+              },
+              translate,
+              toLocaleDigit,
+              getCurrencySymbol,
+              personalPolicyOutputCurrency,
+          })
+        : undefined;
 
     if (fields) {
         Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${transactionID}`, {
