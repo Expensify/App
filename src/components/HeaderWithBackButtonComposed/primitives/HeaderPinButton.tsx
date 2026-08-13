@@ -20,4 +20,3 @@ function HeaderPinButton({report}: HeaderPinButtonProps) {
 }
 
 export default HeaderPinButton;
-export type {HeaderPinButtonProps};

@@ -42,4 +42,3 @@ function HeaderIcon({src, width, height, style, iconFill}: HeaderIconProps) {
 }
 
 export default HeaderIcon;
-export type {HeaderIconProps};

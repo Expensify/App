@@ -63,4 +63,3 @@ function HeaderThreeDotsMenu({
 }
 
 export default HeaderThreeDotsMenu;
-export type {HeaderThreeDotsMenuProps};

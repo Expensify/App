@@ -51,4 +51,3 @@ function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitle
 }
 
 export default HeaderTitle;
-export type {HeaderTitleProps};

@@ -30,4 +30,3 @@ function HeaderReportAvatar({report, shouldDisplayStatus, shouldEnableDetailPage
 }
 
 export default HeaderReportAvatar;
-export type {HeaderReportAvatarProps};

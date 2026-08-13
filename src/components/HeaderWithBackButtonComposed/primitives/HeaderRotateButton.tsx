@@ -52,4 +52,3 @@ function HeaderRotateButton({onPress = () => {}, isLoading = false, iconFill}: H
 }
 
 export default HeaderRotateButton;
-export type {HeaderRotateButtonProps};

@@ -44,4 +44,3 @@ function HeaderMenuItemButtonTooltip({threeDotsMenuItem}: HeaderMenuItemButtonTo
 }
 
 export default HeaderMenuItemButtonTooltip;
-export type {HeaderMenuItemButtonTooltipProps};

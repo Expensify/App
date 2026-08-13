@@ -65,4 +65,3 @@ function HeaderDownloadButton({onPress = () => {}, isLoading = false, iconFill}:
 }
 
 export default HeaderDownloadButton;
-export type {HeaderDownloadButtonProps};

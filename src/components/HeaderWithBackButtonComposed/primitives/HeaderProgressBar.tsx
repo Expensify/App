@@ -45,4 +45,3 @@ function HeaderProgressBar({percentageProgress, stepCounter}: HeaderProgressBarP
 }
 
 export default HeaderProgressBar;
-export type {HeaderProgressBarProps};

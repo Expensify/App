@@ -29,4 +29,3 @@ function HeaderPolicyAvatar({policyAvatar}: HeaderPolicyAvatarProps) {
 }
 
 export default HeaderPolicyAvatar;
-export type {HeaderPolicyAvatarProps};

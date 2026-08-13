@@ -46,4 +46,3 @@ function HeaderCloseButtonTooltip({onPress = () => Navigation.dismissModal(), ic
 }
 
 export default HeaderCloseButtonTooltip;
-export type {HeaderCloseButtonTooltipProps};
