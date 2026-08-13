@@ -2,6 +2,7 @@ import MenuItem from '@components/MenuItem';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
@@ -37,6 +38,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
@@ -58,6 +60,10 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
             });
+            return;
+        }
+
+        if (blockIfDefaultWorkspaceLacksTravel()) {
             return;
         }
 
