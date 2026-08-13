@@ -1,68 +1,35 @@
 import useFilesValidation from '@hooks/useFilesValidation';
-import useLocalize from '@hooks/useLocalize';
 
-import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {cleanFileObject, cleanFileObjectName, getFilesFromClipboardEvent} from '@libs/fileDownload/FileUtils';
 
-import Navigation from '@navigation/Navigation';
-
-import AttachmentModalContext from '@pages/media/AttachmentModalScreen/AttachmentModalContext';
-
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 import type {FileObject} from '@src/types/utils/Attachment';
-
-import {useContext, useState} from 'react';
 
 import {useComposerActions, useComposerMeta, useComposerSendState} from './ComposerContext';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function useAttachmentPicker(reportID: string) {
-    const {translate} = useLocalize();
-    const {exceededMaxLength} = useComposerSendState();
     const {clearComposer} = useComposerActions();
-    const {attachmentFileRef, suggestionsRef} = useComposerMeta();
-    const [isAttachmentPreviewActive, setIsAttachmentPreviewActive] = useState(false);
-
-    const reportAttachmentsContext = useContext(AttachmentModalContext);
+    const {attachmentFileRef} = useComposerMeta();
+    const {exceededMaxLength} = useComposerSendState();
 
     const addAttachment = (file: FileObject | FileObject[]) => {
         attachmentFileRef.current = file;
         clearComposer();
     };
 
-    const onAttachmentPreviewClose = () => {
-        if (suggestionsRef.current) {
-            suggestionsRef.current.updateShouldShowSuggestionMenuToFalse(false);
-        }
-        setIsAttachmentPreviewActive(false);
-        ComposerFocusManager.setReadyToFocus();
-    };
-
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const onFilesValidated = (files: FileObject[], dataTransferItems: DataTransferItem[]) => {
-        if (files.length === 0) {
+        if (files.length === 0 || exceededMaxLength) {
             return;
         }
 
-        reportAttachmentsContext.setCurrentAttachment<typeof SCREENS.REPORT_ADD_ATTACHMENT>({
-            reportID,
-            file: files,
-            dataTransferItems,
-            headerTitle: translate('reportActionCompose.sendAttachment'),
-            onConfirm: addAttachment,
-            onShow: () => setIsAttachmentPreviewActive(true),
-            onClose: onAttachmentPreviewClose,
-            shouldDisableSendButton: !!exceededMaxLength,
-        });
-        Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
+        // With native platforms, we don't need to show the preview screen.
+        addAttachment(files);
     };
 
     const {validateFiles, PDFValidationComponent} = useFilesValidation(onFilesValidated);
 
     const pickAttachments = ({dragEvent, files}: {dragEvent?: DragEvent; files?: FileObject | FileObject[]}) => {
-        if (isAttachmentPreviewActive) {
-            return;
-        }
-
         let extractedFiles: FileObject[] = [];
 
         if (files) {
