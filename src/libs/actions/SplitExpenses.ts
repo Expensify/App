@@ -132,6 +132,7 @@ function initSplitExpense(
                 ? ROUTES.SPLIT_EXPENSE_SEARCH.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute())
                 : ROUTES.SPLIT_EXPENSE.getRoute(reportID, originalTransactionID, undefined, Navigation.getActiveRoute());
             initDraftSplitExpenseDataForEdit(draftTransaction, transaction.transactionID, reportID);
+            Navigation.navigate(splitExpenseOverviewRoute);
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.SPLIT_EXPENSE_EDIT.getRoute(reportID, transaction.transactionID), splitExpenseOverviewRoute));
             return;
         }
