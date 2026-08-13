@@ -89,6 +89,7 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
+
     // Match Quick Creation and Search actions by using shared report eligibility rules. Unlike the FAB's
     // expense-chat filter, this intentionally includes Submit workspaces only when the beta is enabled.
     const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, isSubmit2026BetaEnabled, sessionEmail);
