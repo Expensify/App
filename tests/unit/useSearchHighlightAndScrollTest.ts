@@ -9,8 +9,11 @@ import type {UseSearchHighlightAndScroll} from '@hooks/useSearchHighlightAndScro
 import {search} from '@libs/actions/Search';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@libs/actions/Search');
 jest.mock('@react-navigation/native', () => ({
@@ -452,28 +455,28 @@ describe('useSearchHighlightAndScroll', () => {
         const {rerender, result} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
             initialProps: baseProps,
         });
-        const updatedProps1 = {
+        const updatedProps1: UseSearchHighlightAndScroll = {
             ...baseProps,
-            searchResults: {
+            searchResults: createMock<SearchResults>({
                 ...baseProps.searchResults,
-                data: {
+                data: createMock<SearchResults['data']>({
                     transactions_1: {
                         transactionID: '1',
                     },
                     transactions_2: {
                         transactionID: '2',
                     },
-                },
-            },
+                }),
+            }),
             transactions: {
-                transactions_1: {transactionID: '1'},
-                transactions_2: {transactionID: '2'},
-                transactions_3: {transactionID: '3'},
+                transactions_1: createMock<Transaction>({transactionID: '1'}),
+                transactions_2: createMock<Transaction>({transactionID: '2'}),
+                transactions_3: createMock<Transaction>({transactionID: '3'}),
             },
             previousTransactions: {
-                transactions_1: {transactionID: '1'},
+                transactions_1: createMock<Transaction>({transactionID: '1'}),
             },
-        } as unknown as UseSearchHighlightAndScroll;
+        };
 
         // When there is no data yet, even if the transactionID has been added to manual highlight transactionIDs,
         // it still will not be included in newSearchResultKeys.
@@ -482,11 +485,11 @@ describe('useSearchHighlightAndScroll', () => {
         expect([...(result.current.newSearchResultKeys ?? new Set())]).not.toContain('transactions_3');
 
         // When the data contains the highlight transactionID, it will be highlighted.
-        const updatedProps2 = {
+        const updatedProps2: UseSearchHighlightAndScroll = {
             ...updatedProps1,
-            searchResults: {
+            searchResults: createMock<SearchResults>({
                 ...updatedProps1.searchResults,
-                data: {
+                data: createMock<SearchResults['data']>({
                     transactions_1: {
                         transactionID: '1',
                     },
@@ -496,9 +499,9 @@ describe('useSearchHighlightAndScroll', () => {
                     transactions_3: {
                         transactionID: '3',
                     },
-                },
-            },
-        } as unknown as UseSearchHighlightAndScroll;
+                }),
+            }),
+        };
 
         rerender(updatedProps2);
         expect(result.current.newSearchResultKeys?.size).toBe(1);
