@@ -25,10 +25,15 @@ import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
+import type {LinkAccount} from 'react-native-plaid-link-sdk';
+import type {PlaidAccount} from 'react-plaid-link';
+
 import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type LinkPlaidToBankAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID>;
+
+type PlaidLinkAccount = PlaidAccount | LinkAccount;
 
 type LinkPlaidToBankAccountInnerProps = {
     /** ID of the bank account being (re)linked to Plaid */
@@ -46,6 +51,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
+    const policyID = bankAccountList?.[bankAccountID]?.accountData?.additionalData?.policyID;
     const isLoading = !!bankAccountList?.[bankAccountID]?.isLoading;
 
     useEffect(() => {
@@ -56,6 +62,14 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearLinkPlaidBankAccountErrors(bankAccountID);
         clearPlaid();
     });
+
+    const submit = (publicToken: string, account: PlaidLinkAccount | undefined) => {
+        linkPlaidToBankAccount(bankAccountID, publicToken, account?.mask, policyID);
+    };
+
+    const handlePlaidSuccess = ({publicToken, accounts}: {publicToken: string; accounts: PlaidLinkAccount[]}) => {
+        submit(publicToken, accounts.at(0));
+    };
 
     if (isPlaidDisabled) {
         return (
@@ -76,6 +90,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     return (
         <PlaidLink
             token={plaidLinkToken}
+            onSuccess={({publicToken, metadata}) => handlePlaidSuccess({publicToken, accounts: metadata?.accounts ?? []})}
             onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
             onEvent={() => {}}
             onExit={() => Navigation.goBack(backPath)}
