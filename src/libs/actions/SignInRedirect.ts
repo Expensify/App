@@ -9,6 +9,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import {resetSignInFlow} from './HybridApp';
 
@@ -18,7 +19,6 @@ let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
 let currentSessionAccountID: number | undefined;
 let currentCredentialsValidateCode: string | undefined;
-let hasGpsTripInProgress = false;
 
 Onyx.connectWithoutView({
     key: ONYXKEYS.NETWORK,
@@ -43,15 +43,6 @@ Onyx.connectWithoutView({
     },
 });
 
-// The list of keys to preserve has to be ready before `Onyx.clear` runs below, and reading the draft
-// from Onyx at that point would delay the clear, so the value is kept here instead of being read on demand.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.GPS_DRAFT_DETAILS,
-    callback: (value) => {
-        hasGpsTripInProgress = !!value?.isTracking;
-    },
-});
-
 Onyx.connectWithoutView({
     key: ONYXKEYS.CREDENTIALS,
     callback: (credentials) => {
@@ -59,7 +50,7 @@ Onyx.connectWithoutView({
     },
 });
 
-function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+async function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
@@ -106,7 +97,8 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
 
         // A forced re-auth is involuntary, so an in-progress trip is kept and offered back on return.
         // Only keep a trip we can record an owner for, so it is never resumed by whoever signs in next.
-        if (hasGpsTripInProgress && currentSessionAccountID) {
+        const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
+        if (gpsTrip?.isTracking && currentSessionAccountID) {
             Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {accountID: currentSessionAccountID});
             keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
         }
