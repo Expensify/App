@@ -26,11 +26,11 @@ import useReportAttributes from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useRestartOnOdometerImagesFailure from '@hooks/useRestartOnOdometerImagesFailure';
-import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useSelfDMReport from '@hooks/useSelfDMReport';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {setMoneyRequestDistance} from '@libs/actions/IOU/MoneyRequest';
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
@@ -39,7 +39,6 @@ import {clearOdometerDraft, getOdometerHasUnsavedChanges, removeMoneyRequestOdom
 import {restoreOriginalTransactionFromBackupWithImageCleanup} from '@libs/actions/TransactionEdit';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import focusComposerWithDelay from '@libs/focusComposerWithDelay';
-import getKeyboardHeight from '@libs/getKeyboardHeight';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
@@ -112,7 +111,12 @@ function IOURequestStepDistanceOdometer({
     // animating instead of a beat after it settles. It is applied in a single step at its final value, so the buttons do
     // not follow the keyboard's easing.
     const {isKeyboardActive, keyboardActiveHeight} = useKeyboardState();
-    const {bottom: bottomSafeAreaInset} = useSafeAreaInsets();
+    const {windowHeight} = useWindowDimensions();
+    // Gap between this container's bottom edge and the bottom of the window. The keyboard height is measured from the
+    // window bottom too, so only the overlapping part has to be reserved. It has to be measured: the bottom safe-area
+    // inset matches this gap on Android but not on iOS (34 vs 24 on an iPhone 17), so deriving it over-pads iOS.
+    const [contentBottomGap, setContentBottomGap] = useState(0);
+    const contentRef = useRef<View>(null);
 
     const startReadingInputRef = useRef<BaseTextInputRef | null>(null);
     const endReadingInputRef = useRef<BaseTextInputRef | null>(null);
@@ -161,7 +165,7 @@ function IOURequestStepDistanceOdometer({
     const isCreatingNewRequest = !isEditingConfirmation && !isEditing;
     // Only the create flow needs this. The edit flow gets keyboard avoidance from the ScreenWrapper that
     // StepScreenWrapper renders for it.
-    const keyboardPaddingBottom = isCreatingNewRequest && isKeyboardActive ? getKeyboardHeight(keyboardActiveHeight, bottomSafeAreaInset) : 0;
+    const keyboardPaddingBottom = isCreatingNewRequest && isKeyboardActive ? Math.max(keyboardActiveHeight - contentBottomGap, 0) : 0;
     const isTransactionDraft = shouldUseTransactionDraft(action, iouType);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
@@ -640,16 +644,10 @@ function IOURequestStepDistanceOdometer({
                 which strands these buttons in the middle of the page.
             */}
             <View
+                ref={contentRef}
+                onLayout={() => contentRef.current?.measureInWindow((x, y, width, height) => setContentBottomGap(Math.max(windowHeight - (y + height), 0)))}
                 testID="odometerContentContainer"
-                style={[
-                    styles.flex1,
-                    styles.flexColumn,
-                    styles.justifyContentBetween,
-                    styles.ph5,
-                    styles.pt5,
-                    styles.mb5,
-                    !!keyboardPaddingBottom && StyleUtils.getPaddingBottom(keyboardPaddingBottom),
-                ]}
+                style={[styles.flex1, styles.flexColumn, styles.justifyContentBetween, styles.ph5, styles.pt5, !!keyboardPaddingBottom && StyleUtils.getPaddingBottom(keyboardPaddingBottom)]}
             >
                 <View>
                     {/* Start Reading */}
@@ -752,7 +750,9 @@ function IOURequestStepDistanceOdometer({
                         </Text>
                     </View>
                 </View>
-                <View>
+                {/* The bottom margin sits here, inside the keyboard padding, so it keeps the gap between the buttons and
+                    the keyboard instead of being added on top of it. */}
+                <View style={styles.mb5}>
                     {/* Form Error Message */}
                     {!!formError && (
                         <FormHelpMessage
