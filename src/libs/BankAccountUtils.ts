@@ -58,6 +58,14 @@ function getBankAccountState(accountData: AccountData | undefined): string | und
     return accountData.state;
 }
 
+function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean {
+    if (!accountData) {
+        return false;
+    }
+
+    return !!accountData.allowDebit;
+}
+
 function isConnectedViaPlaid(accountData: AccountData | undefined): boolean {
     if (!accountData) {
         return false;
@@ -74,12 +82,32 @@ function hasBrokenPlaidConnection(accountData: AccountData | undefined): boolean
     return !!accountData.additionalData?.verifications?.externalApiResponses?.plaidAssets?.needsFixing;
 }
 
-function hasBankAccountAllowDebit(accountData: AccountData | undefined): boolean {
-    if (!accountData) {
+/**
+ * Whether the bank account can be connected via Plaid:
+ * - Provisioned as the Expensify Card settlement account; or
+ * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
+ */
+function canLinkPlaid(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
+    if (!bankAccount) {
         return false;
     }
 
-    return !!accountData.allowDebit;
+    if (bankAccount.isExpensifyCardSettlementAccount) {
+        return true;
+    }
+
+    const policyID = bankAccount.accountData?.additionalData?.policyID;
+    if (policyID && onCardWaitlistPolicyIDs?.includes(policyID)) {
+        return true;
+    }
+
+    for (const id of bankAccount.accountData?.policyIDs ?? []) {
+        if (onCardWaitlistPolicyIDs?.includes(id)) {
+            return true;
+        }
+    }
+
+    return false;
 }
 
 function getBankAccountConnectionStatus(accountData: AccountData | undefined, canLinkPlaid = false): BankAccountConnectionStatus | undefined {
@@ -151,33 +179,6 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined, ca
         default:
             return undefined;
     }
-}
-/**
- * Whether the bank account can be connected via Plaid:
- * - Provisioned as the Expensify Card settlement account; or
- * - Linked policy is on Expensify Card waitlist (NVP_EXPENSIFY_ON_CARD_WAITLIST)
- */
-function canLinkPlaid(bankAccount: OnyxEntry<OnyxTypes.BankAccount>, onCardWaitlistPolicyIDs: string[] | undefined): boolean {
-    if (!bankAccount) {
-        return false;
-    }
-
-    if (bankAccount.isExpensifyCardSettlementAccount) {
-        return true;
-    }
-
-    const policyID = bankAccount.accountData?.additionalData?.policyID;
-    if (policyID && onCardWaitlistPolicyIDs?.includes(policyID)) {
-        return true;
-    }
-
-    for (const id of bankAccount.accountData?.policyIDs ?? []) {
-        if (onCardWaitlistPolicyIDs?.includes(id)) {
-            return true;
-        }
-    }
-
-    return false;
 }
 
 /**
@@ -346,8 +347,10 @@ export {
     getDefaultCompanyWebsite,
     getBankAccountState,
     hasBankAccountAllowDebit,
-    getBankAccountConnectionStatus,
+    isConnectedViaPlaid,
+    hasBrokenPlaidConnection,
     canLinkPlaid,
+    getBankAccountConnectionStatus,
     getRequiredKYBDocuments,
     getLastFourDigits,
     hasPartiallySetupBankAccount,
