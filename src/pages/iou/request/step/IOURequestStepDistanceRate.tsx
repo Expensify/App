@@ -87,8 +87,7 @@ function IOURequestStepDistanceRate({
     // policy from the selected participant instead of the fake route policyID or the rate list renders empty. This
     // mirrors selectedWorkspacePolicyID on the confirmation page. See #96576 and #98323.
     const selectedWorkspacePolicyID =
-        transaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
-        transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+        transaction?.participants?.find((participant) => participant?.isSender)?.policyID ?? transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
     const {policy: policyForTransaction} = usePolicyForTransaction({transaction, reportPolicyID: selectedWorkspacePolicyID ?? report?.policyID, action, iouType, policyDraft});
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
 
