@@ -55,14 +55,42 @@ const partiallyLoadedGroup = {...categoryGroup, count: 5};
 /** The same group after its sub-snapshot was cached, so it carries its first page of rows while the rest are still unloaded. */
 const cachedPartialGroup = {...categoryGroup, count: 5, transactions: loadedChildren};
 
+/** A search with every page in, which is what lets select-all-matching be turned off once nothing is left selected. */
+const settledGroupedResults: SearchResults = {
+    ...makeFlatSearchResults(undefined),
+    search: {...makeFlatSearchResults(undefined).search, hasMoreResults: false},
+};
+
 function CachedPartialWrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
             <SearchWriteActionsProvider
                 filteredData={[cachedPartialGroup]}
                 renderedData={[cachedPartialGroup]}
-                totalSelectableItemsCount={5}
+                totalSelectableItemsCount={loadedChildren.length}
                 searchResults={undefined}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
+
+/** The same group in a search with every page in, which is what lets select-all-matching be turned off. */
+function SettledGroupWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[cachedPartialGroup]}
+                renderedData={[cachedPartialGroup]}
+                totalSelectableItemsCount={loadedChildren.length}
+                searchResults={settledGroupedResults}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -916,6 +944,27 @@ describe('Lazily loaded group selection', () => {
 
         // Then the group itself is excluded, so the three rows that never loaded leave the selection with the two that did
         expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+    });
+
+    it('turns select-all-matching off once every group has been unchecked', async () => {
+        const {result} = renderSelection(SettledGroupWrapper);
+
+        // Given every matching item selected in a grouped search of one group
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.areAllMatchingItemsSelected).toBe(true);
+
+        // When that group is unchecked, so nothing the search can select is left
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the flag goes off, rather than a footer advertising every match over a selection the user emptied
+        expect(result.current.areAllMatchingItemsSelected).toBe(false);
     });
 
     it('records what a narrowing dropped, so keeping select-all-matching on cannot silently re-include it', async () => {

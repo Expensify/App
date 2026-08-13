@@ -343,6 +343,28 @@ function isGroupChecked({groupKey, children, selectedTransactions, excludedTrans
     return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
+/**
+ * How many selectable items the exclusions cover, counted the same way `totalSelectableItemsCount` counts them: a row
+ * each where a group carries rows, and the group itself where it carries none. Comparing raw exclusion keys against
+ * that total measures nothing, since one group key stands for every row underneath it.
+ */
+function countFullyExcludedItems(data: SearchData, excludedTransactions: SelectedTransactions, areItemsGrouped: boolean): number {
+    if (!areItemsGrouped || !isGroupedItemArray(data)) {
+        return Object.keys(excludedTransactions).length;
+    }
+    const isExcluded = (key: string | undefined) => !!key && Object.hasOwn(excludedTransactions, key);
+    return data.reduce((count, group) => {
+        const selectable = group.transactions.filter((child) => child.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        if (selectable.length === 0) {
+            return count + (isExcluded(group.keyForList) ? 1 : 0);
+        }
+        if (isExcluded(group.keyForList)) {
+            return count + selectable.length;
+        }
+        return count + selectable.filter((child) => isExcluded(child.keyForList)).length;
+    }, 0);
+}
+
 /** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */
 function countCheckedGroupChildren({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): number {
     return children.reduce(
@@ -466,6 +488,7 @@ export {
     isGroupSelected,
     isGroupChecked,
     countCheckedGroupChildren,
+    countFullyExcludedItems,
     isRowChecked,
     NO_OPEN_GROUPS,
 };

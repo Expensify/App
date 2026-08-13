@@ -7,11 +7,12 @@ import useSelfDMReport from '@hooks/useSelfDMReport';
 import useShiftRangeSelection from '@hooks/useShiftRangeSelection';
 
 import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
-import {canRejectReportAction} from '@libs/ReportUtils';
 import {
     isGroupedItemArray,
     isReportActionListItemType,
+    isReportEntry,
     isTaskListItemType,
+    isTransactionEntry,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
@@ -21,28 +22,29 @@ import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
+import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {deepEqual} from 'fast-equals';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useRef} from 'react';
 
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
-import type {SearchData, SearchRowSelectionActionsValue, SearchShiftRangeChildrenActions, SelectedTransactionInfo, SelectedTransactions} from './types';
+import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
+import useGroupChildrenRegistry from './hooks/useGroupChildrenRegistry';
+import useReconcileSelectionWithData from './hooks/useReconcileSelectionWithData';
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     buildGroupChildrenIndex,
     buildShiftRangeItems,
+    countFullyExcludedItems,
     isGroupSelected,
     isRowChecked,
-    NO_OPEN_GROUPS,
     mapEmptyReportToSelectedEntry,
     mapTransactionItemToSelectedEntry,
     prepareTransactionsList,
@@ -82,291 +84,6 @@ type SearchWriteActionsProviderProps = {
     /** The list subtree whose rows and header consume the write actions. */
     children: React.ReactNode;
 };
-
-type ReconcileSelectionParams = {
-    /** Whether the search screen is currently focused */
-    isFocused: boolean;
-
-    /** The search data type (expense, chat, etc.) */
-    type: SearchDataTypes;
-
-    /** Whether rows are grouped (a group-by view or the expense-report view) */
-    areItemsGrouped: boolean;
-
-    /** Whether this is the expense-report view */
-    isExpenseReportType: boolean;
-
-    /** The currently displayed (filtered, grouped) rows */
-    filteredData: SearchData;
-
-    /** Raw search snapshot data, used for denormalized transaction/report lookups */
-    searchResultsData: SearchResults['data'] | undefined;
-
-    /** The live TRANSACTION Onyx collection */
-    transactions: OnyxCollection<Transaction>;
-
-    /** Email of the current user */
-    currentUserEmail: string;
-
-    /** Login (email or phone) of the current user */
-    currentUserLogin: string;
-
-    /** Account ID of the current user */
-    currentUserAccountID: number;
-
-    /** The current user's self-DM report, used as the parent for unreported (track) expenses */
-    selfDMReport: OnyxEntry<Report>;
-
-    /** Whether the app is running in production (affects split eligibility) */
-    isProduction: boolean;
-
-    /** Report name-value pairs collection, used for the change-report eligibility archived check */
-    reportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
-
-    /** Derived outstanding reports per policy, used for the change-report eligibility check */
-    outstandingReportsByPolicyID: OutstandingReportsByPolicyIDDerivedValue | undefined;
-
-    /** Whether the current snapshot is settled and can safely refresh/prune exclusions */
-    shouldReconcileExcludedTransactions: boolean;
-};
-
-/**
- * Rebuilds `selectedTransactions` whenever the underlying data changes (e.g. an Onyx push adds rows to a
- * selected report) so the selection stays in sync with what is on screen, then atomically commits it via
- * `applySelection`. Ported verbatim from the former `<Search>` refresh-selection effect: it reads
- * `selectedTransactions` from closure (not deps) on purpose so it only re-runs on data/focus/select-all
- * changes, and keeps the deep-equality bail-out that prevents the #89588 infinite-update loop.
- */
-function useReconcileSelectionWithData({
-    isFocused,
-    type,
-    areItemsGrouped,
-    isExpenseReportType,
-    filteredData,
-    searchResultsData,
-    transactions,
-    currentUserEmail,
-    currentUserLogin,
-    currentUserAccountID,
-    selfDMReport,
-    isProduction,
-    reportNameValuePairs,
-    outstandingReportsByPolicyID,
-    shouldReconcileExcludedTransactions,
-}: ReconcileSelectionParams) {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
-    const {applySelection} = useSearchSelectionActions();
-
-    useEffect(() => {
-        if (!isFocused) {
-            return;
-        }
-
-        if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
-            return;
-        }
-        const newTransactionList: SelectedTransactions = {};
-        const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
-        const presentGroupKeys = new Set<string>();
-        if (areItemsGrouped) {
-            for (const transactionGroup of filteredData) {
-                if (!Object.hasOwn(transactionGroup, 'transactions') || !('transactions' in transactionGroup)) {
-                    continue;
-                }
-
-                const reportKey = transactionGroup.keyForList;
-                // Only group-by groups that carry no rows, since anything missing from a group that does carry them is gone for real.
-                if (reportKey && !isExpenseReportType && transactionGroup.transactions.length === 0 && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    presentGroupKeys.add(reportKey);
-                }
-                if (shouldReconcileExcludedTransactions && reportKey && transactionGroup.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    const [, groupSelection] = mapEmptyReportToSelectedEntry(transactionGroup);
-                    liveSelectionEntries.set(reportKey, groupSelection);
-                }
-
-                if (transactionGroup.transactions.length === 0) {
-                    if (transactionGroup.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                        continue;
-                    }
-                    if (reportKey && !Object.hasOwn(excludedTransactions, reportKey) && (reportKey in selectedTransactions || areAllMatchingItemsSelected)) {
-                        const emptyReportSelection = liveSelectionEntries.get(reportKey) ?? mapEmptyReportToSelectedEntry(transactionGroup)[1];
-                        newTransactionList[reportKey] = {
-                            ...emptyReportSelection,
-                            isSelected: areAllMatchingItemsSelected || selectedTransactions[reportKey]?.isSelected,
-                        };
-                    }
-                    continue;
-                }
-
-                // For expense reports: when ANY transaction is selected, we want ALL transactions in the report selected.
-                // This ensures report-level selection persists when new transactions are added.
-                // Also check if the report itself was selected (when it was empty) by checking the reportID key
-                const wasReportSelected = !!(reportKey && reportKey in selectedTransactions);
-                const hasIndividualSelectedInGroup = transactionGroup.transactions.some(
-                    (transaction) => (!!transaction.keyForList && transaction.keyForList in selectedTransactions) || transaction.transactionID in selectedTransactions,
-                );
-                const propagateSelectionToAllRows = (isExpenseReportType && (wasReportSelected || hasIndividualSelectedInGroup)) || (wasReportSelected && !isExpenseReportType);
-                const isParentGroupExcluded = type === CONST.SEARCH.DATA_TYPES.EXPENSE && !!reportKey && Object.hasOwn(excludedTransactions, reportKey);
-
-                for (const transactionItem of transactionGroup.transactions) {
-                    const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                    const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
-                    const isExcluded = isParentGroupExcluded || isDirectlyExcluded;
-                    const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
-
-                    // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
-                    const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);
-                    if (!shouldInclude && !isDirectlyExcluded) {
-                        continue;
-                    }
-
-                    const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                    const originalItemTransaction =
-                        searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                    const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
-
-                    // The overrides below are what reconcile computes differently from a toggle — keep them.
-                    const [, baseEntry] = mapTransactionItemToSelectedEntry({
-                        item: transactionItem,
-                        itemTransaction,
-                        originalItemTransaction,
-                        currentUserLogin,
-                        currentUserAccountID,
-                        reportNameValuePairs,
-                        outstandingReportsByPolicyID,
-                        selfDMReport,
-                        isProduction,
-                        allowNegativeAmount: true,
-                        parentReport: itemParentReport,
-                    });
-
-                    const liveSelectionEntry: SelectedTransactionInfo = {
-                        ...baseEntry,
-                        isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
-                        canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
-                        policyID: transactionItem.report?.policyID,
-                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
-                        isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
-                    };
-                    liveSelectionEntries.set(listKey, liveSelectionEntry);
-                    liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
-                    if (shouldInclude) {
-                        newTransactionList[listKey] = liveSelectionEntry;
-                    }
-                }
-            }
-        } else {
-            for (const transactionItem of filteredData) {
-                if (!Object.hasOwn(transactionItem, 'transactionID') || !('transactionID' in transactionItem)) {
-                    continue;
-                }
-                const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
-                const isExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
-                if (!isExcluded && !(listKey in selectedTransactions) && !(transactionItem.transactionID in selectedTransactions) && !areAllMatchingItemsSelected) {
-                    continue;
-                }
-
-                const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
-                const flatPreviousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
-
-                const [, baseEntry] = mapTransactionItemToSelectedEntry({
-                    item: transactionItem,
-                    itemTransaction,
-                    originalItemTransaction,
-                    currentUserLogin,
-                    currentUserAccountID,
-                    reportNameValuePairs,
-                    outstandingReportsByPolicyID,
-                    selfDMReport,
-                    isProduction,
-                    allowNegativeAmount: true,
-                    parentReport: itemParentReport,
-                });
-
-                const liveSelectionEntry: SelectedTransactionInfo = {
-                    ...baseEntry,
-                    isSelected: areAllMatchingItemsSelected || !!flatPreviousSelection?.isSelected,
-                    canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
-                    policyID: transactionItem.report?.policyID,
-                };
-                liveSelectionEntries.set(listKey, liveSelectionEntry);
-                liveSelectionEntries.set(transactionItem.transactionID, liveSelectionEntry);
-                if (!isExcluded) {
-                    newTransactionList[listKey] = liveSelectionEntry;
-                }
-            }
-        }
-
-        // Kept while the parent group is still here, the same rule the exclusions below follow, since a lazy group's children never reach `filteredData`.
-        if (areItemsGrouped) {
-            for (const [key, selectedTransaction] of Object.entries(selectedTransactions)) {
-                const parentGroupKey = selectedTransaction.groupKey;
-                if (!parentGroupKey || Object.hasOwn(newTransactionList, key) || Object.hasOwn(excludedTransactions, key) || !presentGroupKeys.has(parentGroupKey)) {
-                    continue;
-                }
-                newTransactionList[key] = liveSelectionEntries.get(key) ?? selectedTransaction;
-            }
-        }
-
-        let reconciledExcludedTransactions = excludedTransactions;
-        if (shouldReconcileExcludedTransactions && areAllMatchingItemsSelected && !isEmptyObject(excludedTransactions)) {
-            const nextExcludedTransactions: SelectedTransactions = {};
-            for (const [key, excludedTransaction] of Object.entries(excludedTransactions)) {
-                const transactionID = excludedTransaction.transaction?.transactionID;
-                const liveEntry = liveSelectionEntries.get(key) ?? (transactionID ? liveSelectionEntries.get(transactionID) : undefined);
-                if (liveEntry) {
-                    nextExcludedTransactions[key] = {
-                        ...liveEntry,
-                        groupKey: excludedTransaction.groupKey,
-                        isSelectedViaGroup: excludedTransaction.isSelectedViaGroup,
-                    };
-                    continue;
-                }
-
-                // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present; if the parent disappears, the child no longer matches this search.
-                if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
-                    nextExcludedTransactions[key] = excludedTransaction;
-                }
-            }
-            if (!deepEqual(nextExcludedTransactions, excludedTransactions)) {
-                reconciledExcludedTransactions = nextExcludedTransactions;
-            }
-        }
-
-        const isSelectionUnchanged = deepEqual(newTransactionList, selectedTransactions);
-        const areExclusionsUnchanged = reconciledExcludedTransactions === excludedTransactions;
-        if (isEmptyObject(newTransactionList) && Object.keys(selectedTransactions).length === 0 && areExclusionsUnchanged) {
-            return;
-        }
-
-        // Bail out when the rebuilt selection is deeply equal to the current one. Without this,
-        // a dep that re-derives to a new reference but the same value re-runs this effect, which
-        // commits an equivalent payload and loops until React aborts with "Maximum update depth
-        // exceeded". See https://github.com/Expensify/App/issues/89588
-        if (isSelectionUnchanged && areExclusionsUnchanged) {
-            return;
-        }
-
-        // Commit without `totalSelectableItemsCount` so the select-all flag is left untouched while the data
-        // reconcile is in flight (this replaces the former `isRefreshingSelection` guard). `filteredData` is passed
-        // so `selectedReports` is derived atomically and a stale `useSyncSelectedReports` derivation can't briefly
-        // clear it (which would close screens like SearchChangeApproverPage that dismiss on empty `selectedReports`).
-        applySelection(() => (isSelectionUnchanged ? selectedTransactions : newTransactionList), {
-            data: filteredData,
-            ...(areExclusionsUnchanged ? {} : {reconciledExcludedTransactions}),
-        });
-        // `selectedTransactions` and `excludedTransactions` are intentionally omitted from the deps and read from
-        // closure instead (see the hook doc above): including them would re-run this reconcile on every checkbox
-        // press. We only want it to run when the underlying data, focus, or select-all state changes.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, applySelection, areAllMatchingItemsSelected, isFocused, outstandingReportsByPolicyID, isExpenseReportType, shouldReconcileExcludedTransactions]);
-}
 
 /** Turn mobile selection mode off once nothing is selected and the selection asked to exit the mode. */
 function useTurnOffSelectionModeWhenEmpty({isFocused, isMobileSelectionModeEnabled}: {isFocused: boolean; isMobileSelectionModeEnabled: boolean}) {
@@ -448,69 +165,29 @@ function SearchWriteActionsProvider({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions, getExcludedTransactions} = useSearchSelectionActions();
 
-    // Group-by children load lazily, so the rows that render them publish them here.
-    const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
-
-    // Held apart from the children because a row can be recycled out of the list while its group stays open.
-    const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
-
-    // The registry belongs to one search, so a group left open across a query change cannot range over the previous results.
     const searchHash = searchResults?.search?.hash;
-    const [registryHash, setRegistryHash] = useState(searchHash);
-    if (registryHash !== searchHash) {
-        setRegistryHash(searchHash);
-        setGroupChildrenByKey(getEmptyObject<Record<string, TransactionListItemType[]>>());
-    }
+    const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
 
     const pendingSeedGroupKeyRef = useRef<string | undefined>(undefined);
-
-    // Built once (by construction, not by React Compiler) so the register effect can't loop.
-    const [shiftRangeChildrenMethods] = useState<Omit<SearchShiftRangeChildrenActions, 'registryGeneration'>>(() => ({
-        // Compared by value: an equal array must not re-register and re-render every row, but changed rows must replace the stale copy.
-        registerGroupChildren: (groupKey, groupChildren) =>
-            setGroupChildrenByKey((prev) => {
-                // An empty publish means the group's rows are gone, so it has to land: a group that has not loaded yet publishes nothing at all.
-                if (deepEqual(prev[groupKey], groupChildren) || (!(groupKey in prev) && groupChildren.length === 0)) {
-                    return prev;
-                }
-                return {...prev, [groupKey]: groupChildren};
-            }),
-        addGroupToRange: (groupKey) =>
-            setOpenGroupKeys((prev) => {
-                if (prev.has(groupKey)) {
-                    return prev;
-                }
-                const next = new Set(prev);
-                next.add(groupKey);
-                return next;
-            }),
-        // Drops only openness, so reopening a group before its publisher re-renders still has its children.
-        removeGroupFromRange: (groupKey) =>
-            setOpenGroupKeys((prev) => {
-                if (!prev.has(groupKey)) {
-                    return prev;
-                }
-                const next = new Set(prev);
-                next.delete(groupKey);
-                return next;
-            }),
-    }));
-
-    // Only the container changes when the registry is dropped; the methods keep their identity, so openness subscribers stay put.
-    const shiftRangeChildrenActions: SearchShiftRangeChildrenActions = {...shiftRangeChildrenMethods, registryGeneration: registryHash};
 
     const searchResultsData = searchResults?.data;
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
     // One lookup policy (snapshot first, live Onyx fallback) so a row's action flags can't differ by selection gesture.
+    const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
+    };
+
     const resolveTransactionRefs = (item: TransactionListItemType) => {
-        const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`] ??
-            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${item.transactionID}`]) as OnyxEntry<Transaction>;
-        const originalItemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-            transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`]) as OnyxEntry<Transaction>;
-        const parentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`] as OnyxEntry<Report>;
-        return {itemTransaction, originalItemTransaction, parentReport};
+        const itemTransaction = readTransaction(item.transactionID);
+        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${item.report?.parentReportID}`;
+        return {
+            itemTransaction,
+            originalItemTransaction: readTransaction(itemTransaction?.comment?.originalTransactionID),
+            parentReport: isReportEntry(parentReportKey) ? searchResultsData?.[parentReportKey] : undefined,
+        };
     };
 
     // Shared selection-entry builder so the toggle / select-all / range call sites can't drift apart.
@@ -534,8 +211,13 @@ function SearchWriteActionsProvider({
     // Every write path has to agree on this: a deselection is recorded as an exclusion only where the backend can be told about it.
     const canRecordExclusions = type === CONST.SEARCH.DATA_TYPES.EXPENSE;
 
-    // Only comparable with the exclusions where a row is what gets selected: a group-by search counts groups, not the rows inside them.
-    const selectableRowCount = areItemsGrouped ? undefined : totalSelectableItemsCount;
+    // One exit rule for every selection commit, so a change to it cannot miss a call site.
+    const commitOptions = {
+        totalSelectableItemsCount,
+        shouldPreserveAllMatchingSelection: canRecordExclusions,
+        shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
+        countFullyExcludedItems: (excludedTransactions: SelectedTransactions) => countFullyExcludedItems(filteredData, excludedTransactions, areItemsGrouped),
+    };
 
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
@@ -544,22 +226,26 @@ function SearchWriteActionsProvider({
     const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
     const isShiftRangeHeaderItem = (item: SearchData[number]) => isTransactionGroupListItemType(item) && hasValidGroupBy;
 
+    // The group holds rows nobody can name yet, so enumerating it would drop the ones that never arrived.
+    const isCoveredByPartialGroup = (selection: SelectedTransactions, childKey: string) => {
+        const groupKey = groupKeyByChildKey.get(childKey);
+        if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
+            return false;
+        }
+        const totalCount = childCountByGroupKey.get(groupKey);
+        return totalCount !== undefined && (childrenByGroupKey.get(groupKey) ?? []).length < totalCount;
+    };
+
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
-    // `canDropChild` is false while only part of the group is registered: writing it out then would silently drop the rows that never arrived.
-    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): {selection: SelectedTransactions; canDropChild: boolean} => {
+    const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
         const groupKey = groupKeyByChildKey.get(childKey);
         // Select-all-matching already covers the group, so writing it out would only record the whole group as excluded.
         if (!groupKey || areAllMatchingItemsSelected || !selection[groupKey]?.isSelected) {
-            return {selection, canDropChild: true};
-        }
-        const groupChildren = childrenByGroupKey.get(groupKey) ?? [];
-        const totalCount = childCountByGroupKey.get(groupKey);
-        if (totalCount !== undefined && groupChildren.length < totalCount) {
-            return {selection, canDropChild: false};
+            return selection;
         }
         const spelledOut: SelectedTransactions = {...selection};
         delete spelledOut[groupKey];
-        for (const child of groupChildren) {
+        for (const child of childrenByGroupKey.get(groupKey) ?? []) {
             if (isTransactionPendingDelete(child)) {
                 continue;
             }
@@ -567,14 +253,14 @@ function SearchWriteActionsProvider({
             // No `isSelectedViaGroup`: the caller is about to drop one of these, so the group stops being a whole-group selection.
             spelledOut[key] = {...info, groupKey};
         }
-        return {selection: spelledOut, canDropChild: true};
+        return spelledOut;
     };
 
-    // Read through the refs, so asking whether a group is checked never re-renders this provider on a selection change.
-    const groupSelectionParams = (groupKey: string | undefined, groupChildren: TransactionListItemType[]) => ({
+    // Defaults to the refs, so asking whether a group is checked never re-renders this provider. A reducer passes its own map.
+    const groupSelectionParams = (groupKey: string | undefined, groupChildren: TransactionListItemType[], selectedTransactions = getSelectedTransactions()) => ({
         groupKey,
         children: groupChildren,
-        selectedTransactions: getSelectedTransactions(),
+        selectedTransactions,
         excludedTransactions: getExcludedTransactions(),
         areAllMatchingItemsSelected,
     });
@@ -613,24 +299,19 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    const {selection, canDropChild} = spellOutGroupSelection(updated, tx.keyForList);
-                    // The group already covers this row and cannot be written out yet, so an entry of its own would only make a later narrowing impossible.
-                    if (!canDropChild) {
+                    // Already selected through its group, and its own entry would only make a later narrowing impossible.
+                    if (isCoveredByPartialGroup(updated, tx.keyForList)) {
                         return;
                     }
-                    updated = selection;
+                    updated = spellOutGroupSelection(updated, tx.keyForList);
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = blockGroupKey ?? groupKeyByChildKey.get(tx.keyForList);
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
                 };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
-                        if (row.keyForList) {
-                            const {selection, canDropChild} = spellOutGroupSelection(updated, row.keyForList);
-                            if (!canDropChild) {
-                                return;
-                            }
-                            updated = selection;
+                        if (row.keyForList && !isCoveredByPartialGroup(updated, row.keyForList)) {
+                            updated = spellOutGroupSelection(updated, row.keyForList);
                             delete updated[row.keyForList];
                         }
                         return;
@@ -669,25 +350,8 @@ function SearchWriteActionsProvider({
                 }
                 return updated;
             },
-            {
-                data: filteredData,
-                totalSelectableItemsCount,
-                selectableRowCount,
-                // Matches the row and group toggles, so narrowing records exclusions rather than dropping every unloaded match.
-                shouldPreserveAllMatchingSelection: canRecordExclusions,
-                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-                deselectedWithoutEntry: rangeExclusions,
-            },
+            {...commitOptions, data: filteredData, deselectedWithoutEntry: rangeExclusions},
         );
-    };
-
-    // A report row stores its selection under its child transactions, so it counts as selected when any child is.
-    const isRowSelectedOnItsOwn = (item: SearchData[number]) => {
-        const selected = getSelectedTransactions();
-        if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
-            return item.transactions.some((transaction) => selected[transaction.keyForList]?.isSelected);
-        }
-        return !!(item.keyForList && selected[item.keyForList]?.isSelected);
     };
 
     // The same predicate the checkbox renders from, so a range reaches exactly the rows the user sees checked.
@@ -713,10 +377,12 @@ function SearchWriteActionsProvider({
 
     // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
     const isRowHandPicked = (item: SearchData[number]) => {
+        const selectedTransactions = getSelectedTransactions();
+        // A report row keeps its selection under its children, so any child picked on its own makes the report one the user chose.
         if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
-            return isRowSelectedOnItsOwn(item);
+            return item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
-        const entry = item.keyForList ? getSelectedTransactions()[item.keyForList] : undefined;
+        const entry = item.keyForList ? selectedTransactions[item.keyForList] : undefined;
         return !!entry?.isSelected && !entry.isSelectedViaGroup;
     };
 
@@ -786,25 +452,14 @@ function SearchWriteActionsProvider({
                 return;
             }
             const clickExclusion = buildExclusionForCheckedRowWithoutEntry(item);
-            if (!isEmptyObject(clickExclusion)) {
-                applySelection((selectedTransactions) => selectedTransactions, {
-                    data: filteredData,
-                    totalSelectableItemsCount,
-                    selectableRowCount,
-                    shouldPreserveAllMatchingSelection: canRecordExclusions,
-                    shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-                    deselectedWithoutEntry: clickExclusion,
-                });
-                return;
-            }
             applySelection(
                 (selectedTransactions) => {
-                    const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
-                    const {selection: baseSelection, canDropChild} = spellOutGroupSelection(selectedTransactions, item.keyForList);
-                    // The row is checked by a group whose rows are still paging in, so there is no way to record dropping it yet.
-                    if (!canDropChild) {
+                    // Checked by a wider selection, so there is no entry to remove and adding one would check it twice.
+                    if (!isEmptyObject(clickExclusion) || isCoveredByPartialGroup(selectedTransactions, item.keyForList)) {
                         return selectedTransactions;
                     }
+                    const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);
+                    const baseSelection = spellOutGroupSelection(selectedTransactions, item.keyForList);
                     const updatedTransactions = prepareTransactionsList({
                         item,
                         itemTransaction,
@@ -838,12 +493,7 @@ function SearchWriteActionsProvider({
 
                     return updatedTransactions;
                 },
-                {
-                    totalSelectableItemsCount,
-                    selectableRowCount,
-                    shouldPreserveAllMatchingSelection: canRecordExclusions,
-                    shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-                },
+                {...commitOptions, deselectedWithoutEntry: clickExclusion},
             );
             return;
         }
@@ -855,10 +505,12 @@ function SearchWriteActionsProvider({
                 Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
             }
             // Naming only the rows it happens to hold would leave the rest of the group selected, so a group that is not all here is excluded whole.
-            const loadedCount = isTransactionGroupListItemType(item) && 'count' in item && typeof item.count === 'number' ? item.count : undefined;
-            if (canRecordExclusions && areAllMatchingItemsSelected && isTransactionGroupListItemType(item) && loadedCount !== undefined && groupTransactions.length < loadedCount) {
-                const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);
-                groupExclusions[groupKey] = groupEntry;
+            if (canRecordExclusions && areAllMatchingItemsSelected && isTransactionGroupListItemType(item)) {
+                const totalCount = 'count' in item && typeof item.count === 'number' ? item.count : undefined;
+                if (totalCount !== undefined && groupTransactions.length < totalCount) {
+                    const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);
+                    groupExclusions[groupKey] = groupEntry;
+                }
             }
         }
 
@@ -885,7 +537,7 @@ function SearchWriteActionsProvider({
                 // deselecting has to clear that entry too, otherwise the group stays selected with no way to deselect it.
                 const groupKey = item.keyForList;
 
-                if (isGroupSelected({...groupSelectionParams(groupKey, groupTransactions), selectedTransactions})) {
+                if (isGroupSelected(groupSelectionParams(groupKey, groupTransactions, selectedTransactions))) {
                     const reducedSelectedTransactions: SelectedTransactions = {...selectedTransactions};
                     if (groupKey) {
                         delete reducedSelectedTransactions[groupKey];
@@ -908,13 +560,7 @@ function SearchWriteActionsProvider({
                     ),
                 };
             },
-            {
-                totalSelectableItemsCount,
-                selectableRowCount,
-                shouldPreserveAllMatchingSelection: canRecordExclusions,
-                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
-                deselectedWithoutEntry: groupExclusions,
-            },
+            {...commitOptions, deselectedWithoutEntry: groupExclusions},
         );
     };
 
@@ -968,12 +614,10 @@ function SearchWriteActionsProvider({
                 return Object.fromEntries(entries);
             },
             {
+                ...commitOptions,
                 data: filteredData,
-                totalSelectableItemsCount,
-                selectableRowCount,
                 // Selecting the page covers rows that were excluded, so the exclusions go with it. Clearing must not preserve them.
                 shouldPreserveAllMatchingSelection: !isClearing && canRecordExclusions,
-                shouldClearAllMatchingSelectionWhenEmpty: isOffline || searchResults?.search?.hasMoreResults === false,
             },
         );
     };
