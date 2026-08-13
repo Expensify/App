@@ -8,13 +8,16 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import useOnyx from './useOnyx';
 
-const selfDMReportIDSelector = (reports: OnyxCollection<Report>) => {
+const selfDMReportIDSelector = (reports: OnyxCollection<Report>, cachedSelfDMReportID: string | undefined) => {
+    if (cachedSelfDMReportID) {
+        return undefined;
+    }
     return Object.values(reports ?? {}).find((report) => isSelfDM(report) && !isThread(report))?.reportID;
 };
 
 function useSelfDMReport() {
     const [cachedSelfDMReportID] = useOnyx(ONYXKEYS.SELF_DM_REPORT_ID);
-    const [selfDMReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: selfDMReportIDSelector});
+    const [selfDMReportID] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: (reports) => selfDMReportIDSelector(reports, cachedSelfDMReportID)});
     const [selfDMReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${cachedSelfDMReportID ?? selfDMReportID}`);
     return selfDMReport ?? buildOptimisticSelfDMReport(DateUtils.getDBTime());
 }

@@ -149,4 +149,23 @@ describe('ContextMenuActions copy message', () => {
         expect(mockGetClipboardText).toHaveBeenCalledWith(expectedTranslationKey);
         expect(mockClipboard.setString).toHaveBeenCalledWith('mocked clipboard text');
     });
+
+    it('copies the localized message for a category update action', () => {
+        mockClipboard.canSetHtml.mockReturnValue(false);
+
+        if (!copyMessageAction?.onPress) {
+            throw new Error('Copy message context menu action was not found');
+        }
+
+        copyMessageAction.onPress(
+            false,
+            createReportActionPayload({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY,
+                message: [{html: ''}],
+                originalMessage: {categoryName: 'Advertising', updatedField: 'areAttendeesRequired', oldValue: '', newValue: true},
+            }),
+        );
+
+        expect(mockClipboard.setString).toHaveBeenCalledWith('workspaceActions.updateAreAttendeesRequired');
+    });
 });

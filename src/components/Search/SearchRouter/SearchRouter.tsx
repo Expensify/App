@@ -32,7 +32,7 @@ import {createOptionFromReport} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {isHiddenForCurrentUser} from '@libs/ReportUtils';
+import {isHiddenForCurrentUser, isOneOnOneChat} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {getAutocompleteQueryWithComma, getTrimmedUserSearchQueryPreservingComma} from '@libs/SearchAutocompleteUtils';
 import {buildUserReadableQueryString, getQueryWithUpdatedValues, sanitizeSearchValue} from '@libs/SearchQueryUtils';
@@ -79,7 +79,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -131,6 +131,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             autoCompleteWithSpace: false,
             translate,
+            formatPhoneNumber,
             feedKeysWithCards,
             reportAttributes,
             bankAccountList,
@@ -145,6 +146,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             bankAccountList,
         );
@@ -215,14 +217,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 }
 
                 const option = createOptionFromReport({
+                    dateFnsLocale,
                     report: contextualReport,
                     personalDetails,
                     privateIsArchived: contextualReportNVP,
                     policy: contextualReportPolicy,
                     sortedActions,
                     conciergeReportID,
+                    reportAttributesDerived: reportAttributes,
                     config: {
-                        showPersonalDetails: true,
+                        showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
                 });
@@ -292,7 +296,9 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             contextualReportNVP,
             contextualReportPolicy,
+            reportAttributes,
             isTrackIntentUser,
+            dateFnsLocale,
         ],
     );
 
@@ -413,7 +419,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                     const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery, true)}\u00A0`;
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
