@@ -2595,6 +2595,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Bevestig testtransacties alsjeblieft',
             accountRequiresAttention: 'Deze account vereist aandacht',
             unlock: 'Ontgrendelen',
+            plaidBrokenReconnect: 'Je verbinding met Plaid is verbroken. Verbind opnieuw voor een nauwkeurigere domeinlimiet',
+            plaidConnectForLimit: 'Maak verbinding met Plaid voor een nauwkeuriger Expensify Kaart-limiet',
+            connect: 'Verbinden',
+        },
+        linkPlaid: {
+            title: 'Verbind met Plaid',
+            successHeading: 'Verbinding geslaagd',
+            successDescription: 'Bedankt dat je verbinding hebt gemaakt met Plaid!',
+            failureHeading: 'Verbinding mislukt',
+            failureDescription: 'Probeer het opnieuw of <concierge-link>neem contact op met Concierge</concierge-link>.',
+            wrongAccountHeading: 'Verkeerde bankrekening',
+            wrongAccountDescription: 'Selecteer de bijbehorende bankrekening in Plaid.',
         },
     },
     cardPage: {
