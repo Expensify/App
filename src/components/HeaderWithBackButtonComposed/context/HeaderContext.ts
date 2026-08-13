@@ -1,0 +1,18 @@
+import {createContext, useContext} from 'react';
+
+import type HeaderContextValue from './types';
+
+/** Fallback used when a Header block is rendered outside a `<Header>` wrapper — keeps consumers safe from `undefined` reads. */
+const defaultHeaderContextValue: HeaderContextValue = {
+    iconFill: undefined,
+    shouldUseHeadlineHeader: false,
+};
+
+const HeaderContext = createContext<HeaderContextValue>(defaultHeaderContextValue);
+
+function useHeaderContext(): HeaderContextValue {
+    return useContext(HeaderContext);
+}
+
+export default HeaderContext;
+export {useHeaderContext};
