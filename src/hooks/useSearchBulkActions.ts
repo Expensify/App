@@ -1086,6 +1086,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalDetails,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {

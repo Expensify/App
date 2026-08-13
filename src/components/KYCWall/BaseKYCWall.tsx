@@ -291,6 +291,7 @@ function KYCWall({
             conciergeChat,
             localCurrency,
             getCurrencyDecimals,
+            formatPhoneNumber,
         ],
     );
 

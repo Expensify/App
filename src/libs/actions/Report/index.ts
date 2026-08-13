@@ -4395,19 +4395,31 @@ function buildNewReportOptimisticData({
     };
 }
 
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    betas: OnyxEntry<Beta[]>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    policy,
+    betas,
+    isTrackIntentUser,
+    getCurrencyDecimals,
     shouldNotifyNewAction = false,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
+    formatPhoneNumber,
+    shouldDismissEmptyReportsConfirmation,
+    options = {},
+}: {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    betas: OnyxEntry<Beta[]>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    shouldNotifyNewAction: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    options: {managedCardTransactionID?: string; reportName?: string};
+}) {
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();

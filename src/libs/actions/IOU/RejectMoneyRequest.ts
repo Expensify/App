@@ -945,19 +945,31 @@ function prepareRejectMoneyRequestData({
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 
-function rejectMoneyRequest(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    delegateAccountID: number | undefined,
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    options?: RejectMoneyRequestOptions,
-): Route | undefined {
+function rejectMoneyRequest({
+    transactionID,
+    reportID,
+    comment,
+    policy,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    formatPhoneNumber,
+    getCurrencyDecimals,
+    options,
+}: {
+    transactionID: string;
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    options?: RejectMoneyRequestOptions;
+}): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
         reportID,
