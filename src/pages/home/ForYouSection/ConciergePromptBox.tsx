@@ -30,6 +30,9 @@ import {View} from 'react-native';
 
 import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 
+// Max input height (~5 lines) before the input starts scrolling internally.
+const MAX_INPUT_HEIGHT = variables.componentSizeNormal * 3;
+
 function ConciergePromptBox() {
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -40,6 +43,10 @@ function ConciergePromptBox() {
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Send', 'Paperclip']);
     const {calculatePopoverPosition} = usePopoverPosition();
     const [value, setValue] = useState('');
+    // The RNTextInput can't auto-grow on its own, so we measure a hidden mirror of its content
+    // (grows and shrinks correctly across web/native) and drive the input height from it.
+    const [inputWidth, setInputWidth] = useState(0);
+    const [contentHeight, setContentHeight] = useState(variables.lineHeightXLarge);
     const [isFocused, setIsFocused] = useState(false);
     const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
@@ -71,6 +78,10 @@ function ConciergePromptBox() {
     const placeholder = translate(shouldUseNarrowLayout ? 'homePage.conciergePrompt.inputPlaceholderMobile' : 'homePage.conciergePrompt.inputPlaceholder');
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0;
 
+    // Grow the input to fit its content (measured mirror + vertical padding), clamped between a single
+    // line and a max height (~5 lines) after which the input scrolls internally.
+    const inputHeight = Math.min(MAX_INPUT_HEIGHT, Math.max(variables.componentSizeNormal, contentHeight + variables.componentSizeNormal - variables.lineHeightXLarge));
+
     const submit = () => {
         if (!canSubmit) {
             return;
@@ -85,8 +96,8 @@ function ConciergePromptBox() {
                 <Text style={styles.textLabelSupporting}>{dateLabel}</Text>
                 <Text style={styles.textHeadlineH1}>{greeting}</Text>
             </View>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.gap3, styles.ph1, styles.getConciergePromptBoxContainerStyle(isFocused)]}>
-                <View style={[styles.flexRow, styles.alignItemsCenter, styles.alignSelfStretch]}>
+            <View style={[styles.flexRow, styles.alignItemsEnd, styles.gap3, styles.ph1, styles.pv1, styles.getConciergePromptBoxContainerStyle(isFocused)]}>
+                <View style={[styles.flexRow, styles.alignItemsEnd, styles.alignSelfStretch]}>
                     <AttachmentPicker
                         allowMultiple
                         fileLimit={CONST.API_ATTACHMENT_VALIDATIONS.MAX_FILE_LIMIT}
@@ -150,19 +161,34 @@ function ConciergePromptBox() {
                     </AttachmentPicker>
                     <View style={styles.conciergePromptBoxDivider} />
                 </View>
-                <RNTextInput
-                    style={[styles.textNormal, styles.flex1, styles.noOutline, styles.conciergePromptBoxInput]}
-                    value={value}
-                    onChangeText={setValue}
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    placeholder={placeholder}
-                    placeholderTextColor={theme.placeholderText}
-                    onSubmitEditing={submit}
-                    submitBehavior="submit"
-                    returnKeyType="send"
-                    accessibilityLabel={placeholder}
-                />
+                <View style={styles.flex1}>
+                    <RNTextInput
+                        style={[styles.textNormal, styles.noOutline, styles.conciergePromptBoxInput, {height: inputHeight}]}
+                        value={value}
+                        onChangeText={setValue}
+                        onLayout={(e) => setInputWidth(e.nativeEvent.layout.width)}
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        multiline
+                        placeholder={placeholder}
+                        placeholderTextColor={theme.placeholderText}
+                        onSubmitEditing={submit}
+                        submitBehavior="submit"
+                        returnKeyType="send"
+                        accessibilityLabel={placeholder}
+                    />
+                    {inputWidth > 0 && (
+                        <Text
+                            style={[styles.textNormal, styles.conciergePromptBoxInputMeasure, styles.hiddenElementOutsideOfWindow, styles.visibilityHidden, {width: inputWidth}]}
+                            onLayout={(e) => setContentHeight(e.nativeEvent.layout.height)}
+                            accessible={false}
+                            aria-hidden
+                        >
+                            {/* Trailing zero-width space so a value ending in a newline still measures the extra line. */}
+                            {value ? `${value}${value.endsWith('\n') ? '\u200B' : ''}` : placeholder}
+                        </Text>
+                    )}
+                </View>
                 <PressableWithFeedback
                     accessibilityLabel={translate('common.send')}
                     sentryLabel="ConciergePromptBox-Send"

@@ -7208,12 +7208,25 @@ const plainStyles = (theme: ThemeColors) =>
         conciergePromptBoxDivider: {
             width: 1,
             alignSelf: 'stretch',
+            // Cancel the container's vertical padding (pv1) so the divider spans edge-to-edge
+            // while the buttons and input keep their vertical breathing room.
+            marginVertical: -4,
             backgroundColor: theme.border,
         },
 
         conciergePromptBoxInput: {
             color: theme.text,
-            height: variables.componentSizeNormal,
+            lineHeight: variables.lineHeightXLarge,
+            paddingVertical: (variables.componentSizeNormal - variables.lineHeightXLarge) / 2,
+            minHeight: variables.componentSizeNormal,
+            maxHeight: variables.componentSizeNormal * 3,
+            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+            textAlignVertical: 'top',
+        } satisfies TextStyle,
+
+        // Font-only styles matching the input, used by the hidden mirror that measures content height.
+        conciergePromptBoxInputMeasure: {
+            lineHeight: variables.lineHeightXLarge,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
         } satisfies TextStyle,
 
