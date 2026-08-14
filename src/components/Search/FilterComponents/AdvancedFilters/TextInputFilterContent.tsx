@@ -1,10 +1,10 @@
 import Button from '@components/Button';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
-import ListRadioButton from '@components/SelectionList/components/ListRadioButton';
-import type {ListItem} from '@components/SelectionList/types';
+import SelectionList from '@components/SelectionList';
+import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
+import type {ListItem} from '@components/SelectionList/ListItem/types';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -20,7 +20,7 @@ import type {MerchantMatchType} from '@src/types/form/SearchAdvancedFiltersForm'
 
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
 
-import React, {Fragment, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type TextInputFilterContentProps = {
@@ -56,14 +56,14 @@ function TextInputFilterContent({
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
     const merchantMatchTypeItems: Array<ListItem<MerchantMatchType>> = [
         {
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('search.filters.merchant.equalTo'),
-            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            text: translate('workspace.rules.merchantRules.matchTypeContains'),
+            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
         },
         {
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            text: translate('search.filters.merchant.contains'),
-            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
+            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+            text: translate('workspace.rules.merchantRules.matchTypeExact'),
+            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
         },
     ];
 
@@ -86,7 +86,7 @@ function TextInputFilterContent({
             onChangeText={setValue}
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
-            containerStyles={shouldShowMerchantMatchType ? [styles.ph4, styles.mv2] : [styles.ph5]}
+            containerStyles={shouldShowMerchantMatchType ? [styles.ph5, styles.mb5] : [styles.ph5]}
         />
     );
 
@@ -96,28 +96,23 @@ function TextInputFilterContent({
                 baseFilterKey={baseFilterKey}
                 isNegated={isNegated}
                 onNegationChange={setIsNegated}
+                style={shouldShowMerchantMatchType ? styles.flex1 : undefined}
             >
-                <View>
-                    {shouldShowMerchantMatchType
-                        ? merchantMatchTypeItems.map((item) => (
-                              <Fragment key={item.keyForList}>
-                                  <PressableWithFeedback
-                                      sentryLabel="TextInputFilterContent-MerchantMatchType"
-                                      accessibilityLabel={item.text ?? ''}
-                                      role={CONST.ROLE.BUTTON}
-                                      onPress={() => setMerchantOperator(item.keyForList)}
-                                      style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.ph5, styles.optionRow]}
-                                  >
-                                      <Text style={[styles.optionDisplayName, styles.sidebarLinkTextBold]}>{item.text}</Text>
-                                      <ListRadioButton
-                                          item={item}
-                                          onSelectRow={() => setMerchantOperator(item.keyForList)}
-                                      />
-                                  </PressableWithFeedback>
-                                  {item.isSelected && filterInput}
-                              </Fragment>
-                          ))
-                        : filterInput}
+                <View style={shouldShowMerchantMatchType ? styles.flex1 : undefined}>
+                    {filterInput}
+                    {shouldShowMerchantMatchType && (
+                        <>
+                            <View style={[styles.pb2, styles.ph5]}>
+                                <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.merchantRules.matchType')}</Text>
+                            </View>
+                            <SelectionList
+                                data={merchantMatchTypeItems}
+                                ListItem={SingleSelectListItem}
+                                onSelectRow={(item) => setMerchantOperator(item.keyForList)}
+                                shouldSingleExecuteRowSelect
+                            />
+                        </>
+                    )}
                 </View>
             </NegatableFilter>
             <Button
