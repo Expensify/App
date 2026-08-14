@@ -1479,7 +1479,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             unableToSubmitReport: '无法提交报表',
             allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
-            allExpensesOnHoldDescription: '您无法提交此报表，因为所有费用都处于保留状态。请解除保留后再提交。',
+            allExpensesOnHoldDescription: '你无法提交此报表，因为所有费用都已被暂挂。请取消暂挂后再提交。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },

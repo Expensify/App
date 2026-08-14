@@ -1543,7 +1543,7 @@ const translations: TranslationDeepObject<typeof en> = {
             unableToSubmitReport: 'Impossible de soumettre la note de frais',
             allTransactionsPendingDescription:
                 'Vous ne pouvez pas soumettre cette note de frais, car toutes les transactions sont en attente. Leur comptabilisation peut prendre quelques jours.',
-            allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez la mise en attente pour la soumettre.',
+            allExpensesOnHoldDescription: 'Vous ne pouvez pas soumettre cette note de frais, car toutes les dépenses sont en attente. Supprimez le blocage pour soumettre.',
             stitchOdometerImagesFailed: 'Échec de la combinaison des images de l’odomètre. Veuillez réessayer plus tard.',
             failedToSaveOdometerDraft: 'Impossible d’enregistrer votre brouillon de compteur kilométrique. Veuillez réessayer.',
         },
