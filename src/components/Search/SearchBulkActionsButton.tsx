@@ -140,22 +140,21 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
     const allMatchingItemsCount = currentSearchResults?.search?.count;
-    let selectedAllMatchingItemsCount: number | undefined;
-    if (excludedItemsCount > 0) {
-        if (typeof allMatchingItemsCount === 'number') {
-            selectedAllMatchingItemsCount = Math.max(allMatchingItemsCount - excludedItemsCount, 0);
-        } else if (isExpenseType && isOffline) {
-            selectedAllMatchingItemsCount = selectedItemsCount;
-        }
-    }
-    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !!currentSearchResults?.search?.isLoading;
-    let selectionButtonText: string;
-    if (areAllMatchingItemsSelected) {
-        const count = isExpenseType ? selectedAllMatchingItemsCount : allMatchingItemsCount;
-        selectionButtonText = typeof count !== 'number' ? translate('search.exportAll.allMatchingItemsSelected') : translate('workspace.common.selected', {count});
+    const hasSearchErrors = Object.keys(currentSearchResults?.errors ?? {}).length > 0;
+    // The server count is the only source for how many items "select all" covers, so keep the button loading until it
+    // arrives. Offline or on error it never will, so fall back to the count of the items we do have selected.
+    const isAllMatchingItemsCountLoading = areAllMatchingItemsSelected && typeof allMatchingItemsCount !== 'number' && !isOffline && !hasSearchErrors;
+    // Excluded items only map onto the server count for expenses. For expense reports an excluded transaction doesn't
+    // necessarily drop its whole report from the results, so the server count is used as-is there.
+    let selectedAllMatchingItemsCount: number;
+    if (typeof allMatchingItemsCount !== 'number') {
+        selectedAllMatchingItemsCount = selectedItemsCount;
     } else {
-        selectionButtonText = translate('workspace.common.selected', {count: selectedItemsCount});
+        selectedAllMatchingItemsCount = isExpenseType ? Math.max(allMatchingItemsCount - excludedItemsCount, 0) : allMatchingItemsCount;
     }
+    const selectionButtonText = translate('workspace.common.selected', {
+        count: areAllMatchingItemsSelected ? selectedAllMatchingItemsCount : selectedItemsCount,
+    });
 
     return (
         <>
@@ -224,6 +223,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -268,6 +268,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                             pendingPaymentAdditionalDataRef.current = data;
                                         },
                                         currentUserAccountID: currentUserPersonalDetails.accountID,
+                                        isOffline,
                                     })
                                 }
                                 isSplitButton={false}

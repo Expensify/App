@@ -1362,6 +1362,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
                             path: ROUTES.RULES_MERCHANT_TAX.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: {
+                            path: ROUTES.RULES_MERCHANT_VENDOR.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
                             path: ROUTES.RULES_MERCHANT_DESCRIPTION.route,
                         },
@@ -1768,8 +1771,8 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path,
                         [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,

@@ -110,6 +110,8 @@ const cardActiveStates: number[] = [2, 3, 4, 7];
 
 const brokenConnectionScrapeStatuses: number[] = [200, 434, 531, 530, 500, 666];
 
+const reauthScrapeStatuses: number[] = [438, 532];
+
 // Hide not issued or not activated cards (states 2, 4) from card filter options in search, as no transactions can be made on cards in these states
 const cardHiddenFromSearchStates: number[] = [2, 4];
 
@@ -261,6 +263,7 @@ const CONST = {
     COMPOSER_FOCUS_DELAY: 150,
     MAX_TRANSITION_DURATION_MS: 1000,
     MAX_TRANSITION_START_WAIT_MS: 1000,
+    NAVIGATION_PREDICTION_WINDOW_MS: 150,
     EXPENSE_REPORT_DELETE_DELAY_MS: 300,
     ELEMENT_NAME: {
         INPUT: 'INPUT',
@@ -343,6 +346,7 @@ const CONST = {
         // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
         // to the confirmation screen. Past this, we navigate and let the confirm-side hook
         // generate the thumbnail lazily (brief source swap is acceptable).
+        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -1015,6 +1019,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1760,6 +1765,8 @@ const CONST = {
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
+                    UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
+                    UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -1957,10 +1964,12 @@ const CONST = {
             DOWNLOAD_CSV: 'downloadCSV',
             REPORT_LEVEL_EXPORT: 'report_level_export',
             EXPENSE_LEVEL_EXPORT: 'detailed_export',
+            MULTIPLE_TAX_EXPORT: 'multiple_tax_export',
         },
         EXPORT_OPTION_LABELS: {
             REPORT_LEVEL_EXPORT: 'All Data - Report Level Export',
             EXPENSE_LEVEL_EXPORT: 'All Data - Expense Level Export',
+            MULTIPLE_TAX_EXPORT: 'Canadian Multiple Tax Export',
             DEFAULT_CSV: 'Default CSV',
         },
         ROOM_MEMBERS_BULK_ACTION_TYPES: {
@@ -2213,6 +2222,7 @@ const CONST = {
         SPAN_RECONNECT_SERVER_RESPONSE: 'ManualReconnectServerResponse',
         SPAN_GEOLOCATION_WAIT: 'ManualGeolocationWait',
         SPAN_SEND_MESSAGE: 'ManualSendMessage',
+        SPAN_SEND_MESSAGE_VISIBLE: 'ManualSendMessageVisible',
         SPAN_NOT_FOUND_PAGE: 'ManualNotFoundPage',
         SPAN_ODOMETER_TO_CONFIRMATION: 'ManualOdometerToConfirmation',
         SPAN_ODOMETER_IMAGE_STITCH: 'ManualOdometerImageStitch',
@@ -2236,6 +2246,7 @@ const CONST = {
             EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
         SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
+        SPAN_STARTUP_NEW_DOT_JS_INIT: 'StartupNewDotJSInit',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -2445,6 +2456,8 @@ const CONST = {
     TRANSACTION: {
         RESULTS_PAGE_SIZE: 20,
         DEFAULT_MERCHANT: 'Expense',
+        DEFAULT_ROUTE_KEY: 'route0',
+        ALTERNATE_ROUTE_KEY: 'route1',
         UNKNOWN_MERCHANT: 'Unknown Merchant',
         PARTIAL_TRANSACTION_MERCHANT: '(none)',
         TYPE: {
@@ -4836,6 +4849,10 @@ const CONST = {
     },
     COMPANY_CARDS: {
         BROKEN_CONNECTION_IGNORED_STATUSES: brokenConnectionScrapeStatuses,
+
+        // Scrape result codes where the connection is broken because the user needs to re-authenticate with their bank
+        REAUTH_SCRAPE_STATUSES: reauthScrapeStatuses,
+
         // After a card connection has been broken and unresolved for this many days, stop actively
         // prompting the user: the time-sensitive home task and the RBR are removed (the error itself is kept).
         BROKEN_CONNECTION_DISMISS_AFTER_DAYS: 90,
@@ -6998,11 +7015,6 @@ const CONST = {
                     reportView: true,
                 },
                 TAG: {column: this.TABLE_COLUMNS.TAG, search: true, reportView: true},
-                VIOLATIONS: {
-                    column: this.TABLE_COLUMNS.VIOLATIONS,
-                    search: false,
-                    reportView: false,
-                },
                 TAG_GL_CODE: {
                     column: this.TABLE_COLUMNS.TAG_GL_CODE,
                     search: true,
@@ -7131,6 +7143,8 @@ const CONST = {
                     SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
                     SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -7318,7 +7332,6 @@ const CONST = {
             TO: 'to',
             CATEGORY: 'category',
             TAG: 'tag',
-            VIOLATIONS: 'violations',
             ORIGINAL_AMOUNT: 'originalamount',
             REIMBURSABLE: 'reimbursable',
             BILLABLE: 'billable',
@@ -7344,6 +7357,8 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             AVATAR: 'avatar',
             STATUS: 'status',
             PAID_STATUS: 'paidstatus',
@@ -7437,6 +7452,8 @@ const CONST = {
             PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -7489,6 +7506,8 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amount-debited',
+            AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
@@ -7552,7 +7571,6 @@ const CONST = {
                 [this.TABLE_COLUMNS.TO]: 'to',
                 [this.TABLE_COLUMNS.CATEGORY]: 'category',
                 [this.TABLE_COLUMNS.TAG]: 'tag',
-                [this.TABLE_COLUMNS.VIOLATIONS]: 'violations',
                 [this.TABLE_COLUMNS.ORIGINAL_AMOUNT]: 'purchase-amount',
                 [this.TABLE_COLUMNS.REIMBURSABLE]: 'reimbursable',
                 [this.TABLE_COLUMNS.BILLABLE]: 'billable',
@@ -7603,6 +7621,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
+                [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -7653,7 +7673,6 @@ const CONST = {
             TOP_CATEGORIES: 'topCategories',
             TOP_MERCHANTS: 'topMerchants',
             SPEND_OVER_TIME: 'spendOverTime',
-            VIOLATIONS_BY_SUBMITTER: 'violationsBySubmitter',
         },
         SAVED_SEARCH_PREFIX: 'savedSearch_',
         GROUP_PREFIX: 'group_',
@@ -8320,6 +8339,8 @@ const CONST = {
         GPS_TOOLTIP: 'gpsTooltip',
         HAS_FILTER_NEGATION: 'hasFilterNegation',
         MILEAGE_RATE_AUTO_UPDATED: 'mileageRateAutoUpdated',
+        REQUIRE_FIELDS_RULE_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleReceiptCouplingTooltip',
+        REQUIRE_FIELDS_RULE_ITEMIZED_RECEIPT_COUPLING_TOOLTIP: 'requireFieldsRuleItemizedReceiptCouplingTooltip',
     },
     CHANGE_POLICY_TRAINING_MODAL: 'changePolicyModal',
     AGENTS_RULES_BANNER: 'agentsRulesBanner',
@@ -9453,6 +9474,14 @@ const CONST = {
         ROUTE_BORDER: 'route-border',
         WAYPOINTS_SOURCE: 'waypoints-source',
         WAYPOINTS: 'waypoints',
+    },
+
+    ALTERNATE_DIRECTIONS_MAP_VIEW_LAYERS: {
+        SOURCE: 'alternate-directions-route-source',
+        UNSELECTED_FILL: 'alternate-directions-unselected-route-fill',
+        UNSELECTED_BORDER: 'alternate-directions-unselected-route-border',
+        SELECTED_FILL: 'alternate-directions-selected-route-fill',
+        SELECTED_BORDER: 'alternate-directions-selected-route-border',
     },
 
     MAP_CURRENT_LOCATION_FILL_COLOR: '#0185FF',

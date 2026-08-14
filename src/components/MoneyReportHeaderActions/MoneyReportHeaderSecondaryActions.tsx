@@ -70,6 +70,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import {createMoveExpenseReportNVPSelector} from '@src/selectors/Report';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 
 import type {ValueOf} from 'type-fest';
@@ -106,9 +107,11 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${moneyRequestReport?.reportID}`);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${moneyRequestReport?.reportID}`);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
+    const [moveExpenseReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, moneyRequestReport?.reportID),
+    });
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -382,7 +385,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
               violations,
               bankAccountList,
               policy,
-              reportNameValuePairs,
+              moveExpenseReportNameValuePairs,
               reportActions,
               reportMetadata,
               policies,

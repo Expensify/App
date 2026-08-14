@@ -30,8 +30,6 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
 
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
-
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
@@ -356,6 +354,8 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -391,7 +391,6 @@ const createAdminPoliciesSelector =
 
 export type {PolicySelector};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
@@ -411,6 +410,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
