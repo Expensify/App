@@ -65,6 +65,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -129,6 +130,7 @@ import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
@@ -424,7 +426,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -673,6 +675,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     });
 
     const {hash} = queryJSON ?? {};
+    const shouldCalculateTotalsOnRefresh = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
     const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
@@ -2157,6 +2160,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         managerEmail,
                                         managerAccountID,
                                     );
+                                    refreshSearchAfterReportAction({
+                                        currentSearchQueryJSON,
+                                        currentSearchKey,
+                                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                                        isOffline,
+                                        isLoading: !!currentSearchResults?.search?.isLoading,
+                                    });
                                     clearSelectedTransactions();
                                 },
                             });
@@ -2170,6 +2180,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
                         }
                     }
+                    // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
+                    // context (which still offers Submit) until the snapshot is refetched, the same way approving and
+                    // paying from Search already do.
+                    refreshSearchAfterReportAction({
+                        currentSearchQueryJSON,
+                        currentSearchKey,
+                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                        isOffline,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                    });
                     clearSelectedTransactions();
                 },
             });
@@ -2569,6 +2589,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
         delegateAccountID,
+        currentSearchQueryJSON,
+        currentSearchResults?.search?.isLoading,
+        shouldCalculateTotalsOnRefresh,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
