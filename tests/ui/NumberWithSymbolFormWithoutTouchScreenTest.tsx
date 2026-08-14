@@ -37,8 +37,8 @@ jest.mock('@react-navigation/native', () => ({
 
 const INPUT_TEST_ID = 'number-with-symbol-form-input';
 
-describe('NumberWithSymbolForm on desktop', () => {
-    it('renders the currency button in the desktop layout and does not show touch-only controls', async () => {
+describe('NumberWithSymbolForm without a touch screen', () => {
+    it('renders the currency button and does not show touch-only controls', async () => {
         const onSymbolButtonPress = jest.fn();
 
         render(
