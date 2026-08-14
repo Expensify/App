@@ -40,7 +40,6 @@ import ListFilterView from './ListFilterViewWrapper';
 
 type WorkspaceFilterItem = ListItem & {
     value: string;
-    isArchived: boolean;
 };
 
 type WorkspaceOption = MultiSelectItem<string> & {isArchived: boolean};
@@ -147,7 +146,6 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
         isSelected: value.includes(item.value),
         icons: item.icons,
         value: item.value,
-        isArchived: item.isArchived,
     });
 
     const activeItems = filteredOptions.filter((item) => !item.isArchived).map(toFilterItem);
