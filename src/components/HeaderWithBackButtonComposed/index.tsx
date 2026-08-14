@@ -117,7 +117,7 @@ function HeaderWithBackButton({
                 styles.headerBar,
                 shouldUseHeadlineHeader && styles.headerBarHeight,
                 shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
+                shouldShowBackButton && styles.pl2,
                 shouldOverlay && StyleSheet.absoluteFill,
                 style,
             ]}
