@@ -1161,7 +1161,7 @@ describe('libs/NextStepUtils', () => {
         describe('renders a monthly automatic-submit eta on the encoded day of month in every timezone', () => {
             // `buildNextStepMessage` renders a date-only `eta.dateTime` with date-fns, which uses the ambient system
             // timezone. Jest is pinned to UTC (`TZ=utc`) and V8 caches that at process start, so we cannot change the
-            // timezone from inside this process — UTC is also the one zone where the bug is invisible, because UTC
+            // timezone from inside this process. UTC is also the one zone where the bug is invisible, because UTC
             // midnight and local midnight coincide. To exercise real UTC-negative/positive offsets we run the same
             // parse+format expression used by buildNextStepMessage (see src/libs/NextStepUtils.ts:86) in a child
             // `node` process with a real `TZ`. `fixed` mirrors the shipped `parseISO` parsing; `legacy` mirrors the
@@ -1190,7 +1190,7 @@ describe('libs/NextStepUtils', () => {
                 expect(fixed).toBe('15th');
 
                 // In UTC-negative zones the old `new Date` parsing shifts the day back by one. Asserting it here both
-                // documents the regression and guarantees the child really ran in a UTC-negative zone — otherwise this
+                // documents the regression and guarantees the child really ran in a UTC-negative zone. Otherwise this
                 // would read '15th' and fail loudly instead of the test silently degrading into a UTC-only no-op.
                 if (offsetSign === 'negative') {
                     expect(legacy).toBe('14th');
