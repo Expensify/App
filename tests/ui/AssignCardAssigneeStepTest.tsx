@@ -5,8 +5,7 @@ import SelectionList from '@components/SelectionList';
 import AssigneeStep from '@pages/workspace/companyCards/assignCard/AssigneeStep';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
+import type * as OnyxKeysModule from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
@@ -66,7 +65,7 @@ jest.mock('@hooks/useLocalize', () =>
 );
 jest.mock('@hooks/usePolicy', () => jest.fn(() => mockPolicy));
 jest.mock('@hooks/useOnyx', () => {
-    const OnyxKeys = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default;
+    const OnyxKeys = jest.requireActual<typeof OnyxKeysModule>('@src/ONYXKEYS').default;
     return jest.fn((key: string) => {
         if (key === OnyxKeys.ASSIGN_CARD) {
             return [{cardToAssign: {email: mockAssigneeEmail}}];
@@ -107,8 +106,7 @@ jest.mock('@libs/PolicyUtils', () => ({
     isDeletedPolicyEmployee: jest.fn(() => false),
 }));
 jest.mock('@libs/OptionsListUtils', () => ({
-    sortAlphabetically: (items: Array<Record<string, unknown>>, key: string, cmp: (a: string, b: string) => number) =>
-        [...items].sort((a, b) => cmp(String(a[key] ?? ''), String(b[key] ?? ''))),
+    sortAlphabetically: (items: Array<Record<string, string>>, key: string, cmp: (a: string, b: string) => number) => [...items].sort((a, b) => cmp(a[key] ?? '', b[key] ?? '')),
     getSearchValueForPhoneOrEmail: (value: string) => value,
 }));
 jest.mock('@libs/PersonalDetailOptionsListUtils', () => ({
@@ -140,7 +138,6 @@ function renderStep() {
 
 describe('AssignCard AssigneeStep', () => {
     const mockedSelectionList = jest.mocked(SelectionList);
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only: narrow the props captured from the mocked SelectionList
     const getSelectionListProps = () => mockedSelectionList.mock.lastCall?.[0] as MockSelectionListProps | undefined;
 
     beforeEach(() => {
