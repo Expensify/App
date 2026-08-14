@@ -534,6 +534,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}
+                    maintainScrollAtEnd={{animated: false, on: {layout: true}}}
                     maintainVisibleContentPosition={maintainVisibleContentPosition.disabled ? false : {data: true}}
                     onLoad={onLoad}
                     onContentSizeChange={() => {

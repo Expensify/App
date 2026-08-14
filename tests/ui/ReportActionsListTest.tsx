@@ -163,6 +163,7 @@ jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => nul
 type MockLegendListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
+    maintainScrollAtEnd?: {animated: boolean; on: {layout: boolean}};
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
     onScroll?: (event: {
@@ -339,6 +340,13 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('keeps the latest messages anchored when the keyboard changes the list layout', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {layout: true}});
     });
 
     it('loads older actions at the chronological start and rearms after moving away', () => {
