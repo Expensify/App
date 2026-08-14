@@ -16,13 +16,12 @@ import {View} from 'react-native';
 
 type ExpenseReportListItemAvatarProps = {
     item: ExpenseReportListItemType;
-    showTooltip: boolean;
     isHovered?: boolean;
     isFocused?: boolean;
     isLargeScreenWidth?: boolean;
 };
 
-function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFocused = false, isLargeScreenWidth = false}: ExpenseReportListItemAvatarProps) {
+function ExpenseReportListItemAvatar({item, isHovered = false, isFocused = false, isLargeScreenWidth = false}: ExpenseReportListItemAvatarProps) {
     const StyleUtils = useStyleUtils();
     const styles = useThemeStyles();
     const theme = useTheme();
@@ -47,14 +46,12 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
                 primaryAvatar={primaryIcon}
                 secondaryAvatar={secondaryIcon}
                 size={avatarSize}
-                shouldShowTooltip={showTooltip}
                 subscriptAvatarBorderColor={finalAvatarBorderColor}
             />
         );
     } else if (layout === CONST.REPORT_ACTION_AVATARS.TYPE.MULTIPLE_DIAGONAL) {
         avatarContent = (
             <DiagonalAvatars
-                shouldShowTooltip={showTooltip}
                 size={avatarSize}
                 icons={icons}
                 isInReportAction={false}
@@ -66,7 +63,6 @@ function ExpenseReportListItemAvatar({item, showTooltip, isHovered = false, isFo
                 avatar={item.primaryAvatar}
                 size={avatarSize}
                 containerStyles={StyleUtils.getContainerStyles(avatarSize)}
-                shouldShowTooltip={showTooltip}
             />
         );
     }

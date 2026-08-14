@@ -49,7 +49,7 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'ArrowRightLong',
@@ -69,12 +69,12 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date));
+                return DateUtils.getFormattedTransportDate(translate, dateFnsLocale, new Date(reservation.start.date));
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date));
+                return DateUtils.getFormattedReservationRangeDate(translate, dateFnsLocale, new Date(reservation.start.date), new Date(reservation.end.date));
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date));
+                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), dateFnsLocale);
         }
     };
 
