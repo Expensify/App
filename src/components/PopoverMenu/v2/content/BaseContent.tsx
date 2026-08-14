@@ -103,10 +103,7 @@ function BaseContentInner({
             shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
             testID={testID}
         >
-            <FocusTrapForModal
-                active={isVisible}
-                launcherRef={activeAnchor.ref}
-            >
+            <FocusTrapForModal active={isVisible}>
                 <CompactMenuContext.Provider value>
                     <ContentNavigationContext.Provider value={navigation}>
                         <ContentFocusContext.Provider value={focus}>
