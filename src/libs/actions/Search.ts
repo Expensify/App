@@ -565,6 +565,7 @@ function getPayActionCallback({
     const lastPolicyPaymentMethod = getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethod, getReportType(item.reportID));
 
     if (!item.reportID) {
+        Log.info('[SearchPay] Dropping row pay: item has no reportID');
         return;
     }
 
@@ -1775,6 +1776,8 @@ type ExportTemplateGroups = {
  * @param policy - The user's policy
  * @param includeReportLevelExport - Whether to include the report level export template
  * @param includeBasicExport - Whether to include the basic export (CSV download) template in the default group
+ * @param includeMultipleTaxExport - Whether to include the Canadian Multiple Tax Export template. Defaults to whether the given policy outputs in CAD, so callers that
+ * export across several workspaces (e.g. a bulk selection in Search) can instead pass whether every selected workspace outputs in CAD.
  * @returns The export templates pre-grouped into the custom group and the default group, each sorted alphabetically
  */
 function getExportTemplates(
@@ -1785,6 +1788,7 @@ function getExportTemplates(
     policy?: Policy,
     includeReportLevelExport = true,
     includeBasicExport = false,
+    includeMultipleTaxExport = policy?.outputCurrency === CONST.CURRENCY.CAD,
 ): ExportTemplateGroups {
     // Helper function to normalize template data into consistent ExportTemplate format
     const normalizeTemplate = (
@@ -1809,6 +1813,11 @@ function getExportTemplates(
     // Conditionally include the report level export template
     if (includeReportLevelExport) {
         exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT, {name: translate('export.reportLevelExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
+    }
+
+    // The Canadian Multiple Tax Export template is only relevant to workspaces that output in CAD, so it's hidden for every other currency
+    if (includeMultipleTaxExport) {
+        exportTemplates.push(normalizeTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT, {name: translate('export.multipleTaxExport')}, CONST.EXPORT_TEMPLATE_TYPES.INTEGRATIONS));
     }
 
     // Conditionally include the basic export (CSV download) template so it's sorted alphabetically alongside the other default templates
@@ -1970,6 +1979,7 @@ function handleBulkPayItemSelected(params: {
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
     if (!isValidBulkPayOption(item) && !policyFromPaymentMethod) {
+        Log.info('[BulkPay] Dropping bulk pay: selected item is not a valid payment option', false, {itemKey: item.key});
         return;
     }
 

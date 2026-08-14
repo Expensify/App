@@ -149,6 +149,37 @@ describe('RequestConflictUtils', () => {
         });
     });
 
+    it('resolveEditCommentWithNewAddCommentRequest should drop the queued attachment when the edit removed it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'attachment removed'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0, true);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {command: 'AddComment', data: {reportID: '1', reportActionID, reportComment: 'attachment removed'}},
+            },
+        });
+    });
+
+    it('resolveEditCommentWithNewAddCommentRequest should keep the queued attachment when the edit kept it', () => {
+        const reportActionID = '2';
+        const persistedRequests = [{command: 'AddTextAndAttachment', data: {reportActionID, reportComment: 'test', file: {uri: 'blob:local'}, attachmentID: '5'}}, {command: 'OpenReport'}];
+        const parameters = {reportID: '1', reportActionID, reportComment: 'text edited'};
+        const result = resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, 0);
+        expect(result).toEqual({
+            conflictAction: {
+                type: 'replace',
+                index: 0,
+                request: {
+                    command: 'AddTextAndAttachment',
+                    data: {reportID: '1', reportActionID, reportComment: 'text edited', file: {uri: 'blob:local'}, attachmentID: '5'},
+                },
+            },
+        });
+    });
+
     it.each(enablePolicyFeatureCommand)('resolveEnableFeatureConflicts should return push when the same enable feature API is not found', (commandName) => {
         const persistedRequests = [{command: commandName, data: {policyID: '1', enabled: true}}];
         const parameters = {policyID: '2', enabled: false};

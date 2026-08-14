@@ -25,7 +25,7 @@ jest.mock('@libs/actions/Modal', () => ({
     setDisableDismissOnEscape: jest.fn(),
 }));
 
-const navigationMock = Navigation as jest.Mocked<typeof Navigation>;
+const navigationMock = jest.mocked(Navigation);
 
 describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
     beforeEach(() => {
