@@ -6,6 +6,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetails, Policy, Report} from '@src/types/onyx';
 
+import type ReactNative from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
@@ -64,8 +65,7 @@ jest.mock('@hooks/usePreferredPolicy', () =>
 jest.mock('@hooks/useReportIsArchived', () => jest.fn(() => false));
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactNative = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
-    const {Text} = ReactNative;
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     function MockRenderHTML({html}: {html: string}) {
         return <Text>{html}</Text>;
     }

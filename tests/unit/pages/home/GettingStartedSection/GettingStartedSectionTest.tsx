@@ -4,17 +4,19 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import GettingStartedSection from '@src/pages/home/GettingStartedSection';
 import useGettingStartedItems from '@src/pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 import ROUTES from '@src/ROUTES';
-import type {PolicyCategories, Report} from '@src/types/onyx';
+import type {Policy, PolicyCategories, Report} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../../../utils/createMock';
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 const TEST_POLICY_ID = 'ABC123';
@@ -59,7 +61,7 @@ const gettingStartedItemsWrapper = ({children}: {children: React.ReactNode}) => 
  * so the section is visible by default.
  */
 async function setManageTeamUserState(overrides?: {
-    integration?: string | null;
+    integration?: OnboardingAccounting;
     areCompanyCardsEnabled?: boolean;
     areRulesEnabled?: boolean;
     areAccountingEnabled?: boolean;
@@ -79,9 +81,9 @@ async function setManageTeamUserState(overrides?: {
     });
     await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
     await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, trialStart);
-    await Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, (overrides?.integration ?? 'quickbooksOnline') as never);
+    await Onyx.set(ONYXKEYS.ONBOARDING_USER_REPORTED_INTEGRATION, overrides?.integration ?? 'quickbooksOnline');
 
-    const policyData: Record<string, unknown> = {
+    const policyData = createMock<Policy>({
         id: TEST_POLICY_ID,
         name: 'Test Workspace',
         type: overrides?.policyType ?? CONST.POLICY.TYPE.TEAM,
@@ -89,7 +91,7 @@ async function setManageTeamUserState(overrides?: {
         areCompanyCardsEnabled: overrides?.areCompanyCardsEnabled ?? true,
         areConnectionsEnabled: overrides?.areAccountingEnabled,
         areCategoriesEnabled: overrides?.areCategoriesEnabled,
-    };
+    });
 
     if (overrides && 'areRulesEnabled' in overrides) {
         policyData.areRulesEnabled = overrides.areRulesEnabled;
@@ -98,15 +100,15 @@ async function setManageTeamUserState(overrides?: {
     }
 
     if (overrides?.hasAccountingConnection) {
-        policyData.connections = {
+        policyData.connections = createMock<NonNullable<Policy['connections']>>({
             quickbooksOnline: {
                 config: {},
                 data: {},
             },
-        };
+        });
     }
 
-    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never, policyData as never);
+    await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`, policyData);
 
     if (overrides?.policyCategories) {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${TEST_POLICY_ID}`, overrides.policyCategories);
@@ -159,15 +161,15 @@ describe('GettingStartedSection', () => {
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
             await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.set(
-                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
-                {
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`,
+                createMock<Policy>({
                     id: TEST_POLICY_ID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.USER,
                     areCompanyCardsEnabled: true,
                     areRulesEnabled: true,
-                } as never,
+                }),
             );
             await waitForBatchedUpdates();
 
@@ -184,15 +186,15 @@ describe('GettingStartedSection', () => {
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
             await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.set(
-                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
-                {
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`,
+                createMock<Policy>({
                     id: TEST_POLICY_ID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.AUDITOR,
                     areCompanyCardsEnabled: true,
                     areRulesEnabled: true,
-                } as never,
+                }),
             );
             await waitForBatchedUpdates();
 
@@ -212,19 +214,19 @@ describe('GettingStartedSection', () => {
         });
 
         it('renders when manage-team intent is set via fallback ONBOARDING_PURPOSE_SELECTED', async () => {
-            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM as never);
+            await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.MANAGE_TEAM);
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, TEST_POLICY_ID);
             await Onyx.set(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL, RECENT_TRIAL_START);
             await Onyx.set(
-                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}` as never,
-                {
+                `${ONYXKEYS.COLLECTION.POLICY}${TEST_POLICY_ID}`,
+                createMock<Policy>({
                     id: TEST_POLICY_ID,
                     name: 'Test Workspace',
                     type: CONST.POLICY.TYPE.TEAM,
                     role: CONST.POLICY.ROLE.ADMIN,
                     areCompanyCardsEnabled: true,
                     areRulesEnabled: true,
-                } as never,
+                }),
             );
             await waitForBatchedUpdates();
 
@@ -342,12 +344,21 @@ describe('GettingStartedSection', () => {
             await waitForBatchedUpdates();
 
             const allRows = screen.getAllByText(/homePage\.gettingStartedSection\./);
-            const rowTexts = allRows.map((el) => (el.props as {children: string}).children);
+            const rowTexts = allRows.map((el) => {
+                if (typeof el.props.children !== 'string') {
+                    throw new Error('Expected getting started row text');
+                }
+                return el.props.children;
+            });
             const createIdx = rowTexts.findIndex((t) => t.includes('createWorkspace'));
             const accountingIdx = rowTexts.findIndex((t) => t.includes('connectAccounting'));
             const cardsIdx = rowTexts.findIndex((t) => t.includes('linkCompanyCards'));
             const rulesIdx = rowTexts.findIndex((t) => t.includes('setupRules'));
 
+            expect(createIdx).toBeGreaterThanOrEqual(0);
+            expect(accountingIdx).toBeGreaterThanOrEqual(0);
+            expect(cardsIdx).toBeGreaterThanOrEqual(0);
+            expect(rulesIdx).toBeGreaterThanOrEqual(0);
             expect(createIdx).toBeLessThan(accountingIdx);
             expect(accountingIdx).toBeLessThan(cardsIdx);
             expect(cardsIdx).toBeLessThan(rulesIdx);

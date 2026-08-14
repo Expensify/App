@@ -112,6 +112,18 @@ type Report = OnyxCommon.OnyxValueWithOfflineFeedback<
         /** International reimbursement IDs associated with the report */
         orderDealNumbers?: string;
 
+        /** Amount taken from the payer's account for this report's cross-border reimbursement */
+        debitedAmount?: number;
+
+        /** Currency of `debitedAmount` */
+        debitedCurrency?: string;
+
+        /** Amount delivered to the recipient by this report's cross-border reimbursement */
+        creditedAmount?: number;
+
+        /** Currency of `creditedAmount` */
+        creditedCurrency?: string;
+
         /** The specific type of chat */
         chatType?: ValueOf<typeof CONST.REPORT.CHAT_TYPE>;
 

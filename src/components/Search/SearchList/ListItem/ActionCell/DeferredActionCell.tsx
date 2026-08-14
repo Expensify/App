@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -32,14 +32,14 @@ function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
 
         return (
             <Button
-                text={text}
-                small={!actionCellProps.extraSmall}
-                extraSmall={actionCellProps.extraSmall}
+                size={CONST.BUTTON_SIZE.SMALL}
                 style={[styles.w100, styles.pointerEventsNone]}
                 isDisabled
-                success={isSuccess}
+                variant={isSuccess ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                 isNested
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
         );
     }
 

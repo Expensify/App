@@ -31,6 +31,7 @@ namespace margelo::nitro::utils { struct StringHolder; }
 #include <memory>
 #include <optional>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 // C++ helpers for Swift

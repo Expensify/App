@@ -12,6 +12,8 @@ import AddPaymentCard from '@pages/settings/Subscription/PaymentCard';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
+import type ReactNative from 'react-native';
+
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -22,8 +24,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');

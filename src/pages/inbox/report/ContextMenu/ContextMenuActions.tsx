@@ -45,6 +45,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
+    getDelegateSubmitMessage,
     getDeletedApprovalRuleMessage,
     getDeletedBudgetMessage,
     getDismissedViolationMessageText,
@@ -1361,6 +1362,11 @@ const ContextMenuActions: ContextMenuAction[] = [
                     isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER)
                 ) {
                     setClipboardMessage(getChangedApproverActionMessage(translate, reportAction));
+                } else if (
+                    isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT) &&
+                    !!getDelegateSubmitMessage(translate, reportAction, currentUserPersonalDetails.email)
+                ) {
+                    setClipboardMessage(getDelegateSubmitMessage(translate, reportAction, currentUserPersonalDetails.email));
                 } else if (isActionOfType(reportAction, CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION)) {
                     setClipboardMessage(getMovedTransactionMessage(translate, reportAction, reportAttributes));
                 } else if (isMovedAction(reportAction)) {

@@ -93,7 +93,8 @@ const renderPage = (initialRouteName: keyof TestNavigatorParamList = SCREENS.WOR
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS}
                                 component={WorkspaceWorkflowsPage}
-                                initialParams={{policyID: POLICY_ID}}
+                                // The payer row lives on the Payments tab, so deep-link straight to it.
+                                initialParams={{policyID: POLICY_ID, tab: CONST.TAB.WORKFLOWS.PAYMENTS}}
                             />
                             <Stack.Screen
                                 name={SCREENS.WORKSPACE.WORKFLOWS_PAYER}

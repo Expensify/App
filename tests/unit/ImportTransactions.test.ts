@@ -914,6 +914,17 @@ describe('ImportTransactions', () => {
             getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE);
         });
 
+        it('stores the reimbursable selection on the optimistic card', async () => {
+            const nonReimbursableSpreadsheet = {...validSpreadsheet, importTransactionSettings: {isReimbursable: false}};
+
+            await importTransactionsFromCSV(nonReimbursableSpreadsheet, CURRENT_USER_ACCOUNT_ID);
+
+            const [, , onyxData] = getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const cardUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.CARD_LIST, Onyx.METHOD.MERGE, true);
+            const [optimisticCard] = Object.values(cardUpdate.value);
+            expect(optimisticCard).toEqual(expect.objectContaining({reimbursable: false}));
+        });
+
         it('reuses an existingCardID without queuing an optimistic card', async () => {
             const existingCardID = 987654321;
 

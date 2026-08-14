@@ -455,6 +455,7 @@ type WorkspaceListItemType = {
     text: string;
     policyID?: string;
     isPolicyAdmin?: boolean;
+    isArchived?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
 

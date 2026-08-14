@@ -55,8 +55,8 @@ jest.mock('@src/ROUTES', () => ({
 }));
 
 describe('getMatchingFullScreenRoute - dynamic suffix', () => {
-    const mockGetStateFromPath = getStateFromPath as jest.Mock;
-    const mockFindFocusedRouteWithOnyxTabGuard = findFocusedRouteWithOnyxTabGuard as jest.Mock;
+    const mockGetStateFromPath = jest.mocked(getStateFromPath);
+    const mockFindFocusedRouteWithOnyxTabGuard = jest.mocked(findFocusedRouteWithOnyxTabGuard);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -72,8 +72,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -91,8 +97,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/suffix-a' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -111,8 +123,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base/deep/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base/deep/suffix-a' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -139,8 +157,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             ],
             index: 0,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/base' ? basePathState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return basePathState;
+        });
         mockFindFocusedRouteWithOnyxTabGuard.mockReturnValue(nestedFocusedRoute);
 
         const result = getMatchingFullScreenRoute(route);
@@ -160,8 +184,14 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: SCREENS.NOT_FOUND, path: '/invalid/base/suffix-a'}],
             index: 0,
         };
+        const expectedStrippedPath = '/invalid/base/suffix-a';
 
-        mockGetStateFromPath.mockImplementation((path: string) => (path === '/invalid/base/suffix-a' ? invalidRouteState : undefined));
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) !== expectedStrippedPath) {
+                throw new Error(`Unexpected path: ${path}`);
+            }
+            return invalidRouteState;
+        });
 
         const result = getMatchingFullScreenRoute(route);
 
@@ -187,6 +217,7 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             path: '/broken/path/suffix-a/suffix-b',
         };
 
+        // @ts-expect-error -- Intentionally exercise the consumer's defensive handling of an invalid undefined producer result.
         mockGetStateFromPath.mockReturnValue(undefined);
 
         const result = getMatchingFullScreenRoute(route);
@@ -206,9 +237,10 @@ describe('getMatchingFullScreenRoute - dynamic suffix', () => {
             routes: [{name: 'BaseScreen'}, fullScreenRoute],
             index: 1,
         };
+        const expectedStrippedPath = '/base';
 
-        mockGetStateFromPath.mockImplementation((path: string) => {
-            if (path === '/base') {
+        mockGetStateFromPath.mockImplementation((path) => {
+            if (String(path) === expectedStrippedPath) {
                 return basePathState;
             }
             return {routes: [{name: 'WrongScreen'}], index: 0};

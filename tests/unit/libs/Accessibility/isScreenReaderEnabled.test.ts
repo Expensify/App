@@ -9,13 +9,15 @@
  * The fix: a web-specific isScreenReaderEnabled module that always returns false,
  * so auto-focus is never skipped on web due to a phantom screen-reader detection.
  */
+import type * as ScreenReaderModule from '../../../../src/libs/Accessibility/isScreenReaderEnabled/index';
+
 describe('isScreenReaderEnabled (web)', () => {
     it('returns false even when AccessibilityInfo.isScreenReaderEnabled resolves to true', async () => {
         // Directly import the web module (index.ts, not index.native.ts).
         // jest-expo defaults to ios platform which would resolve index.native.ts,
         // but the fix lives in the web-specific index.ts.
 
-        const {default: isScreenReaderEnabled} = require('../../../../src/libs/Accessibility/isScreenReaderEnabled/index') as {default: () => Promise<boolean>};
+        const {default: isScreenReaderEnabled} = jest.requireActual<typeof ScreenReaderModule>('../../../../src/libs/Accessibility/isScreenReaderEnabled/index');
 
         const result = await isScreenReaderEnabled();
 

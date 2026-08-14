@@ -1,7 +1,7 @@
 ---
 title: Use a Free Submit Workspace
 description: Learn how to use a free Submit workspace in New Expensify to code expenses, submit them to an approver, and track which reports have been paid.
-keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, mark as paid]
+keywords: [New Expensify, Submit workspace, free plan, get paid back, submit expenses, approver, Editor role, Received Payment]
 internalScope: Audience is employees who want to get reimbursed by their employer. Covers creating a Submit workspace, submitting expenses to an approver, and tracking payment. Does not cover Collect or Control workspace configuration.
 ---
 
@@ -86,12 +86,34 @@ To submit expenses to an approver:
 
 ---
 
+## How to submit an expense to an approver as a PDF
+
+If you're not ready to invite your approver to Expensify, you can submit a report as a PDF and share it with them elsewhere. On a draft report in a Submit workspace, the **Submit** button includes two options:
+
+- **Submit**: Submits the report to an approver in Expensify
+- **Submit via PDF**: Downloads a PDF you can send or print and moves the report to the Outstanding status
+
+To submit a report as a PDF:
+
+1. Open the draft report you want to submit.
+2. Select the dropdown arrow on the **Submit** button.
+3. Select **Submit via PDF**.
+4. The report moves to the Outstanding status, and the PDF downloads automatically.
+5. Share the PDF with your approver outside of Expensify.
+6. Your approver can access the report to approve in Expensify by clicking the **Approve or Pay** button on the PDF or scanning the QR code on the PDF.
+7. If your report has been paid outside of Expensify, you can change the status from Outstanding to Paid by opening the report, selecting **More** and **Received Payment**.
+
+Your choice is sticky: future reports default to the last method you used, including when you submit from the **Spend** page.
+
+---
+
 ## How to mark a report as paid
 
 If you've been reimbursed outside of Expensify, you can mark an outstanding report as paid so you can track its status yourself:
 
 1. Open the outstanding report.
-2. Select **Mark as paid**.
+2. Select **More**
+3. Select **Received Payment**.
 
 Marking a report as paid lets you track which of your submitted reports are still outstanding without requiring your approver to sign in. After a report is marked as paid, your approver can no longer take action on it.
 
@@ -100,6 +122,10 @@ Marking a report as paid lets you track which of your submitted reports are stil
 ## What happens when my approver clicks Approve?
 
 If your approver clicks **Approve**, they're prompted to upgrade the workspace to a paid plan before they can complete the approval.
+
+Your approver can reach the **Approve** button from the email you send when submitting online, selecting **Approve or Pay** on a PDF of the report or by scanning the QR code on a PDF of the report. When they use the PDF, they sign in, are added to your workspace as an **Editor**, and can then approve.
+
+A PDF approval link stays active for 60 days. If it expires before your approver uses it, they'll see a "Hmm... not there" message when they sign in, and you'll get a message on the report so you can download and resend the PDF or retract the report and submit it directly to them in Expensify, using the **Submit** option.
 
 If they upgrade:
 
@@ -126,3 +152,4 @@ Editors can configure the workspace, but can't see other members' submitted repo
 ## Do I have to pay to submit expenses?
 
 No. Submitting expenses and marking reports as paid are free. Payment is only required when someone upgrades the workspace to a paid plan, such as when an approver approves a report.
+

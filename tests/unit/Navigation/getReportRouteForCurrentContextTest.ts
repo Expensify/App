@@ -11,8 +11,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
 describe('getReportRouteForCurrentContext', () => {
-    const mockGetActiveRoute = Navigation.getActiveRoute as jest.MockedFunction<typeof Navigation.getActiveRoute>;
-    const mockIsSearchTopmostFullScreenRoute = isSearchTopmostFullScreenRoute as jest.MockedFunction<typeof isSearchTopmostFullScreenRoute>;
+    const mockGetActiveRoute = jest.mocked(Navigation.getActiveRoute);
+    const mockIsSearchTopmostFullScreenRoute = jest.mocked(isSearchTopmostFullScreenRoute);
 
     beforeEach(() => {
         jest.clearAllMocks();

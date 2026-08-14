@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
@@ -39,18 +39,20 @@ function SearchAdvancedFiltersBase() {
             {shouldShowResetFilters && (
                 <Button
                     style={[styles.ph5, styles.pb3]}
-                    large
-                    text={translate('common.reset')}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={resetFilters}
-                />
+                >
+                    <Button.Text>{translate('common.reset')}</Button.Text>
+                </Button>
             )}
             <Button
                 style={[styles.ph5, styles.pb5]}
-                success
-                large
-                text={translate('search.applyFilters')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={applyFilters}
-            />
+            >
+                <Button.Text>{translate('search.applyFilters')}</Button.Text>
+            </Button>
         </ScreenWrapper>
     );
 }

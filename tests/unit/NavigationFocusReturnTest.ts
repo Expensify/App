@@ -2200,7 +2200,9 @@ describe('shouldSkipAutoFocusDueToExistingFocus', () => {
     }
 
     it('returns false when body holds focus (nothing else claimed)', () => {
-        (document.activeElement as HTMLElement | null)?.blur();
+        if (document.activeElement instanceof HTMLElement) {
+            document.activeElement.blur();
+        }
         expect(shouldSkipAutoFocusDueToExistingFocus()).toBe(false);
     });
 
@@ -3010,8 +3012,8 @@ describe('teardown / setup lifecycle', () => {
         const originalAddListener = navigationRef.addListener.bind(navigationRef);
         const originalIsReady = navigationRef.isReady.bind(navigationRef);
         const originalGetRootState = navigationRef.getRootState.bind(navigationRef);
-        const addListenerSpy = jest.fn(() => () => {});
-        navigationRef.addListener = addListenerSpy as unknown as typeof navigationRef.addListener;
+        const addListenerSpy = jest.fn<ReturnType<typeof navigationRef.addListener>, Parameters<typeof navigationRef.addListener>>(() => () => {});
+        navigationRef.addListener = addListenerSpy;
         navigationRef.isReady = () => false;
         navigationRef.getRootState = () => undefined;
         try {

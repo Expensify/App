@@ -159,7 +159,7 @@ function Pressable({optionItem, isOptionFocused, onSelectRow, onLayout, onHoverI
                     }}
                     withoutFocusOnSecondaryInteraction
                     activeOpacity={variables.pressDimValue}
-                    opacityAnimationDuration={0}
+                    opacityAnimationDuration={variables.instantAnimationDuration}
                     style={[
                         styles.flexRow,
                         styles.alignItemsCenter,

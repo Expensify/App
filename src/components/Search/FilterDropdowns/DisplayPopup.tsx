@@ -1,5 +1,5 @@
 import CompactMenuContext from '@components/CompactMenuContext';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScrollView from '@components/ScrollView';
 import useUpdateFilterQuery from '@components/Search/hooks/useUpdateFilterQuery';
@@ -125,7 +125,7 @@ function DisplayPopup({queryJSON, searchResults, closeOverlay, onSort}: DisplayP
                 )}
                 {shouldShowColumnsButton && (
                     <CompactMenuContext.Provider value>
-                        <MenuItem
+                        <MenuItemAction
                             icon={expensifyIcons.Columns}
                             title={translate('search.editColumns')}
                             onPress={() => {

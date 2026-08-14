@@ -181,4 +181,29 @@ describe('withAgentAccessDenied', () => {
             expect(screen.getByTestId('protected-content')).toBeDefined();
         });
     });
+
+    it('keeps rendering the wrapped component when a mid-session OpenApp sets isLoadingApp back to true', async () => {
+        // enabling 2FA runs OpenApp again while
+        // the user is already deep in the app. Agent identity is known by then, so the guarded screen must stay
+        // mounted instead of blanking out for the length of that request.
+        await TestHelper.signInWithTestUser(1, 'user@expensify.com');
+        await Onyx.multiSet({
+            [ONYXKEYS.IS_LOADING_APP]: false,
+            [ONYXKEYS.HAS_LOADED_APP]: true,
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderComponent();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.IS_LOADING_APP, true);
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId('protected-content')).toBeDefined();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
+    });
 });

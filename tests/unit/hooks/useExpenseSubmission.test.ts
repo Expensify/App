@@ -11,6 +11,7 @@ import Onyx from 'react-native-onyx';
 
 import type * as Split from '../../../src/libs/actions/IOU/Split';
 
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 const mockRequestMoneyAction = jest.fn();
@@ -32,6 +33,7 @@ jest.mock('@userActions/IOU/TrackExpense', () => ({
 jest.mock('@userActions/IOU/PerDiem', () => ({
     submitPerDiemExpense: (...args: unknown[]) => mockSubmitPerDiemExpenseAction(...args),
     submitPerDiemExpenseForSelfDM: (...args: unknown[]) => mockSubmitPerDiemExpenseForSelfDMAction(...args),
+    getPerDiemExpensePolicyID: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/Split', () => ({
@@ -174,7 +176,7 @@ function buildParams(overrides: Partial<Parameters<typeof useExpenseSubmission>[
         receiptFiles: {},
         report: {reportID: REPORT_ID, type: CONST.REPORT.TYPE.CHAT} as Report,
         reportID: REPORT_ID,
-        policy: {id: 'policy-1'} as Policy,
+        policy: createMock<Policy>({id: 'policy-1'}),
         policyCategories: {} as PolicyCategories,
         isDraftPolicy: false,
         currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: 'me@test.com', email: 'me@test.com'},

@@ -8,12 +8,15 @@ import initOnyxDerivedValues from '@userActions/OnyxDerived';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 import type * as NativeNavigation from '@react-navigation/native';
+import type {PartialDeep} from 'type-fest';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -97,24 +100,22 @@ const expenseReportID = 'expense_mrv_123';
 const parentReportActionID = 'parent_action_mrv';
 const transactionID = 'txn_mrv_test';
 
-const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: Record<string, unknown>) =>
+const renderMoneyRequestView = (threadReport: ReturnType<typeof LHNTestUtils.getFakeReport>, policy?: PartialDeep<Policy>) =>
     render(
         <ComposeProviders components={[OnyxListItemProvider]}>
             <MoneyRequestView
                 transactionThreadReport={threadReport}
                 parentReportID={expenseReportID}
-                expensePolicy={
-                    {
-                        id: policyID,
-                        type: CONST.POLICY.TYPE.TEAM,
-                        role: CONST.POLICY.ROLE.ADMIN,
-                        name: 'Test Policy',
-                        owner: currentUserEmail,
-                        outputCurrency: CONST.CURRENCY.USD,
-                        isPolicyExpenseChatEnabled: true,
-                        ...policy,
-                    } as never
-                }
+                expensePolicy={createMock<Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    name: 'Test Policy',
+                    owner: currentUserEmail,
+                    outputCurrency: CONST.CURRENCY.USD,
+                    isPolicyExpenseChatEnabled: true,
+                    ...policy,
+                })}
                 shouldShowAnimatedBackground={false}
             />
         </ComposeProviders>,
@@ -517,6 +518,69 @@ describe('MoneyRequestView edit fields', () => {
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-iou.taxAmount')).toBeOnTheScreen();
             expect(screen.queryByTestId(/^menu-item-iou\.taxAmount.*common\.converted/i)).not.toBeOnTheScreen();
+        });
+    });
+
+    it('shows the vendor row on QBO without the vendorMatching beta because QBO (R1) is generally available', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'v-1', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
+                    data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: CONST.CURRENCY.USD, email: 'acme@example.com'}]},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.getByTestId('menu-item-title-common.vendor')).toHaveTextContent('Acme Co');
+        });
+    });
+
+    it('hides the vendor row on Xero without the vendorMatching beta because Xero (R3) is still pre-GA', async () => {
+        const threadReport = {
+            ...LHNTestUtils.getFakeReport(),
+            parentReportID: expenseReportID,
+            parentReportActionID,
+        };
+
+        await setupTestData();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+                reimbursable: false,
+                comment: {vendor: {externalID: 'xc1', isManuallySet: false}},
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderMoneyRequestView(threadReport, {
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
+                    config: {isConfigured: true},
+                    data: {contacts: {xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}},
+                },
+            },
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(screen.queryByTestId('menu-item-common.supplier')).not.toBeOnTheScreen();
+            expect(screen.queryByTestId('menu-item-common.vendor')).not.toBeOnTheScreen();
         });
     });
 

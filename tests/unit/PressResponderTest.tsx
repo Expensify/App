@@ -13,6 +13,8 @@ import type {GestureResponderEvent, View as RNViewType} from 'react-native';
 import React, {useImperativeHandle} from 'react';
 import {View} from 'react-native';
 
+import createMock from '../utils/createMock';
+
 type ProbeProps = {
     consumerOnPress?: PressableProps['onPress'];
     consumerNativeID?: string;
@@ -136,7 +138,7 @@ describe('PressResponder', () => {
                     />
                 </PressResponder>,
             );
-            probeRef.current?.capturedProps.onPress?.({} as GestureResponderEvent);
+            probeRef.current?.capturedProps.onPress?.(createMock<GestureResponderEvent>({}));
             expect(calls).toEqual(['consumer', 'responder']);
         });
 

@@ -43,6 +43,10 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
+function getReportParentReportID(report: OnyxEntry<Report>) {
+    return report?.parentReportID;
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -181,6 +185,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
+        debitedAmount: report.debitedAmount,
+        debitedCurrency: report.debitedCurrency,
+        creditedAmount: report.creditedAmount,
+        creditedCurrency: report.creditedCurrency,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -247,6 +255,7 @@ export {
     getArchiveReason,
     getReportChatType,
     getReportOwnerAccountID,
+    getReportParentReportID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,

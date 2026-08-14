@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -392,16 +392,14 @@ function TransactionGroupListExpandedImpl({
             })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                    <Button
-                        text={translate('common.showMore')}
+                    <LinkButton
                         onPress={onShowMoreButtonPress}
-                        link
-                        shouldUseDefaultHover={false}
                         isNested
-                        medium
-                        innerStyles={[styles.ph3]}
-                        textStyles={[styles.fontSizeNormal]}
-                    />
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        innerStyles={[styles.ph2]}
+                    >
+                        <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                    </LinkButton>
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (

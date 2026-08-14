@@ -5,6 +5,8 @@ import useDistanceRequestData from '@pages/iou/request/step/IOURequestStepDistan
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
+import createMock from '../../utils/createMock';
+
 const mockSetMoneyRequestAmount = jest.fn();
 const mockSetSplitShares = jest.fn();
 
@@ -38,9 +40,9 @@ jest.mock('@libs/TransactionUtils', () => ({
 type Params = Parameters<typeof useDistanceRequestData>[0];
 
 const baseParams: Params = {
-    policy: {outputCurrency: 'USD'} as unknown as OnyxTypes.Policy,
+    policy: createMock<OnyxTypes.Policy>({outputCurrency: 'USD'}),
     personalPolicy: {outputCurrency: 'USD'},
-    transaction: {transactionID: 'txn1'} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1'}),
     customUnitRateID: 'rate1',
     transactionID: 'txn1',
     isSplitRequest: false,

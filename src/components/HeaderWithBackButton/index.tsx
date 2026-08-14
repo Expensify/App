@@ -50,6 +50,8 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
+    policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
+    titleStyles,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
     shouldShowBackButton = true,
@@ -68,6 +70,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
+    numberOfTitleLines = 1,
     threeDotsAnchorAlignment = {
         horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
@@ -117,9 +120,9 @@ function HeaderWithBackButton({
             <Header
                 title={title}
                 subtitle={stepCounterTranslation ?? subtitle}
-                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+                textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
                 subTitleLink={subTitleLink}
-                numberOfTitleLines={1}
+                numberOfTitleLines={numberOfTitleLines}
                 isScreenHeader
                 shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
             />
@@ -136,6 +139,8 @@ function HeaderWithBackButton({
         subtitle,
         title,
         titleColor,
+        titleStyles,
+        numberOfTitleLines,
         translate,
         openParentReportInCurrentTab,
         shouldDisplayStatus,
@@ -242,14 +247,16 @@ function HeaderWithBackButton({
                 {!!policyAvatar &&
                     (policyAvatar.type === CONST.ICON_TYPE_WORKSPACE ? (
                         <WorkspaceAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             name={policyAvatar.name ?? ''}
                             avatarID={policyAvatar.id ?? CONST.DEFAULT_NUMBER_ID}
                         />
                     ) : (
                         <UserAvatar
-                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                            containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
+                            size={policyAvatarSize}
                             source={policyAvatar.source}
                             accountID={getAccountIDFromAvatarID(policyAvatar.id)}
                         />

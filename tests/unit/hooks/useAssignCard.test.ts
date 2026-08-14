@@ -8,6 +8,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 
+import {setAssignCardStepAndData} from '@libs/actions/CompanyCards';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {CombinedCardFeeds, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
@@ -270,6 +272,40 @@ describe('useAssignCard', () => {
 
             // The hook should accept same values without throwing
             expect(() => result.current.assignCard(cardName, cardID)).not.toThrow();
+        });
+    });
+
+    describe('assignCard function - single active employee shortcut', () => {
+        it('should auto-assign to the single active employee, not the first (deleted) employee in the list', () => {
+            // Given a policy whose first (unfiltered) employee is pending deletion, leaving a single active employee later in the list
+            const policyWithDeletedFirstEmployee = createMock<Policy>({
+                id: mockPolicyID,
+                policyAccountID: workspaceAccountID,
+                employeeList: {
+                    'admin@example.com': {email: 'admin@example.com', pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
+                    'employee@example.com': {email: 'employee@example.com'},
+                },
+            });
+            jest.mocked(usePolicy).mockReturnValue(policyWithDeletedFirstEmployee);
+            jest.mocked(useCardFeeds).mockReturnValue([mockDirectFeedData, {status: 'loaded'}, undefined, {}, workspaceAccountID]);
+
+            const {result} = renderHook(() =>
+                useAssignCard({
+                    feedName: mockDirectFeed,
+                    policyID: mockPolicyID,
+                    setShouldShowOfflineModal: mockSetShouldShowOfflineModal,
+                }),
+            );
+
+            result.current.assignCard('Chase Checking 0000', 'Chase Checking 0000');
+
+            // Then the flow jumps to confirmation pre-assigned to the single active employee (not the deleted admin)
+            expect(setAssignCardStepAndData).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    currentStep: CONST.COMPANY_CARD.STEP.CONFIRMATION,
+                    cardToAssign: expect.objectContaining({email: 'employee@example.com'}),
+                }),
+            );
         });
     });
 });

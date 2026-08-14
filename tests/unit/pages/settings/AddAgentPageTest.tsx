@@ -12,9 +12,11 @@ import AddAgentPage from '@pages/settings/Agents/AddAgentPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 
 import React from 'react';
+
+import createMock from '../../../utils/createMock';
 
 const OWNER_ACCOUNT_ID = 999;
 const OWNER_LOGIN = 'owner@test.com';
@@ -167,14 +169,14 @@ const mockUseOnyx = jest.mocked(useOnyx);
 type AddAgentRouteProp = PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.ADD>;
 
 function makeRoute(params: AddAgentRouteProp['params'] = {}): AddAgentRouteProp {
-    return {name: '', key: '', params} as unknown as AddAgentRouteProp;
+    return createMock<AddAgentRouteProp>({name: SCREENS.SETTINGS.AGENTS.ADD, key: '', params});
 }
 
 function renderAddAgentPage(routeParams: AddAgentRouteProp['params'] = {}) {
     return render(
         <AddAgentPage
             route={makeRoute(routeParams)}
-            navigation={undefined as never}
+            navigation={createMock<React.ComponentProps<typeof AddAgentPage>['navigation']>({})}
         />,
     );
 }

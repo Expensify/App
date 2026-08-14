@@ -1,5 +1,7 @@
 import {act, render} from '@testing-library/react-native';
 
+import type {SelectionListProps} from '@components/SelectionList/types';
+
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
@@ -21,7 +23,7 @@ type ConfirmButtonOptions = {showButton?: boolean; text?: string; onConfirm?: ()
 
 let capturedData: CurrencyOption[] = [];
 let capturedOnSelectRow: ((option: CurrencyOption) => void) | undefined;
-let capturedCustomListHeader: React.ReactNode;
+let capturedCustomListHeader: SelectionListProps<CurrencyOption>['customListHeader'];
 let capturedConfirmButtonOptions: ConfirmButtonOptions | undefined;
 
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: () => false})));
@@ -83,7 +85,7 @@ jest.mock('@components/SelectionList', () => {
     }: {
         data: CurrencyOption[];
         onSelectRow: (option: CurrencyOption) => void;
-        customListHeader?: React.ReactNode;
+        customListHeader?: SelectionListProps<CurrencyOption>['customListHeader'];
         confirmButtonOptions?: ConfirmButtonOptions;
     }) {
         capturedData = data ?? [];
@@ -242,9 +244,18 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        const header = capturedCustomListHeader as React.ReactElement<{isSectionList?: boolean}>;
+        const header = capturedCustomListHeader;
         expect(header).toBeTruthy();
+        if (!React.isValidElement(header)) {
+            throw new Error('Expected the captured custom list header to be a React element');
+        }
+        if (header.type !== 'PaymentCardCurrencyHeader') {
+            throw new Error('Expected the captured custom list header to be PaymentCardCurrencyHeader');
+        }
         expect(header.type).toBe('PaymentCardCurrencyHeader');
+        if (typeof header.props !== 'object' || header.props === null || !('isSectionList' in header.props) || typeof header.props.isSectionList !== 'boolean') {
+            throw new Error('Expected PaymentCardCurrencyHeader to receive a boolean isSectionList prop');
+        }
         expect(header.props.isSectionList).toBe(true);
     });
 

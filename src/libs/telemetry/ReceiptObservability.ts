@@ -178,6 +178,14 @@ function logReceiptDropped({
     });
 }
 
+function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureSource: ReceiptCaptureSource}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} adopt failed`, {
+        event: 'adoptFailed',
+        captureSource,
+        error: error instanceof Error ? error.message : String(error),
+    });
+}
+
 /**
  * Logs one line per receipt still pending in the write queue, tagged with what triggered the snapshot. Stays quiet
  * when nothing is pending, so the normal case makes no noise. Sent right away so it survives a hard app kill from the
@@ -238,6 +246,7 @@ export {
     logReceiptSubmitted,
     logReceiptEnqueued,
     logReceiptDropped,
+    logReceiptAdoptFailed,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
     RECEIPT_BEARING_COMMANDS,

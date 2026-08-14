@@ -341,6 +341,9 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    // Sorted as stored, so amounts in different currencies are ranked without conversion.
+    [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: 'debitedAmount' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'creditedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
@@ -4599,6 +4602,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'workspace.common.customField2';
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return 'common.internationalReimbursementIDs';
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+            return 'common.amountDebited';
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
+            return 'common.amountReimbursed';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5281,6 +5288,14 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
+
+    [FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+
+    [FILTER_KEYS.AMOUNT_REIMBURSED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
 };
 
 function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof FILTER_TO_SYNTAX_KEY {
@@ -5439,6 +5454,14 @@ const FILTER_VIEW_MAP = {
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED]: {
+        labelKey: 'common.amountDebited',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED]: {
+        labelKey: 'common.amountReimbursed',
         icon: 'Coins',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
@@ -6030,9 +6053,20 @@ function getColumnsToShow({
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
         CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
     ]);
 
-    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => !!getReportCustomColumnValue(column, reportToCheck);
+    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => {
+        // The cell needs both the amount and the currency it moved in, so treat either one alone as no value.
+        if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED) {
+            return !!reportToCheck?.debitedAmount && !!reportToCheck?.debitedCurrency;
+        }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED) {
+            return !!reportToCheck?.creditedAmount && !!reportToCheck?.creditedCurrency;
+        }
+        return !!getReportCustomColumnValue(column, reportToCheck);
+    };
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -6075,6 +6109,11 @@ function getColumnsToShow({
 
         return result.filter((column) => {
             if (!reportCustomColumns.has(column)) {
+                return true;
+            }
+
+            // Keep the sorted column even when empty, otherwise the sort can't be changed.
+            if (column === sortBy) {
                 return true;
             }
 

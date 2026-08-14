@@ -1,5 +1,6 @@
-import * as telemetryActiveSpansStub from '@server/stubs/telemetry-activeSpans';
 import {describe, expect, test} from 'bun:test';
+
+import * as telemetryActiveSpansStub from '@server/stubs/telemetry-activeSpans';
 import {readFileSync} from 'node:fs';
 import {join} from 'node:path';
 

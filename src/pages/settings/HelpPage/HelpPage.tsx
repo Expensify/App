@@ -33,7 +33,7 @@ import {View} from 'react-native';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'LifeRing', 'TopiaryDollarSign']);
+    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -194,7 +194,6 @@ function HelpPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.help')}
-                icon={illustrations.LifeRing}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter

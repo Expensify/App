@@ -12707,7 +12707,7 @@ function wrappy (fn, cb) {
 /***/ }),
 
 /***/ 2483:
-/***/ (function(module, exports, __nccwpck_require__) {
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
 
 "use strict";
 
@@ -12748,7 +12748,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention, import/no-import-module-exports */
+/* eslint-disable @typescript-eslint/naming-convention */
 const ActionUtils = __importStar(__nccwpck_require__(6981));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
@@ -12937,7 +12937,7 @@ async function run() {
 if (require.main === require.cache[eval('__filename')]) {
     run();
 }
-module.exports = run;
+exports["default"] = run;
 
 
 /***/ }),

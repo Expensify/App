@@ -22,6 +22,7 @@ import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
+import type ReactNative from 'react-native';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
@@ -100,8 +101,8 @@ jest.mock('@components/Navigation/TopBarWithLoadingBar', () => {
 });
 
 jest.mock('@components/MenuItem', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{testID: string; children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
     return ({title}: {title: string}) => ReactMock.createElement(Text, {testID: `menu-item-${String(title)}`}, title);
 });
 
@@ -125,6 +126,10 @@ function renderPage() {
             </PortalProvider>
         </ComposeProviders>,
     );
+}
+
+function getMenuItemTitles() {
+    return screen.getAllByTestId(/^menu-item-/).flatMap((item) => item.children.filter((child): child is string => typeof child === 'string'));
 }
 
 describe('InitialSettingsPage - agent account', () => {
@@ -203,6 +208,20 @@ describe('InitialSettingsPage - agent account', () => {
             expect(screen.getByTestId('menu-item-Wallet')).toBeDefined();
             expect(screen.getByTestId('menu-item-Preferences')).toBeDefined();
             expect(screen.getByTestId('menu-item-Security')).toBeDefined();
+            expect(getMenuItemTitles()).toEqual([
+                'Profile',
+                'Wallet',
+                'Expense rules',
+                'Preferences',
+                'Copilot',
+                'Security',
+                'Help',
+                "What's new",
+                'About',
+                'Troubleshoot',
+                'Save the world',
+                'Sign out',
+            ]);
         });
     });
 
@@ -215,6 +234,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Subscription')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 3)).toEqual(['Profile', 'Subscription', 'Wallet']);
         });
     });
 
@@ -251,6 +271,7 @@ describe('InitialSettingsPage - agent account', () => {
 
         await waitFor(() => {
             expect(screen.getByTestId('menu-item-Agents')).toBeDefined();
+            expect(getMenuItemTitles().slice(0, 5)).toEqual(['Profile', 'Wallet', 'Expense rules', 'Agents', 'Preferences']);
         });
     });
 });

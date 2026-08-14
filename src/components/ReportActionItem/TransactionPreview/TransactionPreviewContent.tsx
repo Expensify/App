@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionAvatars from '@components/ReportActionAvatars';
@@ -463,11 +463,12 @@ function TransactionPreviewContent({
                     )}
                     {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
-                            text={translate('violations.keepThisOne')}
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
-                        />
+                        >
+                            <Button.Text>{translate('violations.keepThisOne')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             </OfflineWithFeedback>

@@ -23,10 +23,11 @@ import getPhotoSource from '@libs/fileDownload/getPhotoSource';
 import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import Log from '@libs/Log';
-import moveReceiptToDurableStorage from '@libs/moveReceiptToDurableStorage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getOdometerImageUri} from '@libs/OdometerUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
@@ -129,23 +130,25 @@ function IOURequestStepOdometerImage({
             return;
         }
 
-        moveReceiptToDurableStorage(sourceUri, filename)
-            .then((durableUri) => {
+        ReceiptStorage.adopt(sourceUri, filename)
+            .then((durableName) => ReceiptStorage.toLocalUri(durableName))
+            .catch((error: unknown) => {
+                logReceiptAdoptFailed({error, captureSource: 'gallery'});
+                return sourceUri;
+            })
+            .then((uri) => {
                 setMoneyRequestOdometerImage(
                     transaction,
                     imageType,
                     {
-                        uri: durableUri,
+                        uri,
                         name: filename,
-                        type: file.type ?? getMimeTypeFromUri(durableUri) ?? 'image/jpeg',
+                        type: file.type ?? getMimeTypeFromUri(uri) ?? 'image/jpeg',
                         size: file.size,
                     },
                     isTransactionDraft,
                     false,
                 );
-            })
-            .catch((error: unknown) => {
-                Log.warn('Failed to move odometer receipt to durable storage', error instanceof Error ? error.message : String(error));
             })
             .finally(() => {
                 navigateBack();
@@ -210,7 +213,9 @@ function IOURequestStepOdometerImage({
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
                         cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
-                            .then(({file, filename, source}) => moveReceiptToDurableStorage(source, filename).then((durableSource) => ({file, filename, source: durableSource})))
+                            .then(({file, filename, source}) =>
+                                ReceiptStorage.adopt(source, filename).then((durableName) => ({file, filename, source: ReceiptStorage.toLocalUri(durableName)})),
+                            )
                             .then(({file, filename, source}) => {
                                 setMoneyRequestOdometerImage(
                                     transaction,

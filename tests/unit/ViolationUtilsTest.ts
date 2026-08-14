@@ -2892,7 +2892,7 @@ describe('getViolationsOnyxData', () => {
             expect(result.value).not.toContainEqual(inactiveVendorViolation);
         });
 
-        it('does not add the violation when the vendorMatching beta is disabled, even with QBO configured', () => {
+        it('adds the violation when the vendorMatching beta is disabled but QBO is configured, because QBO (R1) is generally available', () => {
             isBetaEnabledSpy.mockImplementation(() => false);
             policy = policyWithQBOVendorFeature();
             transaction.comment = {...transaction.comment, vendor: {externalID: 'v-missing', isManuallySet: true}};
@@ -2906,7 +2906,7 @@ describe('getViolationsOnyxData', () => {
                 hasDependentTags: false,
                 isInvoiceTransaction: false,
             });
-            expect(result.value).not.toContainEqual(inactiveVendorViolation);
+            expect(result.value).toEqual(expect.arrayContaining([inactiveVendorViolation]));
         });
 
         it('does not add the violation while the QBO vendor list is still hydrating (vendors undefined)', () => {

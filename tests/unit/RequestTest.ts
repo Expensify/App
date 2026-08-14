@@ -29,20 +29,19 @@ const request: OnyxTypes.AnyRequest = {
 };
 
 test('Request.addMiddleware() can register a middleware and it will run', () => {
-    const testMiddleware = jest.fn<ReturnType<Middleware>, Parameters<Middleware>>().mockResolvedValue(undefined);
-    Request.addMiddleware(testMiddleware as unknown as Middleware);
-
-    Request.processWithMiddleware(request, true);
-    return waitForBatchedUpdates().then(() => {
-        const call = testMiddleware.mock.calls.at(0);
-        if (!call) {
-            return;
-        }
-        const [promise, returnedRequest, isFromSequentialQueue] = call;
-        expect(testMiddleware).toHaveBeenCalled();
+    let middlewareCallCount = 0;
+    const testMiddleware: Middleware = (promise, returnedRequest, isFromSequentialQueue) => {
+        middlewareCallCount++;
         expect(returnedRequest).toEqual(request);
         expect(isFromSequentialQueue).toBe(true);
         expect(promise).toBeInstanceOf(Promise);
+        return Promise.resolve();
+    };
+    Request.addMiddleware(testMiddleware);
+
+    Request.processWithMiddleware(request, true);
+    return waitForBatchedUpdates().then(() => {
+        expect(middlewareCallCount).toBe(1);
     });
 });
 

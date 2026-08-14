@@ -50,6 +50,9 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
     /** Whether this tab is disabled */
     isDisabled?: boolean;
 
+    /** Called instead of selecting the tab when it is disabled. Keeps the tab pressable so it can explain why it is locked. */
+    disabledAction?: () => void | Promise<void>;
+
     /** Pending action for the tab. */
     pendingAction?: PendingAction;
 };
@@ -131,6 +134,9 @@ type TabSelectorItemProps = WithSentryLabel & {
 
     /** Whether this tab is disabled */
     isDisabled?: boolean;
+
+    /** Called instead of selecting the tab when it is disabled. Keeps the tab pressable so it can explain why it is locked. */
+    disabledAction?: () => void | Promise<void>;
 
     /** Pending action for the tab. */
     pendingAction?: PendingAction;

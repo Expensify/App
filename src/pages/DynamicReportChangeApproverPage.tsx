@@ -140,7 +140,7 @@ function DynamicReportChangeApproverPage({report, policy, isLoadingReportData}: 
     const listHeader = useMemo(
         () => (
             <View style={[styles.ph5, styles.mb5, styles.renderHTML, styles.flexRow]}>
-                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id)}`)} />
+                <RenderHTML html={translate('iou.changeApprover.header', `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policy?.id, CONST.TAB.WORKFLOWS.APPROVALS)}`)} />
             </View>
         ),
         [environmentURL, policy?.id, styles.flexRow, styles.mb5, styles.ph5, styles.renderHTML, translate],

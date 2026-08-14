@@ -5,6 +5,7 @@ import type {ReportAction, Transaction} from '@src/types/onyx';
 
 import {actionR14932, actionR98765} from '../../../__mocks__/reportData/actions';
 import {transactionR14932, transactionR98765} from '../../../__mocks__/reportData/transactions';
+import createMock from '../../utils/createMock';
 
 describe('getThreadReportIDsForTransactions', () => {
     test('returns empty list for no transactions', () => {
@@ -37,17 +38,17 @@ describe('getThreadReportIDsForTransactions', () => {
 
 describe('isActionVisibleOnMoneyRequestReport', () => {
     test('hides created action by default', () => {
-        const createdAction = {
+        const createdAction = createMock<ReportAction>({
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-        } as ReportAction;
+        });
 
         expect(isActionVisibleOnMoneyRequestReport(createdAction)).toBe(false);
     });
 
     test('shows created action when explicitly allowed', () => {
-        const createdAction = {
+        const createdAction = createMock<ReportAction>({
             actionName: CONST.REPORT.ACTIONS.TYPE.CREATED,
-        } as ReportAction;
+        });
 
         expect(isActionVisibleOnMoneyRequestReport(createdAction, true)).toBe(true);
     });

@@ -2,7 +2,7 @@ import Avatar from '@components/Avatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -143,11 +143,10 @@ function DynamicReportParticipantDetails({report, route}: DynamicReportParticipa
                             />
                         </OfflineWithFeedback>
                     )}
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

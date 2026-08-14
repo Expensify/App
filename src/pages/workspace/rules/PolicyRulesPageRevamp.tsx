@@ -8,7 +8,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -81,7 +81,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.rules');
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Feed', 'CreditCardExclamation', 'DocumentMagicWand', 'Task', 'Flag', 'Bot', 'Trashcan', 'Table']);
     const {canWrite: canWriteRules, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
@@ -361,7 +360,6 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                 headerText={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.rules')}
                 shouldShowOfflineIndicatorInWideScreen
                 route={route}
-                icon={selectionModeHeader ? undefined : illustrations.Flash}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 onBackButtonPress={handleBackButtonPress}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}

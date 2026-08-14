@@ -115,8 +115,12 @@ describe('AddVendorPage', () => {
         const qboPolicy = buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]);
         const xeroPolicy = buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}});
 
-        it('hides the row when the beta is off even with a vendor integration connected', () => {
-            expect(hasVendorFeature(qboPolicy, false)).toBe(false);
+        it('shows the row on QBO with the beta off because QBO vendor matching is generally available', () => {
+            expect(hasVendorFeature(qboPolicy, false)).toBe(true);
+        });
+
+        it('hides the row on Xero when the beta is off because Xero vendor matching is not generally available yet', () => {
+            expect(hasVendorFeature(xeroPolicy, false)).toBe(false);
         });
 
         it('hides the row when no vendor integration is connected', () => {

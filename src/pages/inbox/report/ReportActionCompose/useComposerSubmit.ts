@@ -3,6 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import {addAttachmentWithComment, addComment, clearAgentZeroProcessingIndicator} from '@libs/actions/Report';
@@ -12,7 +13,7 @@ import {rand64} from '@libs/NumberUtils';
 import {addDomainToShortMention} from '@libs/ParsingUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {getAllReportActions} from '@libs/ReportActionsUtils';
-import {canUserPerformWriteAction, isConciergeChatReport} from '@libs/ReportUtils';
+import {canUserPerformWriteAction, generateReportID, isConciergeChatReport} from '@libs/ReportUtils';
 import {getAllPersonalDetailLogins} from '@libs/ShortMentionLogins';
 import {startSpan} from '@libs/telemetry/activeSpans';
 import getSendMessageListWeight from '@libs/telemetry/getSendMessageListWeight';
@@ -43,6 +44,7 @@ function useComposerSubmit(reportID: string) {
     const route = useRoute();
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const {isBetaEnabled} = usePermissions();
     const [isComposerFullSize = false] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_IS_COMPOSER_FULL_SIZE}${reportID}`);
     const delegateAccountID = useDelegateAccountID();
 
@@ -195,6 +197,10 @@ function useComposerSubmit(reportID: string) {
             reportActionID: optimisticReportActionID,
             delegateAccountID,
             conciergeReportID,
+
+            // Concierge answers each question in its own thread. The side panel renders its own pinned report,
+            // so it stays in the DM rather than being sent to a thread it cannot show.
+            conciergeThreadReportID: reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) ? generateReportID() : undefined,
         });
     };
 

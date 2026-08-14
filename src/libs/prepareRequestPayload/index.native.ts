@@ -1,5 +1,6 @@
 import checkFileExists from '@libs/fileDownload/checkFileExists';
 import {readFileAsync} from '@libs/fileDownload/FileUtils';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {logReceiptDropped} from '@libs/telemetry/ReceiptObservability';
 import validateFormDataParameter from '@libs/validateFormDataParameter';
 
@@ -24,16 +25,24 @@ const prepareRequestPayload: PrepareRequestPayload = (command, data, initiatedOf
             }
 
             if (key === 'receipt') {
-                const {source, name, type, uri, receiptTraceId} = value as File & Pick<Receipt, 'receiptTraceId'>;
+                const {source, name, type, receiptTraceId} = value as Omit<File, 'source'> & Pick<Receipt, 'receiptTraceId' | 'source'>;
+
                 if (source) {
-                    return checkFileExists(source).then((exists) => {
+                    // A bundled placeholder image (distance, per diem) is a require() asset id, so no file exists on disk.
+                    if (typeof source === 'number') {
+                        return Promise.resolve();
+                    }
+
+                    const localUri = ReceiptStorage.resolve(source) ?? source;
+
+                    return checkFileExists(localUri).then((exists) => {
                         if (!exists) {
                             const transactionID = typeof data.transactionID === 'string' ? data.transactionID : undefined;
                             logReceiptDropped({receiptTraceId, transactionID, command, source, fileName: name});
                             return;
                         }
                         const receiptFormData = {
-                            uri,
+                            uri: localUri,
                             name,
                             type,
                         };

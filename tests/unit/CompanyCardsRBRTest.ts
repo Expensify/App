@@ -23,7 +23,8 @@ const DIRECT_BANK_FEED = {
 } as const;
 
 // Plaid connection feed (Plaid feed names are dynamically generated at runtime and not part of the static CardFeedWithNumber union)
-const PLAID_FEED_NAME = 'plaid.chase_bank' as unknown as Card['bank'];
+// @ts-expect-error -- Dynamic Plaid feed names are real server values not yet represented by CardFeedWithNumber.
+const PLAID_FEED_NAME: Card['bank'] = 'plaid.chase_bank';
 const PLAID_FEED = {
     policyAccountID: WORKSPACE_ACCOUNT_ID,
     feedName: PLAID_FEED_NAME,

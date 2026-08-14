@@ -231,7 +231,7 @@ type PerDiemExpenseInformation = {
     recentlyUsedParams?: RecentlyUsedParams;
     transactionParams: PerDiemExpenseTransactionParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
-    /** The policy's tags, keyed the same way `getPolicyTags()` would return for this expense's policyID. */
+    /** The policy's tags for this expense's policyID, i.e. `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` from the POLICY_TAGS collection. */
     policyTags: OnyxTypes.PolicyTagLists;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;
@@ -262,7 +262,7 @@ type PerDiemExpenseInformationParams = {
     recentlyUsedParams?: RecentlyUsedParams;
     existingIOUReport?: OnyxEntry<OnyxTypes.Report>;
     moneyRequestReportID?: string;
-    /** The policy's tags, keyed the same way `getPolicyTags()` would return for this expense's policyID. */
+    /** The policy's tags for this expense's policyID, i.e. `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}` from the POLICY_TAGS collection. */
     policyTags: OnyxTypes.PolicyTagLists;
     isASAPSubmitBetaEnabled: boolean;
     currentUserAccountIDParam: number;

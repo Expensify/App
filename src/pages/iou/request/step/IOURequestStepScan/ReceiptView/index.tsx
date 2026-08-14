@@ -2,7 +2,7 @@ import AttachmentCarouselView from '@components/Attachments/AttachmentCarousel/A
 import useCarouselArrows from '@components/Attachments/AttachmentCarousel/useCarouselArrows';
 import useAttachmentErrors from '@components/Attachments/AttachmentView/useAttachmentErrors';
 import type {Attachment} from '@components/Attachments/types';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -110,13 +110,13 @@ function ReceiptView({route}: ReceiptViewProps) {
                 onBackButtonPress={handleGoBack}
             >
                 <Button
-                    shouldShowRightIcon
-                    iconRight={expensifyIcons.Trashcan}
                     onPress={handleDeleteReceiptPress}
                     innerStyles={styles.bgTransparent}
-                    large
+                    size={CONST.BUTTON_SIZE.LARGE}
                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.RECEIPT_DELETE_BUTTON}
-                />
+                >
+                    <Button.Icon src={expensifyIcons.Trashcan} />
+                </Button>
             </HeaderWithBackButton>
             <AttachmentCarouselView
                 attachments={receipts as Attachment[]}

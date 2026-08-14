@@ -2,7 +2,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {AttachmentContext} from '@components/AttachmentContext';
 import VideoRenderer from '@components/HTMLEngineProvider/HTMLRenderers/VideoRenderer';
-import type PressableProps from '@components/Pressable/GenericPressable/types';
+import type * as PressableModule from '@components/Pressable';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,9 +21,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@components/VideoPlayerPreview', () => {
     return ({onShowModalPress, fileName}: {onShowModalPress: () => void; fileName: string}) => {
         // Get PressableWithoutFeedback inside the component to avoid Jest mock issues
-        const {PressableWithoutFeedback} = require('@components/Pressable') as {
-            PressableWithoutFeedback: React.ComponentType<PressableProps>;
-        };
+        const {PressableWithoutFeedback} = jest.requireActual<typeof PressableModule>('@components/Pressable');
 
         const handlePress = () => {
             onShowModalPress?.();

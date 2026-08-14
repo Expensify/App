@@ -2,11 +2,13 @@ import {buildSubstitutionsMap} from '@src/components/Search/SearchRouter/buildSu
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 // we need "dirty" object key names in these tests
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import {formatPhoneNumber, translateLocal} from '../../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
@@ -49,24 +51,22 @@ const taxRatesMock = {
     TAX_1: ['id_TAX_1'],
 } as Record<string, string[]>;
 
-const cardListMock = {
+const cardListMock = createMock<OnyxTypes.CardList>({
     '11223344': {
-        state: 1,
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
         bank: 'vcf',
-        fundID: 1,
         lastFourPAN: '1234',
     },
     '10203040': {
-        state: 1,
+        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
         bank: CONST.EXPENSIFY_CARD.BANK,
-        fundID: 2,
         lastFourPAN: '1234',
     },
-} as unknown as OnyxTypes.CardList;
+});
 
-const cardFeedMock = 'oauth.americanexpressfdx.com 1001' as OnyxTypes.CompanyCardFeed;
+const cardFeedMock: CardFeedWithNumber = `${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT} 1001`;
 const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
-    sharedNVP_private_domain_member_1234: {
+    sharedNVP_private_domain_member_1234: createMock<OnyxTypes.CardFeeds>({
         settings: {
             companyCards: {
                 [cardFeedMock]: {},
@@ -75,10 +75,10 @@ const cardFeedsMock: OnyxCollection<OnyxTypes.CardFeeds> = {
                 [cardFeedMock]: {accountList: ['CREDIT CARD...1234'], credentials: 'xxxxx', expiration: 1730998958},
             },
         },
-    },
+    }),
 };
 
-const policiesMock = {
+const policiesMock = createMock<OnyxCollection<OnyxTypes.Policy>>({
     [`${ONYXKEYS.COLLECTION.POLICY}policyA`]: {
         id: 'policyA',
         name: 'Test Workspace',
@@ -87,7 +87,7 @@ const policiesMock = {
         id: 'policyB',
         name: 'Test Workspace',
     },
-} as OnyxCollection<OnyxTypes.Policy>;
+});
 
 describe('buildSubstitutionsMap should return correct substitutions map', () => {
     test('when there were no substitutions', () => {

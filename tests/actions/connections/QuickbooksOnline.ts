@@ -2,15 +2,16 @@ import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 import {updateQuickbooksOnlineSyncReimbursedReports, updateQuickbooksOnlineTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy as PolicyType} from '@src/types/onyx';
+import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
 import type {AnyOnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxKey, OnyxUpdate} from 'react-native-onyx';
+import type {NullishDeep, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -24,19 +25,50 @@ const writeSpy = jest.spyOn(API, 'write');
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
 const MOCK_ACCOUNT_ID = 'account-123';
 const MOCK_OLD_ACCOUNT_ID = 'account-456';
-const MOCK_ONYX_ERROR = {key: 'error'};
+const MOCK_ONYX_ERROR: Errors = {key: 'error'};
 
-function getQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig | undefined {
-    if (!update || typeof update.value !== 'object' || update.value === null) {
+type QuickBooksConfigUpdate = Pick<
+    Partial<NullishDeep<QBOConnectionConfig>>,
+    'collectionAccountID' | 'reimbursementAccountID' | 'travelInvoicingPayableAccountID' | 'pendingFields' | 'errorFields'
+>;
+
+function isQuickBooksConfigUpdate(value: unknown): value is QuickBooksConfigUpdate {
+    if (!isRecord(value)) {
+        return false;
+    }
+
+    return (
+        (value.collectionAccountID === undefined || value.collectionAccountID === null || typeof value.collectionAccountID === 'string') &&
+        (value.reimbursementAccountID === undefined || value.reimbursementAccountID === null || typeof value.reimbursementAccountID === 'string') &&
+        (value.travelInvoicingPayableAccountID === undefined || value.travelInvoicingPayableAccountID === null || typeof value.travelInvoicingPayableAccountID === 'string') &&
+        (value.pendingFields === undefined ||
+            value.pendingFields === null ||
+            (isRecord(value.pendingFields) &&
+                Object.values(value.pendingFields).every((field) => field === null || Object.values(CONST.RED_BRICK_ROAD_PENDING_ACTION).some((action) => action === field)))) &&
+        (value.errorFields === undefined ||
+            value.errorFields === null ||
+            (isRecord(value.errorFields) &&
+                Object.values(value.errorFields).every(
+                    (error) => error === undefined || error === null || (isRecord(error) && Object.values(error).every((message) => message === null || typeof message === 'string')),
+                )))
+    );
+}
+
+function getQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QuickBooksConfigUpdate | undefined {
+    const value: unknown = update?.value;
+    if (!isRecord(value) || !isRecord(value.connections)) {
         return undefined;
     }
 
-    const policyData = update.value as Pick<PolicyType, 'connections'>;
-    const connection = policyData.connections?.[CONST.POLICY.CONNECTIONS.NAME.QBO];
-    return connection?.config;
+    const connection = value.connections[CONST.POLICY.CONNECTIONS.NAME.QBO];
+    if (!isRecord(connection) || !('config' in connection) || !isQuickBooksConfigUpdate(connection.config)) {
+        return undefined;
+    }
+
+    return connection.config;
 }
 
-function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QBOConnectionConfig {
+function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<TKey>): QuickBooksConfigUpdate {
     const config = getQuickBooksConfig(update);
     if (!config) {
         throw new Error('QuickBooks config is missing from the provided Onyx update');
@@ -62,7 +94,7 @@ describe('actions/connections/QuickbooksOnline', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        (getMicroSecondOnyxErrorWithTranslationKey as jest.Mock).mockReturnValue(MOCK_ONYX_ERROR);
+        jest.mocked(getMicroSecondOnyxErrorWithTranslationKey).mockReturnValue(MOCK_ONYX_ERROR);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -152,8 +184,8 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
 
         it('handles null setting values', () => {
-            const nullSettingValue = null as unknown as QBOConnectionConfig[Extract<typeof CONST.QUICKBOOKS_CONFIG.COLLECTION_ACCOUNT_ID, keyof QBOConnectionConfig>];
-            updateQuickbooksOnlineSyncReimbursedReports(MOCK_POLICY_ID, nullSettingValue, MOCK_OLD_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            // @ts-expect-error -- null is intentionally exercised as invalid runtime input.
+            updateQuickbooksOnlineSyncReimbursedReports(MOCK_POLICY_ID, null, MOCK_OLD_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             const {onyxData} = getFirstWriteCall();
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
@@ -175,10 +207,13 @@ describe('actions/connections/QuickbooksOnline', () => {
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
             const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {policyID: string; settingValue: string; idempotencyKey: string};
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.settingValue).toBe(MOCK_ACCOUNT_ID);
-            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
+            expect(call?.[1]).toEqual(
+                expect.objectContaining({
+                    policyID: MOCK_POLICY_ID,
+                    settingValue: MOCK_ACCOUNT_ID,
+                    idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+                }),
+            );
         });
 
         it('updates travelInvoicingPayableAccountID optimistically and reverts to the old value on failure', () => {

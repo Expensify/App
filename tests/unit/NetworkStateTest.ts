@@ -538,7 +538,7 @@ describe('NetworkState', () => {
     });
 
     describe('configureAndSubscribe — env-aware reachability URL', () => {
-        const configureMock = NetInfo.configure as jest.Mock<void, [{reachabilityUrl: string}]>;
+        const configureMock = jest.mocked(NetInfo.configure);
 
         beforeEach(async () => {
             jest.mocked(getCommandURL).mockReturnValue(mockPingUrl);

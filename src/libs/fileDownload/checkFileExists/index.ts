@@ -16,7 +16,7 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
 
     const rawPath = path.startsWith('file://') ? path.slice(7) : path;
 
-    // Receipts queued before moveReceiptToDurableStorage sanitized its filenames can still carry
+    // Receipts queued before ReceiptStorage sanitized on-disk filenames can still carry
     // a literal "%23", which is indistinguishable from an encoded "#". Try decoded, then raw.
     const decodedPath = fileURIToPath(path);
 

@@ -12,7 +12,7 @@ const onyxData: Record<string, unknown> = {};
 
 const mockUseOnyx = jest.fn((key: string, options?: {selector?: (value: unknown) => unknown}) => {
     const value = onyxData[key];
-    const selectedValue = options?.selector ? options.selector(value as never) : value;
+    const selectedValue = options?.selector ? options.selector(value) : value;
     return [selectedValue];
 });
 
@@ -31,8 +31,13 @@ describe('useFilterPendingDeleteReports', () => {
 
     describe('selectPendingDeleteReportKeys', () => {
         it('returns empty array for null/undefined collection', () => {
-            expect(selectPendingDeleteReportKeys(null as unknown as OnyxCollection<Report>)).toEqual([]);
-            expect(selectPendingDeleteReportKeys(undefined as unknown as OnyxCollection<Report>)).toEqual([]);
+            expect(
+                selectPendingDeleteReportKeys(
+                    // @ts-expect-error -- Deliberately verifies the selector's defensive runtime behavior for a null collection.
+                    null,
+                ),
+            ).toEqual([]);
+            expect(selectPendingDeleteReportKeys(undefined)).toEqual([]);
         });
 
         it('returns empty array when no reports are pending delete', () => {

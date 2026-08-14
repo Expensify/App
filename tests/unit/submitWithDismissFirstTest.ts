@@ -1,11 +1,15 @@
 import type {submitWithDismissFirst as SubmitWithDismissFirstFn} from '@libs/Navigation/helpers/submitWithDismissFirst';
+import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
+type DismissModal = typeof Navigation.dismissModal;
+type RevealRouteBeforeDismissingModal = typeof Navigation.revealRouteBeforeDismissingModal;
+
 const mockIsSearchTopmostFullScreenRoute = jest.fn<boolean, []>();
 const mockGetReportOrDraftReport = jest.fn();
-const mockDismissModal = jest.fn();
-const mockRevealRouteBeforeDismissingModal = jest.fn();
+const mockDismissModal = jest.fn<ReturnType<DismissModal>, Parameters<DismissModal>>();
+const mockRevealRouteBeforeDismissingModal = jest.fn<ReturnType<RevealRouteBeforeDismissingModal>, Parameters<RevealRouteBeforeDismissingModal>>();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
 const mockReserveDeferredWriteChannel = jest.fn();
 const mockStartTracking = jest.fn();
@@ -14,8 +18,8 @@ const mockSetPendingSubmitFollowUpAction = jest.fn();
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
 jest.mock('@libs/Navigation/Navigation', () => ({
-    dismissModal: (...args: unknown[]) => mockDismissModal(...args) as unknown,
-    revealRouteBeforeDismissingModal: (...args: unknown[]) => mockRevealRouteBeforeDismissingModal(...args) as unknown,
+    dismissModal: mockDismissModal,
+    revealRouteBeforeDismissingModal: mockRevealRouteBeforeDismissingModal,
     getIsFullscreenPreInsertedUnderRHP: () => mockGetIsFullscreenPreInsertedUnderRHP() as unknown,
     clearFullscreenPreInsertedFlag: jest.fn(),
 }));
@@ -90,8 +94,11 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            const dismissCalls = mockDismissModal.mock.calls as Array<Array<{afterTransition: () => void}>>;
-            dismissCalls.at(0)?.at(0)?.afterTransition();
+            const [dismissOptions] = mockDismissModal.mock.calls.at(0) ?? [];
+            if (!dismissOptions?.afterTransition) {
+                throw new Error('Expected dismissModal afterTransition callback');
+            }
+            dismissOptions.afterTransition();
 
             expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
@@ -122,8 +129,11 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            const [, revealOptions] = (mockRevealRouteBeforeDismissingModal.mock.calls as Array<[string, {afterTransition: () => void}]>).at(0) ?? [];
-            revealOptions?.afterTransition();
+            const [, revealOptions] = mockRevealRouteBeforeDismissingModal.mock.calls.at(0) ?? [];
+            if (!revealOptions?.afterTransition) {
+                throw new Error('Expected revealRouteBeforeDismissingModal afterTransition callback');
+            }
+            revealOptions.afterTransition();
 
             expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
@@ -242,8 +252,11 @@ describe('submitWithDismissFirst', () => {
             expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalledTimes(1);
             expect(executeWrite).not.toHaveBeenCalled();
 
-            const [, revealOptions] = (mockRevealRouteBeforeDismissingModal.mock.calls as Array<[string, {afterTransition: () => void}]>).at(0) ?? [];
-            revealOptions?.afterTransition();
+            const [, revealOptions] = mockRevealRouteBeforeDismissingModal.mock.calls.at(0) ?? [];
+            if (!revealOptions?.afterTransition) {
+                throw new Error('Expected revealRouteBeforeDismissingModal afterTransition callback');
+            }
+            revealOptions.afterTransition();
             expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: false});
         });
 

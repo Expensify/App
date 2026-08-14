@@ -25,6 +25,7 @@ import {
     createWorkspaceTaskReport,
     createWorkspaceThread,
 } from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -195,15 +196,18 @@ describe('LHN Avatar Pipeline', () => {
         } as Report);
 
         // Receiver policy (for B2B invoice cases)
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`, {
-            id: RECEIVER_POLICY_ID,
-            name: 'Receiver Workspace',
-            type: CONST.POLICY.TYPE.TEAM,
-            role: CONST.POLICY.ROLE.ADMIN,
-            owner: 'user2@test.com',
-            ownerAccountID: 2,
-            outputCurrency: 'USD',
-        } as Policy);
+        await Onyx.set(
+            `${ONYXKEYS.COLLECTION.POLICY}${RECEIVER_POLICY_ID}`,
+            createMock<Policy>({
+                id: RECEIVER_POLICY_ID,
+                name: 'Receiver Workspace',
+                type: CONST.POLICY.TYPE.TEAM,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: 'user2@test.com',
+                ownerAccountID: 2,
+                outputCurrency: 'USD',
+            }),
+        );
 
         // B2B invoice room (for B2B invoice report cases)
         await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${B2B_INVOICE_ROOM_ID}`, {
@@ -549,11 +553,11 @@ describe('LHN Avatar Pipeline', () => {
 
     // ── Case 12c: Personal task (parent is DM) → SINGLE ──────────────
     it('Task Report (personal, parent is DM) → single', () => {
-        const report = {
+        const report = createMock<Report>({
             ...createWorkspaceTaskReport(123, [CURRENT_USER_ACCOUNT_ID, 2], PARENT_DM_REPORT_ID),
             policyID: undefined,
             ownerAccountID: 2,
-        } as unknown as Report;
+        });
         const result = computeAvatarResult({report, policy: null});
 
         expect(result.shouldShowSubscript).toBe(false);

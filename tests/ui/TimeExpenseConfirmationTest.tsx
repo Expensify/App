@@ -384,8 +384,11 @@ describe('TimeExpenseConfirmationTest', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(requestMoney).toHaveBeenCalled();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-            const callArgs = (requestMoney as jest.Mock).mock.calls.at(0)?.[0] as {transactionParams: {taxCode: string; taxAmount: number}};
+            const firstRequestMoneyCall = jest.mocked(requestMoney).mock.calls.at(0);
+            if (!firstRequestMoneyCall) {
+                throw new Error('Expected requestMoney to have been called');
+            }
+            const [callArgs] = firstRequestMoneyCall;
             expect(callArgs.transactionParams.taxCode).toBe('');
             expect(callArgs.transactionParams.taxAmount).toBe(0);
         });

@@ -16,7 +16,7 @@ import TestToolRow from '@components/TestToolRow';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -60,7 +60,6 @@ type BaseMenuItem = WithSentryLabel & {
 
 function TroubleshootPage() {
     const icons = useMemoizedLazyExpensifyIcons(['Download', 'ExpensifyLogoNew', 'RotateLeft']);
-    const illustrations = useMemoizedLazyIllustrations(['Lightbulb']);
     const troubleshootIllustration = useTroubleshootSectionIllustration();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -203,7 +202,6 @@ function TroubleshootPage() {
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.Lightbulb}
                 shouldUseHeadlineHeader
             />
             <View style={styles.flex1}>

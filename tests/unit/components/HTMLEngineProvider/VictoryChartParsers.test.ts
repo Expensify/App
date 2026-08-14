@@ -6,8 +6,10 @@ import parseVictorySeriesNode from '@components/HTMLEngineProvider/HTMLRenderers
 
 import type {TNode} from 'react-native-render-html';
 
+import createMock from '../../../utils/createMock';
+
 function createNode(tagName: string, attributes: Record<string, string> = {}, children: TNode[] = []): TNode {
-    const node = {tagName, attributes, children, nodeIndex: 0} as unknown as TNode;
+    const node = createMock<TNode>({tagName, attributes, children, nodeIndex: 0});
     for (const [index, child] of children.entries()) {
         Object.assign(child, {parent: node, nodeIndex: index});
     }

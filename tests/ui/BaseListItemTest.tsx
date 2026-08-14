@@ -8,7 +8,7 @@ import CONST from '@src/CONST';
 
 jest.mock('@hooks/useHover', () => jest.fn());
 
-const mockedUseHover = useHover as jest.MockedFunction<typeof useHover>;
+const mockedUseHover = jest.mocked(useHover);
 
 describe('BaseListItem', () => {
     it('hover should work correctly', () => {

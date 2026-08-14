@@ -17,7 +17,7 @@ import useCurrencyForExpensifyCard from '@hooks/useCurrencyForExpensifyCard';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useEmptyViewHeaderHeight from '@hooks/useEmptyViewHeaderHeight';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useOnyx from '@hooks/useOnyx';
@@ -72,7 +72,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
     const {shouldUseNarrowLayout, isMediumScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['HandCard', 'ExpensifyCardImage']);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
@@ -298,7 +297,6 @@ function WorkspaceExpensifyCardListPage({route, cardsList, fundID}: WorkspaceExp
             testID="WorkspaceExpensifyCardListPage"
         >
             <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.HandCard : undefined}
                 shouldUseHeadlineHeader={!selectionModeHeader}
                 title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.expensifyCard')}
                 shouldShowBackButton={shouldUseNarrowLayout}

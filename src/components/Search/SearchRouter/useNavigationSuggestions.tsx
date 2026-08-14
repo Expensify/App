@@ -1,5 +1,5 @@
 /**
- * Builds the top-level and Spend navigation suggestions shown in the Search Router.
+ * Builds the top-level, Spend, and Create navigation suggestions shown in the Search Router.
  */
 import getSearchTabRoute from '@components/Navigation/NavigationTabBar/getSearchTabRoute';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -33,6 +33,7 @@ import React from 'react';
 import type {NavigationSuggestionSourceItem} from './SearchRouterHelpers';
 
 import {buildNavigationSuggestions, getGoToText} from './SearchRouterHelpers';
+import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
@@ -128,6 +129,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
     const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(SEARCH_ROUTER_ICON_NAMES);
     const [lastSearchParams] = useOnyx(ONYXKEYS.REPORT_NAVIGATION_LAST_SEARCH_QUERY);
+    const createItems = useCreateNavigationSuggestions(query);
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections} = useSearchTypeMenuSections(undefined, shouldWatchForApprovals);
 
@@ -161,7 +163,7 @@ function useNavigationSuggestions(query: string, shouldWatchForApprovals = true)
         onSelect: (searchQuery) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions),
     });
 
-    return buildNavigationSuggestions(query, [topLevelItems, spendItems], localeCompare);
+    return buildNavigationSuggestions(query, [topLevelItems, spendItems, createItems], localeCompare);
 }
 
 export default useNavigationSuggestions;

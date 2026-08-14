@@ -7,6 +7,9 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
+
 import IOURequestStepAmount from '@pages/iou/request/step/IOURequestStepAmount';
 
 import CONST from '@src/CONST';
@@ -20,6 +23,7 @@ import Onyx from 'react-native-onyx';
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import {signInWithTestUser} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -200,7 +204,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,
@@ -245,7 +249,7 @@ describe('IOURequestStepAmount - draft transactions coverage', () => {
                     <IOURequestStepAmount
                         // @ts-expect-error minimal route for test
                         route={createRouteParams()}
-                        navigation={{} as never}
+                        navigation={createMock<PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.STEP_AMOUNT>['navigation']>({})}
                     />
                 </CurrentUserPersonalDetailsProvider>
             </OnyxListItemProvider>,

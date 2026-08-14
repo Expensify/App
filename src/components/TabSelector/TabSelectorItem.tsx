@@ -39,6 +39,7 @@ function TabSelectorItem({
     isBadgeCondensed = false,
     badgeStyles,
     isDisabled = false,
+    disabledAction,
     pendingAction,
 }: TabSelectorItemProps) {
     const {isOffline} = useNetwork();
@@ -77,7 +78,7 @@ function TabSelectorItem({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}
-            disabled={isDisabled}
+            disabled={!disabledAction && isDisabled}
         >
             <TabIcon
                 icon={icon}

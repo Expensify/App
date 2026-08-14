@@ -12,7 +12,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import useIsAgentAccount from '@hooks/useIsAgentAccount';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -57,7 +57,6 @@ type BaseMenuItemType = WithSentryLabel & {
 
 function SecuritySettingsPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCollapse', 'ClosedSign', 'Fingerprint', 'Monitor', 'Shield', 'UserLock']);
-    const illustrations = useMemoizedLazyIllustrations(['LockClosed']);
     const securitySettingsIllustration = useSecuritySettingsSectionIllustration();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -290,7 +289,6 @@ function SecuritySettingsPage() {
                 title={translate('initialSettingsPage.security')}
                 shouldShowBackButton={shouldUseNarrowLayout}
                 onBackButtonPress={Navigation.goBack}
-                icon={illustrations.LockClosed}
                 shouldUseHeadlineHeader
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton

@@ -133,7 +133,7 @@ function renderPicker(props: Partial<React.ComponentProps<typeof SearchSingleSel
 
 describe('SearchSingleSelectionPicker', () => {
     beforeEach(() => {
-        (NativeNavigation.useIsFocused as jest.Mock).mockReturnValue(true);
+        jest.mocked(NativeNavigation.useIsFocused).mockReturnValue(true);
     });
 
     it('renders all items', () => {
