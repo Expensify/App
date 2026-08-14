@@ -6102,7 +6102,7 @@ ${amount} para ${merchant} - ${date}`,
                 unassignedCards: 'No asignadas',
                 integrationExport: (integration, type) => (integration && type ? `Exportación a ${integration} ${type.toLowerCase()}` : `Exportación a ${integration}`),
                 integrationExportTitle: (integration, exportPageLink) =>
-                    `Seleccione la cuenta ${integration} donde se deben exportar las transacciones. Seleccione una cuenta diferente ${exportPageLink ? `<a href="${exportPageLink}">opción de exportación</a>` : 'opción de exportación'} para cambiar las cuentas disponibles.`,
+                    `Seleccione la cuenta ${integration} donde se deben exportar las transacciones.${exportPageLink ? ` Seleccione una cuenta diferente <a href="${exportPageLink}">opción de exportación</a> para cambiar las cuentas disponibles.` : ''}`,
                 lastUpdated: 'Última actualización',
                 transactionStartDate: 'Fecha de inicio de transacciones',
                 updateCard: 'Actualizar tarjeta',

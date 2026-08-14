@@ -6224,7 +6224,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 unassignedCards: 'Nicht zugewiesen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-Export` : `${integration}-Export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen. Wähle eine andere ${exportPageLink ? `<a href="${exportPageLink}">Exportoption</a>` : 'Exportoption'}, um die verfügbaren Konten zu ändern.`,
+                    `Wähle das ${integration}-Konto, in das Transaktionen exportiert werden sollen.${exportPageLink ? ` Wähle eine andere <a href="${exportPageLink}">Exportoption</a>, um die verfügbaren Konten zu ändern.` : ''}`,
                 lastUpdated: 'Zuletzt aktualisiert',
                 transactionStartDate: 'Transaktionsstartdatum',
                 updateCard: 'Karte aktualisieren',

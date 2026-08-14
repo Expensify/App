@@ -5975,7 +5975,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
                 unassignedCards: '未分配',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} 导出` : `${integration} 导出`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `选择要导出交易的 ${integration} 账户。选择其他${exportPageLink ? `<a href="${exportPageLink}">导出选项</a>` : '导出选项'}以更改可用账户。`,
+                    `选择要导出交易的 ${integration} 账户。${exportPageLink ? `选择其他<a href="${exportPageLink}">导出选项</a>以更改可用账户。` : ''}`,
                 lastUpdated: '最近更新',
                 transactionStartDate: '交易开始日期',
                 updateCard: '更新卡片',

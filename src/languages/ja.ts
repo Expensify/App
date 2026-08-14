@@ -6119,7 +6119,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 unassignedCards: '未割り当て',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} エクスポート` : `${integration} エクスポート`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `取引をエクスポートする${integration}アカウントを選択してください。利用可能なアカウントを変更するには、別の${exportPageLink ? `<a href="${exportPageLink}">エクスポートオプション</a>` : 'エクスポートオプション'}を選択してください。`,
+                    `取引をエクスポートする${integration}アカウントを選択してください。${exportPageLink ? `利用可能なアカウントを変更するには、別の<a href="${exportPageLink}">エクスポートオプション</a>を選択してください。` : ''}`,
                 lastUpdated: '最終更新日時',
                 transactionStartDate: '取引開始日',
                 updateCard: 'カードを更新',

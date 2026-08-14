@@ -6313,7 +6313,7 @@ const translations = {
                 unassignedCards: 'Unassigned',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()} export` : `${integration} export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `Choose the ${integration} account where transactions should be exported. Select a different ${exportPageLink ? `<a href="${exportPageLink}">export option</a>` : 'export option'} to change the available accounts.`,
+                    `Choose the ${integration} account where transactions should be exported.${exportPageLink ? ` Select a different <a href="${exportPageLink}">export option</a> to change the available accounts.` : ''}`,
                 lastUpdated: 'Last updated',
                 transactionStartDate: 'Transaction start date',
                 updateCard: 'Update card',
