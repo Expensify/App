@@ -35,7 +35,7 @@ type NavigateAfterExpenseCreateParams = {
      * Whether the sole destination for this expense is the current user's self-DM (Personal Space). The LOOKING_AROUND
      * "route to Spend > Expenses" behaviour is scoped to this so it only applies when the expense actually lands in the
      * self-DM. A LOOKING_AROUND user who later has a workspace and submits to a real report/friend keeps their normal
-     * destination instead of being permanently misrouted to Search.
+     * destination instead of being permanently sent to Search by mistake.
      */
     isSelfDMDestination?: boolean;
 };
@@ -70,7 +70,7 @@ function navigateAfterExpenseCreate({
     // from the Inbox (HOME) that lands in their self-DM we want to drop them into Spend > Expenses rather than that
     // self-DM (Personal Space). Treating them as "not on inbox" lets them fall through to the Search navigation below.
     // Scoped to isSelfDMDestination so a LOOKING_AROUND user who later has a workspace and submits to a real
-    // report/friend still opens that report instead of being permanently misrouted to Search.
+    // report/friend still opens that report instead of being permanently sent to Search by mistake.
     const isUserOnInbox = isReportTopmostSplitNavigator() && !(isLookingAroundUser && isSelfDMDestination);
 
     // If the expense is not created from global create or is currently on the inbox tab,

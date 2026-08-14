@@ -170,7 +170,6 @@ function IOURequestStepDistance({
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
@@ -313,7 +312,15 @@ function IOURequestStepDistance({
         return iouType !== CONST.IOU.TYPE.SPLIT && !isArchived && !(isPolicyExpenseChatUtil(report) && ((policy?.requiresCategory ?? false) || (policy?.requiresTag ?? false)));
     }, [report, skipConfirmation, policy?.requiresCategory, policy?.requiresTag, isArchived, iouType]);
 
-    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(shouldSkipConfirmation, report?.reportID, isLookingAroundUser, isSelfDM(report));
+    // The LOOKING_AROUND + self-DM flags are computed inline rather than hoisted into named consts on purpose: this
+    // component is already at React Compiler's memoization-preservation limit, and adding another top-level reactive
+    // value tips it over so it can no longer preserve the manual memos below. Keep these inline.
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
+        shouldSkipConfirmation,
+        report?.reportID,
+        isLookingAroundOnboardingChoice(introSelected?.choice),
+        isSelfDM(report),
+    );
     usePreMountDestination(skipConfirmationPreMountRoute);
 
     let buttonText = !isCreatingNewRequest ? translate('common.save') : translate('common.next');
@@ -703,7 +710,7 @@ function IOURequestStepDistance({
             waypoints,
             ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
+            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overridden with the primary one
             ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
             transactionBackup,
             policy,
