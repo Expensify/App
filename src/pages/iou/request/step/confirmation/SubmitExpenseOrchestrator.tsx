@@ -271,6 +271,12 @@ function SubmitExpenseOrchestrator({
             createTransaction(locationPermissionGranted, false, writeBarrier);
             // The barrier has already released by now, so the write goes out on the next microtask -
             // the same point the write session used to drop this signal.
+            //
+            // This holds for the strategies that run us from TransitionTracker rather than from a
+            // dismiss callback (dismissNarrowWithReport) only because TransitionTracker flushes its
+            // pending callbacks in registration order, and the barrier above was armed before the
+            // strategy registered. Arming later than the dismiss call would clear this signal before
+            // the write is even issued, which shows up as an empty-state flash on the destination.
             clearPendingWrite();
             setIsConfirming(false);
         };

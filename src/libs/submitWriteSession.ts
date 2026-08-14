@@ -229,6 +229,12 @@ function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
     // reserve, replace or flush, and no watch key to publish - watch keys exist only for Search's
     // placeholder UI, which resolves its writes through its own session rather than a passed barrier.
     if (barrier) {
+        if (__DEV__ && optimisticWatchKey) {
+            // Search is the only consumer of watch keys and has not moved to barriers yet. When it does,
+            // the barrier path needs its own way to publish this key - dropping it silently would break
+            // Search's placeholder tracking with no registry left to fall back on.
+            Log.warn('[submitWriteSession] optimisticWatchKey was passed alongside a barrier and is being ignored', {command, optimisticWatchKey});
+        }
         onDeferred?.();
         writeWhenReady(command, params, onyxData, barrier, {safetyTimeoutMs: DEFAULT_SAFETY_TIMEOUT_MS, onWriteStarted});
         return;
