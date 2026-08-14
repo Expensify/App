@@ -14,14 +14,12 @@
  * default output mirrors what CI cares about. Pass `--show-warnings` to
  * restore the full output (errors + warnings).
  */
-import {$} from 'bun';
+import {$, file} from 'bun';
 import {SeatbeltArgs, SeatbeltFile} from 'eslint-seatbelt/api';
-import fs from 'node:fs';
-import path from 'node:path';
 
 import checkOnyxConnectBypass from './checkOnyxConnectBypass';
 
-const projectRoot = path.resolve(__dirname, '..');
+const projectRoot = `${import.meta.dir}/..`;
 
 // parse args
 let useCache = true;
@@ -79,7 +77,7 @@ function readSeatbeltBooleanEnvVar(value: string | undefined): boolean | undefin
 // by dropping rows for files that no longer exist, mirroring the same readOnly default as
 // config/eslint/eslint.config.mjs and the same SEATBELT_READ_ONLY/SEATBELT_INCREASE/SEATBELT_DISABLE
 // escape hatches eslint-seatbelt itself honors, so pruning never dirties a local worktree.
-const seatbeltPath = path.join(projectRoot, 'config/eslint/eslint.seatbelt.tsv');
+const seatbeltPath = `${projectRoot}/config/eslint/eslint.seatbelt.tsv`;
 const seatbeltIncreaseSet = !!process.env.SEATBELT_INCREASE;
 const seatbeltArgs = SeatbeltArgs.fromConfig({
     seatbeltFile: seatbeltPath,
@@ -91,7 +89,7 @@ if (!seatbeltArgs.disable) {
     const seatbeltFile = SeatbeltFile.readSync(seatbeltPath);
     let removedCount = 0;
     for (const filename of Array.from(seatbeltFile.filenames())) {
-        if (!fs.existsSync(filename) && seatbeltFile.removeFile(filename, seatbeltArgs)) {
+        if (!(await file(filename).exists()) && seatbeltFile.removeFile(filename, seatbeltArgs)) {
             removedCount++;
         }
     }
