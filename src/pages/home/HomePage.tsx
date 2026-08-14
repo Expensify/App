@@ -26,7 +26,6 @@ import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
 import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
 
@@ -69,7 +68,6 @@ function HomePage() {
                             {shouldUseNarrowLayout ? (
                                 <>
                                     <FreeTrialSection />
-                                    <TimeSensitiveSection />
                                     <GettingStartedSection />
                                     <ForYouSection />
                                     <UpcomingTravelSection />
@@ -85,7 +83,6 @@ function HomePage() {
                                         testID="homePageLeftColumn"
                                         style={styles.homePageLeftColumn}
                                     >
-                                        <TimeSensitiveSection />
                                         <GettingStartedSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />

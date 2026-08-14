@@ -62,6 +62,11 @@ jest.mock('@pages/home/ForYouSection/ConciergePromptBox', () => () => {
     return ReactModule.createElement('View', {testID: 'concierge-prompt-box'});
 });
 
+// The "Time sensitive" group is exercised in its own tests; stub it out here so these tests stay focused on "For you"
+// (and so it doesn't pull in useFocusEffect, which needs a NavigationContainer this harness doesn't provide).
+jest.mock('@pages/home/TimeSensitiveSection/useTimeSensitiveItems', () => jest.fn(() => []));
+jest.mock('@pages/home/TimeSensitiveSection/TimeSensitiveGroup', () => () => null);
+
 // ForYouSection calls useIsFocused() to freeze useTodoCounts when unfocused; this test renders it outside a
 // NavigationContainer, so stub the focus hook (useTodoCounts is mocked, so the focus value itself is irrelevant).
 jest.mock('@react-navigation/native', () => {

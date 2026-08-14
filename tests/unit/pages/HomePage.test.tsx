@@ -81,7 +81,6 @@ function mockSection(name: string) {
 }
 
 jest.mock('@pages/home/FreeTrialSection', () => mockSection('FreeTrialSection'));
-jest.mock('@pages/home/TimeSensitiveSection', () => mockSection('TimeSensitiveSection'));
 jest.mock('@pages/home/GettingStartedSection', () => mockSection('GettingStartedSection'));
 jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
@@ -169,7 +168,6 @@ describe('HomePage', () => {
 
             expect(renderedSectionOrder()).toEqual([
                 'section-FreeTrialSection',
-                'section-TimeSensitiveSection',
                 'section-GettingStartedSection',
                 'section-ForYouSection',
                 'section-UpcomingTravelSection',

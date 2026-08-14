@@ -15,6 +15,9 @@ import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
 
+import TimeSensitiveGroup from '@pages/home/TimeSensitiveSection/TimeSensitiveGroup';
+import useTimeSensitiveItems from '@pages/home/TimeSensitiveSection/useTimeSensitiveItems';
+
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
@@ -53,6 +56,9 @@ function ForYouSection() {
     const isNewDotOnboardedUser = !isEmptyObject(onboarding);
     const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
+    // "Time sensitive" now lives inside this card as a group above the "For you" todos (chat input stays on top).
+    const timeSensitiveItems = useTimeSensitiveItems();
+    const hasTimeSensitiveContent = timeSensitiveItems.length > 0;
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
 
@@ -195,27 +201,34 @@ function ForYouSection() {
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
 
-    if (
-        shouldHideForYouSection({
-            isInitialLoad,
-            hasAnyTodos,
-            hasSeenTodo: hasSeenForYouTodo,
-            firstDayFreeTrial,
-            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
-            isOnboardingCompleted,
-            isOnboardingStatusKnown,
-            isNewDotOnboardedUser,
-        })
-    ) {
+    const hideForYou = shouldHideForYouSection({
+        isInitialLoad,
+        hasAnyTodos,
+        hasSeenTodo: hasSeenForYouTodo,
+        firstDayFreeTrial,
+        cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+        isOnboardingCompleted,
+        isOnboardingStatusKnown,
+        isNewDotOnboardedUser,
+    });
+
+    // Keep the card (and its Concierge input) visible when the "For you" part is hidden but there's time-sensitive
+    // content, so those alerts aren't lost for users who wouldn't otherwise see the "For you" section.
+    if (hideForYou && !hasTimeSensitiveContent) {
         return null;
     }
 
     return (
         <WidgetContainer titleContent={<ConciergePromptBox />}>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4]}>
-                <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
-            </View>
-            {renderContent()}
+            <TimeSensitiveGroup items={timeSensitiveItems} />
+            {!hideForYou && (
+                <>
+                    <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4]}>
+                        <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
+                    </View>
+                    {renderContent()}
+                </>
+            )}
         </WidgetContainer>
     );
 }
