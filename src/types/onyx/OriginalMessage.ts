@@ -1435,9 +1435,9 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Invoicing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records
      */
-    travelInvoicingUrls?: string[];
+    travelBillingUrls?: string[];
 
     /**
      * The Concierge reasoning for the action
