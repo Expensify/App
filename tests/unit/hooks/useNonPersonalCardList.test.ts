@@ -10,6 +10,7 @@ import type {Card, CardList} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import {createRandomExpensifyCard} from '../../utils/collections/card';
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useNonPersonalCardList', () => {
@@ -33,7 +34,7 @@ describe('useNonPersonalCardList', () => {
     });
 
     it('should return empty object when only personal cards exist', async () => {
-        const personalCard: Card = {cardID: 1, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''} as Card;
+        const personalCard = createMock<Card>({cardID: 1, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''});
         const cardList: CardList = {'1': personalCard};
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -46,7 +47,7 @@ describe('useNonPersonalCardList', () => {
 
     it('should return Expensify cards and filter out personal cards', async () => {
         const expensifyCard = createRandomExpensifyCard(1, {state: CONST.EXPENSIFY_CARD.STATE.OPEN});
-        const personalCard: Card = {cardID: 2, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''} as Card;
+        const personalCard = createMock<Card>({cardID: 2, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''});
         const cardList: CardList = {'1': expensifyCard, '2': personalCard};
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);
@@ -72,7 +73,7 @@ describe('useNonPersonalCardList', () => {
             domainName: '',
             lastFourPAN: '1111',
         } as Card;
-        const personalCard: Card = {cardID: 2, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''} as Card;
+        const personalCard = createMock<Card>({cardID: 2, bank: CONST.PERSONAL_CARDS.BANK_NAME.CSV, lastUpdated: ''});
         const cardList: CardList = {'1': companyCard, '2': personalCard};
 
         await Onyx.merge(ONYXKEYS.CARD_LIST, cardList);

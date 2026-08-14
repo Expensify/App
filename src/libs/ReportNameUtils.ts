@@ -31,6 +31,7 @@ import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNum
 import {translateLocal} from './Localize';
 // eslint-disable-next-line import/no-cycle
 import {getForReportAction, getMovedReportID} from './ModifiedExpenseMessage';
+import {getCurrentUserEmail} from './Network/NetworkStore';
 import Parser from './Parser';
 import {temporaryGetDisplayNameOrDefault} from './PersonalDetailsUtils';
 import {getCleanedTagName, isPolicyAdmin, isPolicyFieldListEmpty} from './PolicyUtils';
@@ -51,6 +52,7 @@ import {
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
+    getDelegateSubmitMessage,
     getDismissedViolationMessageText,
     getDynamicExternalWorkflowApproveFailedActionMessage,
     getDynamicExternalWorkflowSubmitFailedActionMessage,
@@ -85,6 +87,8 @@ import {
     getReportActionMessage as getReportActionMessageFromActionsUtils,
     getReportActionText,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getSettlementAccountLockedMessage,
     getSubmitsToUpdateMessage,
     getTravelUpdateMessage,
@@ -753,6 +757,13 @@ function computeReportNameBasedOnReportAction({
         return Parser.htmlToText(getChangedApproverActionMessage(translate, parentReportAction));
     }
 
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)) {
+        const delegateSubmitMessage = getDelegateSubmitMessage(translate, parentReportAction, getCurrentUserEmail() ?? undefined);
+        if (delegateSubmitMessage) {
+            return Parser.htmlToText(delegateSubmitMessage);
+        }
+    }
+
     if (parentReportAction?.actionName && isTagModificationAction(parentReportAction?.actionName)) {
         return getCleanedTagName(getWorkspaceTagUpdateMessage(translate, parentReportAction) ?? '');
     }
@@ -889,6 +900,12 @@ function computeReportNameBasedOnReportAction({
     }
     if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         return getRequireCompanyCardsEnabledMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
+        return getRequiresCategoryMessage(translate, parentReportAction);
+    }
+    if (isActionOfType(parentReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
+        return getRequiresTagMessage(translate, parentReportAction);
     }
 
     if (isDynamicExternalWorkflowSubmitFailedAction(parentReportAction)) {

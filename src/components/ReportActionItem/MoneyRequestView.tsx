@@ -1,7 +1,7 @@
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HighlightableMenuItemWithTopDescription from '@components/HighlightableMenuItemWithTopDescription';
 import Icon from '@components/Icon';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -116,6 +116,7 @@ import {
     isDistanceRequest as isDistanceRequestTransactionUtils,
     isDistanceTypeRequest,
     isExpenseUnreported as isExpenseUnreportedTransactionUtils,
+    isFailedScanAmountPlaceholder,
     isGPSDistanceRequest as isGPSDistanceRequestTransactionUtils,
     isManagedCardTransaction as isManagedCardTransactionTransactionUtils,
     isManualDistanceRequest as isManualDistanceRequestTransactionUtils,
@@ -330,6 +331,7 @@ function MoneyRequestView({
     const isOdometerDistanceRequest = isOdometerDistanceRequestTransactionUtils(transaction);
     const isMapDistanceRequest = isMapDistanceRequestTransactionUtils(transaction) || isDistanceTypeRequest(transaction);
     const isTransactionScanning = isScanning(updatedTransaction ?? transaction);
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(updatedTransaction ?? transaction);
     const hasRoute = hasRouteTransactionUtils(transactionBackup ?? transaction, isDistanceRequest);
 
     const rawActualAttendees = isFromMergeTransaction && updatedTransaction ? updatedTransaction.comment?.attendees : transactionAttendees;
@@ -625,6 +627,8 @@ function MoneyRequestView({
     if (isTransactionScanning) {
         merchantTitle = translate('iou.receiptStatusTitle');
         amountTitle = translate('iou.receiptStatusTitle');
+    } else if (hasFailedScanAmountPlaceholder) {
+        amountTitle = '';
     }
 
     const updatedTransactionDescription = getDescription(updatedTransaction) || undefined;
@@ -782,6 +786,10 @@ function MoneyRequestView({
             date: {
                 isError: transactionDate === '',
                 translationPath: canEditDate ? 'common.error.enterDate' : 'common.error.missingDate',
+            },
+            amount: {
+                isError: !isSettled && !isCancelled && hasFailedScanAmountPlaceholder,
+                translationPath: canEditAmount ? 'common.error.enterAmount' : 'common.error.missingAmount',
             },
         };
 
@@ -1350,35 +1358,38 @@ function MoneyRequestView({
                                             transactionID: transaction.transactionID,
                                             reportID: transactionThreadReport?.reportID,
                                             upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                                            backTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                                CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transaction.transactionID,
-                                                transactionThreadReport?.reportID,
-                                                Navigation.getActiveRoute(),
+                                            backTo: createDynamicRoute(
+                                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                    action: CONST.IOU.ACTION.EDIT,
+                                                    iouType,
+                                                    transactionID: transaction.transactionID,
+                                                    reportID: transactionThreadReport?.reportID,
+                                                }),
                                             ),
                                         }),
                                     );
                                 } else if (!policy && shouldSelectPolicy) {
                                     Navigation.navigate(
                                         ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                                CONST.IOU.ACTION.EDIT,
-                                                iouType,
-                                                transaction.transactionID,
-                                                transactionThreadReport?.reportID,
-                                                Navigation.getActiveRoute(),
+                                            createDynamicRoute(
+                                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                    action: CONST.IOU.ACTION.EDIT,
+                                                    iouType,
+                                                    transactionID: transaction.transactionID,
+                                                    reportID: transactionThreadReport?.reportID,
+                                                }),
                                             ),
                                         ),
                                     );
                                 } else {
                                     Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                            CONST.IOU.ACTION.EDIT,
-                                            iouType,
-                                            transaction.transactionID,
-                                            transactionThreadReport?.reportID,
-                                            Navigation.getActiveRoute(),
+                                        createDynamicRoute(
+                                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                                action: CONST.IOU.ACTION.EDIT,
+                                                iouType,
+                                                transactionID: transaction.transactionID,
+                                                reportID: transactionThreadReport?.reportID,
+                                            }),
                                         ),
                                     );
                                 }
@@ -1640,7 +1651,7 @@ function MoneyRequestView({
                 )}
                 {/* Note: "View trip details" should be always the last item */}
                 {shouldShowViewTripDetails && (
-                    <MenuItem
+                    <MenuItemAction
                         title={translate('travel.viewTripDetails')}
                         icon={icons.Suitcase}
                         onPress={() => {
