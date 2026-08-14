@@ -196,6 +196,10 @@ function cancelDeferredWrite(key: string) {
     }
     clearChannelTimeout(channel);
     channels.delete(key);
+
+    // A cancelled write will never register, so a submit-waiter (e.g. submitReport) has nothing
+    // left to wait for - resolve it now instead of leaving it to time out later.
+    resolvePendingRegistration(key);
 }
 
 /**

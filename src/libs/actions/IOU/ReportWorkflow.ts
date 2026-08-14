@@ -15,6 +15,7 @@ import type {
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {flushDeferredWrite, getRegistrationPromiseForReport, hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -1294,6 +1295,10 @@ function unapproveExpenseReport(
     });
 }
 
+// Double deferredLayoutWrite's own reservation safety timeout (5s), so a registration merely
+// delayed by the app going to background still resolves this wait normally in the common case.
+const PENDING_REGISTRATION_TIMEOUT_MS = 10000;
+
 function submitReport({
     expenseReport,
     policy,
@@ -1608,7 +1613,18 @@ function submitReport({
         });
     };
     if (pendingRegistration) {
-        pendingRegistration.then(() => {
+        // The real create write may never register (flow abandoned, or cancelDeferredWrite was
+        // called on that key) - neither path resolves this promise, so without a ceiling here
+        // SUBMIT_REPORT would never dispatch and no error would surface. The ceiling is generous
+        // (double deferredLayoutWrite's own reservation safety timeout) so a registration merely
+        // delayed by the app going to background still gets awaited properly.
+        const timeoutPromise = new Promise<void>((resolve) => {
+            setTimeout(() => {
+                Log.warn(`[ReportWorkflow] Timed out waiting for a pending expense-create registration on report ${expenseReport.reportID} - submitting anyway`);
+                resolve();
+            }, PENDING_REGISTRATION_TIMEOUT_MS);
+        });
+        Promise.race([pendingRegistration, timeoutPromise]).then(() => {
             flushPendingExpenseCreatesForReport();
             dispatchSubmit();
         });
