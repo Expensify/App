@@ -51,7 +51,7 @@ const PROPOSAL_POLICE_MODEL = 'gpt-5.6-luna';
  * The model only reports a similarity score; this threshold is applied here so tuning it doesn't
  * depend on the model reproducing a cutoff stated in the prompt.
  */
-const DUPLICATE_SIMILARITY_THRESHOLD = 85;
+const DUPLICATE_SIMILARITY_THRESHOLD = 90;
 
 function isCommentCreatedEvent(payload: IssueCommentEvent): payload is IssueCommentCreatedEvent {
     return payload.action === CONST.ACTIONS.CREATED;
