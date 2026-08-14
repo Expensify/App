@@ -54,4 +54,4 @@
 
 - Upstream PR/issue: N/A (the `readOnly` option itself is an Expensify-only patch, not upstream)
 - E/App issue: N/A
-- PR introducing patch: https://github.com/Expensify/App/pull/TBD
+- PR introducing patch: https://github.com/Expensify/App/pull/98665
