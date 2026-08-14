@@ -275,6 +275,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
                     initiallyFocusedItemKey={initialAssigneeEmail}
+                    shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition
