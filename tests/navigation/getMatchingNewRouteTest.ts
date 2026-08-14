@@ -507,6 +507,23 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
     });
 
+    it('redirects legacy per diem subrate step to the new time-based dynamic route keeping the pageIndex (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/0')).toBe('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0');
+    });
+
+    it('redirects legacy per diem subrate step with a backToReport segment (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/789/2')).toBe('/create/submit/start/123/456/789/per-diem-time/per-diem-subrate/2');
+    });
+
+    it('redirects legacy per diem subrate edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/edit/2')).toBe('/create/submit/confirmation/123/456/per-diem-subrate-edit/2');
+    });
+
+    it('does not redirect the already-migrated per diem subrate dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-subrate-edit/2')).toBe(undefined);
+    });
+
     // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
     it('redirects the legacy money request report step to the new dynamic route (#83851)', () => {
         expect(getMatchingNewRoute('/edit/submit/report/123/456')).toBe('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456');

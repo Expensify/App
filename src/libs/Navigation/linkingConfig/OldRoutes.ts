@@ -4,6 +4,12 @@ const oldRoutes: Record<string, string> = {
     '/*/*/destination/*/*': '/$1/$2/start/$3/$4/per-diem-destination',
     '/*/*/time/*/*/edit': '/$1/$2/confirmation/$3/$4/per-diem-time-edit',
     '/*/*/time/*/*': '/$1/$2/destination/$3/$4/per-diem-time',
+    // The per diem subrate step is a dynamic suffix stacked on the time step (wizard) or on the confirmation step
+    // (edit). Its `:pageIndex` stays the last segment. The wizard variant keeps the optional legacy `backToReport`
+    // segment on the start base; query strings are not preserved (callers no longer append `?backTo=`).
+    '/*/*/subrate/*/*/edit/*': '/$1/$2/confirmation/$3/$4/per-diem-subrate-edit/$5',
+    '/*/*/subrate/*/*/*/*': '/$1/$2/start/$3/$4/$5/per-diem-time/per-diem-subrate/$6',
+    '/*/*/subrate/*/*/*': '/$1/$2/start/$3/$4/per-diem-time/per-diem-subrate/$5',
     '/settings/*/category/*/edit': '/settings/$1/categories/category-settings/$2/category-edit',
     '/settings/*/category/*': '/settings/$1/categories/category-settings/$2',
     '/settings/*/tags/*/edit': '/settings/$1/tags/settings-tags-edit/$2',
