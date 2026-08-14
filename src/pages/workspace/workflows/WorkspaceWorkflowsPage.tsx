@@ -520,7 +520,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                     return undefined;
             }
         };
-        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
+        const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(accountData) : undefined;
         const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
         const bankConnectionStatusAddon = bankConnectionStatus ? (
             <ConnectionStatusBadge
@@ -573,6 +573,10 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 backTo: ROUTES.WORKSPACE_WORKFLOWS.getRoute(route.params.policyID),
             });
         };
+        const handleFixValidationFailedPress =
+            bankConnectionStatus?.requiresFixHandler && bankAccountID
+                ? () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.FIX_BANK_ACCOUNT.getRoute(bankAccountID.toString())))
+                : undefined;
         let bankAccountMenuItemOnPress: React.ComponentProps<typeof MenuItem>['onPress'];
         if (canAccessWalletConnectionStatusFeatures) {
             bankAccountMenuItemOnPress = canInteractWithBankAccountRow ? handleBankAccountPress : undefined;
@@ -876,7 +880,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                                                   <ConnectionStatusMessage
                                                                       message={bankConnectionMessage}
                                                                       actionText={bankConnectionActionText}
-                                                                      onActionPress={canInteractWithBankAccountRow ? handleBankAccountPress : undefined}
+                                                                      onActionPress={canInteractWithBankAccountRow ? (handleFixValidationFailedPress ?? handleBankAccountPress) : undefined}
                                                                       isActionDisabled={!canInteractWithBankAccountRow}
                                                                       statusTone="danger"
                                                                       shouldIncludeHorizontalPadding={false}
