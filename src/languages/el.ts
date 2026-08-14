@@ -1749,6 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
