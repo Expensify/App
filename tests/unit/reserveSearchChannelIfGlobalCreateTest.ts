@@ -17,7 +17,7 @@ describe('reserveSearchChannelIfGlobalCreate', () => {
 
         reserveSearchChannelIfGlobalCreate(true);
 
-        expect(reserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        expect(reserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID: undefined});
     });
 
     it('does not reserve when the submit is not from global create', () => {

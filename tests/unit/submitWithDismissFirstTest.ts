@@ -65,7 +65,7 @@ describe('submitWithDismissFirst', () => {
                 telemetryContext: TELEMETRY_CONTEXT,
             });
 
-            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            expect(mockReserveDeferredWriteChannel).toHaveBeenCalledWith(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID: 'report123'});
             expect(mockDismissModal).toHaveBeenCalledTimes(1);
             expect(executeWrite).not.toHaveBeenCalled();
         });
