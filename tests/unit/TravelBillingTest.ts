@@ -138,7 +138,7 @@ describe('TravelBilling', () => {
             {
                 policyAccountID: workspaceAccountID,
                 shouldUseContinuousReconciliation: true,
-                travelBillingContinuousReconciliationConnection: connectionName,
+                travelInvoicingContinuousReconciliationConnection: connectionName,
             },
             expect.objectContaining({
                 optimisticData: expect.arrayContaining([
@@ -187,7 +187,7 @@ describe('TravelBilling', () => {
             'SetTravelInvoicingReconciliationBankAccount',
             {
                 domainName,
-                travelBillingReconciliationBankAccountID: selectedBankAccountID,
+                travelInvoicingReconciliationBankAccountID: selectedBankAccountID,
             },
             expect.objectContaining({
                 optimisticData: expect.arrayContaining([
@@ -436,7 +436,7 @@ describe('TravelBilling', () => {
                         key: travelBillingKey,
                         value: {
                             settings: {
-                                travelBilling: {
+                                travelInvoicing: {
                                     errors: null,
                                 },
                             },
@@ -448,7 +448,7 @@ describe('TravelBilling', () => {
                         key: travelBillingKey,
                         value: {
                             settings: {
-                                travelBilling: {
+                                travelInvoicing: {
                                     errors: currentProvisioningErrors,
                                 },
                             },
