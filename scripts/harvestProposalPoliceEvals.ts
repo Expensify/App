@@ -50,7 +50,7 @@ import isProposal from '@github/libs/ProposalUtils';
  * matter of copying a candidate across, replacing `sourceUrl` with its `sourceHash`, and filling in the
  * expected outcome.
  *
- * ANONYMISATION
+ * ANONYMIZATION
  *
  * This repository is public and the intent labels include SPAM, so a labelled fixture must never read as
  * an accusation against a named contributor. Checked-in fixtures therefore carry no `sourceUrl` and no
@@ -63,7 +63,7 @@ import isProposal from '@github/libs/ProposalUtils';
  * the duplicate check must never report a contributor's own earlier proposal. @-mentions inside bodies
  * are rewritten the same way, and mentions of anyone not otherwise in the fixture become `@user`, so
  * replaying a fixture can never ping a real person. Profile links, email addresses, and the login spelt
- * into a link to the author's own fork are neutralised the same way, since contributors paste all three.
+ * into a link to the author's own fork are neutralized the same way, since contributors paste all three.
  *
  * The rest of a github.com URL — repository, issue number, permalink, line range — is left intact. That
  * is the technical substance of a proposal, and blanking it would change what the model is being asked to
@@ -81,7 +81,7 @@ const REPO = 'Expensify/App';
 const FIXTURES_DIR = path.resolve(__dirname, '../evals/proposalPolice/fixtures');
 const HARVEST_DIR = path.join(FIXTURES_DIR, 'harvested');
 
-/** The bot's own text, matched against comment bodies to recognise the cases worth harvesting. */
+/** The bot's own text, matched against comment bodies to recognize the cases worth harvesting. */
 const WITHDRAW_MESSAGE = '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
 const EDIT_BANNER_PREFIX = '🚨 Edited by **proposal-police**:';
 
@@ -180,7 +180,7 @@ function gh<T>(args: string[]): T {
 const STAND_IN_LOGINS = ['snorkmaiden', 'hemulen', 'little-my', 'sniff', 'too-ticky', 'stinky', 'mymble', 'hodgkins', 'fillyjonk', 'whomper'];
 
 /**
- * Rewrites author logins to stand-in logins and neutralises every @-mention in the given bodies, so a
+ * Rewrites author logins to stand-in logins and neutralizes every @-mention in the given bodies, so a
  * fixture carries the same author relationships as the real thread without naming anyone. The caller
  * passes the logins whose identity the fixture depends on; anyone else mentioned in the text collapses
  * to `@user`.

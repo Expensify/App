@@ -8,7 +8,7 @@ const ROLE = 'You are a GitHub bot using AI capabilities to monitor and enforce 
 
 /**
  * Instructions for classifying what a newly created comment is trying to do. Includes the template
- * definition so the model can recognise a near-miss proposal, plus the intent examples — nothing
+ * definition so the model can recognize a near-miss proposal, plus the intent examples — nothing
  * about edits or duplicate detection, since this call never needs them.
  */
 function buildCommentIntentInstructions(): string {

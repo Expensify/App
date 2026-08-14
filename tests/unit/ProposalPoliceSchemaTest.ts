@@ -10,7 +10,7 @@ describe('isCommentIntentResponse', () => {
         expect(isCommentIntentResponse({intent: 'SPAM'})).toBe(true);
     });
 
-    it('rejects anything else, so an unrecognised intent degrades to leaving the comment alone', () => {
+    it('rejects anything else, so an unrecognized intent degrades to leaving the comment alone', () => {
         expect(isCommentIntentResponse({intent: 'ACTION_REQUIRED'})).toBe(false);
         expect(isCommentIntentResponse({intent: 'spam'})).toBe(false);
         expect(isCommentIntentResponse({action: 'SPAM'})).toBe(false);

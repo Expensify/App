@@ -38,7 +38,7 @@ describe('isProposal', () => {
         expect(isProposal('## Proposal\nI think we should fix the login system. It is not working properly right now.')).toBe(false);
     });
 
-    it('requires the keyword to be capitalised, so ordinary prose about a proposal does not qualify', () => {
+    it('requires the keyword to be capitalized, so ordinary prose about a proposal does not qualify', () => {
         expect(isProposal(buildProposal('## proposal', ROOT_CAUSE_HEADER, 'cause', SOLUTION_HEADER, 'fix'))).toBe(false);
     });
 

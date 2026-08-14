@@ -68,7 +68,7 @@ The intent set is deliberately weighted the way the real population is (12 `NOT_
 4 `GENUINE_ATTEMPT`) rather than balanced across classes, so a classifier that over-predicts spam shows
 up as a failure instead of being averaged away.
 
-### Anonymisation
+### Anonymization
 
 This repository is public and the intent labels include `SPAM`, so a fixture must never read as a
 public accusation against a named contributor. Fixtures carry no source URLs, no real GitHub comment
