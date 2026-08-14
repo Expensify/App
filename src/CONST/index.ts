@@ -1284,6 +1284,8 @@ const CONST = {
         EUR: 'EUR',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
+    // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
+    EXCHANGE_RATE_DISPLAY_DECIMALS: 4,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
