@@ -9,6 +9,8 @@ import CONST from '@src/CONST';
 
 import React, {useEffect, useMemo, useState} from 'react';
 
+import createMock from '../../utils/createMock';
+
 type HookData = TransactionListItemType[] | TransactionReportGroupListItemType[];
 
 const createSetSelectedReportsMock = () => jest.fn<void, [SelectedReports[]]>();
@@ -24,7 +26,7 @@ const baseSelectionContext = {
 } satisfies Omit<SearchSelectionContextValue, 'selectedTransactions'>;
 
 function buildTransactionItem(overrides: Partial<TransactionListItemType> & {keyForList: string; transactionID: string}) {
-    return {
+    return createMock<TransactionListItemType>({
         amount: 100,
         currency: 'USD',
         reportID: 'report_1',
@@ -33,7 +35,7 @@ function buildTransactionItem(overrides: Partial<TransactionListItemType> & {key
         allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
         report: undefined,
         ...overrides,
-    } as unknown as TransactionListItemType;
+    });
 }
 
 function buildSelected(...keys: string[]): SelectedTransactions {
