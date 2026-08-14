@@ -47,7 +47,6 @@ function HeaderWithBackButton({
     isDownloading = false,
     shouldShowRotateButton = false,
     isRotating = false,
-    shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldUseHeadlineHeader = false,
@@ -165,7 +164,6 @@ function HeaderWithBackButton({
                                 isLoading={isRotating}
                             />
                         )}
-                        {shouldShowPinButton && <HeaderPinButton report={report} />}
                     </View>
                     {threeDotMenuTooltipsSection}
                 </View>
