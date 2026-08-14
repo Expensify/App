@@ -65,7 +65,6 @@ function HeaderWithBackButton({
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
-    shouldOverlay = false,
     shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     style,
@@ -110,14 +109,7 @@ function HeaderWithBackButton({
 
     return (
         <View
-            style={[
-                styles.headerBar,
-                shouldUseHeadlineHeader && styles.headerBarHeight,
-                shouldShowBorderBottom && styles.borderBottom,
-                shouldShowBackButton && [styles.pl2],
-                shouldOverlay && StyleSheet.absoluteFill,
-                style,
-            ]}
+            style={[styles.headerBar, shouldUseHeadlineHeader && styles.headerBarHeight, shouldShowBorderBottom && styles.borderBottom, shouldShowBackButton && [styles.pl2], style]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
             <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
