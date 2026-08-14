@@ -51,7 +51,7 @@ type UseReportActionsScrollParams = {
     /** Sorted actions that should be visible to the user */
     sortedVisibleReportActions: OnyxTypes.ReportAction[];
 
-    /** Actions actually rendered by the list (may include a synthetic draft), used for mount scroll positioning */
+    /** Actions actually rendered by the list in chronological order (may include a synthetic draft), used for scroll positioning */
     renderedVisibleReportActions: OnyxTypes.ReportAction[];
 
     /** Extracts the list key for an action; used to locate the initial scroll target */
@@ -121,7 +121,7 @@ type UseReportActionsScrollResult = {
     /** The initial scroll target key for the list */
     initialScrollKey: string | undefined;
 
-    /** maintainVisibleContentPosition config for the inverted list */
+    /** maintainVisibleContentPosition config for the list */
     maintainVisibleContentPosition: {disabled: boolean; autoscrollToBottomThreshold?: number; animateAutoScrollToBottom?: boolean};
 
     /** The index the list should scroll to on mount (undefined to keep default position) */
@@ -211,7 +211,7 @@ function useReportActionsScroll({
             onUnreadActionVisible: completeSkippedMarkAsRead,
             hasNewerActions,
             unreadMarkerReportActionIndex,
-            isInverted: true,
+            isInverted: false,
             shouldDisablePillTracking,
             onTrackScrolling: (event: NativeSyntheticEvent<NativeScrollEvent>) => {
                 scrollOffsetRef.current = event.nativeEvent.contentOffset.y;
@@ -232,7 +232,7 @@ function useReportActionsScroll({
         hasNewerActions,
         linkedReportActionID,
         hasNewestReportAction,
-        sortedVisibleReportActions,
+        renderedVisibleReportActions,
         sortedAllReportActionsForPagination,
         reportActionPages,
         setTreatAsNoPaginationAnchor,
@@ -413,10 +413,10 @@ function useReportActionsScroll({
     let initialScrollIndexParams: {viewPosition?: number; viewOffset?: number} | undefined;
     if (targetIndex > 0) {
         initialScrollIndex = targetIndex;
-        initialScrollIndexParams = {viewPosition: 1, viewOffset: CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
+        initialScrollIndexParams = {viewPosition: 0, viewOffset: -CONST.REPORT.ACTIONS.LINKED_MESSAGE_OFFSET};
     } else if (shouldFocusToTopOnMount) {
-        initialScrollIndex = renderedVisibleReportActions.length - 1;
-        initialScrollIndexParams = {viewOffset: windowHeight};
+        initialScrollIndex = 0;
+        initialScrollIndexParams = {viewOffset: -windowHeight};
     }
 
     return {

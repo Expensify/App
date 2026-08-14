@@ -30,39 +30,55 @@ import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatch
 
 const THRESHOLD = CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD;
 
-type ScrollEvent = {nativeEvent: {contentOffset: {y: number}}};
+type ScrollEvent = {
+    nativeEvent: {
+        contentOffset: {x: number; y: number};
+        contentSize: {height: number; width: number};
+        layoutMeasurement: {height: number; width: number};
+    };
+};
 type CapturedListProps = {
-    maintainVisibleContentPosition?: {disabled: boolean};
+    maintainVisibleContentPosition?: boolean | {data: boolean};
     onScroll?: (event: ScrollEvent) => void;
 };
 
-// Capture the props the list is rendered with so we can observe `maintainVisibleContentPosition`, whose
-// `disabled` flag is `!(hasScrolledOverThreshold || shouldFocusToTopOnMount)`. With no deep-link the latter
-// is false, so `!disabled` mirrors the boolean under test.
+// Capture the props the list is rendered with so we can observe `maintainVisibleContentPosition`. With no
+// deep-link, it is enabled exactly when `hasScrolledOverThreshold` is true.
 let capturedListProps: CapturedListProps = {};
-// Every value the maintain-visible-content-position flag has held (`!disabled`), in render order. `[0]` is the
+// Every value the maintain-visible-content-position flag has held, in render order. `[0]` is the
 // value on the list's very first render — the property that matters, since it must be right before any effect runs.
 let mockMvcpHistory: Array<boolean | undefined> = [];
 
-// `!disabled` from the captured `maintainVisibleContentPosition`, or `undefined` before the list first renders.
+// Whether the captured LegendList configuration enables maintain-visible-content-position.
 function isMvcpEnabled() {
     const config = capturedListProps.maintainVisibleContentPosition;
-    return config ? !config.disabled : undefined;
+    return config === undefined ? undefined : config !== false;
 }
 
-jest.mock('@components/LegendList/InvertedLegendList', () => {
+jest.mock('@legendapp/list/react-native', () => {
     const {forwardRef} = jest.requireActual<typeof React>('react');
     return {
-        __esModule: true,
         // The second parameter is intentionally unused; forwardRef requires it to avoid a React development warning.
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        default: forwardRef<unknown, CapturedListProps>((props, ref) => {
+        LegendList: forwardRef<unknown, CapturedListProps>((props, ref) => {
             capturedListProps = props;
-            mockMvcpHistory.push(props.maintainVisibleContentPosition ? !props.maintainVisibleContentPosition.disabled : undefined);
+            mockMvcpHistory.push(props.maintainVisibleContentPosition === undefined ? undefined : props.maintainVisibleContentPosition !== false);
             return null;
         }),
     };
 });
+
+function createScrollEvent(distanceFromBottom: number): ScrollEvent {
+    const contentHeight = 1000;
+    const viewportHeight = 500;
+    return {
+        nativeEvent: {
+            contentOffset: {x: 0, y: contentHeight - viewportHeight - distanceFromBottom},
+            contentSize: {height: contentHeight, width: 300},
+            layoutMeasurement: {height: viewportHeight, width: 300},
+        },
+    };
+}
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -165,12 +181,12 @@ describe('ReportActionsList hasScrolledOverThreshold', () => {
         expect(isMvcpEnabled()).toBe(false);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: THRESHOLD + 50}}});
+            capturedListProps.onScroll?.(createScrollEvent(THRESHOLD + 50));
         });
         expect(isMvcpEnabled()).toBe(true);
 
         act(() => {
-            capturedListProps.onScroll?.({nativeEvent: {contentOffset: {y: 0}}});
+            capturedListProps.onScroll?.(createScrollEvent(0));
         });
         expect(isMvcpEnabled()).toBe(false);
     });

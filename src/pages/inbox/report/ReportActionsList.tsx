@@ -1,5 +1,5 @@
 import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import InvertedLegendList from '@components/LegendList/InvertedLegendList';
+import type {ActionListRef} from '@components/FlashList/types';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
 import useEnvironment from '@hooks/useEnvironment';
@@ -54,13 +54,14 @@ import type SCREENS from '@src/SCREENS';
 import {getStableReportSelector} from '@src/selectors/Report';
 import type * as OnyxTypes from '@src/types/onyx';
 
-import type {LegendListRenderItemProps} from '@legendapp/list/react-native';
+import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
 import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {LegendList} from '@legendapp/list/react-native';
 import {useRoute} from '@react-navigation/native';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
 import FloatingMessageCounter from './FloatingMessageCounter';
 import ReportActionIndexContext from './ReportActionIndexContext';
@@ -81,6 +82,8 @@ type ReportActionsListContentProps = {
 };
 
 type ReportActionsListProps = ReportActionsListContentProps;
+
+const PAGINATION_THRESHOLD = 0.75;
 
 /**
  * Create a unique key for each action in the FlatList.
@@ -132,9 +135,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
+    const didReachStartRef = useRef(false);
 
     useEffect(() => {
         didLayout.current = false;
+        didReachStartRef.current = false;
     }, [reportID]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
@@ -170,6 +175,23 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const {getScrollOffset} = useActionListContext();
     const listRef = useActionListRef();
+    const legendListRef = useRef<LegendListRef>(null);
+
+    useImperativeHandle(
+        listRef,
+        (): ActionListRef => ({
+            scrollToEnd: (options) => {
+                legendListRef.current?.scrollToEnd(options);
+            },
+            scrollToIndex: (options) => {
+                legendListRef.current?.scrollToIndex(options);
+            },
+            scrollToOffset: (options) => {
+                legendListRef.current?.scrollToOffset(options);
+            },
+        }),
+        [],
+    );
 
     const {draftReportAction, isDraftPendingCompletion} = useConciergeDraft();
     const {clearDraft, revealDraftFromReportAction} = useConciergeDraftActions();
@@ -179,7 +201,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const [hasScrolledOverThreshold, setHasScrolledOverThreshold] = useState(() => getScrollOffset() >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
 
-    const {unreadMarkerReportActionID, unreadMarkerReportActionIndex} = useUnreadMarker({
+    const {unreadMarkerReportActionID} = useUnreadMarker({
         reportID,
         sortedVisibleReportActions,
         sortedReportActions,
@@ -232,6 +254,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         return visibleReportActionsWithDraft;
     })();
 
+    // Report actions are stored newest-first. LegendList intentionally has no inverted mode, so
+    // give it chronological data and use its normal start/end and scrolling semantics.
+    const listData = renderedVisibleReportActions.toReversed();
+
     const draftMessageHTML = draftReportAction ? getReportActionMessage(draftReportAction)?.html : undefined;
     const draftReportActionID = draftReportAction?.reportActionID;
     const isSyntheticDraftVisible = !!draftReportAction && renderedVisibleReportActions !== sortedVisibleReportActions;
@@ -253,9 +279,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         revealDraftFromReportAction(persistedDraftReportAction);
     }, [draftReportAction, persistedDraftReportAction, revealDraftFromReportAction]);
 
-    // Find the index of the action badge target in the rendered actions list (which is what the FlatList uses as data)
+    // Find the index of the action badge target in the chronological data rendered by LegendList.
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
-    const actionBadgeTargetIndex = actionBadgeTargetID ? renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+    const actionBadgeTargetIndex = actionBadgeTargetID ? listData.findIndex((action) => action.reportActionID === actionBadgeTargetID) : -1;
+    const unreadMarkerListIndex = unreadMarkerReportActionID ? listData.findIndex((action) => action.reportActionID === unreadMarkerReportActionID) : -1;
 
     const {
         trackVerticalScrolling,
@@ -276,13 +303,13 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         transactionThreadReport,
         parentReportAction,
         sortedVisibleReportActions,
-        renderedVisibleReportActions,
+        renderedVisibleReportActions: listData,
         keyExtractor,
         hasScrolledOverThreshold,
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
-        unreadMarkerReportActionIndex,
+        unreadMarkerReportActionIndex: unreadMarkerListIndex,
         hasNewerActions,
         draftAutoScrollKey,
         actionBadgeTargetIndex,
@@ -291,16 +318,36 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         setTreatAsNoPaginationAnchor,
     });
 
-    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-        trackVerticalScrolling(event);
-        setHasScrolledOverThreshold(event.nativeEvent.contentOffset.y >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
-    };
-
-    const loadOlderChatsOnEndReached = () => {
-        if (showHiddenHistory) {
+    const loadOlderChatsOnStartReached = () => {
+        if (showHiddenHistory || didReachStartRef.current) {
             return;
         }
+
+        didReachStartRef.current = true;
         loadOlderChats(false);
+    };
+
+    const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
+        const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+        const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
+        const startReachedThreshold = layoutMeasurement.height * PAGINATION_THRESHOLD;
+
+        if (contentOffset.y > startReachedThreshold) {
+            didReachStartRef.current = false;
+        } else {
+            loadOlderChatsOnStartReached();
+        }
+
+        const bottomRelativeEvent = {
+            ...event,
+            nativeEvent: {
+                ...event.nativeEvent,
+                contentOffset: {...contentOffset, y: distanceFromBottom},
+            },
+        };
+
+        trackVerticalScrolling(bottomRelativeEvent);
+        setHasScrolledOverThreshold(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
     };
 
     const loadNewerChatsAfterTransitions = () => {
@@ -324,7 +371,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
         actionBadge: reportAttributes?.actionBadge,
-        renderedVisibleReportActions,
+        renderedVisibleReportActions: listData,
         scrollToActionBadgeTarget,
     });
 
@@ -354,6 +401,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const renderItem = ({item: reportAction, index}: LegendListRenderItemProps<OnyxTypes.ReportAction>) => {
         const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
+        const reportActionIndex = renderedVisibleReportActions.length - index - 1;
 
         return (
             <ReportActionIndexContext.Provider value={index}>
@@ -366,8 +414,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     chatReport={chatReportStable}
                     linkedReportActionID={linkedReportActionID}
                     displayAsGroup={
-                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, index, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
-                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, index, isOffline)
+                        !isConsecutiveChronosAutomaticTimerAction(renderedVisibleReportActions, reportActionIndex, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
+                        isConsecutiveActionMadeByPreviousActor(renderedVisibleReportActions, reportActionIndex, isOffline)
                     }
                     shouldHideThreadDividerLine={shouldHideThreadDividerLine}
                     shouldDisplayNewMarker={reportAction.reportActionID === unreadMarkerReportActionID}
@@ -455,24 +503,24 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                 report={report}
                 isReportArchived={isReportArchived}
             >
-                <InvertedLegendList
+                <LegendList
                     accessibilityLabel={translate('sidebarScreen.listOfChatMessages')}
-                    ref={listRef}
+                    ref={legendListRef}
                     testID="report-actions-list"
                     style={styles.overscrollBehaviorContain}
-                    data={renderedVisibleReportActions}
+                    data={listData}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onEndReached={loadOlderChatsOnEndReached}
-                    onEndReachedThreshold={0.75}
-                    onStartReached={loadNewerChatsAfterTransitions}
-                    onStartReachedThreshold={0.75}
-                    ListHeaderComponent={listHeaderComponent}
-                    ListHeaderComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
-                    ListFooterComponent={listFooterComponent}
+                    onStartReached={loadOlderChatsOnStartReached}
+                    onStartReachedThreshold={PAGINATION_THRESHOLD}
+                    onEndReached={loadNewerChatsAfterTransitions}
+                    onEndReachedThreshold={PAGINATION_THRESHOLD}
+                    ListHeaderComponent={listFooterComponent}
+                    ListFooterComponent={listHeaderComponent}
+                    ListFooterComponentStyle={shouldBeAlignedToTop ? styles.flex1 : undefined}
                     keyboardShouldPersistTaps="handled"
                     onLayout={(event) => {
                         recordTimeToMeasureItemLayout(event);
@@ -483,9 +531,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     extraData={extraData}
                     key={listID}
                     getItemType={(item) => item.actionName}
-                    initialScrollIndex={initialScrollIndex}
-                    initialScrollIndexParams={initialScrollIndexParams}
-                    maintainVisibleContentPosition={maintainVisibleContentPosition}
+                    initialScrollAtEnd={initialScrollIndex === undefined}
+                    initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
+                    alignItemsAtEnd={!shouldBeAlignedToTop}
+                    maintainVisibleContentPosition={maintainVisibleContentPosition.disabled ? false : {data: true}}
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);
