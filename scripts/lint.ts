@@ -14,8 +14,8 @@
  * default output mirrors what CI cares about. Pass `--show-warnings` to
  * restore the full output (errors + warnings).
  */
+import {$} from 'bun';
 import {SeatbeltArgs, SeatbeltFile} from 'eslint-seatbelt/api';
-import {spawnSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -57,17 +57,12 @@ const nodeOptions: string = process.env.NODE_OPTIONS ?? '--max_old_space_size=81
 const seatbeltFrozenEnv: string = process.env.SEATBELT_FROZEN ?? '0';
 
 // Run ESLint with the repo's default memory ceiling and seatbelt behavior.
-const eslintResult = spawnSync('npx', ['eslint', ...eslintArgs], {
-    cwd: projectRoot,
-    stdio: 'inherit',
-    env: {
-        ...process.env,
-        NODE_OPTIONS: nodeOptions,
-        SEATBELT_FROZEN: seatbeltFrozenEnv,
-    },
-});
-if (eslintResult.status !== 0) {
-    process.exit(eslintResult.status ?? 1);
+const eslintResult = await $`npx eslint ${eslintArgs}`
+    .cwd(projectRoot)
+    .env({...process.env, NODE_OPTIONS: nodeOptions, SEATBELT_FROZEN: seatbeltFrozenEnv})
+    .nothrow();
+if (eslintResult.exitCode !== 0) {
+    process.exit(eslintResult.exitCode);
 }
 
 /** Mirrors eslint-seatbelt's own boolean env var parsing: unset/empty is unset, "0"/"false"/"no" (case-insensitive) is false, anything else is true. */

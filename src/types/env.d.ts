@@ -9,9 +9,5 @@ declare namespace NodeJS {
         OPENAI_API_KEY: string | undefined;
         LANGUAGES_DIR: string | undefined;
         SLACK_RETEST_WEBHOOK: string | undefined;
-        NODE_OPTIONS: string | undefined;
-        SEATBELT_FROZEN: string | undefined;
-        SEATBELT_DISABLE: string | undefined;
-        SEATBELT_READ_ONLY: string | undefined;
     }
 }
