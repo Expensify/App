@@ -4503,6 +4503,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             paymentsAdminAlternateText: '管理工作流付款。',
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
+            noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
