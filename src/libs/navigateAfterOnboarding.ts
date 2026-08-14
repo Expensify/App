@@ -17,6 +17,7 @@ import {dismissOnboardingModalBeforeExit} from './Navigation/helpers/OnboardingN
 import shouldOpenOnAdminRoom from './Navigation/helpers/shouldOpenOnAdminRoom';
 import Navigation from './Navigation/Navigation';
 import {findLastAccessedReport, isConciergeChatReport, isSelfDM} from './ReportUtils';
+import {buildCannedSearchQuery} from './SearchQueryUtils';
 
 let onboardingRHPVariant: OnyxEntry<OnboardingRHPVariant>;
 Onyx.connectWithoutView({
@@ -139,18 +140,19 @@ function navigateAfterOnboardingWithMicrotaskQueue(
 }
 
 /**
- * After creating or joining a Submit workspace during onboarding, navigate Home with
- * the side panel open so the #admins room is visible in Concierge Anywhere.
+ * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses
+ * with the side panel open so the #admins room is visible in Concierge Anywhere.
  */
 function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
     setDisableDismissOnEscape(false);
-    Navigation.navigate(ROUTES.HOME);
 
     if (!policyID) {
+        Navigation.navigate(ROUTES.HOME);
         return;
     }
 
     setOnboardingRHPVariant(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
+    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
