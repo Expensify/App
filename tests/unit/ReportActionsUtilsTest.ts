@@ -11,7 +11,7 @@ import ROUTES from '@src/ROUTES';
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
-import type {Card, DecisionName, PersonalDetailsList, Policy, Report, ReportAction, ReportActions} from '../../src/types/onyx';
+import type {Card, DecisionName, PersonalDetailsList, Report, ReportAction, ReportActions} from '../../src/types/onyx';
 import type {OriginalMessageExportIntegration} from '../../src/types/onyx/OriginalMessage';
 import type {ReportCollectionDataSet} from '../../src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '../../src/types/onyx/ReportAction';
