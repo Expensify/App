@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -202,6 +203,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Hashtag',
     ]);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -1044,7 +1046,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 conciergeReportID,
                 delegateEmail,
                 reportActionsForOriginalReportID,
-                ancestors,
+                {
+                    ancestors,
+                    shouldNavigateBack: !taskDeleteBackTo,
+                },
             );
             return;
         }
@@ -1085,6 +1090,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
     }, [
         caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         iouTransaction,
         iouOriginalTransaction,
@@ -1118,6 +1124,11 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
+        if (caseID === CASES.DEFAULT && taskDeleteBackTo) {
+            Navigation.goBack(taskDeleteBackTo);
+            return;
+        }
+
         let urlToNavigateBack: string | undefined;
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
@@ -1186,6 +1197,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
     }, [
+        caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         route.params.reportID,
         moneyRequestReport,
@@ -1303,7 +1316,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     ))}
 
                     {shouldShowDeleteButton && (
-                        <MenuItem
+                        <MenuItemAction
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
                             title={deleteMenuItemTitle}
