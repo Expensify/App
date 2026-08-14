@@ -224,9 +224,11 @@ function IOURequestStartPage({
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
-    let manualTabContent: React.ReactNode;
-    if (!isNewManualExpenseFlowEnabled) {
-        manualTabContent = (
+    const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
+
+    let manualContent: React.ReactNode;
+    if (!shouldEmbedConfirmation) {
+        manualContent = (
             <IOURequestStepAmountWithTransactionOnly
                 shouldKeepUserInput
                 route={route}
@@ -243,7 +245,7 @@ function IOURequestStartPage({
         // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
         // mounts once against the rebuilt manual draft.
         // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
-        manualTabContent = (
+        manualContent = (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
                 <ActivityIndicator
                     testID="manualTabPendingReset"
@@ -252,7 +254,7 @@ function IOURequestStartPage({
             </View>
         );
     } else {
-        manualTabContent = (
+        manualContent = (
             <IOURequestStepConfirmation
                 route={route}
                 navigation={navigation}
@@ -300,7 +302,7 @@ function IOURequestStartPage({
                                 onActiveTabFocusTrapContainerElementChanged={setActiveTabContainerElement}
                                 lazyLoadEnabled
                             >
-                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualTabContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
+                                <TopTab.Screen name={CONST.TAB_REQUEST.MANUAL}>{() => <TabScreenWithFocusTrapWrapper>{manualContent}</TabScreenWithFocusTrapWrapper>}</TopTab.Screen>
                                 <TopTab.Screen name={CONST.TAB_REQUEST.SCAN}>
                                     {() => (
                                         <TabScreenWithFocusTrapWrapper>
@@ -372,13 +374,7 @@ function IOURequestStartPage({
                                 onContainerElementChanged={setActiveTabContainerElement}
                                 style={[styles.flexColumn, styles.flex1]}
                             >
-                                <IOURequestStepAmountWithTransactionOnly
-                                    route={route}
-                                    navigation={navigation}
-                                    shouldKeepUserInput
-                                    report={report}
-                                    reportDraft={reportDraft}
-                                />
+                                {manualContent}
                             </FocusTrapContainerElement>
                         )}
                     </View>

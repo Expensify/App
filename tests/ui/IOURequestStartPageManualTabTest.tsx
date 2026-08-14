@@ -5,7 +5,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import IOURequestStartPage from '@pages/iou/request/IOURequestStartPage';
 
-import type {IOURequestType} from '@src/CONST';
+import type {IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
@@ -20,6 +20,7 @@ const REPORT_ID = '1';
 const TRANSACTION_ID = 'transaction1';
 const CONFIRMATION_TEST_ID = 'EmbeddedConfirmation';
 const LOADER_TEST_ID = 'manualTabPendingReset';
+const AMOUNT_TEST_ID = 'EmbeddedAmount';
 
 jest.mock('@userActions/Tab');
 jest.mock('@rnmapbox/maps', () => ({
@@ -62,6 +63,16 @@ jest.mock('@pages/iou/request/step/IOURequestStepConfirmation', () => {
         default: () => ReactModule.createElement(View, {testID: 'EmbeddedConfirmation'}),
     };
 });
+jest.mock('@pages/iou/request/step/IOURequestStepAmount', () => {
+    const ReactModule = jest.requireActual<typeof React>('react');
+    const {View} = jest.requireActual<{View: React.ComponentType<{testID: string}>}>('react-native');
+    const AmountStub = () => ReactModule.createElement(View, {testID: 'EmbeddedAmount'});
+    return {
+        __esModule: true,
+        default: AmountStub,
+        IOURequestStepAmountWithTransactionOnly: AmountStub,
+    };
+});
 
 describe('IOURequestStartPage manual tab content', () => {
     beforeAll(() => {
@@ -79,9 +90,9 @@ describe('IOURequestStartPage manual tab content', () => {
     /**
      * Seeds the beta, the manual tab selection and a draft transaction of the given request type, then renders the page.
      */
-    async function renderStartPageWithDraftType(iouRequestType: IOURequestType) {
+    async function renderStartPageWithDraftType(iouRequestType: IOURequestType, iouType: IOUType = CONST.IOU.TYPE.SUBMIT, isNewManualExpenseFlowEnabled = true) {
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW]);
+            await Onyx.set(ONYXKEYS.BETAS, isNewManualExpenseFlowEnabled ? [CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW] : []);
             await Onyx.set(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.IOU_REQUEST_TYPE}`, CONST.TAB_REQUEST.MANUAL);
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, {
                 transactionID: TRANSACTION_ID,
@@ -101,7 +112,7 @@ describe('IOURequestStartPage manual tab content', () => {
                                 key: 'Money_Request_Create-1',
                                 name: SCREENS.MONEY_REQUEST.CREATE,
                                 // @ts-expect-error the create route types `backTo` and `action` as never, so its params can't be built here.
-                                params: {iouType: CONST.IOU.TYPE.SUBMIT, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
+                                params: {iouType, reportID: REPORT_ID, transactionID: TRANSACTION_ID},
                             }}
                             report={undefined}
                             reportDraft={undefined}
@@ -142,5 +153,23 @@ describe('IOURequestStartPage manual tab content', () => {
         // Then the confirmation is mounted and the pending-reset loader is gone
         expect(screen.getByTestId(CONFIRMATION_TEST_ID)).toBeOnTheScreen();
         expect(screen.queryByTestId(LOADER_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('lands the tab-less pay flow directly on the embedded confirmation instead of the amount page', async () => {
+        // Given the new manual expense flow beta and a pay flow, which renders no tabs
+        await renderStartPageWithDraftType(CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.TYPE.PAY);
+
+        // Then the details page is the landing page, so the amount page is never shown first
+        expect(screen.getByTestId(CONFIRMATION_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(AMOUNT_TEST_ID)).not.toBeOnTheScreen();
+    });
+
+    it('keeps the amount page as the landing page for the pay flow when the beta is off', async () => {
+        // Given a pay flow started without the new manual expense flow beta
+        await renderStartPageWithDraftType(CONST.IOU.REQUEST_TYPE.MANUAL, CONST.IOU.TYPE.PAY, false);
+
+        // Then the legacy amount-first flow is preserved
+        expect(screen.getByTestId(AMOUNT_TEST_ID)).toBeOnTheScreen();
+        expect(screen.queryByTestId(CONFIRMATION_TEST_ID)).not.toBeOnTheScreen();
     });
 });
