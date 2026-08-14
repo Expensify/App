@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
 import ScrollView from '@components/ScrollView';
@@ -11,7 +11,7 @@ import {View} from 'react-native';
 jest.mock('@hooks/useThemeStyles', () => () => ({flex1: {flex: 1}}));
 
 describe('AutoGrowHeightInputContainer', () => {
-    it('measures reserved content after clamping and tracks layout changes', () => {
+    it('measures reserved content after clamping and tracks layout changes', async () => {
         const measuredContentHeights: number[] = [];
         const measure = jest.fn((callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => {
             callback(0, 0, 0, measuredContentHeights.shift() ?? 0, 0, 0);
@@ -42,30 +42,31 @@ describe('AutoGrowHeightInputContainer', () => {
         measuredContentHeights.push(420);
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420}}});
         expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('420');
+        await waitFor(() => expect(measure).toHaveBeenCalledTimes(1));
 
         measuredContentHeights.push(76);
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 444}}});
-        expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('396');
+        await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('396'));
 
         measuredContentHeights.push(100);
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 444}}});
-        expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('372');
+        await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('372'));
 
         measuredContentHeights.push(372);
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 372}}});
-        expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('420');
+        await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('420'));
 
         measuredContentHeights.push(284, 76);
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 260}}});
-        expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('236');
+        await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('236'));
 
         measuredContentHeights.push(76);
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 0}}});
-        expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge));
+        await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge)));
         expect(measure).toHaveBeenCalled();
     });
 
-    it('keeps an in-flight measurement valid when the same layout repeats', () => {
+    it('keeps an in-flight measurement valid when the same layout repeats', async () => {
         const measurementCallbacks: Array<(x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void> = [];
 
         render(
@@ -94,18 +95,19 @@ describe('AutoGrowHeightInputContainer', () => {
 
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420, width: 300}}});
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420, width: 300}}});
-        expect(measurementCallbacks).toHaveLength(1);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(1));
 
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420, width: 280}}});
-        expect(measurementCallbacks).toHaveLength(2);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(2));
 
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 430, width: 280}}});
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 430, width: 280}}});
-        expect(measurementCallbacks).toHaveLength(3);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(3));
 
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 260, width: 280}}});
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(4));
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 284, width: 280}}});
-        expect(measurementCallbacks).toHaveLength(5);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(5));
         expect(screen.getByTestId('deferred-height').props.accessibilityLabel).toBe('260');
 
         act(() => {
@@ -119,12 +121,12 @@ describe('AutoGrowHeightInputContainer', () => {
         expect(screen.getByTestId('deferred-height').props.accessibilityLabel).toBe('260');
 
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 284, width: 280}}});
-        expect(measurementCallbacks).toHaveLength(6);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(6));
         expect(screen.getByTestId('deferred-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge));
 
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 80, width: 280}}});
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 80, width: 280}}});
-        expect(measurementCallbacks).toHaveLength(7);
+        await waitFor(() => expect(measurementCallbacks).toHaveLength(7));
 
         act(() => measurementCallbacks[5](0, 0, 0, 100, 0, 0));
         expect(screen.getByTestId('deferred-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge));

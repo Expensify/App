@@ -6,22 +6,47 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
+import type * as ReactNative from 'react-native';
+
 import React from 'react';
 
-const mockButton = jest.fn();
-const mockNegatableFilter = jest.fn();
-const mockTextInput = jest.fn();
+type ButtonMockProps = {
+    pressOnEnter?: boolean;
+};
+
+type NegatableFilterMockProps = {
+    children?: React.ReactNode;
+    isNegated?: boolean;
+    style?: unknown;
+    onNegationChange?: (nextIsNegated: boolean) => void;
+};
+
+type TextInputMockProps = {
+    accessibilityLabel?: string;
+    autoGrowHeight?: boolean;
+    errorText?: string;
+    hasError?: boolean;
+    maxAutoGrowHeight?: number;
+    onChangeText?: (nextValue: string) => void;
+    onSubmitEditing?: () => void;
+    submitBehavior?: string;
+    textInputContainerStyles?: unknown;
+};
+
+const mockButton = jest.fn<void, [ButtonMockProps]>();
+const mockNegatableFilter = jest.fn<void, [NegatableFilterMockProps]>();
+const mockTextInput = jest.fn<void, [TextInputMockProps]>();
 let mockValidationError = '';
 
 jest.mock('@components/AutoGrowHeightInputContainer', () => ({
     __esModule: true,
     default: ({children}: {children: (height: number) => React.ReactNode}) => {
         const MockReact = jest.requireActual<typeof React>('react');
-        const {View: MockView} = jest.requireActual<typeof import('react-native')>('react-native');
-        return MockReact.createElement(MockView, {testID: 'auto-grow-container'}, children(420));
+        const MockReactNative = jest.requireActual<typeof ReactNative>('react-native');
+        return MockReact.createElement(MockReactNative.View, {testID: 'auto-grow-container'}, children(420));
     },
 }));
-jest.mock('@components/Button', () => (props: Record<string, unknown>) => {
+jest.mock('@components/Button', () => (props: ButtonMockProps) => {
     mockButton(props);
     return null;
 });
@@ -29,7 +54,7 @@ jest.mock('@components/Search/FilterComponents/NegatableFilter', () => {
     const MockReact = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
-        default: (props: {children?: React.ReactNode}) => {
+        default: (props: NegatableFilterMockProps) => {
             mockNegatableFilter(props);
             return MockReact.createElement(MockReact.Fragment, null, props.children);
         },
@@ -38,7 +63,7 @@ jest.mock('@components/Search/FilterComponents/NegatableFilter', () => {
 jest.mock('@components/Search/hooks/useTextFilterValidation', () => () => mockValidationError);
 jest.mock('@components/TextInput', () => ({
     __esModule: true,
-    default: (props: Record<string, unknown>) => {
+    default: (props: TextInputMockProps) => {
         mockTextInput(props);
         return null;
     },
@@ -121,7 +146,7 @@ describe('TextInputFilterContent', () => {
     });
 
     it('preserves Enter-to-confirm for the multiline Search RHP input', () => {
-        const onChange = jest.fn();
+        const onChange = jest.fn<void, [string | undefined, boolean]>();
         render(
             <TextInputFilterContent
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
@@ -136,10 +161,10 @@ describe('TextInputFilterContent', () => {
         expect(mockButton.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({pressOnEnter: false}));
 
         act(() => {
-            (mockTextInput.mock.calls.at(-1)?.[0]?.onChangeText as ((nextValue: string) => void) | undefined)?.('Tea');
-            (mockNegatableFilter.mock.calls.at(-1)?.[0]?.onNegationChange as ((nextIsNegated: boolean) => void) | undefined)?.(false);
+            mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Tea');
+            mockNegatableFilter.mock.calls.at(-1)?.[0].onNegationChange?.(false);
         });
-        (mockTextInput.mock.calls.at(-1)?.[0]?.onSubmitEditing as (() => void) | undefined)?.();
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
         expect(onChange).toHaveBeenCalledTimes(1);
         expect(onChange).toHaveBeenCalledWith('Tea', false);
     });
@@ -147,7 +172,7 @@ describe('TextInputFilterContent', () => {
     it('preserves built-in validation semantics in the fill-height path', () => {
         mockValidationError = 'Invalid search term';
 
-        const onChange = jest.fn();
+        const onChange = jest.fn<void, [string | undefined, boolean]>();
 
         render(
             <TextInputFilterContent
@@ -167,7 +192,7 @@ describe('TextInputFilterContent', () => {
                 maxAutoGrowHeight: 420,
             }),
         );
-        (mockTextInput.mock.calls.at(-1)?.[0]?.onSubmitEditing as (() => void) | undefined)?.();
+        mockTextInput.mock.calls.at(-1)?.[0].onSubmitEditing?.();
         expect(onChange).not.toHaveBeenCalled();
     });
 

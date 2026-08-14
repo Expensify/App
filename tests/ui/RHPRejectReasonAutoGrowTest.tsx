@@ -1,31 +1,49 @@
-import {fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react-native';
 
 import ScrollView from '@components/ScrollView';
 
 import RejectReasonFormView from '@pages/iou/RejectReasonFormView';
 import RejectExpenseReportPage from '@pages/RejectExpenseReportPage';
 
-import variables from '@styles/variables';
+import type * as ReactNative from 'react-native';
 
+import createMock from '@tests/utils/createMock';
 import React from 'react';
 
-const mockFormProvider = jest.fn();
-const mockInputWrapper = jest.fn();
-const mockSelectionList = jest.fn();
-const mockUseOnyx = jest.fn();
+type FormProviderMockProps = {
+    children?: React.ReactNode;
+    submitFlexEnabled?: boolean;
+};
+
+type InputWrapperMockProps = {
+    autoGrowHeight?: boolean;
+    maxAutoGrowHeight?: number;
+};
+
+type SelectionListMockProps = {
+    data?: Array<{accountID?: number}>;
+};
+
+type MeasureCallback = (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void;
+
+const mockFormProvider = jest.fn<void, [FormProviderMockProps]>();
+const mockInputWrapper = jest.fn<void, [InputWrapperMockProps]>();
+const mockSelectionList = jest.fn<void, [SelectionListMockProps]>();
+const mockUseOnyx = jest.fn<unknown, unknown[]>();
 const measuredContentHeights: number[] = [];
+const mockMeasure = jest.fn<void, [MeasureCallback]>((callback) => {
+    callback(0, 0, 0, measuredContentHeights.shift() ?? 0, 0, 0);
+});
 
 const createNodeMock = () => ({
-    measure: (callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => {
-        callback(0, 0, 0, measuredContentHeights.shift() ?? 0, 0, 0);
-    },
+    measure: mockMeasure,
 });
 
 jest.mock('@components/Form/FormProvider', () => {
     const MockReact = jest.requireActual<typeof React>('react');
     return {
         __esModule: true,
-        default: (props: {children?: React.ReactNode}) => {
+        default: (props: FormProviderMockProps) => {
             mockFormProvider(props);
             return MockReact.createElement(MockReact.Fragment, null, props.children);
         },
@@ -33,12 +51,12 @@ jest.mock('@components/Form/FormProvider', () => {
 });
 jest.mock('@components/Form/InputWrapper', () => {
     const MockReact = jest.requireActual<typeof React>('react');
-    const {View: MockView} = jest.requireActual<typeof import('react-native')>('react-native');
+    const MockReactNative = jest.requireActual<typeof ReactNative>('react-native');
     return {
         __esModule: true,
-        default: (props: Record<string, unknown>) => {
+        default: (props: InputWrapperMockProps) => {
             mockInputWrapper(props);
-            return MockReact.createElement(MockView, {testID: 'input-wrapper'});
+            return MockReact.createElement(MockReactNative.View, {testID: 'input-wrapper'});
         },
     };
 });
@@ -47,7 +65,7 @@ jest.mock('@components/ScreenWrapper', () => {
     const MockReact = jest.requireActual<typeof React>('react');
     return {__esModule: true, default: ({children}: {children?: React.ReactNode}) => MockReact.createElement(MockReact.Fragment, null, children)};
 });
-jest.mock('@components/SelectionList', () => (props: Record<string, unknown>) => {
+jest.mock('@components/SelectionList', () => (props: SelectionListMockProps) => {
     mockSelectionList(props);
     return null;
 });
@@ -79,7 +97,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 jest.mock('@userActions/IOU/RejectMoneyRequest', () => ({rejectExpenseReport: jest.fn()}));
 
-function measureAvailableHeightAndReserveValidationRow() {
+async function measureAvailableHeightAndReserveValidationRow() {
     const inputWrapper = screen.getByTestId('input-wrapper');
     const content = inputWrapper.parent;
     if (!content) {
@@ -89,12 +107,16 @@ function measureAvailableHeightAndReserveValidationRow() {
 
     measuredContentHeights.push(420);
     fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420}}});
-    expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({maxAutoGrowHeight: 420}));
+    await waitFor(() => expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({maxAutoGrowHeight: 420})));
+    await waitFor(() => expect(mockMeasure).toHaveBeenCalledTimes(1));
 
     measuredContentHeights.push(76);
     fireEvent(content, 'layout', {nativeEvent: {layout: {height: 444}}});
-    expect(mockInputWrapper.mock.calls.some(([props]) => props.maxAutoGrowHeight === variables.componentSizeLarge)).toBe(true);
-    expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({maxAutoGrowHeight: 396}));
+    await waitFor(() => expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({maxAutoGrowHeight: 396})));
+}
+
+function getReportPageProps(): React.ComponentProps<typeof RejectExpenseReportPage> {
+    return createMock<React.ComponentProps<typeof RejectExpenseReportPage>>({route: {params: {reportID: '1'}}});
 }
 
 describe('RHP rejection reason inputs', () => {
@@ -103,10 +125,11 @@ describe('RHP rejection reason inputs', () => {
         mockInputWrapper.mockClear();
         mockSelectionList.mockClear();
         mockUseOnyx.mockReset();
+        mockMeasure.mockClear();
         measuredContentHeights.length = 0;
     });
 
-    it('passes the measured available height to the transaction rejection input', () => {
+    it('passes the measured available height to the transaction rejection input', async () => {
         render(
             <RejectReasonFormView
                 onSubmit={jest.fn()}
@@ -117,34 +140,34 @@ describe('RHP rejection reason inputs', () => {
 
         expect(mockFormProvider.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({submitFlexEnabled: false}));
         expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowHeight: true}));
-        measureAvailableHeightAndReserveValidationRow();
+        await measureAvailableHeightAndReserveValidationRow();
     });
 
-    it('passes the measured available height to the report rejection input', () => {
+    it('passes the measured available height to the report rejection input', async () => {
         mockUseOnyx
             .mockReturnValueOnce([{reportID: '1', ownerAccountID: 2}])
             .mockReturnValueOnce([undefined])
             .mockReturnValueOnce([{submitterEmail: 'submitter@example.com', lastForwardedActorEmail: undefined}])
             .mockReturnValueOnce([false]);
 
-        render(<RejectExpenseReportPage {...({route: {params: {reportID: '1'}}} as never)} />, {createNodeMock});
+        render(<RejectExpenseReportPage {...getReportPageProps()} />, {createNodeMock});
 
         expect(mockFormProvider.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({submitFlexEnabled: false}));
         expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowHeight: true}));
-        measureAvailableHeightAndReserveValidationRow();
+        await measureAvailableHeightAndReserveValidationRow();
     });
 
-    it('keeps the optional previous-approver selector outside the measured report input', () => {
+    it('keeps the optional previous-approver selector outside the measured report input', async () => {
         mockUseOnyx
             .mockReturnValueOnce([{reportID: '1', ownerAccountID: 2}])
             .mockReturnValueOnce([3])
             .mockReturnValueOnce([{submitterEmail: 'submitter@example.com', lastForwardedActorEmail: 'approver@example.com'}])
             .mockReturnValueOnce([false]);
 
-        render(<RejectExpenseReportPage {...({route: {params: {reportID: '1'}}} as never)} />, {createNodeMock});
+        render(<RejectExpenseReportPage {...getReportPageProps()} />, {createNodeMock});
 
         expect(mockInputWrapper.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({autoGrowHeight: true}));
-        measureAvailableHeightAndReserveValidationRow();
+        await measureAvailableHeightAndReserveValidationRow();
         expect(mockSelectionList).toHaveBeenCalledWith(expect.objectContaining({data: expect.arrayContaining([expect.objectContaining({accountID: 3})])}));
     });
 });

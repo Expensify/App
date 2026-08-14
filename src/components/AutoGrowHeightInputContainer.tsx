@@ -1,5 +1,3 @@
-import ScrollView from '@components/ScrollView';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -9,6 +7,8 @@ import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+import ScrollView from './ScrollView';
 
 type AutoGrowHeightInputContainerProps = {
     children: (maxAutoGrowHeight: number) => ReactNode;
