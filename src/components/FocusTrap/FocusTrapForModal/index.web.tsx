@@ -1,5 +1,4 @@
 import blurActiveElement from '@libs/Accessibility/blurActiveElement';
-import {clearLastTrapFocusReturn, setLastTrapFocusReturn} from '@libs/lastTrapFocusReturn';
 import {hasLauncher, markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import ReportActionComposeFocusManager from '@libs/ReportActionComposeFocusManager';
 import restoreFocusWithModality from '@libs/restoreFocusWithModality';
@@ -29,9 +28,6 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
 
     const onFocusTrapActive = () => {
         trapDepthAtActivateRef.current = sharedTrapStack.length;
-        // A new trap is opening, so the previous trap's focus return is finished and no longer needs shielding.
-        // Cleared before the blur below, which must still be free to drop focus from that element.
-        clearLastTrapFocusReturn();
         // Capture for nav-back return — independent of shouldReturnFocus (which gates only focus-trap-react's same-screen return below).
         const activeElement = document.activeElement;
         blurActiveElement();
@@ -64,8 +60,6 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         markActivePopoverLauncherDeactivated(launcher);
         if (!wasClaimedByNavigation && !isCoveredByNewerTrap && shouldReturnFocus && !ReportActionComposeFocusManager.isFocused() && document.contains(launcher)) {
             restoreFocusWithModality(launcher, {preventScroll: shouldPreventScroll});
-            // Shield it from the modal's own hide-time blur, which runs after this on an Escape dismissal.
-            setLastTrapFocusReturn(launcher);
         }
     };
 

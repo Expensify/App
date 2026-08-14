@@ -26,18 +26,6 @@ jest.mock('focus-trap-react', () => ({
 
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, default: jest.fn()}));
 
-const mockSetLastTrapFocusReturn = jest.fn();
-const mockClearLastTrapFocusReturn = jest.fn();
-jest.mock('@libs/lastTrapFocusReturn', () => ({
-    setLastTrapFocusReturn: (element: HTMLElement): void => {
-        mockSetLastTrapFocusReturn(element);
-    },
-    clearLastTrapFocusReturn: (): void => {
-        mockClearLastTrapFocusReturn();
-    },
-    getLastTrapFocusReturn: () => null,
-}));
-
 const mockRestoreFocusWithModality = jest.fn();
 jest.mock('@libs/restoreFocusWithModality', () => ({
     __esModule: true,
@@ -68,8 +56,6 @@ describe('FocusTrapForModal — launcher capture', () => {
         jest.mocked(hasLauncher).mockReturnValue(true);
         jest.mocked(pickLauncher).mockClear();
         jest.mocked(pickLauncher).mockReturnValue(null);
-        mockSetLastTrapFocusReturn.mockClear();
-        mockClearLastTrapFocusReturn.mockClear();
         sharedTrapStack.length = 0;
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
@@ -240,64 +226,6 @@ describe('FocusTrapForModal — launcher capture', () => {
 
             expect(setActivePopoverLauncher).toHaveBeenCalledWith(anchor);
             expect(mockRestoreFocusWithModality).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('shielding the return from the modal hide-time blur', () => {
-        // Escape deactivates the trap (focus-trap's escapeDeactivates default) before the app closes the modal, so the
-        // return runs first and ReanimatedModal's blurActiveElement would otherwise wipe it. A button press is the
-        // reverse order, which is why Cancel never showed this.
-        it('marks the returned element so the closing modal will not blur it', () => {
-            const anchor = document.createElement('button');
-            document.body.appendChild(anchor);
-
-            render(
-                <FocusTrapForModal
-                    active
-                    launcherRef={{current: anchor}}
-                >
-                    {null}
-                </FocusTrapForModal>,
-            );
-
-            withActiveElement(document.body, () => {
-                capturedOptions?.onActivate?.();
-                capturedOptions?.onPostDeactivate?.();
-            });
-
-            expect(mockSetLastTrapFocusReturn).toHaveBeenCalledWith(anchor);
-        });
-
-        it('does not mark anything when no focus return happened', () => {
-            const anchor = document.createElement('button');
-            document.body.appendChild(anchor);
-            jest.mocked(hasLauncher).mockReturnValue(false);
-
-            render(
-                <FocusTrapForModal
-                    active
-                    launcherRef={{current: anchor}}
-                >
-                    {null}
-                </FocusTrapForModal>,
-            );
-
-            withActiveElement(document.body, () => {
-                capturedOptions?.onActivate?.();
-                capturedOptions?.onPostDeactivate?.();
-            });
-
-            expect(mockSetLastTrapFocusReturn).not.toHaveBeenCalled();
-        });
-
-        it('drops the shield when the next trap activates, so its own blur still works', () => {
-            render(<FocusTrapForModal active>{null}</FocusTrapForModal>);
-
-            withActiveElement(document.body, () => {
-                capturedOptions?.onActivate?.();
-            });
-
-            expect(mockClearLastTrapFocusReturn).toHaveBeenCalled();
         });
     });
 

@@ -2,7 +2,7 @@ import type {FocusTrapOptions} from '@components/Modal/types';
 
 import type CONST from '@src/CONST';
 
-import type {ReactNode, RefObject} from 'react';
+import type {ReactNode, Ref, RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports -- type-only: the launcher union must cover every anchor shape popovers pass, including RN Text anchors
 import type {NativeSyntheticEvent, StyleProp, Text, View, ViewProps, ViewStyle} from 'react-native';
 import type {SharedValue} from 'react-native-reanimated';
@@ -188,6 +188,9 @@ type BackdropProps = {
 };
 
 type ContainerProps = {
+    /** Host node of the modal's content, used to tell whether focus is still inside this modal. */
+    ref?: Ref<View>;
+
     /** This function is called by open animation callback */
     onOpenCallBack: () => void;
 
