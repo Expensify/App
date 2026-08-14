@@ -13,6 +13,7 @@ import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useResolvedAgentAccountID from '@hooks/useResolvedAgentAccountID';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {AGENT_AVATARS} from '@libs/Avatars/AgentAvatarCatalog';
@@ -227,7 +228,8 @@ function EditAgentAvatarContent({accountID, fallbackRoute, onSave, initialPreset
 EditAgentAvatarContent.displayName = 'EditAgentAvatarContent';
 
 function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
-    const {accountID} = route.params;
+    // Resolve the optimistic accountID to the real one so opening this page mid-CreateAgent (or after a reload) doesn't 404.
+    const [accountID] = useResolvedAgentAccountID(route.params.accountID);
     return (
         <EditAgentAvatarContent
             accountID={accountID}

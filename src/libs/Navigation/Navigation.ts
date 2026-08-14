@@ -830,32 +830,6 @@ function getReportRouteByID(reportID?: string, routes: NavigationRoute[] = navig
     return null;
 }
 
-const AGENT_ACCOUNT_ID_SCREEN_NAMES = new Set<string>([
-    SCREENS.SETTINGS.AGENTS.EDIT,
-    SCREENS.SETTINGS.AGENTS.EDIT_NAME,
-    SCREENS.SETTINGS.AGENTS.EDIT_PROMPT,
-    SCREENS.SETTINGS.AGENTS.EDIT_AVATAR,
-]);
-
-/**
- * Finds every currently mounted agent screen (edit, edit name/prompt/avatar) whose `accountID` param matches the given
- * value, anywhere in the navigation tree (not just the focused route) - a stacked-but-backgrounded screen (e.g. the
- * Edit page behind Edit Name) needs its param fixed too, or it shows "Hmm... it's not here" once it regains focus.
- * Returns each match with the key of the navigator that directly owns it, for use as `setParams`'s `targetKey`.
- */
-function getAgentAccountIDRoutes(accountID: number, routes: NavigationRoute[] = navigationRef.getRootState().routes, targetKey?: string): Array<{routeKey: string; targetKey?: string}> {
-    const matches: Array<{routeKey: string; targetKey?: string}> = [];
-    for (const route of routes) {
-        if (!!route.key && AGENT_ACCOUNT_ID_SCREEN_NAMES.has(route.name) && !!route.params && 'accountID' in route.params && Number(route.params.accountID) === accountID) {
-            matches.push({routeKey: route.key, targetKey});
-        }
-        if (route.state?.routes) {
-            matches.push(...getAgentAccountIDRoutes(accountID, route.state.routes, route.state.key));
-        }
-    }
-    return matches;
-}
-
 function getTopmostSuperWideRHPReportParams(
     state: NavigationState = navigationRef.getRootState(),
 ): RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT] | RightModalNavigatorParamList[typeof SCREENS.RIGHT_MODAL.EXPENSE_REPORT] | undefined {
@@ -1325,7 +1299,6 @@ export default {
     removeScreenByKey,
     removeReportScreen,
     getReportRouteByID,
-    getAgentAccountIDRoutes,
     replaceWithSplitNavigator,
     isTopmostRouteModalScreen,
     isOnboardingFlow,
