@@ -128,8 +128,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         isCurrencyModalOpen.current = true;
         const result = await showConfirmModal({
             title: translate('workspace.common.expensifyCard'),
-            prompt: translate('workspace.bankAccount.updateCurrencyPrompt'),
-            confirmText: translate('workspace.bankAccount.updateToUSD'),
+            prompt: translate('workspace.bankAccount.updateCurrencyForExpensifyCard'),
+            confirmText: translate('workspace.bankAccount.updateWorkspaceCurrency'),
             cancelText: translate('common.cancel'),
             danger: true,
         });
