@@ -28,7 +28,7 @@ import type {Unit} from '@src/types/onyx/Policy';
 import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 
-import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
@@ -36,6 +36,7 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy from '../utils/collections/policies';
@@ -44,7 +45,7 @@ import {createExpenseReport, createRandomReport} from '../utils/collections/repo
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
-import {isReportStateNum, isReportStatusNum} from '../utils/typeGuards';
+import {isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -74,11 +75,6 @@ function isChangeTransactionsReportParams(value: unknown): value is ChangeTransa
         (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
     );
 }
-
-type ReportMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
-type ReportObjectMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: Record<string, unknown>};
-type ReportStateMergeValue = Required<Pick<NonNullable<ReportMergeUpdate['value']>, 'stateNum' | 'statusNum'>>;
-type ReportStateMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: ReportStateMergeValue};
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
@@ -638,17 +634,8 @@ describe('Transaction', () => {
                 const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
                 const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
                 const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
-                const sourceReportUpdate = reportUpdates.findLast(
-                    (update): update is ReportObjectMergeUpdate => isRecord(update) && update.key === reportKey && update.onyxMethod === Onyx.METHOD.MERGE && isRecord(update.value),
-                );
-                const sourceReportStateUpdate = reportUpdates.find((update): update is ReportStateMergeUpdate => {
-                    if (!isRecord(update) || update.key !== reportKey || update.onyxMethod !== Onyx.METHOD.MERGE || !isRecord(update.value)) {
-                        return false;
-                    }
-
-                    const {stateNum, statusNum} = update.value;
-                    return isReportStateNum(stateNum) && isReportStatusNum(statusNum);
-                });
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                const sourceReportStateUpdate = reportUpdates.find((update) => isReportStateMergeUpdate(update, reportKey));
                 if (!sourceReportUpdate || !sourceReportStateUpdate) {
                     throw new Error('Expected typed source report updates');
                 }
