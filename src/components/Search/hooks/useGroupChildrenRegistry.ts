@@ -23,7 +23,7 @@ type GroupChildrenRegistry = {
  * what they loaded, and whoever owns the expanded state publishes whether the group is open. Reading them together is
  * what makes "a closed group contributes nothing" true in one place instead of in every row.
  */
-function useGroupChildrenRegistry(searchHash: number | undefined): GroupChildrenRegistry {
+function useGroupChildrenRegistry(searchHash: number): GroupChildrenRegistry {
     const [groupChildrenByKey, setGroupChildrenByKey] = useState<Record<string, TransactionListItemType[]>>({});
     const [openGroupKeys, setOpenGroupKeys] = useState<ReadonlySet<string>>(NO_OPEN_GROUPS);
 

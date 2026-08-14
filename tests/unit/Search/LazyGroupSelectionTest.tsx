@@ -35,6 +35,9 @@ jest.mock('@react-navigation/native', () => ({
 
 const GROUP_KEY = 'Advertising';
 
+/** The query the rows belong to. Everything scoped to one search is keyed on it. */
+const SEARCH_HASH = 1;
+
 /** A child as it looks once its group has been expanded and the snapshot has loaded. */
 const buildChild = (index: number, key: string) => buildTransactionRow(index, key, {currency: 'USD', amount: -642, report: {reportID: '11'}});
 
@@ -69,6 +72,7 @@ function CachedPartialWrapper({children}: {children: React.ReactNode}) {
                 renderedData={[cachedPartialGroup]}
                 totalSelectableItemsCount={loadedChildren.length}
                 searchResults={undefined}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -91,6 +95,7 @@ function SettledGroupWrapper({children}: {children: React.ReactNode}) {
                 renderedData={[cachedPartialGroup]}
                 totalSelectableItemsCount={loadedChildren.length}
                 searchResults={settledGroupedResults}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -120,6 +125,7 @@ function PartiallyLoadedWrapper({children}: {children: React.ReactNode}) {
                 renderedData={[partiallyLoadedGroup]}
                 totalSelectableItemsCount={5}
                 searchResults={undefined}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -141,6 +147,7 @@ function TwoGroupWrapper({children}: {children: React.ReactNode}) {
                 renderedData={[earlierGroup, categoryGroup]}
                 totalSelectableItemsCount={4}
                 searchResults={undefined}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -194,6 +201,7 @@ let flatFilteredData: TransactionListItemType[] = [flatExpense];
 let flatSearchResults = makeFlatSearchResults(flatExpense);
 
 let groupedSearchResults: SearchResults | undefined;
+let groupedSearchHash = SEARCH_HASH;
 
 /** The same group under a search that can change identity, for the rows a registry must not carry across searches. */
 function SearchChangeWrapper({children}: {children: React.ReactNode}) {
@@ -204,6 +212,7 @@ function SearchChangeWrapper({children}: {children: React.ReactNode}) {
                 renderedData={[categoryGroup]}
                 totalSelectableItemsCount={2}
                 searchResults={groupedSearchResults}
+                searchHash={groupedSearchHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -225,6 +234,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
                 renderedData={[categoryGroup]}
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -246,6 +256,7 @@ function FlatWrapper({children}: {children: React.ReactNode}) {
                 renderedData={flatFilteredData}
                 totalSelectableItemsCount={flatFilteredData.length}
                 searchResults={flatSearchResults}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -270,6 +281,7 @@ function ExpenseReportWrapper({children}: {children: React.ReactNode}) {
                 renderedData={reportGroups}
                 totalSelectableItemsCount={3}
                 searchResults={undefined}
+                searchHash={SEARCH_HASH}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
@@ -333,6 +345,7 @@ describe('Lazily loaded group selection', () => {
 
     beforeEach(async () => {
         groupedSearchResults = undefined;
+        groupedSearchHash = SEARCH_HASH;
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
@@ -793,6 +806,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['7']?.isSelectedViaGroup).toBe(true);
     });
 
+    it('drops a report’s own entry when a range covers the rows that arrived under it', async () => {
+        const {result} = renderSelection(ExpenseReportWrapper);
+        const [firstReport] = reportGroups;
+
+        // Given a report selected while it had no expenses of its own, whose expenses have since arrived
+        await act(async () => {
+            const [reportKey, reportEntry] = mapEmptyReportToSelectedEntry(firstReport);
+            result.current.setSelectedTransactions({[reportKey]: reportEntry});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When a range covers that report row
+        await act(async () => {
+            result.current.toggle(firstReport, firstReport.transactions, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then its rows carry the selection and the report's own entry goes, rather than the two being counted separately
+        expect(result.current.selectedTransactions['6']?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[firstReport.keyForList]).toBeUndefined();
+    });
+
     it('gives back the reports a range no longer covers in an expense-report view', async () => {
         const {result} = renderSelection(ExpenseReportWrapper);
         const [firstReport, secondReport, emptyReport] = reportGroups;
@@ -1079,7 +1114,7 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('drops a group’s published rows when the search changes, so a range cannot reach the previous results', async () => {
-        groupedSearchResults = {...makeFlatSearchResults(undefined), search: {...makeFlatSearchResults(undefined).search, hash: 1}};
+        groupedSearchResults = makeFlatSearchResults(undefined);
         const {result, rerender} = renderSelection(SearchChangeWrapper);
         const [, secondChild] = loadedChildren;
 
@@ -1090,7 +1125,7 @@ describe('Lazily loaded group selection', () => {
         });
 
         // When the search changes and the group has not published anything yet under the new one
-        groupedSearchResults = {...groupedSearchResults, search: {...groupedSearchResults.search, hash: 2}};
+        groupedSearchHash = SEARCH_HASH + 1;
         rerender({});
         await act(async () => waitForBatchedUpdatesWithAct());
 
@@ -1104,7 +1139,7 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('starts a cold session when the search changes, so an old span cannot collapse rows in the new results', async () => {
-        groupedSearchResults = {...makeFlatSearchResults(undefined), search: {...makeFlatSearchResults(undefined).search, hash: 1}};
+        groupedSearchResults = makeFlatSearchResults(undefined);
         const {result, rerender} = renderSelection(SearchChangeWrapper);
         const [firstChild, secondChild] = loadedChildren;
 
@@ -1124,7 +1159,7 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
 
         // When the query changes and the same rows come back, since a transaction can match both searches
-        groupedSearchResults = {...groupedSearchResults, search: {...groupedSearchResults.search, hash: 2}};
+        groupedSearchHash = SEARCH_HASH + 1;
         rerender({});
         await act(async () => {
             expandGroup(result, GROUP_KEY, loadedChildren);

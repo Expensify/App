@@ -29,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef} from 'react';
 
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -62,6 +62,9 @@ type SearchWriteActionsProviderProps = {
 
     /** The raw search snapshot, read for denormalized transaction/report lookups. */
     searchResults: SearchResults | undefined;
+
+    /** Identity of the query being rendered. Everything scoped to one search — the registry, its openness, the range session — is keyed on it. */
+    searchHash: number;
 
     /** The live TRANSACTION collection, subscribed by `<Search>` and passed down. */
     transactions: OnyxCollection<Transaction>;
@@ -147,6 +150,7 @@ function SearchWriteActionsProvider({
     renderedData,
     totalSelectableItemsCount,
     searchResults,
+    searchHash,
     transactions,
     isMobileSelectionModeEnabled,
     type,
@@ -163,13 +167,6 @@ function SearchWriteActionsProvider({
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
-
-    // The snapshot is briefly absent while a new one lands, and that gap is not a new search: reading it as one would drop the registry and the range session for nothing.
-    const liveSearchHash = searchResults?.search?.hash;
-    const [searchHash, setSearchHash] = useState(liveSearchHash);
-    if (liveSearchHash !== undefined && liveSearchHash !== searchHash) {
-        setSearchHash(liveSearchHash);
-    }
 
     const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
 
@@ -360,6 +357,10 @@ function SearchWriteActionsProvider({
                             updated[key] = info;
                         }
                     } else if (isTransactionGroupListItemType(row)) {
+                        // The children carry the selection once they are here, the same as the group toggle: leaving the group's own entry behind would count it twice.
+                        if (row.keyForList && row.transactions.length > 0) {
+                            delete updated[row.keyForList];
+                        }
                         for (const child of row.transactions ?? []) {
                             addTransaction(child, row.keyForList);
                         }

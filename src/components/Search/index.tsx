@@ -1204,6 +1204,7 @@ function Search({
                 renderedData={stableSortedData}
                 totalSelectableItemsCount={totalSelectableItemsCount}
                 searchResults={searchResults}
+                searchHash={hash}
                 transactions={transactions}
                 isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                 type={type}
