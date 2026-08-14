@@ -239,7 +239,6 @@ function Search({
         shouldCalculateTotals,
         reportActions,
         previousReportActions,
-        shouldUseLiveData,
     });
 
     const {
@@ -261,7 +260,6 @@ function Search({
     } = useSearchSnapshot({
         queryJSON,
         searchResults,
-
         transactions,
         reportActions,
     });

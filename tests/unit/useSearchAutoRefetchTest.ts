@@ -36,7 +36,6 @@ describe('useSearchAutoRefetch', () => {
     });
 
     const baseProps: UseSearchAutoRefetch = {
-        shouldUseLiveData: false,
         searchResults: {
             data: {
                 personalDetailsList: {},

@@ -89,8 +89,7 @@ function buildNewTransactionIDMap(data: SearchListItem[], newTransactions: Trans
  * `useSearchListViewState`, and the surrounding chrome from `SearchListViewLayout`. This view owns the group
  * machinery: on wide web it splits each group into a sticky `GroupHeader` plus an expandable
  * `GroupChildrenContainer` (`shouldSplitGroups`); otherwise each group renders through `TransactionGroupListItem`.
- * Selection counts are report-aware (flattened over child transactions plus empty groups), and the scroll
- * handle remaps the router's data index to the split-list index.
+ * Selection counts are report-aware (flattened over child transactions plus empty groups).
  */
 function ExpenseGroupedSearchView({
     queryJSON,

@@ -44,9 +44,6 @@ type UseSearchAutoRefetch = {
 
     /** Whether the refetch should recalculate result totals */
     shouldCalculateTotals: boolean;
-
-    /** Whether the search is backed by live data (vs. a snapshot) */
-    shouldUseLiveData: boolean;
 };
 
 /**
@@ -64,7 +61,6 @@ function useSearchAutoRefetch({
     searchKey,
     offset,
     shouldCalculateTotals,
-    shouldUseLiveData,
 }: UseSearchAutoRefetch) {
     const isFocused = useIsFocused();
     const {isOffline} = useNetwork();
@@ -173,7 +169,7 @@ function useSearchAutoRefetch({
         }
 
         searchTriggeredRef.current = false;
-    }, [searchResults?.search?.isLoading, shouldUseLiveData, searchResultsData]);
+    }, [searchResults?.search?.isLoading, searchResultsData]);
 
     return {newTransactions};
 }
