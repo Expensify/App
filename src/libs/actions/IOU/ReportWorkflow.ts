@@ -1576,9 +1576,6 @@ function submitReport({
         });
     }
 
-    // Held expenses left on the submitted report would misrepresent its optimistic total until the next sync, so they
-    // need somewhere else to live in the meantime. RTER-7-day and pending/scanning submissions never reach this
-    // function, so they don't need equivalent handling here.
     let optimisticHoldReportID: string | undefined;
     let optimisticHoldActionID: string | undefined;
     let optimisticHoldReportExpenseActionIDs: string | undefined;
@@ -1592,9 +1589,7 @@ function submitReport({
             recipient: {accountID: expenseReport.ownerAccountID},
             policy,
             createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
-            // False skips copying workflow actions and the unapproved-transactions message, which only apply on approve.
             isApprovalFlow: false,
-            // Needed only so ASAP_SUBMIT can affect the new report's initial state; no other override is required here.
             betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
             delegateAccountID,
             getCurrencyDecimals,

@@ -4,7 +4,7 @@ type SubmitReportParams = {
     reportActionID: string;
     managerEmail?: string;
 
-    /** New Draft report the held transactions are split onto (mirrors ApproveMoneyRequest). */
+    /** New Draft report the held transactions are split onto. */
     optimisticHoldReportID?: string;
 
     /** Report-preview action added to the parent chat for the new held report. */
