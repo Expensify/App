@@ -82,6 +82,7 @@ function IOURequestStepDistanceGPS({
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
@@ -187,6 +188,7 @@ function IOURequestStepDistanceGPS({
             amountOwed,
             userBillingGracePeriodEnds,
             ownerBillingGracePeriodEnd,
+            conciergeChat,
             optimisticTransactionID,
             optimisticChatReportID,
             isTrackIntentUser,
