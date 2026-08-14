@@ -19,7 +19,7 @@ import type {ValueOf} from 'type-fest';
 import React, {useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
 
-import type {ButtonProps, PressLoadingController} from './types';
+import type {ButtonProps} from './types';
 
 import {ButtonActionsContext, ButtonStateContext} from './context';
 
@@ -67,19 +67,17 @@ function Button({
     // isLoading is the pressed flag combined with isOnyxLoading, and drives rendering, the press guard and the disabled state.
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
-    // Passed to onPress so a handler can enter the loading state itself, after its own validation/branching.
-    const loadingController: PressLoadingController = {run: startWithLoading};
-
     // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
     const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (isDisabled || isLoading) {
             return;
         }
-        // Simple tier: wrap the whole handler. Otherwise hand the controller to onPress so it can opt in per branch.
+        // The opt-in wraps the whole handler. A handler that needs the spinner on only some branches calls usePressLoading
+        // itself and drives the isLoading prop with it, so onPress keeps the signature every other press handler already has.
         if (showInstantLoadingOnPress) {
-            return startWithLoading(() => onPress(event, loadingController));
+            return startWithLoading(() => onPress(event));
         }
-        return onPress(event, loadingController);
+        return onPress(event);
     };
 
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {

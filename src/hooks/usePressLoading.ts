@@ -23,9 +23,6 @@ type UsePressLoadingReturn = {
  * This hook shows the loading and lets React paint it first, then runs the real work, so the user gets immediate
  * feedback instead of an unresponsive button. When a loading state already exists, pass it in as isLoading so the
  * spinner is guaranteed to render before the heavy work starts.
- *
- * The pressed state is never cleared on success: it ends when isLoading turns true, when the screen regains focus, when the work throws, or
- * on unmount. A handler that neither navigates nor drives an external isLoading therefore keeps the spinner up for good.
  */
 function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
@@ -35,18 +32,22 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
         setIsPressed(false);
     }
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
-    // The work is awaited so a rejecting async handler also clears the pressed state.
+    // The work is awaited so the pressed state clears once it settles, whether it resolves or rejects. A rejection still propagates to the caller.
     const startWithLoading = async (runAfterPaint: () => void | Promise<void>) => {
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
         });
+        // Written as catch-and-rethrow rather than finally because the React Compiler cannot lower a try without a catch clause.
         try {
             await runAfterPaint();
         } catch (error) {
             setIsPressed(false);
             throw error;
         }
+        // Clearing on success too, because the button is disabled while the flag is set: a handler that returns without navigating and
+        // without driving an external isLoading (a validation bail-out) would otherwise leave it spinning and unpressable for good.
+        setIsPressed(false);
     };
 
     // Reset on focus regain covers flows that navigate away and come back with no external isLoading to hand off to.

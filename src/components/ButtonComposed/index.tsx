@@ -36,4 +36,4 @@ const Button = Object.assign(ButtonBase, {
 });
 
 export default Button;
-export type {ButtonProps, PressLoadingController} from './types';
+export type {ButtonProps} from './types';
