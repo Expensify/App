@@ -233,17 +233,7 @@ function BaseReportActionContextMenu({
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
-    const requestParentReportAction = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
-            // The transaction thread report can be missing from Onyx (e.g. right after clearing the cache) or hold a stale
-            // parentReportActionID (e.g. during the optimistic->server reconciliation of a newly created expense), so we don't look it up.
-            // The IOU action the thread was derived from is by definition the thread's parent action, so it always resolves to the same report action.
-            return transactionThreadReportAction;
-        }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, transactionThreadReportAction]);
-
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportAction ?? parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
     const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
