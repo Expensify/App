@@ -6,12 +6,10 @@ import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import QuickCreationActionsBar from '@components/Navigation/QuickCreationActionsBar';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 import Onyx from 'react-native-onyx';
