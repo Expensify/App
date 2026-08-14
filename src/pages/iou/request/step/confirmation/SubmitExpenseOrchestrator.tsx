@@ -351,7 +351,7 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
+        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation, destinationReportID);
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {

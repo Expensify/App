@@ -67,13 +67,16 @@ type DeferredChannel = {
 
 const channels = new Map<string, DeferredChannel>();
 
-// Resolvers for registrationPromise, keyed independently of `channels` so a reservation's
-// safety timeout can delete the channel (for hasDeferredWrite/flush purposes) without also
-// resolving this - the resolver must only fire once the real callback actually registers.
-// Every reserveDeferredWriteChannel call site unconditionally follows up with the real write,
-// so resolving early on the timeout would let a submit-waiter proceed before that write lands,
-// reproducing the exact submit-before-create race this mechanism exists to prevent.
-const pendingRegistrationResolvers = new Map<string, () => void>();
+// Resolver + destinationReportID for a reservation, keyed independently of `channels` so a
+// reservation's safety timeout can delete the channel (for hasDeferredWrite/flush purposes)
+// without also resolving this or losing the report scoping - the resolver must only fire once
+// the real callback actually registers, and that late registration still needs the original
+// destinationReportID (the timeout wipes it from `channels`) so hasDeferredWriteForReport keeps
+// matching it. Every reserveDeferredWriteChannel call site unconditionally follows up with the
+// real write, so resolving early or dropping the scope on the timeout would let a submit-waiter proceed (or
+// fail to flush) before that write lands, reproducing the exact submit-before-create race this
+// mechanism exists to prevent.
+const pendingRegistrations = new Map<string, {resolve: () => void; destinationReportID?: string}>();
 
 // Watch keys that outlive their channel. When a reserved channel is flushed
 // immediately (flushRequested path), the channel is deleted but the watch key
@@ -98,10 +101,11 @@ type DeferredWriteOptions = {
 function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
     const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey} = options;
 
-    // Preserve the destination report ID across the reservation -> registration handoff
-    // so scoped consumers (`hasDeferredWriteForReport`) keep matching after the real
-    // callback replaces the reserved channel.
-    let destinationReportID: string | undefined;
+    // Preserve the destination report ID across the reservation -> registration handoff so
+    // scoped consumers (`hasDeferredWriteForReport`) keep matching after the real callback
+    // replaces the reserved channel. Falls back to `pendingRegistrations` because the
+    // reservation's safety timeout may have already deleted `channels`' copy.
+    let destinationReportID: string | undefined = pendingRegistrations.get(key)?.destinationReportID;
 
     const existing = channels.get(key);
     if (existing) {
@@ -135,12 +139,12 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 }
 
 function resolvePendingRegistration(key: string) {
-    const resolve = pendingRegistrationResolvers.get(key);
-    if (!resolve) {
+    const pending = pendingRegistrations.get(key);
+    if (!pending) {
         return;
     }
-    pendingRegistrationResolvers.delete(key);
-    resolve();
+    pendingRegistrations.delete(key);
+    pending.resolve();
 }
 
 /**
@@ -199,12 +203,13 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
     flushedWatchKeys.delete(key);
 
     const registrationPromise = new Promise<void>((resolve) => {
-        pendingRegistrationResolvers.set(key, resolve);
+        pendingRegistrations.set(key, {resolve, destinationReportID: options.destinationReportID});
     });
 
     // Deletes the channel (so hasDeferredWrite/flush stop treating it as pending) but does NOT
-    // resolve registrationPromise - every call site always follows up with the real write, so a
-    // submit-waiter must keep waiting for that, not be released early just because this cleanup
+    // touch `pendingRegistrations` - every call site always follows up with the real write, so a
+    // submit-waiter must keep waiting for that (and the real registration still needs the
+    // destinationReportID here), not be released/unscoped early just because this cleanup
     // timeout raced ahead of the real registration, possibly delayed by the app going to background.
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
@@ -333,7 +338,7 @@ function resetForTesting() {
     }
     channels.clear();
     flushedWatchKeys.clear();
-    pendingRegistrationResolvers.clear();
+    pendingRegistrations.clear();
 }
 
 export {
