@@ -5,7 +5,6 @@ import {useMoneyReportTransactionThread} from '@components/MoneyReportTransactio
 import {useSearchQueryContext, useSearchSelectionActions} from '@components/Search/SearchContext';
 
 import {duplicateReport as duplicateReportAction, duplicateExpenseTransaction as duplicateTransactionAction} from '@libs/actions/IOU/Duplicate';
-import {signalExpenseAddedGrowl} from '@libs/actions/IOU/NavigationHelpers';
 import {setupMergeTransactionDataAndNavigate} from '@libs/actions/MergeTransaction';
 import {deleteAppReport} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
@@ -260,12 +259,11 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
         const optimisticIOUReportID = generateReportID();
         const activePolicyCategories = allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${defaultExpensePolicy?.id}`] ?? {};
 
-        let lastDuplicateTransactionID: string | undefined;
         for (const item of transactionList) {
             const existingTransactionID = getExistingTransactionID(item.linkedTrackedExpenseReportAction);
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;
 
-            const result = duplicateTransactionAction({
+            duplicateTransactionAction({
                 dateFnsLocale,
                 getCurrencyDecimals,
                 transaction: item,
@@ -294,11 +292,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
                 participantsPolicyTags,
                 conciergeChat,
             });
-            if (result?.transactionID) {
-                lastDuplicateTransactionID = result.transactionID;
-            }
         }
-        signalExpenseAddedGrowl(lastDuplicateTransactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
     };
 
     const addExpenseDropdownOptions = getAddExpenseDropdownOptions({
