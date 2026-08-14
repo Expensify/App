@@ -255,6 +255,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
 
+    // The default (unfiltered) view can still resolve to zero visible rows when `isItemInFilter` hides items by
+    // default — e.g. the Workspaces list shows only active workspaces until the user opts into the archived filter.
+    // In that case the data exists but nothing is shown, so we surface the empty state instead of a blank body.
+    const isDefaultViewEmpty = processedData.length === 0 && originalDataLength > 0 && !hasActiveSearchString && !hasActiveFilters;
+
     const handleMobileSelectionPress = () => {
         turnOnMobileSelectionMode();
 
@@ -282,6 +287,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         hasActiveFilters,
         hasSearchString: hasActiveSearchString,
         isEmptyResult,
+        isDefaultViewEmpty,
         shouldUseNarrowTableLayout,
         selectionEnabled,
         shouldEnableSelectionInNarrowPaneModal,
