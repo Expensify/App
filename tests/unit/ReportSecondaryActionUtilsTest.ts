@@ -4709,6 +4709,12 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     describe('SEND_TO_SOMEONE gate', () => {
+        // These cases install persistent spies (mockReturnValue); the enclosing beforeEach only clears call data, not
+        // implementations, so restore them here to avoid leaking into later getSecondaryTransactionThreadActions tests.
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
         function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
             jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
             // An archived self-DM has no write access; mirror that so the write-action guard on SEND_TO_SOMEONE is exercised.
