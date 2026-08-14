@@ -1258,6 +1258,84 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
     API.write(WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED, parameters, onyxData);
 }
 
+/**
+ * Applies a mix of required and optional across independent tag levels in one save, keyed by orderWeight.
+ *
+ * Violations are recomputed once from the combined end state. Calling setPolicyTagsRequired per level instead would hand
+ * each request only its own level's change against the same pre-save snapshot, and since the recompute SETs the violations
+ * key, the last request would overwrite the others — e.g. requiring Region while clearing Department would drop the
+ * Missing Region violation the first half just added.
+ */
+function setPolicyTagLevelsRequired(policyData: PolicyData, requiredByOrderWeight: Record<number, boolean>) {
+    const policyID = policyData.policy?.id;
+    if (!policyID || !policyData.tags) {
+        return;
+    }
+
+    const changedTagLists = Object.values(policyData.tags).filter((tagList) => !!tagList.name && requiredByOrderWeight[tagList.orderWeight] !== undefined);
+    if (changedTagLists.length === 0) {
+        return;
+    }
+
+    const combinedTagsUpdate: Record<string, Partial<PolicyTagList>> = {};
+    for (const tagList of changedTagLists) {
+        combinedTagsUpdate[tagList.name] = {required: requiredByOrderWeight[tagList.orderWeight]};
+    }
+
+    const buildOnyxData = (tagLists: Array<PolicyTagLists[string]>, isRequired: boolean, shouldRecomputeViolations: boolean) => {
+        const optimisticValue: Record<string, Partial<PolicyTagLists[string]>> = {};
+        const successValue: Record<string, Partial<PolicyTagLists[string]>> = {};
+        const failureValue: Record<string, Partial<PolicyTagLists[string]>> = {};
+
+        for (const tagList of tagLists) {
+            optimisticValue[tagList.name] = {
+                required: isRequired,
+                pendingFields: {required: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+                errorFields: {required: null},
+            };
+            successValue[tagList.name] = {pendingFields: {required: null}};
+            failureValue[tagList.name] = {
+                required: tagList.required,
+                pendingFields: {required: null},
+                errorFields: {required: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.tags.genericFailureMessage')},
+            };
+        }
+
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
+            optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: optimisticValue}],
+            successData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: successValue}],
+            failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: failureValue}],
+        };
+
+        if (shouldRecomputeViolations) {
+            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, combinedTagsUpdate);
+        }
+
+        return onyxData;
+    };
+
+    // The command carries a single isRequired, so mixed directions still need one request each. Only the first one carries
+    // the violation recompute, so the second can't overwrite it.
+    let hasRecomputedViolations = false;
+    for (const isRequired of [true, false]) {
+        const tagListsForDirection = changedTagLists.filter((tagList) => requiredByOrderWeight[tagList.orderWeight] === isRequired);
+        if (tagListsForDirection.length === 0) {
+            continue;
+        }
+
+        const onyxData = buildOnyxData(tagListsForDirection, isRequired, !hasRecomputedViolations);
+        hasRecomputedViolations = true;
+
+        const parameters: SetPolicyTagListsRequired = {
+            policyID,
+            tagListIndexes: tagListsForDirection.map((tagList) => tagList.orderWeight),
+            isRequired,
+        };
+
+        API.write(WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED, parameters, onyxData);
+    }
+}
+
 type SetPolicyTagGLCodeProps = {
     policyID: string;
     tagName: string;
@@ -1447,6 +1525,7 @@ export {
     buildOptimisticPolicyRecentlyUsedTags,
     setPolicyRequiresTag,
     setPolicyShowTagGLCodes,
+    setPolicyTagLevelsRequired,
     setPolicyTagsRequired,
     createPolicyTag,
     clearPolicyTagErrors,

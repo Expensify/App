@@ -23,7 +23,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setPolicyTagsRequired} from '@userActions/Policy/Tag';
+import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setPolicyTagLevelsRequired, setPolicyTagsRequired} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -109,11 +109,8 @@ function RulesRequireFieldsPage({
         }
 
         if (hasPerLevelTagRequired) {
-            // One call per level, like the Tags table. Batching via setWorkspaceTagRequired computes every request's
-            // violations from the same pre-change snapshot, so a mixed save drops the violation the other half added.
-            for (const tagList of changedTagLevels) {
-                setPolicyTagsRequired(policyData, getLevelRequired(tagList.orderWeight, tagList.required), tagList.orderWeight);
-            }
+            // All changed levels go in one call so violations are recomputed once from the combined end state.
+            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, getLevelRequired(tagList.orderWeight, tagList.required)])));
         } else if (tagRequired !== initialTagRequired) {
             setPolicyRequiresTag(policyData, tagRequired);
         }
