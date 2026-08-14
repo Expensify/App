@@ -9091,6 +9091,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 travelInvoicing: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
+            workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',

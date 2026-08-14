@@ -279,6 +279,7 @@ function advancedSearchPoliciesSelector(policies: OnyxCollection<Policy>): OnyxC
             areInvoicesEnabled: policy.areInvoicesEnabled,
             isAttendeeTrackingEnabled: policy.isAttendeeTrackingEnabled,
             fieldList: policy.fieldList,
+            archivedDate: policy.archivedDate,
         } as Policy;
     }
     return result;

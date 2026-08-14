@@ -9056,6 +9056,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 travelInvoicing: 'Konsolidierte Reiseabrechnung',
             },
             bankAccount: {banks: 'Bankkonten', closedBankAccounts: 'Geschlossene Bankkonten'},
+            workspace: {active: 'Aktiv', archived: 'Archiviert', selectAll: 'Alle auswählen'},
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
             past: 'Vergangenes',

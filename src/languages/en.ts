@@ -9194,6 +9194,11 @@ const translations = {
                 banks: 'Bank accounts',
                 closedBankAccounts: 'Closed bank accounts',
             },
+            workspace: {
+                active: 'Active',
+                archived: 'Archived',
+                selectAll: 'Select all',
+            },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',
             past: 'Past',
