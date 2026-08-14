@@ -9,26 +9,25 @@ import useOnyx from './useOnyx';
 
 function useIsAgentAccount(): boolean | undefined {
     const accountID = useCurrentUserPersonalDetails().accountID;
-    const [isCustomAgent, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetails?.[accountID]?.isCustomAgent : undefined),
+    const [personalDetail, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => (accountID ? personalDetails?.[accountID] : undefined),
     });
     const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [hasLoadedApp, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
 
-    if (isLoadingOnyxValue(personalDetailsMetadata, isLoadingAppMetadata, hasLoadedAppMetadata)) {
+    if (isLoadingOnyxValue(personalDetailsMetadata, isLoadingAppMetadata)) {
         return undefined;
     }
 
-    // Agent identity lives in this account's personal details, so it is only genuinely unknown until the first
-    // OpenApp for the account has completed. HAS_LOADED_APP records exactly that and is reset on an account
-    // switch, whereas IS_LOADING_APP is optimistically set to `true` by *every* OpenApp. That includes ones that
-    // fire mid-session, long after identity is known. Gating on IS_LOADING_APP alone therefore makes consumers
-    // un-render an already-visible screen for the whole length of any such request.
-    if (!hasLoadedApp && isLoadingApp !== false) {
+    // We only know the agent identity once this account has a personal details entry. If that entry is missing
+    // and a load is still in flight, treat the identity as unknown. Personal details always get cleared on an
+    // account switch, even a delegate switch, so this stays accurate no matter which account is active. Once the
+    // entry exists, a later OpenApp or ReconnectApp setting IS_LOADING_APP back to true won't hide the screen
+    // again, because the identity we already have is still valid.
+    if (personalDetail === undefined && isLoadingApp !== false) {
         return undefined;
     }
 
-    return !!isCustomAgent;
+    return !!personalDetail?.isCustomAgent;
 }
 
 export default useIsAgentAccount;
