@@ -12,6 +12,7 @@ import {getCardAssignmentDateOption, getCardAssignmentStartDate, getDefaultCardN
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 
 import Navigation from '@navigation/Navigation';
 
@@ -27,6 +28,7 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type {AssignCardData} from '@src/types/onyx/AssignCard';
 
+import {Str} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 type InviteeNewMemberStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_ASSIGN_CARD_INVITE_NEW_MEMBER> &
@@ -62,10 +64,15 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
     };
 
     const goToNextStep = () => {
-        const defaultCardName = getDefaultCardName(assignCard?.cardToAssign?.invitingMemberEmail);
+        const invitingMemberEmail = assignCard?.cardToAssign?.invitingMemberEmail ?? '';
+        const personalDetail = getPersonalDetailByEmail(invitingMemberEmail);
+        const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? invitingMemberEmail);
+        const defaultCardName = getDefaultCardName(memberName);
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the inviting member.
+        const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
         const cardToAssign: Partial<AssignCardData> = {
             email: assignCard?.cardToAssign?.invitingMemberEmail,
-            customCardName: defaultCardName,
+            customCardName,
             invitingMemberEmail: '',
         };
 
@@ -74,7 +81,6 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
-            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
             cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({

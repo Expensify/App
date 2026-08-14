@@ -102,9 +102,11 @@ function AssigneeStep({route}: AssigneeStepProps) {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const defaultCardName = getDefaultCardName(memberName);
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
+        const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
-            ...(!assignCard?.cardToAssign?.customCardName ? {customCardName: defaultCardName} : {}),
+            customCardName,
         };
 
         Keyboard.dismiss();
@@ -115,7 +117,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
-                cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
                 // Preserve any start date the user already picked based on the saved data rather than `isEditing`.
                 // `isEditing` is false on the header-back-then-Next round trip, so keying off it here would wipe the
                 // chosen date. In a fresh flow `startDate`/`dateOption` are undefined, so both helpers still fall back
@@ -155,7 +156,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
-            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             // Preserve the saved start date based on the data, not `isEditing` (see the matching branch above).
             cardToAssign.startDate = getCardAssignmentStartDate(true, assignCard?.cardToAssign?.startDate);
             cardToAssign.dateOption = getCardAssignmentDateOption(true, assignCard?.cardToAssign?.dateOption);
