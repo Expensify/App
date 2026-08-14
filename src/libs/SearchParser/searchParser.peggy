@@ -260,6 +260,9 @@ reportFieldDynamic
 key "key"
   = @(
       date
+      // Both must precede `amount`, which would otherwise match their prefix.
+      / amountDebited
+      / amountReimbursed
       / amount
       / total
       / merchant

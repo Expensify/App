@@ -1,10 +1,16 @@
-import type {SearchQueryJSON} from '@components/Search/types';
+import type {SearchAutocompleteQueryRange, SearchAutocompleteResult} from '@components/Search/types';
 
 import {parse} from '@libs/SearchParser/autocompleteParser';
 
 import parserCommonTests from '../utils/fixtures/searchParsersCommonQueries';
 
-const tests = [
+type ExpectedAutocompleteParserRange = SearchAutocompleteQueryRange & {negated: boolean};
+type ExpectedAutocompleteParserResult = Omit<SearchAutocompleteResult, 'autocomplete' | 'ranges'> & {
+    autocomplete: ExpectedAutocompleteParserRange | null;
+    ranges: ExpectedAutocompleteParserRange[];
+};
+
+const tests: Array<{query: string; expected: ExpectedAutocompleteParserResult}> = [
     {
         query: parserCommonTests.simple,
         expected: {
@@ -344,7 +350,7 @@ const tests = [
     },
 ];
 
-const limitAutocompleteTests = [
+const limitAutocompleteTests: Array<{query: string; expected: ExpectedAutocompleteParserResult; description: string}> = [
     {
         description: 'basic limit filter autocomplete',
         query: 'limit:10',
@@ -383,7 +389,7 @@ const limitAutocompleteTests = [
     },
 ];
 
-const nameFieldContinuationTests = [
+const nameFieldContinuationTests: Array<{query: string; expected: ExpectedAutocompleteParserResult; description: string}> = [
     {
         query: 'to:John Smi',
         expected: {
@@ -776,7 +782,7 @@ const nameFieldContinuationTests = [
 
 describe('autocomplete parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
+        const result: unknown = parse(query);
 
         expect(result).toEqual(expected);
     });
@@ -784,7 +790,7 @@ describe('autocomplete parser', () => {
 
 describe('autocomplete parser - name field continuation detection', () => {
     test.each(nameFieldContinuationTests)(`$description: $query`, ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
+        const result: unknown = parse(query);
 
         expect(result).toEqual(expected);
     });
@@ -792,7 +798,7 @@ describe('autocomplete parser - name field continuation detection', () => {
 
 describe('autocomplete parser - limit filter', () => {
     test.each(limitAutocompleteTests)('$description: $query', ({query, expected}) => {
-        const result = parse(query) as SearchQueryJSON;
+        const result: unknown = parse(query);
 
         expect(result).toEqual(expected);
     });
