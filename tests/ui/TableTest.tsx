@@ -1155,9 +1155,11 @@ describe('Table', () => {
 
         it('should temporarily remove the sticky table header while search has no results', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
 
             render(
                 <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
@@ -1188,6 +1190,8 @@ describe('Table', () => {
             expect(screen.queryByRole(CONST.ROLE.ROWGROUP)).toBeNull();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(0);
+            act(() => tableRef.current?.scrollToIndex({index: 0, animated: false}));
+            expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({index: 0, animated: false});
 
             let animationFrameCallback: FrameRequestCallback | undefined;
             const requestAnimationFrameSpy = jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback) => {
@@ -1210,6 +1214,8 @@ describe('Table', () => {
             requestAnimationFrameSpy.mockRestore();
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            act(() => tableRef.current?.scrollToIndex({index: 0, animated: false}));
+            expect(mockFlashListScrollToIndex).toHaveBeenLastCalledWith({index: 1, animated: false});
         });
 
         it('should defer sticky table header activation again when the list remounts', () => {

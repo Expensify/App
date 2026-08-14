@@ -9,7 +9,6 @@ type SyntheticRowKind = 'tableHeader' | 'data';
 type TableListMetadata = {
     hasPageHeader: boolean;
     shouldRenderStickyHeader: boolean;
-    isEmptyResult: boolean;
     syntheticRowsBeforeData: number;
     stickyTableHeaderIndex: number;
     listDataRowOffset: number;
@@ -18,23 +17,16 @@ type TableListMetadata = {
 type TableListMetadataParams<DataType extends TableData> = {
     headerComponent?: React.ReactElement;
     listHeaderComponent?: SharedListProps<DataType>['ListHeaderComponent'];
-    isEmptyResult: boolean;
     shouldRenderStickyHeader: boolean;
 };
 
-function getTableListMetadata<DataType extends TableData>({
-    headerComponent,
-    listHeaderComponent,
-    isEmptyResult,
-    shouldRenderStickyHeader,
-}: TableListMetadataParams<DataType>): TableListMetadata {
+function getTableListMetadata<DataType extends TableData>({headerComponent, listHeaderComponent, shouldRenderStickyHeader}: TableListMetadataParams<DataType>): TableListMetadata {
     const hasPageHeader = !!listHeaderComponent || !!headerComponent;
     const syntheticRowsBeforeData = shouldRenderStickyHeader ? 1 : 0;
 
     return {
         hasPageHeader,
         shouldRenderStickyHeader,
-        isEmptyResult,
         syntheticRowsBeforeData,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: syntheticRowsBeforeData,

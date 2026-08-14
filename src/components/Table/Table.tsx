@@ -285,7 +285,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     };
 
     const originalDataLength = data?.length ?? 0;
-    const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
+    const isEmptyResult = processedData.length === 0 && originalDataLength > 0;
 
     const hasPageHeader = !!headerComponent || !!listProps.ListHeaderComponent;
 
@@ -308,12 +308,11 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         },
         {renderedChildren: []},
     );
-    const shouldRenderStickyHeader = !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
+    const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
     const tableListMetadata = getTableListMetadata({
         headerComponent,
         listHeaderComponent: listProps.ListHeaderComponent,
-        isEmptyResult,
         shouldRenderStickyHeader,
     });
     /**

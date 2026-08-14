@@ -131,7 +131,6 @@ const defaultTableContextValue: TableContextValue<TableData, string> = {
     tableListMetadata: {
         hasPageHeader: false,
         shouldRenderStickyHeader: false,
-        isEmptyResult: false,
         syntheticRowsBeforeData: 0,
         stickyTableHeaderIndex: 0,
         listDataRowOffset: 0,
