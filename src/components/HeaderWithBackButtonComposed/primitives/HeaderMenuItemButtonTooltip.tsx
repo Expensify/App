@@ -28,7 +28,7 @@ function HeaderMenuItemButtonTooltip({threeDotsMenuItem}: HeaderMenuItemButtonTo
         <Tooltip text={threeDotsMenuItem.text}>
             <PressableWithoutFeedback
                 onPress={threeDotsMenuItem.onSelected}
-                style={[styles.touchableButtonImage]}
+                style={styles.touchableButtonImage}
                 role={CONST.ROLE.BUTTON}
                 accessibilityLabel={threeDotsMenuItem.text ?? ''}
                 sentryLabel={threeDotsMenuItem.sentryLabel}
