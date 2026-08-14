@@ -20,8 +20,8 @@ import useOnyx from './useOnyx';
  * - this is the flow-entry mount (no subPage in the URL yet), so every new visit to the flow gets fresh countries, or
  * - the loading flag is still undefined, which covers landing mid-flow via a deeplink or a reload.
  *
- * The flag is RAM-only, so a reload starts from undefined and refetches. It is set to `true` optimistically while the
- * request is in flight and `false` once it settles.
+ * The flag is RAM-only, so a reload starts from undefined and fetches again. It is set to `true` optimistically while
+ * the request is in flight and `false` once it settles.
  */
 function useLoadDepositAccountSetup(): boolean {
     const route = useRoute();
