@@ -8,7 +8,6 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 
 import type CONST from '@src/CONST';
 import type {
-    BankAccountList,
     BillingGraceEndPeriod,
     CardList,
     LastPaymentMethod,
@@ -559,7 +558,6 @@ type GroupChildrenContentProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     onUndelete?: (transaction: Transaction) => void;
     newTransactionID?: string;
-    bankAccountList?: OnyxEntry<BankAccountList>;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

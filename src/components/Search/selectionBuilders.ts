@@ -331,7 +331,10 @@ function isGroupSelected({groupKey, children, selectedTransactions, excludedTran
     if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
         return true;
     }
-    return children.some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+    // A row being deleted is skipped by everything the checkbox reads, so counting it here would make the click mean the opposite of what the box shows.
+    return children
+        .filter((child) => !isTransactionPendingDelete(child))
+        .some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
 /** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
@@ -416,32 +419,20 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
-/** A group contributes rows only while it is open. `group.transactions` is not a fallback: a closed group still carries its loaded rows. */
-function resolveGroupChildren(
-    group: TransactionGroupListItemType,
-    groupChildrenByKey: Record<string, TransactionListItemType[]>,
-    openGroupKeys: ReadonlySet<string>,
-): TransactionListItemType[] {
-    if (!openGroupKeys.has(group.keyForList)) {
-        return [];
-    }
-    return groupChildrenByKey[group.keyForList] ?? [];
+/** A group's rows as a range may reach them: the rows it carries while it is open, since a closed group still carries the ones it loaded. */
+function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: ReadonlySet<string>): TransactionListItemType[] {
+    return openGroupKeys.has(group.keyForList) ? group.transactions : [];
 }
 
 /**
  * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
- * group-by views, and only over the children an open group registered. Expense-report and flat views pass through.
+ * group-by views, and only over the rows an open group carries. Expense-report and flat views pass through.
  */
-function buildShiftRangeItems(
-    sortedData: SearchListItem[],
-    groupChildrenByKey: Record<string, TransactionListItemType[]>,
-    openGroupKeys: ReadonlySet<string>,
-    groupsAreHeaders: boolean,
-): SearchListItem[] {
+function buildShiftRangeItems(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): SearchListItem[] {
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
         return sortedData;
     }
-    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, groupChildrenByKey, openGroupKeys)]);
+    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, openGroupKeys)]);
 }
 
 type GroupChildrenIndex = {
@@ -459,12 +450,7 @@ type GroupChildrenIndex = {
  * Parent/child lookups over the same rows `buildShiftRangeItems` flattens, so the range and the selection agree on who owns a row.
  * Empty outside group-by views, where the list holds no child rows to attribute to a parent.
  */
-function buildGroupChildrenIndex(
-    sortedData: SearchListItem[],
-    groupChildrenByKey: Record<string, TransactionListItemType[]>,
-    openGroupKeys: ReadonlySet<string>,
-    groupsAreHeaders: boolean,
-): GroupChildrenIndex {
+function buildGroupChildrenIndex(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): GroupChildrenIndex {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     const childCountByGroupKey = new Map<string, number>();
@@ -475,7 +461,7 @@ function buildGroupChildrenIndex(
         if (!group.keyForList) {
             continue;
         }
-        const children = resolveGroupChildren(group, groupChildrenByKey, openGroupKeys);
+        const children = resolveGroupChildren(group, openGroupKeys);
         childrenByGroupKey.set(group.keyForList, children);
         if ('count' in group && typeof group.count === 'number') {
             childCountByGroupKey.set(group.keyForList, group.count);

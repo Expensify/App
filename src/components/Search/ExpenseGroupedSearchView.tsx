@@ -140,7 +140,6 @@ function ExpenseGroupedSearchView({
     useOpenGroupsForShiftRange(shouldSplit ? expandedGroups : NO_OPEN_GROUPS);
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const {
         isOffline,
@@ -266,7 +265,6 @@ function ExpenseGroupedSearchView({
                     onUndelete={handleUndelete}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
-                    bankAccountList={bankAccountList}
                 />
             );
         }

@@ -128,7 +128,6 @@ function TransactionGroupListItemImpl({
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
     const reportGroupID = isExpenseReportType ? (groupItem as TransactionReportGroupListItemType).reportID : undefined;
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
 
     const snapshotActions = reportGroupID ? Object.values(currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportGroupID}`] ?? {}) : [];
     const liveGroupItem = useLiveRowCapabilities<TransactionReportGroupListItemType>({
@@ -150,8 +149,6 @@ function TransactionGroupListItemImpl({
         groupKey: groupItem.keyForList,
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
-        snapshotData: transactionsSnapshot?.data,
-        bankAccountList,
     });
 
     const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);

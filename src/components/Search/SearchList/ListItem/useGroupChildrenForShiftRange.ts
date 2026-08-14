@@ -2,39 +2,32 @@ import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import {isRowChecked} from '@components/Search/selectionBuilders';
 
 import type {TransactionListItemType} from './types';
-import type {UseGroupChildRowsArgs} from './useGroupChildRows';
 
-import useGroupChildRows from './useGroupChildRows';
-import useRegisterGroupChildrenForShiftRange from './useRegisterGroupChildrenForShiftRange';
-
-type UseGroupChildrenForShiftRangeArgs = UseGroupChildRowsArgs & {
-    /** The group's original (un-prefixed) key, which children are registered under */
+type UseGroupChildrenForShiftRangeArgs = {
+    /** The group's original (un-prefixed) key, which its rows are stamped with */
     groupKey: string;
+
+    /** Whether this is the expense-report view, where the rows arrive ready to render */
+    isExpenseReportType: boolean;
+
+    /** The rows the group carries */
+    groupTransactions: TransactionListItemType[];
 };
 
-/**
- * One source for a group's children across both grouped render paths: derives them, publishes them for shift+click,
- * and returns them stamped with the live selection.
- */
-function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenForShiftRangeArgs): {
+/** A group's rows stamped with the live selection, for both grouped render paths. */
+function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTransactions}: UseGroupChildrenForShiftRangeArgs): {
     transactions: TransactionListItemType[];
     isGroupChecked: boolean;
 } {
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
-    // Selection-independent on purpose: folding isSelected in would churn the registered children on every selection change.
-    const rangeChildren = useGroupChildRows(rowArgs);
-
-    // Published as the rows are rendered, so a group whose source goes away stops contributing them instead of leaving them behind.
-    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType);
-
     // Where no rows have loaded, the group's own key answers for it — the same question the split layout's header asks.
     const isGroupChecked = isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
 
     // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded. Expense-report rows carry both already.
-    const transactions: TransactionListItemType[] = rowArgs.isExpenseReportType
-        ? rangeChildren
-        : rangeChildren.map((transactionItem) => ({
+    const transactions: TransactionListItemType[] = isExpenseReportType
+        ? groupTransactions
+        : groupTransactions.map((transactionItem) => ({
               ...transactionItem,
               isSelected: isRowChecked({
                   rowKey: transactionItem.keyForList,

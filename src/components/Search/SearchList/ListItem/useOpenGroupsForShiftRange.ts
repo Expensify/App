@@ -1,11 +1,11 @@
-import {useSearchShiftRangeChildren} from '@components/Search/SearchContext';
+import {useSearchShiftRangeGroups} from '@components/Search/SearchContext';
 import {NO_OPEN_GROUPS} from '@components/Search/selectionBuilders';
 
 import {useEffect, useRef} from 'react';
 
 /** Keeps a set of groups' children reachable by a shift+click range while they are open. For a view that owns the expanded state on behalf of rows it may recycle. */
 function useOpenGroupsForShiftRange(openGroupKeys: ReadonlySet<string>) {
-    const {addGroupToRange, removeGroupFromRange, registryGeneration} = useSearchShiftRangeChildren();
+    const {addGroupToRange, removeGroupFromRange, registryGeneration} = useSearchShiftRangeGroups();
 
     // The keys this hook opened, so expanding one group does not close and reopen every other one.
     const openedKeysRef = useRef<ReadonlySet<string>>(NO_OPEN_GROUPS);

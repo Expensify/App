@@ -8,7 +8,7 @@ import {
     SearchRowSelectionActionsContext,
     SearchSelectionActionsContext,
     SearchSelectionContext,
-    SearchShiftRangeChildrenContext,
+    SearchShiftRangeGroupsContext,
 } from './SearchContextDefinitions';
 
 // Lightweight public surface for search contexts.
@@ -44,8 +44,8 @@ function useSearchRowSelectionActions() {
     return useContext(SearchRowSelectionActionsContext);
 }
 
-function useSearchShiftRangeChildren() {
-    return useContext(SearchShiftRangeChildrenContext);
+function useSearchShiftRangeGroups() {
+    return useContext(SearchShiftRangeGroupsContext);
 }
 
 export {
@@ -62,5 +62,5 @@ export {
     useSearchSelectionContext,
     useSearchSelectionActions,
     useSearchRowSelectionActions,
-    useSearchShiftRangeChildren,
+    useSearchShiftRangeGroups,
 };

@@ -34,10 +34,10 @@ import React, {useEffect, useLayoutEffect, useRef} from 'react';
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
 
-import useGroupChildrenRegistry from './hooks/useGroupChildrenRegistry';
+import useOpenGroupsRegistry from './hooks/useOpenGroupsRegistry';
 import useReconcileSelectionWithData from './hooks/useReconcileSelectionWithData';
 import {useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
-import {SearchRowSelectionActionsContext, SearchShiftRangeChildrenContext} from './SearchContextDefinitions';
+import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     buildGroupChildrenIndex,
@@ -168,7 +168,7 @@ function SearchWriteActionsProvider({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
 
-    const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
+    const {openGroupKeys, shiftRangeGroupsActions} = useOpenGroupsRegistry(searchHash);
 
     // A seeded block resolves at the next shift+click, so it has to read the index as it is then, not as it was at the click that seeded it.
     const groupKeyByChildKeyRef = useRef<ReadonlyMap<string, string>>(new Map());
@@ -228,9 +228,9 @@ function SearchWriteActionsProvider({
 
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
+    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, openGroupKeys, hasValidGroupBy);
     // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
-    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, groupChildrenByKey, openGroupKeys, hasValidGroupBy);
+    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, openGroupKeys, hasValidGroupBy);
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
     }, [groupKeyByChildKey]);
@@ -655,7 +655,7 @@ function SearchWriteActionsProvider({
 
     return (
         <SearchRowSelectionActionsContext value={rowSelectionActionsValue}>
-            <SearchShiftRangeChildrenContext value={shiftRangeChildrenActions}>{children}</SearchShiftRangeChildrenContext>
+            <SearchShiftRangeGroupsContext value={shiftRangeGroupsActions}>{children}</SearchShiftRangeGroupsContext>
         </SearchRowSelectionActionsContext>
     );
 }

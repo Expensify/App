@@ -12,7 +12,7 @@ import type {
     SearchRowSelectionActionsValue,
     SearchSelectionActionsValue,
     SearchSelectionContextValue,
-    SearchShiftRangeChildrenActions,
+    SearchShiftRangeGroupsActions,
 } from './types';
 
 // This file holds the bare React.createContext() calls so they can be imported by `@hooks/useOnyx`
@@ -79,8 +79,7 @@ const defaultRowSelectionActions: SearchRowSelectionActionsValue = {
     toggleAll: () => {},
 };
 
-const defaultSearchShiftRangeChildrenActions: SearchShiftRangeChildrenActions = {
-    registerGroupChildren: () => {},
+const defaultSearchShiftRangeGroupsActions: SearchShiftRangeGroupsActions = {
     addGroupToRange: () => {},
     removeGroupFromRange: () => {},
     registryGeneration: undefined,
@@ -93,7 +92,7 @@ const SearchResultsActionsContext = React.createContext<SearchResultsActionsValu
 const SearchSelectionContext = React.createContext<SearchSelectionContextValue>(defaultSearchSelectionContext);
 const SearchSelectionActionsContext = React.createContext<SearchSelectionActionsValue>(defaultSearchSelectionActions);
 const SearchRowSelectionActionsContext = React.createContext<SearchRowSelectionActionsValue>(defaultRowSelectionActions);
-const SearchShiftRangeChildrenContext = React.createContext<SearchShiftRangeChildrenActions>(defaultSearchShiftRangeChildrenActions);
+const SearchShiftRangeGroupsContext = React.createContext<SearchShiftRangeGroupsActions>(defaultSearchShiftRangeGroupsActions);
 
 export {
     EMPTY_TRANSACTIONS_BY_REPORT_ID,
@@ -104,5 +103,5 @@ export {
     SearchSelectionContext,
     SearchSelectionActionsContext,
     SearchRowSelectionActionsContext,
-    SearchShiftRangeChildrenContext,
+    SearchShiftRangeGroupsContext,
 };

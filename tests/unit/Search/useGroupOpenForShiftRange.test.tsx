@@ -1,16 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
 
-import {SearchShiftRangeChildrenContext} from '@components/Search/SearchContextDefinitions';
+import {SearchShiftRangeGroupsContext} from '@components/Search/SearchContextDefinitions';
 import useGroupOpenForShiftRange from '@components/Search/SearchList/ListItem/useGroupOpenForShiftRange';
 
 import React from 'react';
 
 function setup() {
-    const registerGroupChildren = jest.fn();
     const addGroupToRange = jest.fn();
     const removeGroupFromRange = jest.fn();
     const wrapper = ({children}: {children: React.ReactNode}) => (
-        <SearchShiftRangeChildrenContext value={{registerGroupChildren, addGroupToRange, removeGroupFromRange, registryGeneration: 1}}>{children}</SearchShiftRangeChildrenContext>
+        <SearchShiftRangeGroupsContext value={{addGroupToRange, removeGroupFromRange, registryGeneration: 1}}>{children}</SearchShiftRangeGroupsContext>
     );
     return {addGroupToRange, removeGroupFromRange, wrapper};
 }

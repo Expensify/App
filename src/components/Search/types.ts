@@ -293,14 +293,12 @@ type SearchRowSelectionActionsValue = {
 };
 
 /** Lets lazily-loaded group-by children publish themselves to the shift-range source. */
-type SearchShiftRangeChildrenActions = {
-    /** Publish a group's rendered children, in visual order. Called by the row that loaded them. */
-    registerGroupChildren: (groupKey: string, children: TransactionListItemType[]) => void;
-    /** Let a range reach a group's children, for as long as it is open. Called by whoever owns the expanded state. */
+type SearchShiftRangeGroupsActions = {
+    /** Let a range reach a group's rows, for as long as it is open. Called by whoever owns the expanded state. */
     addGroupToRange: (groupKey: string) => void;
-    /** Take a group back out of ranges. Its children stay cached, so reopening it does not wait for them to be published again. */
+    /** Take a group back out of ranges. */
     removeGroupFromRange: (groupKey: string) => void;
-    /** Changes when the registry is dropped for a new search. Publishers key off it, so a group left open across the change republishes. */
+    /** Changes when the registry is dropped for a new search. Subscribers key off it, so a group left open across the change reopens. */
     registryGeneration: number | undefined;
 };
 
@@ -517,7 +515,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
-    SearchShiftRangeChildrenActions,
+    SearchShiftRangeGroupsActions,
     ASTNode,
     QueryFilter,
     Filter,

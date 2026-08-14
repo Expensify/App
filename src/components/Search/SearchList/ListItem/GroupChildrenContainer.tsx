@@ -32,7 +32,6 @@ function GroupChildrenContainer({
     onUndelete,
     isLastItem,
     newTransactionID,
-    bankAccountList,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -86,7 +85,6 @@ function GroupChildrenContainer({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
                             newTransactionID={newTransactionID}
-                            bankAccountList={bankAccountList}
                         />
                     </Animated.View>
                 ) : null}

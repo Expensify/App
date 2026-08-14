@@ -184,13 +184,10 @@ function GroupHeader({
     // Answered by the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const params = {groupKey: originalKey, children: effectiveTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
+        // Only the partial state is counted here: `isGroupChecked` already skips the rows being deleted and answers from the group's key where none are left.
         const selectableTransactions = effectiveTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-        // A group with no rows of its own answers from its key, which is the one case the count cannot speak for.
-        if (selectableTransactions.length === 0) {
-            return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: false};
-        }
         const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
-        return {isSelectAllChecked: selectedCount === selectableTransactions.length, isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
+        return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
     }, [selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;

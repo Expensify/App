@@ -1,11 +1,10 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
+import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeGroups} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
 import type {TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 import {isRowChecked, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
-import type {SelectedTransactions} from '@components/Search/types';
 
 import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
@@ -259,7 +258,7 @@ function Wrapper({children}: {children: React.ReactNode}) {
                 renderedData={[categoryGroup]}
                 totalSelectableItemsCount={2}
                 searchResults={undefined}
-                searchHash={SEARCH_HASH}
+                searchHash={groupedSearchHash}
                 transactions={undefined}
                 isMobileSelectionModeEnabled={false}
                 type={CONST.SEARCH.DATA_TYPES.EXPENSE}
@@ -326,7 +325,7 @@ const renderSelection = (wrapper: React.ComponentType<{children: React.ReactNode
             ...useSearchSelectionContext(),
             ...useSearchSelectionActions(),
             ...useSearchRowSelectionActions(),
-            ...useSearchShiftRangeChildren(),
+            ...useSearchShiftRangeGroups(),
         }),
         {wrapper},
     );
@@ -341,15 +340,25 @@ const renderFlatSelection = () =>
         {wrapper: FlatWrapper},
     );
 
-/** A row taken back out of a wider selection. Only the key is read here, so any real entry shape will do. */
-const buildExclusionEntry = (key: string): SelectedTransactions => {
-    const [, entry] = mapEmptyReportToSelectedEntry(buildReportGroup(1, key));
-    return {[key]: entry};
+/**
+ * Every fixture that stands for the same group. A group's rows reach a range through the list itself, so making them
+ * arrive means putting them on the group the wrapper under test renders.
+ */
+const groupFixturesByKey: Record<string, TransactionGroupListItemType[]> = {
+    [GROUP_KEY]: [categoryGroup, partiallyLoadedGroup, cachedPartialGroup],
+    [EARLIER_GROUP_KEY]: [earlierGroup],
 };
 
-/** What expanding a group does: publishes its loaded children and opens it to ranges. */
+/** The rows a group carries once its page has arrived. Mutated in place: the provider holds the fixture, not a copy of it. */
+function carryRows(groupKey: string, children: TransactionListItemType[]) {
+    for (const fixture of groupFixturesByKey[groupKey] ?? []) {
+        fixture.transactions = children;
+    }
+}
+
+/** What expanding a group does: its rows arrive in the list, and it opens to ranges. */
 function expandGroup(result: ReturnType<typeof renderSelection>['result'], groupKey: string, children: TransactionListItemType[]) {
-    result.current.registerGroupChildren(groupKey, children);
+    carryRows(groupKey, children);
     result.current.addGroupToRange(groupKey);
 }
 
@@ -371,6 +380,12 @@ describe('Lazily loaded group selection', () => {
     beforeEach(async () => {
         groupedSearchResults = undefined;
         groupedSearchHash = SEARCH_HASH;
+        // The fixtures are mutated as their pages arrive, so each test starts from the state its name describes.
+        categoryGroup.transactions = [];
+        earlierGroup.transactions = [];
+        partiallyLoadedGroup.transactions = [];
+        cachedPartialGroup.transactions = loadedChildren;
+        pagingGroup = partiallyLoadedGroup;
         flatExpense = makeFlatExpense(-3000);
         flatFilteredData = [flatExpense];
         flatSearchResults = makeFlatSearchResults(flatExpense);
@@ -418,20 +433,18 @@ describe('Lazily loaded group selection', () => {
         const {result} = renderSelection();
         const [firstChild] = loadedChildren;
 
-        // Given a group whose children have loaded and been registered
-        await act(async () => {
-            expandGroup(result, GROUP_KEY, loadedChildren);
-            await waitForBatchedUpdatesWithAct();
-        });
-
-        // Given Select All, which lands under the group key since the group carries no transactions itself
+        // Given Select All while the group still carries no rows, so the selection lands under its key
         await act(async () => {
             result.current.toggleAll();
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
 
-        // When shift+click collapses the seeded range onto the first child
+        // When its rows arrive and a shift+click collapses the seeded range onto the first child
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
         await act(async () => {
             result.current.toggle(firstChild, undefined, true);
             await waitForBatchedUpdatesWithAct();
@@ -990,25 +1003,30 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('never anchors a cold shift+click on a row the user unchecked', async () => {
-        const {result} = renderSelection();
+        const {result, rerender} = renderSelection();
         const [firstChild, , thirdChild] = threeLoadedChildren;
 
-        // Given a group covered by select-all-matching with its first child taken back out, and no range session started yet
+        // Given a group covered by select-all-matching with its first child taken back out
         await act(async () => {
             result.current.selectAllMatchingItems(true);
             expandGroup(result, GROUP_KEY, threeLoadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
         await act(async () => {
-            result.current.applySelection((selectedTransactions) => selectedTransactions, {
-                shouldPreserveAllMatchingSelection: true,
-                deselectedWithoutEntry: buildExclusionEntry(firstChild.keyForList),
-            });
+            result.current.toggle(firstChild);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
 
-        // When the very first gesture is a shift+click on the last child, so the anchor has to be resolved from the rows themselves
+        // And no session left to continue, since the query changed after that click
+        groupedSearchHash = SEARCH_HASH + 1;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, threeLoadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When the next gesture is a shift+click, so the anchor has to be resolved from the rows themselves
         await act(async () => {
             result.current.toggle(thirdChild, undefined, true);
             await waitForBatchedUpdatesWithAct();
@@ -1047,8 +1065,9 @@ describe('Lazily loaded group selection', () => {
             });
         expect(isChecked(firstChild.keyForList)).toBe(false);
         expect(isChecked(secondChild.keyForList)).toBe(false);
-        // And the group's own key is what records it, since one exclusion already stands for every row underneath it
-        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        // And each row is named, since the group carries all of them and nothing is left for its own key to stand for
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
+        expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
     });
 
     it('unchecks a group holding none of its rows, when select-all-matching is what checked it', async () => {
@@ -1289,20 +1308,19 @@ describe('Lazily loaded group selection', () => {
     });
 
     it('drops a group’s rows from ranges once they are gone, rather than ranging over transactions that no longer exist', async () => {
-        const {result} = renderSelection();
+        const {result, rerender} = renderSelection();
         const [firstChild, , thirdChild] = threeLoadedChildren;
 
-        // Given a group whose rows are published and open
+        // Given a group carrying its rows, and open
         await act(async () => {
             expandGroup(result, GROUP_KEY, threeLoadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
 
-        // When every one of its transactions goes away, so the group publishes an empty list
-        await act(async () => {
-            result.current.registerGroupChildren(GROUP_KEY, []);
-            await waitForBatchedUpdatesWithAct();
-        });
+        // When every one of its transactions goes away, so the group carries none
+        carryRows(GROUP_KEY, []);
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
 
         // Then a range reaches none of them, rather than writing selections for rows that are no longer there
         await act(async () => {

@@ -31,7 +31,6 @@ function GroupChildrenContent({
     nonPersonalAndWorkspaceCards,
     onUndelete,
     newTransactionID,
-    bankAccountList,
 }: GroupChildrenContentProps) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -49,8 +48,6 @@ function GroupChildrenContent({
         groupKey: groupItem.groupKeyForList,
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
-        snapshotData,
-        bankAccountList,
     });
 
     const isEmpty = transactions.length === 0;
