@@ -6033,7 +6033,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                     ctaText: 'リクエストを送信しました',
                 },
                 bookOrManageYourTrip: {title: '出張予約', subtitle: 'おめでとうございます！このワークスペースで旅行の予約と管理を行う準備が整いました。', ctaText: '出張を管理'},
-                settings: {autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'}},
+                settings: {
+                    autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'},
+                    codingSync: {
+                        title: '予約時に出張をコード化',
+                        subtitle: 'チェックアウト時にこのワークスペースのカテゴリ、タグ、レポート項目を旅行者に入力してもらい、出張データがあらかじめコード化された状態で届くようにします。',
+                    },
+                },
                 travelInvoicing: {
                     travelBookingSection: {
                         title: '出張予約',

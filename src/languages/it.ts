@@ -6107,6 +6107,10 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
                         title: 'Aggiungi nomi di viaggi alle spese',
                         subtitle: 'Aggiungi automaticamente i nomi dei viaggi alle descrizioni delle spese per i viaggi prenotati in Expensify.',
                     },
+                    codingSync: {
+                        title: 'Codifica i viaggi al momento della prenotazione',
+                        subtitle: 'Chiedi ai viaggiatori le categorie, i tag e i campi di rendiconto di questo workspace al checkout, così i viaggi arrivano già codificati.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

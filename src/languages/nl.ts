@@ -6097,6 +6097,10 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 },
                 settings: {
                     autoAddTripName: {title: 'Reisnamen aan uitgaven toevoegen', subtitle: 'Voeg automatisch reisnamen toe aan onkostomemo’s voor reizen die in Expensify zijn geboekt.'},
+                    codingSync: {
+                        title: 'Reizen coderen bij boeken',
+                        subtitle: 'Vraag reizigers bij het uitchecken om de categorieën, tags en rapportvelden van deze workspace, zodat reizen al gecodeerd binnenkomen.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

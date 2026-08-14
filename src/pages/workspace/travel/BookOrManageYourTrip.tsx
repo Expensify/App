@@ -45,6 +45,13 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
         setPolicyTravelSettings(policy, {autoAddTripName: enabled});
     };
 
+    const isCodingSyncBetaEnabled = isBetaEnabled(CONST.BETAS.TRAVEL_CODING_SYNC);
+    const isCodingSyncEnabled = policy?.travelSettings?.isCodingSyncEnabled ?? false;
+
+    const toggleCodingSync = (enabled: boolean) => {
+        setPolicyTravelSettings(policy, {isCodingSyncEnabled: enabled});
+    };
+
     const handleManageTravel = () => {
         if (isPreventSpotnanaTravelEnabled) {
             showConfirmModal({
@@ -95,6 +102,21 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     pendingAction={policy?.pendingFields?.travelSettings}
                     wrapperStyle={styles.mt3}
                 />
+                {isCodingSyncBetaEnabled && (
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        subtitle={translate('workspace.moreFeatures.travel.settings.codingSync.subtitle')}
+                        shouldPlaceSubtitleBelowSwitch
+                        switchAccessibilityLabel={translate('workspace.moreFeatures.travel.settings.codingSync.title')}
+                        isActive={isCodingSyncEnabled}
+                        onToggle={toggleCodingSync}
+                        disabled={!canWriteMoreFeatures}
+                        disabledAction={withReadOnlyFallback()}
+                        showLockIcon={!canWriteMoreFeatures}
+                        pendingAction={policy?.pendingFields?.travelSettings}
+                        wrapperStyle={styles.mt3}
+                    />
+                )}
             </Section>
             <WorkspaceTravelInvoicingSection policyID={policyID} />
         </>
