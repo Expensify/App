@@ -27,7 +27,7 @@ import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isLookingAroundOnboardingChoice, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getNewAccountIDsAndLogins} from '@libs/PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from '@libs/PolicyUtils';
 import {
@@ -293,7 +293,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,

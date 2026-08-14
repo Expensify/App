@@ -184,16 +184,10 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const restrictedActionPolicyID = useRestrictedActionPolicyID(policy);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
-    // Data needed to launch the track-expense "Choose a recipient" flow from the "Send to someone" row (mirrors the
-    // track-expense whisper in ChatActionableButtons).
     const activePolicy = useActivePolicy();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
-    // Memoize the selector factory so useOnyx keeps a stable selector identity across this header's frequent re-renders
-    // (hold/violation/attribute churn) - an inline factory returns a fresh {filteredPoliciesCount, firstPolicyID} each render.
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserLogin), [currentUserLogin]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
-    // Derive the draft IDs from the existing transactionDrafts subscription instead of subscribing to the same collection twice.
-    // validTransactionDraftsSelector is keyed by transactionID, so its keys are exactly the valid draft transaction IDs.
     const draftTransactionIDs = useMemo(() => Object.keys(transactionDrafts ?? {}), [transactionDrafts]);
 
     // Custom hooks
@@ -207,8 +201,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
     const isParentReportArchived = useReportIsArchived(report?.parentReportID);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    // A self-DM split expense can only be submitted to a workspace, so the "Send to someone" row is gated on this - mirrors
-    // the track-expense whisper (ChatActionableButtons) and the report-details menu (DynamicReportDetailsPage).
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserLogin, isSubmit2026BetaEnabled), [currentUserLogin, isSubmit2026BetaEnabled]);
     const [hasWorkspaceToSubmitTo = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
@@ -638,11 +630,6 @@ function MoneyRequestHeaderSecondaryActions({reportID, onBackButtonPress}: Money
                     return;
                 }
 
-                // Reuse the exact track-expense whisper flow: create a draft from the tracked expense and open the
-                // "Choose a recipient" RHP. Scoped against the self-DM (parentReport), matching the whisper.
-                // Resolve the track-expense actionable whisper the same way the report-details menu does so the
-                // convert flow can mark the original self-DM whisper resolved once the expense is sent - passing
-                // undefined here would leave that whisper stranded and offering to submit an already-sent expense.
                 createDraftTransactionAndNavigateToParticipantSelector({
                     reportID: parentReport?.reportID,
                     actionName: CONST.IOU.ACTION.SUBMIT,

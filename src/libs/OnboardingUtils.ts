@@ -22,15 +22,6 @@ function isTrackOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): choice i
 }
 
 /**
- * Returns true when the onboarding choice is "Something else" (LOOKING_AROUND). Extracted so callers can read the
- * onboarding choice from Onyx in render context and pass the result into pure navigation helpers, rather than
- * having those helpers subscribe to Onyx themselves.
- */
-function isLookingAroundOnboardingChoice(choice: OnyxEntry<OnboardingPurpose>): boolean {
-    return choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
-}
-
-/**
  * Counts the joinable policies that are actually surfaced during onboarding. SUBMIT-type policies are hidden
  * unless the SUBMIT_2026 beta is enabled, mirroring the filter the Workspaces and PrivateDomain screens use to
  * render/skip. Centralizing it keeps the step counter and EMPLOYEES back button in sync with what the user sees,
@@ -57,4 +48,4 @@ function isSupportedPendingInviteOnboarding(introSelected: OnyxEntry<IntroSelect
 
     return isSupportedInviteOnboardingChoice(introSelected.choice) && !isInviteIOUorInvoice;
 }
-export {getVisibleJoinablePoliciesCount, isLookingAroundOnboardingChoice, isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding, isTrackOnboardingChoice};
+export {getVisibleJoinablePoliciesCount, isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding, isTrackOnboardingChoice};

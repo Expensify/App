@@ -27,7 +27,7 @@ import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
-import {isLookingAroundOnboardingChoice, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
@@ -108,7 +108,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         selector: shouldStartLocationPermissionFlowSelector,
     });
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();

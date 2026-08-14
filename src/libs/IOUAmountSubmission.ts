@@ -46,7 +46,6 @@ import cleanupAfterSkipConfirmSubmit from './Navigation/helpers/cleanupAfterSkip
 import {submitWithDismissFirst} from './Navigation/helpers/submitWithDismissFirst';
 import Navigation from './Navigation/Navigation';
 import {rand64} from './NumberUtils';
-import {isLookingAroundOnboardingChoice} from './OnboardingUtils';
 import {getParticipantsOption, getReportOption} from './OptionsListUtils';
 import Permissions from './Permissions';
 import {getLoginByAccountID} from './PersonalDetailsUtils';
@@ -430,7 +429,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-            isLookingAroundUser: isLookingAroundOnboardingChoice(introSelected?.choice),
+            isLookingAroundUser: introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
             isSelfDMDestination,
         });
     };

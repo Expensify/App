@@ -12,7 +12,6 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isLookingAroundOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -215,7 +214,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
     // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
-    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);

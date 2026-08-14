@@ -44,7 +44,7 @@ import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/clean
 import Navigation from '@libs/Navigation/Navigation';
 import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
-import {isLookingAroundOnboardingChoice, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
 import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
@@ -151,7 +151,7 @@ function SubmitDetailsPage({
     const fileType = shouldUsePreValidatedFile ? (validFilesToUpload?.type ?? CONST.RECEIPT_ALLOWED_FILE_TYPES.JPEG) : (currentAttachment?.mimeType ?? '');
     const [hasOnlyPersonalPolicies = false] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasOnlyPersonalPoliciesUtil});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
+    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
     const hasEndedOpenSubmitFlowSpan = useRef(false);
     const endOpenSubmitFlowSpan = () => {

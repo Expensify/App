@@ -40,7 +40,7 @@ import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
-import {isLookingAroundOnboardingChoice, isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
@@ -318,7 +318,7 @@ function IOURequestStepDistance({
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
         shouldSkipConfirmation,
         report?.reportID,
-        isLookingAroundOnboardingChoice(introSelected?.choice),
+        introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
         isSelfDM(report),
     );
     usePreMountDestination(skipConfirmationPreMountRoute);
