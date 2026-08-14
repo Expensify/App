@@ -3780,6 +3780,85 @@ describe('ReportActionsUtils', () => {
         });
     });
 
+    describe('getDelegateSubmitMessage', () => {
+        const originalManagerEmail = 'manager@example.com';
+        const delegateEmail = 'delegate@example.com';
+        const thirdPartyEmail = 'thirdparty@example.com';
+
+        const buildDelegateSubmitAction = (
+            originalMessage: Partial<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT>['originalMessage']> = {},
+        ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT> => ({
+            actionName: CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
+            created: '2026-06-05 10:00:00',
+            reportActionID: '1',
+            originalMessage: {
+                originalManager: originalManagerEmail,
+                delegate: delegateEmail,
+                ...originalMessage,
+            },
+        });
+
+        it('returns an empty string when originalManager is missing', () => {
+            const action = buildDelegateSubmitAction({originalManager: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns an empty string when delegate is missing', () => {
+            const action = buildDelegateSubmitAction({delegate: undefined});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe('');
+        });
+
+        it('returns the wingman message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicyAsOriginalManager', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the third-party message when the delegate is not on the policy', () => {
+            const action = buildDelegateSubmitAction({isOnPolicy: false});
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitNotOnPolicy', originalManagerEmail, delegateEmail),
+            );
+        });
+
+        it('returns the wingman message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, delegateEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportForWingman', originalManagerEmail),
+            );
+        });
+
+        it('returns the original manager message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, originalManagerEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReportAsOriginalManager', delegateEmail),
+            );
+        });
+
+        it('returns the third-party message for the cannot-approve-own-report case', () => {
+            const action = buildDelegateSubmitAction();
+
+            expect(ReportActionsUtils.getDelegateSubmitMessage(translateLocal, action, thirdPartyEmail)).toBe(
+                translateLocal('iou.changeApprover.delegateSubmitCannotApproveOwnReport', originalManagerEmail, delegateEmail),
+            );
+        });
+    });
+
     describe('getPolicyChangeLogMaxExpenseAmountMessage', () => {
         it('should return set message when setting from disabled to a value', () => {
             const action = {
@@ -4388,6 +4467,43 @@ describe('ReportActionsUtils', () => {
             };
             const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
             expect(actual).toBe('renamed the Distance rate "Default Rate" to "Custom Rate"');
+        });
+
+        it('should format the amount from raw oldRate/newRate/currency instead of the preformatted strings', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: 'AR$1.30',
+                    newValue: 'AR$1.40',
+                    oldRate: 130,
+                    newRate: 140,
+                    currency: 'ARS',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "ARS 1.40" (previously "ARS 1.30")');
+        });
+
+        it('should fall back to the preformatted strings when raw rate fields are missing', () => {
+            const action: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE> = {
+                reportActionID: '1',
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE,
+                created: '',
+                originalMessage: {
+                    customUnitName: 'Distance',
+                    customUnitRateName: 'Default Rate',
+                    updatedField: 'rate',
+                    oldValue: '$0.50',
+                    newValue: '$0.55',
+                },
+            };
+            const actual = ReportActionsUtils.getWorkspaceCustomUnitRateUpdatedMessage(translateLocal, undefined, action);
+            expect(actual).toBe('changed the rate of the Distance rate "Default Rate" to "$0.55" (previously "$0.50")');
         });
 
         it('should return the correct message when a start date is set on a rate without dates', () => {
