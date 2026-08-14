@@ -4,7 +4,6 @@ import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import Text from '@components/Text';
 
-import useControlOnlyRuleUpgradeRedirect from '@hooks/useControlOnlyRuleUpgradeRedirect';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -13,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
+import {isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -20,9 +20,10 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 import {getBillableExpensesPendingAction, setPolicyBillableMode, toggleBillableExpenses} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
+import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 
 type RulesBillableDefaultPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_BILLABLE_DEFAULT>;
 
@@ -36,13 +37,17 @@ function RulesBillableDefaultPage({
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
-    useControlOnlyRuleUpgradeRedirect(policyID);
     const isRevamp = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isCollect = isCollectPolicy(policy);
+    const rulesUpgradeAlias = CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias;
+    const upgradeBackTo = ROUTES.RULES_BILLABLE_DEFAULT.getRoute(policyID);
 
     const [draftBillable, setDraftBillable] = useState<boolean>();
     const persistedBillable = policy?.defaultBillable ?? false;
     const selectedBillable = draftBillable ?? persistedBillable;
     const hasChanges = selectedBillable !== persistedBillable;
+
+    const navigateToBillableUpgrade = useCallback(() => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, upgradeBackTo), [policy, rulesUpgradeAlias, upgradeBackTo]);
 
     const billableModes = [
         {
@@ -64,6 +69,10 @@ function RulesBillableDefaultPage({
     const initiallyFocusedOptionKey = selectedBillable ? CONST.POLICY_BILLABLE_MODES.BILLABLE : CONST.POLICY_BILLABLE_MODES.NON_BILLABLE;
 
     const saveAndGoBack = () => {
+        if (isCollect && selectedBillable && navigateToBillableUpgrade()) {
+            return;
+        }
+
         setPolicyBillableMode(policyID, selectedBillable, policy?.defaultBillable, policy?.disabledFields?.defaultBillable);
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     };
@@ -78,6 +87,14 @@ function RulesBillableDefaultPage({
     const isBillableTrackingEnabled = policy?.disabledFields?.defaultBillable !== true;
     // Track-billable is controlled on this page (not Tags), so show defaults whenever tracking is on.
     const shouldShowBillableModeList = !isRevamp || isBillableTrackingEnabled;
+
+    const handleBillableModeSelect = (value: boolean) => {
+        if (isCollect && value && navigateToBillableUpgrade()) {
+            return;
+        }
+
+        setDraftBillable(value);
+    };
 
     return (
         <AccessOrNotFoundWrapper
@@ -113,7 +130,7 @@ function RulesBillableDefaultPage({
                         data={billableModes}
                         ListItem={SingleSelectListItem}
                         onSelectRow={(item) => {
-                            setDraftBillable(item.value);
+                            handleBillableModeSelect(item.value);
                         }}
                         confirmButtonOptions={confirmButtonOptions}
                         shouldSingleExecuteRowSelect
