@@ -141,6 +141,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
             >
                 <HeaderWithBackButton
                     title={domainName}
+                    shouldUseHeadlineHeader
                     onBackButtonPress={() => Navigation.goBack(ROUTES.DOMAINS_LIST.route)}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
