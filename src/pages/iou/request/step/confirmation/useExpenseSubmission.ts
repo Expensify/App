@@ -57,7 +57,6 @@ import {
 
 import {resolveChatTargetForSubmitCleanup} from '@pages/iou/request/step/resolveChatTarget';
 
-import {getPolicyTags} from '@userActions/IOU';
 import {isOneToTwoTransactionTransition} from '@userActions/IOU/PendingNewTransactions';
 import {getPerDiemExpensePolicyID, submitPerDiemExpenseForSelfDM, submitPerDiemExpense as submitPerDiemExpenseIOUActions} from '@userActions/IOU/PerDiem';
 import {getReceiverType, sendInvoice} from '@userActions/IOU/SendInvoice';
@@ -565,6 +564,23 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         });
     }
 
+    // Early-resolved policyID for the per diem expense's destination report, mirroring iouReportPolicyID above.
+    const perDiemParticipant = selectedParticipants.at(0);
+    const earlyPerDiemExpensePolicyID = perDiemParticipant
+        ? getPerDiemExpensePolicyID({
+              report,
+              participantParams: {
+                  payeeEmail: currentUserPersonalDetails.login,
+                  payeeAccountID: currentUserPersonalDetails.accountID,
+                  participant: perDiemParticipant,
+              },
+              existingIOUReport: undefined,
+              betas,
+              currentUserAccountIDParam: currentUserPersonalDetails.accountID,
+          })
+        : undefined;
+    const [perDiemExpensePolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPerDiemExpensePolicyID}`);
+
     function submitPerDiemExpense(trimmedComment: string, shouldHandleNavigation: boolean, policyRecentlyUsedCategoriesParam?: RecentlyUsedCategories, writeBarrier?: WriteReadyBarrier) {
         if (!transaction) {
             return;
@@ -623,15 +639,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 payeeAccountID: currentUserPersonalDetails.accountID,
                 participant,
             };
-            const earlyPolicyID = getPerDiemExpensePolicyID({
-                report,
-                participantParams: perDiemParticipantParams,
-                existingIOUReport: undefined,
-                betas,
-                currentUserAccountIDParam: currentUserPersonalDetails.accountID,
-            });
-            const perDiemExpensePolicyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
-
             const result = submitPerDiemExpenseIOUActions({
                 dateFnsLocale,
                 getCurrencyDecimals,
@@ -660,7 +667,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     attendees: transaction.comment?.attendees,
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                 },
-                policyTags: perDiemExpensePolicyTags,
+                policyTags: perDiemExpensePolicyTags ?? {},
                 isASAPSubmitBetaEnabled,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
