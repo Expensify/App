@@ -1,5 +1,5 @@
 diff --git a/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift b/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
-index 10b0f33..0e1d6fd 100644
+index 10b0f33..5d33236 100644
 --- a/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
 +++ b/node_modules/react-native-vision-camera/ios/Core/CameraSession.swift
 @@ -113,8 +113,22 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
@@ -25,7 +25,42 @@ index 10b0f33..0e1d6fd 100644
        // Let caller configure a new configuration for the Camera.
        let config = CameraConfiguration(copyOf: self.configuration)
        do {
-@@ -215,7 +229,9 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+@@ -131,10 +145,16 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+ 
+       VisionLogger.log(level: .info, message: "configure { ... }: Updating CameraSession Configuration... \(difference)")
+ 
++      // beginConfiguration() and commitConfiguration() are split across two separate
++      // isSessionConfigurationDirty blocks so device changes batch into a single commit.
++      // Anything that throws in between would otherwise leave the session's configuration
++      // counter permanently held, and every later start/stop then throws NSGenericException.
++      var isConfigurationOpen = false
+       do {
+         // If needed, configure the AVCaptureSession (inputs, outputs)
+         if difference.isSessionConfigurationDirty {
+           self.captureSession.beginConfiguration()
++          isConfigurationOpen = true
+ 
+           // 1. Update input device
+           if difference.inputChanged {
+@@ -193,6 +213,7 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+           // We commit the session config updates AFTER the device config,
+           // that way we can also batch those changes into one update instead of doing two updates.
+           self.captureSession.commitConfiguration()
++          isConfigurationOpen = false
+         }
+ 
+         // 10. Start or stop the session if needed
+@@ -210,12 +231,19 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+         // After configuring, set this to the new configuration.
+         self.configuration = config
+       } catch {
++        if isConfigurationOpen {
++          // Release the configuration lock before reporting, otherwise the session stays
++          // wedged for the rest of its lifetime and every startRunning/stopRunning throws.
++          self.captureSession.commitConfiguration()
++        }
+         self.onConfigureError(error)
+       }
  
        // Set up Audio Capture Session (on audio queue)
        if difference.audioSessionChanged {
@@ -35,7 +70,7 @@ index 10b0f33..0e1d6fd 100644
            do {
              // Lock Capture Session for configuration
              VisionLogger.log(level: .info, message: "Beginning AudioSession configuration...")
-@@ -234,7 +250,9 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+@@ -234,7 +262,9 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
  
        // Set up Location streaming (on location queue)
        if difference.locationChanged {
@@ -45,7 +80,7 @@ index 10b0f33..0e1d6fd 100644
            do {
              VisionLogger.log(level: .info, message: "Beginning Location Output configuration...")
              try self.configureLocationOutput(configuration: config)
-@@ -265,7 +283,7 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
+@@ -265,7 +295,7 @@ final class CameraSession: NSObject, AVCaptureVideoDataOutputSampleBufferDelegat
      }
    }
  
