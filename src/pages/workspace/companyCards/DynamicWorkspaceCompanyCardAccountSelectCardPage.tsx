@@ -56,7 +56,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     // See https://github.com/Expensify/App/issues/72352 for more details.
     const activeRoute = Navigation.getActiveRoute();
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card, activeRoute);
-    // The accounting export-configuration page is admin-only, so only link to it for policy admins; card admins
+    // The accounting export-configuration page is admin-only, so only link to it for policy admins. Card admins
     // without access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
     const exportPageLink = isPolicyAdmin(policy) ? exportMenuItem?.exportPageLink : undefined;
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);

@@ -134,7 +134,7 @@ function DynamicWorkspaceSettlementAccountPage({route}: WorkspaceSettlementAccou
         const connectionName = reconciliationConnection ?? '';
         const connectionParam = getRouteParamForConnection(connectionName as ConnectionName);
 
-        // The Card reconciliation page is admin-only, so only link to it for policy admins; card admins without
+        // The Card reconciliation page is admin-only, so only link to it for policy admins. Card admins without
         // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
         const reconciliationAccountSettingsLink = isPolicyAdmin(policy)
             ? `${environmentURL}/${ROUTES.WORKSPACE_ACCOUNTING_CARD_RECONCILIATION.getRoute(policyID, connectionParam)}/${DYNAMIC_ROUTES.WORKSPACE_ACCOUNTING_RECONCILIATION_ACCOUNT_SETTINGS.path}`

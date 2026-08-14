@@ -172,7 +172,7 @@ function DynamicExpensifyCardLimitTypePage({route}: WorkspaceEditCardLimitTypePa
         }
     }
 
-    // Only link to the Workflows page when the current user can actually read it; card admins without Workflows
+    // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
     // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
     const workspaceWorkflowsPageURL = canReadWorkflows ? `${environmentURL}/${ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID)}` : undefined;

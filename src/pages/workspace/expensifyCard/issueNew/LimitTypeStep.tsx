@@ -59,7 +59,7 @@ function LimitTypeStep({policy, stepNames, startStepIndex}: LimitTypeStepProps) 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const [currentUserLogin] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
 
-    // Only link to the Workflows page when the current user can actually read it; card admins without Workflows
+    // Only link to the Workflows page when the current user can actually read it. Card admins without Workflows
     // access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
     const canReadWorkflows = canMemberRead(policy, currentUserLogin ?? '', CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
 
