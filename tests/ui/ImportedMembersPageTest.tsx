@@ -4,6 +4,7 @@ import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import * as Member from '@libs/actions/Policy/Member';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ImportedMembersPage from '@pages/workspace/members/ImportedMembersPage';
@@ -21,6 +22,8 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 const POLICY_ID = 'imported-members-test-policy';
 const ADMIN_EMAIL = 'admin@example.com';
 const ADMIN_ACCOUNT_ID = 1;
+const PEOPLE_ADMIN_EMAIL = 'people-admin@example.com';
+const PEOPLE_ADMIN_ACCOUNT_ID = 2;
 
 // The confirm button on the import page renders `common.import`
 const IMPORT_BUTTON_TEXT = 'Import';
@@ -76,6 +79,19 @@ function buildSubmitPolicy(): Policy {
     } as Policy;
 }
 
+function buildControlPolicyForPeopleAdmin(): Policy {
+    return {
+        ...buildSubmitPolicy(),
+        name: 'Test Control Workspace',
+        type: CONST.POLICY.TYPE.CORPORATE,
+        role: CONST.POLICY.ROLE.PEOPLE_ADMIN,
+        employeeList: {
+            [ADMIN_EMAIL]: {email: ADMIN_EMAIL, role: CONST.POLICY.ROLE.ADMIN},
+            [PEOPLE_ADMIN_EMAIL]: {email: PEOPLE_ADMIN_EMAIL, role: CONST.POLICY.ROLE.PEOPLE_ADMIN},
+        },
+    } as Policy;
+}
+
 function buildSpreadsheet(mappedColumns: string[], data: string[][]): ImportedSpreadsheet {
     const columns: Record<number, string> = {};
     for (const [index, columnName] of mappedColumns.entries()) {
@@ -108,12 +124,12 @@ function renderImportedMembersPage() {
     );
 }
 
-async function seedOnyx(spreadsheet: ImportedSpreadsheet) {
+async function seedOnyx(spreadsheet: ImportedSpreadsheet, policy = buildSubmitPolicy(), login = ADMIN_EMAIL, accountID = ADMIN_ACCOUNT_ID) {
     await act(async () => {
         await Onyx.clear();
-        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildSubmitPolicy());
-        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[ADMIN_ACCOUNT_ID]: buildPersonalDetails(ADMIN_EMAIL, ADMIN_ACCOUNT_ID, 'admin')});
-        await Onyx.merge(ONYXKEYS.SESSION, {email: ADMIN_EMAIL, accountID: ADMIN_ACCOUNT_ID});
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {[accountID]: buildPersonalDetails(login, accountID, 'admin')});
+        await Onyx.merge(ONYXKEYS.SESSION, {email: login, accountID});
         await Onyx.set(ONYXKEYS.NETWORK, {shouldForceOffline: false});
         await Onyx.set(ONYXKEYS.IMPORTED_SPREADSHEET, spreadsheet);
         await waitForBatchedUpdatesWithAct();
@@ -177,5 +193,39 @@ describe('ImportedMembersPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledTimes(1);
         expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(`upgrade/${CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias}`));
         expect(Navigation.navigate).toHaveBeenCalledWith(expect.stringContaining(`upgradePlanType=${CONST.POLICY.TYPE.CORPORATE}`));
+    });
+
+    it('imports restricted roles as members and includes a permission warning', async () => {
+        await seedOnyx(
+            buildSpreadsheet(
+                [CONST.CSV_IMPORT_COLUMNS.EMAIL, CONST.CSV_IMPORT_COLUMNS.ROLE],
+                [
+                    ['Email', 'new-member@example.com'],
+                    ['Role', CONST.POLICY.ROLE.ADMIN],
+                ],
+            ),
+            buildControlPolicyForPeopleAdmin(),
+            PEOPLE_ADMIN_EMAIL,
+            PEOPLE_ADMIN_ACCOUNT_ID,
+        );
+        const importPolicyMembersSpy = jest.spyOn(Member, 'importPolicyMembers').mockResolvedValue({
+            titleKey: 'spreadsheet.importSuccessfulTitle',
+            promptKey: 'spreadsheet.importMembersSuccessfulDescription',
+            promptKeyParams: {added: 1, updated: 0},
+            pendingMessageKey: 'spreadsheet.importMembersRolePermissionWarning',
+        });
+
+        renderImportedMembersPage();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText(IMPORT_BUTTON_TEXT));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(importPolicyMembersSpy).toHaveBeenCalledWith(
+            expect.objectContaining({id: POLICY_ID}),
+            [expect.objectContaining({email: 'new-member@example.com', role: CONST.POLICY.ROLE.USER})],
+            true,
+        );
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(expect.stringContaining('/imported/confirmation'));
     });
 });

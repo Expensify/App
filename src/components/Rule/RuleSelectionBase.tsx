@@ -5,6 +5,8 @@ import SearchSingleSelectionPicker from '@components/Search/SearchSingleSelectio
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import type {TranslationPaths} from '@src/languages/types';
 import type {Route} from '@src/ROUTES';
 
@@ -18,6 +20,8 @@ type SelectionItem = {
     value: string;
 };
 
+type RuleSelectionBackToRoute = Route | ((selectedValue?: string) => Route);
+
 type RuleSelectionBaseProps = {
     /** The translation key for the page title */
     titleKey: TranslationPaths;
@@ -28,6 +32,17 @@ type RuleSelectionBaseProps = {
     /** Test ID for the screen wrapper */
     testID: string;
 
+    /** Callback to go back */
+    onBack: () => void;
+
+    /** Optional hash for rule not found validation */
+    hash?: string;
+
+    /** Page content */
+    children: React.ReactNode;
+};
+
+type RuleSelectionPickerProps = {
     /** The currently selected item */
     selectedItem?: SelectionItem;
 
@@ -37,17 +52,21 @@ type RuleSelectionBaseProps = {
     /** Callback when a value is selected */
     onSave: (value?: string) => void;
 
-    /** Callback to go back */
-    onBack: () => void;
-
     /** The route to navigate back to */
-    backToRoute: Route;
+    backToRoute: RuleSelectionBackToRoute;
 
-    /** Optional hash for rule not found validation */
-    hash?: string;
+    /** When true, shows a "None" option in the picker */
+    allowNoneOption?: boolean;
+
+    /** Set at parents whose Save is `pressOnEnter` so an auto-save selection can't leave the row re-focused and hijack the next Enter. */
+    shouldSkipFocusRestoreOnSave?: boolean;
 };
 
-function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave, onBack, backToRoute, hash}: RuleSelectionBaseProps) {
+function resolveBackToRoute(backToRoute: RuleSelectionBackToRoute, selectedValue?: string): Route {
+    return typeof backToRoute === 'function' ? backToRoute(selectedValue) : backToRoute;
+}
+
+function RuleSelectionBaseComponent({titleKey, title, testID, onBack, hash, children}: RuleSelectionBaseProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
@@ -62,19 +81,33 @@ function RuleSelectionBase({titleKey, title, testID, selectedItem, items, onSave
                     title={title ?? translate(titleKey)}
                     onBackButtonPress={onBack}
                 />
-                <View style={[styles.flex1]}>
-                    <SearchSingleSelectionPicker
-                        backToRoute={backToRoute}
-                        initiallySelectedItem={selectedItem}
-                        items={items}
-                        onSaveSelection={onSave}
-                        shouldAutoSave
-                        allowNoneOption
-                    />
-                </View>
+                <View style={[styles.flex1]}>{children}</View>
             </ScreenWrapper>
         </RuleNotFoundPageWrapper>
     );
 }
+
+function RuleSelectionPicker({selectedItem, items, onSave, backToRoute, allowNoneOption = true, shouldSkipFocusRestoreOnSave}: RuleSelectionPickerProps) {
+    const handleSaveSelection = (value?: string) => {
+        onSave(value);
+        Navigation.goBack(resolveBackToRoute(backToRoute, value), {shouldSkipFocusRestore: shouldSkipFocusRestoreOnSave});
+    };
+
+    return (
+        <SearchSingleSelectionPicker
+            initiallySelectedItem={selectedItem}
+            items={items}
+            onSaveSelection={handleSaveSelection}
+            shouldAutoSave
+            shouldNavigateOnSave={false}
+            allowNoneOption={allowNoneOption}
+            shouldSkipFocusRestoreOnSave={shouldSkipFocusRestoreOnSave}
+        />
+    );
+}
+
+const RuleSelectionBase = Object.assign(RuleSelectionBaseComponent, {
+    Picker: RuleSelectionPicker,
+});
 
 export default RuleSelectionBase;

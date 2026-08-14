@@ -1,3 +1,5 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -13,7 +15,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {PlatformStackNavigationProp, PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import REPORT_LINK_ROUTE_PARAMS from '@libs/Navigation/reportLinkRouteParams';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
@@ -37,6 +39,8 @@ import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList} from 
 import {
     clearStaleDMRecoveryTargetByTargetReportID,
     createTransactionThreadReport,
+    joinReportViaSecureLink,
+    markLocalReportActionsAsLoaded,
     openReport,
     readNewestAction,
     setViewingPublicRoomReportID,
@@ -82,19 +86,24 @@ function ReportFetchHandler() {
     const route = useRoute<ReportScreenRoute>();
     const reportIDFromRoute = getNonEmptyStringOnyxID(route.params?.reportID);
     const reportActionIDFromRoute = route?.params?.reportActionID;
+
+    // Only the main report route carries a Submit-via-PDF secure access key.
+    const secureKeyFromRoute = route.name === SCREENS.REPORT ? route.params?.secureKey : undefined;
     const shouldReplaceWithExpenseReportRHP = route.name === SCREENS.RIGHT_MODAL.SEARCH_REPORT && route.params?.[REPORT_LINK_ROUTE_PARAMS.SHOULD_REPLACE_WITH_EXPENSE_REPORT_RHP] === 'true';
 
-    const navigation = useNavigation();
+    const navigation = useNavigation<PlatformStackNavigationProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const isFocused = useIsFocused();
     const prevIsFocused = usePrevious(isFocused);
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
     const didSubscribeToReportLeavingEvents = useRef(false);
+    const joinedSecureLinkReportIDRef = useRef<string | undefined>(undefined);
 
     const [reportOnyx] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
     const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
@@ -149,7 +158,23 @@ function ReportFetchHandler() {
     const shouldDeferGuidedSetupOpenReport = !!isLoadingApp && (isRegularOnboardingPending || isPendingInviteOnboarding);
 
     const fetchReport = useEffectEvent(() => {
+        // For a Submit-via-PDF secure access link, JoinReportViaSecureLink grants access and returns the report.
+        // Calling the vanilla openReport before the join completes would 403 and latch the not-found page, so defer
+        // to the join while the secureKey is still on the route. Once the join grants access the secureKey is cleared,
+        // and normal fetching resumes.
+        if (secureKeyFromRoute) {
+            return;
+        }
+
         if (reportMetadata.isOptimisticReport && report?.type === CONST.REPORT.TYPE.CHAT && !isPolicyExpenseChat(report)) {
+            // openReport is intentionally never called for an optimistic chat report, so nothing else can settle its
+            // initial-load state. The stamp written at creation lives in a RAM-only key and is lost on an app restart,
+            // which would leave the report pinned on the loading skeleton once online (the effect below re-arms
+            // isLoadingInitialReportActions while hasOnceLoadedReportActions is false). The persisted local actions are
+            // the complete truth for an optimistic report, so reconstruct the readiness stamp here.
+            if (!reportLoadingState.hasOnceLoadedReportActions) {
+                markLocalReportActionsAsLoaded(reportIDFromRoute);
+            }
             return;
         }
 
@@ -173,7 +198,7 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions});
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions, currentUserAccountID});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {
@@ -190,6 +215,7 @@ function ReportFetchHandler() {
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            personalDetails,
         });
     });
 
@@ -205,7 +231,7 @@ function ReportFetchHandler() {
         if (!shouldUseNarrowLayout || !isChatThread(report) || !isHiddenForCurrentUser(report) || isTransactionThreadView) {
             return;
         }
-        openReport({reportID, introSelected, betas, hasReportActions});
+        openReport({reportID, introSelected, betas, hasReportActions, currentUserAccountID});
     });
 
     const joinPublicRoomIfNeeded = useEffectEvent(() => {
@@ -213,7 +239,7 @@ function ReportFetchHandler() {
         if (!viewingPublicRoomReportID || viewingPublicRoomReportID === reportIDFromRoute) {
             return;
         }
-        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions});
+        openReport({reportID: viewingPublicRoomReportID, introSelected, betas, hasReportActions: hasViewingPublicRoomReportActions, currentUserAccountID});
     });
 
     // Effect order below matches the original declaration order in ReportScreen.tsx.
@@ -239,6 +265,31 @@ function ReportFetchHandler() {
         }
         navigation.setParams({reportActionID: ''});
     }, [transactionThreadReportID, route?.params?.reportActionID, linkedAction, reportID, navigation, report, childReport]);
+
+    // When an approver opens a Submit-via-PDF secure access link (/r/:reportID?secureKey=...), validate it once they're
+    // signed in. On success the backend shares the report and sets them as manager; on failure the ReportNotFoundGuard
+    // shows the standard 404. The ref is keyed by reportID so it fires once per report and re-navigation is handled
+    // naturally, without a separate reset effect that could clobber the flag on mount before the report loads.
+    useEffect(() => {
+        if (!secureKeyFromRoute || !reportIDFromRoute || isAnonymousUser || joinedSecureLinkReportIDRef.current === reportIDFromRoute) {
+            return;
+        }
+        joinedSecureLinkReportIDRef.current = reportIDFromRoute;
+        joinReportViaSecureLink(reportIDFromRoute, secureKeyFromRoute);
+    }, [secureKeyFromRoute, reportIDFromRoute, isAnonymousUser]);
+
+    // Keep secureKey in the URL until the join has actually granted access to the report. Clearing it earlier would drop
+    // the "secure-link visit" signal that suppresses onboarding, so a slow join could bounce a new user into onboarding
+    // before they gain access. Once the report is accessible we clear it so it isn't reused or left in history.
+    useEffect(() => {
+        // Clear the secureKey once the join has resolved either way: on success the report is accessible (reportID set),
+        // on failure it is marked not-found. Both release the fetchReport gate so the report loads or shows the 404.
+        const joinResolved = !!report?.reportID || !!report?.errorFields?.notFound;
+        if (!secureKeyFromRoute || joinedSecureLinkReportIDRef.current !== reportIDFromRoute || !joinResolved) {
+            return;
+        }
+        navigation.setParams({secureKey: undefined});
+    }, [secureKeyFromRoute, reportIDFromRoute, report?.reportID, report?.errorFields?.notFound, navigation]);
 
     useEffect(() => {
         if (!isAnonymousUser) {
@@ -444,12 +495,14 @@ function ReportFetchHandler() {
             betas,
             iouReport: report,
             transaction,
+            personalDetails,
         });
     }, [
         introSelected,
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         visibleTransactions,
         transactionThreadReport,

@@ -13,6 +13,7 @@ import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -75,19 +76,17 @@ function submitterAndLastForwardedActorEmailSelector(submitterAccountID: number 
 
 function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
     const {reportID} = route.params;
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportID)}`);
     const [lastForwardedActorAccountID] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(reportID)}`, {selector: lastForwardedActorAccountIDSelector});
     const [{submitterEmail, lastForwardedActorEmail} = getEmptyObject<{submitterEmail: string | undefined; lastForwardedActorEmail: string | undefined}>()] = useOnyx(
         ONYXKEYS.PERSONAL_DETAILS_LIST,
-        {
-            selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID),
-        },
-        [report?.ownerAccountID, lastForwardedActorAccountID],
+        {selector: submitterAndLastForwardedActorEmailSelector(report?.ownerAccountID, lastForwardedActorAccountID)},
     );
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -101,7 +100,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         ? null
         : {
               accountID: lastForwardedActorDetails.accountID,
-              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate}),
+              displayName: temporaryGetDisplayNameOrDefault({passedPersonalDetails: lastForwardedActorDetails, translate, formatPhoneNumber}),
               email: lastForwardedActorEmail,
           };
 
@@ -120,7 +119,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
         });
     }
 
-    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate});
+    const submitterName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: getPersonalDetailByEmail(submitterEmail), translate, formatPhoneNumber});
     options.push({
         text: `${submitterName} (${translate('iou.rejectReport.submitter')})`,
         alternateText: submitterEmail,
@@ -166,6 +165,7 @@ function RejectExpenseReportPage({route}: RejectExpenseReportPageProps) {
             currentUserPersonalDetails?.displayName,
             currentUserPersonalDetails?.avatar,
             isTrackIntentUser,
+            delegateAccountID,
         );
         Navigation.goBack();
     };

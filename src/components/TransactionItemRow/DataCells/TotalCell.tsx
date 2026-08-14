@@ -9,7 +9,7 @@ import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {convertToBackendAmount, convertToFrontendAmountAsString, getCurrencyDecimals, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
+import {convertToBackendAmount, convertToFrontendAmountAsString, sanitizeCurrencyCode} from '@libs/CurrencyUtils';
 import {formatToParts} from '@libs/NumberFormatUtils';
 import {parseFloatAnyLocale, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isGroupPolicy} from '@libs/PolicyUtils';
@@ -46,7 +46,7 @@ function getTransactionItemIouType(transactionItem: TransactionItem) {
 function TotalCell({shouldShowTooltip, transactionItem, canEdit, onSave, report, policy}: TotalCellProps) {
     const styles = useThemeStyles();
     const {translate, preferredLocale} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencyDecimals} = useCurrencyListActions();
     const currency = getTransactionCurrency(transactionItem);
 
     const effectiveReport = report ?? transactionItem.report;

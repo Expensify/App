@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
@@ -148,12 +148,13 @@ function HRApprovalModePageBase<T extends ApprovalModeValue>({policyID, config}:
                         addBottomSafeAreaPadding
                     >
                         <Button
-                            large
-                            success
-                            text={translate('common.save')}
+                            size={CONST.BUTTON_SIZE.LARGE}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={confirmSaveApprovalMode}
                             isDisabled={isSaveDisabled}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </FixedFooter>
                 </View>
             </ScreenWrapper>

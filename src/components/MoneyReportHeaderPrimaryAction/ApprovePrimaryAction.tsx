@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 
 import useLocalize from '@hooks/useLocalize';
@@ -7,6 +7,7 @@ import useOnyx from '@hooks/useOnyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getNextApproverAccountID, isReportOwner, shouldShowMarkAsDone} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
@@ -41,11 +42,12 @@ function ApprovePrimaryAction({reportID}: ApprovePrimaryActionProps) {
 
     return (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={confirmApproval}
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}
             isDisabled={isBlockSubmitDueToPreventSelfApproval}
-        />
+        >
+            <Button.Text>{shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('iou.approve')}</Button.Text>
+        </Button>
     );
 }
 

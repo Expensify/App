@@ -627,11 +627,11 @@ function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamLis
         return state;
     }
 
-    // Each modal instance owns a uniquely-tagged sentinel so nested modals can be added/removed
-    // independently (LIFO), unlike the singleton side-panel sentinel.
+    // Each modal instance owns a uniquely-tagged history entry so nested modals can be added/removed
+    // independently (LIFO), unlike the singleton side-panel entry.
     const entry = `${CONST.NAVIGATION.CUSTOM_HISTORY_ENTRY_MODAL}:${action.payload.modalId}`;
 
-    // On open, append this modal's back-guard sentinel. useLinking sees history grow by one and
+    // On open, append this modal's back-guard entry. useLinking sees history grow by one and
     // pushes a browser history entry, so browser Back closes the modal.
     // Skip if already present (e.g. browser Forward restored the saved nav state before our dispatch ran).
     if (action.payload.isVisible) {
@@ -641,8 +641,8 @@ function handleToggleModalWithHistoryAction(state: StackNavigationState<ParamLis
         return {...state, history: [...state.history, entry]};
     }
 
-    // On close, remove only this modal's own sentinel (the last matching one). Filtering by exact
-    // tag keeps sibling/nested modal sentinels intact.
+    // On close, remove only this modal's own entry (the last matching one). Filtering by exact
+    // tag keeps sibling/nested modal entries intact.
     const indexToRemove = state.history.lastIndexOf(entry);
     if (indexToRemove === -1) {
         return state;
@@ -663,6 +663,7 @@ export {
     handleToggleModalWithHistoryAction,
     getPreInsertedOriginalTabRoute,
     clearPreInsertedOriginalTabRoute,
+    MODAL_ROUTES_TO_DISMISS,
     // Exported for unit-test access; not used outside of testing.
     withSanitizedDeepLinkParams,
     getTabStateWithFocusedTarget,

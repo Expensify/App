@@ -1,6 +1,6 @@
 import Icon from '@components/Icon';
 import InlineIcon from '@components/Icon/InlineIcon';
-import type {IconSize} from '@components/Icon/utils/resolveIconSize';
+import type IconSize from '@components/Icon/types';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 

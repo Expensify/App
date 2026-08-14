@@ -2,7 +2,15 @@ import {act, renderHook, waitFor} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
-import {changeTransactionsReport as changeTransactionsReportAction, dismissDuplicateTransactionViolation, markAsCash, sanitizeWaypointsForAPI, saveWaypoint} from '@libs/actions/Transaction';
+import {
+    changeTransactionsReport as changeTransactionsReportAction,
+    dismissDuplicateTransactionViolation,
+    markAsCash,
+    removeWaypoint,
+    sanitizeWaypointsForAPI,
+    saveWaypoint,
+    setSelectedRoute,
+} from '@libs/actions/Transaction';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
 import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -13,7 +21,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {Unit} from '@src/types/onyx/Policy';
+import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -33,16 +42,37 @@ import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-type LegacyChangeTransactionsReportProps = Omit<Parameters<typeof changeTransactionsReportAction>[0], 'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency'> & {
+type LegacyChangeTransactionsReportProps = Omit<
+    Parameters<typeof changeTransactionsReportAction>[0],
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
+> & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
     personalPolicyOutputCurrency?: string;
 };
+type CapturedOnyxData = {
+    optimisticData?: Array<{key: string; value: unknown}>;
+    successData?: Array<{key: string; value: unknown}>;
+    failureData?: Array<{key: string; value: unknown}>;
+};
+
+function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
+    return typeof value === 'object' && value !== null;
+}
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, ...rest});
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions: undefined,
+        delegateAccountID: undefined,
+        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        ...rest,
+    });
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -132,6 +162,19 @@ describe('Transaction', () => {
     });
 
     describe('changeTransactionsReport', () => {
+        let reports: OnyxCollection<Report>;
+
+        async function loadReports() {
+            await TestHelper.getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                callback: (value) => {
+                    reports = value;
+                },
+            });
+        }
+
+        beforeEach(loadReports);
+
         function createIOUAction(transaction: Transaction, reportID = transaction.reportID, type: ValueOf<typeof CONST.IOU.REPORT_ACTION_TYPE> = CONST.IOU.REPORT_ACTION_TYPE.CREATE) {
             return {
                 reportActionID: rand64(),
@@ -170,8 +213,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -210,8 +253,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -236,18 +279,15 @@ describe('Transaction', () => {
             });
             const oldIOUAction = createIOUAction(transaction);
 
-            const mockReportNextStep = {
-                type: 'neutral' as const,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Test next step message',
-                    },
-                ],
+            const mockReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {nextStep: mockReportNextStep});
+            await loadReports();
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allTransactions = {
@@ -261,11 +301,10 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -275,10 +314,10 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: mockReportNextStep, pendingFields: {nextStep: null, total: null}});
 
             mockAPIWrite.mockRestore();
         });
@@ -291,19 +330,15 @@ describe('Transaction', () => {
             });
             const oldIOUAction = createIOUAction(transaction);
 
-            const mockReportNextStep = {
-                type: 'alert' as const,
+            const mockReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
                 icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                message: [
-                    {
-                        text: 'Alert next step message',
-                    },
-                ],
-                requiresUserAction: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`, {nextStep: mockReportNextStep});
+            await loadReports();
 
             const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
             const allTransactions = {
@@ -317,11 +352,10 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -331,10 +365,154 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${CONST.REPORT.UNREPORTED_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: mockReportNextStep, pendingFields: {nextStep: null, total: null}});
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('keeps sibling duplicate violations cleaned after moving a duplicate transaction to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const transaction = generateTransaction({
+                transactionID: 'txn_a',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const siblingTransaction = generateTransaction({
+                transactionID: 'txn_b',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const oldIOUAction = createIOUAction(transaction);
+
+            const duplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const siblingDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [transaction.transactionID]},
+            };
+            const missingCategoryViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+
+            changeTransactionsReport({
+                transactionIDs: [transaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
+                },
+                policyTagList: undefined,
+                transactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [duplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
+                },
+                reports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
+            const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
+
+            expect(onyxData?.optimisticData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.successData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.failureData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([siblingDuplicateViolation, missingCategoryViolation]);
+
+            mockAPIWrite.mockRestore();
+        });
+
+        it('removes every selected transaction from shared sibling duplicate violations when moving multiple transactions to unreported', async () => {
+            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+
+            const firstTransaction = generateTransaction({
+                transactionID: 'txn_a',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const secondTransaction = generateTransaction({
+                transactionID: 'txn_c',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const siblingTransaction = generateTransaction({
+                transactionID: 'txn_b',
+                reportID: FAKE_OLD_REPORT_ID,
+            });
+            const firstIOUAction = createIOUAction(firstTransaction);
+            const secondIOUAction = createIOUAction(secondTransaction);
+
+            const firstDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const secondDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [siblingTransaction.transactionID]},
+            };
+            const siblingDuplicateViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.DUPLICATED_TRANSACTION,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+                data: {duplicates: [firstTransaction.transactionID, secondTransaction.transactionID]},
+            };
+            const missingCategoryViolation: TransactionViolation = {
+                name: CONST.VIOLATIONS.MISSING_CATEGORY,
+                type: CONST.VIOLATION_TYPES.VIOLATION,
+            };
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`, firstTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`, secondTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${siblingTransaction.transactionID}`, siblingTransaction);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {
+                [firstIOUAction.reportActionID]: firstIOUAction,
+                [secondIOUAction.reportActionID]: secondIOUAction,
+            });
+
+            changeTransactionsReport({
+                transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
+                isASAPSubmitBetaEnabled: false,
+                accountID: CURRENT_USER_ID,
+                email: 'test@example.com',
+                policy: undefined,
+                allTransactions: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
+                },
+                policyTagList: undefined,
+                transactionViolations: {
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${firstTransaction.transactionID}`]: [firstDuplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${secondTransaction.transactionID}`]: [secondDuplicateViolation],
+                    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`]: [siblingDuplicateViolation, missingCategoryViolation],
+                },
+                reports: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
+            const capturedOnyxData = apiWriteCall?.[2];
+            const onyxData = isCapturedOnyxData(capturedOnyxData) ? capturedOnyxData : undefined;
+            const siblingViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${siblingTransaction.transactionID}`;
+            const finalOptimisticSiblingUpdate = onyxData?.optimisticData?.findLast((data) => data.key === siblingViolationsKey);
+            const finalSuccessSiblingUpdate = onyxData?.successData?.findLast((data) => data.key === siblingViolationsKey);
+
+            expect(finalOptimisticSiblingUpdate?.value).toEqual([missingCategoryViolation]);
+            expect(finalSuccessSiblingUpdate?.value).toEqual([missingCategoryViolation]);
+            expect(onyxData?.failureData?.find((data) => data.key === siblingViolationsKey)?.value).toEqual([siblingDuplicateViolation, missingCategoryViolation]);
 
             mockAPIWrite.mockRestore();
         });
@@ -361,11 +539,10 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -375,10 +552,10 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toBeNull();
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: null, pendingFields: {nextStep: null, total: null}});
 
             mockAPIWrite.mockRestore();
         });
@@ -411,6 +588,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -420,8 +598,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -435,12 +613,13 @@ describe('Transaction', () => {
 
                 const apiWriteCall = mockAPIWrite.mock.calls.at(0);
                 const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
-                const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+                const sourceReportUpdate = optimisticData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
                 const sourceReportStateUpdate = optimisticData?.find(
                     (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
                 );
 
-                expect(sourceNextStepUpdate).toBeDefined();
+                expect(sourceReportUpdate).toBeDefined();
+                expect(sourceReportUpdate?.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
                 expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
                 expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
@@ -473,8 +652,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -518,8 +697,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -569,8 +748,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -620,8 +799,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -678,8 +857,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -726,6 +905,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -735,8 +915,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -778,6 +958,7 @@ describe('Transaction', () => {
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -787,8 +968,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -832,6 +1013,7 @@ describe('Transaction', () => {
             const allTransactions = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -841,8 +1023,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -900,6 +1082,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${firstTransaction.transactionID}`]: firstTransaction,
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${secondTransaction.transactionID}`]: secondTransaction,
             };
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [firstTransaction.transactionID, secondTransaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -909,7 +1092,7 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
-                allReports: undefined,
+                reports,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -995,6 +1178,7 @@ describe('Transaction', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${destinationExpenseReport.reportID}`, destinationExpenseReport);
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${sourceExpenseReport.reportID}`, sourceIOUActions);
 
+                await loadReports();
                 changeTransactionsReport({
                     transactionIDs: [usdTransaction.transactionID, movedBgnTransaction.transactionID],
                     isASAPSubmitBetaEnabled: false,
@@ -1004,8 +1188,8 @@ describe('Transaction', () => {
                     policy: undefined,
                     allTransactions,
                     policyTagList: undefined,
+                    reports,
                     transactionViolations: {},
-                    allReports: undefined,
                     isTrackIntentUser: false,
                 });
 
@@ -1068,22 +1252,18 @@ describe('Transaction', () => {
                 email: 'test@gmail.com',
                 newReport: newOpenReport,
                 policy,
-                reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
 
             await waitForBatchedUpdates();
 
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${newOpenReport.reportID}`);
-
-            const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
-
-            expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newOpenReport.reportID}`);
+            expect(report?.nextStep?.messageKey).toEqual(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
         });
 
         it('should decrement source and increment destination transactionCount on cross-currency move', async () => {
@@ -1118,6 +1298,7 @@ describe('Transaction', () => {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`]: transaction,
             };
 
+            await loadReports();
             changeTransactionsReport({
                 transactionIDs: [transaction.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -1125,12 +1306,11 @@ describe('Transaction', () => {
                 email: 'test@gmail.com',
                 newReport: destinationReport,
                 policy: undefined,
-                reportNextStep: undefined,
                 policyCategories: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
 
@@ -1187,8 +1367,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1229,8 +1409,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1266,8 +1446,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1316,8 +1496,8 @@ describe('Transaction', () => {
                 policy: undefined,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1378,8 +1558,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1427,7 +1607,7 @@ describe('Transaction', () => {
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [receiptNoticeViolation]},
-                allReports: undefined,
+                reports,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1490,8 +1670,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1540,7 +1720,7 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: {},
-                allReports: undefined,
+                reports,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1617,8 +1797,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1704,8 +1884,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1782,8 +1962,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1861,8 +2041,8 @@ describe('Transaction', () => {
                 policy,
                 allTransactions,
                 policyTagList: undefined,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -1982,6 +2162,181 @@ describe('Transaction', () => {
             expect(transaction?.errorFields?.route ?? null).toBeNull();
             expect(transaction?.routes?.route0?.distance ?? null).toBeNull();
             expect(transaction?.routes?.route0?.geometry?.coordinates ?? null).toBeNull();
+        });
+
+        it('should clear the selected route key so it does not point at a route that no longer exists', async () => {
+            const transactionID = 'txn6';
+            const index = '0';
+            const waypoint: RecentWaypoint = {
+                address: 'Clear Selected Route',
+                lat: 9,
+                lng: 10,
+            };
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
+            };
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            saveWaypoint({transactionID, index, waypoint, isDraft: false, recentWaypointsList: []});
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+
+            // The route distance belongs to the old waypoints, so it must not survive to be distance-matched
+            // against the refetched routes — otherwise the selection would jump to a route the user never picked.
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+            expect(
+                TransactionUtils.getSelectedRouteKey({
+                    ...existingTransaction,
+                    comment: transaction?.comment,
+                    routes: {route0: {distance: 500, geometry: {coordinates: [[0, 0]]}}, route1: {distance: 200, geometry: {coordinates: [[1, 1]]}}},
+                }),
+            ).toBe(CONST.TRANSACTION.DEFAULT_ROUTE_KEY);
+        });
+    });
+
+    describe('removeWaypoint', () => {
+        it('should clear the selected route key when the removed waypoint invalidates the route', async () => {
+            const transactionID = 'txn7';
+            const existingTransaction = generateTransaction({transactionID, reportID: '1'});
+            existingTransaction.comment = {
+                ...existingTransaction.comment,
+                selectedRouteKey: 'route1',
+                customUnit: {...existingTransaction.comment?.customUnit, routeDistanceMeters: 200},
+                waypoints: {
+                    waypoint0: {address: 'A', lat: 1, lng: 1},
+                    waypoint1: {address: 'B', lat: 2, lng: 2},
+                    waypoint2: {address: 'C', lat: 3, lng: 3},
+                },
+            };
+            existingTransaction.routes = {
+                route0: {distance: 100, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: 200, geometry: {coordinates: [[1, 1]]}},
+            };
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await removeWaypoint(existingTransaction, '1');
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey ?? null).toBeNull();
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters ?? null).toBeNull();
+        });
+    });
+
+    describe('setSelectedRoute', () => {
+        const ROUTE0_DISTANCE_METERS = 16093.44; // 10 mi
+        const ROUTE1_DISTANCE_METERS = 32186.88; // 20 mi
+
+        function buildRoutedTransaction(transactionID: string, distanceUnit?: Unit) {
+            const transaction = generateTransaction({transactionID, reportID: '1'});
+            transaction.comment = {
+                ...transaction.comment,
+                selectedRouteKey: CONST.TRANSACTION.DEFAULT_ROUTE_KEY,
+                customUnit: {
+                    ...transaction.comment?.customUnit,
+                    quantity: 10,
+                    routeDistanceMeters: ROUTE0_DISTANCE_METERS,
+                    ...(distanceUnit ? {distanceUnit} : {}),
+                },
+            };
+            transaction.routes = {
+                route0: {distance: ROUTE0_DISTANCE_METERS, geometry: {coordinates: [[0, 0]]}},
+                route1: {distance: ROUTE1_DISTANCE_METERS, geometry: {coordinates: [[1, 1]]}},
+            };
+            return transaction;
+        }
+
+        it.each([
+            [CONST.TRANSACTION.STATE.CURRENT, ONYXKEYS.COLLECTION.TRANSACTION],
+            [CONST.TRANSACTION.STATE.DRAFT, ONYXKEYS.COLLECTION.TRANSACTION_DRAFT],
+            [CONST.TRANSACTION.STATE.SPLIT_DRAFT, ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT],
+        ] as const)('writes the quantity of the newly selected route to the %s transaction', async (transactionState, keyPrefix) => {
+            const transactionID = `selectedRoute_${transactionState}`;
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${keyPrefix}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES, transactionState);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${keyPrefix}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE1_DISTANCE_METERS);
+        });
+
+        it('makes the displayed distance follow the newly selected route instead of the stale quantity', async () => {
+            const transactionID = 'selectedRoute_distance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(TransactionUtils.getDistanceInMeters(transaction, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES)).toBeCloseTo(ROUTE1_DISTANCE_METERS, 1);
+
+            expect(TransactionUtils.hasManualDistanceOverride(transaction)).toBe(false);
+        });
+
+        it('overwrites a manually typed distance override', async () => {
+            const transactionID = 'selectedRoute_override';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            existingTransaction.comment = {...existingTransaction.comment, customUnit: {...existingTransaction.comment?.customUnit, quantity: 999}};
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(20);
+        });
+
+        it("converts using the transaction's own distance unit", async () => {
+            const transactionID = 'selectedRoute_km';
+            const existingTransaction = buildRoutedTransaction(transactionID, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(32.19);
+        });
+
+        it('only writes the selected route key when the route has no distance', async () => {
+            const transactionID = 'selectedRoute_noDistance';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, undefined, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
+            expect(transaction?.comment?.customUnit?.routeDistanceMeters).toBe(ROUTE0_DISTANCE_METERS);
+        });
+
+        it('only writes the selected route key when the distance unit is unknown', async () => {
+            const transactionID = 'selectedRoute_noUnit';
+            const existingTransaction = buildRoutedTransaction(transactionID);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, existingTransaction);
+
+            await setSelectedRoute(transactionID, CONST.TRANSACTION.ALTERNATE_ROUTE_KEY, ROUTE1_DISTANCE_METERS, undefined);
+            await waitForBatchedUpdates();
+
+            const transaction = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+            expect(transaction?.comment?.selectedRouteKey).toBe(CONST.TRANSACTION.ALTERNATE_ROUTE_KEY);
+            expect(transaction?.comment?.customUnit?.quantity).toBe(10);
         });
     });
 

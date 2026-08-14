@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import MoneyRequestReportView from '@components/MoneyRequestReportView/MoneyRequestReportView';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 import {useSearchResultsContext} from '@components/Search/SearchContext';
 import useRHPWidth from '@components/WideRHPContextProvider/useRHPWidth';
@@ -28,7 +29,7 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RightModalNavigatorParamList} from '@libs/Navigation/types';
 import {getIOUActionForTransactionID, getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {isMoneyRequestReportPendingDeletion, isValidReportIDFromPath} from '@libs/ReportUtils';
 import {cancelSpansByPrefix} from '@libs/telemetry/activeSpans';
 import {doesDeleteNavigateBackUrlIncludeDuplicatesReview, getParentReportActionDeletionStatus, hasLoadedReportActions, isThreadReportDeleted} from '@libs/TransactionNavigationUtils';
@@ -75,6 +76,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
     const {currentSearchResults: snapshot} = useSearchResultsContext();
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportIDFromRoute}`, {selector: Boolean});
     const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
 
     const parentReportAction = useParentReportAction(report);
@@ -87,6 +89,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const [parentReportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.parentReportID}`);
     const {email: currentUserEmail, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isFocused = useIsFocused();
 
     useDismissOnMoneyRequestReportRemoval(reportIDFromRoute);
@@ -138,7 +141,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
 
     const reportAttributesSelector = useCallback((attributes: OnyxEntry<ReportAttributesDerivedValue>) => reportByIDsSelector(reportID ? [reportID] : [])(attributes), [reportID]);
     const [reportAttributes] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES, {selector: reportAttributesSelector});
-    useDocumentTitle(getReportName(report, reportAttributes));
+    useDocumentTitle(deprecatedGetReportName(report, reportAttributes));
 
     const doesReportIDLookValid = isValidReportIDFromPath(reportID);
     const hasLoadedReportActionsForAccessError = hasLoadedReportActions(reportLoadingState, isOffline);
@@ -207,11 +210,12 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
                 betas,
                 iouReport: report,
                 iouReportAction: iouAction,
+                personalDetails,
             });
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, betas});
+        openReport({reportID: reportIDFromRoute, introSelected, betas, hasReportActions, currentUserAccountID});
         isInitialMountRef.current = false;
 
         // oneTransactionID dependency handles the case when deleting a transaction:
@@ -283,6 +287,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
             iouReport: report,
             transaction,
             transactionViolations: violations,
+            personalDetails,
         });
     }, [
         allReportTransactions,
@@ -291,6 +296,7 @@ function SearchMoneyRequestReportPage({route}: SearchMoneyRequestPageProps) {
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         reportActions,
         reportIDFromRoute,

@@ -2,13 +2,10 @@
  * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
  * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
+import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
 // deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
 type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
-
-// Covers click → state-listener → captureTriggerForRoute on slow devices.
-const LAUNCHER_CLEAR_DELAY_MS = 1000;
-const LAUNCHER_STACK_MAX = 8;
 
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
@@ -81,7 +78,7 @@ function setActivePopoverLauncher(element: HTMLElement): void {
 }
 
 /** Mark a launcher (or top-of-stack) as deactivated. pickLauncher lazy-prunes on LAUNCHER_CLEAR_DELAY_MS. */
-function scheduleClearActivePopoverLauncher(element?: HTMLElement): void {
+function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;
     }
@@ -100,4 +97,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, setActivePopoverLauncher, scheduleClearActivePopoverLauncher, resetLauncherStackForTests};
+export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};

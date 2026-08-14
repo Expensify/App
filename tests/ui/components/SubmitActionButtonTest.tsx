@@ -5,19 +5,21 @@ import SubmitActionButton from '@components/ReportActionItem/MoneyRequestReportP
 import useOnyx from '@hooks/useOnyx';
 
 import {isSubmitPolicy} from '@libs/PolicyUtils';
-import {hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {hasViolations} from '@libs/ReportUtils';
+import {hasAnyPendingRTERViolation, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, TransactionViolations} from '@src/types/onyx';
 
-import type {UseOnyxResult} from 'react-native-onyx';
+import type {OnyxCollection, UseOnyxResult} from 'react-native-onyx';
 
 import React from 'react';
 
 const TEST_IOU_REPORT_ID = '1001';
+const TEST_TRANSACTION_ID = '3003';
 
 const iouReport = {
     reportID: TEST_IOU_REPORT_ID,
@@ -25,6 +27,13 @@ const iouReport = {
     policyID: 'policy1',
     ownerAccountID: 2,
 } as Report;
+
+const reportViolations: OnyxCollection<TransactionViolations> = {
+    [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${TEST_TRANSACTION_ID}`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+};
+
+// Mutable so each test can back the mocked useReportPreviewTransactionViolations slice with a specific value.
+let mockTransactionViolations: OnyxCollection<TransactionViolations> = {};
 
 function createOnyxResult<T>(value: NonNullable<T> | undefined): UseOnyxResult<T> {
     return [value, {status: 'loaded'}];
@@ -100,7 +109,8 @@ jest.mock('@hooks/useConfirmPendingRTERAndProceed', () => ({
 const mockStartSubmittingAnimation = jest.fn();
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext', () => ({
     __esModule: true,
-    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID}),
+    useReportPreviewData: () => ({iouReportID: TEST_IOU_REPORT_ID, transactions: []}),
+    useReportPreviewTransactionViolations: () => ({transactionViolations: mockTransactionViolations}),
     useReportPreviewAnimationState: () => ({isSubmittingAnimationRunning: false}),
     useReportPreviewActions: () => ({stopAnimation: jest.fn(), startSubmittingAnimation: mockStartSubmittingAnimation}),
 }));
@@ -118,13 +128,17 @@ const mockedSubmitReport = jest.mocked(submitReport);
 const mockedIsSubmitPolicy = jest.mocked(isSubmitPolicy);
 const mockedHasOnlyPendingCardTransactions = jest.mocked(hasOnlyPendingCardTransactions);
 const mockedShowPendingCardTransactionsBlockModal = jest.mocked(showPendingCardTransactionsBlockModal);
+const mockedHasViolations = jest.mocked(hasViolations);
+const mockedHasAnyPendingRTERViolation = jest.mocked(hasAnyPendingRTERViolation);
 
 describe('SubmitActionButton', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockOnPressHolder.current = undefined;
+        mockTransactionViolations = {};
         mockedIsSubmitPolicy.mockReturnValue(false);
         mockedHasOnlyPendingCardTransactions.mockReturnValue(false);
+        mockedHasViolations.mockReturnValue(false);
         mockedUseOnyx.mockImplementation((key) => {
             if (key === `${ONYXKEYS.COLLECTION.REPORT}${TEST_IOU_REPORT_ID}`) {
                 return createOnyxResult<Report>(iouReport);
@@ -170,5 +184,19 @@ describe('SubmitActionButton', () => {
 
         expect(mockedShowPendingCardTransactionsBlockModal).toHaveBeenCalled();
         expect(mockedSubmitReport).not.toHaveBeenCalled();
+    });
+
+    it('computes hasViolations from the context violations and forwards the result to submitReport', () => {
+        mockTransactionViolations = reportViolations;
+        mockedHasViolations.mockReturnValue(true);
+        render(<SubmitActionButton />);
+
+        act(() => {
+            mockOnPressHolder.current?.();
+        });
+
+        expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
+        expect(mockedHasAnyPendingRTERViolation.mock.calls.at(-1)?.[1]).toBe(reportViolations);
+        expect(mockedSubmitReport).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
     });
 });

@@ -11,6 +11,9 @@ type VictoryChartRendererProps = CustomRendererProps<TBlock>;
 type RawChartData = {
     x: string | number;
     y: number;
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
 };
 
 type RawLegendData = {
@@ -64,6 +67,14 @@ type CartesianChartData = {
     [key: `${YKey}`]: number;
 };
 
+type ChartPointMetadata = {
+    label?: string;
+    currency?: string;
+    searchQuery?: string;
+};
+
+type ChartPointMetadataByYKey = Partial<Record<YKey, Record<string, ChartPointMetadata>>>;
+
 type PolarChartData = {
     [LABEL_KEY]: string | number;
     [VALUE_KEY]: number;
@@ -71,6 +82,15 @@ type PolarChartData = {
 };
 
 type TextAnchor = 'start' | 'middle' | 'end';
+
+/** A pie-chart slice label's fully resolved, absolute position — shared by `VictoryChartPieLabel` and `VictoryChartPieLabelIndicator` so both always agree. */
+type ResolvedPieLabel = {
+    x: number;
+    y: number;
+    textAnchor: TextAnchor;
+    /** The angle actually used for this slice's layout. */
+    midAngle: number;
+};
 
 type LabelItem = {
     /** Position on the X-axis */
@@ -169,6 +189,7 @@ type ProcessNodeResult = {
     categories: string[] | undefined;
     labelItems: LabelItem[];
     legendItems: LegendItem[];
+    pointMetadata: ChartPointMetadataByYKey;
 };
 
 /** Partial slice produced by a single per-tag parser before merging. */
@@ -188,8 +209,10 @@ export type {
     RawShiftedLineSegmentStyle,
     YKey,
     CartesianChartData,
+    ChartPointMetadata,
     CartesianChartProps,
     TextAnchor,
+    ResolvedPieLabel,
     LabelItem,
     LegendItemEntry,
     LegendItem,

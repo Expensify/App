@@ -60,7 +60,6 @@ function clearStaleExportDownloads() {
     // to the entire collection, which would cause unnecessary re-renders on every change.
     const connectionID = Onyx.connectWithoutView({
         key: ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD,
-        waitForCollectionCallback: true,
         callback: (exportDownloads) => {
             Onyx.disconnect(connectionID);
             if (!exportDownloads) {
@@ -103,4 +102,29 @@ function exportReportsToPDF(reportIDs: string[]): string {
     return exportID;
 }
 
-export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF};
+function exportReceiptsToZip(reportIDs: string[]): string {
+    const exportID = rand64();
+    const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
+
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: onyxKey,
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.PREPARING, exportType: CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS},
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.SET,
+            key: onyxKey,
+            value: {state: CONST.EXPORT_DOWNLOAD.STATE.FAILED, exportType: CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS},
+        },
+    ];
+
+    write(WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP, {reportIDs: JSON.stringify(reportIDs), exportID}, {optimisticData, failureData});
+
+    return exportID;
+}
+
+export {sendExportFileFromConcierge, clearExportDownload, clearStaleExportDownloads, exportReportsToPDF, exportReceiptsToZip};

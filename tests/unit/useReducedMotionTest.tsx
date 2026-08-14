@@ -1,6 +1,6 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import Accessibility from '@libs/Accessibility';
+import Accessibility, {resetForTests} from '@libs/Accessibility';
 
 import {AccessibilityInfo} from 'react-native';
 
@@ -16,6 +16,7 @@ describe('useReducedMotion', () => {
 
         jest.spyOn(AccessibilityInfo, 'isReduceMotionEnabled').mockImplementation(mockIsReduceMotionEnabled);
         jest.spyOn(AccessibilityInfo, 'addEventListener').mockImplementation(mockAddEventListener);
+        resetForTests();
     });
 
     afterEach(() => {
@@ -81,12 +82,12 @@ describe('useReducedMotion', () => {
         expect(result.current).toBe(false);
     });
 
-    it('should cleanup subscription on unmount', () => {
+    it('keeps the shared listener attached after unmount — detaching would leak a stale cache if the OS toggled reduce-motion during the subscriber gap', () => {
         const {unmount} = renderHook(() => Accessibility.useReducedMotion());
 
         unmount();
 
-        expect(mockRemove).toHaveBeenCalled();
+        expect(mockRemove).not.toHaveBeenCalled();
     });
 
     it('should handle API failure gracefully', async () => {

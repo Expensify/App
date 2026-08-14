@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -8,6 +8,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import {markRejectViolationAsResolved} from '@userActions/IOU/RejectMoneyRequest';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
@@ -25,15 +26,16 @@ function MarkAsResolvedPrimaryAction({reportID, chatReportID}: SimpleActionProps
 
     return (
         <Button
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             onPress={() => {
                 if (!transaction?.transactionID) {
                     return;
                 }
                 markRejectViolationAsResolved(transaction.transactionID, isOffline, transactionViolations, transactionThreadReport?.reportID);
             }}
-            text={translate('iou.reject.markAsResolved')}
-        />
+        >
+            <Button.Text>{translate('iou.reject.markAsResolved')}</Button.Text>
+        </Button>
     );
 }
 

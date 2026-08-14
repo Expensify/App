@@ -49,12 +49,13 @@ type WorkspaceExpensifyCardPageEmptyStateProps = {
 } & WithPolicyAndFullscreenLoadingProps;
 
 function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensifyCardPageEmptyStateProps) {
-    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'HandCard', 'ExpensifyCardIllustration']);
+    const illustrations = useMemoizedLazyIllustrations(['MoneyReceipts', 'CreditCardsNew', 'MoneyWings', 'ExpensifyCardIllustration']);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
+    const [supportedCountriesByCurrency] = useOnyx(ONYXKEYS.CARD_SUPPORTED_COUNTRIES);
     const [reimbursementAccount] = useOnyx(ONYXKEYS.REIMBURSEMENT_ACCOUNT);
     const {showConfirmModal, closeModal} = useConfirmModal();
     const {windowHeight} = useWindowDimensions();
@@ -80,7 +81,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
     const hasAccessibleFeeds = allFeeds.length > 0;
 
-    const eligibleBankAccounts = isUkEuCurrencySupported ? getEligibleBankAccountsForUkEuCard(bankAccountList, policy?.outputCurrency) : getEligibleBankAccountsForCard(bankAccountList);
+    const eligibleBankAccounts = isUkEuCurrencySupported
+        ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, policy?.outputCurrency)
+        : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
     const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
     const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup);
@@ -141,7 +144,6 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     return (
         <WorkspacePageWithSections
             shouldUseScrollView
-            icon={illustrations.HandCard}
             headerText={translate('workspace.common.expensifyCard')}
             route={route}
             showLoadingAsFirstRender={false}

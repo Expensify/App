@@ -1,16 +1,16 @@
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {delegateEmailSelector} from '@src/selectors/Account';
 import {hasSeenTourSelector} from '@src/selectors/Onboarding';
-import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report, ReportNextStepDeprecated} from '@src/types/onyx';
+import type {Beta, BillingGraceEndPeriod, IntroSelected, Policy, Report} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import React, {createContext, useContext} from 'react';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDelegateAccountID from './useDelegateAccountID';
 import useLastWorkspaceNumber from './useLastWorkspaceNumber';
 import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
@@ -33,15 +33,14 @@ type PaymentContextValue = {
     conciergeChat: OnyxEntry<Report>;
     defaultWorkspaceName: string;
     delegateEmail: string | undefined;
+    delegateAccountID: number | undefined;
 };
 
 type ReportPaymentContextValue = PaymentContextValue & {
-    nextStep: OnyxEntry<ReportNextStepDeprecated>;
     chatReportPolicy: OnyxEntry<Policy>;
 };
 
 type UseReportPaymentContextParams = {
-    reportID: string | undefined;
     chatReportPolicyID: string | undefined;
 };
 
@@ -65,6 +64,7 @@ function usePaymentContextValues(): PaymentContextValue {
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
     const activePolicy = usePolicy(activePolicyID);
 
     const defaultWorkspaceName = generateDefaultWorkspaceName(email ?? '', lastWorkspaceNumber, translate);
@@ -86,6 +86,7 @@ function usePaymentContextValues(): PaymentContextValue {
         conciergeChat,
         defaultWorkspaceName,
         delegateEmail,
+        delegateAccountID,
     };
 }
 
@@ -103,14 +104,12 @@ function usePaymentContext(): PaymentContextValue {
     return context;
 }
 
-function useReportPaymentContext({reportID, chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
+function useReportPaymentContext({chatReportPolicyID}: UseReportPaymentContextParams): ReportPaymentContextValue {
     const paymentContext = usePaymentContext();
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(reportID)}`);
     const chatReportPolicy = usePolicy(chatReportPolicyID);
 
     return {
         ...paymentContext,
-        nextStep,
         chatReportPolicy,
     };
 }
