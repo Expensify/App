@@ -23,7 +23,7 @@
 
 ### Key Navigators
 
-- **ProtectedScreens**: Authenticated app screens
+- **AuthScreens**: Authenticated app screens
 - **PublicScreens**: Login and onboarding screens
 - **RHP (Right Hand Pane)**: Contextual panels — settings and details
 - **Central Pane**: Main content area
