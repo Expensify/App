@@ -12,6 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {hasHoverSupport} from '@libs/DeviceCapabilities';
 import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
+import ReceiptStorage from '@libs/ReceiptStorage';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
     hasEReceipt,
@@ -170,7 +171,7 @@ function ReportActionItemImage({
         );
     }
 
-    const localSource = transaction?.receipt?.localSource;
+    const localSource = ReceiptStorage.resolve(transaction?.receipt?.localSource);
     const effectiveIsLocalFile = isLocalFile || !!localSource;
     const effectiveThumbnail = localSource ?? thumbnail;
     const receiptURIs = transaction ? getThumbnailAndImageURIs(transaction, null, null) : undefined;
