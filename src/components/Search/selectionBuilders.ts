@@ -379,6 +379,59 @@ function countFullyExcludedItems(data: SearchData, excludedTransactions: Selecte
     }, 0);
 }
 
+type ReconcileExclusionsParams = {
+    /** The selection this commit started from */
+    previousSelectedTransactions: SelectedTransactions;
+
+    /** The selection the updater returned */
+    selectedTransactions: SelectedTransactions;
+
+    /** The exclusions to build on, which the caller may already have pruned or refreshed this commit */
+    excludedTransactions: SelectedTransactions;
+
+    /** Rows the caller deselected that had no entry of their own, which the diff cannot see leave */
+    deselectedWithoutEntry: SelectedTransactions;
+};
+
+/**
+ * The exclusions after one commit, under an all-matching selection where they are the whole story. Order matters and
+ * is the reason this is one function: a group's exclusion has to go before its rows are pruned against it, or a row
+ * put back by the same gesture loses the exclusion that no longer covers it.
+ */
+function reconcileExclusions({previousSelectedTransactions, selectedTransactions, excludedTransactions, deselectedWithoutEntry}: ReconcileExclusionsParams): SelectedTransactions {
+    const next: SelectedTransactions = {...excludedTransactions};
+
+    for (const [key, transaction] of Object.entries(previousSelectedTransactions)) {
+        if (!Object.hasOwn(selectedTransactions, key)) {
+            next[key] = transaction;
+        }
+    }
+    for (const key of Object.keys(selectedTransactions)) {
+        if (!Object.hasOwn(previousSelectedTransactions, key) && Object.hasOwn(next, key)) {
+            delete next[key];
+        }
+    }
+    // The diff above cannot see a row leave the selection when it was never in it, so the caller names those.
+    for (const [key, transaction] of Object.entries(deselectedWithoutEntry)) {
+        if (!Object.hasOwn(selectedTransactions, key)) {
+            next[key] = transaction;
+        }
+    }
+    // A row selected as part of its group puts the whole group back, so the exclusion that stood for it goes too.
+    for (const [key, transaction] of Object.entries(selectedTransactions)) {
+        if (transaction.isSelectedViaGroup && transaction.groupKey && !Object.hasOwn(previousSelectedTransactions, key)) {
+            delete next[transaction.groupKey];
+        }
+    }
+    // An excluded group already covers every row under it, so keeping their exclusions as well counts the same rows twice.
+    for (const [key, transaction] of Object.entries(next)) {
+        if (transaction.groupKey && Object.hasOwn(next, transaction.groupKey)) {
+            delete next[key];
+        }
+    }
+    return next;
+}
+
 /** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */
 function countCheckedGroupChildren({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): number {
     return children.reduce(
@@ -471,6 +524,7 @@ export {
     isGroupChecked,
     countCheckedGroupChildren,
     countFullyExcludedItems,
+    reconcileExclusions,
     countSelectableItems,
     isRowChecked,
     NO_OPEN_GROUPS,

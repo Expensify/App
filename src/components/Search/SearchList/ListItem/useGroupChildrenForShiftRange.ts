@@ -5,29 +5,41 @@ import {isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import type {TransactionListItemType} from './types';
 
-type UseGroupChildrenForShiftRangeArgs = {
+type GroupCheckboxArgs = {
     /** The group's original (un-prefixed) key, which its rows are stamped with */
     groupKey: string;
-
-    /** Whether this is the expense-report view, where the rows arrive ready to render */
-    isExpenseReportType: boolean;
 
     /** The rows the group carries */
     groupTransactions: TransactionListItemType[];
 };
 
-/** A group's rows stamped with the live selection, and the state its checkbox reads, for both grouped render paths. */
+type UseGroupChildrenForShiftRangeArgs = GroupCheckboxArgs & {
+    /** Whether this is the expense-report view, where the rows arrive ready to render */
+    isExpenseReportType: boolean;
+};
+
+/**
+ * What a group's checkbox shows. Both grouped layouts read it from here: they disagreed for a round over whether a row
+ * being deleted counts, and the checkbox is what the user compares between them.
+ */
+function useGroupCheckboxState({groupKey, groupTransactions}: GroupCheckboxArgs): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
+
+    const params = {groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
+    const selectableTransactions = groupTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
+    const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
+
+    return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
+}
+
+/** The same, plus the group's rows stamped with the live selection. For the two call sites that render those rows. */
 function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTransactions}: UseGroupChildrenForShiftRangeArgs): {
     transactions: TransactionListItemType[];
     isSelectAllChecked: boolean;
     isIndeterminate: boolean;
 } {
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
-
-    // One derivation for both layouts: they disagreed for a round over whether a row being deleted counts, and the checkbox is what the user compares.
-    const params = {groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
-    const selectableTransactions = groupTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-    const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
+    const checkboxState = useGroupCheckboxState({groupKey, groupTransactions});
 
     // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded. Expense-report rows carry both already.
     const transactions: TransactionListItemType[] = isExpenseReportType
@@ -44,7 +56,8 @@ function useGroupChildrenForShiftRange({groupKey, isExpenseReportType, groupTran
               selectionGroupKey: groupKey,
           }));
 
-    return {transactions, isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
+    return {transactions, ...checkboxState};
 }
 
 export default useGroupChildrenForShiftRange;
+export {useGroupCheckboxState};

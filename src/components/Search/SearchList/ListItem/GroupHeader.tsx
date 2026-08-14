@@ -47,7 +47,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
-import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
+import {useGroupCheckboxState} from './useGroupChildrenForShiftRange';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -171,18 +171,13 @@ function GroupHeader({
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
-    const hasSnapshotTransactions = !isExpenseReportType && !!snapshotData && Object.keys(snapshotData).some((key) => key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION));
-    const isEmpty = groupItem.transactions.length === 0 && !hasSnapshotTransactions && !groupItem.transactionsQueryJSON;
+    // A group with a query of its own is not empty, it just has not been fetched yet.
+    const isEmpty = groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
-    const {isSelectAllChecked, isIndeterminate} = useGroupChildrenForShiftRange({
-        groupKey: originalKey,
-        isExpenseReportType,
-        groupTransactions: groupItem.transactions,
-    });
-    const effectiveTransactions = groupItem.transactions;
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: originalKey, groupTransactions: groupItem.transactions});
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
@@ -199,7 +194,7 @@ function GroupHeader({
     });
 
     const handleSelectionButtonPress = () => {
-        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
+        onCheckboxPress(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     const pendingAction =
@@ -355,7 +350,7 @@ function GroupHeader({
     };
 
     const handleLongPress = () => {
-        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : effectiveTransactions);
+        onLongPressRow?.(withOriginalKey(item), isExpenseReportType ? undefined : groupItem.transactions);
     };
 
     return (

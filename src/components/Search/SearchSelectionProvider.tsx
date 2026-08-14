@@ -7,7 +7,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked, reconcileExclusions} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -123,35 +123,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
             if (shouldRecordExclusions) {
                 areAllMatchingItemsSelected = true;
                 // Built on whatever the caller passed, so a reconcile that pruned or refreshed exclusions in the same commit is not thrown away.
-                excludedTransactions = {...excludedTransactions};
-                for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {
-                    if (!Object.hasOwn(selectedTransactions, key)) {
-                        excludedTransactions[key] = transaction;
-                    }
-                }
-                for (const key of Object.keys(selectedTransactions)) {
-                    if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
-                        delete excludedTransactions[key];
-                    }
-                }
-                // The diff above cannot see a row leave the selection when it was never in it, so the caller names those.
-                for (const [key, transaction] of Object.entries(options?.deselectedWithoutEntry ?? {})) {
-                    if (!Object.hasOwn(selectedTransactions, key)) {
-                        excludedTransactions[key] = transaction;
-                    }
-                }
-                // A row selected as part of its group puts the whole group back, so the exclusion that stood for it goes too.
-                for (const [key, transaction] of Object.entries(selectedTransactions)) {
-                    if (transaction.isSelectedViaGroup && transaction.groupKey && !Object.hasOwn(prevState.selectedTransactions, key)) {
-                        delete excludedTransactions[transaction.groupKey];
-                    }
-                }
-                // An excluded group already covers every row under it, so keeping their exclusions as well counts the same rows twice.
-                for (const [key, transaction] of Object.entries(excludedTransactions)) {
-                    if (transaction.groupKey && Object.hasOwn(excludedTransactions, transaction.groupKey)) {
-                        delete excludedTransactions[key];
-                    }
-                }
+                excludedTransactions = reconcileExclusions({
+                    previousSelectedTransactions: prevState.selectedTransactions,
+                    selectedTransactions,
+                    excludedTransactions,
+                    deselectedWithoutEntry: options?.deselectedWithoutEntry ?? {},
+                });
                 // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
                 const hasSelectableItems = totalSelectableItemsCount !== undefined && totalSelectableItemsCount > 0;
                 const fullyExcludedItemCount =
