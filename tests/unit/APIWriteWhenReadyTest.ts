@@ -43,6 +43,11 @@ function deferWriteWithOptions(barrier: WriteReadyBarrier, options: WriteWhenRea
 // describe block already has one.
 const navigationBarrier = API.createTransitionBarrier('navigation');
 
+// Wrapper rather than direct calls in the armTransitionBarrier tests, for the same no-multiple-api-calls reason.
+function armBarrier(waitFor?: true | 'navigation') {
+    return API.armTransitionBarrier(waitFor);
+}
+
 // A barrier that never settles - forces the write to sit pending until a timeout/background flush.
 function neverSettlingBarrier(): WriteReadyBarrier {
     return () => new Promise<void>(() => {});
@@ -620,6 +625,117 @@ describe('API.writeWhenReady', () => {
             } finally {
                 jest.useRealTimers();
             }
+        });
+    });
+
+    describe('armTransitionBarrier', () => {
+        // Captures the callback TransitionTracker was registered with, plus the cancel spy for that
+        // registration, so a test can decide when the transition "finishes" and assert on cleanup.
+        function mockTransitionRegistration() {
+            const cancel = jest.fn();
+            let transitionCallback: () => void = () => {};
+            mockRunAfterTransitions.mockImplementation(({callback}) => {
+                transitionCallback = callback as () => void;
+                return {cancel};
+            });
+            return {cancel, finishTransition: () => transitionCallback()};
+        }
+
+        it('registers with TransitionTracker at arm time, before any write exists', () => {
+            mockTransitionRegistration();
+
+            armBarrier();
+
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+            expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+            expect(mockPush).not.toHaveBeenCalled();
+        });
+
+        it('writes immediately when the transition already finished before the barrier is used', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            // The transition the write was meant to wait out completes first - this is the case a
+            // freshly created default barrier would miss, waiting for an unrelated future transition.
+            finishTransition();
+
+            deferWrite(armed.barrier);
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            // No second registration: the armed barrier is reused, not rebuilt at write time.
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        });
+
+        it('still gates the write when the transition is in flight at write time', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            deferWrite(armed.barrier);
+            await flushMicrotasks();
+            expect(mockPush).not.toHaveBeenCalled();
+
+            finishTransition();
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+        });
+
+        it('releases several writes from one armed barrier at the same point', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            // One interaction, several writes (e.g. a split with one write per receipt).
+            deferWrite(armed.barrier);
+            deferWrite(armed.barrier);
+            await flushMicrotasks();
+            expect(mockPush).not.toHaveBeenCalled();
+
+            finishTransition();
+            await flushMicrotasks(() => mockPush.mock.calls.length >= 2);
+
+            expect(mockPush).toHaveBeenCalledTimes(2);
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        });
+
+        it("forwards the write's early release to the armed TransitionTracker registration", async () => {
+            jest.useFakeTimers();
+            try {
+                const {cancel} = mockTransitionRegistration();
+                const armed = armBarrier();
+
+                deferWrite(armed.barrier);
+                await flushMicrotasks();
+                expect(cancel).not.toHaveBeenCalled();
+
+                // The transition never completes, so the safety timeout releases the write. The
+                // registration made at arm time has to be dropped even though it was not created by
+                // writeWhenReady itself.
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
+                await flushMicrotasks(pushHappened);
+
+                expect(mockPush).toHaveBeenCalledTimes(1);
+                expect(cancel).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('drops the registration on cancel() when the write never happens', () => {
+            const {cancel} = mockTransitionRegistration();
+
+            armBarrier().cancel();
+
+            expect(cancel).toHaveBeenCalledTimes(1);
+            expect(mockPush).not.toHaveBeenCalled();
+        });
+
+        it('passes waitFor through to the underlying transition barrier', () => {
+            mockTransitionRegistration();
+
+            armBarrier('navigation');
+
+            expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: 'navigation'}));
         });
     });
 });

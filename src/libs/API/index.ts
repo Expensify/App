@@ -19,12 +19,12 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import type {ReleaseReason, WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
+import type {ArmedTransitionBarrier, ReleaseReason, WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
-import {createTransitionBarrier, writeWhenReady} from './writeWhenReady';
+import {armTransitionBarrier, createTransitionBarrier, writeWhenReady} from './writeWhenReady';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
@@ -227,6 +227,7 @@ export {
     write,
     writeWhenReady,
     createTransitionBarrier,
+    armTransitionBarrier,
     makeRequestWithSideEffects,
     read,
     paginate,
@@ -236,4 +237,4 @@ export {
     writeWithNoDuplicatesEnableFeatureConflicts,
     waitForWrites,
 };
-export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason};
+export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason, ArmedTransitionBarrier};

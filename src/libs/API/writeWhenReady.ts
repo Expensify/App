@@ -112,6 +112,51 @@ function createTransitionBarrier(waitFor: true | 'navigation' = true): WriteRead
 const waitForTransition = createTransitionBarrier();
 
 /**
+ * A transition barrier that was attached to `TransitionTracker` before the write it gates exists.
+ * `barrier` is passed to `writeWhenReady`; `cancel` drops the registration if the write never happens.
+ */
+type ArmedTransitionBarrier = {
+    barrier: WriteReadyBarrier;
+    cancel: () => void;
+};
+
+/**
+ * Attach a transition barrier now, use it later.
+ *
+ * The default barrier only takes its fast path when `TransitionTracker` already knows a transition is
+ * active or imminent at the moment the barrier is attached. A caller that navigates first and issues
+ * the write from the navigation's own completion callback would attach after that transition ended,
+ * so the barrier would wait for an unrelated future transition and fall through to the safety timeout.
+ *
+ * Arming splits the two moments: register with `TransitionTracker` at the point the navigation is
+ * triggered, then hand the resulting barrier to `writeWhenReady` whenever the write is actually built.
+ * If the transition already finished by then, the barrier is already resolved and the write runs
+ * immediately.
+ *
+ * The same armed barrier can gate several writes from one interaction (e.g. one write per receipt in a
+ * split); they all release at the same point rather than racing separate barriers.
+ *
+ * `cancel()` is for the abandoned path - the code armed a barrier and then decided not to write. It
+ * leaves the barrier permanently pending, matching `createTransitionBarrier`'s abort contract, so a
+ * cancelled barrier that is passed to `writeWhenReady` anyway still writes at the safety timeout
+ * rather than never.
+ */
+function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransitionBarrier {
+    const armController = new AbortController();
+    const armed = createTransitionBarrier(waitFor)(armController.signal);
+
+    return {
+        // Forward writeWhenReady's own abort (safety timeout / app background) so the TransitionTracker
+        // registration is dropped instead of being left dangling after the write already went out.
+        barrier: (signal) => {
+            signal.addEventListener('abort', () => armController.abort());
+            return armed;
+        },
+        cancel: () => armController.abort(),
+    };
+}
+
+/**
  * Like `write()`, but deferred until a readiness signal (barrier) is fired.
  *   - Optimistic updates are intentionally deferred, as well as the API request itself.
  *   - Once ready, it delegates to the normal `write()` pipeline.
@@ -239,5 +284,5 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
     });
 }
 
-export {writeWhenReady, createTransitionBarrier, SAFETY_TIMEOUT_MS};
-export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason};
+export {writeWhenReady, createTransitionBarrier, armTransitionBarrier, SAFETY_TIMEOUT_MS};
+export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason, ArmedTransitionBarrier};
