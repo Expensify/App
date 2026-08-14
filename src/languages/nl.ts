@@ -6187,7 +6187,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                 unassignedCards: 'Niet toegewezen',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `${integration} ${type.toLowerCase()}-export` : `${integration}-export`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd.${exportPageLink ? ` Selecteer een andere <a href="${exportPageLink}">exportoptie</a> om de beschikbare rekeningen te wijzigen.` : ''}`,
+                    `Kies de ${integration}-rekening waarnaar transacties moeten worden geëxporteerd. Selecteer een andere ${exportPageLink ? `<a href="${exportPageLink}">exportoptie</a>` : 'exportoptie'} om de beschikbare rekeningen te wijzigen.`,
                 lastUpdated: 'Laatst bijgewerkt',
                 transactionStartDate: 'Begindatum transactie',
                 updateCard: 'Kaart bijwerken',

@@ -6360,7 +6360,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 unassignedCards: 'Μη εκχωρημένο',
                 integrationExport: (integration: string, type?: string) => (integration && type ? `εξαγωγή ${integration} ${type.toLowerCase()}` : `εξαγωγή ${integration}`),
                 integrationExportTitle: (integration: string, exportPageLink?: string) =>
-                    `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές.${exportPageLink ? `Επιλέξτε μια διαφορετική <a href="${exportPageLink}">επιλογή εξαγωγής</a> για να αλλάξετε τους διαθέσιμους λογαριασμούς.` : ''}`,
+                    `Επιλέξτε τον λογαριασμό ${integration} στον οποίο θα εξαχθούν οι συναλλαγές. Επιλέξτε μια διαφορετική ${exportPageLink ? `<a href="${exportPageLink}">επιλογή εξαγωγής</a>` : 'επιλογή εξαγωγής'} για να αλλάξετε τους διαθέσιμους λογαριασμούς.`,
                 lastUpdated: 'Τελευταία ενημέρωση',
                 transactionStartDate: 'Ημερομηνία έναρξης συναλλαγής',
                 updateCard: 'Ενημέρωση κάρτας',
