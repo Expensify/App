@@ -9523,7 +9523,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         decline: 'Refuser',
     },
     actionableMentionTrackExpense: {
-        submit: 'Soumettre à quelqu’un',
         submitToFriend: 'Soumettre à un ami',
         submitToEmployer: 'Soumettre à mon employeur',
         categorize: 'Catégorisez-la',

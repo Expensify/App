@@ -9426,7 +9426,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         decline: 'Recusar',
     },
     actionableMentionTrackExpense: {
-        submit: 'Enviar para alguém',
         submitToFriend: 'Enviar para um amigo',
         submitToEmployer: 'Enviar para meu empregador',
         categorize: 'Classificar isso',

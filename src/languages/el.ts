@@ -9711,7 +9711,6 @@ ${reportName}`,
         decline: 'Απόρριψη',
     },
     actionableMentionTrackExpense: {
-        submit: 'Υποβάλετέ το σε κάποιον',
         categorize: 'Κατηγοριοποιήστε το',
         share: 'Κοινοποιήστε το στον λογιστή μου',
         nothing: 'Τίποτα προς το παρόν',
