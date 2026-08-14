@@ -27,7 +27,7 @@ function Button({
     children,
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
-    isLoading: isOnyxLoading = false,
+    isLoading: isOnyxLoading,
     showInstantLoadingOnPress = false,
     isDisabled = false,
     onLayout = () => {},
@@ -65,7 +65,9 @@ function Button({
     };
 
     // isLoading is the pressed flag combined with isOnyxLoading, and drives rendering, the press guard and the disabled state.
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
+    // isOnyxLoading is forwarded undefined when the consumer supplies none, so the hook knows there is no hand-over coming.
+    // resetOnFocus is scoped to the opt-in, so buttons that never engage the mechanism don't subscribe a navigation listener.
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading, resetOnFocus: showInstantLoadingOnPress});
 
     // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
     const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {

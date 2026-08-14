@@ -2,7 +2,10 @@ import {NavigationContext} from '@react-navigation/core';
 import {useContext, useEffect, useState} from 'react';
 
 type UsePressLoadingOptions = {
-    /** External loading flag (e.g. driven by Onyx) */
+    /**
+     * External loading flag (e.g. driven by Onyx). Leave it undefined when there is none: the hook then clears the pressed
+     * state once the work settles, instead of waiting for a hand-over that is never coming.
+     */
     isLoading?: boolean;
     /** Reset the pressed state when the screen regains navigation focus. Defaults to true. */
     resetOnFocus?: boolean;
@@ -24,8 +27,11 @@ type UsePressLoadingReturn = {
  * feedback instead of an unresponsive button. When a loading state already exists, pass it in as isLoading so the
  * spinner is guaranteed to render before the heavy work starts.
  */
-function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
+function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
+
+    // Whether someone else can take the loading state over once the work settles. Drives the clear below.
+    const hasExternalLoading = isLoading !== undefined;
 
     // Resetting here hands the loading state over from the local press flag to the external isLoading once it turns true.
     if (isPressed && isLoading) {
@@ -45,9 +51,13 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
             setIsPressed(false);
             throw error;
         }
-        // Clearing on success too, because the button is disabled while the flag is set: a handler that returns without navigating and
-        // without driving an external isLoading (a validation bail-out) would otherwise leave it spinning and unpressable for good.
-        setIsPressed(false);
+        // Clearing on success only when there is no external isLoading to hand over to. The consumer is disabled while the flag is set, so a
+        // handler that returns without navigating (a validation bail-out) would otherwise leave it spinning and unpressable for good. Clearing
+        // unconditionally would be worse: the work is usually synchronous, so this resolves a microtask later, long before an Onyx-driven flag
+        // arrives — the spinner would blink off during exactly the wait it exists to cover, and the press guard would reopen with it.
+        if (!hasExternalLoading) {
+            setIsPressed(false);
+        }
     };
 
     // Reset on focus regain covers flows that navigate away and come back with no external isLoading to hand off to.
@@ -64,7 +74,7 @@ function usePressLoading({isLoading = false, resetOnFocus = true}: UsePressLoadi
         return navigationContext.addListener('focus', () => setIsPressed((wasPressed) => (wasPressed ? false : wasPressed)));
     }, [resetOnFocus, navigationContext]);
 
-    return {isLoading: isPressed || isLoading, startWithLoading};
+    return {isLoading: isPressed || !!isLoading, startWithLoading};
 }
 
 export default usePressLoading;
