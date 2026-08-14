@@ -267,6 +267,11 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/travel/upgrade?backTo=/home')).toBe('/travel/travel-upgrade?backTo=/home');
     });
 
+    it('redirects old travel workspace confirmation path to dynamic route', () => {
+        expect(getMatchingNewRoute('/travel/upgrade/workspace/confirmation')).toBe('/travel/travel-upgrade/workspace-confirmation');
+        expect(getMatchingNewRoute('/travel/upgrade/workspace/confirmation?backTo=/home')).toBe('/travel/travel-upgrade/workspace-confirmation?backTo=/home');
+    });
+
     it('redirects legacy new task flat routes to the new nested dynamic routes', () => {
         expect(getMatchingNewRoute('/new/task/details')).toBe('/task-details');
         expect(getMatchingNewRoute('/new/task')).toBe('/task-details/task-confirm');

@@ -35,7 +35,7 @@ const SCREENS = {
         TRIP_SUMMARY: 'Travel_TripSummary',
         TRIP_DETAILS: 'Travel_TripDetails',
         DYNAMIC_PUBLIC_DOMAIN_ERROR: 'Dynamic_Travel_PublicDomainError',
-        WORKSPACE_CONFIRMATION: 'Travel_WorkspaceConfirmation',
+        DYNAMIC_WORKSPACE_CONFIRMATION: 'Dynamic_Travel_WorkspaceConfirmation',
         TRAVEL_DOT_LINK_WEB_VIEW: 'Travel_DotLinkWebView',
         VERIFY_ACCOUNT: 'Travel_VerifyAccount',
         ENABLE: 'Travel_Enable',
