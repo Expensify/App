@@ -40,6 +40,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {AnyOnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -2857,6 +2858,61 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(reportActionsUpdate).toBeDefined();
             const reportAction = getRequiredReportAction(reportActionsUpdate);
             expect(reportAction.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('approveMoneyRequest outstanding child request', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic/failure data.
+            jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        });
+
+        it('clears hasOutstandingChildRequest optimistically and restores it if the approve request fails', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                // The report shows the LHN green dot before approval.
+                hasOutstandingChildRequest: true,
+            };
+            const expenseReportPolicy: Policy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
+
+            approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport,
+                expenseReportPolicy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                betas: [CONST.BETAS.ALL],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic/failure data structure
+            const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
+
+            // The green dot clears optimistically because the expense report's own flag is set to false.
+            const optimisticReport: OnyxEntry<Report> = onyxData?.optimisticData?.find((update) => update.key === reportKey)?.value;
+            expect(optimisticReport?.hasOutstandingChildRequest).toBe(false);
+
+            // If the approve request fails, the flag is restored so the green dot reappears.
+            const failureReport: OnyxEntry<Report> = onyxData?.failureData?.find((update) => update.key === reportKey)?.value;
+            expect(failureReport?.hasOutstandingChildRequest).toBe(true);
         });
     });
 
