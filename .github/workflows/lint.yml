@@ -15,7 +15,7 @@ on:
         '**.cjs',
         'config/.editorconfig',
         'config/eslint/**',
-        'scripts/lint.sh',
+        'scripts/lint.ts',
         'scripts/lintChanged.sh',
         '.watchmanconfig',
         '.imgbotconfig',
@@ -96,13 +96,6 @@ jobs:
         with:
           path: node_modules/.cache/eslint
           key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-${{ github.sha }}
-
-      # The lint run above only ratchets down max-error counts for files it actually visits, so a
-      # deleted or renamed file's baseline row is never revisited and lingers forever. Drop those
-      # rows here so they're included in the tightened-baseline check and commit below.
-      - name: Finish tightening eslint-seatbelt baseline (prune deleted files)
-        if: github.event_name == 'push'
-        run: bun scripts/tightenEslintSeatbelt.ts
 
       # If lint tightened the seatbelt baseline (i.e. fewer baselined errors than last time),
       # commit the updated TSV back to `main` as OSBotify. Only runs under `workflow_call`
