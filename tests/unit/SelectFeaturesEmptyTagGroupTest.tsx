@@ -14,6 +14,7 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -89,7 +90,7 @@ jest.mock('@userActions/Policy/Policy', () => {
  * A tag list collection where one group is fully populated and another has no `tags` field at all.
  * The empty group reproduces the runtime shape that crashed both pages (`Object.values(undefined)`).
  */
-const POLICY_TAGS_WITH_EMPTY_GROUP = {
+const POLICY_TAGS_WITH_EMPTY_GROUP = createMock<PolicyTagLists>({
     Region: {
         name: 'Region',
         required: false,
@@ -105,7 +106,7 @@ const POLICY_TAGS_WITH_EMPTY_GROUP = {
         orderWeight: 1,
         // `tags` intentionally omitted to mimic a tag group with no tags defined.
     },
-} as unknown as PolicyTagLists;
+});
 
 describe('Select features pages with an empty tag group', () => {
     beforeAll(() => {

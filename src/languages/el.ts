@@ -1749,6 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
@@ -1761,6 +1762,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά σας εστάλη αντί για τον αναπληρωτή διακοπών σας <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για τον/την αναπληρωτή/τρια αδείας τους <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος του κανονισμού αυτής της αναφοράς`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή δεν μπορείτε να εγκρίνετε τις δικές σας αναφορές`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Αυτή η αναφορά σας στάλθηκε για έγκριση, επειδή ο εκπρόσωπός σας για άδεια, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του αναφορές`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στη <mention-user>@${originalManager}</mention-user> για έγκριση, καθώς ο/η αναπληρωτής/-τριάς του/της, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             actions: {
                 addApprover: 'Προσθήκη εγκρίνων',
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
