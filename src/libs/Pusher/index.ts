@@ -126,6 +126,34 @@ function getChannel(channelName: string): Channel | undefined {
     return socket.channel(channelName);
 }
 
+function onChannelResubscribe(channelName: string, callback: () => void) {
+    let unbind = () => {};
+    let disposed = false;
+
+    initPromise.then(() => {
+        if (disposed || !socket) {
+            return;
+        }
+
+        const channel = socket.subscribe(channelName);
+        let hasSubscribed = false;
+        const handler = () => {
+            if (hasSubscribed) {
+                callback();
+            }
+            hasSubscribed = true;
+        };
+
+        channel.bind('pusher:subscription_succeeded', handler);
+        unbind = () => channel.unbind('pusher:subscription_succeeded', handler);
+    });
+
+    return () => {
+        disposed = true;
+        unbind();
+    };
+}
+
 /**
  * Binds an event callback to a channel + eventName.
  * Returns the wrapped callback so it can be individually unbound later.
@@ -215,14 +243,8 @@ function bindEventToChannel<EventName extends PusherEventName>(
  * Subscribe to a channel and an event.
  * Returns a PusherSubscription — a Promise (for backward-compatible .catch()/.then())
  * with an .unsubscribe() method that removes only this specific callback.
- * @param [onResubscribe] Callback to be called when reconnection happen
  */
-function subscribe<EventName extends PusherEventName>(
-    channelName: string,
-    eventName?: EventName,
-    eventCallback: (data: EventData<EventName>) => void = () => {},
-    onResubscribe = () => {},
-): PusherSubscription {
+function subscribe<EventName extends PusherEventName>(channelName: string, eventName?: EventName, eventCallback: (data: EventData<EventName>) => void = () => {}): PusherSubscription {
     let wrappedCb: BoundCallback | undefined;
     let resolvedChannel: Channel | undefined;
     let disposed = false;
@@ -260,55 +282,51 @@ function subscribe<EventName extends PusherEventName>(
                         }
 
                         Log.info('[Pusher] Attempting to subscribe to channel', false, {channelName, eventName});
-                        let channel = getChannel(channelName);
 
-                        if (!channel) {
-                            channel = socket.subscribe(channelName);
-                            let isBound = false;
-                            channel.bind('pusher:subscription_succeeded', () => {
-                                // Check so that we do not bind another event with each reconnect attempt
-                                if (!isBound) {
-                                    if (!disposed) {
-                                        wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
-                                        resolvedChannel = channel ?? undefined;
-                                    } else if (channel) {
-                                        // Handle was disposed mid-handshake — clean up the channel
-                                        // if no other subscribers have bound callbacks to it
-                                        const eventMap = eventsBoundToChannels.get(channel);
-                                        if (!eventMap || eventMap.size === 0) {
-                                            eventsBoundToChannels.delete(channel);
-                                            socket?.unsubscribe(channelName);
-                                        }
-                                    }
-                                    resolve();
-                                    isBound = true;
-                                    return;
+                        const channel = socket.subscribe(channelName);
+
+                        const bindAndResolve = () => {
+                            if (disposed) {
+                                // Handle was disposed mid-handshake — clean up the channel
+                                // if no other subscribers have bound callbacks to it
+                                const eventMap = eventsBoundToChannels.get(channel);
+                                if (!eventMap || eventMap.size === 0) {
+                                    eventsBoundToChannels.delete(channel);
+                                    socket?.unsubscribe(channelName);
                                 }
-
-                                // When subscribing for the first time we register a success callback that can be
-                                // called multiple times when the subscription succeeds again in the future
-                                // e.g. as a result of Pusher disconnecting and reconnecting. This callback does
-                                // not fire on the first subscription_succeeded event.
-                                onResubscribe();
-                            });
-
-                            channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
-                                const {type, error, status} = data;
-                                Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
-                                    channelName,
-                                    status,
-                                    type,
-                                    error,
-                                });
-                                reject(error);
-                            });
-                        } else {
-                            if (!disposed) {
-                                wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
-                                resolvedChannel = channel;
+                                resolve();
+                                return;
                             }
+
+                            wrappedCb = bindEventToChannel(channel, eventName, eventCallback);
+                            resolvedChannel = channel;
                             resolve();
+                        };
+
+                        if (channel.subscribed) {
+                            bindAndResolve();
+                            return;
                         }
+
+                        let isBound = false;
+                        channel.bind('pusher:subscription_succeeded', () => {
+                            if (isBound) {
+                                return;
+                            }
+                            isBound = true;
+                            bindAndResolve();
+                        });
+
+                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
+                            const {type, error, status} = data;
+                            Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
+                                channelName,
+                                status,
+                                type,
+                                error,
+                            });
+                            reject(error);
+                        });
                     },
                 });
             }),
@@ -487,6 +505,7 @@ const WebPusher: PusherModule = {
     init,
     subscribe,
     unsubscribe,
+    onChannelResubscribe,
     getChannel,
     isSubscribed,
     isAlreadySubscribing,

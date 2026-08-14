@@ -128,7 +128,8 @@ describe('Pusher.subscribe', () => {
 
         await initPusher();
 
-        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {}, onResubscribe);
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
         await jest.runAllTimersAsync();
         await handle;
 
@@ -141,6 +142,25 @@ describe('Pusher.subscribe', () => {
         MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
 
         expect(onResubscribe).toHaveBeenCalledTimes(2);
+    });
+
+    it('should deliver an event once to a caller that lived through several handshakes', async () => {
+        const channelName = 'private-user-rebind';
+        const eventCallback = jest.fn();
+
+        await initPusher();
+
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', eventCallback);
+        await jest.runAllTimersAsync();
+        await handle;
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        MockedPusher.getInstance().trigger({channelName, eventName: 'multipleEvents', data: {}});
+        await jest.runAllTimersAsync();
+
+        expect(eventCallback).toHaveBeenCalledTimes(1);
     });
 });
 
