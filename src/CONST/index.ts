@@ -6228,6 +6228,13 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        WORKFLOWS_TAB_TYPE: 'workflowsTabType',
+        WORKFLOWS: {
+            SUBMISSIONS: 'submissions',
+            APPROVALS: 'approvals',
+            PAYMENTS: 'payments',
+            ADVANCED: 'advanced',
+        },
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
@@ -8660,6 +8667,7 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
