@@ -6245,6 +6245,10 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 bookOrManageYourTrip: {title: 'Reisebuchung', subtitle: 'Glückwunsch! Du kannst in diesem Arbeitsbereich jetzt Reisen buchen und verwalten.', ctaText: 'Reisen verwalten'},
                 settings: {
                     autoAddTripName: {title: 'Reisenamen zu Ausgaben hinzufügen', subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.'},
+                    codingSync: {
+                        title: 'Fahrten bei der Buchung kodieren',
+                        subtitle: 'Fordern Sie Reisende beim Check-out nach den Kategorien, Tags und Berichtsfeldern dieses Workspaces, damit Reisen bereits vorkodiert ankommen.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {

@@ -6324,6 +6324,10 @@ const translations = {
                         title: 'Add trip names to expenses',
                         subtitle: 'Automatically add trip names to expense descriptions for travel booked in Expensify.',
                     },
+                    codingSync: {
+                        title: 'Code trips at booking',
+                        subtitle: 'Ask travelers for this workspace’s categories, tags, and report fields at checkout, so trips arrive already coded.',
+                    },
                 },
                 travelInvoicing: {
                     travelBookingSection: {
