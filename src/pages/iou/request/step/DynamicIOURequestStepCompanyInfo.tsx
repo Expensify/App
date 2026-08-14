@@ -16,7 +16,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import markPendingSearchWriteIfGlobalCreate from '@libs/Navigation/helpers/markPendingSearchWriteIfGlobalCreate';
 import {startTracking} from '@libs/telemetry/submitFollowUpAction';
 import {getIsFromGlobalCreate} from '@libs/TransactionUtils';
 import {extractUrlDomain} from '@libs/Url';
@@ -108,7 +108,7 @@ function DynamicIOURequestStepCompanyInfo({route, report, transaction}: DynamicI
             },
             {skipSubmitExpenseSpan: true},
         );
-        reserveSearchChannelIfGlobalCreate(!!isFromGlobalCreate);
+        markPendingSearchWriteIfGlobalCreate(!!isFromGlobalCreate);
         const invoiceChatReportID = report?.reportID ? undefined : reportID;
         sendInvoice({
             getCurrencyDecimals,

@@ -13,9 +13,9 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
-import {hasPendingWrite} from '@libs/submitWriteSession';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -86,9 +86,7 @@ function SearchStaticList({
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
-    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
-        () => hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
-    );
+    const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(() => hasPendingSearchWrite() || Navigation.getIsFullscreenPreInsertedUnderRHP());
 
     const {type, sortBy, sortOrder, groupBy} = queryJSON;
     const validGroupBy = getValidGroupBy(groupBy);
@@ -122,10 +120,10 @@ function SearchStaticList({
     // the destination is visible (focus signal for the dual-gate span ending).
     useFocusEffect(
         useCallback(() => {
-            const hasPendingSearchWrite = hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-            if (!showPendingExpensePlaceholder && hasPendingSearchWrite) {
+            const hasPendingWrite = hasPendingSearchWrite();
+            if (!showPendingExpensePlaceholder && hasPendingWrite) {
                 setShowPendingExpensePlaceholder(true);
-            } else if (showPendingExpensePlaceholder && !hasPendingSearchWrite && sortedData.length > 0) {
+            } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {
                 setShowPendingExpensePlaceholder(false);
             }
 

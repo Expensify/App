@@ -31,6 +31,7 @@ import openInternalRouteInNewTab, {isModifiedMousePress} from '@libs/Navigation/
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {flushPendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isCreatedTaskReportAction} from '@libs/ReportActionsUtils';
 import {isOneTransactionReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, buildSearchQueryString} from '@libs/SearchQueryUtils';
@@ -52,7 +53,6 @@ import {
     shouldShowEmptyState,
     shouldShowYear as shouldShowYearUtil,
 } from '@libs/SearchUIUtils';
-import {flushWriteSession, hasPendingWrite} from '@libs/submitWriteSession';
 import {cancelSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {
     cancelNavigateToReportsSpans,
@@ -415,7 +415,7 @@ function Search({
         // API call and return stale results that overwrite the optimistic row.
         // Skip this call; the optimistic data from flushWriteSession will populate
         // the list, and the next user-driven search will refresh from the server.
-        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (hasPendingWriteOnMountRef.current.hasPendingWriteOnMount && hasPendingSearchWrite()) {
             return;
         }
 
@@ -814,7 +814,7 @@ function Search({
         endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_FIRST);
         endNavigateToReportsContentLoad();
         TransitionTracker.runAfterTransitions({
-            callback: () => flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH),
+            callback: () => flushPendingSearchWrite(),
         });
     }, [onDestinationVisible]);
 
@@ -856,11 +856,11 @@ function Search({
         // different component" warning. setIsSearchReady is idempotent, so
         // firing this on every bail-out render is safe.
         onContentReady?.();
-        if (!hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!hasPendingSearchWrite()) {
             return;
         }
         didBailToFallbackState.current = false;
-        flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        flushPendingSearchWrite();
     });
 
     const onLayoutChart = useCallback(() => {
@@ -888,7 +888,7 @@ function Search({
 
             // Re-arm pending expense skeleton for subsequent creations while Search
             // stays mounted (the original hasPendingWriteOnMountRef only covers the first).
-            if (hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) && !showPendingExpensePlaceholder) {
+            if (hasPendingSearchWrite() && !showPendingExpensePlaceholder) {
                 wasRearmedRef.current = true;
                 rearmTracking();
                 setSkeletonWasDisplayed(true);
@@ -901,7 +901,7 @@ function Search({
             endNavigateToReportsFirstPaint(CONST.TELEMETRY.NAVIGATE_TO_REPORTS_START_TYPE.WARM_SUBSEQUENT);
             endNavigateToReportsContentLoad();
             // On re-focus (e.g. DISMISS_MODAL_ONLY) onLayout won't re-fire — flush here.
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushPendingSearchWrite();
         }, [shouldShowLoadingState, onDestinationVisible, showPendingExpensePlaceholder, rearmTracking]),
     );
 
@@ -911,7 +911,7 @@ function Search({
     // write channel is gone (write executed) and sortedData has updated, then
     // signals overlay readiness.
     useEffect(() => {
-        if (!wasRearmedRef.current || hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+        if (!wasRearmedRef.current || hasPendingSearchWrite()) {
             return;
         }
         wasRearmedRef.current = false;

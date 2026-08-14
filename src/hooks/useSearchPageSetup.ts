@@ -3,10 +3,8 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
+import {hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
-import {hasPendingWrite} from '@libs/submitWriteSession';
-
-import CONST from '@src/CONST';
 
 import {useFocusEffect} from '@react-navigation/native';
 import {useEffect} from 'react';
@@ -76,7 +74,7 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (isSnapshotDataLoaded && !isInitialSearchPending) {
             return;
         }
-        const shouldSkipWaitForWrites = hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        const shouldSkipWaitForWrites = hasPendingSearchWrite();
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 

@@ -29,6 +29,7 @@ describe('pendingSearchWrite', () => {
         expect(hasPendingSearchWrite()).toBe(false);
 
         markPendingSearchWrite();
+        acquireSearchWriteBarrier();
         expect(hasPendingSearchWrite()).toBe(true);
 
         flushPendingSearchWrite();
@@ -81,6 +82,25 @@ describe('pendingSearchWrite', () => {
         expect(isSettled()).toBe(true);
     });
 
+    it('holds the signal up when the flush arrives before any write took the barrier', () => {
+        markPendingSearchWrite();
+
+        flushPendingSearchWrite();
+
+        // The write is still coming. Dropping the signal here would pull the skeleton out from under it
+        // and let Search issue a query for data the optimistic write is about to provide.
+        expect(hasPendingSearchWrite()).toBe(true);
+    });
+
+    it('drops the held signal once the late write takes the barrier', () => {
+        markPendingSearchWrite();
+        flushPendingSearchWrite();
+
+        acquireSearchWriteBarrier();
+
+        expect(hasPendingSearchWrite()).toBe(false);
+    });
+
     it('hands out an already-resolved barrier when nothing was marked', async () => {
         const isSettled = settled(acquireSearchWriteBarrier());
         await Promise.resolve();
@@ -110,6 +130,7 @@ describe('pendingSearchWrite', () => {
         jest.useFakeTimers();
         try {
             markPendingSearchWrite();
+            acquireSearchWriteBarrier();
             jest.advanceTimersByTime(SAFETY_TIMEOUT_MS / 2);
             flushPendingSearchWrite();
             markPendingSearchWrite();
@@ -127,6 +148,7 @@ describe('pendingSearchWrite', () => {
         it('keeps the key readable after the write was released', () => {
             markPendingSearchWrite();
             setSearchWriteWatchKey(`${ONYXKEYS.COLLECTION.TRANSACTION}1`);
+            acquireSearchWriteBarrier();
 
             flushPendingSearchWrite();
 
@@ -137,6 +159,7 @@ describe('pendingSearchWrite', () => {
         it('drops the previous key when a new submission starts', () => {
             markPendingSearchWrite();
             setSearchWriteWatchKey(`${ONYXKEYS.COLLECTION.TRANSACTION}1`);
+            acquireSearchWriteBarrier();
             flushPendingSearchWrite();
 
             markPendingSearchWrite();

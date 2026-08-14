@@ -12,12 +12,12 @@ import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
 import isReportOpenInSuperWideRHP from '@libs/Navigation/helpers/isReportOpenInSuperWideRHP';
 import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
+import markPendingSearchWriteIfGlobalCreate from '@libs/Navigation/helpers/markPendingSearchWriteIfGlobalCreate';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {reserveWriteSession} from '@libs/submitWriteSession';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
@@ -223,7 +223,7 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        markPendingSearchWrite();
         revealPreMountDestination(() => {
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
@@ -260,9 +260,10 @@ function SubmitExpenseOrchestrator({
         let clearPendingWrite = () => {};
 
         if (shouldPreserveSearchWithPlaceholder) {
-            // Search-destined submissions still resolve through Search's own session; it owns the
-            // readiness signal for its placeholder UI, and has not been migrated to a barrier yet.
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            // Search-destined submissions release on Search's own content layout, not on this dismiss
+            // transition, so they take Search's barrier instead of an armed transition one. The signal
+            // has to go up here, before the write exists, because Search's placeholder reads it on mount.
+            markPendingSearchWrite();
         } else {
             // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
             // dismiss transition is starting, otherwise it would wait out an unrelated later one.
@@ -308,7 +309,7 @@ function SubmitExpenseOrchestrator({
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        markPendingSearchWrite();
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);
@@ -383,7 +384,7 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation);
+        markPendingSearchWriteIfGlobalCreate(isFromGlobalCreateForNavigation);
         requestAnimationFrame(() => {
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {

@@ -16,7 +16,7 @@ import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
  *
  * The state is module-level rather than plumbed because the two moments are separated by a navigation:
  * a global-create submit marks the signal from the confirmation step (see
- * `reserveSearchChannelIfGlobalCreate`), and the write is built later, in a different component tree,
+ * `markPendingSearchWriteIfGlobalCreate`), and the write is built later, in a different component tree,
  * after Search has mounted. There is no call chain to thread a barrier through.
  *
  * Note: Search has its own 10s timeout (`clearOptimisticTracking`) for the UI-level optimistic item
@@ -41,6 +41,12 @@ type PendingSearchWrite = {
 
     /** Guards against a superseded signal's cleanup clearing a newer one. */
     generation: number;
+
+    /** How many writes have taken this barrier. */
+    consumerCount: number;
+
+    /** Set when a flush arrives before any write has taken the barrier. */
+    isFlushRequested: boolean;
 
     safetyTimeoutID: ReturnType<typeof setTimeout>;
 };
@@ -97,6 +103,8 @@ function markPendingSearchWrite() {
         barrier: () => released,
         release,
         generation,
+        consumerCount: 0,
+        isFlushRequested: false,
         safetyTimeoutID,
     };
 }
@@ -108,13 +116,31 @@ function hasPendingSearchWrite(): boolean {
 /**
  * The barrier a write should wait on.
  *
- * With no signal up it returns an already-resolved barrier, so the write goes out immediately. That
- * covers both the case where Search already flushed before the write was built and the case where
- * nothing marked at all - in either one there is nothing left to wait for, and deferring would only
- * delay a write whose skeleton is not showing anyway.
+ * With nothing marked it returns an already-resolved barrier, so the write goes out immediately. That
+ * keeps every call site down to a single `API.writeWhenReady`, instead of branching between it and
+ * `API.write`.
+ *
+ * `optimisticWatchKey` is published only when a signal is actually up, since it exists for the
+ * skeleton that the signal drives.
  */
-function acquireSearchWriteBarrier(): WriteReadyBarrier {
-    return pending?.barrier ?? (() => Promise.resolve());
+function acquireSearchWriteBarrier(optimisticWatchKey?: OnyxKey): WriteReadyBarrier {
+    if (!pending) {
+        return () => Promise.resolve();
+    }
+
+    setSearchWriteWatchKey(optimisticWatchKey);
+    pending.consumerCount += 1;
+
+    // Search flushed before this write existed, so it has nothing left to wait for. The signal was
+    // held up until now (see flushPendingSearchWrite) and comes down here, once there is a write to
+    // hand the release to.
+    if (pending.isFlushRequested) {
+        const {barrier, generation} = pending;
+        clearPending(generation);
+        return barrier;
+    }
+
+    return pending.barrier;
 }
 
 /**
@@ -129,9 +155,19 @@ function flushPendingSearchWrite() {
     if (!pending) {
         return;
     }
-    const {release, generation} = pending;
-    clearPending(generation);
+
+    const {release, generation, consumerCount} = pending;
     release();
+
+    // Nothing has taken the barrier yet, so the write this signal was raised for is still coming. The
+    // signal has to stay up until it arrives: it is what keeps the skeleton in place and what stops
+    // Search from issuing a redundant query for data the optimistic write is about to provide.
+    if (consumerCount === 0) {
+        pending.isFlushRequested = true;
+        return;
+    }
+
+    clearPending(generation);
 }
 
 /** Publish the Onyx key the pending write will create optimistically. */

@@ -1,8 +1,8 @@
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
-import {getReportOrDraftReport} from '@libs/ReportUtils';
 // Dismiss-first submit orchestration for skip-confirmation paths (QAB amount, scan/distance). Confirmation-step flows use SubmitExpenseOrchestrator instead.
-import {reserveWriteSession} from '@libs/submitWriteSession';
+import {markPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
 
@@ -58,7 +58,7 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        markPendingSearchWrite();
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         Navigation.dismissModal({
             afterTransition: () => executeWrite({shouldHandleNavigation: false}),
