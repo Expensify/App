@@ -130,3 +130,4 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
 }
 
 export default CategoryPicker;
+export type {CategoryPickerProps};
