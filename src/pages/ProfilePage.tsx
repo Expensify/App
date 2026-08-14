@@ -4,6 +4,8 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -288,8 +290,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {isCurrentUser && (
-                            <MenuItem
-                                shouldShowRightIcon
+                            <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
@@ -313,10 +314,10 @@ function ProfilePage({route}: ProfilePageProps) {
                             </OfflineWithFeedback>
                         )}
                         {isOwnedAgent && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
+                                onPress={() => switchToDelegator(login)}
                             />
                         )}
                         {shouldShowNotificationPreference && (
@@ -351,10 +352,9 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('debug.debug')}
                                 icon={expensifyIcons.Bug}
-                                shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}
