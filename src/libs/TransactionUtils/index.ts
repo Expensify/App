@@ -1862,7 +1862,8 @@ function hasPendingRTERViolation(transactionViolations?: TransactionViolations |
             transactionViolation.name === CONST.VIOLATIONS.RTER &&
             transactionViolation.data?.pendingPattern &&
             transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION &&
-            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530,
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 &&
+            transactionViolation.data?.rterType !== CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531,
     );
 }
 
@@ -1910,7 +1911,9 @@ function hasBrokenConnectionViolation(
 function isBrokenConnectionViolation(violation: TransactionViolation) {
     return (
         violation.name === CONST.VIOLATIONS.RTER &&
-        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530)
+        (violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530 ||
+            violation.data?.rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531)
     );
 }
 
