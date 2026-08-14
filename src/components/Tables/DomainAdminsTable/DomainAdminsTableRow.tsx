@@ -66,7 +66,6 @@ export default function DomainAdminsTableRow({item, rowIndex, shouldUseNarrowTab
                             size={avatarSize}
                             accountID={item.accountID}
                             fallbackDisplayName={item.name}
-                            shouldShowTooltip
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip

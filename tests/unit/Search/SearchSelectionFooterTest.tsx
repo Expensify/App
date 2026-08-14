@@ -21,17 +21,36 @@ jest.mock('@libs/actions/Search', () => ({
     getFooterConvertedAmounts: jest.fn(),
 }));
 
-const mockSearchQueryContext: {current: {currentSearchHash: number; currentSearchKey: undefined; currentSearchQueryJSON: {hash: number; type: string} | undefined}} = {
+type MockSearchQueryContext = {
+    currentSearchHash: number;
+    currentSearchKey: undefined;
+    currentSearchQueryJSON: {hash: number; type: SearchResults['search']['type']} | undefined;
+};
+
+const mockSearchQueryContext: {current: MockSearchQueryContext} = {
     current: {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}},
 };
 const mockSelectedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockExcludedTransactions: {current: SelectedTransactions} = {current: {}};
+const mockAreAllMatchingItemsSelected = {current: false};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchQueryContext: () => mockSearchQueryContext.current,
     useSearchResultsContext: () => ({currentSearchResults: undefined}),
-    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, areAllMatchingItemsSelected: false, selectedReports: []}),
+    useSearchSelectionContext: () => ({
+        selectedTransactions: mockSelectedTransactions.current,
+        excludedTransactions: mockExcludedTransactions.current,
+        areAllMatchingItemsSelected: mockAreAllMatchingItemsSelected.current,
+        selectedReports: [],
+    }),
 }));
 
-type CapturedFooterProps = {defaultCurrency?: string; currency?: string; onCurrencyChange?: (currency: string) => void};
+type CapturedFooterProps = {
+    count?: number;
+    total?: number;
+    defaultCurrency?: string;
+    currency?: string;
+    onCurrencyChange?: (currency: string) => void;
+};
 const mockCapturedFooterProps: {current: CapturedFooterProps | undefined} = {current: undefined};
 jest.mock('@components/Search/SearchPageFooter', () => ({
     __esModule: true,
@@ -53,16 +72,16 @@ const ACCOUNT_ID = 1;
 const PERSONAL_POLICY_ID = 'personalPolicy1';
 const WORKSPACE_POLICY_ID = 'workspacePolicy1';
 
-function buildSearchResults(currency: string | undefined, count = 1): SearchResults {
+function buildSearchResults(currency: string | undefined, count = 1, total = -100, type: SearchResults['search']['type'] = CONST.SEARCH.DATA_TYPES.EXPENSE): SearchResults {
     return {
         search: {
             count,
             currency,
-            total: -100,
+            total,
             offset: 0,
             isLoading: false,
             hash: 1,
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            type,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             hasMoreResults: false,
@@ -100,6 +119,8 @@ describe('SearchSelectionFooter', () => {
     beforeEach(async () => {
         mockSearchQueryContext.current = {currentSearchHash: 1, currentSearchKey: undefined, currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE}};
         mockSelectedTransactions.current = {transaction1: buildSelectedTransaction(SELECTED_EXPENSE_CURRENCY)};
+        mockExcludedTransactions.current = {};
+        mockAreAllMatchingItemsSelected.current = false;
         mockCapturedFooterProps.current = undefined;
         // Clear here rather than in afterEach: Onyx.clear() there re-renders the previous test's still-mounted
         // component (testing-library only unmounts it afterwards), and those renders can record mock calls.
@@ -113,6 +134,36 @@ describe('SearchSelectionFooter', () => {
 
     afterEach(async () => {
         await Onyx.clear();
+    });
+
+    it('subtracts excluded expenses from the server count and total', async () => {
+        mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {transaction1: buildSelectedTransaction(CONST.CURRENCY.USD)};
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 172, 36000)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 171, total: 35900, currency: CONST.CURRENCY.USD}));
+    });
+
+    it('keeps the expense-report server count and total unchanged', async () => {
+        mockSearchQueryContext.current = {
+            currentSearchHash: 1,
+            currentSearchKey: undefined,
+            currentSearchQueryJSON: {hash: 1, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT},
+        };
+        mockSelectedTransactions.current = {};
+        mockExcludedTransactions.current = {
+            transaction1: buildSelectedTransaction(CONST.CURRENCY.USD),
+            transaction2: buildSelectedTransaction(CONST.CURRENCY.USD),
+        };
+        mockAreAllMatchingItemsSelected.current = true;
+
+        render(<SearchSelectionFooter searchResults={buildSearchResults(CONST.CURRENCY.USD, 10, 36000, CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT)} />);
+        await waitForBatchedUpdates();
+
+        expect(mockCapturedFooterProps.current).toEqual(expect.objectContaining({count: 10, total: 36000, currency: CONST.CURRENCY.USD}));
     });
 
     it("offers the user's live payment currency as the Reset target when there is no active workspace", async () => {
