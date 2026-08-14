@@ -22,6 +22,8 @@ import SCREENS from '@src/SCREENS';
 import type {OdometerDraft, Report, Transaction} from '@src/types/onyx';
 import type {FileObject} from '@src/types/utils/Attachment';
 
+import type {View} from 'react-native';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -39,7 +41,7 @@ const BOTTOM_SAFE_AREA_INSET = 24;
 // flow) has its own separate `KeyboardAvoidingView` usage that would otherwise collide on the same testID.
 jest.mock('@components/KeyboardAvoidingView', () => {
     const ReactActual = jest.requireActual<typeof React>('react');
-    const {View: RNView} = jest.requireActual<typeof import('react-native')>('react-native');
+    const {View: RNView} = jest.requireActual<{View: typeof View}>('react-native');
     return {
         __esModule: true,
         default: ({children, ...rest}: {children?: React.ReactNode} & Record<string, unknown>) => ReactActual.createElement(RNView, rest, children),
@@ -170,7 +172,8 @@ function createDistanceEditRoute(): PlatformStackScreenProps<MoneyRequestNavigat
 
 /** `undefined` when the mocked KeyboardAvoidingView isn't rendered at all (e.g. `shouldShowWrapper` swapped it out). */
 function getKeyboardAvoidingViewEnabled(): boolean | undefined {
-    return screen.queryByTestId('odometerKeyboardAvoidingView')?.props.enabled as boolean | undefined;
+    const enabled: unknown = screen.queryByTestId('odometerKeyboardAvoidingView')?.props.enabled;
+    return typeof enabled === 'boolean' ? enabled : undefined;
 }
 
 function renderOdometerStep(route: PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DISTANCE_CREATE>['route']) {
