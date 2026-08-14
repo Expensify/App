@@ -1,7 +1,6 @@
 import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
-import {hasPendingSubmitWriteForReport, resetForTesting as resetPendingSubmitWriteForTesting} from '@libs/pendingSubmitWrite';
 import {
     cancelWriteSession,
     DEFAULT_SAFETY_TIMEOUT_MS,
@@ -38,7 +37,7 @@ function deferToSearch(options: Parameters<typeof scheduleWrite>[3] = {shouldDef
     return scheduleWrite(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, options);
 }
 
-function deferToDismissModal(isRetry = false) {
+function deferToReservedSession(isRetry = false) {
     return scheduleWrite(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, {shouldDeferForSearch: false, isRetry});
 }
 
@@ -58,7 +57,6 @@ const pushCount = () => mockPush.mock.calls.length;
 beforeEach(() => {
     jest.clearAllMocks();
     resetForTesting();
-    resetPendingSubmitWriteForTesting();
 });
 
 afterEach(() => {
@@ -91,53 +89,23 @@ describe('submitWriteSession', () => {
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
-    it('defers to the DISMISS_MODAL session when a reservation exists', async () => {
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+    it('skips the reserved-SEARCH fallback when isRetry is true', async () => {
+        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
-        deferToDismissModal();
-        await flushMicrotasks();
-
-        expect(mockPush).not.toHaveBeenCalled();
-        expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
-
-        flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+        deferToReservedSession(true);
         await flushMicrotasks(pushHappened);
 
         expect(mockPush).toHaveBeenCalledTimes(1);
     });
 
-    it('SEARCH takes priority over DISMISS_MODAL when both conditions are true', async () => {
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+    it('defaults isRetry to false, so the reserved-SEARCH fallback still applies', async () => {
+        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
-        deferToSearch();
+        deferToReservedSession();
         await flushMicrotasks();
 
+        expect(mockPush).not.toHaveBeenCalled();
         expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
-        expect(mockPush).not.toHaveBeenCalled();
-
-        flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        await flushMicrotasks(pushHappened);
-
-        expect(mockPush).toHaveBeenCalledTimes(1);
-    });
-
-    it('skips DISMISS_MODAL deferral when isRetry is true', async () => {
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-
-        deferToDismissModal(true);
-        await flushMicrotasks(pushHappened);
-
-        expect(mockPush).toHaveBeenCalledTimes(1);
-    });
-
-    it('defaults isRetry to false (defers to DISMISS_MODAL)', async () => {
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-
-        deferToDismissModal();
-        await flushMicrotasks();
-
-        expect(mockPush).not.toHaveBeenCalled();
-        expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
     });
 
     it('falls back to a reserved SEARCH session when shouldDeferForSearch was not set', async () => {
@@ -222,100 +190,60 @@ describe('submitWriteSession', () => {
         expect(() => cancelWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).not.toThrow();
     });
 
-    it('flushes all pending sessions when the app goes to background', async () => {
+    it('flushes the pending session when the app goes to background', async () => {
         deferToSearch();
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        deferToDismissModal();
         await flushMicrotasks();
 
         expect(mockPush).not.toHaveBeenCalled();
 
         AppState.emitCurrentTestState('background');
-        await flushMicrotasks(() => pushCount() >= 2);
+        await flushMicrotasks(() => pushCount() >= 1);
 
-        expect(mockPush).toHaveBeenCalledTimes(2);
+        expect(mockPush).toHaveBeenCalledTimes(1);
         expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(false);
-        expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
     });
 
-    describe('DISMISS_MODAL session lifecycle', () => {
+    describe('reserve -> schedule -> flush lifecycle', () => {
         it('reserve -> flush-while-reserved -> schedule executes immediately', async () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
-            deferToDismissModal();
+            deferToReservedSession();
             await flushMicrotasks(pushHappened);
 
             expect(mockPush).toHaveBeenCalledTimes(1);
-            expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
+            expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(false);
         });
 
         it('reserve -> schedule -> flush executes on flush', async () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
-            deferToDismissModal();
+            deferToReservedSession();
             await flushMicrotasks();
             expect(mockPush).not.toHaveBeenCalled();
 
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
             await flushMicrotasks(pushHappened);
 
             expect(mockPush).toHaveBeenCalledTimes(1);
         });
 
         it('second flush is a no-op after the session was already consumed', async () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
-            deferToDismissModal();
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            deferToReservedSession();
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
             await flushMicrotasks(pushHappened);
             expect(mockPush).toHaveBeenCalledTimes(1);
 
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
             await flushMicrotasks();
             expect(mockPush).toHaveBeenCalledTimes(1);
-        });
-    });
-
-    describe('report-side pending-write signal', () => {
-        it('returns false when no session is registered', () => {
-            expect(hasPendingSubmitWriteForReport('report-1')).toBe(false);
-        });
-
-        it('returns false when reservation has no destination', () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            expect(hasPendingSubmitWriteForReport('report-1')).toBe(false);
-        });
-
-        it('returns true only when destination matches the queried report', () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
-
-            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
-            expect(hasPendingSubmitWriteForReport('report-B')).toBe(false);
-        });
-
-        it('returns false when reportID arg is undefined', () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
-            expect(hasPendingSubmitWriteForReport(undefined)).toBe(false);
-        });
-
-        it('preserves the destination across reserve -> schedule handoff', async () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
-
-            deferToDismissModal();
-            await flushMicrotasks();
-
-            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
-            expect(hasPendingSubmitWriteForReport('report-B')).toBe(false);
-
-            flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            await flushMicrotasks(pushHappened);
-            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
         });
     });
 
     describe('caller-supplied barrier', () => {
-        it('waits for the barrier and takes priority over an active DISMISS_MODAL session', async () => {
+        it('waits for the barrier and takes priority over an active session', async () => {
             let releaseBarrier: () => void = () => {};
             const barrier = jest.fn(
                 () =>
@@ -323,7 +251,7 @@ describe('submitWriteSession', () => {
                         releaseBarrier = resolve;
                     }),
             );
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
             writeWithBarrier(barrier);
             await flushMicrotasks();
@@ -348,15 +276,15 @@ describe('submitWriteSession', () => {
         });
 
         it('leaves the session registry untouched', async () => {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
             writeWithBarrier(() => Promise.resolve(), {shouldDeferForSearch: false, optimisticWatchKey: ONYXKEYS.NVP_PREFERRED_LOCALE});
             await flushMicrotasks(pushHappened);
 
             // The reservation is not consumed, replaced or flushed, and no watch key is published: a
             // barrier-scheduled write is invisible to the registry.
-            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
-            expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBeUndefined();
+            expect(hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
+            expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBeUndefined();
         });
 
         it('reports the write as deferred so the optimization stays in the telemetry log', async () => {

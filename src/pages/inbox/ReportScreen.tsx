@@ -33,7 +33,6 @@ import {AgentZeroStatusProvider} from './AgentZeroStatusContext';
 import {ConciergeDraftProvider} from './ConciergeDraftContext';
 import DeleteTransactionNavigateBackHandler from './DeleteTransactionNavigateBackHandler';
 import useDeferNonEssentials from './hooks/useDeferNonEssentials';
-import useFlushDeferredWriteOnFocus from './hooks/useFlushDeferredWriteOnFocus';
 import LinkedActionNotFoundGuard from './LinkedActionNotFoundGuard';
 import ReactionListWrapper from './ReactionListWrapper';
 import ReportActionCompose from './report/ReportActionCompose/ReportActionCompose';
@@ -91,8 +90,6 @@ function ReportScreen({route, navigation, shouldDeferReportActions = false}: Rep
         reportIDFromRoute,
         CONST.TELEMETRY.SUBMIT_TO_DESTINATION_VISIBLE_TRIGGER.FOCUS,
     );
-
-    useFlushDeferredWriteOnFocus(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
 
     const [reportPendingActionAndErrors] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportIDFromRoute}`, {
         selector: (r) => ({

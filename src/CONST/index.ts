@@ -2141,7 +2141,6 @@ const CONST = {
     },
     DEFERRED_LAYOUT_WRITE_KEYS: {
         SEARCH: 'search',
-        DISMISS_MODAL: 'dismiss_modal',
     },
     TELEMETRY: {
         CONTEXT_FULLSTORY: 'Fullstory',

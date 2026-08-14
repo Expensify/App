@@ -9,13 +9,13 @@ import type {ApiRequestCommandParameters, WriteCommand} from './API/types';
 
 import {write, writeWhenReady} from './API';
 import Log from './Log';
-import {markPendingSubmitWriteForReport} from './pendingSubmitWrite';
 
 /**
- * Coordinates deferred writeWhenReady() calls with screen content layout transitions.
- * Successor to deferredLayoutWrite.ts - same external shape and timing (reserve at dispatch time,
- * flush from the destination's layout/focus lifecycle), but write dispatch goes through
- * API.writeWhenReady instead of a bare setTimeout + callback.
+ * Coordinates deferred writeWhenReady() calls with Search's content layout.
+ *
+ * Transitional: this is the last of the shared write-timing registry, kept only because Search still
+ * releases its writes from its own layout/focus lifecycle. Dismiss-modal destinations no longer use it
+ * - they hand the write a pre-armed transition barrier instead (see API.armTransitionBarrier).
  *
  * Note: The Search component has its own 10s safety timeout (clearOptimisticTracking) for the
  * UI-level optimistic item cache. The two timeouts serve different layers:
@@ -38,13 +38,6 @@ type Session = {
      */
     optimisticWatchKey?: OnyxKey;
 
-    /**
-     * Clears the report-side pending-write signal this session raised, when it targets a report.
-     * Owned here for now so the signal's lifetime keeps matching the session's exactly; it moves to the
-     * orchestrator once the dismiss-modal channel is gone and there is no session to tie it to.
-     */
-    clearPendingSignal?: () => void;
-
     /** True until a real write is scheduled onto this session. */
     isReserved: boolean;
 
@@ -63,17 +56,12 @@ const flushedWatchKeys = new Map<SessionKey, OnyxKey>();
  * Pre-create a session so that hasPendingWrite(key) returns true immediately.
  * The real write is scheduled later via scheduleWrite, which silently replaces the reservation.
  */
-function reserveWriteSession(key: SessionKey, options: {destinationReportID?: string} = {}) {
+function reserveWriteSession(key: SessionKey) {
     if (sessions.has(key)) {
         return;
     }
     flushedWatchKeys.delete(key);
-    sessions.set(key, {
-        release: () => {},
-        isReserved: true,
-        flushRequested: false,
-        clearPendingSignal: markPendingSubmitWriteForReport(options.destinationReportID),
-    });
+    sessions.set(key, {release: () => {}, isReserved: true, flushRequested: false});
 }
 
 function hasPendingWrite(key: SessionKey): boolean {
@@ -116,7 +104,6 @@ function flushWriteSession(key: SessionKey) {
 function cancelWriteSession(key: SessionKey) {
     const session = sessions.get(key);
     if (session?.isReserved) {
-        session.clearPendingSignal?.();
         sessions.delete(key);
     }
 }
@@ -130,13 +117,9 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
     onWriteStarted: (() => void) | undefined,
 ) {
     const existing = sessions.get(key);
-    // Carried over rather than cleared: the report-side signal has to stay raised across the
-    // reserve -> real write handoff, and only drop when the write actually goes out.
-    let clearPendingSignal: (() => void) | undefined;
 
     if (existing) {
         if (existing.isReserved) {
-            clearPendingSignal = existing.clearPendingSignal;
             const shouldRunImmediately = existing.flushRequested;
             sessions.delete(key);
 
@@ -144,7 +127,6 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 if (optimisticWatchKey) {
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
-                clearPendingSignal?.();
                 write(command, params, onyxData);
                 onWriteStarted?.();
                 return;
@@ -161,7 +143,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
             release = resolve;
         });
 
-    const session: Session = {release: () => release(), optimisticWatchKey, clearPendingSignal, isReserved: false, flushRequested: false};
+    const session: Session = {release: () => release(), optimisticWatchKey, isReserved: false, flushRequested: false};
     sessions.set(key, session);
 
     writeWhenReady(command, params, onyxData, barrier, {
@@ -173,7 +155,6 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 return;
             }
             sessions.delete(key);
-            session.clearPendingSignal?.();
             if (session.optimisticWatchKey) {
                 flushedWatchKeys.set(key, session.optimisticWatchKey);
             }
@@ -204,18 +185,17 @@ type ScheduleWriteOptions = {
 };
 
 /**
- * Decide whether to defer the API write behind a pending layout transition (Search pre-insert or
- * dismiss-modal) or execute it immediately, then dispatch through API.writeWhenReady/API.write.
+ * Decide whether to defer the API write behind Search's pending layout transition or execute it
+ * immediately, then dispatch through API.writeWhenReady/API.write.
  *
  * Priority order (first match wins):
  *   0. Caller-supplied barrier - no session involved, the caller owns the readiness signal
- *   1. SEARCH session       - checked via the caller-provided shouldDeferForSearch flag
- *   2. DISMISS_MODAL session - checked automatically via hasPendingWrite, skipped on retry
- *   3. SEARCH session (fallback) - checked automatically via hasPendingWrite, skipped on retry
- *   4. Immediate exec       - no active session, run now
+ *   1. SEARCH session - via the caller-provided shouldDeferForSearch flag
+ *   2. SEARCH session (fallback) - a reservation made before this call, skipped on retry
+ *   3. Immediate exec - nothing pending, run now
  *
- * Branches 1-4 are the pre-migration behavior and are being removed call site by call site as each
- * one starts receiving a barrier instead.
+ * Branches 1-3 are the pre-migration behavior. Only Search still relies on them; once it owns its own
+ * barrier this whole module goes away and each action calls API.writeWhenReady directly.
  */
 function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
@@ -246,15 +226,9 @@ function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
         return;
     }
 
-    // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
-    if (!isRetry && hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
-        onDeferred?.();
-        registerOnSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, command, params, onyxData, optimisticWatchKey, onWriteStarted);
-        return;
-    }
-
     // Fallback: a reserved SEARCH session (created before scheduleWrite) that wasn't matched by
-    // the explicit shouldDeferForSearch flag.
+    // the explicit shouldDeferForSearch flag. Retries skip it to avoid an infinite
+    // retry -> defer -> flush -> retry loop.
     if (!isRetry && hasPendingWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
         registerOnSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, command, params, onyxData, optimisticWatchKey, onWriteStarted);
