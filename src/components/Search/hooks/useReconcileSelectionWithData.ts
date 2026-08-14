@@ -180,7 +180,7 @@ function useReconcileSelectionWithData({
                         isSelected: !isExcluded && (areAllMatchingItemsSelected || !!previousSelection?.isSelected || propagateSelectionToAllRows),
                         canReject: currentUserEmail && transactionItem.report ? canRejectReportAction(currentUserEmail, transactionItem.report) : false,
                         policyID: transactionItem.report?.policyID,
-                        groupKey: previousSelection?.groupKey ?? (propagateSelectionToAllRows && !isExpenseReportType ? reportKey : undefined),
+                        groupKey: previousSelection?.groupKey ?? (isExpenseReportType ? undefined : reportKey),
                         isSelectedViaGroup: previousSelection?.isSelectedViaGroup,
                     };
                     liveSelectionEntries.set(listKey, liveSelectionEntry);

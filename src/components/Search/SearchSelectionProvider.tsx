@@ -140,6 +140,18 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                         excludedTransactions[key] = transaction;
                     }
                 }
+                // A row selected as part of its group puts the whole group back, so the exclusion that stood for it goes too.
+                for (const [key, transaction] of Object.entries(selectedTransactions)) {
+                    if (transaction.isSelectedViaGroup && transaction.groupKey && !Object.hasOwn(prevState.selectedTransactions, key)) {
+                        delete excludedTransactions[transaction.groupKey];
+                    }
+                }
+                // An excluded group already covers every row under it, so keeping their exclusions as well counts the same rows twice.
+                for (const [key, transaction] of Object.entries(excludedTransactions)) {
+                    if (transaction.groupKey && Object.hasOwn(excludedTransactions, transaction.groupKey)) {
+                        delete excludedTransactions[key];
+                    }
+                }
                 // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
                 const hasSelectableItems = totalSelectableItemsCount !== undefined && totalSelectableItemsCount > 0;
                 const fullyExcludedItemCount =

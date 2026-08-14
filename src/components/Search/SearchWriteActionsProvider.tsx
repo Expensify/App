@@ -509,15 +509,16 @@ function SearchWriteActionsProvider({
         // Deselecting a group has to give back the rows a wider selection covers, the same way deselecting one of them by hand does.
         const groupExclusions: SelectedTransactions = {};
         if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
-            for (const child of groupTransactions) {
-                Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
-            }
             // Naming only the rows it happens to hold would leave the rest of the group selected, so a group that is not all here is excluded whole.
-            if (canRecordExclusions && getAreAllMatchingItemsSelected() && isTransactionGroupListItemType(item)) {
-                const totalCount = 'count' in item && typeof item.count === 'number' ? item.count : undefined;
-                if (totalCount !== undefined && groupTransactions.length < totalCount) {
-                    const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);
-                    groupExclusions[groupKey] = groupEntry;
+            const totalCount = isTransactionGroupListItemType(item) && 'count' in item && typeof item.count === 'number' ? item.count : undefined;
+            const isExcludedWhole = canRecordExclusions && getAreAllMatchingItemsSelected() && totalCount !== undefined && groupTransactions.length < totalCount;
+            if (isExcludedWhole) {
+                const [groupKey, groupEntry] = mapEmptyReportToSelectedEntry(item);
+                groupExclusions[groupKey] = groupEntry;
+            } else {
+                // Skipped above because the group's own key already stands for these rows, and building them would only be work the commit discards.
+                for (const child of groupTransactions) {
+                    Object.assign(groupExclusions, buildExclusionForCheckedRowWithoutEntry(child));
                 }
             }
         }

@@ -2,7 +2,7 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import {useSearchRowSelectionActions, useSearchSelectionActions, useSearchSelectionContext, useSearchShiftRangeChildren} from '@components/Search/SearchContext';
 import {SearchContextProvider} from '@components/Search/SearchContextProvider';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import SearchWriteActionsProvider from '@components/Search/SearchWriteActionsProvider';
 import {isRowChecked, mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
@@ -116,6 +116,31 @@ const earlierGroup = buildCategoryGroup(EARLIER_GROUP_KEY, [], buildSearchQueryJ
 
 /** The earlier group's children, expanded and loaded. */
 const earlierChildren = [buildChild(3, '3'), buildChild(4, '4')];
+
+/** The same group as the list sees it while its first page arrives: empty at first, carrying the loaded rows afterwards. */
+let pagingGroup: TransactionGroupListItemType = partiallyLoadedGroup;
+
+function PagingWrapper({children}: {children: React.ReactNode}) {
+    return (
+        <SearchContextProvider>
+            <SearchWriteActionsProvider
+                filteredData={[pagingGroup]}
+                renderedData={[pagingGroup]}
+                totalSelectableItemsCount={5}
+                searchResults={undefined}
+                searchHash={SEARCH_HASH}
+                transactions={undefined}
+                isMobileSelectionModeEnabled={false}
+                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                areItemsGrouped
+                isExpenseReportType={false}
+                isSearchResultsEmpty={false}
+            >
+                {children}
+            </SearchWriteActionsProvider>
+        </SearchContextProvider>
+    );
+}
 
 function PartiallyLoadedWrapper({children}: {children: React.ReactNode}) {
     return (
@@ -569,6 +594,38 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
     });
 
+    it('unchecks a child of a group selected while collapsed, once that group’s first page reaches the list', async () => {
+        pagingGroup = partiallyLoadedGroup;
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group of five selected while collapsed, so the selection is held under its own key
+        await act(async () => {
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
+
+        // When its first page arrives, which is the same commit that makes those rows clickable
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group has been written out into the rows that arrived, rather than staying an unnameable block
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+
+        // And clicking one of them unchecks it, rather than the paging refusal making the checkbox dead
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
+    });
+
     it('leaves a range over a group that is still paging in exactly as it found it', async () => {
         const {result} = renderSelection(PartiallyLoadedWrapper);
         const [firstChild, secondChild] = loadedChildren;
@@ -979,9 +1036,19 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then its rows are recorded as excluded, rather than the click reading the group as unselected and selecting it again
-        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
-        expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+        // Then its rows stop reading as checked, rather than the click reading the group as unselected and selecting it again
+        const isChecked = (rowKey: string) =>
+            isRowChecked({
+                rowKey,
+                parentGroupKey: GROUP_KEY,
+                selectedTransactions: result.current.selectedTransactions,
+                excludedTransactions: result.current.excludedTransactions,
+                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
+            });
+        expect(isChecked(firstChild.keyForList)).toBe(false);
+        expect(isChecked(secondChild.keyForList)).toBe(false);
+        // And the group's own key is what records it, since one exclusion already stands for every row underneath it
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
     });
 
     it('unchecks a group holding none of its rows, when select-all-matching is what checked it', async () => {
@@ -1022,6 +1089,53 @@ describe('Lazily loaded group selection', () => {
 
         // Then the group itself is excluded, so the three rows that never loaded leave the selection with the two that did
         expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+    });
+
+    it('records only the group when it is excluded whole, so its rows are not counted twice', async () => {
+        const {result} = renderSelection(CachedPartialWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given every matching item selected, and a group of five carrying only the two rows its cached snapshot held
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header is unchecked, which excludes the group whole
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group's own key is the only exclusion, since it already stands for every row underneath it
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        expect(result.current.excludedTransactions[firstChild.keyForList]).toBeUndefined();
+    });
+
+    it('stops excluding a group once its header puts it back', async () => {
+        const {result} = renderSelection(CachedPartialWrapper);
+
+        // Given a group of five excluded whole under select-all-matching
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+
+        // When the header is checked again
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the exclusion goes, rather than an export quietly dropping the rows the header now shows checked
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeUndefined();
     });
 
     it('turns select-all-matching off once every group has been unchecked', async () => {

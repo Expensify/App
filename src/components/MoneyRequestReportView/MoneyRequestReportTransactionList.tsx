@@ -583,6 +583,11 @@ function MoneyRequestReportTransactionList({
         onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
     });
 
+    // The session belongs to one report, the same as the selection this list clears when the report changes: a transaction on both would otherwise let the old span collapse rows in the new one.
+    useEffect(() => {
+        rangeApi.clearAnchor();
+    }, [reportID, rangeApi]);
+
     const toggleTransaction = useCallback(
         (transactionID: string, shiftKey?: boolean) => {
             const item = transactionsByID.get(transactionID);
