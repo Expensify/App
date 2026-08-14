@@ -78,24 +78,6 @@ type ReportMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT>, 
 type ReportObjectMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: Record<string, unknown>};
 type ReportStateMergeValue = Required<Pick<NonNullable<ReportMergeUpdate['value']>, 'stateNum' | 'statusNum'>>;
 type ReportStateMergeUpdate = Omit<ReportMergeUpdate, 'value'> & {value: ReportStateMergeValue};
-type ReportStateNum = ValueOf<typeof CONST.REPORT.STATE_NUM>;
-type ReportStatusNum = ValueOf<typeof CONST.REPORT.STATUS_NUM>;
-
-function isReportStateNum(value: unknown): value is ReportStateNum {
-    return typeof value === 'number' && Object.values(CONST.REPORT.STATE_NUM).some((stateNum) => stateNum === value);
-}
-
-function isReportStatusNum(value: unknown): value is ReportStatusNum {
-    return typeof value === 'number' && Object.values(CONST.REPORT.STATUS_NUM).some((statusNum) => statusNum === value);
-}
-
-function isReportMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is ReportObjectMergeUpdate {
-    return isRecord(value) && value.key === reportKey && value.onyxMethod === Onyx.METHOD.MERGE && isRecord(value.value);
-}
-
-function isReportStateMergeUpdate(value: unknown, reportKey: ReportMergeUpdate['key']): value is ReportStateMergeUpdate {
-    return isReportMergeUpdate(value, reportKey) && isReportStateNum(value.value.stateNum) && isReportStatusNum(value.value.statusNum);
-}
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
@@ -655,8 +637,22 @@ describe('Transaction', () => {
                 const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
                 const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
                 const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
-                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
-                const sourceReportStateUpdate = reportUpdates.find((update) => isReportStateMergeUpdate(update, reportKey));
+                const sourceReportUpdate = reportUpdates.findLast(
+                    (update): update is ReportObjectMergeUpdate => isRecord(update) && update.key === reportKey && update.onyxMethod === Onyx.METHOD.MERGE && isRecord(update.value),
+                );
+                const sourceReportStateUpdate = reportUpdates.find((update): update is ReportStateMergeUpdate => {
+                    if (!isRecord(update) || update.key !== reportKey || update.onyxMethod !== Onyx.METHOD.MERGE || !isRecord(update.value)) {
+                        return false;
+                    }
+
+                    const {stateNum, statusNum} = update.value;
+                    return (
+                        typeof stateNum === 'number' &&
+                        Object.values(CONST.REPORT.STATE_NUM).some((validStateNum) => validStateNum === stateNum) &&
+                        typeof statusNum === 'number' &&
+                        Object.values(CONST.REPORT.STATUS_NUM).some((validStatusNum) => validStatusNum === statusNum)
+                    );
+                });
                 if (!sourceReportUpdate || !sourceReportStateUpdate) {
                     throw new Error('Expected typed source report updates');
                 }
