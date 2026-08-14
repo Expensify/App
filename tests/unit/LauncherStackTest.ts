@@ -1,7 +1,8 @@
 // Typed require with explicit .ts path — matches the project's test-file convention.
-const {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
+const {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests} = require<{
     pickLauncher: () => HTMLElement | null;
     consumeLauncher: (element: HTMLElement) => void;
+    hasLauncher: (element: HTMLElement) => boolean;
     setActivePopoverLauncher: (element: HTMLElement) => void;
     markActivePopoverLauncherDeactivated: (element?: HTMLElement) => void;
     resetLauncherStackForTests: () => void;
@@ -177,6 +178,29 @@ describe('LauncherStack', () => {
             consumeLauncher(a);
             expect(() => consumeLauncher(a)).not.toThrow();
             expect(pickLauncher()).toBeNull();
+        });
+    });
+
+    describe('hasLauncher', () => {
+        it('is true for a registered launcher, active or deactivated', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            expect(hasLauncher(a)).toBe(true);
+            markActivePopoverLauncherDeactivated(a);
+            expect(hasLauncher(a)).toBe(true);
+        });
+
+        it('is false for an element that was never registered', () => {
+            expect(hasLauncher(appendButton())).toBe(false);
+        });
+
+        // This is the signal FocusTrapForModal uses to tell "closed in place" from "closed because we navigated":
+        // captureTriggerForRoute consumes the launcher on a forward nav and owns the Back restore from then on.
+        it('is false once a forward navigation has consumed the launcher', () => {
+            const a = appendButton();
+            setActivePopoverLauncher(a);
+            consumeLauncher(a);
+            expect(hasLauncher(a)).toBe(false);
         });
     });
 });

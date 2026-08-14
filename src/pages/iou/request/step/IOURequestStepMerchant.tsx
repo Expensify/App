@@ -17,6 +17,7 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import focusComposerWithDelay from '@libs/focusComposerWithDelay';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails, isExpenseRequest, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {hasReceipt} from '@libs/TransactionUtils';
@@ -59,7 +60,6 @@ function IOURequestStepMerchant({
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${report?.policyID}`);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const styles = useThemeStyles();
@@ -151,7 +151,6 @@ function IOURequestStepMerchant({
                 currentUserAccountIDParam,
                 currentUserEmailParam,
                 isASAPSubmitBetaEnabled,
-                parentReportNextStep,
                 isOffline,
                 delegateAccountID,
                 reportPolicyTags,
@@ -168,7 +167,7 @@ function IOURequestStepMerchant({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            inputRef.current?.focus();
+            focusComposerWithDelay(inputRef.current)(true);
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {

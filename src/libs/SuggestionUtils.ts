@@ -2,7 +2,6 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import type {PersonalDetails} from '@src/types/onyx';
 
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {getDisplayNameForParticipant} from './ReportUtils';
 
 /**
@@ -12,8 +11,8 @@ function trimLeadingSpace(str: string): string {
     return str.startsWith(' ') ? str.slice(1) : str;
 }
 
-function getDisplayName(details: PersonalDetails, translate: LocaleContextProps['translate']) {
-    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+function getDisplayName(details: PersonalDetails, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocaleContextProps['translate']) {
+    const displayNameFromAccountID = getDisplayNameForParticipant({accountID: details.accountID, formatPhoneNumber, translate});
     if (!displayNameFromAccountID) {
         return details.login?.length ? details.login : '';
     }
@@ -26,6 +25,7 @@ function getDisplayName(details: PersonalDetails, translate: LocaleContextProps[
 function getSortedPersonalDetails(
     personalDetails: Array<PersonalDetails & {weight: number}>,
     localeCompare: LocaleContextProps['localeCompare'],
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocaleContextProps['translate'],
 ) {
     return personalDetails.sort((first, second) => {
@@ -33,7 +33,7 @@ function getSortedPersonalDetails(
             return first.weight - second.weight;
         }
 
-        const displayNameLoginOrder = localeCompare(getDisplayName(first, translate), getDisplayName(second, translate));
+        const displayNameLoginOrder = localeCompare(getDisplayName(first, formatPhoneNumber, translate), getDisplayName(second, formatPhoneNumber, translate));
         if (displayNameLoginOrder !== 0) {
             return displayNameLoginOrder;
         }

@@ -1,5 +1,5 @@
 import type ClearPrefetchOnAppStart from './types';
 
-const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = () => {};
+const clearPrefetchOnAppStart: ClearPrefetchOnAppStart = () => Promise.resolve();
 
 export default clearPrefetchOnAppStart;

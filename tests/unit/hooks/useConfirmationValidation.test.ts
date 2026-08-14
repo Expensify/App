@@ -9,6 +9,7 @@ import type {Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 
 jest.mock('@hooks/useCurrencyList', () => ({
     useCurrencyListActions: () => ({
@@ -103,6 +104,7 @@ const baseParams = {
     isNewManualExpenseFlowEnabled: false,
     isReadOnly: false,
     shouldShowDate: true,
+    isTaxAmountEmpty: false,
 } satisfies UseConfirmationValidationParams;
 
 function createValidationParamsForParticipant(
@@ -153,7 +155,7 @@ describe('useConfirmationValidation', () => {
                 ...baseParams,
                 isMerchantRequired: false,
                 isMerchantFieldValid: false,
-                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: true}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidMerchant'});
@@ -165,7 +167,7 @@ describe('useConfirmationValidation', () => {
                 ...baseParams,
                 isMerchantRequired: false,
                 isMerchantFieldValid: false,
-                transaction: {transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {}, amount: 100, isMerchantSet: false}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: null});
@@ -182,7 +184,7 @@ describe('useConfirmationValidation', () => {
             useConfirmationValidation({
                 ...baseParams,
                 iouCategory: 'Travel',
-                policyCategories: {Travel: {enabled: false, name: 'Travel'}} as unknown as OnyxTypes.PolicyCategories,
+                policyCategories: createMock<OnyxTypes.PolicyCategories>({Travel: {enabled: false, name: 'Travel'}}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'violations.categoryOutOfPolicy'});
@@ -297,7 +299,7 @@ describe('useConfirmationValidation', () => {
                 isEditingSplitBill: true,
                 iouAmount: 0,
                 transaction: createTransactionBase({amount: 100, merchant: 'Coffee'}),
-                transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
             }),
         );
         expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
@@ -733,7 +735,7 @@ describe('useConfirmationValidation', () => {
                         merchant: 'Coffee',
                         participants: splitParticipants,
                     }),
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
             // P2P zero-amount guard runs before the split-bill-specific invalidAmount check.
@@ -809,7 +811,7 @@ describe('useConfirmationValidation', () => {
                         merchant: 'Coffee',
                         participants: splitParticipants,
                     }),
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             );
             expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
@@ -903,6 +905,57 @@ describe('useConfirmationValidation', () => {
             const {result} = renderHook(() =>
                 useConfirmationValidation(createValidationParamsForParticipant(POLICY_EXPENSE_CHAT_PARTICIPANT, {isNewManualExpenseFlowEnabled: false}, {created: '', isAmountSet: true})),
             );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+    });
+
+    describe('tax validation — inline tax amount in new manual expense flow', () => {
+        function createTaxValidationParams(overrides: ValidationParamsOverrides = {}): UseConfirmationValidationParams {
+            return createValidationParamsForParticipant(
+                POLICY_EXPENSE_CHAT_PARTICIPANT,
+                {isNewManualExpenseFlowEnabled: true, shouldShowTax: true, ...overrides},
+                {amount: 100, isAmountSet: true},
+            );
+        }
+
+        it('returns invalidAmount when the inline tax amount is left empty', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: 'iou.error.invalidAmount'});
+        });
+
+        it('does not block confirmation when the inline tax amount is populated', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isTaxAmountEmpty: false})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block distance requests, whose tax amount is not inline-editable', () => {
+            const {result} = renderHook(() =>
+                useConfirmationValidation({
+                    ...baseParams,
+                    isNewManualExpenseFlowEnabled: true,
+                    shouldShowTax: true,
+                    isTaxAmountEmpty: true,
+                    isDistanceRequest: true,
+                    iouAmount: 1000,
+                    transaction: createTransactionBase({
+                        amount: 1000,
+                        iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+                        participants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                        comment: {type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT},
+                    }),
+                    selectedParticipants: [POLICY_EXPENSE_CHAT_PARTICIPANT],
+                }),
+            );
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block when the tax section is hidden for this policy', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({shouldShowTax: false, isTaxAmountEmpty: true})));
+            expect(result.current.validate()).toEqual({errorKey: null});
+        });
+
+        it('does not block when the new manual expense flow beta is disabled', () => {
+            const {result} = renderHook(() => useConfirmationValidation(createTaxValidationParams({isNewManualExpenseFlowEnabled: false, isTaxAmountEmpty: true})));
             expect(result.current.validate()).toEqual({errorKey: null});
         });
     });

@@ -1,4 +1,3 @@
-import {useSearchSidebarCollapse} from '@components/Navigation/SearchSidebarCollapseStore';
 import {ScrollOffsetContext} from '@components/ScrollOffsetContextProvider';
 import ScrollView from '@components/ScrollView';
 import {useSearchSelectionActions} from '@components/Search/SearchContext';
@@ -6,22 +5,15 @@ import type {SearchQueryJSON} from '@components/Search/types';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
 import useSearchTypeMenuSections from '@hooks/useSearchTypeMenuSections';
 import useSingleExecution from '@hooks/useSingleExecution';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 import type {TodoCounts} from '@hooks/useTodoCounts';
 
-import {setSearchContext} from '@libs/actions/Search';
-import Navigation from '@libs/Navigation/Navigation';
-import {getItemBadgeText, getSectionBadgeText} from '@libs/SearchUIUtils';
+import navigateToCannedSpendSearch from '@libs/SearchNavigationUtils';
+import {getItemBadgeText, getSectionBadgeText, SEARCH_TYPE_MENU_ICON_NAMES} from '@libs/SearchUIUtils';
 import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
-
-import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 // eslint-disable-next-line no-restricted-imports
 import type {NativeScrollEvent, NativeSyntheticEvent, ScrollView as RNScrollView} from 'react-native';
@@ -33,7 +25,6 @@ import {View} from 'react-native';
 import SavedSearchList from './SavedSearchList';
 import SearchTypeMenuAccordion from './SearchTypeMenuAccordion';
 import SearchTypeMenuItem from './SearchTypeMenuItem';
-import SuggestedSearchSkeleton from './SuggestedSearchSkeleton';
 
 type SearchTypeMenuProps = {
     queryJSON: SearchQueryJSON | undefined;
@@ -50,22 +41,7 @@ type SectionParams = {
 
 function Section({section, hash, activeItemIndex, sectionStartIndex, reportCounts, onItemPress}: SectionParams) {
     const {translate} = useLocalize();
-    const expensifyIcons = useMemoizedLazyExpensifyIcons([
-        'Basket',
-        'CalendarSolid',
-        'Receipt',
-        'MoneyBag',
-        'CreditCard',
-        'MoneyHourglass',
-        'CreditCardHourglass',
-        'Bank',
-        'User',
-        'Folder',
-        'Document',
-        'Pencil',
-        'ThumbsUp',
-        'CheckCircle',
-    ]);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(SEARCH_TYPE_MENU_ICON_NAMES);
 
     const [isExpanded, setIsExpanded] = useState(true);
 
@@ -106,12 +82,9 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     const {hash, similarSearchHash, sortBy, sortOrder, type} = queryJSON ?? {};
 
     const styles = useThemeStyles();
-    const {isOffline} = useNetwork();
     const {singleExecution} = useSingleExecution();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {typeMenuSections, activeItemIndex} = useSearchTypeMenuSections({hash, similarSearchHash, sortBy, sortOrder, type});
-    const {isVisuallyCollapsed} = useSearchSidebarCollapse();
-    const [isSearchDataLoaded, isSearchDataLoadedResult] = useOnyx(ONYXKEYS.IS_SEARCH_PAGE_DATA_LOADED);
     // Intentionally left enabled (no focus freeze): the wide menu renders in the search navigator's ExtraContent
     // slot, where useIsFocused() does not track visibility, so freezing on it would be unreliable.
     const {counts: reportCounts} = useTodoCounts();
@@ -128,11 +101,7 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
         saveScrollOffset(route, e.nativeEvent.contentOffset.y);
     };
 
-    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => {
-        clearSelectedTransactions();
-        setSearchContext(false);
-        Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: searchQuery}));
-    });
+    const handleTypeMenuItemPress = singleExecution((searchQuery: string) => navigateToCannedSpendSearch(searchQuery, clearSelectedTransactions));
 
     useLayoutEffect(() => {
         const scrollOffset = getScrollOffset(route);
@@ -148,8 +117,6 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
     }
     const expenseReportsSection = typeMenuSections.find((section) => section.translationPath === 'search.tabs.expenseReports');
     const nonExpenseReportsSections = typeMenuSections.filter((section) => section.translationPath !== 'search.tabs.expenseReports');
-
-    const areSuggestedSearchesLoading = !isOffline && !isSearchDataLoaded && !isLoadingOnyxValue(isSearchDataLoadedResult);
 
     return (
         <ScrollView
@@ -169,24 +136,17 @@ function SearchTypeMenuWide({queryJSON}: SearchTypeMenuProps) {
                     />
                 )}
 
-                {areSuggestedSearchesLoading ? (
-                    <SuggestedSearchSkeleton
-                        sectionCount={nonExpenseReportsSections.length || 2}
-                        shouldHideLabels={isVisuallyCollapsed}
+                {nonExpenseReportsSections.map((section, index) => (
+                    <Section
+                        key={section.translationPath}
+                        section={section}
+                        onItemPress={handleTypeMenuItemPress}
+                        hash={hash}
+                        sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
+                        activeItemIndex={activeItemIndex}
+                        reportCounts={reportCounts}
                     />
-                ) : (
-                    nonExpenseReportsSections.map((section, index) => (
-                        <Section
-                            key={section.translationPath}
-                            section={section}
-                            onItemPress={handleTypeMenuItemPress}
-                            hash={hash}
-                            sectionStartIndex={sectionStartIndices.at(index + (expenseReportsSection ? 1 : 0)) ?? 0}
-                            activeItemIndex={activeItemIndex}
-                            reportCounts={reportCounts}
-                        />
-                    ))
-                )}
+                ))}
             </View>
         </ScrollView>
     );

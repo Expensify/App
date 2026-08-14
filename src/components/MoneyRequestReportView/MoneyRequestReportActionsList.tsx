@@ -2,6 +2,7 @@ import ScrollView from '@components/ScrollView';
 
 import useAppFocusEvent from '@hooks/useAppFocusEvent';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import {useIsReportLoadPending} from '@hooks/useInFlightRequests';
 import useIsReportActionsLoaded from '@hooks/useIsReportActionsLoaded';
 import useLoadReportActions from '@hooks/useLoadReportActions';
 import useLocalize from '@hooks/useLocalize';
@@ -42,17 +43,17 @@ import {
 } from '@libs/ReportActionsUtils';
 import {canUserPerformWriteAction, chatIncludesChronosWithID, getReportLastVisibleActionCreated, isHarvestCreatedExpenseReport, isUnread, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import Visibility from '@libs/Visibility';
 
 import isSearchTopmostFullScreenRoute from '@navigation/helpers/isSearchTopmostFullScreenRoute';
 
+import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessage';
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
+import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
-import ReportActionsListTailIndicator from '@pages/inbox/report/ReportActionsListTailIndicator';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
@@ -126,6 +127,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const isReportVisible = shouldUseNarrowLayout ? isFocused : true;
     const route = useRoute<PlatformStackRouteProp<ReportsSplitNavigatorParamList, typeof SCREENS.REPORT>>();
     const reportIDFromRoute = route?.params?.reportID;
+    const isReportLoadPending = useIsReportLoadPending(reportIDFromRoute);
 
     // Self-subscribe to report, policy, metadata, actions, transactions
     // report is guaranteed to exist — callers only render this component when report is loaded
@@ -157,6 +159,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     });
     const newTransactions = useNewTransactions(reportLoadingState?.hasOnceLoadedReportActions, reportTransactions, pendingNewTransactionIDs, reportIDFromRoute, isFocused);
     const showReportActionsLoadingState = reportLoadingState?.isLoadingInitialReportActions && !reportLoadingState?.hasOnceLoadedReportActions;
+    const isInitialReportLoadPending = !isOffline && isReportLoadPending && !reportLoadingState?.hasOnceLoadedReportActions;
     const reportTransactionIDs = useMemo(() => transactions.map((transaction) => transaction.transactionID), [transactions]);
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.chatReportID)}`);
 
@@ -210,12 +213,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         return filteredActions.slice().reverse();
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
-    const shouldShowOpenReportLoadingSkeleton = !isOffline && !!showReportActionsLoadingState && visibleReportActions.length === 0;
-    const skeletonReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'MoneyRequestReportActionsList',
-        isOffline,
-        showReportActionsLoadingState: !!showReportActionsLoadingState,
-    };
+    const shouldShowOpenReportLoadingSkeleton = isInitialReportLoadPending && visibleReportActions.length === 0;
     useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
 
     const lastAction = visibleReportActions.at(-1);
@@ -224,7 +222,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     const listRef = useActionListRef();
 
     const scrollingVerticalBottomOffset = useRef(0);
-    const tailIndicatorHeightRef = useRef(0);
     const readActionSkipped = useRef(false);
     const stickToBottomRef = useRef(false);
     const stickToBottomTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -508,9 +505,31 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         resetKey: report?.reportID ?? reportIDFromRoute ?? '',
     });
 
+    // The indicator renders in the list footer, below the row scrollToBottom targets, so only
+    // scrollToEnd reveals it. This list is not inverted, so nothing sticks to the bottom for us.
+    const {candidateAgentIDs} = useAgentZeroStatus();
+    const isThinkingIndicatorVisible = candidateAgentIDs.length > 0;
+    // Scroll once per appearance: the label changes many times per run, and re-firing would yank
+    // the viewport away from a user who has since scrolled up.
+    const hasScrolledForThinkingIndicatorRef = useRef(false);
     useEffect(() => {
-        tailIndicatorHeightRef.current = 0;
-    }, [report?.reportID]);
+        if (!isThinkingIndicatorVisible) {
+            hasScrolledForThinkingIndicatorRef.current = false;
+            return;
+        }
+        if (hasScrolledForThinkingIndicatorRef.current || scrollingVerticalBottomOffset.current >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD) {
+            return;
+        }
+        hasScrolledForThinkingIndicatorRef.current = true;
+
+        // Wait for the footer to lay out, otherwise the content hasn't grown yet and there is
+        // nothing to scroll to.
+        const timeoutID = setTimeout(() => {
+            reportScrollManager.scrollToEnd();
+        }, DELAY_FOR_SCROLLING_TO_END);
+
+        return () => clearTimeout(timeoutID);
+    }, [isThinkingIndicatorVisible, reportScrollManager]);
 
     /**
      * Subscribe to read/unread events and update our unreadMarkerTime
@@ -612,7 +631,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const displayAsGroup =
                 !isConsecutiveChronosAutomaticTimerAction(visibleReportActions, indexWithinReportActions, chatIncludesChronosWithID(reportAction?.reportID), isOffline) &&
                 hasNextActionMadeBySameActor(visibleReportActions, indexWithinReportActions, isOffline);
-            const shouldDisableContextMenuForConciergeDraft = draftReportActionID === reportAction.reportActionID;
+            const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
             return (
                 <ReportActionIndexContext.Provider value={indexWithinReportActions}>
@@ -647,8 +666,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             linkedReportActionID,
             shouldShowHarvestCreatedAction,
             draftReportActionID,
+            isDraftPendingCompletion,
         ],
     );
+
+    const reportActionsExtraData = useMemo(() => [draftReportActionID, isDraftPendingCompletion], [draftReportActionID, isDraftPendingCompletion]);
 
     const scrollToLatestMessages = useCallback(() => {
         setIsFloatingMessageCounterVisible(false);
@@ -664,7 +686,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }, 2000);
 
         if (!hasNewestReportAction) {
-            openReport({reportID, introSelected, betas, hasReportActions: true});
+            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
             scrollToBottom();
             return;
         }
@@ -672,7 +694,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         // Defer marking the report as read until the scroll actually reaches the bottom (handled in onTrackScrolling).
         pendingMarkAsReadRef.current = true;
         scrollToBottom();
-    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas]);
+    }, [setIsFloatingMessageCounterVisible, hasNewestReportAction, scrollToBottom, reportID, introSelected, betas, currentUserAccountID]);
 
     useEffect(() => {
         return () => {
@@ -700,24 +722,6 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         }
     };
 
-    const handleTailIndicatorLayout = useCallback(
-        (event: LayoutChangeEvent) => {
-            const previousHeight = tailIndicatorHeightRef.current;
-            const nextHeight = event.nativeEvent.layout.height;
-            tailIndicatorHeightRef.current = nextHeight;
-
-            if (previousHeight > 0 || nextHeight <= 0 || linkedReportActionID || !hasNewestReportAction || scrollOffsetRef.current >= CONST.REPORT.ACTIONS.AUTOSCROLL_TO_TOP_THRESHOLD) {
-                return;
-            }
-
-            setIsFloatingMessageCounterVisible(false);
-            requestAnimationFrame(() => {
-                scrollToBottom();
-            });
-        },
-        [hasNewestReportAction, linkedReportActionID, scrollToBottom, scrollOffsetRef, setIsFloatingMessageCounterVisible],
-    );
-
     /**
      * Runs when the FlatList finishes laying out
      */
@@ -731,24 +735,12 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
         markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
     }, [report, shouldShowOpenReportLoadingSkeleton]);
 
-    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !showReportActionsLoadingState;
+    const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
 
     if (!report) {
         return null;
     }
-
-    const listFooterComponent = (
-        <View
-            testID="money-request-report-tail-indicator"
-            onLayout={handleTailIndicatorLayout}
-        >
-            <ReportActionsListTailIndicator
-                reportID={report.reportID}
-                isDraftPendingCompletion={isDraftPendingCompletion}
-            />
-        </View>
-    );
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
@@ -800,6 +792,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         isLoadingInitialReportActions={showReportActionsLoadingState}
                         visibleReportActions={visibleReportActions}
                         renderReportAction={renderReportAction}
+                        reportActionsExtraData={reportActionsExtraData}
                         linkedReportActionID={linkedReportActionID}
                         listRef={listRef}
                         onLastItemIndexChange={updateLastItemIndex}
@@ -812,9 +805,10 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
                         onEndReached={onEndReached}
                         onStartReached={onStartReached}
                         contentContainerStyle={shouldUseNarrowLayout ? styles.pt4 : styles.pt3}
-                        isLoadingInitialActions={!!showReportActionsLoadingState}
-                        skeletonReasonAttributes={skeletonReasonAttributes}
-                        listFooterComponent={listFooterComponent}
+                        isLoadingInitialActions={isInitialReportLoadPending}
+                        /* This list is not inverted, so the footer is the bottom of the message feed —
+                           the same position the indicator occupies in the inverted ReportActionsList. */
+                        listFooterComponent={<ConciergeThinkingMessage reportID={reportIDFromRoute} />}
                     />
                 )}
             </View>

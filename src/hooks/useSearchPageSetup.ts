@@ -4,7 +4,7 @@ import type {SearchQueryJSON} from '@components/Search/types';
 import {saveLastSearchParams} from '@libs/actions/ReportNavigation';
 import {openSearch, search} from '@libs/actions/Search';
 import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
-import {isSearchDataLoaded} from '@libs/SearchUIUtils';
+import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 
@@ -39,7 +39,9 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
+    // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
+    const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -69,12 +71,14 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
             lastSavedSearchHash = hash;
         }
 
-        if (isSnapshotDataLoaded || isSnapshotSearchLoading) {
+        // A pending initial request may be stale after reload and can be restarted through request deduplication.
+        // Pagination must not restart page one.
+        if (isSnapshotDataLoaded && !isInitialSearchPending) {
             return;
         }
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
-    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, currentSearchKey, shouldCalculateTotals]);
+    }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
     useFocusEffect(() => {
         openSearch();

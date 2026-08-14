@@ -37,13 +37,16 @@ function AddTaxRatePage({route}: AddTaxRatePageProps) {
         <RuleSelectionBase
             titleKey="common.tax"
             testID="AddTaxRatePage"
-            selectedItem={selectedTaxItem}
-            items={taxItems}
-            onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
             hash={hash}
-        />
+        >
+            <RuleSelectionBase.Picker
+                selectedItem={selectedTaxItem}
+                items={taxItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+            />
+        </RuleSelectionBase>
     );
 }
 

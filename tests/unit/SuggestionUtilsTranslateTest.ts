@@ -5,7 +5,7 @@ import {getSortedPersonalDetails} from '@libs/SuggestionUtils';
 
 import type {PersonalDetails} from '@src/types/onyx';
 
-import {localeCompare, translateLocal} from '../utils/TestHelper';
+import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
 
 jest.mock('@libs/ReportUtils', () => {
     // jest.requireActual is typed as returning `any`, so this assignment is unavoidably unsafe.
@@ -31,7 +31,7 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
         const first = {login: 'first@test.com', weight: 2, accountID: 801} as PersonalDetails & {weight: number};
         const second = {login: 'second@test.com', weight: 2, accountID: 802} as PersonalDetails & {weight: number};
 
-        getSortedPersonalDetails([second, first], localeCompare, translateLocal);
+        getSortedPersonalDetails([second, first], localeCompare, formatPhoneNumber, translateLocal);
 
         // The sort comparator resolves each display name via getDisplayNameForParticipant, which must receive the provided translate.
         expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({translate: translateLocal}));
@@ -45,7 +45,7 @@ describe('SuggestionUtils - getSortedPersonalDetails translate threading', () =>
         const translateWithNames: LocalizedTranslate = translateLocal;
         mockGetDisplayNameForParticipant.mockImplementation(({accountID}) => (accountID === 811 ? 'Aaa' : 'Zzz'));
 
-        const sorted = getSortedPersonalDetails([beta, alpha], localeCompare, translateWithNames);
+        const sorted = getSortedPersonalDetails([beta, alpha], localeCompare, formatPhoneNumber, translateWithNames);
 
         // Despite beta being passed first, account 811 ('Aaa') sorts ahead of account 812 ('Zzz').
         expect(sorted.map((detail) => detail.accountID)).toEqual([811, 812]);
