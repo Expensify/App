@@ -299,4 +299,4 @@ function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
 }
 
 export {writeWhenReady, createTransitionBarrier, armTransitionBarrier, SAFETY_TIMEOUT_MS};
-export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason, ArmedTransitionBarrier};
+export type {WriteReadyBarrier, WriteWhenReadyOptions};

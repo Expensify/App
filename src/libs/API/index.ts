@@ -19,7 +19,7 @@ import type Response from '@src/types/onyx/Response';
 import type {OnyxKey} from 'react-native-onyx';
 
 import type {ApiRequestCommandParameters, ApiRequestType, CommandOfType, ReadCommand, SideEffectRequestCommand, WriteCommand} from './types';
-import type {ArmedTransitionBarrier, ReleaseReason, WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
+import type {WriteReadyBarrier, WriteWhenReadyOptions} from './writeWhenReady';
 
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 import {READ_COMMANDS, WRITE_COMMANDS} from './types';
@@ -265,4 +265,4 @@ export {
     writeWithNoDuplicatesEnableFeatureConflicts,
     waitForWrites,
 };
-export type {WriteReadyBarrier, WriteWhenReadyOptions, ReleaseReason, ArmedTransitionBarrier};
+export type {WriteReadyBarrier, WriteWhenReadyOptions};

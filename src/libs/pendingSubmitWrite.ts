@@ -8,8 +8,8 @@ import Log from './Log';
  *
  * Those two live in unrelated module/component trees with no props path between them, so the signal
  * needs somewhere to live. It is deliberately not the write-scheduling registry it replaces: this only
- * answers a question, it never decides where a write goes, so stale state here cannot misroute a
- * submission the way a stale channel reservation could.
+ * answers a question, it never decides where a write goes, so stale state here cannot send a
+ * submission down the wrong path the way a stale channel reservation could.
  *
  * Both reads are non-reactive point-in-time checks by design (see `ReportActionItemCreated`), so no
  * subscription mechanism is provided.
