@@ -281,6 +281,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
                 return React.cloneElement(tableHeaderElement, {
                     isStickyListHeader: true,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
                     'aria-hidden': isAccessibilityHidden ? true : undefined,
                     isAccessibilityHidden,
                 });
