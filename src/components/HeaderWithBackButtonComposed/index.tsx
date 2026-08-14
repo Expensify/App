@@ -50,7 +50,6 @@ function HeaderWithBackButton({
     shouldShowPinButton = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
-    shouldDisableThreeDotsButton = false,
     shouldUseHeadlineHeader = false,
     stepCounter,
     subtitle = '',
@@ -94,7 +93,6 @@ function HeaderWithBackButton({
                 <HeaderThreeDotsMenu
                     icon={threeDotsMenuIcon}
                     iconFill={threeDotsMenuIconFill}
-                    disabled={shouldDisableThreeDotsButton}
                     items={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
                     shouldOverlay={shouldOverlayDots}
