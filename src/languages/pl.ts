@@ -1685,6 +1685,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
         },
         moveExpenses: 'Przenieś do raportu',
+        moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         submitReportTo: {
             sendExpense: 'Wyślij swój wydatek do dowolnej osoby',
@@ -1707,6 +1708,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Wybierz dodatkowego akceptującego dla tych raportów, zanim przekażemy je dalej w pozostałej części procesu zatwierdzania.',
             },
             bulkSubtitle: 'Wybierz opcję, aby zmienić akceptującego dla tych raportów.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> zamiast do ciebie (twojego Zastępcy na czas urlopu), ponieważ nie jesteś członkiem polityki tego raportu`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Ten raport został wysłany do ciebie zamiast do twojego zastępcy urlopowego <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user>, a nie do Zastępcy na czas urlopu <mention-user>@${delegate}</mention-user>, ponieważ nie jest on członkiem polityki tego raportu`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> do zatwierdzenia, ponieważ nie możesz zatwierdzać własnych raportów`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Ten raport został wysłany do ciebie do zatwierdzenia, ponieważ twój Zastępca na czas urlopu, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać swoich własnych raportów`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Ten raport został wysłany do <mention-user>@${originalManager}</mention-user> do zatwierdzenia, ponieważ ich Zastępca na czas urlopu, <mention-user>@${delegate}</mention-user>, nie może zatwierdzać własnych raportów`,
         },
         chooseWorkspace: 'Wybierz przestrzeń roboczą',
         routedDueToDEW: (to: string, reason?: string) => `raport przekazany do ${to}${reason ? ` bo ${reason}` : ''}`,
@@ -4616,6 +4629,7 @@ ${amount} dla ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Zarządzaj płatnościami w przepływie pracy.',
             readOnlyActionTitle: 'Nie tak szybko…',
             readOnlyActionPrompt: 'Twoja rola w przestrzeni roboczej może wyświetlać te ustawienia, ale nie może ich edytować.',
+            noAccessActionPrompt: 'Twoja rola w tym zespole nie ma dostępu do tych ustawień. Jeśli go potrzebujesz, poproś administratora.',
         },
         createdForClient: {
             title: 'Utworzyłeś przestrzeń roboczą dla swojego klienta!',
@@ -8963,6 +8977,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 travelInvoicing: 'Zbiorcze rozliczanie podróży',
             },
             bankAccount: {banks: 'Konta bankowe', closedBankAccounts: 'Zamknięte konta bankowe'},
+            workspace: {active: 'Aktywne', archived: 'Zarchiwizowane', selectAll: 'Zaznacz wszystko'},
             reportField: (name: string, value: string) => `${name} to ${value}`,
             current: 'Bieżące',
             past: 'Przeszłe',

@@ -20,6 +20,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@libs/actions/Report', () => ({
@@ -131,14 +132,14 @@ describe('NewReportWorkspaceSelectionPage', () => {
     });
 
     it('creates the report directly when there is a live transaction for the user report', async () => {
-        const transaction: Partial<Transaction> = {
+        const transaction = createMock<Transaction>({
             transactionID: 'txn-1',
             reportID: REPORT_ID,
             pendingAction: null,
-        };
+        });
         await act(async () => {
             await seedBaseOnyx();
-            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction as Transaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
         });
         await waitForBatchedUpdatesWithAct();
 

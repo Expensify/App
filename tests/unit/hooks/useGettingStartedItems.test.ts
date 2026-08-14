@@ -982,7 +982,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
-            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.APPROVALS));
         });
 
         it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {

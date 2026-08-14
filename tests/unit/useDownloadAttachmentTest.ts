@@ -12,7 +12,7 @@ import Onyx from 'react-native-onyx';
 
 jest.mock('@libs/fileDownload');
 
-const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
+const mockFileDownload = jest.mocked(fileDownload);
 
 const ENCRYPTED_TOKEN = 'testEncryptedToken123';
 const FILE_URL = 'https://example.com/file.jpg';

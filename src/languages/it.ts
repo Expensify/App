@@ -1693,6 +1693,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Non è stato possibile rifiutare il report. Riprova.',
         },
         moveExpenses: 'Sposta nel report',
+        moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         submitReportTo: {
             sendExpense: 'Invia la tua spesa a chiunque',
@@ -1715,6 +1716,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Scegli un approvatore aggiuntivo per questi report prima che li instradiamo attraverso il resto del flusso di approvazione.',
             },
             bulkSubtitle: "Scegli un'opzione per cambiare l'approvatore di questi report.",
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> invece che a te (il loro Delegato per le ferie) perché non fai parte della policy di questo report`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Questo report è stato inviato a te invece che al tuo delegato per le vacanze <mention-user>@${delegate}</mention-user> perché non è un membro della policy di questo report`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> invece che al/la suo/a delegato/a per le vacanze <mention-user>@${delegate}</mention-user> perché non è membro della policy di questo report`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Questo resoconto è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione, dato che non puoi approvare i tuoi stessi resoconti`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Questo resoconto ti è stato inviato per l'approvazione perché il tuo delegato per le vacanze, <mention-user>@${delegate}</mention-user>, non può approvare i propri resoconti`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Questo report è stato inviato a <mention-user>@${originalManager}</mention-user> per l'approvazione, dato che il/la suo/a Delegato/a per le ferie, <mention-user>@${delegate}</mention-user>, non può approvare i propri report`,
         },
         chooseWorkspace: 'Scegli uno spazio di lavoro',
         routedDueToDEW: (to: string, reason?: string) => `report indirizzato a ${to}${reason ? ` perché ${reason}` : ''}`,
@@ -4633,6 +4646,7 @@ ${amount} per ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
             readOnlyActionTitle: 'Non così in fretta...',
             readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
+            noAccessActionPrompt: 'Il tuo ruolo nello spazio di lavoro non ha accesso a queste impostazioni. Chiedi a un amministratore se ne hai bisogno.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -9015,6 +9029,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 travelInvoicing: 'Fatturazione viaggio consolidata',
             },
             bankAccount: {banks: 'Conti bancari', closedBankAccounts: 'Conti bancari chiusi'},
+            workspace: {active: 'Attivo', archived: 'Archiviato', selectAll: 'Seleziona tutto'},
             reportField: (name: string, value: string) => `${name} è ${value}`,
             current: 'Attuale',
             past: 'Passato',

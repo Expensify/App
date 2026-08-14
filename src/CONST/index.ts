@@ -1019,6 +1019,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1475,6 +1476,9 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        // The backend rejects moving an expense into a report that already holds this many transactions, so the App
+        // blocks the move up front with a warning instead of letting it fail silently.
+        MAX_TRANSACTIONS: 500,
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
@@ -2244,6 +2248,7 @@ const CONST = {
             EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
         SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
+        SPAN_STARTUP_NEW_DOT_JS_INIT: 'StartupNewDotJSInit',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -6225,6 +6230,13 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        WORKFLOWS_TAB_TYPE: 'workflowsTabType',
+        WORKFLOWS: {
+            SUBMISSIONS: 'submissions',
+            APPROVALS: 'approvals',
+            PAYMENTS: 'payments',
+            ADVANCED: 'advanced',
+        },
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
@@ -7140,6 +7152,8 @@ const CONST = {
                     SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
                     SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -7352,6 +7366,8 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             AVATAR: 'avatar',
             STATUS: 'status',
             PAID_STATUS: 'paidstatus',
@@ -7445,6 +7461,8 @@ const CONST = {
             PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -7497,6 +7515,8 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amount-debited',
+            AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
@@ -7610,6 +7630,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
+                [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -8647,6 +8669,7 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
