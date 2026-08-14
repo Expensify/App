@@ -1693,6 +1693,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Non è stato possibile rifiutare il report. Riprova.',
         },
         moveExpenses: 'Sposta nel report',
+        moveExpensesMaxTransactionsError: `I report sono limitati a ${CONST.REPORT.MAX_TRANSACTIONS} spese. Spostane alcune in un altro report.`,
         moveExpensesError: 'Non puoi spostare le spese di diaria nei report di altri spazi di lavoro, perché le tariffe di diaria possono variare tra gli spazi di lavoro.',
         submitReportTo: {
             sendExpense: 'Invia la tua spesa a chiunque',
