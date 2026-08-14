@@ -2,7 +2,7 @@ import ConnectionLayout from '@components/ConnectionLayout';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import TextInput from '@components/TextInput';
@@ -132,7 +132,7 @@ function SageIntacctEditUserDimensionsPage({route}: SageIntacctEditUserDimension
                         />
                     </View>
                     <View style={[styles.mhn5]}>
-                        <MenuItem
+                        <MenuItemAction
                             title={translate('common.remove')}
                             icon={icons.Trashcan}
                             onPress={() => {

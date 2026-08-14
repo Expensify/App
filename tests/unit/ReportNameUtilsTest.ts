@@ -802,6 +802,80 @@ describe('ReportNameUtils', () => {
             expect(disabledName).toBe('disabled the company card purchases requirement');
         });
 
+        test('UPDATE_REQUIRES_CATEGORY parent action', () => {
+            const thread: Report = createWorkspaceThread(151);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(151),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY,
+                reportActionID: actionId,
+                originalMessage: {enabled: true},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the expense categorization requirement');
+
+            const disabledParentAction: ReportAction = {...enabledParentAction, originalMessage: {enabled: false}};
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the expense categorization requirement');
+        });
+
+        test('UPDATE_REQUIRES_TAG parent action', () => {
+            const thread: Report = createWorkspaceThread(152);
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const enabledParentAction: ReportAction = {
+                ...createRandomReportAction(152),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG,
+                reportActionID: actionId,
+                originalMessage: {enabled: true},
+            };
+
+            const enabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: enabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(enabledName).toBe('enabled the expense tagging requirement');
+
+            const disabledParentAction: ReportAction = {...enabledParentAction, originalMessage: {enabled: false}};
+            const disabledName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: disabledParentAction}},
+                currentUserAccountID,
+            );
+            expect(disabledName).toBe('disabled the expense tagging requirement');
+        });
+
         test('UPDATE_AUTO_HARVESTING parent action', () => {
             const thread: Report = createWorkspaceThread(151);
             const enabledParentAction: ReportAction = {
