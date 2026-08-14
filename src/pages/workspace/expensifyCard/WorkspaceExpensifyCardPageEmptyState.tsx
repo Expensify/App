@@ -137,8 +137,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         if (result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        updatePolicyGeneralSettings(policy, policy.name, CONST.CURRENCY.USD);
-        startFlow();
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
     };
 
     return (
