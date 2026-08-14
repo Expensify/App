@@ -724,4 +724,26 @@ describe('DateUtils', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
         });
     });
+
+    describe('time picker helpers with a non-English date-fns locale', () => {
+        beforeEach(() => IntlStore.load(CONST.LOCALES.DE));
+
+        it('combineDateAndTime parses the picker-submitted English AM/PM value', () => {
+            expect(DateUtils.combineDateAndTime('02:00 PM', '2026-08-04')).toBe('2026-08-04 14:00:00');
+            expect(DateUtils.combineDateAndTime('08:00 AM', '2026-08-04 00:00:00')).toBe('2026-08-04 08:00:00');
+        });
+
+        it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
+            const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon).period).toBe(CONST.TIME_PERIOD.PM);
+            const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
+        });
+
+        it('per diem start/end range built from picker values validates', () => {
+            const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
+            const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
+            expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
+        });
+    });
 });

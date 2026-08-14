@@ -461,6 +461,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'submitterUserID':
         case 'submitterPayrollID':
         case 'orderDealNumbers':
+        case 'debitedCurrency':
+        case 'creditedCurrency':
             return validateString(value);
         case 'hasOutstandingChildRequest':
         case 'hasOutstandingChildTask':
@@ -487,6 +489,8 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
         case 'reimbursableTotal':
         case 'unheldReimbursableTotal':
         case 'transactionCount':
+        case 'debitedAmount':
+        case 'creditedAmount':
             return validateNumber(value);
         case 'chatType':
             return validateConstantEnum(value, CONST.REPORT.CHAT_TYPE);
@@ -565,6 +569,7 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 actorAccountID: 'number',
                 eta: 'object',
                 iconFill: 'string',
+                requiredDepositCurrency: 'string',
             });
         case 'tripData':
             return validateObject<ObjectElement<Report, 'tripData'>>(value, {
@@ -602,6 +607,10 @@ function validateReportDraftProperty(key: keyof Report | keyof ReportNameValuePa
                 submitterUserID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 submitterPayrollID: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 orderDealNumbers: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                debitedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedAmount: CONST.RED_BRICK_ROAD_PENDING_ACTION,
+                creditedCurrency: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 avatarUrl: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 chatType: CONST.RED_BRICK_ROAD_PENDING_ACTION,
                 hasOutstandingChildRequest: CONST.RED_BRICK_ROAD_PENDING_ACTION,
