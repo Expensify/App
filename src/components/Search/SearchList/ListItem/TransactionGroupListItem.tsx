@@ -22,7 +22,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
+import {getVisibleTransactionViolations, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -145,23 +145,16 @@ function TransactionGroupListItemImpl({
     // Expense-report rows are already part of the list, so only group-by views need this.
     useGroupOpenForShiftRange(groupItem.keyForList, isExpanded && !isExpenseReportType);
 
-    const {transactions, isGroupChecked} = useGroupChildrenForShiftRange({
+    const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildrenForShiftRange({
         groupKey: groupItem.keyForList,
         isExpenseReportType,
         groupTransactions: groupItem.transactions,
     });
 
-    const selectedItemsLength = transactions.reduce((acc, transaction) => (transaction.isSelected ? acc + 1 : acc), 0);
-
-    const transactionsWithoutPendingDelete = transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const transactionsWithoutPendingDelete = transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
 
     // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
     const isEmpty = transactions.length === 0 && groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
-
-    const isEmptyReportSelected = transactions.length === 0 && isGroupChecked;
-
-    const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
-    const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
 
     // Currently only the transaction report groups have transactions where the empty view makes sense
     const shouldDisplayEmptyView = isEmpty && isExpenseReportType;

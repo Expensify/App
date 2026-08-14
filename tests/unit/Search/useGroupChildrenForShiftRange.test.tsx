@@ -5,13 +5,17 @@ import useGroupChildrenForShiftRange from '@components/Search/SearchList/ListIte
 import {mapEmptyReportToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SelectedTransactions} from '@components/Search/types';
 
+import CONST from '@src/CONST';
+
 import {buildReportGroup, buildTransactionRow} from '../../utils/collections/searchListItems';
 
 const GROUP_KEY = 'Advertising';
 
 const FIRST_CHILD_KEY = '1';
 
-const rows = [buildTransactionRow(1, FIRST_CHILD_KEY), buildTransactionRow(2, '2')];
+const firstRow = buildTransactionRow(1, FIRST_CHILD_KEY);
+
+const rows = [firstRow, buildTransactionRow(2, '2')];
 
 /** A real selection entry, so the fixtures carry the same shape the provider writes. */
 const selectEntry = (key: string): SelectedTransactions => {
@@ -94,7 +98,7 @@ describe('useGroupChildrenForShiftRange', () => {
     it('answers for a group carrying no rows from its own key, since there is nothing else to ask', () => {
         mockSelectedTransactions.current = selectEntry(GROUP_KEY);
         const {result} = renderGroupChildren({groupTransactions: [] as TransactionListItemType[]});
-        expect(result.current.isGroupChecked).toBe(true);
+        expect(result.current.isSelectAllChecked).toBe(true);
         expect(result.current.transactions).toEqual([]);
     });
 
@@ -102,6 +106,23 @@ describe('useGroupChildrenForShiftRange', () => {
         mockAreAllMatchingItemsSelected.current = true;
         mockExcludedTransactions.current = selectEntry(GROUP_KEY);
         const {result} = renderGroupChildren({groupTransactions: [] as TransactionListItemType[]});
-        expect(result.current.isGroupChecked).toBe(false);
+        expect(result.current.isSelectAllChecked).toBe(false);
+    });
+
+    it('reads checked once every row it carries is, and indeterminate while only some are', () => {
+        mockSelectedTransactions.current = selectEntry(FIRST_CHILD_KEY);
+        const {result, rerender} = renderGroupChildren();
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: false, indeterminate: true});
+
+        mockSelectedTransactions.current = {...selectEntry(FIRST_CHILD_KEY), ...selectEntry('2')};
+        rerender({});
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
+    });
+
+    it('leaves a row being deleted out of the count, so the checkbox cannot read checked and indeterminate at once', () => {
+        const deletedRow = {...buildTransactionRow(3, '3'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        mockSelectedTransactions.current = selectEntry(FIRST_CHILD_KEY);
+        const {result} = renderGroupChildren({groupTransactions: [firstRow, deletedRow]});
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
     });
 });

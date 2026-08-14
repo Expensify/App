@@ -40,8 +40,7 @@ import {useSearchSelectionActions, useSearchSelectionContext} from './SearchCont
 import {SearchRowSelectionActionsContext, SearchShiftRangeGroupsContext} from './SearchContextDefinitions';
 import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
-    buildGroupChildrenIndex,
-    buildShiftRangeItems,
+    buildShiftRangeSource,
     countFullyExcludedItems,
     isGroupSelected,
     isRowChecked,
@@ -228,9 +227,8 @@ function SearchWriteActionsProvider({
 
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
-    const flattenedShiftRangeItems = buildShiftRangeItems(renderedData, openGroupKeys, hasValidGroupBy);
-    // Built from the rows the range spans, so a row can't be ranged under one parent and stored under another.
-    const {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildGroupChildrenIndex(renderedData, openGroupKeys, hasValidGroupBy);
+    // One pass: the rows a range spans and the parent each belongs to cannot be built separately without being able to disagree.
+    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
     }, [groupKeyByChildKey]);
@@ -574,7 +572,7 @@ function SearchWriteActionsProvider({
     };
 
     const toggleAll: SearchRowSelectionActionsValue['toggleAll'] = () => {
-        // Decide select-all vs clear before the updater so the range seed/clear (a ref write) stays out of the reducer.
+        // Read once, so the session and the selection cannot act on two different answers.
         const isClearing = Object.keys(getSelectedTransactions()).length > 0;
         if (isClearing) {
             rangeApi.clearAnchor();
@@ -582,8 +580,8 @@ function SearchWriteActionsProvider({
             rangeApi.seedFullRange();
         }
         applySelection(
-            (selectedTransactions) => {
-                if (Object.keys(selectedTransactions).length > 0) {
+            () => {
+                if (isClearing) {
                     return {};
                 }
 

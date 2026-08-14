@@ -424,40 +424,32 @@ function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys
     return openGroupKeys.has(group.keyForList) ? group.transactions : [];
 }
 
-/**
- * Flattened source (each group header followed by its children, in visual order) that shift-range ranges over. Flattens only in
- * group-by views, and only over the rows an open group carries. Expense-report and flat views pass through.
- */
-function buildShiftRangeItems(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): SearchListItem[] {
-    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
-        return sortedData;
-    }
-    return sortedData.flatMap((group) => [group, ...resolveGroupChildren(group, openGroupKeys)]);
-}
+type ShiftRangeSource = {
+    /** Each group header followed by the rows it carries, in visual order, which is what a range spans */
+    items: SearchListItem[];
 
-type GroupChildrenIndex = {
-    /** Each group's rows as the range sees them, which for a lazily loaded group is only what has been registered so far. */
+    /** Each group's rows as the range sees them */
     childrenByGroupKey: Map<string, TransactionListItemType[]>;
 
-    /** The group a child row belongs to, so its selection is stored and removed under the right parent. */
+    /** The group a child row belongs to, so its selection is stored and removed under the right parent */
     groupKeyByChildKey: Map<string, string>;
 
-    /** How many rows each group holds in total, which is more than the loaded page while a group is still paging in. */
+    /** How many rows each group holds in total, which is more than the loaded page while a group is still paging in */
     childCountByGroupKey: Map<string, number>;
 };
 
-/**
- * Parent/child lookups over the same rows `buildShiftRangeItems` flattens, so the range and the selection agree on who owns a row.
- * Empty outside group-by views, where the list holds no child rows to attribute to a parent.
- */
-function buildGroupChildrenIndex(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): GroupChildrenIndex {
+/** What a range spans and who owns each row, from one pass so the two cannot disagree. Flattens only in group-by views. */
+function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
     const childCountByGroupKey = new Map<string, number>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
-        return {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
+        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
     }
+
+    const items: SearchListItem[] = [];
     for (const group of sortedData) {
+        items.push(group);
         if (!group.keyForList) {
             continue;
         }
@@ -467,12 +459,13 @@ function buildGroupChildrenIndex(sortedData: SearchListItem[], openGroupKeys: Re
             childCountByGroupKey.set(group.keyForList, group.count);
         }
         for (const child of children) {
+            items.push(child);
             if (child.keyForList) {
                 groupKeyByChildKey.set(child.keyForList, group.keyForList);
             }
         }
     }
-    return {childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
+    return {items, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
 }
 
 export {
@@ -480,8 +473,7 @@ export {
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,
     deriveSelectedReports,
-    buildShiftRangeItems,
-    buildGroupChildrenIndex,
+    buildShiftRangeSource,
     isGroupSelected,
     isGroupChecked,
     countCheckedGroupChildren,

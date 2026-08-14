@@ -2,9 +2,7 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
-import {countCheckedGroupChildren, isGroupChecked} from '@components/Search/selectionBuilders';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
 
@@ -23,7 +21,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -49,6 +47,7 @@ import MonthListItemHeader from './MonthListItemHeader';
 import QuarterListItemHeader from './QuarterListItemHeader';
 import ReportListItemHeader from './ReportListItemHeader';
 import TagListItemHeader from './TagListItemHeader';
+import useGroupChildrenForShiftRange from './useGroupChildrenForShiftRange';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
@@ -100,7 +99,6 @@ function GroupHeader({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
-    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -178,17 +176,13 @@ function GroupHeader({
     const isDisabled = item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
-    // The provider already derived these, so a header never rebuilds them: no rows means the group answers from its own key, which is what it does anyway.
+    // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
+    const {isSelectAllChecked, isIndeterminate} = useGroupChildrenForShiftRange({
+        groupKey: originalKey,
+        isExpenseReportType,
+        groupTransactions: groupItem.transactions,
+    });
     const effectiveTransactions = groupItem.transactions;
-
-    // Answered by the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
-    const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
-        const params = {groupKey: originalKey, children: effectiveTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
-        // Only the partial state is counted here: `isGroupChecked` already skips the rows being deleted and answers from the group's key where none are left.
-        const selectableTransactions = effectiveTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-        const selectedCount = countCheckedGroupChildren({...params, children: selectableTransactions});
-        return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectableTransactions.length};
-    }, [selectedTransactions, excludedTransactions, areAllMatchingItemsSelected, effectiveTransactions, originalKey]);
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
