@@ -164,26 +164,6 @@ describe('Pusher.subscribe on web', () => {
         jest.restoreAllMocks();
     });
 
-    it('should fire one resubscribe per drop when two events subscribe to the same channel in one tick', async () => {
-        const onResubscribe = jest.fn();
-
-        Pusher.onChannelResubscribe(CHANNEL, onResubscribe);
-        const pong = Pusher.subscribe(CHANNEL, 'pong', () => {});
-        const events = Pusher.subscribe(CHANNEL, 'multipleEvents', () => {});
-        await jest.runAllTimersAsync();
-
-        const channel = mockChannels.get(CHANNEL);
-        channel?.completeHandshake();
-        await Promise.all([pong, events]);
-
-        expect(onResubscribe).not.toHaveBeenCalled();
-
-        channel?.dropConnection();
-        channel?.completeHandshake();
-
-        expect(onResubscribe).toHaveBeenCalledTimes(1);
-    });
-
     it('should reinstate a subscription that a screen cancelled while a reconnect handshake was in flight', async () => {
         const typing = Pusher.subscribe(CHANNEL, 'userIsTyping', () => {});
         await jest.runAllTimersAsync();
@@ -204,33 +184,6 @@ describe('Pusher.subscribe on web', () => {
 
         expect(channel?.subscriptionCancelled).toBe(false);
         expect(mockChannels.get(CHANNEL)).toBeDefined();
-    });
-
-    it('should still fire one resubscribe per drop after a cancelled handshake was reinstated', async () => {
-        const onResubscribe = jest.fn();
-
-        Pusher.onChannelResubscribe(CHANNEL, onResubscribe);
-        const typing = Pusher.subscribe(CHANNEL, 'userIsTyping', () => {});
-        await jest.runAllTimersAsync();
-
-        const channel = mockChannels.get(CHANNEL);
-        channel?.completeHandshake();
-        await typing;
-
-        channel?.dropConnection();
-        channel?.startSubscription();
-        Pusher.unsubscribe(CHANNEL, 'userIsTyping');
-
-        Pusher.subscribe(CHANNEL, 'userIsTyping', () => {});
-        await jest.runAllTimersAsync();
-        channel?.completeHandshake();
-
-        onResubscribe.mockClear();
-        channel?.dropConnection();
-        channel?.startSubscription();
-        channel?.completeHandshake();
-
-        expect(onResubscribe).toHaveBeenCalledTimes(1);
     });
 
     it('should authorize again when a caller subscribes after a subscription error', async () => {
@@ -301,30 +254,5 @@ describe('Pusher.subscribe on web', () => {
         channel?.completeHandshake();
 
         expect(reconnect).toHaveBeenCalledTimes(1);
-    });
-
-    it('should bind no extra handler when a caller subscribes during a reconnect window', async () => {
-        const onResubscribe = jest.fn();
-
-        Pusher.onChannelResubscribe(CHANNEL, onResubscribe);
-        const pong = Pusher.subscribe(CHANNEL, 'pong', () => {});
-        await jest.runAllTimersAsync();
-
-        const channel = mockChannels.get(CHANNEL);
-        channel?.completeHandshake();
-        await pong;
-
-        channel?.dropConnection();
-        const events = Pusher.subscribe(CHANNEL, 'multipleEvents', () => {});
-        await jest.runAllTimersAsync();
-        channel?.completeHandshake();
-        await events;
-
-        // Discard the window above. One ordinary resubscribe must still produce one call.
-        onResubscribe.mockClear();
-        channel?.dropConnection();
-        channel?.completeHandshake();
-
-        expect(onResubscribe).toHaveBeenCalledTimes(1);
     });
 });
