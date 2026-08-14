@@ -126,9 +126,9 @@ export default function ReportParticipantsTable({ref, headerComponent, members, 
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

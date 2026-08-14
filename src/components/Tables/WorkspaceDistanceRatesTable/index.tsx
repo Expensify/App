@@ -165,7 +165,6 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
@@ -173,6 +172,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
                 buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

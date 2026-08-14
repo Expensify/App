@@ -160,7 +160,6 @@ export default function DomainMembersTable({
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             {!isEmpty && (
                 <DomainMembersGroupFilterSync
@@ -170,6 +169,7 @@ export default function DomainMembersTable({
             )}
 
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

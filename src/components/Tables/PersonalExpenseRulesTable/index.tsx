@@ -112,7 +112,6 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState
                 title={translate('expenseRulesPage.emptyRules.title')}
@@ -127,6 +126,7 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
                 ]}
             />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

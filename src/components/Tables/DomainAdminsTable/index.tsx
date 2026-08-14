@@ -88,9 +88,9 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

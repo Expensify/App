@@ -118,10 +118,10 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

@@ -406,7 +406,6 @@ function WorkspaceCompanyCardsTable({
             onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
             headerComponent={showCards ? composeTableHeaderComponent(headerButtonsComponent, tableControlsComponent) : undefined}
-            shouldUseStickyColumnHeader={showCards}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
             {!showCards && headerButtonsComponent}
@@ -473,6 +472,7 @@ function WorkspaceCompanyCardsTable({
                 </Table.EmptyState>
             )}
             {showCards && !shouldShowPendingUnassignmentLoading && <Table.NoResultsState />}
+            {showCards && <Table.Header />}
             {showCards && <Table.Body />}
         </Table>
     );

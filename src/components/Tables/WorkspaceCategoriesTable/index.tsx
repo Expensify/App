@@ -165,7 +165,6 @@ export default function WorkspaceCategoriesTable({
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState
                 title={translate('workspace.categories.emptyCategories.title')}
@@ -174,6 +173,7 @@ export default function WorkspaceCategoriesTable({
                 buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

@@ -88,9 +88,9 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

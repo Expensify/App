@@ -198,6 +198,8 @@ function TableHeader<DataType extends TableData, ColumnKey extends string = stri
     return <View style={styles.appBG}>{header}</View>;
 }
 
+TableHeader.type = 'header';
+
 /**
  * Renders a single sortable column header.
  *
@@ -323,3 +325,4 @@ function TableHeaderColumn<DataType extends TableData, ColumnKey extends string 
 }
 
 export default TableHeader;
+export type {TableHeaderProps};

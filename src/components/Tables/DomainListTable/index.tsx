@@ -105,7 +105,6 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             initialSortColumn="domains"
             title={translate('common.domains')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
             <Table.EmptyState
@@ -119,6 +118,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
                 buttons={emptyStateButtons}
             />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

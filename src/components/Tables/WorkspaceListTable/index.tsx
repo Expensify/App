@@ -154,7 +154,6 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
             <Table.NoResultsState />
@@ -169,6 +168,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
                 buttons={emptyStateButtons}
             />
 
+            <Table.Header />
             <Table.Body />
         </Table>
     );

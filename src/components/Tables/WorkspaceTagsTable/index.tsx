@@ -218,10 +218,10 @@ export default function WorkspaceTagsTable({
             keyExtractor={(tag) => tag.keyForList}
             onRowSelectionChange={onRowSelectionChange}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

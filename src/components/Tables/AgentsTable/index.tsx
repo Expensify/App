@@ -122,7 +122,6 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
             selectionEnabled={canSelectAgents}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
@@ -139,6 +138,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
                 }
             />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

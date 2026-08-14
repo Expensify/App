@@ -119,9 +119,9 @@ function WorkspaceExpenseDefaultsTable({rulesData, selectionEnabled, selectedKey
             narrowLayoutSortColumn="condition"
             title={translate('workspace.rules.tabs.expenseDefaults')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

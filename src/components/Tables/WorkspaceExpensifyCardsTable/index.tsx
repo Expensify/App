@@ -264,9 +264,9 @@ export default function WorkspaceExpensifyCardsTable({
             ListFooterComponent={listFooterComponent}
             ListFooterComponentStyle={listFooterComponentStyle}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body contentContainerStyle={listContentContainerStyle} />
         </Table>
     );

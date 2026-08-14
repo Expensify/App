@@ -121,10 +121,10 @@ function WorkspaceCategoryRulesTableImpl({
             narrowLayoutSortColumn="condition"
             title={tableTitle}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );

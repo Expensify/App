@@ -18,6 +18,7 @@ import type {ReactElement} from 'react';
 import React, {useImperativeHandle, useRef} from 'react';
 
 import type {TableContextValue} from './TableContext';
+import type {TableHeaderProps} from './TableHeader';
 import type {TableData, TableHandle, TableMethods, TableProps, TableRow} from './types';
 
 import {getTableListMetadata} from './buildTableListData';
@@ -32,6 +33,14 @@ import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
 import TableSemanticContainer from './TableSemanticContainer';
+
+type TableHeaderComponent = React.JSXElementConstructor<TableHeaderProps> & {
+    type?: string;
+};
+
+function isTableHeaderElement(child: React.ReactNode): child is ReactElement<TableHeaderProps> {
+    return React.isValidElement<TableHeaderProps>(child) && typeof child.type !== 'string' && (child.type as TableHeaderComponent).type === 'header';
+}
 
 /**
  * Builds the Proxy exposed through the Table's ref, forwarding to `tableMethods` first and
@@ -208,7 +217,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     initialSortColumn,
     narrowLayoutSortColumn,
     headerComponent,
-    shouldUseStickyColumnHeader = false,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
@@ -271,14 +279,40 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0 && (hasActiveSearchString || hasActiveFilters);
-    const shouldRenderStickyHeader = shouldUseStickyColumnHeader && !(shouldUseNarrowTableLayout && !title);
 
-    // When the page header scrolls with the table, TableBody owns the list footer used for empty
-    // states. They are extracted from the direct children here so they don't render a second time
-    // as siblings of the body.
-    const childrenArray = React.Children.toArray(children);
-    const emptyStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableEmptyState);
-    const noResultsStateElement = childrenArray.find((child): child is ReactElement => React.isValidElement(child) && child.type === TableNoResultsState);
+    const hasPageHeader = !!headerComponent || !!listProps.ListHeaderComponent;
+
+    // Pull recognized elements from the direct children so Table can choose their internal render
+    // location without changing the compound interface. The declared column header and empty-state
+    // elements move into TableBody only for the page-header layout.
+    let tableHeaderElement: ReactElement<TableHeaderProps> | undefined;
+    let emptyStateElement: ReactElement | undefined;
+    let noResultsStateElement: ReactElement | undefined;
+    const renderedChildren = React.Children.map(children, (child) => {
+        if (isTableHeaderElement(child)) {
+            if (!tableHeaderElement) {
+                tableHeaderElement = child;
+            }
+            return hasPageHeader ? null : child;
+        }
+
+        if (React.isValidElement(child) && child.type === TableEmptyState) {
+            if (!emptyStateElement) {
+                emptyStateElement = child;
+            }
+            return hasPageHeader ? null : child;
+        }
+
+        if (React.isValidElement(child) && child.type === TableNoResultsState) {
+            if (!noResultsStateElement) {
+                noResultsStateElement = child;
+            }
+            return hasPageHeader ? null : child;
+        }
+
+        return child;
+    });
+    const shouldRenderStickyHeader = !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
     const tableListMetadata = getTableListMetadata({
         headerComponent,
@@ -286,10 +320,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         isEmptyResult,
         shouldRenderStickyHeader,
     });
-    const renderedChildren = tableListMetadata.hasPageHeader
-        ? childrenArray.filter((child) => !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState)))
-        : children;
-
     /**
      * Exposes table control methods through the ref.
      * Uses a Proxy to also forward FlashList methods (like scrollToIndex).
@@ -309,6 +339,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
         headerComponent,
+        tableHeaderElement,
         emptyStateElement,
         noResultsStateElement,
         listRef,

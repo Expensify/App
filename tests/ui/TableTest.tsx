@@ -669,6 +669,32 @@ describe('Table', () => {
             expect(screen.getByLabelText('Value')).toBeTruthy();
         });
 
+        it('should relocate the declared Table.Header into the sticky list row when a page header is present', () => {
+            const props = createDefaultProps();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
+                >
+                    <Table.Header testID="declared-table-header" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(Table.Header.type).toBe('header');
+            expect(within(screen.getByTestId('flash-list')).getByTestId('declared-table-header')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+        });
+
         it('should render headerComponent and keep row indexes aligned with data rows', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
@@ -685,8 +711,8 @@ describe('Table', () => {
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -715,8 +741,8 @@ describe('Table', () => {
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
                     ListHeaderComponent={<Text testID="table-list-header-component">List header</Text>}
-                    shouldUseStickyColumnHeader
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -731,6 +757,48 @@ describe('Table', () => {
             activateStickyHeadersAfterListLoad();
 
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+        });
+
+        it('should use ListHeaderComponent alone as page content for the declared table header', () => {
+            const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
+
+            render(
+                <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    ListHeaderComponent={<Text testID="table-list-header-component">List header</Text>}
+                >
+                    <Table.Header testID="declared-table-header" />
+                    <Table.Body />
+                </Table>,
+            );
+
+            expect(screen.getByTestId('table-list-header-component')).toBeTruthy();
+            expect(within(screen.getByTestId('flash-list')).getByTestId('declared-table-header')).toBeTruthy();
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
+
+            activateStickyHeadersAfterListLoad();
+
+            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            const tableHandle = tableRef.current;
+            if (!tableHandle) {
+                throw new Error('Expected table ref to be set');
+            }
+            const scrollToIndex = tableHandle.scrollToIndex as (params: {index: number; animated: boolean}) => void;
+
+            act(() => {
+                scrollToIndex({index: 0, animated: false});
+            });
+
+            expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
+                index: 1,
+                animated: false,
+            });
         });
 
         it('should keep page-header rows in a persistent physical table ancestor', () => {
@@ -760,9 +828,9 @@ describe('Table', () => {
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page controls</Text>}
-                    shouldUseStickyColumnHeader
                     title="Members"
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -830,12 +898,12 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text>Page controls</Text>}
-                    shouldUseStickyColumnHeader
                     title="Members"
                     selectionEnabled
                     selectedKeys={[]}
                     onRowSelectionChange={jest.fn()}
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -914,12 +982,12 @@ describe('Table', () => {
                             <Table.FilterBar label="Search" />
                         </>
                     }
-                    shouldUseStickyColumnHeader
                     title="Members"
                     selectionEnabled
                     selectedKeys={[]}
                     onRowSelectionChange={jest.fn()}
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>
             );
@@ -1043,9 +1111,9 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.Header />
                     <Table.Body />
                 </Table>
             );
@@ -1101,9 +1169,9 @@ describe('Table', () => {
                             <Table.FilterBar label="Search" />
                         </>
                     }
-                    shouldUseStickyColumnHeader
                 >
                     <Table.NoResultsState />
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -1152,8 +1220,9 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    shouldUseStickyColumnHeader
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>
             );
@@ -1183,9 +1252,9 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.Header />
                     <Table.Body />
                 </Table>
             );
@@ -1211,17 +1280,17 @@ describe('Table', () => {
             });
         });
 
-        it('should defer sticky table header activation when sticky mode turns back on', () => {
+        it('should defer sticky table header activation when the declared header returns', () => {
             const props = createDefaultProps();
-            const renderTable = (shouldUseStickyColumnHeader: boolean) => (
+            const renderTable = (shouldShowTableHeader: boolean) => (
                 <Table<TestItem, TestColumnKey>
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader={shouldUseStickyColumnHeader}
                 >
+                    {shouldShowTableHeader && <Table.Header />}
                     <Table.Body />
                 </Table>
             );
@@ -1254,7 +1323,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should render only the synthetic table header when no page header is provided', () => {
+        it('should keep the declared Table.Header inline without a page header', () => {
             const props = createDefaultProps();
             const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
 
@@ -1265,18 +1334,16 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    shouldUseStickyColumnHeader
                 >
+                    <Table.Header testID="declared-table-header" />
                     <Table.Body />
                 </Table>,
             );
 
+            expect(screen.getByTestId('declared-table-header')).toBeTruthy();
+            expect(within(screen.getByTestId('flash-list')).queryByTestId('declared-table-header')).toBeNull();
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
-            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
-
-            activateStickyHeadersAfterListLoad();
-
-            expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
+            expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length);
             const tableHandle = tableRef.current;
             if (!tableHandle) {
                 throw new Error('Expected table ref to be set');
@@ -1288,7 +1355,7 @@ describe('Table', () => {
             });
 
             expect(mockFlashListScrollToIndex).toHaveBeenCalledWith({
-                index: 1,
+                index: 0,
                 animated: false,
             });
         });
@@ -1305,8 +1372,8 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -1381,7 +1448,7 @@ describe('Table', () => {
             expect(mockFlashListProps).toHaveLength(0);
         });
 
-        it('should render ListEmptyComponent without mounting FlashList when only the sticky header keeps the body mounted', () => {
+        it('should render ListEmptyComponent without mounting FlashList when the declared header renders null', () => {
             const props = createDefaultProps();
             const EmptyState = <Text testID="empty-state">No items found</Text>;
 
@@ -1392,8 +1459,8 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     ListEmptyComponent={EmptyState}
-                    shouldUseStickyColumnHeader
                 >
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -1413,9 +1480,9 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     headerComponent={<Text testID="table-header-component">Page header</Text>}
-                    shouldUseStickyColumnHeader
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -1520,12 +1587,12 @@ describe('Table', () => {
                             <Table.FilterBar label="Search" />
                         </>
                     }
-                    shouldUseStickyColumnHeader
                     onEndReached={onEndReached}
                     onStartReached={onStartReached}
                     onViewableItemsChanged={onViewableItemsChanged}
                 >
                     <Table.NoResultsState />
+                    <Table.Header />
                     <Table.Body />
                 </Table>,
             );
@@ -1653,9 +1720,9 @@ describe('Table', () => {
                     }
                     ListFooterComponent={<Text testID="list-footer">Disclaimer</Text>}
                     ListFooterComponentStyle={listFooterComponentStyle}
-                    shouldUseStickyColumnHeader
                 >
                     <Table.NoResultsState />
+                    <Table.Header />
                     <Table.Body
                         contentContainerStyle={{
                             flexGrow: 1,
@@ -2010,26 +2077,29 @@ describe('Table', () => {
             expect(valueHeader).toBeTruthy();
         });
 
-        it('should toggle sort order when column header is pressed', () => {
+        it('should toggle sort order through the relocated declared column header', () => {
             const props = createDefaultProps();
+            const tableRef = React.createRef<TableHandle<TestItem, TestColumnKey>>();
             render(
                 <Table<TestItem, TestColumnKey>
+                    ref={tableRef}
                     data={props.data}
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     compareItems={props.compareItems}
+                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
-                    <Table.Header />
+                    <Table.Header testID="declared-table-header" />
                     <Table.Body />
                 </Table>,
             );
 
-            const nameHeader = screen.getByLabelText('Name');
+            const nameHeader = within(screen.getByTestId('declared-table-header')).getByLabelText('Name');
             fireEvent.press(nameHeader);
 
-            // After pressing, the sort should be applied (visual feedback tested via icon)
-            expect(nameHeader).toBeTruthy();
+            expect(tableRef.current?.getActiveSorting()).toEqual({columnKey: 'name', order: 'desc'});
+            expect(tableRef.current?.getProcessedData().map((item) => item.name)).toEqual(['Eggplant', 'Date', 'Carrot', 'Banana', 'Apple']);
         });
 
         it('should allow pressing different column headers', () => {

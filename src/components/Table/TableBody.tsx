@@ -18,7 +18,6 @@ import type {TableData} from '.';
 import {buildTableListData, getAdjustedStickyHeaderIndices, getDataIndex, getSyntheticRowKind} from './buildTableListData';
 import {getRowGroupAccessibilityProps, getTableContainerAccessibilityProps, getVirtualizedRowSemanticID, shouldUseTableSemantics} from './tableAccessibility';
 import {TableRowSemanticIDContext, useTableContext} from './TableContext';
-import TableHeader from './TableHeader';
 
 /**
  * Props for the TableBody component.
@@ -86,6 +85,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         selectionEnabled,
         shouldUseNarrowTableLayout,
         headerComponent,
+        tableHeaderElement,
         emptyStateElement,
         noResultsStateElement,
         tableListMetadata,
@@ -273,15 +273,17 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
         switch (rowKind) {
             case 'tableHeader': {
+                if (!tableHeaderElement) {
+                    return null;
+                }
+
                 const isAccessibleTableHeader = info.target === (isTableHeaderSticky ? 'StickyHeader' : 'Cell');
                 const isAccessibilityHidden = isTableSemanticsEnabled && !isAccessibleTableHeader;
-                return (
-                    <TableHeader
-                        isStickyListHeader
-                        aria-hidden={isAccessibilityHidden ? true : undefined}
-                        isAccessibilityHidden={isAccessibilityHidden}
-                    />
-                );
+                return React.cloneElement(tableHeaderElement, {
+                    isStickyListHeader: true,
+                    'aria-hidden': isAccessibilityHidden ? true : undefined,
+                    isAccessibilityHidden,
+                });
             }
             case 'data':
             default: {

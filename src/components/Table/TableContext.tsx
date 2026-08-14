@@ -8,6 +8,7 @@ import React, {createContext, useContext} from 'react';
 import type {TableListMetadata} from './buildTableListData';
 import type {FilterConfig} from './middlewares/filtering';
 import type {ActiveSorting} from './middlewares/sorting';
+import type {TableHeaderProps} from './TableHeader';
 import type {SharedListProps, TableColumn, TableData, TableMethods, TableRow} from './types';
 
 /**
@@ -23,6 +24,9 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
 
     /** Content rendered as the FlashList header so it scrolls with the table rows. */
     headerComponent?: React.ReactElement;
+
+    /** Declarative column-header child relocated into the table list when page content is present. */
+    tableHeaderElement?: React.ReactElement<TableHeaderProps>;
 
     /** Empty-state element extracted from the table children; rendered by TableBody in its page-header empty layout. */
     emptyStateElement?: React.ReactElement;

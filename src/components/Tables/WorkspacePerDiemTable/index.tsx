@@ -131,10 +131,10 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
             headerComponent={tableHeaderComponent}
-            shouldUseStickyColumnHeader
         >
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
+            <Table.Header />
             <Table.Body />
         </Table>
     );
