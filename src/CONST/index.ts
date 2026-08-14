@@ -9437,6 +9437,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'Control card spend before it happens',
+                subtitle: 'Newsletter',
+                url: 'https://use.expensify.com/blog/expensify-card-spend-rules',
+                publishedDate: '2026-08-17',
+            },
+            {
                 title: 'Scoped admin roles, plus HR & AI updates',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
@@ -9447,12 +9453,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
                 publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
             },
         ],
     },
