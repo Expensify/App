@@ -11,16 +11,12 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
-import ROUTES from '@src/ROUTES';
 
 import {Keyboard} from 'react-native';
 
 type HeaderBackButtonProps = {
     /** Method to trigger when pressing the back button of the header. Defaults to `Navigation.goBack()`. */
     onPress?: () => void;
-
-    /** Whether we should navigate to the report page when the route has a topMostReport. */
-    shouldNavigateToTopMostReport?: boolean;
 
     /** Optional fill color for the icon. */
     iconFill?: string;
@@ -29,7 +25,7 @@ type HeaderBackButtonProps = {
     shouldSkipFocusAfterTransition?: boolean;
 };
 
-function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateToTopMostReport = false, iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
+function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -44,12 +40,7 @@ function HeaderBackButton({onPress = () => Navigation.goBack(), shouldNavigateTo
                     if (Keyboard.isVisible()) {
                         Keyboard.dismiss();
                     }
-                    const topmostReportId = Navigation.getTopmostReportId();
-                    if (shouldNavigateToTopMostReport && topmostReportId) {
-                        Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(topmostReportId));
-                    } else {
-                        onPress();
-                    }
+                    onPress();
                 }}
                 style={[styles.touchableButtonImage]}
                 role={CONST.ROLE.BUTTON}

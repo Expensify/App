@@ -66,7 +66,6 @@ function HeaderWithBackButton({
     children = null,
     shouldOverlayDots = false,
     shouldOverlay = false,
-    shouldNavigateToTopMostReport = false,
     shouldDisplayHelpButton = false,
     shouldDisplaySearchRouter = false,
     style,
@@ -125,7 +124,6 @@ function HeaderWithBackButton({
                 {shouldShowBackButton && (
                     <HeaderBackButton
                         onPress={onBackButtonPress}
-                        shouldNavigateToTopMostReport={shouldNavigateToTopMostReport}
                         iconFill={iconFill}
                         shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                     />
