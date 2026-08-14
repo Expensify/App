@@ -130,13 +130,17 @@ function RulesRequireFieldsPage({
         });
     }, [showConfirmModal, translate]);
 
+    // setPolicyTagsRequired doesn't write policy.requiresTag, so it stays false until a refresh. A saved required level means
+    // the same thing, and reading it saved (not pending) keeps a level toggled on this visit undoable.
+    const doesWorkspaceRequireTag = !!policy?.requiresTag || tagLists.some((tagList) => tagList.required);
+
     // isMakingLastRequiredTagListOptional over pending edits, since it only sees saved state and would miss levels switched off this visit.
     const isLastRequiredLevel = useCallback(
         (orderWeight: number) =>
-            !!policy?.requiresTag &&
+            doesWorkspaceRequireTag &&
             getLevelRequired(orderWeight, tagLists.find((tagList) => tagList.orderWeight === orderWeight)?.required) &&
             tagLists.filter((tagList) => getLevelRequired(tagList.orderWeight, tagList.required)).length === 1,
-        [getLevelRequired, policy?.requiresTag, tagLists],
+        [doesWorkspaceRequireTag, getLevelRequired, tagLists],
     );
 
     const handleTagListRequiredToggle = useCallback(
