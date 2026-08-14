@@ -9783,7 +9783,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             return '';
         },
         brokenConnection530Error: 'Bonnetje in behandeling vanwege verbroken bankverbinding',
-        brokenConnection531Error: 'Bonnetje in behandeling vanwege een tijdelijk probleem bij de bank. Probeer het later opnieuw.',
+        brokenConnection531Error: 'Bon kan niet automatisch worden gekoppeld vanwege een tijdelijk probleem bij de bank. Probeer het later opnieuw.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Bon in behandeling vanwege een verbroken bankverbinding. Los dit op in <a href="${workspaceCompanyCardRoute}">Bedrijfspassen</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Bon wordt vastgehouden vanwege een verbroken bankkoppeling. Vraag een werkruimtebeheerder om dit op te lossen.',

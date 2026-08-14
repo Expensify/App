@@ -9755,7 +9755,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             return '';
         },
         brokenConnection530Error: 'Paragon oczekuje z powodu przerwanego połączenia z bankiem',
-        brokenConnection531Error: 'Paragon oczekuje z powodu tymczasowego problemu z bankiem. Spróbuj ponownie później.',
+        brokenConnection531Error: 'Nie można automatycznie dopasować paragonu z powodu tymczasowego problemu z bankiem. Spróbuj ponownie później.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Oczekuje na rachunek z powodu przerwanego połączenia z bankiem. Rozwiąż problem w sekcji <a href="${workspaceCompanyCardRoute}">Karty firmowe</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Paragon oczekuje z powodu zerwanego połączenia z bankiem. Poproś administratora przestrzeni roboczej o rozwiązanie problemu.',

@@ -9778,7 +9778,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             return '';
         },
         brokenConnection530Error: 'Recibo pendente devido à conexão bancária interrompida',
-        brokenConnection531Error: 'Recibo pendente devido a um problema temporário no banco. Tente novamente mais tarde.',
+        brokenConnection531Error: 'Não é possível conciliar automaticamente o recibo devido a um problema temporário no banco. Tente novamente mais tarde.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Recibo pendente devido a uma conexão bancária interrompida. Resolva em <a href="${workspaceCompanyCardRoute}">Cartões corporativos</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Recibo pendente devido à conexão bancária com problemas. Peça a um administrador do workspace para resolver.',

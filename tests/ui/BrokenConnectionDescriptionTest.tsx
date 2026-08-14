@@ -58,6 +58,6 @@ describe('BrokenConnectionDescription', () => {
         renderDescription();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByText('Receipt pending due to a temporary bank issue. Please try again later.')).toBeTruthy();
+        expect(screen.getByText("Can't auto-match receipt due to a temporary bank issue. Please try again later.")).toBeTruthy();
     });
 });
