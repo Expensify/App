@@ -43,7 +43,7 @@ type OnboardingHelpButtonProps = {
 const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
@@ -80,16 +80,18 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
 
     if (hasActiveScheduledCall && latestScheduledCall) {
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
+            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT, {locale: dateFnsLocale})}, ${DateUtils.formatInTimeZoneWithFallback(
                 latestScheduledCall.eventTime,
                 userTimezone,
                 CONST.DATE.MONTH_DAY_YEAR_FORMAT,
+                {locale: dateFnsLocale},
             )}`,
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
+            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT, {locale: dateFnsLocale})} - ${DateUtils.formatInTimeZoneWithFallback(
                 addMinutes(latestScheduledCall.eventTime, 30),
                 userTimezone,
                 CONST.DATE.LOCAL_TIME_FORMAT,
+                {locale: dateFnsLocale},
             )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
