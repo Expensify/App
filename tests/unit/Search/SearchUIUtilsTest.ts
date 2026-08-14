@@ -7080,6 +7080,49 @@ describe('SearchUIUtils', () => {
             expect(sortGroups(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual(['group_large', 'group_small', 'group_domestic']);
         });
 
+        it('should sort expense reports by each conversion amount, leaving the reports that did not convert at the empty end', () => {
+            const withConversion = (keyForList: string, debitedAmount?: number, creditedAmount?: number) =>
+                createMock<TransactionReportGroupListItemType>({
+                    groupedBy: 'expense-report',
+                    keyForList,
+                    reportID: keyForList,
+                    created: '2025-08-12 17:11:22',
+                    currency: 'USD',
+                    transactions: [],
+                    ...(debitedAmount ? {debitedAmount, debitedCurrency: 'GBP'} : {}),
+                    ...(creditedAmount ? {creditedAmount, creditedCurrency: 'USD'} : {}),
+                });
+            const domestic = withConversion('report_domestic');
+            const smallConversion = withConversion('report_small', 1694, 2000);
+            const largeConversion = withConversion('report_large', 32200, 40000);
+            // Debited the most but reimbursed the least, so the two sides rank the reports differently
+            const reversedConversion = withConversion('report_reversed', 90000, 100);
+            const reports = [smallConversion, domestic, largeConversion, reversedConversion];
+
+            const sortReports = (sortBy: SearchColumnType, sortOrder: SortOrder) =>
+                SearchUIUtils.getSortedSections(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [...reports], localeCompare, translateLocal, sortBy, sortOrder).map((report) => report.keyForList);
+
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual(['report_domestic', 'report_small', 'report_large', 'report_reversed']);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_reversed',
+                'report_large',
+                'report_small',
+                'report_domestic',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.ASC)).toStrictEqual([
+                'report_domestic',
+                'report_reversed',
+                'report_small',
+                'report_large',
+            ]);
+            expect(sortReports(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED, CONST.SEARCH.SORT_ORDER.DESC)).toStrictEqual([
+                'report_large',
+                'report_small',
+                'report_reversed',
+                'report_domestic',
+            ]);
+        });
+
         it('should sort category group data when type is EXPENSE and groupBy is category', () => {
             expect(
                 SearchUIUtils.getSortedSections(
@@ -9813,6 +9856,55 @@ describe('SearchUIUtils', () => {
             const result = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: [], visibleColumns, groupBy: CONST.SEARCH.GROUP_BY.FROM});
             expect(result).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AVATAR);
             expect(result).toContain(CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM);
+        });
+
+        test('Should only show the conversion amount columns for reports whose reimbursement converted currencies', () => {
+            const visibleColumns = [CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED, CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED];
+            const domesticReport = {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, total: -10000, currency: 'USD'};
+            const crossBorderReport = {
+                ...domesticReport,
+                reportID: '2',
+                debitedAmount: 30000,
+                debitedCurrency: 'GBP',
+                creditedAmount: 37250,
+                creditedCurrency: 'USD',
+            };
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const domesticData: OnyxTypes.SearchResults['data'] = {[`${ONYXKEYS.COLLECTION.REPORT}${domesticReport.reportID}`]: domesticReport};
+            const crossBorderData: OnyxTypes.SearchResults['data'] = {...domesticData, [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: crossBorderReport};
+
+            const domesticColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: domesticData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(domesticColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const crossBorderColumns = SearchUIUtils.getColumnsToShow({currentAccountID: 1, data: crossBorderData, visibleColumns, type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT});
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(crossBorderColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            // Without a currency the amount cannot be rendered, so that column stays hidden.
+            const missingCurrencyData: OnyxTypes.SearchResults['data'] = {
+                ...domesticData,
+                [`${ONYXKEYS.COLLECTION.REPORT}${crossBorderReport.reportID}`]: {...crossBorderReport, creditedCurrency: undefined},
+            };
+            const missingCurrencyColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: missingCurrencyData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            });
+            expect(missingCurrencyColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(missingCurrencyColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
+
+            const sortedColumns = SearchUIUtils.getColumnsToShow({
+                currentAccountID: 1,
+                data: domesticData,
+                visibleColumns,
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                sortBy: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+            });
+            expect(sortedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED);
+            expect(sortedColumns).not.toContain(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED);
         });
 
         test('Should only show the conversion amount columns for withdrawal groups that converted currencies', () => {
