@@ -65,8 +65,8 @@ function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOption
     // hook is also used by components that render outside one — there the reset is skipped, as there is nothing to focus.
     const navigationContext = useContext(NavigationContext);
 
-    // Subscribed for the whole lifetime rather than only while a press is pending, so the listener is in place before deferred work can
-    // navigate away. The updater keeps that free for consumers that are never pressed: returning the same value skips the re-render.
+    // Subscribed for the hook's lifetime rather than only while a press is pending, so a press doesn't re-subscribe mid-flight.
+    // The functional updater keeps that cheap: returning the same value skips the re-render for consumers that are never pressed.
     useEffect(() => {
         if (!resetOnFocus || !navigationContext) {
             return;
