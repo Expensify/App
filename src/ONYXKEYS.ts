@@ -87,7 +87,7 @@ const ONYXKEYS = {
     /** Contains all the personalDetails the user has access to, keyed by accountID */
     PERSONAL_DETAILS_LIST: 'personalDetailsList',
 
-    /** Maps optimistic agent accountIDs to the real accountIDs returned by CreateAgent */
+    /** Maps an agent's optimistic accountID to the real accountID CreateAgent assigns, so in-flight navigation can resolve to the real agent */
     RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING: 'optimisticAgentAccountIDMapping',
 
     /** Contains all the private personal details of the user */

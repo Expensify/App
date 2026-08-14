@@ -2,7 +2,6 @@ import {render} from '@testing-library/react-native';
 
 import useOnyx from '@hooks/useOnyx';
 
-import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
@@ -10,9 +9,7 @@ import EditAgentPage from '@pages/settings/Agents/EditAgentPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
-import type {OptimisticAgentAccountIDMapping} from '@src/types/onyx';
 
-import {useIsFocused} from '@react-navigation/native';
 import React from 'react';
 
 jest.mock('@userActions/Agent', () => ({
@@ -65,7 +62,6 @@ jest.mock('@hooks/useOnyx', () => jest.fn(() => [undefined, {status: 'loaded'}])
 jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     navigate: jest.fn(),
-    setParams: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => {
@@ -74,7 +70,7 @@ jest.mock('@react-navigation/native', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return {
         ...actual,
-        useIsFocused: jest.fn(() => true),
+        useIsFocused: () => true,
         useRoute: jest.fn(() => ({name: '', key: '', params: {}})),
     };
 });
@@ -148,27 +144,18 @@ jest.mock('@pages/ErrorPage/NotFoundPage', () => {
 });
 
 const mockUseOnyx = jest.mocked(useOnyx);
-const mockSetParams = jest.mocked(Navigation.setParams);
-const mockUseIsFocused = jest.mocked(useIsFocused);
 
 const TEST_ACCOUNT_ID = 12345;
-const TEST_REAL_ACCOUNT_ID = 67890;
-const TEST_NAVIGATOR_KEY = 'SettingsSplitNavigator-test';
 
 type EditAgentPageRoute = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['route'];
 type EditAgentPageNavigation = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.AGENTS.EDIT>['navigation'];
 
-const mockRoute = {key: 'Settings_Agents_Edit-test', params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
-const mockNavigation = {getState: () => ({key: TEST_NAVIGATOR_KEY})} as EditAgentPageNavigation;
-const getSelectedAccountID = (options: Parameters<typeof useOnyx>[1], mapping: OptimisticAgentAccountIDMapping | undefined): number | undefined => {
-    const selectedAccountID = options?.selector?.(mapping);
-    return typeof selectedAccountID === 'number' ? selectedAccountID : undefined;
-};
+const mockRoute = {params: {accountID: TEST_ACCOUNT_ID}} as EditAgentPageRoute;
+const mockNavigation = {} as EditAgentPageNavigation;
 
 describe('EditAgentPage', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseIsFocused.mockReturnValue(true);
         mockUseOnyx.mockImplementation((key, options) => {
             if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
                 return [{displayName: 'Default Agent'}, {status: 'loaded'}];
@@ -289,92 +276,5 @@ describe('EditAgentPage', () => {
         );
 
         expect(JSON.stringify(toJSON())).not.toContain('notFound.notHere');
-    });
-
-    it('renders the route agent data when no optimistic accountID mapping exists', () => {
-        mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                const selectedAccountID = getSelectedAccountID(options, undefined);
-                expect(selectedAccountID).toBeUndefined();
-                return [selectedAccountID, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_ACCOUNT_ID}`) {
-                return [{prompt: 'Route prompt'}, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Route Agent', login: 'agent_12345@expensify.ai'}, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
-
-        const {toJSON} = render(
-            <EditAgentPage
-                route={mockRoute}
-                navigation={mockNavigation}
-            />,
-        );
-
-        const serialized = JSON.stringify(toJSON());
-        expect(serialized).toContain('Route Agent');
-        expect(serialized).toContain('Route prompt');
-        expect(serialized).not.toContain('notFound.notHere');
-        expect(mockSetParams).not.toHaveBeenCalled();
-    });
-
-    it('renders the real agent data and updates the route param when the backend maps the optimistic route accountID', () => {
-        mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                const selectedAccountID = getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID});
-                expect(selectedAccountID).toBe(TEST_REAL_ACCOUNT_ID);
-                return [selectedAccountID, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
-                return [{prompt: 'Real prompt'}, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Real Agent', login: 'agent_67890@expensify.ai'}, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
-
-        const {toJSON} = render(
-            <EditAgentPage
-                route={mockRoute}
-                navigation={mockNavigation}
-            />,
-        );
-
-        const serialized = JSON.stringify(toJSON());
-        expect(serialized).toContain('Real Agent');
-        expect(serialized).toContain('Real prompt');
-        expect(serialized).not.toContain('notFound.notHere');
-        expect(mockSetParams).toHaveBeenCalledWith({accountID: TEST_REAL_ACCOUNT_ID}, mockRoute.key, TEST_NAVIGATOR_KEY);
-    });
-
-    it('does not update the optimistic edit route while the edit page is not focused', () => {
-        mockUseIsFocused.mockReturnValue(false);
-        mockUseOnyx.mockImplementation((key, options) => {
-            if (key === ONYXKEYS.RAM_ONLY_OPTIMISTIC_AGENT_ACCOUNT_ID_MAPPING && options?.selector) {
-                const selectedAccountID = getSelectedAccountID(options, {[TEST_ACCOUNT_ID]: TEST_REAL_ACCOUNT_ID});
-                expect(selectedAccountID).toBe(TEST_REAL_ACCOUNT_ID);
-                return [selectedAccountID, {status: 'loaded'}];
-            }
-            if (key === `${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${TEST_REAL_ACCOUNT_ID}`) {
-                return [{prompt: 'Real prompt'}, {status: 'loaded'}];
-            }
-            if (key === ONYXKEYS.PERSONAL_DETAILS_LIST && options?.selector) {
-                return [{displayName: 'Real Agent', login: 'agent_67890@expensify.ai'}, {status: 'loaded'}];
-            }
-            return [undefined, {status: 'loaded'}];
-        });
-
-        render(
-            <EditAgentPage
-                route={mockRoute}
-                navigation={mockNavigation}
-            />,
-        );
-
-        expect(mockSetParams).not.toHaveBeenCalled();
     });
 });
