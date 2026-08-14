@@ -1,6 +1,7 @@
 import type {FormOnyxValues} from '@components/Form/types';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import {getCurrentAddress} from '@libs/PersonalDetailsUtils';
 
@@ -114,39 +115,6 @@ function testValidation(values: InternationalBankAccountForm, fieldsMap: CorpayF
     return true;
 }
 
-/**
- * IBAN/SWIFT/BIC can come from either the dedicated `iban`/`swiftCode` fields filled in on the international bank
- * account details step, or from `accountNumber`/`swiftBicCode`, which the Corpay bank-details step already collects
- * for some countries. Either pairing satisfies the requirement, so both are checked.
- */
-function hasValidInternationalBankAccountDetails(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string) {
-    const isIBANValid = CONST.BANK_ACCOUNT.REGEX.IBAN.test((iban ?? '').trim()) || CONST.BANK_ACCOUNT.REGEX.IBAN.test((accountNumber ?? '').trim());
-    const isSwiftCodeValid = (!!swiftCode && CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(swiftCode.trim())) || !!swiftBicCode;
-    return isIBANValid && isSwiftCodeValid;
-}
-
-/**
- * Resolves the IBAN/SWIFT values to display or submit, falling back to `accountNumber`/`swiftBicCode` when the
- * dedicated `iban`/`swiftCode` fields weren't collected (e.g. the international bank account details step was
- * skipped because the Corpay bank-details step already gathered equivalent values).
- */
-function getInternationalBankAccountDetailsValues(iban: string | undefined, swiftCode: string | undefined, accountNumber?: string, swiftBicCode?: string): {iban: string; swiftCode: string} {
-    let resolvedIBAN = iban ?? '';
-    if (!resolvedIBAN && accountNumber && CONST.BANK_ACCOUNT.REGEX.IBAN.test(accountNumber.trim())) {
-        resolvedIBAN = accountNumber;
-    }
-
-    let resolvedSwiftCode = swiftCode ?? '';
-    if (!resolvedSwiftCode) {
-        resolvedSwiftCode = swiftBicCode ?? '';
-    }
-
-    return {
-        iban: resolvedIBAN,
-        swiftCode: resolvedSwiftCode,
-    };
-}
-
 function getInitialSubstep(
     values: InternationalBankAccountForm,
     fieldsMap: Record<ValueOf<typeof CONST.CORPAY_FIELDS.PAGE_NAME>, CorpayFieldsMap>,
@@ -192,33 +160,4 @@ function getValidationErrors(values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERN
     return errors;
 }
 
-/**
- * Shared IBAN/SWIFT format validation for the international bank account details step, used by both the USD and
- * international personal bank account flows.
- */
-function getInternationalBankAccountDetailsErrors(
-    iban: string | undefined,
-    swiftCode: string | undefined,
-    translate: LocaleContextProps['translate'],
-): Partial<Record<'iban' | 'swiftCode', string>> {
-    const errors: Partial<Record<'iban' | 'swiftCode', string>> = {};
-    if (iban && !CONST.BANK_ACCOUNT.REGEX.IBAN.test(iban.trim())) {
-        errors.iban = translate('bankAccount.error.iban');
-    }
-    if (swiftCode && !CONST.BANK_ACCOUNT.REGEX.INTERNATIONAL_SWIFT_CODE.test(swiftCode.trim())) {
-        errors.swiftCode = translate('bankAccount.error.swiftCode');
-    }
-    return errors;
-}
-
-export {
-    getFieldsMap,
-    getSubstepValues,
-    getInitialPersonalDetailsValues,
-    getInitialSubstep,
-    testValidation,
-    getValidationErrors,
-    getInternationalBankAccountDetailsErrors,
-    hasValidInternationalBankAccountDetails,
-    getInternationalBankAccountDetailsValues,
-};
+export {getFieldsMap, getSubstepValues, getInitialPersonalDetailsValues, getInitialSubstep, testValidation, getValidationErrors};

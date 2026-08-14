@@ -750,7 +750,6 @@ const CONST = {
             MASKED_US_ACCOUNT_NUMBER: /^[X]{0,13}[0-9]{4}$/,
             SWIFT_BIC: /^[A-Za-z0-9]{8,11}$/,
             IBAN: /^[a-zA-Z]{2}[0-9]{2}[a-zA-Z0-9]{4}[0-9]{7}([a-zA-Z0-9]?){0,16}$/,
-            INTERNATIONAL_SWIFT_CODE: /^.{1,12}$/,
         },
         STATE: {
             VERIFYING: 'VERIFYING',

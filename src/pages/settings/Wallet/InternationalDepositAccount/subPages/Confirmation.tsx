@@ -14,10 +14,10 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getInternationalBankAccountDetailsValues, hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {getInternationalBankAccountDetailsValues, hasValidInternationalBankAccountDetails} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import {clearReimbursementAccountBankCreation, createCorpayBankAccountForWalletFlow, hideBankAccountErrors} from '@userActions/BankAccounts';
 
@@ -66,13 +66,7 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
     };
 
     const getDataAndGoToNextStep = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM>) => {
-        const dataToSubmit = {...formValues, ...values};
-        // The international bank account details step may have been skipped, in which case iban/swiftCode are only
-        // available via accountNumber/swiftBicCode. Resolve them explicitly so the request always includes them.
-        const {iban, swiftCode} = getInternationalBankAccountDetailsValues(dataToSubmit.iban, dataToSubmit.swiftCode, dataToSubmit.accountNumber, dataToSubmit.swiftBicCode);
-        dataToSubmit.iban = iban;
-        dataToSubmit.swiftCode = swiftCode;
-        createCorpayBankAccountForWalletFlow(dataToSubmit, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
+        createCorpayBankAccountForWalletFlow({...formValues, ...values}, corpayFields?.classification ?? '', corpayFields?.destinationCountry ?? '', corpayFields?.preferredMethod ?? '');
     };
 
     useEffect(() => {

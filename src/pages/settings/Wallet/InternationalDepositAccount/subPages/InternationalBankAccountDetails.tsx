@@ -1,30 +1,25 @@
 /**
  * Sub-page for collecting international bank account details (IBAN + SWIFT/BIC) in the Corpay deposit-account flow.
  */
-import FormProvider from '@components/Form/FormProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import Text from '@components/Text';
+import InternationalBankAccountDetailsForm, {IBAN_INPUT_ID, SWIFT_CODE_INPUT_ID} from '@components/SubStepForms/InternationalBankAccountDetailsStep';
 
 import useInternationalBankAccountFormSubmit from '@hooks/useInternationalBankAccountFormSubmit';
 import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
 
+import {getInternationalBankAccountDetailsErrors, getInternationalBankAccountDetailsValues} from '@libs/BankAccountUtils';
 import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
-import InternationalBankAccountFields, {IBAN_INPUT_ID, SWIFT_CODE_INPUT_ID} from '@pages/settings/Wallet/InternationalDepositAccount/InternationalBankAccountFields';
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
-import {getInternationalBankAccountDetailsErrors, getInternationalBankAccountDetailsValues} from '@pages/settings/Wallet/InternationalDepositAccount/utils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React from 'react';
-import {View} from 'react-native';
 
 const STEP_FIELDS = [IBAN_INPUT_ID, SWIFT_CODE_INPUT_ID];
 
 function InternationalBankAccountDetails({isEditing, onNext, formValues}: CustomSubPageProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
 
     const handleSubmit = useInternationalBankAccountFormSubmit({
         fieldIds: STEP_FIELDS,
@@ -47,23 +42,14 @@ function InternationalBankAccountDetails({isEditing, onNext, formValues}: Custom
     });
 
     return (
-        <FormProvider
+        <InternationalBankAccountDetailsForm
             formID={ONYXKEYS.FORMS.INTERNATIONAL_BANK_ACCOUNT_FORM}
-            submitButtonText={translate(isEditing ? 'common.confirm' : 'common.next')}
-            onSubmit={handleSubmit}
             validate={validate}
-            style={[styles.flexGrow1, styles.mt3]}
-            submitButtonStyles={[styles.ph5, styles.mb0]}
-        >
-            <View style={styles.ph5}>
-                <Text style={[styles.textHeadlineLineHeightXXL, styles.mb6]}>{translate('bankAccount.internationalBankAccountDetails')}</Text>
-                <InternationalBankAccountFields
-                    ibanDefaultValue={ibanDefaultValue}
-                    swiftCodeDefaultValue={swiftCodeDefaultValue}
-                    shouldSaveDraft={!isEditing}
-                />
-            </View>
-        </FormProvider>
+            onSubmit={handleSubmit}
+            isEditing={isEditing}
+            ibanDefaultValue={ibanDefaultValue}
+            swiftCodeDefaultValue={swiftCodeDefaultValue}
+        />
     );
 }
 

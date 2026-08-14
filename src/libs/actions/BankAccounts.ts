@@ -25,6 +25,7 @@ import type AskForCorpaySignerInformationParams from '@libs/API/parameters/AskFo
 import type {SaveCorpayOnboardingCompanyDetails} from '@libs/API/parameters/SaveCorpayOnboardingCompanyDetailsParams';
 import type SaveCorpayOnboardingDirectorInformationParams from '@libs/API/parameters/SaveCorpayOnboardingDirectorInformationParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
+import {getInternationalBankAccountDetailsValues} from '@libs/BankAccountUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -175,18 +176,18 @@ function openPersonalBankAccountSetupView({
  * collect international deposit details (IBAN/SWIFT), and this data is intentionally not part of the policy summary.
  */
 function openDepositAccountSetup() {
-    const onyxData: OnyxData<typeof ONYXKEYS.IS_LOADING_DEPOSIT_ACCOUNT_SETUP> = {
+    const onyxData: OnyxData<typeof ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP> = {
         optimisticData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
                 value: true,
             },
         ],
         finallyData: [
             {
                 onyxMethod: Onyx.METHOD.MERGE,
-                key: ONYXKEYS.IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
+                key: ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP,
                 value: false,
             },
         ],
@@ -1591,8 +1592,13 @@ function unshareBankAccount(bankAccountID: number, ownerEmail: string) {
 }
 
 function createCorpayBankAccountForWalletFlow(data: InternationalBankAccountForm, classification: string, destinationCountry: string, preferredMethod: string) {
+    // The international details step is skipped when the Corpay bank-details step already collected equivalent values,
+    // so resolve them here to guarantee the IBAN/SWIFT are always sent when we have them, whichever step captured them.
+    const {iban, swiftCode} = getInternationalBankAccountDetailsValues(data.iban, data.swiftCode, data.accountNumber, data.swiftBicCode);
     const inputData = {
         ...data,
+        iban,
+        swiftCode,
         classification,
         destinationCountry,
         preferredMethod,

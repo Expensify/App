@@ -10,6 +10,7 @@ import useSubPage from '@hooks/useSubPage';
 
 import {clearCorpayBankAccountFields} from '@libs/actions/BankAccounts';
 import {clearDraftValues} from '@libs/actions/FormActions';
+import {hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import {isFullScreenName} from '@libs/Navigation/helpers/isNavigatorName';
 import Navigation from '@libs/Navigation/Navigation';
@@ -41,7 +42,7 @@ import Confirmation from './subPages/Confirmation';
 import CountrySelection from './subPages/CountrySelection';
 import InternationalBankAccountDetails from './subPages/InternationalBankAccountDetails';
 import Success from './subPages/Success';
-import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, hasValidInternationalBankAccountDetails, testValidation} from './utils';
+import {getFieldsMap, getInitialPersonalDetailsValues, getInitialSubstep, getSubstepValues, testValidation} from './utils';
 
 type InternationalDepositAccountContentProps = {
     privatePersonalDetails: OnyxEntry<PrivatePersonalDetails>;
