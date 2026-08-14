@@ -10019,6 +10019,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'No se puede emparejar automáticamente el recibo debido a un problema temporal del banco. Vuelve a intentarlo más tarde.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'No se puede emparejar automáticamente el recibo debido a una conexión bancaria interrumpida.';

@@ -9733,6 +9733,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Nie można automatycznie dopasować paragonu z powodu tymczasowego problemu z bankiem. Spróbuj ponownie później.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Nie można automatycznie dopasować paragonu z powodu zerwanego połączenia z bankiem.';

@@ -10049,6 +10049,9 @@ ${reportName}`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω προσωρινού προβλήματος της τράπεζας. Δοκιμάστε ξανά αργότερα.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Δεν είναι δυνατή η αυτόματη αντιστοίχιση της απόδειξης λόγω σπασμένης σύνδεσης με την τράπεζα.';

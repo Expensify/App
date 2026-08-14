@@ -9761,6 +9761,9 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Bon kan niet automatisch worden gekoppeld vanwege een tijdelijk probleem bij de bank. Probeer het later opnieuw.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Bon kan automatisch aan bon koppelen vanwege verbroken bankverbinding.';

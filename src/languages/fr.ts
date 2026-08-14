@@ -9854,6 +9854,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_530) {
                 return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
             }
+            if (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION_531) {
+                return 'Impossible d’apparier automatiquement le reçu en raison d’un problème temporaire de la banque. Veuillez réessayer plus tard.';
+            }
             if (isPersonalCard && (rterType === CONST.RTER_VIOLATION_TYPES.BROKEN_CARD_CONNECTION || brokenBankConnection)) {
                 if (!connectionLink) {
                     return 'Impossible d’apparier automatiquement le reçu en raison d’une connexion bancaire rompue.';
