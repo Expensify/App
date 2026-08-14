@@ -2936,7 +2936,7 @@ function getReportActionsSections(
 function findActionByCreated(
     actions: OnyxTypes.ReportAction[],
     actionNames: Array<OnyxTypes.ReportAction['actionName']>,
-    extreme: 'earliest' | 'latest',
+    sortBy: 'earliest' | 'latest',
     seed?: OnyxTypes.ReportAction,
 ): OnyxTypes.ReportAction | undefined {
     let result = seed;
@@ -2945,7 +2945,7 @@ function findActionByCreated(
             continue;
         }
         const comparison = result ? new Date(action.created).getTime() - new Date(result.created).getTime() : 0;
-        if (!result || (extreme === 'earliest' ? comparison < 0 : comparison > 0)) {
+        if (!result || (sortBy === 'earliest' ? comparison < 0 : comparison > 0)) {
             result = action;
         }
     }
@@ -2964,21 +2964,18 @@ function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction |
 }
 
 /**
- * Returns the report's approved date, falling back to the latest APPROVED action's created time. A report that is
- * back to Open/Submitted (e.g. an offline unapprove) is not approved anymore even if its `approved` date is still
- * set, and the action fallback is gated on statusNum so an intermediate approval step in a multi-level workflow
- * (report still Processing) doesn't get a premature date.
+ * Returns the report's approved date or the latest APPROVED action's created time, whichever is newer — an offline
+ * re-approve leaves a stale `approved` on the report. A report back to Draft/Outstanding is not approved anymore
+ * even when its `approved` date is still set, so those statuses return blank.
  */
 function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
     if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN || reportItem.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
         return '';
     }
     const reportApproved = reportItem.approved ?? '';
-    if (reportItem.statusNum !== CONST.REPORT.STATUS_NUM.APPROVED) {
-        return reportApproved;
-    }
-    // Newer wins: an offline re-approve leaves a stale `approved` on the report, an untouched report has no newer action
-    const actionApproved = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '';
+    // Only a fully approved report can take a date from its actions, so an intermediate approval in a multi-level
+    // workflow (report still Processing) doesn't get a premature date.
+    const actionApproved = reportItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ? (findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '') : '';
     return reportApproved >= actionApproved ? reportApproved : actionApproved;
 }
 

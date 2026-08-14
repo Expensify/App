@@ -3,7 +3,7 @@ import {selectFilteredReportActions, selectFilteredReportActionsForReports} from
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
-import {useCallback} from 'react';
+import {useCallback, useMemo} from 'react';
 // Use the original useOnyx hook to get the real-time data from Onyx and not from the snapshot
 // eslint-disable-next-line no-restricted-imports
 import {useOnyx as originalUseOnyx} from 'react-native-onyx';
@@ -14,16 +14,11 @@ import {useOnyx as originalUseOnyx} from 'react-native-onyx';
  * group renders, so the selected output and its equality check stay small.
  */
 function useLiveFilteredReportActions(reportIDs?: string[]): Record<string, ReportAction[]> | undefined {
-    const reportIDsKey = reportIDs ? [...new Set(reportIDs)].sort().join(',') : undefined;
+    const reportActionsKeys = useMemo(() => [...new Set(reportIDs)].map((reportID) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`), [reportIDs]);
     const selector = useCallback(
-        (reportActions: Parameters<typeof selectFilteredReportActions>[0]) => {
-            if (reportIDsKey === undefined) {
-                return selectFilteredReportActions(reportActions);
-            }
-            const reportActionsKeys = reportIDsKey ? reportIDsKey.split(',').map((reportID) => `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`) : [];
-            return selectFilteredReportActionsForReports(reportActions, reportActionsKeys);
-        },
-        [reportIDsKey],
+        (reportActions: Parameters<typeof selectFilteredReportActions>[0]) =>
+            reportIDs ? selectFilteredReportActionsForReports(reportActions, reportActionsKeys) : selectFilteredReportActions(reportActions),
+        [reportIDs, reportActionsKeys],
     );
     const [liveReportActions] = originalUseOnyx<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS, Record<string, ReportAction[]> | undefined>(ONYXKEYS.COLLECTION.REPORT_ACTIONS, {selector});
     return liveReportActions;
