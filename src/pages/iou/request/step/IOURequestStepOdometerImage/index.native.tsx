@@ -14,6 +14,7 @@ import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -32,6 +33,7 @@ import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
+import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 import withFullTransactionOrNotFound from '@pages/iou/request/step/withFullTransactionOrNotFound';
 import type {WithFullTransactionOrNotFoundProps} from '@pages/iou/request/step/withFullTransactionOrNotFound';
@@ -52,6 +54,7 @@ import ReactNativeBlobUtil from 'react-native-blob-util';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {useCameraFormat} from 'react-native-vision-camera';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
 
@@ -63,6 +66,7 @@ function IOURequestStepOdometerImage({
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const theme = useTheme();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'boltSlash', 'OdometerStart', 'OdometerEnd']);
     const lazyIllustrationsOnly = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
@@ -249,6 +253,13 @@ function IOURequestStepOdometerImage({
             });
     };
 
+    const format = useCameraFormat(device, [
+        {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
+        {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+    ]);
+
+    const cameraAspectRatio = getCameraAspectRatio(format, isInLandscapeMode);
+
     // Wait for camera permission status to render
     if (cameraPermissionStatus == null) {
         return null;
@@ -262,7 +273,7 @@ function IOURequestStepOdometerImage({
             shouldShowWrapper
             testID="IOURequestStepOdometerImage"
         >
-            <View style={styles.flex1}>
+            <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
                 {cameraPermissionStatus !== RESULTS.GRANTED && (
                     <ScrollView contentContainerStyle={styles.flexGrow1}>
                         <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
@@ -298,12 +309,13 @@ function IOURequestStepOdometerImage({
                     </View>
                 )}
                 {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                    <View style={[styles.cameraView]}>
+                    <View style={[styles.cameraView, isInLandscapeMode && styles.alignItemsCenter]}>
                         <GestureDetector gesture={tapGesture}>
-                            <View style={styles.flex1}>
+                            <View style={StyleUtils.getOdometerCameraViewStyle(cameraAspectRatio, isInLandscapeMode)}>
                                 <NavigationAwareCamera
                                     ref={camera}
                                     device={device}
+                                    format={format}
                                     style={styles.flex1}
                                     zoom={device.neutralZoom}
                                     photo
@@ -311,43 +323,45 @@ function IOURequestStepOdometerImage({
                                     onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
                                     forceInactive={isAttachmentPickerActive}
                                 />
-                                <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                    <PressableWithFeedback
-                                        role={CONST.ROLE.BUTTON}
-                                        accessibilityLabel={translate('receipt.flash')}
-                                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                        onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
-                                    >
-                                        <Icon
-                                            height={variables.iconSizeSmall}
-                                            width={variables.iconSizeSmall}
-                                            src={lazyIcons.Bolt}
-                                            fill={flash ? theme.white : theme.icon}
-                                        />
-                                    </PressableWithFeedback>
-                                </View>
-                                <View style={[styles.odometerPhotoInformationContainer]}>
-                                    <Icon
-                                        height={variables.menuIconSize}
-                                        width={variables.menuIconSize}
-                                        src={icon}
-                                    />
-                                    <View style={[styles.flex1, styles.flexColumn]}>
-                                        <Text style={[styles.labelStrong, styles.mb1]}>{title}</Text>
-                                        <RenderHTML html={snapPhotoText} />
-                                    </View>
-                                </View>
+                                <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                                 <Animated.View
                                     pointerEvents="none"
-                                    style={[StyleSheet.absoluteFill, styles.backgroundWhite, blinkStyle, styles.zIndex10]}
+                                    style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
                                 />
-                                <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
                             </View>
                         </GestureDetector>
+                        <>
+                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
+                                <PressableWithFeedback
+                                    role={CONST.ROLE.BUTTON}
+                                    accessibilityLabel={translate('receipt.flash')}
+                                    disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
+                                    onPress={() => setFlash((prevFlash) => !prevFlash)}
+                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
+                                >
+                                    <Icon
+                                        height={variables.iconSizeSmall}
+                                        width={variables.iconSizeSmall}
+                                        src={lazyIcons.Bolt}
+                                        fill={flash ? theme.white : theme.icon}
+                                    />
+                                </PressableWithFeedback>
+                            </View>
+                            <View style={[styles.odometerPhotoInformationContainer]}>
+                                <Icon
+                                    height={variables.menuIconSize}
+                                    width={variables.menuIconSize}
+                                    src={icon}
+                                />
+                                <View style={[styles.flex1, styles.flexColumn]}>
+                                    <Text style={[styles.labelStrong, styles.mb1]}>{title}</Text>
+                                    <RenderHTML html={snapPhotoText} />
+                                </View>
+                            </View>
+                        </>
                     </View>
                 )}
-                <View style={[styles.flexRow, styles.justifyContentAround, styles.alignItemsCenter, styles.pv3]}>
+                <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.pv3, !isInLandscapeMode && styles.flexRow]}>
                     <AttachmentPicker
                         onOpenPicker={() => {
                             setIsAttachmentPickerActive(true);

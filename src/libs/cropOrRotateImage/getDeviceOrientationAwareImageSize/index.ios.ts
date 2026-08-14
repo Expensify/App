@@ -6,7 +6,7 @@ import type {GetDeviceOrientationAwareImageSize} from './types';
  * So we need react-native-vision-camera `orientation` to know if the image is rotated
  */
 const getDeviceOrientationAwareImageSize: GetDeviceOrientationAwareImageSize = ({imageSize, orientation, aspectRatioWidth, aspectRatioHeight}) => {
-    const isRotated = orientation === 'portrait' || orientation === 'portrait-upside-down';
+    const isRotated = orientation === 'landscape-left' || orientation === 'landscape-right';
     return {
         imageWidth: imageSize.width,
         imageHeight: imageSize.height,

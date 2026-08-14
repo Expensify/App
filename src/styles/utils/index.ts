@@ -532,6 +532,13 @@ function getBackgroundColorStyle(backgroundColor: ColorValue): ViewStyle {
     };
 }
 
+function getOdometerCameraViewStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
+    if (isInLandscapeMode && aspectRatio) {
+        return {aspectRatio, height: '100%', maxWidth: '100%'};
+    }
+    return {flex: 1};
+}
+
 function getCameraViewfinderStyle(aspectRatio: number | undefined, isInLandscapeMode: boolean): ViewStyle {
     if (isInLandscapeMode && aspectRatio) {
         return {aspectRatio, height: '100%', maxWidth: '100%'};
@@ -1416,6 +1423,7 @@ const staticStyleUtils = {
     getBackgroundAndBorderStyle,
     getBackgroundColorStyle,
     getBackgroundColorWithOpacityStyle,
+    getOdometerCameraViewStyle,
     getCameraViewfinderStyle,
     getPaddingLeft,
     getPaddingRight,
