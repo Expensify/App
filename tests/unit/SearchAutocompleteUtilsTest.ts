@@ -1,6 +1,6 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
-import {getExportLabelForConnection, getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
+import {getExportLabelForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
 import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
