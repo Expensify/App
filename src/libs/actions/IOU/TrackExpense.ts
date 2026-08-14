@@ -1665,6 +1665,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
         isTrackIntentUser,
         formatPhoneNumber,
         getCurrencyDecimals,
+        writeBarrier,
     } = requestMoneyInformation;
     const {payeeAccountID} = participantParams;
     const parsedComment = getParsedComment(transactionParams.comment ?? '');
@@ -1822,6 +1823,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
                     : undefined;
             const isDistanceRequest = isDistanceRequestTransactionUtils(transaction);
             const scheduleOptions: ScheduleWriteOptions = {
+                barrier: writeBarrier,
                 shouldDeferForSearch: false,
                 isRetry: requestMoneyInformation.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -1928,6 +1930,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
 
             deferredAPIWrite = () => {
                 scheduleWrite(WRITE_COMMANDS.REQUEST_MONEY, parameters, onyxData, {
+                    barrier: writeBarrier,
                     shouldDeferForSearch: false,
                     isRetry: requestMoneyInformation.isRetry,
                     optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
@@ -2452,6 +2455,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isDraftChatReport,
         currentUserLocalCurrency,
         getCurrencyDecimals,
+        writeBarrier,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2890,6 +2894,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
             }
 
             scheduleWrite(WRITE_COMMANDS.TRACK_EXPENSE, parameters, onyxData, {
+                barrier: writeBarrier,
                 shouldDeferForSearch: false,
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,

@@ -5,6 +5,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
@@ -157,6 +158,9 @@ type CreateDistanceRequestInformation = {
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
+
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
 };
 
 type CreateSplitsTransactionParams = Omit<BaseTransactionParams, 'customUnitRateID'> & {
@@ -204,6 +208,8 @@ type StartSplitBilActionParams = {
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
     policyRecentlyUsedTags: OnyxEntry<RecentlyUsedTags>;
     quickAction: OnyxEntry<OnyxTypes.QuickAction>;
@@ -261,6 +267,8 @@ type SplitBillActionsParams = {
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
     shouldDeferForSearch?: boolean;
+    /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
+    writeBarrier?: WriteReadyBarrier;
     delegateAccountID: number | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
@@ -301,6 +309,7 @@ function splitBill({
     personalDetails,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -368,6 +377,7 @@ function splitBill({
 
     playSound(SOUNDS.DONE);
     scheduleWrite(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData, {
+        barrier: writeBarrier,
         shouldDeferForSearch,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -414,6 +424,7 @@ function splitBillAndOpenReport({
     personalDetails,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
@@ -481,6 +492,7 @@ function splitBillAndOpenReport({
 
     playSound(SOUNDS.DONE);
     scheduleWrite(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData, {
+        barrier: writeBarrier,
         shouldDeferForSearch,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -522,6 +534,7 @@ function startSplitBill({
     participantsPolicyTags,
     shouldHandleNavigation = true,
     shouldDeferForSearch = false,
+    writeBarrier,
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
@@ -882,6 +895,7 @@ function startSplitBill({
         parameters,
         {optimisticData, successData, failureData},
         {
+            barrier: writeBarrier,
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
@@ -2030,6 +2044,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         participantsPolicyTags,
         optimisticChatReportID,
         getCurrencyDecimals,
+        writeBarrier,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -2318,6 +2333,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
     }
 
     scheduleWrite(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData, {
+        barrier: writeBarrier,
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
