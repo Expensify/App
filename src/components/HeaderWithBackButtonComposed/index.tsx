@@ -9,7 +9,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
 
-import {Keyboard, StyleSheet, View} from 'react-native';
+import {Keyboard, View} from 'react-native';
 
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
@@ -17,7 +17,6 @@ import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderHelpButton from './primitives/HeaderHelpButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
-import HeaderPinButton from './primitives/HeaderPinButton';
 import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
 import HeaderReportAvatar from './primitives/HeaderReportAvatar';
 import HeaderRotateButton from './primitives/HeaderRotateButton';
