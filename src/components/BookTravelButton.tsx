@@ -167,7 +167,7 @@ function BookTravelButton({
         // Legacy request-access path for not-yet-provisioned workspaces when the self-serve provisioning beta is off.
         if (!isPolicyProvisioned && !isBetaEnabled(CONST.BETAS.IS_TRAVEL_VERIFIED)) {
             if (!isUserValidated) {
-                Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(activePolicyID)));
                 return;
             }
             if (shouldShowVerifyAccountModal) {
@@ -198,7 +198,7 @@ function BookTravelButton({
         // replaced with the verify URL a render later.
         if (!isUserValidated) {
             setTravelProvisioningNextStep(enableTravelRoute);
-            Navigation.navigate(ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(undefined, activePolicyID, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRAVEL_VERIFY_ACCOUNT.getRoute(activePolicyID)));
             return;
         }
         Navigation.navigate(enableTravelRoute);
