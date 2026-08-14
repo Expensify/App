@@ -6,9 +6,8 @@ import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
 
-import type * as ReactNative from 'react-native';
-
 import React from 'react';
+import {View} from 'react-native';
 
 type ButtonMockProps = {
     pressOnEnter?: boolean;
@@ -36,14 +35,14 @@ type TextInputMockProps = {
 const mockButton = jest.fn<void, [ButtonMockProps]>();
 const mockNegatableFilter = jest.fn<void, [NegatableFilterMockProps]>();
 const mockTextInput = jest.fn<void, [TextInputMockProps]>();
+const MockView = View;
 let mockValidationError = '';
 
 jest.mock('@components/AutoGrowHeightInputContainer', () => ({
     __esModule: true,
     default: ({children}: {children: (height: number) => React.ReactNode}) => {
         const MockReact = jest.requireActual<typeof React>('react');
-        const MockReactNative = jest.requireActual<typeof ReactNative>('react-native');
-        return MockReact.createElement(MockReactNative.View, {testID: 'auto-grow-container'}, children(420));
+        return MockReact.createElement(MockView, {testID: 'auto-grow-container'}, children(420));
     },
 }));
 jest.mock('@components/Button', () => (props: ButtonMockProps) => {
@@ -157,7 +156,9 @@ describe('TextInputFilterContent', () => {
             />,
         );
 
-        expect(mockTextInput.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({submitBehavior: 'submit', onSubmitEditing: expect.any(Function)}));
+        const textInputProps = mockTextInput.mock.calls.at(-1)?.[0];
+        expect(textInputProps?.submitBehavior).toBe('submit');
+        expect(typeof textInputProps?.onSubmitEditing).toBe('function');
         expect(mockButton.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({pressOnEnter: false}));
 
         act(() => {

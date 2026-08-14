@@ -8,12 +8,34 @@ import variables from '@styles/variables';
 import React from 'react';
 import {View} from 'react-native';
 
+type MeasureCallback = (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void;
+type MockViewHandle = {measure: (callback: MeasureCallback) => void};
+type MockViewProps = {children?: React.ReactNode; [key: string]: unknown};
+type MockReactNativeModule = {View: React.ComponentType<MockViewProps>; [key: string]: unknown};
+
+const mockMeasure = jest.fn<void, [MeasureCallback]>();
+
+jest.mock('react-native', () => {
+    const MockReact = jest.requireActual<typeof React>('react');
+    const MockReactNative = jest.requireActual<MockReactNativeModule>('react-native');
+    const MockMeasuredView = MockReact.forwardRef<MockViewHandle, MockViewProps>((props, ref) => {
+        MockReact.useImperativeHandle(ref, () => ({measure: mockMeasure}));
+        return MockReact.createElement(MockReactNative.View, props);
+    });
+
+    return {...MockReactNative, View: MockMeasuredView};
+});
+
 jest.mock('@hooks/useThemeStyles', () => () => ({flex1: {flex: 1}}));
 
 describe('AutoGrowHeightInputContainer', () => {
+    beforeEach(() => {
+        mockMeasure.mockReset();
+    });
+
     it('measures reserved content after clamping and tracks layout changes', async () => {
         const measuredContentHeights: number[] = [];
-        const measure = jest.fn((callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => {
+        mockMeasure.mockImplementation((callback) => {
             callback(0, 0, 0, measuredContentHeights.shift() ?? 0, 0, 0);
         });
 
@@ -26,7 +48,6 @@ describe('AutoGrowHeightInputContainer', () => {
                     />
                 )}
             </AutoGrowHeightInputContainer>,
-            {createNodeMock: () => ({measure})},
         );
 
         const content = screen.getByTestId('measured-height').parent;
@@ -42,7 +63,7 @@ describe('AutoGrowHeightInputContainer', () => {
         measuredContentHeights.push(420);
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 420}}});
         expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe('420');
-        await waitFor(() => expect(measure).toHaveBeenCalledTimes(1));
+        await waitFor(() => expect(mockMeasure).toHaveBeenCalledTimes(1));
 
         measuredContentHeights.push(76);
         fireEvent(content, 'layout', {nativeEvent: {layout: {height: 444}}});
@@ -63,11 +84,14 @@ describe('AutoGrowHeightInputContainer', () => {
         measuredContentHeights.push(76);
         fireEvent(container, 'layout', {nativeEvent: {layout: {height: 0}}});
         await waitFor(() => expect(screen.getByTestId('measured-height').props.accessibilityLabel).toBe(String(variables.componentSizeLarge)));
-        expect(measure).toHaveBeenCalled();
+        expect(mockMeasure).toHaveBeenCalled();
     });
 
     it('keeps an in-flight measurement valid when the same layout repeats', async () => {
         const measurementCallbacks: Array<(x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void> = [];
+        mockMeasure.mockImplementation((callback) => {
+            measurementCallbacks.push(callback);
+        });
 
         render(
             <AutoGrowHeightInputContainer>
@@ -78,13 +102,6 @@ describe('AutoGrowHeightInputContainer', () => {
                     />
                 )}
             </AutoGrowHeightInputContainer>,
-            {
-                createNodeMock: () => ({
-                    measure: (callback: (x: number, y: number, width: number, height: number, pageX: number, pageY: number) => void) => {
-                        measurementCallbacks.push(callback);
-                    },
-                }),
-            },
         );
 
         const container = screen.UNSAFE_getByType(ScrollView);
