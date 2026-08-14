@@ -39,7 +39,7 @@ import type {ValueOf} from 'type-fest';
 
 import {delegateEmailSelector} from '@selectors/Account';
 import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React from 'react';
+import React, {useRef} from 'react';
 
 const ANCHOR_ALIGNMENT = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
@@ -105,6 +105,16 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
     const {showConfirmModal} = useConfirmModal();
 
+    // Guards the PDF-cancel-during-submit race: SUBMIT_REPORT can be delayed behind a pending
+    // expense-create registration, but the PDF modal (and its cancel handler) opens as soon as
+    // submitReport commits to running. If the user cancels in that window, retracting immediately
+    // would queue RETRACT_REPORT before SUBMIT_REPORT even reaches the queue - the retract fails
+    // against the still-draft report, then the submit lands anyway, leaving the report submitted
+    // despite the cancel. hasSubmitDispatchedRef/cancelRequestedRef defer the retract until
+    // onSubmitDispatched confirms SUBMIT_REPORT has actually been queued.
+    const hasSubmitDispatchedRef = useRef(false);
+    const cancelRequestedRef = useRef(false);
+
     const isBlockSubmitDueToPreventSelfApproval = shouldBlockSubmitDueToPreventSelfApproval(moneyRequestReport, policy);
     const isBlockSubmitDueToStrictPolicyRules = shouldBlockSubmitDueToStrictPolicyRules(
         moneyRequestReport?.reportID,
@@ -169,6 +179,8 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
                 // billing-restriction guard), so a restricted account that bails out early doesn't leave the modal stuck.
                 onSubmitted: () => {
+                    hasSubmitDispatchedRef.current = false;
+                    cancelRequestedRef.current = false;
                     startSubmittingAnimation();
                     if (shouldExportToPDF) {
                         // If the user cancels while the PDF is still generating, discard the submission (retract it back
@@ -178,9 +190,22 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                                 // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
                                 // back to the Submit button instead of finishing the animation on a report that is open again.
                                 stopAnimation();
-                                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
+                                if (hasSubmitDispatchedRef.current) {
+                                    retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
+                                } else {
+                                    // SUBMIT_REPORT hasn't queued yet (still waiting on a pending expense-create
+                                    // registration) - defer the retract to onSubmitDispatched so it can never
+                                    // queue ahead of the submit it's meant to undo.
+                                    cancelRequestedRef.current = true;
+                                }
                             },
                         });
+                    }
+                },
+                onSubmitDispatched: () => {
+                    hasSubmitDispatchedRef.current = true;
+                    if (cancelRequestedRef.current) {
+                        retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
                     }
                 },
                 ownerBillingGracePeriodEnd,
