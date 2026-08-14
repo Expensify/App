@@ -104,19 +104,6 @@ jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.f
 // In production, requestMoney defers its API.write() call until the target screen's
 // content lays out (or a safety timeout fires). In tests there is no target component
 // to flush the deferred write, so we bypass the deferral by executing the callback immediately.
-jest.mock('@libs/submitWriteSession', () => ({
-    reserveWriteSession: jest.fn(),
-    flushWriteSession: jest.fn(),
-    cancelWriteSession: jest.fn(),
-    hasPendingWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- requireActual is untyped by design in a mock factory
-        jest.requireActual('@libs/API').write(command, params, onyxData);
-        options?.onWriteStarted?.();
-    },
-    resetForTesting: jest.fn(),
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;

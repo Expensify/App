@@ -242,7 +242,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         getCurrencyDecimals,
                         ...splitBaseParams,
                         shouldHandleNavigation: overrides.shouldHandleNavigation,
-                        shouldDeferForSearch: false,
                     });
                     cleanupAfterSkipConfirmSubmit(overrides.shouldHandleNavigation, {
                         report,

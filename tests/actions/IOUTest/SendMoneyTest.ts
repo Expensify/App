@@ -55,19 +55,6 @@ jest.mock('@libs/telemetry/submitFollowUpAction', () => ({
     startTracking: jest.fn(),
     addOptimization: jest.fn(),
 }));
-jest.mock('@libs/submitWriteSession', () => ({
-    reserveWriteSession: jest.fn(),
-    flushWriteSession: jest.fn(),
-    cancelWriteSession: jest.fn(),
-    hasPendingWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access -- requireActual is untyped by design in a mock factory
-        jest.requireActual('@libs/API').write(command, params, onyxData);
-        options?.onWriteStarted?.();
-    },
-    resetForTesting: jest.fn(),
-}));
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
 const CARLOS_ACCOUNT_ID = 1;
@@ -108,7 +95,8 @@ describe('actions/IOU/SendMoney', () => {
         describe('delegateAccountID forwarding', () => {
             it('sets delegateAccountID on the pay IOU action when delegateAccountID is provided', async () => {
                 const DELEGATE_ACCOUNT_ID = 999;
-                const writeSpy = jest.spyOn(API, 'write').mockImplementation(jest.fn());
+                // sendMoneyElsewhere writes through writeWhenReady, so API.write would observe nothing.
+                const writeSpy = jest.spyOn(API, 'writeWhenReady').mockImplementation(jest.fn());
 
                 sendMoneyElsewhere({
                     report: {reportID: ''},

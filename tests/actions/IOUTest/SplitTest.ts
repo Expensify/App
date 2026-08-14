@@ -104,18 +104,6 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/submitWriteSession', () => ({
-    reserveWriteSession: jest.fn(),
-    flushWriteSession: jest.fn(),
-    cancelWriteSession: jest.fn(),
-    hasPendingWrite: () => false,
-    getOptimisticWatchKey: () => undefined,
-    scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- requireActual is untyped by design in a mock factory
-        jest.requireActual('@libs/API').write(command, params, onyxData);
-        options?.onWriteStarted?.();
-    },
-}));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
 
 const unapprovedCashHash = 71801560;

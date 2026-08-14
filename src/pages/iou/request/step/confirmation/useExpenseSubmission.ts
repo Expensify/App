@@ -25,7 +25,6 @@ import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
 import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
@@ -166,7 +165,6 @@ type SendMoneyOptions = {
     /** Whether to start telemetry tracking; false when the orchestrator starts tracking externally. */
     shouldStartTracking?: boolean;
     /** Whether to defer the API write for the Search skeleton optimization. */
-    shouldDeferForSearch?: boolean;
 };
 
 function useExpenseSubmission(params: UseExpenseSubmissionParams) {
@@ -929,8 +927,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
         formHasBeenSubmitted.current = true;
 
-        const isDeferredSearchSubmit = !shouldHandleNavigation && isSearchTopmostFullScreenRoute();
-
         // Telemetry spans (SPAN_SUBMIT_EXPENSE, SPAN_SUBMIT_TO_DESTINATION_VISIBLE)
         // are started by SubmitExpenseOrchestrator before calling createTransaction.
         if (!isTrackExpense && !isSelfDMDestination && isDistanceRequest && !isMovingTransactionFromTrackExpense && !isUnreported) {
@@ -940,7 +936,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         }
 
         const currentTransactionReceiptFile = transaction?.transactionID ? receiptFiles[transaction.transactionID] : undefined;
-        const shouldDeferSplitForSearch = iouType === CONST.IOU.TYPE.SPLIT && isDeferredSearchSubmit;
 
         // Split flows usually navigate to the destination report internally, but dismiss-first
         // handlers can pass shouldHandleNavigation=false after revealing/dismissing first.
@@ -979,7 +974,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                         policyRecentlyUsedCurrencies,
                         participantsPolicyTags,
                         shouldHandleNavigation,
-                        shouldDeferForSearch: shouldDeferSplitForSearch,
                         delegateAccountID,
                         formatPhoneNumber,
                     });
@@ -1023,7 +1017,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     betas,
                     personalDetails,
                     shouldHandleNavigation,
-                    shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
@@ -1066,7 +1059,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     betas,
                     personalDetails,
                     shouldHandleNavigation,
-                    shouldDeferForSearch: shouldDeferSplitForSearch,
                     delegateAccountID,
                     isTrackIntentUser,
                     formatPhoneNumber,
@@ -1187,7 +1179,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     }
 
     function sendMoney(paymentMethod: PaymentMethodType | undefined, options?: SendMoneyOptions) {
-        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true, shouldDeferForSearch = false} = options ?? {};
+        const {shouldHandleNavigation = true, resolvedReportIDs, shouldStartTracking = true} = options ?? {};
         const currency = transaction?.currency;
         const trimmedComment = transaction?.comment?.comment?.trim() ?? '';
         const participant = participants?.at(0);
@@ -1212,7 +1204,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             receipt: receiptFiles[transaction.transactionID],
             optimisticChatReportID,
             shouldStartTracking,
-            shouldDeferForSearch,
             delegateAccountID,
         };
 

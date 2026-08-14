@@ -3,6 +3,7 @@ import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import type {WriteReadyBarrier} from '@libs/API';
+import * as API from '@libs/API';
 import type {SendInvoiceParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
@@ -19,8 +20,6 @@ import {
     getPersonalDetailsForAccountID,
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {scheduleWrite} from '@libs/submitWriteSession';
-import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import {buildOptimisticPolicyRecentlyUsedTags} from '@userActions/Policy/Tag';
@@ -44,6 +43,7 @@ import type BasePolicyParams from './types/BasePolicyParams';
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
 import {highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
+import resolveWriteBarrier from './resolveWriteBarrier';
 import {getSearchOnyxUpdate} from './SearchUpdate';
 
 type SendInvoiceInformation = {
@@ -870,12 +870,7 @@ function sendInvoice({
 
     playSound(SOUNDS.DONE);
 
-    scheduleWrite(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData, {
-        barrier: writeBarrier,
-        shouldDeferForSearch: false,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
+    API.writeWhenReady(WRITE_COMMANDS.SEND_INVOICE, parameters, onyxData, resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`}));
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);
 

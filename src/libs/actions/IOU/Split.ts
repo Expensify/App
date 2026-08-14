@@ -48,8 +48,7 @@ import {
 } from '@libs/ReportUtils';
 import type {OptimisticChatReport} from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
-import {scheduleWrite} from '@libs/submitWriteSession';
-import {addOptimization, setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
+import {setPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
 import {
     buildOptimisticTransaction,
     getUpdatedTransaction,
@@ -94,6 +93,7 @@ import {
 } from './MoneyRequestBuilder';
 import {dismissModalAndOpenReportInInboxTab, highlightTransactionOnSearchRouteIfNeeded} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
+import resolveWriteBarrier from './resolveWriteBarrier';
 
 type IOURequestType = ValueOf<typeof CONST.IOU.REQUEST_TYPE>;
 
@@ -207,7 +207,6 @@ type StartSplitBilActionParams = {
     taxValue?: string;
     shouldPlaySound?: boolean;
     shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     policyRecentlyUsedCategories?: OnyxEntry<OnyxTypes.RecentlyUsedCategories>;
@@ -266,7 +265,6 @@ type SplitBillActionsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     shouldHandleNavigation?: boolean;
-    shouldDeferForSearch?: boolean;
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     delegateAccountID: number | undefined;
@@ -308,7 +306,6 @@ function splitBill({
     betas,
     personalDetails,
     shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
     writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
@@ -376,12 +373,12 @@ function splitBill({
     };
 
     playSound(SOUNDS.DONE);
-    scheduleWrite(WRITE_COMMANDS.SPLIT_BILL, parameters, onyxData, {
-        barrier: writeBarrier,
-        shouldDeferForSearch,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
+    API.writeWhenReady(
+        WRITE_COMMANDS.SPLIT_BILL,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+    );
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(existingSplitChatReportID);
@@ -423,7 +420,6 @@ function splitBillAndOpenReport({
     betas,
     personalDetails,
     shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
     writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
@@ -491,12 +487,12 @@ function splitBillAndOpenReport({
     };
 
     playSound(SOUNDS.DONE);
-    scheduleWrite(WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT, parameters, onyxData, {
-        barrier: writeBarrier,
-        shouldDeferForSearch,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
+    API.writeWhenReady(
+        WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+    );
     if (shouldHandleNavigation) {
         TransitionTracker.runAfterTransitions({callback: () => removeDraftTransaction(CONST.IOU.OPTIMISTIC_TRANSACTION_ID), waitForUpcomingTransition: true});
         dismissModalAndOpenReportInInboxTab(splitData.chatReportID);
@@ -533,7 +529,6 @@ function startSplitBill({
     policyRecentlyUsedCurrencies,
     participantsPolicyTags,
     shouldHandleNavigation = true,
-    shouldDeferForSearch = false,
     writeBarrier,
     delegateAccountID,
     formatPhoneNumber,
@@ -890,16 +885,11 @@ function startSplitBill({
         playSound(SOUNDS.DONE);
     }
 
-    scheduleWrite(
+    API.writeWhenReady(
         WRITE_COMMANDS.START_SPLIT_BILL,
         parameters,
         {optimisticData, successData, failureData},
-        {
-            barrier: writeBarrier,
-            shouldDeferForSearch,
-            optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-            onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-        },
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
     );
 
     if (shouldHandleNavigation) {
@@ -2332,12 +2322,12 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         addPendingNewTransactionIDs(activeReportID, parameters.transactionID);
     }
 
-    scheduleWrite(WRITE_COMMANDS.CREATE_DISTANCE_REQUEST, parameters, onyxData, {
-        barrier: writeBarrier,
-        shouldDeferForSearch: false,
-        optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
-        onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
-    });
+    API.writeWhenReady(
+        WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
+        parameters,
+        onyxData,
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`}),
+    );
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);
 

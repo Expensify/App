@@ -24,7 +24,7 @@ import type {ArmedTransitionBarrier, ReleaseReason, WriteReadyBarrier, WriteWhen
 import {buildLogParams, prepareRequest, processRequest} from './makeRequest';
 import {READ_COMMANDS, WRITE_COMMANDS} from './types';
 import baseWrite from './write';
-import {armTransitionBarrier, createTransitionBarrier, writeWhenReady} from './writeWhenReady';
+import {armTransitionBarrier, createTransitionBarrier, writeWhenReady as baseWriteWhenReady} from './writeWhenReady';
 
 /**
  * All calls to API.write() will be persisted to disk as JSON with the params, successData, and failureData (or finallyData, if included in place of the former two values).
@@ -50,6 +50,34 @@ function write<TCommand extends WriteCommand, TKey extends OnyxKey>(
     conflictResolver: RequestConflictResolver<TKey> = {},
 ): Promise<void | Response<TKey>> {
     return baseWrite(command, apiCommandParameters, onyxData, conflictResolver);
+}
+
+/**
+ * `API.writeWhenReady()` - like `write()`, but deferred until a readiness barrier settles. See ./writeWhenReady
+ * for the semantics.
+ *
+ * Re-declared here for the same reason as `write` above: a re-exported binding is a non-configurable getter,
+ * so `jest.spyOn(API, 'writeWhenReady')` cannot replace it. Tests need to observe this one now that submit
+ * writes go out through it rather than through `write`.
+ */
+function writeWhenReady<TCommand extends WriteCommand>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand]): Promise<void | Response<never>>;
+
+function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData?: OnyxData<TKey>,
+    barrier?: WriteReadyBarrier,
+    options?: number | WriteWhenReadyOptions,
+): Promise<void | Response<TKey>>;
+
+function writeWhenReady<TCommand extends WriteCommand, TKey extends OnyxKey>(
+    command: TCommand,
+    apiCommandParameters: ApiRequestCommandParameters[TCommand],
+    onyxData?: OnyxData<TKey>,
+    barrier?: WriteReadyBarrier,
+    options?: number | WriteWhenReadyOptions,
+): Promise<void | Response<TKey>> {
+    return baseWriteWhenReady(command, apiCommandParameters, onyxData, barrier, options);
 }
 
 /**
