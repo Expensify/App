@@ -110,7 +110,12 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
     // pendingRegistrations entry unresolved forever (no safety net resolves it once this bypasses
     // the normal handoff). When a real mismatch is detected, run the caller's write immediately and
     // leave the existing reservation/pendingRegistrations entry untouched for its rightful owner.
-    const reservedReportID = existing?.isReserved ? existing.destinationReportID : !existing ? pendingRegistrations.get(key)?.destinationReportID : undefined;
+    let reservedReportID: string | undefined;
+    if (existing?.isReserved) {
+        reservedReportID = existing.destinationReportID;
+    } else if (!existing) {
+        reservedReportID = pendingRegistrations.get(key)?.destinationReportID;
+    }
     if (reservedReportID && callerDestinationReportID && reservedReportID !== callerDestinationReportID) {
         callback();
         return;
