@@ -50,7 +50,7 @@ function HeaderDownloadButton({onPress = () => {}, isLoading = false, iconFill}:
                     onPress();
                     temporarilyDisableDownloadButton();
                 }}
-                style={[styles.touchableButtonImage]}
+                style={styles.touchableButtonImage}
                 role="button"
                 accessibilityLabel={translate('common.download')}
                 sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
