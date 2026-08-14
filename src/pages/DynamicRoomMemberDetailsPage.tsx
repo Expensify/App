@@ -2,7 +2,7 @@ import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import ConfirmModal from '@components/ConfirmModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 
@@ -123,11 +123,10 @@ function DynamicRoomMemberDetailsPage({report, route}: DynamicRoomMemberDetailsP
                     </>
                 </View>
                 <View style={styles.w100}>
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('common.profile')}
                         icon={icons.Info}
                         onPress={navigateToProfile}
-                        shouldShowRightIcon
                     />
                 </View>
             </View>

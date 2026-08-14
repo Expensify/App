@@ -5,6 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isStandardExportTemplateLabel} from '@libs/AccountingUtils';
 import {getOriginalMessage, isExportedToIntegrationAction} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -16,8 +17,6 @@ import {View} from 'react-native';
 type ExportedIconCellProps = {
     reportActions?: ReportAction[];
 };
-
-const STANDARD_EXPORT_TEMPLATE_LABELS = new Set<string>([CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT, CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT]);
 
 function ExportedIconCell({reportActions}: ExportedIconCellProps) {
     const theme = useTheme();
@@ -61,7 +60,7 @@ function ExportedIconCell({reportActions}: ExportedIconCellProps) {
             const message = getOriginalMessage(action);
             const label = message?.label;
             const type = message?.type;
-            const isStandardExportTemplate = !!label && STANDARD_EXPORT_TEMPLATE_LABELS.has(label);
+            const isStandardExportTemplate = !!label && isStandardExportTemplateLabel(label);
 
             if (type === CONST.EXPORT_TEMPLATE && isStandardExportTemplate) {
                 isExportedToStandardTemplate = true;

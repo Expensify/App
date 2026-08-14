@@ -1,6 +1,6 @@
 import UserAvatar from '@components/Avatar/UserAvatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -100,11 +100,10 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                                 copyable
                             />
                             {children}
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
-                                shouldShowRightIcon
                             />
                         </View>
                     </View>

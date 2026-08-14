@@ -1,6 +1,6 @@
 import AttachmentPicker from '@components/AttachmentPicker';
 import UserAvatar from '@components/Avatar/UserAvatar';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import UserInitialsAvatar from '@components/UserInitialsAvatar';
 
@@ -148,15 +148,16 @@ function AvatarPreview({selected, isRemoved, onImageRemoved, imageData, setError
                     if (menuItems?.length <= 1) {
                         return (
                             <Button
-                                icon={icons.Upload}
-                                text={translate('avatarPage.uploadPhoto')}
                                 accessibilityLabel={translate('avatarPage.uploadPhoto')}
                                 onPress={() => {
                                     openPicker({
                                         onPicked: (data) => showAvatarCropModal(data.at(0) ?? {}),
                                     });
                                 }}
-                            />
+                            >
+                                <Button.Icon src={icons.Upload} />
+                                <Button.Text>{translate('avatarPage.uploadPhoto')}</Button.Text>
+                            </Button>
                         );
                     }
 

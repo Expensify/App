@@ -14,7 +14,7 @@ import useChatWithAgent from '@hooks/useChatWithAgent';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -52,7 +52,6 @@ function AgentsPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
-    const illustrations = useMemoizedLazyIllustrations(['AiBot']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus', 'Trashcan']);
     const chatWithAgent = useChatWithAgent();
     const switchToDelegator = useSwitchToDelegator();
@@ -247,7 +246,6 @@ function AgentsPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.AiBot : undefined}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         clearSelectedAgents();
