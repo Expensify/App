@@ -109,7 +109,6 @@ jest.mock('@libs/submitWriteSession', () => ({
     flushWriteSession: jest.fn(),
     cancelWriteSession: jest.fn(),
     hasPendingWrite: () => false,
-    hasPendingWriteForReport: () => false,
     getOptimisticWatchKey: () => undefined,
     scheduleWrite: (command: unknown, params: unknown, onyxData: unknown, options?: {onWriteStarted?: () => void}) => {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-call -- requireActual is untyped by design in a mock factory

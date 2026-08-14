@@ -9,6 +9,7 @@ import type {ApiRequestCommandParameters, WriteCommand} from './API/types';
 
 import {write, writeWhenReady} from './API';
 import Log from './Log';
+import {markPendingSubmitWriteForReport} from './pendingSubmitWrite';
 
 /**
  * Coordinates deferred writeWhenReady() calls with screen content layout transitions.
@@ -38,11 +39,11 @@ type Session = {
     optimisticWatchKey?: OnyxKey;
 
     /**
-     * Report ID of the destination report the write targets, when applicable.
-     * Used by consumer components (loading skeletons, empty-state suppression) to scope
-     * their "is a write in flight?" check to the report the user is actually viewing.
+     * Clears the report-side pending-write signal this session raised, when it targets a report.
+     * Owned here for now so the signal's lifetime keeps matching the session's exactly; it moves to the
+     * orchestrator once the dismiss-modal channel is gone and there is no session to tie it to.
      */
-    destinationReportID?: string;
+    clearPendingSignal?: () => void;
 
     /** True until a real write is scheduled onto this session. */
     isReserved: boolean;
@@ -67,23 +68,16 @@ function reserveWriteSession(key: SessionKey, options: {destinationReportID?: st
         return;
     }
     flushedWatchKeys.delete(key);
-    sessions.set(key, {release: () => {}, isReserved: true, flushRequested: false, destinationReportID: options.destinationReportID});
+    sessions.set(key, {
+        release: () => {},
+        isReserved: true,
+        flushRequested: false,
+        clearPendingSignal: markPendingSubmitWriteForReport(options.destinationReportID),
+    });
 }
 
 function hasPendingWrite(key: SessionKey): boolean {
     return sessions.has(key);
-}
-
-/**
- * Scoped variant of hasPendingWrite. Returns true when an active session exists for `key`
- * (either reserved or holding a real write) AND its destinationReportID matches `reportID`.
- * Sessions without a destination (e.g. SEARCH-flow writes) never match.
- */
-function hasPendingWriteForReport(key: SessionKey, reportID: string | undefined): boolean {
-    if (!reportID) {
-        return false;
-    }
-    return sessions.get(key)?.destinationReportID === reportID;
 }
 
 /**
@@ -122,6 +116,7 @@ function flushWriteSession(key: SessionKey) {
 function cancelWriteSession(key: SessionKey) {
     const session = sessions.get(key);
     if (session?.isReserved) {
+        session.clearPendingSignal?.();
         sessions.delete(key);
     }
 }
@@ -135,11 +130,13 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
     onWriteStarted: (() => void) | undefined,
 ) {
     const existing = sessions.get(key);
-    let destinationReportID: string | undefined;
+    // Carried over rather than cleared: the report-side signal has to stay raised across the
+    // reserve -> real write handoff, and only drop when the write actually goes out.
+    let clearPendingSignal: (() => void) | undefined;
 
     if (existing) {
         if (existing.isReserved) {
-            destinationReportID = existing.destinationReportID;
+            clearPendingSignal = existing.clearPendingSignal;
             const shouldRunImmediately = existing.flushRequested;
             sessions.delete(key);
 
@@ -147,6 +144,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 if (optimisticWatchKey) {
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
+                clearPendingSignal?.();
                 write(command, params, onyxData);
                 onWriteStarted?.();
                 return;
@@ -163,7 +161,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
             release = resolve;
         });
 
-    const session: Session = {release: () => release(), optimisticWatchKey, destinationReportID, isReserved: false, flushRequested: false};
+    const session: Session = {release: () => release(), optimisticWatchKey, clearPendingSignal, isReserved: false, flushRequested: false};
     sessions.set(key, session);
 
     writeWhenReady(command, params, onyxData, barrier, {
@@ -175,6 +173,7 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
                 return;
             }
             sessions.delete(key);
+            session.clearPendingSignal?.();
             if (session.optimisticWatchKey) {
                 flushedWatchKeys.set(key, session.optimisticWatchKey);
             }
@@ -278,7 +277,6 @@ export {
     flushWriteSession,
     cancelWriteSession,
     hasPendingWrite,
-    hasPendingWriteForReport,
     getOptimisticWatchKey,
     scheduleWrite,
     resetForTesting,

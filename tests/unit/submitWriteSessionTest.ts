@@ -1,13 +1,13 @@
 import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
+import {hasPendingSubmitWriteForReport, resetForTesting as resetPendingSubmitWriteForTesting} from '@libs/pendingSubmitWrite';
 import {
     cancelWriteSession,
     DEFAULT_SAFETY_TIMEOUT_MS,
     flushWriteSession,
     getOptimisticWatchKey,
     hasPendingWrite,
-    hasPendingWriteForReport,
     reserveWriteSession,
     resetForTesting,
     scheduleWrite,
@@ -58,6 +58,7 @@ const pushCount = () => mockPush.mock.calls.length;
 beforeEach(() => {
     jest.clearAllMocks();
     resetForTesting();
+    resetPendingSubmitWriteForTesting();
 });
 
 afterEach(() => {
@@ -276,26 +277,26 @@ describe('submitWriteSession', () => {
         });
     });
 
-    describe('hasPendingWriteForReport', () => {
+    describe('report-side pending-write signal', () => {
         it('returns false when no session is registered', () => {
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+            expect(hasPendingSubmitWriteForReport('report-1')).toBe(false);
         });
 
         it('returns false when reservation has no destination', () => {
             reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+            expect(hasPendingSubmitWriteForReport('report-1')).toBe(false);
         });
 
         it('returns true only when destination matches the queried report', () => {
             reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
 
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+            expect(hasPendingSubmitWriteForReport('report-B')).toBe(false);
         });
 
         it('returns false when reportID arg is undefined', () => {
             reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, undefined)).toBe(false);
+            expect(hasPendingSubmitWriteForReport(undefined)).toBe(false);
         });
 
         it('preserves the destination across reserve -> schedule handoff', async () => {
@@ -304,12 +305,12 @@ describe('submitWriteSession', () => {
             deferToDismissModal();
             await flushMicrotasks();
 
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+            expect(hasPendingSubmitWriteForReport('report-B')).toBe(false);
 
             flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             await flushMicrotasks(pushHappened);
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
         });
     });
 
@@ -354,7 +355,7 @@ describe('submitWriteSession', () => {
 
             // The reservation is not consumed, replaced or flushed, and no watch key is published: a
             // barrier-scheduled write is invisible to the registry.
-            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
             expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBeUndefined();
         });
 
