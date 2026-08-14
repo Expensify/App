@@ -300,6 +300,16 @@ AppState.addEventListener('change', (nextState) => {
  * Callers pre-compute `shouldDeferForSearch` using their own eligibility logic.
  * The dismiss-modal channel is detected automatically via `hasDeferredWrite`.
  */
+// `hasDeferredWrite` alone misses a channel whose safety timeout already deleted it while
+// `pendingRegistrations` still has an unresolved entry (the real write is still forthcoming,
+// possibly delayed by the app going to background). Gating deferOrExecuteWrite on
+// `hasDeferredWrite` alone would run apiWrite() immediately instead of calling
+// registerDeferredWrite, orphaning that pendingRegistrations entry forever (its resolver never
+// fires, so a submit-waiter hangs and the key stays blocked for future reservations).
+function hasDeferredWriteOrPendingRegistration(key: string): boolean {
+    return hasDeferredWrite(key) || pendingRegistrations.has(key);
+}
+
 function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void}) {
     const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred} = options;
 
@@ -312,7 +322,7 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
     // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
     // The trade-off is that a retry's optimistic data may be applied mid-animation,
     // but this is acceptable: retries are rare and the alternative is a stuck write.
-    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+    if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey});
         return;
@@ -320,7 +330,7 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
 
     // Fallback: a reserved SEARCH channel (created by handleSearchDismiss before
     // createTransaction) that wasn't matched by the explicit shouldDeferForSearch flag.
-    if (!isRetry && hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+    if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
         return;
