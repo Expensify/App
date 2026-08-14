@@ -211,7 +211,7 @@ function WorkspaceTravelInvoicingSection({policyID}: WorkspaceTravelInvoicingSec
      */
     const handleConfirmPayBalance = () => {
         setIsPayBalanceModalVisible(false);
-        payTravelInvoicingSpend(defaultFundID, travelSpend);
+        payTravelInvoicingSpend(policyID, defaultFundID, travelSpend);
     };
 
     const continueToggleFlow = () => {

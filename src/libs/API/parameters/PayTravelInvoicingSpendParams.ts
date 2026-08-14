@@ -1,5 +1,5 @@
 type PayTravelInvoicingSpendParams = {
-    domainAccountID: number;
+    policyID: string;
 };
 
 export default PayTravelInvoicingSpendParams;
