@@ -172,7 +172,8 @@ function useFormErrorManagement({
             return false;
         }
 
-        if (!trimmedMerchant) {
+        const isUntypedPlaceholder = !transaction?.isMerchantSet && isInvalidMerchantValue(trimmedMerchant);
+        if (!trimmedMerchant || isUntypedPlaceholder) {
             return !isMerchantRequired;
         }
 
