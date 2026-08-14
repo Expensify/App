@@ -3,6 +3,8 @@ import LocationPermissionModal from '@components/LocationPermissionModal';
 import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
+import {armTransitionBarrier} from '@libs/API';
+import type {WriteReadyBarrier} from '@libs/API';
 import DateUtils from '@libs/DateUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
@@ -12,6 +14,7 @@ import isReportTopmostSplitNavigator from '@libs/Navigation/helpers/isReportTopm
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import reserveSearchChannelIfGlobalCreate from '@libs/Navigation/helpers/reserveSearchChannelIfGlobalCreate';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import {cancelWriteSession, flushWriteSession, reserveWriteSession} from '@libs/submitWriteSession';
@@ -41,8 +44,12 @@ type SubmitExpenseOrchestratorRenderProps = {
 };
 
 type SubmitExpenseOrchestratorProps = {
-    /** Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction. */
-    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean) => void;
+    /**
+     * Calls the appropriate IOU action (requestMoney, trackExpense, etc.) to create the transaction.
+     * `writeBarrier`, when given, is what the resulting API write waits on before applying its
+     * optimistic data - so the re-render wave lands after the dismiss animation instead of during it.
+     */
+    createTransaction: (locationPermissionGranted?: boolean, shouldHandleNavigation?: boolean, writeBarrier?: WriteReadyBarrier) => void;
 
     /** Report that the expense will land on (undefined when destination is unknown, e.g. global create to Search). */
     destinationReportID: string | undefined;
@@ -245,10 +252,26 @@ function SubmitExpenseOrchestrator({
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
-        reserveWriteSession(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+
+        let writeBarrier: WriteReadyBarrier | undefined;
+        let clearPendingWrite = () => {};
+
+        if (shouldPreserveSearchWithPlaceholder) {
+            // Search-destined submissions still resolve through Search's own session; it owns the
+            // readiness signal for its placeholder UI, and has not been migrated to a barrier yet.
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        } else {
+            // Armed here, not inside the dismiss callbacks below: the barrier has to attach while this
+            // dismiss transition is starting, otherwise it would wait out an unrelated later one.
+            writeBarrier = armTransitionBarrier().barrier;
+            clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
+        }
 
         const runAfterDismiss = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction(locationPermissionGranted, false, writeBarrier);
+            // The barrier has already released by now, so the write goes out on the next microtask -
+            // the same point the write session used to drop this signal.
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
