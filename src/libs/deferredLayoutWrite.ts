@@ -189,7 +189,13 @@ function cancelDeferredWrite(key: string) {
  * flight for THIS report?" check via `hasDeferredWriteForReport`.
  */
 function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}) {
-    if (channels.has(key)) {
+    // Also guards on pendingRegistrations, not just channels: the reservation's own safety
+    // timeout can delete the channel while the real write is still forthcoming, possibly delayed
+    // by the app going to background. Without this, a second reservation on the same key in that
+    // window would overwrite the first one's entry here, orphaning its resolver (that submit-waiter
+    // then hangs forever) and attributing the first reservation's late registration to the second
+    // one's destinationReportID/promise instead.
+    if (channels.has(key) || pendingRegistrations.has(key)) {
         return;
     }
 
