@@ -128,6 +128,7 @@ type CardConnectionStatusDisplay = {
     actionKey?: TranslationPaths;
     shouldUsePersonalCardFix?: boolean;
     shouldUseCompanyCardsLink?: boolean;
+    shouldUseReauthMessage?: boolean;
 };
 
 type CardConnectionStatusDisplayParams = {
@@ -137,6 +138,7 @@ type CardConnectionStatusDisplayParams = {
     isCardInactive: boolean;
     isPersonalCard: boolean;
     isAdminForCardPolicy: boolean;
+    doesCardNeedReauthentication?: boolean;
     policyID?: string;
 };
 
@@ -634,12 +636,13 @@ function sortCardsByCardholderName(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
-        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate, formatPhoneNumber});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate, formatPhoneNumber});
         return localeCompare(aName, bName);
     });
 }
@@ -1382,6 +1385,16 @@ function isCardConnectionBroken(card: Card): boolean {
     return !!card.lastScrapeResult && !CONST.COMPANY_CARDS.BROKEN_CONNECTION_IGNORED_STATUSES.includes(card.lastScrapeResult);
 }
 
+/**
+ * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
+ *
+ * @param card the card to check
+ * @returns true if the connection needs re-authentication, false otherwise
+ */
+function doesCardConnectionNeedReauthentication(card: Card): boolean {
+    return isCardConnectionBroken(card) && !!card.lastScrapeResult && CONST.COMPANY_CARDS.REAUTH_SCRAPE_STATUSES.includes(card.lastScrapeResult);
+}
+
 function getCardConnectionStatusDisplay({
     shouldShowConnectionStatus,
     isCardBroken,
@@ -1389,6 +1402,7 @@ function getCardConnectionStatusDisplay({
     isCardInactive: isCardInactiveStatus,
     isPersonalCard: isPersonalCardStatus,
     isAdminForCardPolicy,
+    doesCardNeedReauthentication,
     policyID,
 }: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
     if (!shouldShowConnectionStatus) {
@@ -1398,11 +1412,14 @@ function getCardConnectionStatusDisplay({
     const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
     const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
     const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
+    const shouldUseReauthMessage = shouldShowMessage && !!doesCardNeedReauthentication && isPersonalCardStatus;
     let messageKey: TranslationPaths | undefined;
 
     if (shouldShowMessage) {
         if (shouldUseCompanyCardsLink) {
             messageKey = 'walletPage.cardStatus.fixConnectionIn';
+        } else if (shouldUseReauthMessage) {
+            messageKey = 'walletPage.cardStatus.reconnectBank';
         } else if (isPersonalCardStatus) {
             messageKey = 'walletPage.cardStatus.fixConnection';
         } else {
@@ -1417,6 +1434,7 @@ function getCardConnectionStatusDisplay({
         actionKey: shouldUsePersonalCardFix ? 'common.actionBadge.fix' : undefined,
         shouldUsePersonalCardFix,
         shouldUseCompanyCardsLink,
+        shouldUseReauthMessage,
     };
 }
 
@@ -2145,6 +2163,7 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
+    doesCardConnectionNeedReauthentication,
     getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
