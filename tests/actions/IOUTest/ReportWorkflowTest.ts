@@ -108,6 +108,8 @@ jest.mock('@libs/deferredLayoutWrite', () => ({
     flushDeferredWrite: jest.fn(),
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
+    hasDeferredWriteForReport: () => false,
+    getRegistrationPromiseForReport: () => undefined,
     getOptimisticWatchKey: () => undefined,
     deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
     reserveDeferredWriteChannel: jest.fn(),
