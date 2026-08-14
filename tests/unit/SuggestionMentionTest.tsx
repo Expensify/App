@@ -24,6 +24,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
 import createMock from '../utils/createMock';
+import {formatPhoneNumber} from '../utils/TestHelper';
 
 type MentionSuggestionsProps = {
     mentions: Mention[];
@@ -51,6 +52,7 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     formatPhoneNumber: (value: string) => value,
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
+    toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: (first: string, second: string) => first.localeCompare(second),
     formatTravelDate: () => '',
@@ -569,5 +571,22 @@ describe('SuggestionMention', () => {
 
         expect(updateComment).toHaveBeenCalledWith('@alice@example.com #admins', true);
         expect(setSelection).toHaveBeenCalledWith({start: 19, end: 19});
+    });
+    it('matches a phone contact when searching by unformatted digits', async () => {
+        // The display name of a phone contact is the formatted number, so the raw login has to stay searchable.
+        mockUseLocalize.mockImplementation(() => createMock<ReturnType<typeof useLocalize>>({...mockLocalize, formatPhoneNumber}));
+        mockPersonalDetails = {};
+        mockPersonalDetails[2] = {
+            accountID: 2,
+            login: '+18332403627@expensify.sms',
+            displayName: '+18332403627@expensify.sms',
+        };
+
+        renderSuggestionMention('@8332403627');
+
+        await waitFor(() => expect(mockMentionSuggestionsSpy).toHaveBeenCalled());
+        const {mentions} = getLastMentionSuggestionsProps();
+
+        expect(mentions).toEqual(expect.arrayContaining([expect.objectContaining({handle: '+18332403627@expensify.sms', text: '(833) 240-3627'})]));
     });
 });
