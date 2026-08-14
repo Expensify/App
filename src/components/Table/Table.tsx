@@ -38,6 +38,13 @@ type TableHeaderComponent = React.JSXElementConstructor<TableHeaderProps> & {
     type?: string;
 };
 
+type ExtractedTableChildren = {
+    tableHeaderElement?: ReactElement<TableHeaderProps>;
+    emptyStateElement?: ReactElement;
+    noResultsStateElement?: ReactElement;
+    renderedChildren: React.ReactNode[];
+};
+
 function isTableHeaderElement(child: React.ReactNode): child is ReactElement<TableHeaderProps> {
     return React.isValidElement<TableHeaderProps>(child) && typeof child.type !== 'string' && (child.type as TableHeaderComponent).type === 'header';
 }
@@ -285,33 +292,22 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // Pull recognized elements from the direct children so Table can choose their internal render
     // location without changing the compound interface. The declared column header and empty-state
     // elements move into TableBody only for the page-header layout.
-    let tableHeaderElement: ReactElement<TableHeaderProps> | undefined;
-    let emptyStateElement: ReactElement | undefined;
-    let noResultsStateElement: ReactElement | undefined;
-    const renderedChildren = React.Children.map(children, (child) => {
-        if (isTableHeaderElement(child)) {
-            if (!tableHeaderElement) {
-                tableHeaderElement = child;
-            }
-            return hasPageHeader ? null : child;
-        }
+    const {tableHeaderElement, emptyStateElement, noResultsStateElement, renderedChildren} = (React.Children.map(children, (child) => child) ?? []).reduce<ExtractedTableChildren>(
+        (extractedChildren, child) => {
+            const isHeader = isTableHeaderElement(child);
+            const isEmptyState = React.isValidElement(child) && child.type === TableEmptyState;
+            const isNoResultsState = React.isValidElement(child) && child.type === TableNoResultsState;
+            const shouldRelocateChild = hasPageHeader && (isHeader || isEmptyState || isNoResultsState);
 
-        if (React.isValidElement(child) && child.type === TableEmptyState) {
-            if (!emptyStateElement) {
-                emptyStateElement = child;
-            }
-            return hasPageHeader ? null : child;
-        }
-
-        if (React.isValidElement(child) && child.type === TableNoResultsState) {
-            if (!noResultsStateElement) {
-                noResultsStateElement = child;
-            }
-            return hasPageHeader ? null : child;
-        }
-
-        return child;
-    });
+            return {
+                tableHeaderElement: extractedChildren.tableHeaderElement ?? (isHeader ? child : undefined),
+                emptyStateElement: extractedChildren.emptyStateElement ?? (isEmptyState ? child : undefined),
+                noResultsStateElement: extractedChildren.noResultsStateElement ?? (isNoResultsState ? child : undefined),
+                renderedChildren: shouldRelocateChild ? extractedChildren.renderedChildren : [...extractedChildren.renderedChildren, child],
+            };
+        },
+        {renderedChildren: []},
+    );
     const shouldRenderStickyHeader = !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
     const tableListMetadata = getTableListMetadata({
