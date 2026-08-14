@@ -599,9 +599,9 @@ type UpdateMoneyRequestVendorParams = {
 
 /**
  * Update the QBO vendor matched to a non-reimbursable expense. The vendor lives on the transaction's
- * `comment.vendor` NVP as `{ externalID, isManuallySet }`. `isManuallySet` is hard-coded to `true` here
+ * `comment.vendor` NVP as `{ externalID, wasManuallySet }`. `wasManuallySet` is hard-coded to `true` here
  * because this action is only called from user-driven flows (the App vendor picker, etc.); the PHP
- * fuzzy matcher writes auto-matches directly via `UpdateMoneyRequestVendor` with `isManuallySet=false`.
+ * fuzzy matcher writes auto-matches directly via `UpdateMoneyRequestVendor` with `wasManuallySet=false`.
  *
  * Passing `vendorID=''` clears the vendor from the transaction.
  */
@@ -612,11 +612,11 @@ function updateMoneyRequestVendor({transactionID, vendorID, vendorName, transact
     const previousVendor = resolvedTransaction?.comment?.vendor;
     const isClearing = !vendorID;
 
-    const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, name: vendorName, isManuallySet: true};
+    const newVendorOptimisticValue = isClearing ? null : {externalID: vendorID, name: vendorName, wasManuallySet: true};
 
     // Build an optimistic MODIFIED_EXPENSE so the transaction thread shows "set vendor X" /
     // "changed vendor from X to Y" / "removed the vendor" immediately. Auth's UpdateMoneyRequestVendor
-    // command writes the same {externalID, isManuallySet} shape to the action's originalMessage; the
+    // command writes the same {externalID, wasManuallySet} shape to the action's originalMessage; the
     // optimistic action mirrors that so the local render matches the eventual server payload.
     const optimisticModifiedExpense =
         resolvedTransaction && transactionThreadReport?.reportID
@@ -756,7 +756,7 @@ function updateMoneyRequestVendor({transactionID, vendorID, vendorName, transact
             reportActionID: optimisticReportActionID,
             vendorID,
             vendorName,
-            isManuallySet: true,
+            wasManuallySet: true,
         },
         {optimisticData, successData, failureData},
     );
