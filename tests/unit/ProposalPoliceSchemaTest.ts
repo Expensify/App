@@ -1,7 +1,22 @@
 /**
  * @jest-environment node
  */
-import {isDuplicateCheckResponse} from '@prompts/proposalPolice/schema';
+import {isCommentIntentResponse, isDuplicateCheckResponse} from '@prompts/proposalPolice/schema';
+
+describe('isCommentIntentResponse', () => {
+    it('accepts each of the three intents', () => {
+        expect(isCommentIntentResponse({intent: 'NOT_AN_ATTEMPT'})).toBe(true);
+        expect(isCommentIntentResponse({intent: 'GENUINE_ATTEMPT'})).toBe(true);
+        expect(isCommentIntentResponse({intent: 'SPAM'})).toBe(true);
+    });
+
+    it('rejects anything else, so an unrecognised intent degrades to leaving the comment alone', () => {
+        expect(isCommentIntentResponse({intent: 'ACTION_REQUIRED'})).toBe(false);
+        expect(isCommentIntentResponse({intent: 'spam'})).toBe(false);
+        expect(isCommentIntentResponse({action: 'SPAM'})).toBe(false);
+        expect(isCommentIntentResponse(null)).toBe(false);
+    });
+});
 
 describe('isDuplicateCheckResponse', () => {
     it('accepts a well-formed duplicate result', () => {

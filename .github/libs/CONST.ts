@@ -58,7 +58,14 @@ const CONST = {
     MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
     NO_ACTION: 'NO_ACTION',
     ACTION_EDIT: 'ACTION_EDIT',
-    ACTION_REQUIRED: 'ACTION_REQUIRED',
+    /**
+     * What a comment on a Help Wanted issue is trying to do, for comments that don't follow the proposal template.
+     */
+    INTENT: {
+        NOT_AN_ATTEMPT: 'NOT_AN_ATTEMPT',
+        GENUINE_ATTEMPT: 'GENUINE_ATTEMPT',
+        SPAM: 'SPAM',
+    },
 } as const;
 
 export default CONST;

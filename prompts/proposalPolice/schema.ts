@@ -2,8 +2,8 @@ import CONST from '@github/libs/CONST';
 
 import type {ResponseFormatTextJSONSchemaConfig} from 'openai/resources/responses/responses';
 
-type TemplateCheckResponse = {
-    action: typeof CONST.NO_ACTION | typeof CONST.ACTION_REQUIRED;
+type CommentIntentResponse = {
+    intent: typeof CONST.INTENT.NOT_AN_ATTEMPT | typeof CONST.INTENT.GENUINE_ATTEMPT | typeof CONST.INTENT.SPAM;
 };
 
 type EditCheckResponse = {
@@ -15,20 +15,20 @@ type DuplicateCheckResponse = {
     duplicateCommentID: number | null;
 };
 
-const TEMPLATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
+const COMMENT_INTENT_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
     type: 'json_schema',
-    name: 'proposal_police_template_check',
+    name: 'proposal_police_comment_intent',
     strict: true,
     schema: {
         type: 'object',
         properties: {
-            action: {
+            intent: {
                 type: 'string',
-                enum: [CONST.NO_ACTION, CONST.ACTION_REQUIRED],
-                description: `${CONST.ACTION_REQUIRED} if the comment is a proposal missing a mandatory line, otherwise ${CONST.NO_ACTION}.`,
+                enum: [CONST.INTENT.NOT_AN_ATTEMPT, CONST.INTENT.GENUINE_ATTEMPT, CONST.INTENT.SPAM],
+                description: 'Whether the comment is trying to claim, bid for, or solve this issue, and if so whether it is a genuine effort or a content-free claim.',
             },
         },
-        required: ['action'],
+        required: ['intent'],
         additionalProperties: false,
     },
 };
@@ -74,12 +74,12 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
     },
 };
 
-function isTemplateCheckResponse(value: unknown): value is TemplateCheckResponse {
+function isCommentIntentResponse(value: unknown): value is CommentIntentResponse {
     if (typeof value !== 'object' || value === null) {
         return false;
     }
-    const {action} = value as Partial<TemplateCheckResponse>;
-    return action === CONST.NO_ACTION || action === CONST.ACTION_REQUIRED;
+    const {intent} = value as Partial<CommentIntentResponse>;
+    return intent === CONST.INTENT.NOT_AN_ATTEMPT || intent === CONST.INTENT.GENUINE_ATTEMPT || intent === CONST.INTENT.SPAM;
 }
 
 function isEditCheckResponse(value: unknown): value is EditCheckResponse {
@@ -100,5 +100,5 @@ function isDuplicateCheckResponse(value: unknown): value is DuplicateCheckRespon
     return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
 }
 
-export {TEMPLATE_CHECK_RESPONSE_FORMAT, EDIT_CHECK_RESPONSE_FORMAT, DUPLICATE_CHECK_RESPONSE_FORMAT, isTemplateCheckResponse, isEditCheckResponse, isDuplicateCheckResponse};
-export type {TemplateCheckResponse, EditCheckResponse, DuplicateCheckResponse};
+export {COMMENT_INTENT_RESPONSE_FORMAT, EDIT_CHECK_RESPONSE_FORMAT, DUPLICATE_CHECK_RESPONSE_FORMAT, isCommentIntentResponse, isEditCheckResponse, isDuplicateCheckResponse};
+export type {CommentIntentResponse, EditCheckResponse, DuplicateCheckResponse};

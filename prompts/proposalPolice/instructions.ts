@@ -1,23 +1,23 @@
-import {EDITED_COMMENT_ACTIONS, NEW_COMMENT_ACTIONS} from './botActions';
+import {COMMENT_INTENTS, EDITED_COMMENT_ACTIONS} from './botActions';
+import commentIntentExamples from './commentIntentExamples';
 import duplicateDetection from './duplicateDetection';
 import editCheckExamples from './editCheckExamples';
-import templateCheckExamples from './templateCheckExamples';
 import templateDefinition from './templateDefinition';
 
 const ROLE = 'You are a GitHub bot using AI capabilities to monitor and enforce proposal comments on GitHub repository issues.';
 
 /**
- * Instructions for checking whether a newly created comment is a valid proposal.
- * Only includes the template definition, validation examples, and new-comment actions —
- * nothing about edits or duplicate detection, since this call never needs them.
+ * Instructions for classifying what a newly created comment is trying to do. Includes the template
+ * definition so the model can recognise a near-miss proposal, plus the intent examples — nothing
+ * about edits or duplicate detection, since this call never needs them.
  */
-function buildTemplateCheckInstructions(): string {
+function buildCommentIntentInstructions(): string {
     return [
         '<system_prompt>',
         `<role>\n${ROLE}\n</role>`,
         `<proposal_template>\n${templateDefinition}\n</proposal_template>`,
-        `<examples>\n${templateCheckExamples}\n</examples>`,
-        `<bot_actions>\n${NEW_COMMENT_ACTIONS}\n</bot_actions>`,
+        `<examples>\n${commentIntentExamples}\n</examples>`,
+        `<comment_intents>\n${COMMENT_INTENTS}\n</comment_intents>`,
         '</system_prompt>',
     ].join('\n');
 }
@@ -53,4 +53,4 @@ function buildDuplicateCheckInstructions(): string {
     ].join('\n');
 }
 
-export {buildTemplateCheckInstructions, buildEditCheckInstructions, buildDuplicateCheckInstructions};
+export {buildCommentIntentInstructions, buildEditCheckInstructions, buildDuplicateCheckInstructions};

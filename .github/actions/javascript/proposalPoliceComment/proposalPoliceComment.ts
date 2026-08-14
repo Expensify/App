@@ -3,8 +3,8 @@ import GithubUtils from '@github/libs/GithubUtils';
 import isBotUser from '@github/libs/isBotUser';
 import isProposal from '@github/libs/ProposalUtils';
 
-import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildTemplateCheckInput} from '@prompts/proposalPolice/input';
-import {buildDuplicateCheckInstructions, buildEditCheckInstructions, buildTemplateCheckInstructions} from '@prompts/proposalPolice/instructions';
+import {buildCommentIntentInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput} from '@prompts/proposalPolice/input';
+import {buildCommentIntentInstructions, buildDuplicateCheckInstructions, buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
 import {
     buildDuplicateCheckNoticeMessage,
     buildSubstantiveEditMessage,
@@ -14,14 +14,14 @@ import {
     SUBSTANTIVE_EDIT_MESSAGE_REGEX,
 } from '@prompts/proposalPolice/messages';
 import {
+    COMMENT_INTENT_RESPONSE_FORMAT,
     DUPLICATE_CHECK_RESPONSE_FORMAT,
     EDIT_CHECK_RESPONSE_FORMAT,
+    isCommentIntentResponse,
     isDuplicateCheckResponse,
     isEditCheckResponse,
-    isTemplateCheckResponse,
-    TEMPLATE_CHECK_RESPONSE_FORMAT,
 } from '@prompts/proposalPolice/schema';
-import type {DuplicateCheckResponse, EditCheckResponse, TemplateCheckResponse} from '@prompts/proposalPolice/schema';
+import type {CommentIntentResponse, DuplicateCheckResponse, EditCheckResponse} from '@prompts/proposalPolice/schema';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import {
@@ -111,9 +111,15 @@ async function run() {
         return;
     }
 
-    // Verify that the comment is not empty and contains the case sensitive `Proposal` keyword
-    if (!payload.comment?.body.trim() || !payload.comment?.body.includes(CONST.PROPOSAL_KEYWORD)) {
-        console.log('Comment body is either empty or doesn\'t contain the keyword "Proposal": ', payload.comment?.body);
+    if (!payload.comment?.body.trim()) {
+        console.log('Comment body is empty, skipping checks.');
+        return;
+    }
+
+    // Bots talk to each other constantly on these issues, and ProposalPolice's own tracking and reminder
+    // comments come back through this same webhook. The workflow only filters a handful of logins by name.
+    if (payload.comment.user && isBotUser(payload.comment.user.login, payload.comment.user.type)) {
+        console.log('Comment is from a bot, skipping checks.', payload.comment.user.login);
         return;
     }
 
@@ -149,16 +155,45 @@ async function run() {
     /* eslint-disable rulesdir/no-default-id-values */
     const commentID = payload.comment?.id ?? -1;
 
-    // DUPLICATE PROPOSAL DETECTION
     if (isCommentCreatedEvent(payload)) {
-        console.log('Starting DUPLICATE PROPOSAL DETECTION Check');
         const newProposalCreatedAt = new Date(payload.comment.created_at).getTime();
         const newProposalBody = payload.comment.body;
         const newProposalAuthor = payload.comment.user.login;
-        if (isBotUser(payload.comment.user.login, payload.comment.user.type)) {
-            console.log('New comment is from a bot. Skipping duplicate check.');
+
+        // Whether a comment follows the template is a definition, not a judgment, so it's decided here
+        // rather than by the model. Only what's left over needs classifying, which is a judgment call.
+        if (!isProposal(newProposalBody)) {
+            console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
+            const intentResponse = await openAI.promptResponses({
+                instructions: buildCommentIntentInstructions(),
+                input: buildCommentIntentInput(newProposalBody),
+                model: PROPOSAL_POLICE_MODEL,
+                promptCacheKey: 'proposal-police-comment-intent',
+                textFormat: COMMENT_INTENT_RESPONSE_FORMAT,
+            });
+            // Fall back to NOT_AN_ATTEMPT so a parse failure leaves the comment untouched
+            const intent = openAI.parseJSONResponse<CommentIntentResponse>(intentResponse.text, isCommentIntentResponse)?.intent ?? CONST.INTENT.NOT_AN_ATTEMPT;
+            core.startGroup('Parsed Comment Intent Response');
+            console.log('intent: ', intent);
+            core.endGroup();
+
+            if (intent === CONST.INTENT.NOT_AN_ATTEMPT) {
+                console.log('Comment is not an attempt to claim or solve this issue, leaving it alone.');
+                return;
+            }
+
+            if (intent === CONST.INTENT.SPAM) {
+                console.log('Comment claims this issue without offering any technical content, minimizing it as spam.', commentID);
+                await GithubUtils.minimizeCommentAsSpam(payload.comment.node_id);
+            }
+
+            // Point the author at the template either way, so someone whose comment was collapsed still learns why
+            console.log('ProposalPolice™ commenting on issue...');
+            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTemplateReminderMessage(newProposalAuthor));
             return;
         }
+
+        console.log('Starting DUPLICATE PROPOSAL DETECTION Check');
 
         // Fetch all comments in the issue
         console.log('Get comments for issue #', issueNumber);
@@ -166,12 +201,6 @@ async function run() {
         core.startGroup('Comments Response');
         console.log('commentsResponse', commentsResponse);
         core.endGroup();
-
-        const isNewCommentAProposal = isProposal(newProposalBody);
-        if (!isNewCommentAProposal) {
-            console.log('New comment is not a proposal. Skipping duplicate check.');
-            return;
-        }
 
         // Find any existing OpenAI Conversation that tracks this issue's proposals for duplicate detection
         let conversationID = findTrackedConversationID(commentsResponse);
@@ -258,6 +287,10 @@ async function run() {
             console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call, but recording this proposal for future comparisons.');
             await openAI.addConversationItems(conversationID, [buildDuplicateCheckSeedItem(newProposalBody, commentID, newProposalAuthor)]);
         }
+
+        // A newly created proposal that survived the duplicate check follows the template by definition,
+        // so there is nothing further to check. Everything below only applies to edits.
+        return;
     }
 
     // A comment we already bannered must never be bannered again, which is the only thing the edit check
@@ -270,21 +303,15 @@ async function run() {
         return;
     }
 
-    const instructions = isCommentCreatedEvent(payload) ? buildTemplateCheckInstructions() : buildEditCheckInstructions();
-    const input = isCommentCreatedEvent(payload) ? buildTemplateCheckInput(payload.comment?.body) : buildEditCheckInput(payload.changes.body?.from, payload.comment?.body);
-    const textFormat = isCommentCreatedEvent(payload) ? TEMPLATE_CHECK_RESPONSE_FORMAT : EDIT_CHECK_RESPONSE_FORMAT;
-
     const response = await openAI.promptResponses({
-        instructions,
-        input,
+        instructions: buildEditCheckInstructions(),
+        input: buildEditCheckInput(payload.changes.body?.from, payload.comment?.body),
         model: PROPOSAL_POLICE_MODEL,
-        promptCacheKey: isCommentCreatedEvent(payload) ? 'proposal-police-template-check' : 'proposal-police-edit-check',
-        textFormat,
+        promptCacheKey: 'proposal-police-edit-check',
+        textFormat: EDIT_CHECK_RESPONSE_FORMAT,
     });
 
-    const parsedResponse: TemplateCheckResponse | EditCheckResponse | null = isCommentCreatedEvent(payload)
-        ? openAI.parseJSONResponse<TemplateCheckResponse>(response.text, isTemplateCheckResponse)
-        : openAI.parseJSONResponse<EditCheckResponse>(response.text, isEditCheckResponse);
+    const parsedResponse = openAI.parseJSONResponse<EditCheckResponse>(response.text, isEditCheckResponse);
 
     core.startGroup('Parsed Response');
     console.log('parsedResponse: ', parsedResponse);
@@ -297,12 +324,7 @@ async function run() {
         return;
     }
 
-    if (isCommentCreatedEvent(payload) && action === CONST.ACTION_REQUIRED) {
-        console.log('ProposalPolice™ commenting on issue...');
-        await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTemplateReminderMessage(payload.comment?.user.login));
-
-        // edit comment if substantial changes were detected
-    } else if (action === CONST.ACTION_EDIT) {
+    if (action === CONST.ACTION_EDIT) {
         console.log('ProposalPolice™ editing issue comment...', commentID);
         await GithubUtils.octokit.issues.updateComment({
             ...context.repo,

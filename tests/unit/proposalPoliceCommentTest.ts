@@ -31,6 +31,7 @@ jest.mock('@github/libs/GithubUtils', () => ({
     default: {
         getAllCommentDetails: jest.fn(),
         createComment: jest.fn(),
+        minimizeCommentAsSpam: jest.fn(),
         octokit: {issues: {updateComment: jest.fn()}},
     },
 }));
@@ -54,20 +55,22 @@ jest.mock('@actions/github', () => ({
 const MockedGithubUtils = jest.mocked(GithubUtils);
 const mockGetAllCommentDetails = MockedGithubUtils.getAllCommentDetails;
 const mockCreateComment = MockedGithubUtils.createComment;
+const mockMinimizeCommentAsSpam = MockedGithubUtils.minimizeCommentAsSpam;
 // `octokit` is a getter on the real class returning a huge Octokit surface; the mock replaces it with a
 // plain object, so this one property access needs a cast that `jest.mocked()` can't infer through.
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any
 const mockUpdateComment = MockedGithubUtils.octokit.issues.updateComment as any as jest.Mock;
 
-type CommentOverrides = Partial<{id: number; body: string; login: string; type: string; created_at: string; html_url: string}>;
+type CommentOverrides = Partial<{id: number; body: string; login: string; type: string; created_at: string; html_url: string; node_id: string}>;
 
-function makeComment(overrides: CommentOverrides = {}): ProposalComment & {html_url: string} {
+function makeComment(overrides: CommentOverrides = {}): ProposalComment & {html_url: string; node_id: string} {
     return {
         id: overrides.id ?? 1,
         body: overrides.body ?? VALID_PROPOSAL_BODY,
         user: {login: overrides.login ?? 'contributor', type: overrides.type ?? 'User'},
         created_at: overrides.created_at ?? '2026-01-01T00:00:00Z',
         html_url: overrides.html_url ?? 'https://github.com/Expensify/App/issues/1#issuecomment-1',
+        node_id: overrides.node_id ?? `IC_node_${overrides.id ?? 1}`,
     };
 }
 
@@ -76,12 +79,12 @@ function makeComment(overrides: CommentOverrides = {}): ProposalComment & {html_
  * ever reads the fields captured by `ProposalComment`, so its test fixtures omit the rest (avatar URLs,
  * node IDs, etc.) — hence the cast to bridge the narrower fixture shape to the mock's real return type.
  */
-function mockComments(comments: Array<ProposalComment & {html_url: string}>) {
+function mockComments(comments: Array<ProposalComment & {html_url: string; node_id: string}>) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
     mockGetAllCommentDetails.mockResolvedValue(comments as unknown as Awaited<ReturnType<typeof GithubUtils.getAllCommentDetails>>);
 }
 
-function setPayload(overrides: {action: 'created' | 'edited'; comment?: ProposalComment & {html_url: string}; changes?: {body?: {from?: string}}}) {
+function setPayload(overrides: {action: 'created' | 'edited'; comment?: ProposalComment & {html_url: string; node_id: string}; changes?: {body?: {from?: string}}}) {
     context.payload = {
         action: overrides.action,
         issue: {number: 1, state: 'open', labels: [{name: 'Help Wanted'}]},
@@ -148,17 +151,20 @@ describe('proposalPoliceComment', () => {
         expect(mockUpdateComment).not.toHaveBeenCalled();
     });
 
-    it('uses PROPOSAL_POLICE_MODEL for the duplicate-check, template-check, and edit-check calls', async () => {
-        mockComments([makeComment({id: 2, created_at: '2025-12-31T00:00:00Z'})]);
+    it('uses PROPOSAL_POLICE_MODEL for the comment-intent, duplicate-check, and edit-check calls', async () => {
+        mockComments([makeComment({id: 2, login: 'other-contributor', created_at: '2025-12-31T00:00:00Z'})]);
         setPayload({action: 'created'});
-        MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'});
         await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(1, expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
+
+        jest.clearAllMocks();
+        setPayload({action: 'created', comment: makeComment({body: 'I would like to work on this issue.'})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+        await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenNthCalledWith(2, expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
 
         jest.clearAllMocks();
         setPayload({action: 'edited', comment: makeComment({body: `${VALID_PROPOSAL_BODY}\nedited`}), changes: {body: {from: VALID_PROPOSAL_BODY}}});
@@ -168,16 +174,67 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({model: PROPOSAL_POLICE_MODEL}));
     });
 
-    it('posts a template-required comment when a mandatory section is missing', async () => {
-        mockComments([makeComment({id: 2, created_at: '2025-12-31T00:00:00Z'})]);
+    it('never classifies a comment that already follows the template', async () => {
+        // Template conformance is decided in code, so a valid proposal costs no intent call at all.
+        mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
         setPayload({action: 'created'});
-        MockedOpenAIUtils.prototype.promptResponses
-            .mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'})
-            .mockResolvedValueOnce({text: JSON.stringify({action: 'ACTION_REQUIRED'}), responseID: 'resp_tpl'});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: duplicateCheckResult(), responseID: 'resp_dup'});
+
+        await run();
+
+        // The single call is the duplicate check, against the Conversation - never an intent classification
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledWith(expect.objectContaining({conversation: 'conv_existing'}));
+        expect(mockCreateComment).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('reminds the author about the template but leaves a genuine attempt visible', async () => {
+        setPayload({action: 'created', comment: makeComment({body: 'The root cause is that lastReadTime is updated before the unread marker is computed.'})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'GENUINE_ATTEMPT'}), responseID: 'resp_intent'});
 
         await run();
 
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+        // No Conversation work: the comment isn't a proposal, so it never enters duplicate detection
+        // eslint-disable-next-line @typescript-eslint/unbound-method
+        expect(MockedOpenAIUtils.prototype.createConversation).not.toHaveBeenCalled();
+    });
+
+    it('minimizes a content-free claim on the issue as spam, and still explains the template', async () => {
+        setPayload({action: 'created', comment: makeComment({id: 77, body: 'I would like to take on this issue. Please see my Upwork application.'})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'SPAM'}), responseID: 'resp_intent'});
+
+        await run();
+
+        expect(mockMinimizeCommentAsSpam).toHaveBeenCalledWith('IC_node_77');
+        expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
+        // Minimizing collapses the comment; the body is never rewritten
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+    });
+
+    it('leaves ordinary discussion alone', async () => {
+        setPayload({action: 'created', comment: makeComment({body: 'Retested on staging 9.1.42, still reproducible on iOS but not on web.'})});
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({intent: 'NOT_AN_ATTEMPT'}), responseID: 'resp_intent'});
+
+        await run();
+
+        expect(mockCreateComment).not.toHaveBeenCalled();
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+    });
+
+    it('leaves the comment alone when the intent response cannot be parsed', async () => {
+        setPayload({action: 'created', comment: makeComment({body: 'I would like to take on this issue.'})});
+        MockedOpenAIUtils.prototype.parseJSONResponse.mockReturnValue(null);
+        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: 'not json', responseID: 'resp_intent'});
+
+        await run();
+
+        expect(mockMinimizeCommentAsSpam).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
     });
 
     it('does not run the edit check on an edited comment that is not a proposal', async () => {
@@ -360,9 +417,6 @@ describe('proposalPoliceComment', () => {
 
         expect(mockUpdateComment).not.toHaveBeenCalled();
         expect(mockCreateComment).not.toHaveBeenCalled();
-        // Falls through to the template check rather than returning early as a duplicate
-        // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(2);
     });
 
     it('does not withdraw when the model invents a duplicate comment ID', async () => {
@@ -472,18 +526,15 @@ describe('proposalPoliceComment', () => {
     it('skips the duplicate-check call when the issue has no prior proposals at all', async () => {
         // mockGetAllCommentDetails already resolves [] by default (see beforeEach)
         setPayload({action: 'created'});
-        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
 
         await run();
 
         // A Conversation is still created (and tracked) so future proposals on this issue have something to attach to...
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);
-        // ...but with nothing yet to compare against, only the template-check call should run.
+        // ...but with nothing yet to compare against, and the template checked in code, no model call runs at all.
         // eslint-disable-next-line @typescript-eslint/unbound-method
-        expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
-        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.anything() is typed as `any`
-        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalledWith(expect.objectContaining({conversation: expect.anything()}));
+        expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalled();
         // The proposal must still be recorded directly, since skipping promptResponses also skips its auto-append-to-Conversation behavior.
         // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
         expect(MockedOpenAIUtils.prototype.addConversationItems).toHaveBeenCalledWith('conv_new', [expect.objectContaining({content: expect.stringContaining('comment_id="1"')})]);
@@ -493,7 +544,6 @@ describe('proposalPoliceComment', () => {
         // First proposal on a fresh issue: no prior proposals, so the Conversation is created but the
         // duplicate-check call is skipped (and the proposal is recorded directly instead - see above).
         setPayload({action: 'created', comment: makeComment({id: 1, created_at: '2026-01-01T00:00:00Z'})});
-        MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_1'});
         await run();
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.createConversation).toHaveBeenCalledTimes(1);

@@ -10,9 +10,9 @@ function escapeForXMLWrapper(text: string): string {
 }
 
 /**
- * Build the user input for a template-check request (a newly created comment).
+ * Build the user input for a comment-intent request (a newly created comment).
  */
-function buildTemplateCheckInput(commentBody: string): string {
+function buildCommentIntentInput(commentBody: string): string {
     return `<new_comment>\n${escapeForXMLWrapper(commentBody)}\n</new_comment>`;
 }
 
@@ -42,4 +42,4 @@ function buildDuplicateCheckSeedItem(proposalBody: string, commentID: number, au
     };
 }
 
-export {buildTemplateCheckInput, buildEditCheckInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem};
+export {buildCommentIntentInput, buildEditCheckInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem};
