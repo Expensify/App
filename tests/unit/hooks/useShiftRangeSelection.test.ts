@@ -473,10 +473,21 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
-        it('starts at the clicked row when the seeded block holds nothing, rather than sweeping from the top', () => {
+        it('leaves the session alone when the block turns out to hold no rows, since nothing was selected', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.notifyAnchor(ROW_B));
             act(() => result.current.seedRangeFromSelection([]));
+            act(() => {
+                result.current.applyShiftClick(ROW_D, true);
+            });
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c', 'd'], toDeselect: []});
+        });
+
+        it('starts at the clicked row when a seeded block resolves to no rows on screen, rather than sweeping from the top', () => {
+            const onApplyRange = makeApplyMock();
+            const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
+            act(() => result.current.seedRangeFromSelection((key) => key === 'not-in-this-list'));
             act(() => {
                 result.current.applyShiftClick(ROW_C, true);
             });

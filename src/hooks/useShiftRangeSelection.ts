@@ -96,6 +96,10 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
                 return;
             }
             const set = members instanceof Set ? members : new Set(members);
+            // A block with nothing in it is not a block: the caller selected no rows, so whatever session it would replace is still the truth.
+            if (set.size === 0) {
+                return;
+            }
             sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key)};
         },
         seedFullRange: () => {

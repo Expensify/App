@@ -113,7 +113,7 @@ const mockToggleAll = jest.fn();
 const mockSelectedTransactions: {current: Record<string, {isSelected: boolean}>} = {current: {}};
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchRowSelectionActions: () => ({toggle: mockToggle, toggleAll: mockToggleAll}),
-    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current}),
+    useSearchSelectionContext: () => ({selectedTransactions: mockSelectedTransactions.current, excludedTransactions: {}, areAllMatchingItemsSelected: false}),
     useSearchShiftRangeChildren: () => ({registerGroupChildren: jest.fn(), addGroupToRange: jest.fn(), removeGroupFromRange: jest.fn()}),
 }));
 
