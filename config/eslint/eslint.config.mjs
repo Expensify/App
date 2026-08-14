@@ -700,6 +700,18 @@ const config = defineConfig([
     },
 
     {
+        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
+        // the root tsconfig and would otherwise belong to no project at all.
+        files: ['evals/**/*.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
         languageOptions: {
             parserOptions: {
