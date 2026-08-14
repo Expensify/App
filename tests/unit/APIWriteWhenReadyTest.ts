@@ -698,6 +698,33 @@ describe('API.writeWhenReady', () => {
             expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
         });
 
+        it('keeps the barrier alive for the remaining writes when one of them times out', async () => {
+            jest.useFakeTimers();
+            try {
+                const {cancel, finishTransition} = mockTransitionRegistration();
+                const armed = armBarrier();
+
+                const shortTimeoutMs = 100;
+                deferWrite(armed.barrier, shortTimeoutMs);
+                deferWrite(armed.barrier);
+                await flushMicrotasks();
+
+                // The first write gives up early. The registration must survive, otherwise the second write
+                // would be stranded until its own safety timeout instead of releasing with the transition.
+                await jest.advanceTimersByTimeAsync(shortTimeoutMs);
+                await flushMicrotasks(pushHappened);
+                expect(mockPush).toHaveBeenCalledTimes(1);
+                expect(cancel).not.toHaveBeenCalled();
+
+                finishTransition();
+                await flushMicrotasks(() => mockPush.mock.calls.length >= 2);
+
+                expect(mockPush).toHaveBeenCalledTimes(2);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
         it("forwards the write's early release to the armed TransitionTracker registration", async () => {
             jest.useFakeTimers();
             try {

@@ -144,12 +144,26 @@ type ArmedTransitionBarrier = {
 function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransitionBarrier {
     const armController = new AbortController();
     const armed = createTransitionBarrier(waitFor)(armController.signal);
+    let consumerCount = 0;
+    let abortedConsumerCount = 0;
 
     return {
-        // Forward writeWhenReady's own abort (safety timeout / app background) so the TransitionTracker
-        // registration is dropped instead of being left dangling after the write already went out.
         barrier: (signal) => {
-            signal.addEventListener('abort', () => armController.abort());
+            consumerCount++;
+            // Forward writeWhenReady's own abort (safety timeout / app background) so the TransitionTracker
+            // registration is dropped instead of being left dangling after the write already went out.
+            //
+            // Only once every consumer has aborted, though: aborting leaves `armed` permanently pending by
+            // design, so cancelling on the first consumer's timeout would strand the writes still waiting on
+            // it until their own safety timeouts. With several writes from one interaction, one hitting its
+            // timeout must not push the others onto the slow path.
+            signal.addEventListener('abort', () => {
+                abortedConsumerCount++;
+                if (abortedConsumerCount < consumerCount) {
+                    return;
+                }
+                armController.abort();
+            });
             return armed;
         },
         cancel: () => armController.abort(),
