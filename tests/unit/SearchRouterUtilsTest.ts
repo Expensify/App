@@ -9,13 +9,25 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {NavigationState} from '@react-navigation/native';
 import type {OnyxCollection} from 'react-native-onyx';
+import type {PartialDeep} from 'type-fest';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 
 // Helper to create minimal navigation state for testing
 // The function only uses index, routes, and nested state properties
-function createMockState(partialState: {index: number; routes: Array<{name: string; params?: Record<string, unknown>; state?: unknown}>}): NavigationState {
-    return partialState as NavigationState;
+type MockNavigationRoute = PartialDeep<Omit<NavigationState['routes'][number], 'name' | 'state'>, {recurseIntoArrays: true}> &
+    Pick<NavigationState['routes'][number], 'name'> & {
+        state?: MockNavigationState;
+    };
+
+type MockNavigationState = PartialDeep<Omit<NavigationState, 'index' | 'routes'>, {recurseIntoArrays: true}> &
+    Pick<NavigationState, 'index'> & {
+        routes: MockNavigationRoute[];
+    };
+
+function createMockState(partialState: MockNavigationState): NavigationState {
+    return createMock<NavigationState>(partialState);
 }
 
 describe('SearchRouterUtils', () => {
