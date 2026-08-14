@@ -4,7 +4,7 @@ import type {NumberFormProps} from './types';
 
 import {NumberFormActionsContext, NumberFormStateContext} from './context';
 
-function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorText, onBlur, children}: NumberFormProps) {
+function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
     const [currentValue, setCurrentValue] = useState(value);
     const [previousValue, setPreviousValue] = useState(value);
 
@@ -27,7 +27,7 @@ function NumberForm({value = '', onInputChange, negativeMode = 'inValue', errorT
         errorText,
     };
 
-    const actionsContextValue = {onBlur, setValue};
+    const actionsContextValue = {inputRef: ref, numberFormRef, onBlur, onSubmitEditing, setValue};
 
     return (
         <NumberFormStateContext.Provider value={stateContextValue}>

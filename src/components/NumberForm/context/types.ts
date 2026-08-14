@@ -1,5 +1,7 @@
-import type {NumberFormNegativeMode} from '@components/NumberForm/types';
-import type {BaseTextInputProps} from '@components/TextInput/BaseTextInput/types';
+import type {NumberFormNegativeMode, NumberFormRef} from '@components/NumberForm/types';
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {ForwardedRef} from 'react';
 
 type NumberFormStateContextValue = {
     value: string;
@@ -9,6 +11,9 @@ type NumberFormStateContextValue = {
 
 type NumberFormActionsContextValue = {
     onBlur?: BaseTextInputProps['onBlur'];
+    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
+    inputRef?: ForwardedRef<BaseTextInputRef>;
+    numberFormRef?: ForwardedRef<NumberFormRef>;
     setValue: (value: string, options?: {notify?: boolean}) => void;
 };
 

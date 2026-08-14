@@ -1,14 +1,13 @@
-import {act, fireEvent, render, screen} from '@testing-library/react-native';
+import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import NumberForm, {useNumberFormContext} from '@components/NumberForm';
 import type {NumberFormProps} from '@components/NumberForm';
-
-import type {NativeSyntheticEvent, TextInputFocusEventData} from 'react-native';
+import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
+import Text from '@components/Text';
+import TextInput from '@components/TextInput';
 
 import React from 'react';
-import {Pressable, Text, View} from 'react-native';
-
-const mockBlurEvent = {nativeEvent: {text: ''}} as NativeSyntheticEvent<TextInputFocusEventData>;
+import {View} from 'react-native';
 
 function ContextReadout() {
     const {value, negativeMode, errorText, setValue, onBlur} = useNumberFormContext();
@@ -19,17 +18,23 @@ function ContextReadout() {
             <Text testID="ctx-negativeMode">{negativeMode}</Text>
             <Text testID="ctx-errorText">{errorText ?? ''}</Text>
             <Text testID="ctx-hasOnBlur">{String(!!onBlur)}</Text>
-            <Pressable
+            <PressableWithFeedback
+                accessibilityLabel="Set value"
+                accessibilityRole="button"
                 testID="ctx-setValue"
                 onPress={() => setValue('7')}
             />
-            <Pressable
+            <PressableWithFeedback
+                accessibilityLabel="Set value silently"
+                accessibilityRole="button"
                 testID="ctx-setValueSilent"
                 onPress={() => setValue('99', {notify: false})}
             />
-            <Pressable
+            <TextInput
+                accessibilityHint="Triggers the blur callback"
+                accessibilityLabel="Trigger blur"
                 testID="ctx-triggerBlur"
-                onPress={() => onBlur?.(mockBlurEvent)}
+                onBlur={onBlur}
             />
         </View>
     );
@@ -88,7 +93,7 @@ describe('NumberForm', () => {
 
             expect(screen.getByTestId('ctx-hasOnBlur')).toHaveTextContent('true');
 
-            fireEvent.press(screen.getByTestId('ctx-triggerBlur'));
+            fireEvent(screen.getByTestId('ctx-triggerBlur'), 'blur');
 
             expect(onBlur).toHaveBeenCalledTimes(1);
         });
@@ -115,9 +120,7 @@ describe('NumberForm', () => {
         it('updates context and notifies the parent when setValue is called', () => {
             renderNumberForm();
 
-            act(() => {
-                fireEvent.press(screen.getByTestId('ctx-setValue'));
-            });
+            fireEvent.press(screen.getByTestId('ctx-setValue'));
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
             expect(onInputChange).toHaveBeenCalledTimes(1);
@@ -127,9 +130,7 @@ describe('NumberForm', () => {
         it('updates context without notifying the parent when setValue is called with notify: false', () => {
             renderNumberForm();
 
-            act(() => {
-                fireEvent.press(screen.getByTestId('ctx-setValueSilent'));
-            });
+            fireEvent.press(screen.getByTestId('ctx-setValueSilent'));
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
             expect(onInputChange).not.toHaveBeenCalled();
