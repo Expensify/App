@@ -87,7 +87,7 @@ import {
     buildOnyxDataForMoneyRequest,
     getMoneyRequestInformation,
     getReceiptError,
-    getReportPreviewAction,
+    getReportPreviewReportAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
@@ -122,6 +122,9 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -1142,7 +1145,7 @@ function completeSplitBill({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
@@ -1883,7 +1886,7 @@ function createSplitsAndOnyxData({
             redundantParticipants[accountID] = null;
         }
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
@@ -2068,6 +2071,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
+        selectedRouteDistance,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -2161,6 +2165,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerEnd,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -2229,6 +2234,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             optimisticChatReportID,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 
@@ -2286,6 +2292,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
             shouldDeferAutoSubmit,
         };
     }

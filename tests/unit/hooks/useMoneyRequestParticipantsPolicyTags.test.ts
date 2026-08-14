@@ -41,6 +41,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
+                dateFnsLocale: undefined,
                 currentUserAccountID: 999,
                 report,
                 policy,
@@ -55,7 +56,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         await waitFor(() => expect(result.current.participants).toEqual(mockParticipants));
 
-        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate);
+        expect(getMoneyRequestParticipantOptions).toHaveBeenCalledWith(999, report, policy, personalDetails, 'concierge1', false, reportAttributesDerived, reportDraft, translate, undefined);
     });
 
     it('derives participantsPolicyTags from Onyx policy tags keyed by each participant policyID', async () => {
@@ -86,6 +87,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
+                dateFnsLocale: undefined,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,
@@ -108,6 +110,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
 
         const {result} = renderHook(() =>
             useMoneyRequestParticipantsPolicyTags({
+                dateFnsLocale: undefined,
                 currentUserAccountID: 999,
                 report: {reportID: '1'},
                 policy: undefined,

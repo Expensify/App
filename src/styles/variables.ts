@@ -141,6 +141,7 @@ export default {
     htmlTableHeaderRowMinHeight: 30,
     htmlTableColumnMinWidth: 120,
     htmlTableColumnMaxWidth: 240,
+    htmlTableChevronColumnWidth: 20,
     tableGroupRowPaddingVertical: 4,
     tableGroupRowHeight: 36,
     tableCheckboxColumnWidth: 20,
@@ -326,6 +327,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     dimAnimationDuration: 50,
+    instantAnimationDuration: 0,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 

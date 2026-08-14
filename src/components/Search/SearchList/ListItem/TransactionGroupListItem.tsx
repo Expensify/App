@@ -106,7 +106,7 @@ function TransactionGroupListItemImpl({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -154,6 +154,7 @@ function TransactionGroupListItemImpl({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const groupKey = groupItem.keyForList;
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -162,6 +163,7 @@ function TransactionGroupListItemImpl({
         transactions = [];
     } else {
         const [sectionData] = getSections({
+            dateFnsLocale,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
             currentAccountID: currentUserDetails.accountID,
@@ -179,6 +181,7 @@ function TransactionGroupListItemImpl({
             ...transactionItem,
             // The whole group being selected implies every child is, even though only the group key is stored
             isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
+            selectionGroupKey: groupKey,
         }));
     }
 
@@ -231,7 +234,7 @@ function TransactionGroupListItemImpl({
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
-    const isItemSelected = isSelectAllChecked || liveRowSelected;
+    const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -309,7 +312,8 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || transactions.length === 0) {
+        const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
+        if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
