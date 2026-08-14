@@ -1574,6 +1574,15 @@ describe('ReportActionItem', () => {
 
     describe('System notification actions', () => {
         it('MOVED action renders moved message', async () => {
+            // Seed the destination policy locally so the message is computed live (the member scenario).
+            // Without a local policy, getMovedActionMessage falls back to the stored action HTML.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {
+                    id: 'policy1',
+                    name: 'Test Workspace',
+                });
+            });
+
             const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.MOVED, {
                 toPolicyID: 'policy1',
                 newParentReportID: 'report2',
@@ -1640,6 +1649,64 @@ describe('ReportActionItem', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText(/1234/)).toBeOnTheScreen();
+        });
+
+        describe('COMMUTER_EXCLUSION action', () => {
+            const COMMUTER_EXCLUSION_POLICY_ID = 'commuterPolicy';
+
+            function renderCommuterExclusionAction() {
+                const action = createReportAction(CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION, {
+                    distance: '1.00',
+                    unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                });
+                return render(
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrencyListContextProvider, HTMLEngineProvider]}>
+                        <ScreenWrapper testID="test">
+                            <PortalProvider>
+                                <ReportActionItem
+                                    chatReport={undefined}
+                                    report={{reportID: 'testReport', policyID: COMMUTER_EXCLUSION_POLICY_ID}}
+                                    transactionThreadReport={undefined}
+                                    parentReportAction={undefined}
+                                    action={action}
+                                    displayAsGroup={false}
+                                    shouldDisplayNewMarker={false}
+                                    isFirstVisibleReportAction={false}
+                                />
+                            </PortalProvider>
+                        </ScreenWrapper>
+                    </ComposeProviders>,
+                );
+            }
+
+            it('renders the workspace distance settings as a link for an admin', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.ADMIN,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                // The anchor renders a nested pressable, so more than one node carries the link role
+                expect(screen.getAllByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'}).length).toBeGreaterThan(0);
+            });
+
+            it('renders the workspace distance settings as plain text for a member', async () => {
+                await act(async () => {
+                    await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${COMMUTER_EXCLUSION_POLICY_ID}`, {
+                        id: COMMUTER_EXCLUSION_POLICY_ID,
+                        role: CONST.POLICY.ROLE.USER,
+                    });
+                });
+                renderCommuterExclusionAction();
+                await waitForBatchedUpdatesWithAct();
+
+                expect(screen.getByText(/Removed 1.00 commuter/)).toBeOnTheScreen();
+                expect(screen.queryByRole(CONST.ROLE.LINK, {name: 'workspace distance settings'})).not.toBeOnTheScreen();
+            });
         });
 
         it('TAKE_CONTROL action renders changed approver message', async () => {
@@ -2328,7 +2395,7 @@ describe('ReportActionItem', () => {
                 testTitle: 'UPDATE_AUTO_HARVESTING',
                 actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING,
                 originalMessage: {value: true},
-                assertion: /enabled scheduled submit/i,
+                assertion: /enabled submissions/i,
             },
             {testTitle: 'SET_AUTO_JOIN', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.SET_AUTO_JOIN, originalMessage: {enabled: true}, assertion: /enabled pre-approval/i},
             {testTitle: 'UPDATE_TIME_ENABLED', actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TIME_ENABLED, originalMessage: {enabled: true}, assertion: /time tracking/i},
