@@ -6,7 +6,7 @@ import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, s
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateDefaultReimbursable, getExistingTransactionID, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, isSelfDMSoleDestination, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -216,6 +216,9 @@ function handleMoneyRequestStepDistanceNavigation({
     const distanceRequestType = getDistanceRequestType(transaction);
     // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
     const isLookingAroundUser = isLookingAroundOnboardingChoice(introSelected?.choice);
+    // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
+    // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
@@ -346,6 +349,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             optimisticChatReportID,
                             linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                             isLookingAroundUser,
+                            isSelfDMDestination,
                         });
                     },
                     destinationReportID: report?.reportID ?? selfDMReport?.reportID,
@@ -428,6 +432,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         optimisticChatReportID,
                         linkedTrackedExpenseReportAction: transactionLinkedTrackedExpenseReportAction,
                         isLookingAroundUser,
+                        isSelfDMDestination,
                     });
                 },
                 destinationReportID: distanceDestinationReportID,

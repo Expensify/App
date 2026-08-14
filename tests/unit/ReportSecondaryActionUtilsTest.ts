@@ -4709,8 +4709,10 @@ describe('getSecondaryTransactionThreadActions', () => {
     });
 
     describe('SEND_TO_SOMEONE gate', () => {
-        function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean) {
+        function getSendToSomeoneResult(isExpenseSplit: boolean, hasWorkspaceToSubmitTo: boolean, isChatReportArchived = false) {
             jest.spyOn(ReportUtils, 'isTrackExpenseReportNew').mockReturnValue(true);
+            // An archived self-DM has no write access; mirror that so the write-action guard on SEND_TO_SOMEONE is exercised.
+            jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(!isChatReportArchived);
             jest.spyOn(TransactionUtils, 'getOriginalTransactionWithSplitInfo').mockReturnValue({
                 originalTransaction: createMock<Transaction>({}),
                 isBillSplit: false,
@@ -4725,7 +4727,7 @@ describe('getSecondaryTransactionThreadActions', () => {
                 reportAction: actionR14932,
                 originalTransaction: createMock<Transaction>({}),
                 policy: createMock<Policy>({}),
-                isChatReportArchived: false,
+                isChatReportArchived,
                 isProduction: false,
                 hasWorkspaceToSubmitTo,
             });
@@ -4741,6 +4743,10 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('includes SEND_TO_SOMEONE for a self-DM split expense when the user has a workspace to submit to', () => {
             expect(getSendToSomeoneResult(true, true)).toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
+        });
+
+        it('hides SEND_TO_SOMEONE on an archived self-DM (no write access)', () => {
+            expect(getSendToSomeoneResult(false, false, true)).not.toContain(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
         });
     });
 

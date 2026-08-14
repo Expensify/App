@@ -37,6 +37,7 @@ import {
     getExistingTransactionID,
     isMovingTransactionFromTrackExpense,
     isParticipantP2P,
+    isSelfDMSoleDestination,
     navigateToConfirmationPage,
     navigateToParticipantPage,
     resolveOptimisticChatReportID,
@@ -339,6 +340,9 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const optimisticTransactionID = rand64();
     const {optimisticChatReportID} = resolveOptimisticChatReportID([participant?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const isTrackExpenseSubmit = iouType === CONST.IOU.TYPE.TRACK;
+    // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
+    // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);
     const draftTransactionIDsList = Object.keys(transactionDrafts ?? {});
     const isSelfTourViewed = hasSeenTourSelector(onboarding) ?? false;
     const executeExpenseWrite = (overrides: WriteOverrides) => {
@@ -427,6 +431,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
             isLookingAroundUser: isLookingAroundOnboardingChoice(introSelected?.choice),
+            isSelfDMDestination,
         });
     };
     submitWithDismissFirst({

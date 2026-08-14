@@ -22,7 +22,7 @@ import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/action
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, getExistingTransactionID} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -133,6 +133,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     );
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
+    // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
+    // LOOKING_AROUND "route to Spend > Expenses" behaviour is scoped to the self-DM case (matches the confirmation step).
+    const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
+
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
     const transactionTaxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
@@ -141,7 +145,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     useScanFileReadabilityCheck(transactions, draftTransactionIDs ?? [], disableMultiScan);
 
     const preInsertReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
-    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID);
+    const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(true, preInsertReportID, isLookingAroundUser, isSelfDMDestination);
     usePreMountDestination(skipConfirmationPreMountRoute);
 
     // Pre-fetch location if GPS is required and permission is already granted
@@ -255,6 +259,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
                         isLookingAroundUser,
+                        isSelfDMDestination,
                     });
                 },
                 destinationReportID: reportID,
@@ -331,6 +336,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
                         optimisticChatReportID: chatReportID,
                         linkedTrackedExpenseReportAction,
                         isLookingAroundUser,
+                        isSelfDMDestination,
                     });
 
                 if (locationPermissionGranted) {

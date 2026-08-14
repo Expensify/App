@@ -1238,8 +1238,13 @@ function getSecondaryTransactionThreadActions({
     // Self-DM split expenses can only be submitted to a workspace, so hide the action for a split unless the user has a
     // workspace to submit to - matching the track-expense whisper and the report-details menu, which suppress it for the
     // same unsupported case (otherwise the recipient picker opens onto a flow with no valid workspace destination).
+    // Also require write access (as MOVE_EXPENSE above does) so the row hides on an archived self-DM.
     const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
-    if (isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) && (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo)) {
+    if (
+        isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&
+        (!isSelfDMExpenseSplit || hasWorkspaceToSubmitTo) &&
+        canUserPerformWriteActionReportUtils(parentReport, isChatReportArchived)
+    ) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.SEND_TO_SOMEONE);
     }
 

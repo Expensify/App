@@ -476,6 +476,7 @@ function SubmitDetailsPage({
             navigationReportID: postSubmitNavigationReportID,
             linkedTrackedExpenseReportAction: transaction.linkedTrackedExpenseReportAction,
             isLookingAroundUser,
+            isSelfDMDestination: isSelfDM(report),
         };
 
         const runExpenseCreateAndCleanup = (shouldNavigate: boolean) => {

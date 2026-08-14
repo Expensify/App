@@ -1104,7 +1104,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                     isFromGlobalCreate: getIsFromGlobalCreate(transaction),
                     optimisticChatReportID: invoiceChatReport?.reportID ?? invoiceChatReportID,
                     isInvoice: true,
-                    isLookingAroundUser,
                 });
             } else {
                 cleanupAfterExpenseCreate({draftTransactionIDs});
