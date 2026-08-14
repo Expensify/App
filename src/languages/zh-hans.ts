@@ -5767,6 +5767,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
+            monthlySettlementDate: (date: string) => `Expensify 卡将在每月的 ${date} 结算。`,
             applyCashbackToBill: '将返现用于抵扣我的 Expensify 账单',
             applyCashbackToBillDescription: 'Expensify 卡的返现将用于支付你的 Expensify 账单。',
             frequency: {
