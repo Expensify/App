@@ -41,8 +41,6 @@ function PopoverWithMeasuredContent({shouldWrapModalChildrenInScrollViewIfBottom
                 animationIn="slideInUp"
                 animationOut="slideOutDown"
                 shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode={shouldWrapModalChildrenInScrollViewIfBottomDockedInLandscapeMode}
-                // The anchor is the launcher fallback for triggers that blur themselves before opening.
-                launcherRef={props.anchorRef}
             />
         );
     }
