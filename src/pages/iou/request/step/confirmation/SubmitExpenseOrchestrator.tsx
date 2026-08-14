@@ -17,7 +17,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {markPendingSubmitWriteForReport} from '@libs/pendingSubmitWrite';
 import {getReportOrDraftReport, isMoneyRequestReport} from '@libs/ReportUtils';
 import {buildCannedSearchQuery, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {cancelWriteSession, flushWriteSession, reserveWriteSession} from '@libs/submitWriteSession';
+import {reserveWriteSession} from '@libs/submitWriteSession';
 import getSubmitExpenseScenario from '@libs/telemetry/getSubmitExpenseScenario';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 
@@ -236,10 +236,13 @@ function SubmitExpenseOrchestrator({
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
-        reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
+        // Armed before the reveal, so the barrier attaches to the transition that reveal starts.
+        const writeBarrier = armTransitionBarrier().barrier;
+        const clearPendingWrite = markPendingSubmitWriteForReport(destinationReportID);
 
         const afterTransition = () => {
-            createTransaction(locationPermissionGranted, false);
+            createTransaction(locationPermissionGranted, false, writeBarrier);
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -390,28 +393,25 @@ function SubmitExpenseOrchestrator({
     };
 
     // The createTransaction call runs inside runAfterDismiss (after the transition completes).
-    // When the destination report is empty we reserve a DISMISS_MODAL deferred-write channel
-    // so that MoneyRequestReportActionsList can show a loading skeleton instead of the
-    // "no expenses" empty state while the dismiss animation plays.
+    // When the destination report is empty we raise the pending-write signal so that
+    // MoneyRequestReportActionsList shows a loading skeleton instead of the "no expenses"
+    // empty state while the dismiss animation plays.
+    //
+    // Deliberately no write barrier here: this handler's write already executes immediately
+    // (it used to reserve a channel purely for the skeleton, then flush it before createTransaction),
+    // so gating it on a transition would newly delay a write that does not wait today.
     const handleReportInRHPDismiss = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_IN_RHP_DISMISS, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const rootState = navigationRef.getRootState();
 
         const report = destinationReportID ? getReportOrDraftReport(destinationReportID, undefined, undefined, undefined, destinationReport) : undefined;
         const isDestinationEmpty = !!report && isMoneyRequestReport(report) && !report.transactionCount;
-        if (isDestinationEmpty) {
-            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
-        }
+        const clearPendingWrite = isDestinationEmpty ? markPendingSubmitWriteForReport(destinationReportID) : () => {};
 
         const runAfterDismiss = () => {
-            // Flush signals readiness on the reserved session. Since no real write was
-            // registered, the session transitions to flushRequested. When createTransaction
-            // below calls scheduleWrite, it sees the flushed session and executes
-            // the write immediately instead of deferring.
-            if (isDestinationEmpty) {
-                flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            }
             createTransaction(locationPermissionGranted, false);
+            // Cleared after the write, matching where the flushed session used to drop it.
+            clearPendingWrite();
             setIsConfirming(false);
         };
 
@@ -426,9 +426,9 @@ function SubmitExpenseOrchestrator({
         }
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
-        if (isDestinationEmpty) {
-            cancelWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-        }
+        // Nothing dismisses here, so runAfterDismiss never runs - drop the signal explicitly rather
+        // than leaving it to the safety timeout.
+        clearPendingWrite();
         handleDefaultSubmit(locationPermissionGranted);
     };
 
