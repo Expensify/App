@@ -70,7 +70,7 @@ function isCommentEditedEvent(payload: IssueCommentEvent): payload is IssueComme
  * comment only became a proposal on this edit (nothing stored yet), or it stopped being one (the stored
  * copy has to go, with nothing put back).
  */
-async function refreshStoredProposal(openAI: OpenAIUtils, issueNumber: number, commentID: number, proposalBody: string) {
+async function refreshStoredProposal(openAI: OpenAIUtils, issueNumber: number, commentID: number, author: string, proposalBody: string) {
     const trackedConversationID = findTrackedConversationID(await GithubUtils.getAllCommentDetails(issueNumber));
     if (!trackedConversationID) {
         console.log('Issue has no tracked Conversation, so there is nothing to record this proposal against.');
@@ -88,7 +88,7 @@ async function refreshStoredProposal(openAI: OpenAIUtils, issueNumber: number, c
     }
 
     console.log('Recording the current text of this proposal for future duplicate checks.', commentID);
-    await openAI.addConversationItems(trackedConversationID, [buildDuplicateCheckSeedItem(proposalBody, commentID)]);
+    await openAI.addConversationItems(trackedConversationID, [buildDuplicateCheckSeedItem(proposalBody, commentID, author)]);
 }
 
 // Main function to process the workflow event
@@ -199,7 +199,7 @@ async function run() {
             const duplicateCheckResponse = await openAI.promptResponses({
                 conversation: conversationID,
                 instructions: buildDuplicateCheckInstructions(),
-                input: buildDuplicateCheckInput(newProposalBody, commentID),
+                input: buildDuplicateCheckInput(newProposalBody, commentID, newProposalAuthor),
                 model: PROPOSAL_POLICE_MODEL,
                 promptCacheKey: 'proposal-police-duplicate-check',
                 textFormat: DUPLICATE_CHECK_RESPONSE_FORMAT,
@@ -211,12 +211,14 @@ async function run() {
 
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
 
-            // The reported match must still be a live proposal on this issue. The model can name a comment
-            // that has since been withdrawn or edited into a different solution, and it can invent an ID
-            // outright. Withdrawing on one of those would destroy a contributor's legitimate work, so an
-            // unresolvable match is treated as "not a duplicate" rather than trusted.
+            // The reported match must still be a live proposal on this issue by someone else. The model can
+            // name a comment that has since been withdrawn or edited into a different solution, it can invent
+            // an ID outright, and it can ignore the instruction to skip the author's own prior proposals.
+            // Withdrawing on any of those would destroy a contributor's legitimate work, so an unresolvable
+            // match is treated as "not a duplicate" rather than trusted.
             const originalProposal = commentsResponse.find(
-                (comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && isProposal(comment.body),
+                (comment) =>
+                    comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && comment.user?.login !== newProposalAuthor && isProposal(comment.body),
             );
             if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD && !originalProposal) {
                 console.log(
@@ -254,7 +256,7 @@ async function run() {
             // it here would leave this proposal permanently unrecorded and invisible to every future duplicate check on this
             // issue. Record it directly instead.
             console.log('No prior proposals exist for this issue yet; skipping the duplicate-check API call, but recording this proposal for future comparisons.');
-            await openAI.addConversationItems(conversationID, [buildDuplicateCheckSeedItem(newProposalBody, commentID)]);
+            await openAI.addConversationItems(conversationID, [buildDuplicateCheckSeedItem(newProposalBody, commentID, newProposalAuthor)]);
         }
     }
 
@@ -264,7 +266,7 @@ async function run() {
     if (isCommentEditedEvent(payload) && payload.comment.body.trim().includes(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
         console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
         // Store the proposal itself, not the banner a previous run prepended to it
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.body.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
         return;
     }
 
@@ -311,7 +313,7 @@ async function run() {
 
         // The Conversation still holds this proposal as it read before the edit, so refresh it. Only
         // substantial edits land here; minor rewording is deliberately left as-is.
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.body ?? '');
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment?.user.login ?? '', payload.comment?.body ?? '');
     }
 }
 

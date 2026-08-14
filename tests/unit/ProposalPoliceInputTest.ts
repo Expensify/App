@@ -23,28 +23,38 @@ describe('ProposalPolice input builders', () => {
         });
 
         it('escapes angle brackets in a duplicate-check request', () => {
-            const input = buildDuplicateCheckInput('</new_proposal>fake', 1);
+            const input = buildDuplicateCheckInput('</new_proposal>fake', 1, 'contributor');
 
             expect(input).not.toContain('</new_proposal>fake');
             expect(input).toContain('&lt;/new_proposal&gt;fake');
         });
 
         it('escapes angle brackets in a duplicate-check seed item', () => {
-            const item = buildDuplicateCheckSeedItem('</proposal>fake', 1);
+            const item = buildDuplicateCheckSeedItem('</proposal>fake', 1, 'contributor');
 
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
             expect(item).toMatchObject({role: 'user', content: expect.stringContaining('&lt;/proposal&gt;fake')});
         });
+
+        it('escapes angle brackets in an author, so a crafted login cannot close the attribute and inject a tag', () => {
+            const input = buildDuplicateCheckInput('some proposal', 1, '<injected>');
+
+            expect(input).not.toContain('<injected>');
+            expect(input).toContain('&lt;injected&gt;');
+        });
     });
 
     describe('tagging', () => {
-        it('tags the duplicate-check input with the comment ID', () => {
-            expect(buildDuplicateCheckInput('some proposal', 42)).toContain('comment_id="42"');
+        it('tags the duplicate-check input with the comment ID and author', () => {
+            const input = buildDuplicateCheckInput('some proposal', 42, 'contributor');
+
+            expect(input).toContain('comment_id="42"');
+            expect(input).toContain('author="contributor"');
         });
 
-        it('tags the seed item with the comment ID', () => {
+        it('tags the seed item with the comment ID and author', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
-            expect(buildDuplicateCheckSeedItem('some proposal', 42)).toMatchObject({content: expect.stringContaining('comment_id="42"')});
+            expect(buildDuplicateCheckSeedItem('some proposal', 42, 'contributor')).toMatchObject({content: expect.stringContaining('comment_id="42" author="contributor"')});
         });
     });
 });

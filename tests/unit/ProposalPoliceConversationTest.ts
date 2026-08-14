@@ -63,6 +63,21 @@ describe('ProposalPoliceConversation', () => {
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
             expect(items.at(0)).toEqual({role: 'user', content: expect.stringContaining('comment_id="1"')});
         });
+
+        it("tags each seed item with its own author, so the model can skip a contributor's own prior proposals", () => {
+            const beforeCutoff = new Date('2026-01-01T00:00:00Z').getTime();
+            const comments = [
+                makeComment({id: 1, created_at: '2025-12-31T00:00:00Z', login: 'first-author'}),
+                makeComment({id: 2, created_at: '2025-12-31T00:00:00Z', login: 'second-author'}),
+            ];
+
+            const items = buildSeedItems(comments, beforeCutoff);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+            expect(items.at(0)).toMatchObject({content: expect.stringContaining('author="first-author"')});
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+            expect(items.at(1)).toMatchObject({content: expect.stringContaining('author="second-author"')});
+        });
     });
 
     describe('chunkArray', () => {

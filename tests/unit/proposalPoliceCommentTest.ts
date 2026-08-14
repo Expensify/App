@@ -310,7 +310,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('withdraws and flags a duplicate proposal without ever running the template check', async () => {
-        mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z', html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
+        mockComments([makeComment({id: 42, login: 'other-contributor', created_at: '2025-12-31T00:00:00Z', html_url: 'https://github.com/Expensify/App/issues/1#issuecomment-42'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
             text: duplicateCheckResult({similarity: 95, duplicateCommentID: 42}),
@@ -324,6 +324,24 @@ describe('proposalPoliceComment', () => {
         expect(mockCreateComment).toHaveBeenCalledWith('App', 1, expect.stringContaining('https://github.com/Expensify/App/issues/1#issuecomment-42'));
         // eslint-disable-next-line @typescript-eslint/unbound-method
         expect(MockedOpenAIUtils.prototype.promptResponses).toHaveBeenCalledTimes(1);
+    });
+
+    it("does not withdraw a proposal as a duplicate of the same author's earlier one", async () => {
+        // The prompt tells the model to skip same-author proposals, but a contributor revising their own
+        // thinking must not be withdrawn even when the model reports the self-match anyway.
+        mockComments([
+            makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'}),
+            makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'}),
+        ]);
+        setPayload({action: 'created', comment: makeComment({id: 99})});
+        MockedOpenAIUtils.prototype.promptResponses
+            .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 100, duplicateCommentID: 42}), responseID: 'resp_dup'})
+            .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl'});
+
+        await run();
+
+        expect(mockUpdateComment).not.toHaveBeenCalled();
+        expect(mockCreateComment).not.toHaveBeenCalled();
     });
 
     it('does not withdraw when the reported duplicate is no longer a live proposal', async () => {
@@ -364,7 +382,7 @@ describe('proposalPoliceComment', () => {
 
     it('drops a withdrawn proposal from the Conversation so it cannot shadow the live original', async () => {
         mockComments([
-            makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'}),
+            makeComment({id: 42, login: 'other-contributor', created_at: '2025-12-31T00:00:00Z'}),
             makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'}),
         ]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
@@ -396,7 +414,7 @@ describe('proposalPoliceComment', () => {
     });
 
     it('withdraws a proposal scoring exactly at the similarity threshold', async () => {
-        mockComments([makeComment({id: 42, created_at: '2025-12-31T00:00:00Z'})]);
+        mockComments([makeComment({id: 42, login: 'other-contributor', created_at: '2025-12-31T00:00:00Z'})]);
         setPayload({action: 'created', comment: makeComment({id: 99})});
         MockedOpenAIUtils.prototype.promptResponses.mockResolvedValueOnce({
             text: duplicateCheckResult({similarity: DUPLICATE_SIMILARITY_THRESHOLD, duplicateCommentID: 42}),
@@ -487,7 +505,7 @@ describe('proposalPoliceComment', () => {
             makeComment({id: 1, created_at: '2026-01-01T00:00:00Z'}),
             makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_new -->'}),
         ]);
-        setPayload({action: 'created', comment: makeComment({id: 2, created_at: '2026-01-02T00:00:00Z'})});
+        setPayload({action: 'created', comment: makeComment({id: 2, login: 'other-contributor', created_at: '2026-01-02T00:00:00Z'})});
         MockedOpenAIUtils.prototype.promptResponses
             .mockResolvedValueOnce({text: duplicateCheckResult({similarity: 96, duplicateCommentID: 1}), responseID: 'resp_dup_2'})
             .mockResolvedValueOnce({text: JSON.stringify({action: 'NO_ACTION'}), responseID: 'resp_tpl_2'});

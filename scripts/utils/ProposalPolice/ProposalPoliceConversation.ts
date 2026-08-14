@@ -64,7 +64,7 @@ function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): R
             (comment) =>
                 isProposal(comment.body) && !(comment.user && isBotUser(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt,
         )
-        .map((comment) => buildDuplicateCheckSeedItem(comment.body ?? '', comment.id));
+        .map((comment) => buildDuplicateCheckSeedItem(comment.body ?? '', comment.id, comment.user?.login ?? ''));
 }
 
 /**

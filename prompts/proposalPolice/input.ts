@@ -27,18 +27,18 @@ function buildEditCheckInput(previousBody: string | undefined, editedBody: strin
  * Build the user input for a duplicate-check request: the new proposal, tagged with its comment ID
  * so the model can report back which prior proposal (if any) it duplicates.
  */
-function buildDuplicateCheckInput(newProposalBody: string, commentID: number): string {
-    return `<new_proposal comment_id="${commentID}">\n${escapeForXMLWrapper(newProposalBody)}\n</new_proposal>`;
+function buildDuplicateCheckInput(newProposalBody: string, commentID: number, author: string): string {
+    return `<new_proposal comment_id="${commentID}" author="${escapeForXMLWrapper(author)}">\n${escapeForXMLWrapper(newProposalBody)}\n</new_proposal>`;
 }
 
 /**
  * Build a conversation item representing a prior proposal, used only to seed a duplicate-check
  * conversation with proposals that predate it.
  */
-function buildDuplicateCheckSeedItem(proposalBody: string, commentID: number): ResponseInputItem {
+function buildDuplicateCheckSeedItem(proposalBody: string, commentID: number, author: string): ResponseInputItem {
     return {
         role: 'user',
-        content: `<proposal comment_id="${commentID}">\n${escapeForXMLWrapper(proposalBody)}\n</proposal>`,
+        content: `<proposal comment_id="${commentID}" author="${escapeForXMLWrapper(author)}">\n${escapeForXMLWrapper(proposalBody)}\n</proposal>`,
     };
 }
 
