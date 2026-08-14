@@ -25,7 +25,7 @@
 
 - **ProtectedScreens**: Authenticated app screens
 - **PublicScreens**: Login and onboarding screens
-- **RHP (Right Hand Panel/Pane)**: Contextual panels — settings and details
+- **RHP (Right Hand Pane)**: Contextual panels — settings and details
 - **Central Pane**: Main content area
 - **LHN (Left Hand Navigation)**: Report list and navigation
 
