@@ -216,7 +216,7 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
         revealPreMountDestination(() => {
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
             // pre-inserted before the modal opened, so the nav stack is already correct and createTransaction's
@@ -276,7 +276,7 @@ function SubmitExpenseOrchestrator({
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
-        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
 
         const runAfterDismiss = () => {
             createTransaction(locationPermissionGranted, false);

@@ -56,6 +56,14 @@ type DeferredChannel = {
      * instead of creating a new deferred channel.
      */
     flushRequested?: boolean;
+
+    /**
+     * Resolves once a reserved channel's real callback is registered (or the reservation
+     * times out/is dropped). Lets a caller that cannot itself register on this channel
+     * (e.g. submitReport) wait for the pending create to be dispatched before proceeding.
+     */
+    registrationPromise?: Promise<void>;
+    resolveRegistration?: () => void;
 };
 
 const channels = new Map<string, DeferredChannel>();
@@ -101,6 +109,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
                 callback();
+                existing.resolveRegistration?.();
                 return;
             }
         } else {
@@ -115,6 +124,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
     }, safetyTimeoutMs);
 
     channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey, destinationReportID});
+    existing?.resolveRegistration?.();
 }
 
 /**
@@ -172,12 +182,18 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
 
     flushedWatchKeys.delete(key);
 
+    let resolveRegistration: () => void = () => {};
+    const registrationPromise = new Promise<void>((resolve) => {
+        resolveRegistration = resolve;
+    });
+
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
         channels.delete(key);
+        resolveRegistration();
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID});
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID, registrationPromise, resolveRegistration});
 }
 
 function hasDeferredWrite(key: string): boolean {
@@ -197,6 +213,24 @@ function hasDeferredWriteForReport(key: string, reportID: string | undefined): b
         return false;
     }
     return channels.get(key)?.destinationReportID === reportID;
+}
+
+/**
+ * Returns a promise that resolves once the reserved channel for `key` targeting `reportID`
+ * gets its real callback registered (or the reservation times out). Returns undefined when
+ * there is no matching reservation, so callers can distinguish "nothing to wait for" from
+ * "already resolved". Used by callers that cannot register on the channel themselves (e.g.
+ * submitReport) but must not race ahead of a pending create still waiting on the reservation.
+ */
+function getRegistrationPromiseForReport(key: string, reportID: string | undefined): Promise<void> | undefined {
+    if (!reportID) {
+        return undefined;
+    }
+    const channel = channels.get(key);
+    if (!channel?.isReserved || channel.destinationReportID !== reportID) {
+        return undefined;
+    }
+    return channel.registrationPromise;
 }
 
 /**
@@ -290,6 +324,7 @@ export {
     cancelDeferredWrite,
     hasDeferredWrite,
     hasDeferredWriteForReport,
+    getRegistrationPromiseForReport,
     getOptimisticWatchKey,
     deferOrExecuteWrite,
     resetForTesting,

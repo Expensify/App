@@ -13,6 +13,7 @@ import type {
     UnapproveExpenseReportParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {flushDeferredWrite, getRegistrationPromiseForReport, hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
@@ -1585,12 +1586,36 @@ function submitReport({
             : {}),
     };
 
+    // A just-created expense may still be behind a deferred-layout-write channel; flush/await it so it queues before SUBMIT_REPORT, not after (avoids a 407 on the expense).
+    const flushPendingExpenseCreatesForReport = () => {
+        if (hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, expenseReport.reportID)) {
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+        }
+        if (hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, expenseReport.reportID)) {
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        }
+    };
+    const pendingRegistration =
+        getRegistrationPromiseForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, expenseReport.reportID) ??
+        getRegistrationPromiseForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, expenseReport.reportID);
+
     onSubmitted?.();
-    API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {
-        optimisticData,
-        successData,
-        failureData,
-    });
+    const dispatchSubmit = () => {
+        API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+    };
+    if (pendingRegistration) {
+        pendingRegistration.then(() => {
+            flushPendingExpenseCreatesForReport();
+            dispatchSubmit();
+        });
+    } else {
+        flushPendingExpenseCreatesForReport();
+        dispatchSubmit();
+    }
 }
 
 /**
