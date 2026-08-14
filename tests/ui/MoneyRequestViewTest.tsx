@@ -541,7 +541,7 @@ describe('MoneyRequestView edit fields', () => {
             connections: {
                 [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                     config: {nonReimbursableExpensesExportDestination: CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD},
-                    data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: CONST.CURRENCY.USD}]},
+                    data: {vendors: [{id: 'v-1', name: 'Acme Co', currency: CONST.CURRENCY.USD, email: 'acme@example.com'}]},
                 },
             },
         });
