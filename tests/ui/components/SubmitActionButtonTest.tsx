@@ -240,8 +240,8 @@ describe('SubmitActionButton', () => {
         mockTransactionViolations = reportViolations;
         mockedShouldBlockSubmitDueToStrictPolicyRules.mockReturnValue(true);
 
-        // When the button renders and its press handler runs anyway, because a disabled button swallows taps but the
-        // handler stays reachable through the keyboard shortcut and any in-flight press
+        // When the button renders and onPress is called directly, to confirm the handler no-ops on its own — the
+        // disabled prop is the first layer of defense, the early return in the handler is the second
         render(<SubmitActionButton />);
 
         act(() => {
@@ -335,5 +335,9 @@ describe('SubmitActionButton', () => {
         // whether the same report is submittable
         expect(mockSubmitButtonPropsHolder.current?.isDisabled).toBe(true);
         expect(mockedSubmitReport).not.toHaveBeenCalled();
+
+        // Then the predicate received the same report and policy the header's gate reads (the policy is not hydrated
+        // in this environment, so it is undefined)
+        expect(mockedShouldBlockSubmitDueToPreventSelfApproval).toHaveBeenCalledWith(iouReport, undefined);
     });
 });
