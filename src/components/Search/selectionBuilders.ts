@@ -356,7 +356,9 @@ function countFullyExcludedItems(data: SearchData, excludedTransactions: Selecte
     return data.reduce((count, group) => {
         const selectable = group.transactions.filter((child) => child.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (selectable.length === 0) {
-            return count + (isExcluded(group.keyForList) ? 1 : 0);
+            // The total skips a group being deleted, so counting its exclusion here would let the two sides drift apart.
+            const isCountedAsItsOwnItem = group.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+            return count + (isCountedAsItsOwnItem && isExcluded(group.keyForList) ? 1 : 0);
         }
         if (isExcluded(group.keyForList)) {
             return count + selectable.length;

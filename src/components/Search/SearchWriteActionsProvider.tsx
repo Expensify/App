@@ -29,7 +29,7 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {SearchListItem, TransactionListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SearchRowSelectionActionsValue, SelectedTransactionInfo, SelectedTransactions} from './types';
@@ -164,7 +164,13 @@ function SearchWriteActionsProvider({
     const [outstandingReportsByPolicyID] = useOnyx(ONYXKEYS.DERIVED.OUTSTANDING_REPORTS_BY_POLICY_ID);
     const {applySelection, getSelectedTransactions, getExcludedTransactions, getAreAllMatchingItemsSelected} = useSearchSelectionActions();
 
-    const searchHash = searchResults?.search?.hash;
+    // The snapshot is briefly absent while a new one lands, and that gap is not a new search: reading it as one would drop the registry and the range session for nothing.
+    const liveSearchHash = searchResults?.search?.hash;
+    const [searchHash, setSearchHash] = useState(liveSearchHash);
+    if (liveSearchHash !== undefined && liveSearchHash !== searchHash) {
+        setSearchHash(liveSearchHash);
+    }
+
     const {groupChildrenByKey, openGroupKeys, shiftRangeChildrenActions} = useGroupChildrenRegistry(searchHash);
 
     // A seeded block resolves at the next shift+click, so it has to read the index as it is then, not as it was at the click that seeded it.
