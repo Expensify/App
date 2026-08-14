@@ -61,30 +61,30 @@ namespace margelo::nitro::utils {
   // Methods
   std::shared_ptr<Promise<std::vector<Contact>>> JHybridContactsModuleSpec::getAll(const std::vector<ContactFields>& keys) {
     static const auto method = _javaPart->javaClassStatic()->getMethod<jni::local_ref<JPromise::javaobject>(jni::alias_ref<jni::JArrayClass<JContactFields>> /* keys */)>("getAll");
-    auto __result = method(_javaPart, [&]() {
-      size_t __size = keys.size();
+    auto __result = method(_javaPart, [&](auto&& __input) {
+      size_t __size = __input.size();
       jni::local_ref<jni::JArrayClass<JContactFields>> __array = jni::JArrayClass<JContactFields>::newArray(__size);
       for (size_t __i = 0; __i < __size; __i++) {
-        const auto& __element = keys[__i];
+        const auto& __element = __input[__i];
         auto __elementJni = JContactFields::fromCpp(__element);
         __array->setElement(__i, *__elementJni);
       }
       return __array;
-    }());
+    }(keys));
     return [&]() {
       auto __promise = Promise<std::vector<Contact>>::create();
       __result->cthis()->addOnResolvedListener([=](const jni::alias_ref<jni::JObject>& __boxedResult) {
         auto __result = jni::static_ref_cast<jni::JArrayClass<JContact>>(__boxedResult);
-        __promise->resolve([&]() {
-          size_t __size = __result->size();
+        __promise->resolve([&](auto&& __input) {
+          size_t __size = __input->size();
           std::vector<Contact> __vector;
           __vector.reserve(__size);
           for (size_t __i = 0; __i < __size; __i++) {
-            auto __element = __result->getElement(__i);
+            auto __element = __input->getElement(__i);
             __vector.push_back(__element->toCpp());
           }
           return __vector;
-        }());
+        }(__result));
       });
       __result->cthis()->addOnRejectedListener([=](const jni::alias_ref<jni::JThrowable>& __throwable) {
         jni::JniException __jniError(__throwable);

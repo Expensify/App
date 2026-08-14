@@ -164,7 +164,7 @@ function BaseReportActionContextMenu({
         'Trashcan',
     ]);
     const StyleUtils = useStyleUtils();
-    const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
+    const {translate, getLocalDateFromDatetime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -406,6 +406,7 @@ function BaseReportActionContextMenu({
                             const payload: ContextMenuActionPayload = {
                                 reportActions,
                                 childReportActions,
+                                originalReportActions,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -432,6 +433,7 @@ function BaseReportActionContextMenu({
                                 policy,
                                 policyTags,
                                 translate,
+                                dateFnsLocale,
                                 convertToDisplayString,
                                 formatPhoneNumber,
                                 harvestReport,
@@ -462,8 +464,7 @@ function BaseReportActionContextMenu({
 
                             const {textTranslateKey} = contextAction;
                             const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                            const text =
-                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                            const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, moneyRequestAction ?? reportAction) : translate(textTranslateKey));
                             const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                             const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                             const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;

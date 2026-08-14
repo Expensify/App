@@ -9,6 +9,7 @@ import type {ACHAccount} from '@src/types/onyx/Policy';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -51,12 +52,12 @@ const createMockPolicy = (policyID: string, overrides: Partial<Policy> = {}): Po
 });
 
 // Builds an admin policy with a QBO connection whose auto-sync is disabled, so a report on it is manually exportable.
-// The `Connections` type requires an entry for every supported integration, so a single-integration literal can only
-// be supplied through an assertion - isolated here so it is the one such cast in this file.
+// The `Connections` type requires an entry for every supported integration, while this scenario only needs QBO.
 const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connectionExporter}: {policyExporter: string; connectionExporter: string}): Policy =>
-    ({
-        ...createMockPolicy(policyID, {role: CONST.POLICY.ROLE.ADMIN, exporter: policyExporter}),
-        connections: {
+    createMockPolicy(policyID, {
+        role: CONST.POLICY.ROLE.ADMIN,
+        exporter: policyExporter,
+        connections: createMock<NonNullable<Policy['connections']>>({
             [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
                 lastSync: {
                     isConnected: true,
@@ -74,8 +75,8 @@ const createPolicyWithQBOConnection = (policyID: string, {policyExporter, connec
                     },
                 },
             },
-        },
-    }) as unknown as Policy;
+        }),
+    });
 
 const createMockTransaction = (transactionID: string, reportID: string, overrides: Partial<Transaction> = {}): Transaction =>
     ({
@@ -284,6 +285,31 @@ describe('useTodoCounts', () => {
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBeUndefined();
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.APPROVE]).toBeUndefined();
             expect(result.current.singleReportIDs[CONST.SEARCH.SEARCH_KEYS.PAY]).toBeUndefined();
+        });
+
+        it('keeps a stable result reference when an Onyx write does not change the counts', async () => {
+            const {result} = await renderTodoCounts();
+            const firstResult = result.current;
+
+            // Rename an excluded chat report - the REPORT collection subscription fires, but no bucket changes.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${EXCLUDED_REPORT_IDS.at(0)}`, {reportName: 'Renamed chat'});
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).toBe(firstResult);
+
+            // A write that changes a count must produce a new reference.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${SUBMIT_REPORT_IDS.at(0)}`, {
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                });
+                await waitForBatchedUpdates();
+            });
+
+            expect(result.current).not.toBe(firstResult);
+            expect(result.current.counts[CONST.SEARCH.SEARCH_KEYS.SUBMIT]).toBe(3);
         });
 
         it('updates the submit count when a report state changes', async () => {

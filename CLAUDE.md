@@ -157,6 +157,13 @@ Major action categories:
 - `Search.ts`: Search operations
 - `Travel.ts`: Travel features
 
+### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
+There are only two ways to read Onyx data:
+1. **`useOnyx`** (`@hooks/useOnyx`) — the default for anything a component renders.
+2. **`Onyx.connectWithoutView`** — only for non-render logic (module-level state in actions/libraries) that genuinely can't use `useOnyx`.
+
+Before either, prefer a **pure function** that receives the data as parameters: it does not read Onyx itself — the caller reads (with `useOnyx` or `Onyx.connectWithoutView`) and passes the data in. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own with a comment explaining why it is needed. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
+
 ## Build & Deployment
 
 ### CI/CD Workflows
@@ -179,6 +186,7 @@ Key GitHub Actions workflows:
 - **Critical**: All mobile builds originate from this directory
 - Contains platform-specific code for iOS and Android
 - Manages the HybridApp integration layer
+- **Submodule pointer**: bumped automatically by OSBotify on every merge to Mobile-Expensify `main`
 
 ### expensify-common
 
@@ -217,10 +225,9 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 
 **ALWAYS run these steps after making code changes, before committing:**
 
-1. **Oxfmt**: Run `npm run fmt` on every file you modified. This is mandatory - CI will reject unformatted code.
-2. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
-3. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
-4. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
+1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
+2. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
 
@@ -349,6 +356,6 @@ Use the `/agent-device` skill to drive the App on iOS and Android (simulators or
 
 ### With Backend Services
 
-- RESTful API communication
+- REST API communication
 - WebSocket connections via Pusher
 - Real-time synchronization

@@ -36,10 +36,12 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
     toLocaleOrdinal: () => '',
+    toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: () => 0,
     formatTravelDate: () => '',
     preferredLocale: CONST.LOCALES.DEFAULT,
+    dateFnsLocale: undefined,
 };
 const mockEmoji: Emoji = {code: '😄', name: 'smile', hexcode: '1F604', types: []};
 

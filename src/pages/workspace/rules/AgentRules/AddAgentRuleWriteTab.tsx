@@ -1,4 +1,3 @@
-import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 /**
  * Write (Edit) tab for the add-agent-rule flow. Owns the free-text prompt form and save path.
  */
@@ -9,13 +8,9 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useKeyboardState from '@hooks/useKeyboardState';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
-
-import {PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE} from '@pages/settings/Agents/const';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -34,15 +29,12 @@ type AddAgentRuleWriteTabProps = {
 };
 
 function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
-    const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const {isKeyboardActive} = useKeyboardState();
-    const shouldShrinkPromptInput = isInLandscapeMode && isKeyboardActive;
+    const shouldUseScrollableLayout = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !isInLandscapeMode;
+    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
     const formRef = useRef<FormRef>(null);
     const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
 
@@ -51,6 +43,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             return;
         }
         if (event.key === 'Enter' && (event.metaKey || event.ctrlKey)) {
+            // The markdown input inserts a line break for any Enter keydown whose default is not already prevented, so the submit combo has to claim it first.
+            event.preventDefault();
             formRef.current?.submit();
         }
     };
@@ -63,9 +57,9 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         return errors;
     };
 
-    const inputWrapperStyles: StyleProp<ViewStyle> = shouldShrinkPromptInput
-        ? StyleUtils.getHeight(PROMPT_MAX_HEIGHT_ON_KEYBOARD_OPEN_LANDSCAPE_MODE)
-        : [styles.flex1, shouldUseExpandedRevampFormLayout && [styles.mnh0, styles.agentRulePromptInput]];
+    const inputWrapperStyles: StyleProp<ViewStyle> = shouldUseExpandedRevampFormLayout
+        ? [styles.flex1, styles.mnh0, styles.agentRulePromptInput]
+        : [styles.flex1, shouldUseScrollableLayout && styles.minHeight42];
 
     return (
         <FormProvider
@@ -75,8 +69,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             onSubmit={onSave}
             submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
             style={[styles.flex1, styles.ph5]}
-            submitFlexEnabled={false}
-            shouldUseScrollView={false}
+            shouldUseScrollView={shouldUseScrollableLayout}
+            submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
             enabledWhenOffline
             shouldHideFixErrorsAlert
             shouldValidateOnChange
@@ -85,10 +79,10 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
         >
             <View style={styles.flex1}>
                 {!isRulesRevampEnabled && (
-                    <CollapsibleHeaderOnKeyboard alwaysCollapseHeaderOnKeyboard>
+                    <>
                         <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
                         <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
-                    </CollapsibleHeaderOnKeyboard>
+                    </>
                 )}
                 <View style={inputWrapperStyles}>
                     <InputWrapper
@@ -97,6 +91,8 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
                         label={describeRuleLabel}
                         accessibilityLabel={describeRuleLabel}
                         role={CONST.ROLE.PRESENTATION}
+                        type="markdown"
+                        excludedMarkdownStyles={['mentionReport']}
                         onKeyPress={submitFormOnModEnter}
                         multiline
                         shouldSaveDraft
