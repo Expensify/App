@@ -187,6 +187,16 @@ function registerOnSession<TCommand extends WriteCommand, TKey extends OnyxKey>(
 }
 
 type ScheduleWriteOptions = {
+    /**
+     * The readiness barrier this write should wait on, handed down by whoever triggered the navigation.
+     * When present it wins over every session branch below.
+     *
+     * It is passed in rather than looked up on purpose: the alternative is asking a module-level map
+     * "is some channel reserved right now?", which is the hidden global state this migration removes -
+     * stale state from an unrelated navigation could redirect an unrelated submission's scheduling.
+     */
+    barrier?: WriteReadyBarrier;
+
     shouldDeferForSearch: boolean;
     isRetry?: boolean;
     optimisticWatchKey?: OnyxKey;
@@ -198,11 +208,15 @@ type ScheduleWriteOptions = {
  * Decide whether to defer the API write behind a pending layout transition (Search pre-insert or
  * dismiss-modal) or execute it immediately, then dispatch through API.writeWhenReady/API.write.
  *
- * Priority order (first match wins), matching deferOrExecuteWrite exactly:
+ * Priority order (first match wins):
+ *   0. Caller-supplied barrier - no session involved, the caller owns the readiness signal
  *   1. SEARCH session       - checked via the caller-provided shouldDeferForSearch flag
  *   2. DISMISS_MODAL session - checked automatically via hasPendingWrite, skipped on retry
  *   3. SEARCH session (fallback) - checked automatically via hasPendingWrite, skipped on retry
  *   4. Immediate exec       - no active session, run now
+ *
+ * Branches 1-4 are the pre-migration behavior and are being removed call site by call site as each
+ * one starts receiving a barrier instead.
  */
 function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
     command: TCommand,
@@ -210,7 +224,16 @@ function scheduleWrite<TCommand extends WriteCommand, TKey extends OnyxKey>(
     onyxData: OnyxData<TKey>,
     options: ScheduleWriteOptions,
 ) {
-    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred, onWriteStarted} = options;
+    const {barrier, shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred, onWriteStarted} = options;
+
+    // A barrier means the write's readiness is already owned by the caller, so there is no session to
+    // reserve, replace or flush, and no watch key to publish - watch keys exist only for Search's
+    // placeholder UI, which resolves its writes through its own session rather than a passed barrier.
+    if (barrier) {
+        onDeferred?.();
+        writeWhenReady(command, params, onyxData, barrier, {safetyTimeoutMs: DEFAULT_SAFETY_TIMEOUT_MS, onWriteStarted});
+        return;
+    }
 
     if (shouldDeferForSearch) {
         onDeferred?.();
@@ -250,5 +273,16 @@ function resetForTesting() {
     flushedWatchKeys.clear();
 }
 
-export {reserveWriteSession, flushWriteSession, cancelWriteSession, hasPendingWrite, hasPendingWriteForReport, getOptimisticWatchKey, scheduleWrite, resetForTesting};
+export {
+    reserveWriteSession,
+    flushWriteSession,
+    cancelWriteSession,
+    hasPendingWrite,
+    hasPendingWriteForReport,
+    getOptimisticWatchKey,
+    scheduleWrite,
+    resetForTesting,
+    // Exported so the unit test asserts against the real value rather than a copy of it.
+    DEFAULT_SAFETY_TIMEOUT_MS,
+};
 export type {ScheduleWriteOptions};

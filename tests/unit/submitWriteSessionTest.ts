@@ -1,7 +1,9 @@
+import type {WriteReadyBarrier} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {push as pushToSequentialQueue} from '@libs/Network/SequentialQueue';
 import {
     cancelWriteSession,
+    DEFAULT_SAFETY_TIMEOUT_MS,
     flushWriteSession,
     getOptimisticWatchKey,
     hasPendingWrite,
@@ -12,6 +14,7 @@ import {
 } from '@libs/submitWriteSession';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 
 import {AppState} from 'react-native';
 
@@ -37,6 +40,10 @@ function deferToSearch(options: Parameters<typeof scheduleWrite>[3] = {shouldDef
 
 function deferToDismissModal(isRetry = false) {
     return scheduleWrite(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, {shouldDeferForSearch: false, isRetry});
+}
+
+function writeWithBarrier(barrier: WriteReadyBarrier, options: Omit<Parameters<typeof scheduleWrite>[3], 'barrier'> = {shouldDeferForSearch: false}) {
+    return scheduleWrite(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, {}, {...options, barrier});
 }
 
 async function flushMicrotasks(until: () => boolean = () => false, maxIterations = 50) {
@@ -303,6 +310,95 @@ describe('submitWriteSession', () => {
             flushWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             await flushMicrotasks(pushHappened);
             expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+        });
+    });
+
+    describe('caller-supplied barrier', () => {
+        it('waits for the barrier and takes priority over an active DISMISS_MODAL session', async () => {
+            let releaseBarrier: () => void = () => {};
+            const barrier = jest.fn(
+                () =>
+                    new Promise<void>((resolve) => {
+                        releaseBarrier = resolve;
+                    }),
+            );
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+
+            writeWithBarrier(barrier);
+            await flushMicrotasks();
+
+            expect(barrier).toHaveBeenCalledTimes(1);
+            expect(mockPush).not.toHaveBeenCalled();
+
+            releaseBarrier();
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+        });
+
+        it('takes priority over an explicit Search deferral', async () => {
+            const barrier = jest.fn(() => Promise.resolve());
+
+            writeWithBarrier(barrier, {shouldDeferForSearch: true});
+            await flushMicrotasks(pushHappened);
+
+            expect(barrier).toHaveBeenCalledTimes(1);
+            expect(mockPush).toHaveBeenCalledTimes(1);
+        });
+
+        it('leaves the session registry untouched', async () => {
+            reserveWriteSession(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+
+            writeWithBarrier(() => Promise.resolve(), {shouldDeferForSearch: false, optimisticWatchKey: ONYXKEYS.NVP_PREFERRED_LOCALE});
+            await flushMicrotasks(pushHappened);
+
+            // The reservation is not consumed, replaced or flushed, and no watch key is published: a
+            // barrier-scheduled write is invisible to the registry.
+            expect(hasPendingWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBeUndefined();
+        });
+
+        it('reports the write as deferred so the optimization stays in the telemetry log', async () => {
+            const onDeferred = jest.fn();
+
+            writeWithBarrier(() => Promise.resolve(), {shouldDeferForSearch: false, onDeferred});
+            await flushMicrotasks(pushHappened);
+
+            expect(onDeferred).toHaveBeenCalledTimes(1);
+        });
+
+        it('fires onWriteStarted after the write goes out', async () => {
+            const onWriteStarted = jest.fn();
+            let releaseBarrier: () => void = () => {};
+            const barrier = () =>
+                new Promise<void>((resolve) => {
+                    releaseBarrier = resolve;
+                });
+
+            writeWithBarrier(barrier, {shouldDeferForSearch: false, onWriteStarted});
+            await flushMicrotasks();
+            expect(onWriteStarted).not.toHaveBeenCalled();
+
+            releaseBarrier();
+            await flushMicrotasks(pushHappened);
+
+            expect(onWriteStarted).toHaveBeenCalledTimes(1);
+        });
+
+        it('still writes when the barrier never releases, via the safety timeout', async () => {
+            jest.useFakeTimers();
+            try {
+                writeWithBarrier(() => new Promise<void>(() => {}));
+                await flushMicrotasks();
+                expect(mockPush).not.toHaveBeenCalled();
+
+                await jest.advanceTimersByTimeAsync(DEFAULT_SAFETY_TIMEOUT_MS);
+                await flushMicrotasks(pushHappened);
+
+                expect(mockPush).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
         });
     });
 });
