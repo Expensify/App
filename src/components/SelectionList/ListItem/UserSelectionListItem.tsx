@@ -101,7 +101,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={userDisplayName}
-                        style={[styles.flexShrink0, styles.optionDisplayName, isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                        style={[styles.flexShrink0, styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (
                         <TextWithTooltip

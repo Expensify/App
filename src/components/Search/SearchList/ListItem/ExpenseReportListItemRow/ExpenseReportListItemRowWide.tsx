@@ -37,7 +37,6 @@ function ExpenseReportListItemRowWide({
     isActionLoading,
     chatReport,
     containerStyle,
-    showTooltip,
     canSelectMultiple,
     isSelectAllChecked,
     isIndeterminate,
@@ -60,12 +59,12 @@ function ExpenseReportListItemRowWide({
     const submitterUserID = item.submitterUserID;
     const submitterPayrollID = item.submitterPayrollID;
     const orderDealNumbers = item.orderDealNumbers;
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = item;
 
     const columnComponents = {
         [CONST.SEARCH.TABLE_COLUMNS.AVATAR]: (
             <ExpenseReportListItemAvatar
                 item={item}
-                showTooltip={showTooltip}
                 isHovered={isHovered}
                 isFocused={isFocused}
                 isLargeScreenWidth
@@ -232,6 +231,26 @@ function ExpenseReportListItemRowWide({
         [CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS]: (
             <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS)]}>
                 <TextCell text={orderDealNumbers} />
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED)]}>
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: (
+            <View style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED)]}>
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.REPORT_ID]: (
