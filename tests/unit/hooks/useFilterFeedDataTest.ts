@@ -27,10 +27,7 @@ describe('useFilterFeedData', () => {
         jest.clearAllMocks();
         mockUseLocalize.mockReturnValue(
             createMock<ReturnType<typeof useLocalize>>({
-                translate: <TPath extends TranslationPaths>(path: TPath, ...parameters: TranslationParameters<TPath>) => {
-                    parameters.pop();
-                    return String(path);
-                },
+                translate: <TPath extends TranslationPaths>(path: TPath, ...[,]: TranslationParameters<TPath>) => String(path),
                 localeCompare: (a: string, b: string) => a.localeCompare(b),
             }),
         );
