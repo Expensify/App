@@ -1433,7 +1433,7 @@
 "../../src/stories/ReportActionItemImages.stories.tsx"	"no-restricted-syntax"	1
 "../../src/stories/TextInput.stories.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/styles/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/styles/index.ts"	"rulesdir/no-raw-typography"	28
+"../../src/styles/index.ts"	"rulesdir/no-raw-typography"	29
 "../../src/styles/theme/utils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/styles/utils/FontUtils/fontFamily/multiFontFamily/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/styles/utils/autoCompleteSuggestion/index.web.ts"	"no-restricted-syntax"	1
