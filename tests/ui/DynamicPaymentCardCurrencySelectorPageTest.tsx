@@ -244,10 +244,11 @@ describe('DynamicPaymentCardCurrencySelectorPage', () => {
 
         render(<DynamicPaymentCardCurrencySelectorPage />);
 
-        if (!React.isValidElement(capturedCustomListHeader)) {
+        const header = capturedCustomListHeader;
+        expect(header).toBeTruthy();
+        if (!React.isValidElement(header)) {
             throw new Error('Expected the captured custom list header to be a React element');
         }
-        const header = capturedCustomListHeader;
         if (header.type !== 'PaymentCardCurrencyHeader') {
             throw new Error('Expected the captured custom list header to be PaymentCardCurrencyHeader');
         }

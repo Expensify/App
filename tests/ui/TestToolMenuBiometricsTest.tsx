@@ -12,6 +12,8 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+import createMock from '../utils/createMock';
+
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
 let mockBiometricStatus = {
@@ -71,11 +73,9 @@ jest.mock('@hooks/useThemeStyles', () => ({
         ),
 }));
 
-const mockRevokeCredentials = jest.fn<ReturnType<typeof revokeMultifactorAuthenticationCredentials>, Parameters<typeof revokeMultifactorAuthenticationCredentials>>().mockResolvedValue({
-    httpStatusCode: 200,
-    reason: undefined,
-    message: undefined,
-});
+const mockRevokeCredentials = jest
+    .fn<ReturnType<typeof revokeMultifactorAuthenticationCredentials>, Parameters<typeof revokeMultifactorAuthenticationCredentials>>()
+    .mockResolvedValue(createMock<Awaited<ReturnType<typeof revokeMultifactorAuthenticationCredentials>>>({httpStatusCode: 200}));
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
     revokeMultifactorAuthenticationCredentials: (...args: Parameters<typeof revokeMultifactorAuthenticationCredentials>): ReturnType<typeof revokeMultifactorAuthenticationCredentials> =>
         mockRevokeCredentials(...args),

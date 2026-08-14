@@ -23,6 +23,7 @@ import type {PropsWithChildren} from 'react';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -37,7 +38,7 @@ jest.mock('@hooks/useResponsiveLayout', () => ({
     default: jest.fn(),
 }));
 
-const narrowLayout: ReturnType<typeof useResponsiveLayout> = {
+const narrowLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
     shouldUseNarrowLayout: true,
     isSmallScreenWidth: true,
     isInNarrowPaneModal: false,
@@ -46,12 +47,10 @@ const narrowLayout: ReturnType<typeof useResponsiveLayout> = {
     isMediumScreenWidth: false,
     onboardingIsMediumOrLargerScreenWidth: false,
     isLargeScreenWidth: false,
-    isExtraLargeScreenWidth: false,
     isSmallScreen: true,
-    isInLandscapeMode: false,
-};
+});
 
-const wideLayout: ReturnType<typeof useResponsiveLayout> = {
+const wideLayout = createMock<ReturnType<typeof useResponsiveLayout>>({
     shouldUseNarrowLayout: false,
     isSmallScreenWidth: false,
     isInNarrowPaneModal: false,
@@ -60,10 +59,8 @@ const wideLayout: ReturnType<typeof useResponsiveLayout> = {
     isMediumScreenWidth: false,
     onboardingIsMediumOrLargerScreenWidth: true,
     isLargeScreenWidth: true,
-    isExtraLargeScreenWidth: false,
     isSmallScreen: false,
-    isInLandscapeMode: false,
-};
+});
 
 jest.mock('@libs/getPlatform', () => ({
     __esModule: true,
