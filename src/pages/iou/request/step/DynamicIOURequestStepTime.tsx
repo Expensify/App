@@ -132,7 +132,9 @@ function DynamicIOURequestStepTime({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, transactionID, reportID, backToReport));
+            // Subrate is a dynamic route appended to this (time) route, so it inherits whichever base the time step was
+            // opened on (start page for a single per diem policy, destination otherwise) and its back returns here.
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute()));
         }
     };
 
