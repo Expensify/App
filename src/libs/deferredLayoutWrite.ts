@@ -58,15 +58,22 @@ type DeferredChannel = {
     flushRequested?: boolean;
 
     /**
-     * Resolves once a reserved channel's real callback is registered (or the reservation
-     * times out/is dropped). Lets a caller that cannot itself register on this channel
-     * (e.g. submitReport) wait for the pending create to be dispatched before proceeding.
+     * Resolves once the reservation's real callback is registered. Lets a caller that
+     * cannot itself register on this channel (e.g. submitReport) wait for the pending
+     * create to be dispatched before proceeding.
      */
     registrationPromise?: Promise<void>;
-    resolveRegistration?: () => void;
 };
 
 const channels = new Map<string, DeferredChannel>();
+
+// Resolvers for registrationPromise, keyed independently of `channels` so a reservation's
+// safety timeout can delete the channel (for hasDeferredWrite/flush purposes) without also
+// resolving this - the resolver must only fire once the real callback actually registers.
+// Every reserveDeferredWriteChannel call site unconditionally follows up with the real write,
+// so resolving early on the timeout would let a submit-waiter proceed before that write lands,
+// reproducing the exact submit-before-create race this mechanism exists to prevent.
+const pendingRegistrationResolvers = new Map<string, () => void>();
 
 // Watch keys that outlive their channel. When a reserved channel is flushed
 // immediately (flushRequested path), the channel is deleted but the watch key
@@ -109,7 +116,7 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
                 callback();
-                existing.resolveRegistration?.();
+                resolvePendingRegistration(key);
                 return;
             }
         } else {
@@ -124,7 +131,16 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
     }, safetyTimeoutMs);
 
     channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey, destinationReportID});
-    existing?.resolveRegistration?.();
+    resolvePendingRegistration(key);
+}
+
+function resolvePendingRegistration(key: string) {
+    const resolve = pendingRegistrationResolvers.get(key);
+    if (!resolve) {
+        return;
+    }
+    pendingRegistrationResolvers.delete(key);
+    resolve();
 }
 
 /**
@@ -182,18 +198,20 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
 
     flushedWatchKeys.delete(key);
 
-    let resolveRegistration: () => void = () => {};
     const registrationPromise = new Promise<void>((resolve) => {
-        resolveRegistration = resolve;
+        pendingRegistrationResolvers.set(key, resolve);
     });
 
+    // Deletes the channel (so hasDeferredWrite/flush stop treating it as pending) but does NOT
+    // resolve registrationPromise - every call site always follows up with the real write, so a
+    // submit-waiter must keep waiting for that, not be released early just because this cleanup
+    // timeout raced ahead of the real registration, possibly delayed by the app going to background.
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
         channels.delete(key);
-        resolveRegistration();
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID, registrationPromise, resolveRegistration});
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID, registrationPromise});
 }
 
 function hasDeferredWrite(key: string): boolean {
@@ -315,6 +333,7 @@ function resetForTesting() {
     }
     channels.clear();
     flushedWatchKeys.clear();
+    pendingRegistrationResolvers.clear();
 }
 
 export {
