@@ -10,7 +10,8 @@ import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy} from '@src/types/onyx';
-import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy';
+import type {PolicyConnectionName} from '@src/types/onyx/Policy';
+import ObjectUtils from '@src/types/utils/ObjectUtils';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
@@ -94,7 +95,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const {lockedBankAccounts} = useTimeSensitiveLockedBankAccount(adminPolicies);
-    const {shouldShowEnterSignerInfo, pendingSignerInfo} = useTimeSensitiveSignerInfo();
+    const {pendingSignerInfo} = useTimeSensitiveSignerInfo();
 
     // Get card feed errors for company card connections (Release 4)
     const cardFeedErrors = useCardFeedErrors();
@@ -112,7 +113,7 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         const syncProgress = connectionSyncProgress?.[`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policy.id}`];
         const isSyncInProgress = isConnectionInProgress(syncProgress, policy);
 
-        for (const connectionName of Object.keys(policyConnections) as ConnectionName[]) {
+        for (const [connectionName] of ObjectUtils.typedEntries(policyConnections)) {
             if (hasSynchronizationErrorMessage(policy, connectionName, isSyncInProgress)) {
                 const integrationName =
                     connectionName === CONST.POLICY.CONNECTIONS.NAME.MERGE_HR
@@ -139,9 +140,6 @@ function useTimeSensitiveItems(): React.ReactNode[] {
         }
     }
 
-    const hasBrokenCompanyCards = brokenCompanyCardConnections.length > 0;
-    const hasBrokenPersonalCards = brokenPersonalCardConnections.length > 0;
-    const hasBrokenPolicyConnections = brokenPolicyConnections.length > 0;
     const isCurrentLoginValidated = isCurrentUserValidated(loginList, sessionEmail ?? login);
     const shouldShowValidateAccount = isUserValidated === false && !isAnonymous && !isCurrentLoginValidated;
 
