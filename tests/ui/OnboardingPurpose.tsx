@@ -19,16 +19,18 @@ import {completeOnboarding} from '@userActions/Report';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
 
 import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -61,7 +63,7 @@ jest.mock('@userActions/Policy/Policy', () => {
 TestHelper.setupGlobalFetchMock();
 
 // Helper to translate onboarding purpose keys that use dynamic CONST values
-const translatePurpose = (choice: string) => TestHelper.translateLocal(`onboarding.purpose.${choice}` as TranslationPaths);
+const translatePurpose = (choice: ValueOf<typeof CONST.SELECTABLE_ONBOARDING_CHOICES>) => TestHelper.translateLocal(`onboarding.purpose.${choice}`);
 
 const Stack = createPlatformStackNavigator<OnboardingModalNavigatorParamList>();
 
@@ -94,10 +96,12 @@ describe('OnboardingPurpose Page', () => {
     });
 
     beforeEach(() => {
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
