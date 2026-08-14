@@ -45,9 +45,14 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
     return matchingKey ?? 'EXP_NEUE';
 }
 
-function canTypefaceRenderText(typeface: SkTypeface, text: string): boolean {
+/** Below this code point are ASCII control characters (e.g. the `\n` line separators callers split on) that legitimately have no glyph. */
+const FIRST_PRINTABLE_CODE_POINT = 0x20;
+
+function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
     for (const char of text) {
-        if (char.codePointAt(0) === undefined || (char.codePointAt(0) ?? 0) < 0x20) {
+        const codePoint = char.codePointAt(0);
+
+        if (codePoint === undefined || codePoint < FIRST_PRINTABLE_CODE_POINT) {
             continue;
         }
 
@@ -124,7 +129,7 @@ function getChartSkiaTypeface(
     const typefaceKey = getChartSkiaTypefaceKey(fontFamily, normalizeFontStyle(fontStyle), normalizeChartFontWeight(fontWeight));
     const resolvedTypeface = resolveTypefaceWithFallbacks(typefaces, typefaceKey);
 
-    if (resolvedTypeface && text && !canTypefaceRenderText(resolvedTypeface, text)) {
+    if (resolvedTypeface && text && !typefaceCanRenderText(resolvedTypeface, text)) {
         const fallbackTypeface = resolveTypefaceWithFallbacks(typefaces, getGlyphFallbackKey(typefaceKey));
 
         if (fallbackTypeface) {
