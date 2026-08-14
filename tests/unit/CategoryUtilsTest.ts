@@ -16,6 +16,7 @@ import type {Policy, PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
@@ -39,13 +40,13 @@ describe(`isMissingCategory`, () => {
 });
 
 describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy: Policy = {
+    const mockPolicy = createMock<Policy>({
         id: '1',
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.CORPORATE,
         outputCurrency: CONST.CURRENCY.USD,
         maxExpenseAmountNoItemizedReceipt: 7500,
-    } as Policy;
+    });
 
     it('returns "Always" text when category amount is 0', () => {
         const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);
