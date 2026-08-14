@@ -5933,8 +5933,8 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             addNewBankAccount: 'Adicionar uma nova conta bancária',
             settlementAccount: 'Conta de liquidação',
             settlementAccountDescription: 'Escolha uma conta para pagar o saldo do seu Cartão Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `Certifique-se de que esta conta corresponda à sua ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">conta de Conciliação</a>` : 'conta de Conciliação'} (${accountNumber}) para que a Conciliação Contínua funcione corretamente.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `Certifique-se de que esta conta corresponda à sua <a href="${reconciliationAccountSettingsLink}">conta de Conciliação</a> (${accountNumber}) para que a Conciliação Contínua funcione corretamente.`,
             settlementFrequency: 'Frequência de liquidação',
             settlementFrequencyDescription: 'Escolha com que frequência você vai pagar o saldo do seu Cartão Expensify.',
             settlementFrequencyInfo: 'Se quiser mudar para liquidação mensal, você precisará conectar sua conta bancária via Plaid e ter um histórico de saldo positivo de 90 dias.',

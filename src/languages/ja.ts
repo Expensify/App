@@ -5880,8 +5880,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addNewBankAccount: '新しい銀行口座を追加',
             settlementAccount: '決済口座',
             settlementAccountDescription: 'Expensify カードの残高を支払う口座を選択してください。',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `継続照合が正しく機能するように、この口座が${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">照合用口座</a>` : '照合用口座'}（${accountNumber}）と一致していることを確認してください。`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `継続照合が正しく機能するように、この口座が<a href="${reconciliationAccountSettingsLink}">照合用口座</a>（${accountNumber}）と一致していることを確認してください。`,
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',

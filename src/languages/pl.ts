@@ -5915,8 +5915,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addNewBankAccount: 'Dodaj nowe konto bankowe',
             settlementAccount: 'Konto rozliczeniowe',
             settlementAccountDescription: 'Wybierz konto, z którego spłacisz saldo swojej Karty Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `Upewnij się, że to konto jest takie samo jak ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">konto do uzgadniania</a>` : 'konto do uzgadniania'} (${accountNumber}), aby Ciągłe uzgadnianie działało poprawnie.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `Upewnij się, że to konto jest takie samo jak <a href="${reconciliationAccountSettingsLink}">konto do uzgadniania</a> (${accountNumber}), aby Ciągłe uzgadnianie działało poprawnie.`,
             settlementFrequency: 'Częstotliwość rozliczeń',
             settlementFrequencyDescription: 'Wybierz, jak często będziesz spłacać saldo swojej Karty Expensify.',
             settlementFrequencyInfo: 'Jeśli chcesz przejść na miesięczne rozliczenie, musisz podłączyć swoje konto bankowe przez Plaid i mieć dodatnią historię salda z ostatnich 90 dni.',

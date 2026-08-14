@@ -16,7 +16,7 @@ import useWorkspaceAccountID from '@hooks/useWorkspaceAccountID';
 import {setCompanyCardExportAccount} from '@libs/actions/CompanyCards';
 import {getCompanyCardFeed, getDomainOrWorkspaceAccountID, isExpensifyCard as isExpensifyCardUtil} from '@libs/CardUtils';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {getConnectedIntegration, isPolicyAdmin} from '@libs/PolicyUtils';
+import {getConnectedIntegration} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -56,9 +56,6 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
     // See https://github.com/Expensify/App/issues/72352 for more details.
     const activeRoute = Navigation.getActiveRoute();
     const exportMenuItem = getExportMenuItem(connectedIntegration, policyID, translate, styles, policy, card, activeRoute);
-    // The accounting export-configuration page is admin-only, so only link to it for policy admins. Card admins
-    // without access would otherwise be dropped onto the Not Found page. When they lack access, render plain (non-linked) text.
-    const exportPageLink = isPolicyAdmin(policy) ? exportMenuItem?.exportPageLink : undefined;
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const shouldShowTextInput = (exportMenuItem?.data?.length ?? 0) >= CONST.STANDARD_LIST_ITEM_LIMIT;
     const defaultCard = translate('workspace.moreFeatures.companyCards.defaultCard');
@@ -115,7 +112,7 @@ function DynamicWorkspaceCompanyCardAccountSelectCardPage({route}: DynamicWorksp
                                     html={translate(
                                         'workspace.moreFeatures.companyCards.integrationExportTitle',
                                         exportMenuItem.description,
-                                        exportPageLink ? `${environmentURL}/${exportPageLink}` : undefined,
+                                        exportMenuItem.exportPageLink ? `${environmentURL}/${exportMenuItem.exportPageLink}` : undefined,
                                     )}
                                 />
                             </View>

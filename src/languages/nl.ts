@@ -5937,8 +5937,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             addNewBankAccount: 'Nieuwe bankrekening toevoegen',
             settlementAccount: 'Verrekeningsrekening',
             settlementAccountDescription: 'Kies een rekening om je saldo van de Expensify Kaart te betalen.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `Zorg ervoor dat deze rekening overeenkomt met je ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">afstemmingsrekening</a>` : 'afstemmingsrekening'} (${accountNumber}), zodat Continue Afstemming correct werkt.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `Zorg ervoor dat deze rekening overeenkomt met je <a href="${reconciliationAccountSettingsLink}">afstemmingsrekening</a> (${accountNumber}), zodat Continue Afstemming correct werkt.`,
             settlementFrequency: 'Uitbetalingsfrequentie',
             settlementFrequencyDescription: 'Kies hoe vaak je het saldo van je Expensify Kaart betaalt.',
             settlementFrequencyInfo: 'Als je wilt overschakelen naar maandelijkse afrekening, moet je je bankrekening koppelen via Plaid en een positieve saldohistorie van 90 dagen hebben.',

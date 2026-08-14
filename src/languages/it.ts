@@ -5942,8 +5942,8 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addNewBankAccount: 'Aggiungi un nuovo conto bancario',
             settlementAccount: 'Conto di regolamento',
             settlementAccountDescription: 'Scegli un conto da cui pagare il saldo della tua Carta Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `Assicurati che questo conto corrisponda al tuo ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">Conto di riconciliazione</a>` : 'Conto di riconciliazione'} (${accountNumber}) affinché la Riconciliazione continua funzioni correttamente.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `Assicurati che questo conto corrisponda al tuo <a href="${reconciliationAccountSettingsLink}">Conto di riconciliazione</a> (${accountNumber}) affinché la Riconciliazione continua funzioni correttamente.`,
             settlementFrequency: 'Frequenza di regolamento',
             settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua Carta Expensify.',
             settlementFrequencyInfo:

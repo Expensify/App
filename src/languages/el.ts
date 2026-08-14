@@ -6100,8 +6100,8 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             addNewBankAccount: 'Προσθήκη νέου τραπεζικού λογαριασμού',
             settlementAccount: 'Λογαριασμός διακανονισμού',
             settlementAccountDescription: 'Επιλέξτε έναν λογαριασμό για να πληρώσετε το υπόλοιπο της Κάρτας Expensify.',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `Βεβαιωθείτε ότι αυτός ο λογαριασμός ταιριάζει με τον ${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">λογαριασμό συμφωνίας</a>` : 'λογαριασμό συμφωνίας'} σας (${accountNumber}) ώστε η συνεχής συμφωνία να λειτουργεί σωστά.`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `Βεβαιωθείτε ότι αυτός ο λογαριασμός ταιριάζει με τον <a href="${reconciliationAccountSettingsLink}">λογαριασμό συμφωνίας</a> σας (${accountNumber}) ώστε η συνεχής συμφωνία να λειτουργεί σωστά.`,
             settlementFrequency: 'Συχνότητα εκκαθάρισης',
             settlementFrequencyDescription: 'Επιλέξτε πόσο συχνά θα εξοφλείτε το υπόλοιπο της Κάρτας Expensify.',
             settlementFrequencyInfo:

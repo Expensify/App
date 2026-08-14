@@ -5749,8 +5749,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addNewBankAccount: '添加新银行账户',
             settlementAccount: '结算账户',
             settlementAccountDescription: '选择一个账户来支付你的 Expensify 卡欠款余额。',
-            settlementAccountInfo: (reconciliationAccountSettingsLink: string | undefined, accountNumber: string) =>
-                `请确保此账户与您的${reconciliationAccountSettingsLink ? `<a href="${reconciliationAccountSettingsLink}">对账账户</a>` : '对账账户'}（${accountNumber}）一致，以确保持续对账功能正常运行。`,
+            settlementAccountInfo: (reconciliationAccountSettingsLink: string, accountNumber: string) =>
+                `请确保此账户与您的<a href="${reconciliationAccountSettingsLink}">对账账户</a>（${accountNumber}）一致，以确保持续对账功能正常运行。`,
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
