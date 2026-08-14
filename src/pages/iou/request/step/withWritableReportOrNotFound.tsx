@@ -36,7 +36,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_WAYPOINT
     | typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION
     | typeof SCREENS.MONEY_REQUEST.STEP_DATE
-    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY
     | typeof SCREENS.MONEY_REQUEST.STEP_VENDOR
     | typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_CONFIRMATION
@@ -70,7 +70,7 @@ type MoneyRequestRouteName =
     | typeof SCREENS.MONEY_REQUEST.STEP_TIME_RATE
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS
     | typeof SCREENS.MONEY_REQUEST.STEP_HOURS_EDIT
-    | typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE;
+    | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE;
 
 type WithWritableReportOrNotFoundProps<RouteName extends MoneyRequestRouteName> = WithWritableReportOrNotFoundOnyxProps & PlatformStackScreenProps<MoneyRequestNavigatorParamList, RouteName>;
 
