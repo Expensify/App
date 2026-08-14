@@ -12,12 +12,17 @@ import ScrollView from './ScrollView';
 
 type AutoGrowHeightInputContainerProps = {
     children: (maxAutoGrowHeight: number) => ReactNode;
+    measureContent?: (content: View | null, callback: (contentHeight: number) => void) => void;
     style?: StyleProp<ViewStyle>;
 };
 
 type MeasurementPhase = 'normal' | 'clamp' | 'probe';
 
-function AutoGrowHeightInputContainer({children, style}: AutoGrowHeightInputContainerProps) {
+function defaultMeasureContent(content: View | null, callback: (contentHeight: number) => void) {
+    content?.measure((_x, _y, _width, contentHeight) => callback(contentHeight));
+}
+
+function AutoGrowHeightInputContainer({children, measureContent = defaultMeasureContent, style}: AutoGrowHeightInputContainerProps) {
     const styles = useThemeStyles();
     const availableHeightRef = useRef(variables.textInputAutoGrowMaxHeight);
     const contentRef = useRef<View>(null);
@@ -49,8 +54,9 @@ function AutoGrowHeightInputContainer({children, style}: AutoGrowHeightInputCont
         }
 
         const measurementGeneration = measurementGenerationRef.current;
-        contentRef.current?.measure((_x, _y, _width, contentHeight) => {
-            if (measurementGeneration !== measurementGenerationRef.current) {
+        let isCancelled = false;
+        measureContent(contentRef.current, (contentHeight) => {
+            if (isCancelled || measurementGeneration !== measurementGenerationRef.current) {
                 return;
             }
 
@@ -71,7 +77,11 @@ function AutoGrowHeightInputContainer({children, style}: AutoGrowHeightInputCont
             setMeasurementPhase('normal');
             setMaxAutoGrowHeight(maxAutoGrowHeightRef.current);
         });
-    }, [maxAutoGrowHeight, measurementPhase, measurementRequestVersion, startMeasurement]);
+
+        return () => {
+            isCancelled = true;
+        };
+    }, [maxAutoGrowHeight, measureContent, measurementPhase, measurementRequestVersion, startMeasurement]);
 
     return (
         <ScrollView
