@@ -8,7 +8,7 @@ import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 import React, {useRef} from 'react';
 
-import type {MenuData} from './InitialSettingsPage';
+import type {MenuData} from './useInitialSettingsPageMenuData';
 
 type SettingsMenuItemProps = {
     item: MenuData;
