@@ -21,7 +21,7 @@ const MOCK_ROUTE = {
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
 const MOCK_NAVIGATION = {} as React.ComponentProps<typeof ConfirmDelegatePage>['navigation'];
 
-const mockGetPersonalDetailByEmail = jest.fn<{displayName?: string; accountID?: number; avatar?: string} | undefined, [string]>();
+const mockUsePersonalDetailByLogin = jest.fn<{displayName?: string; accountID?: number; avatar?: string} | undefined, [string | undefined]>();
 
 // The real formatter, so these assert the string a copilot actually reads rather than a stand-in.
 jest.mock('@hooks/useLocalize', () => {
@@ -33,8 +33,10 @@ jest.mock('@hooks/useLocalize', () => {
     }));
 });
 
-jest.mock('@libs/PersonalDetailsUtils', () => ({
-    getPersonalDetailByEmail: (email: string) => mockGetPersonalDetailByEmail(email),
+// Stands in for the personal details context the real hook reads, so these tests need no provider.
+jest.mock('@hooks/usePersonalDetailByLogin', () => ({
+    __esModule: true,
+    default: (login: string | undefined) => mockUsePersonalDetailByLogin(login),
 }));
 
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
@@ -74,11 +76,11 @@ jest.mock('@components/DelegateNoAccessWrapper', () => {
     return MockDelegateNoAccessWrapper;
 });
 
-jest.mock('@components/Button', () => {
+jest.mock('@components/ButtonComposed', () => {
     function MockButton() {
         return null;
     }
-    return MockButton;
+    return Object.assign(MockButton, {Icon: MockButton, Text: MockButton, KeyboardShortcut: MockButton});
 });
 
 jest.mock('@components/Text', () => {
@@ -120,7 +122,7 @@ describe('ConfirmDelegatePage', () => {
 
     it('formats the title when an SMS account never set a display name', () => {
         // An account that never set a name carries its own login in `displayName`, domain and all.
-        mockGetPersonalDetailByEmail.mockReturnValue({displayName: SMS_LOGIN, accountID: 42});
+        mockUsePersonalDetailByLogin.mockReturnValue({displayName: SMS_LOGIN, accountID: 42});
 
         const output = renderPage();
 
@@ -129,7 +131,7 @@ describe('ConfirmDelegatePage', () => {
     });
 
     it('formats the title when the account has no personal details at all', () => {
-        mockGetPersonalDetailByEmail.mockReturnValue(undefined);
+        mockUsePersonalDetailByLogin.mockReturnValue(undefined);
 
         const output = renderPage();
 
@@ -138,7 +140,7 @@ describe('ConfirmDelegatePage', () => {
     });
 
     it('keeps a real display name as the title and the formatted login as the description', () => {
-        mockGetPersonalDetailByEmail.mockReturnValue({displayName: 'Ada Lovelace', accountID: 7});
+        mockUsePersonalDetailByLogin.mockReturnValue({displayName: 'Ada Lovelace', accountID: 7});
 
         const output = renderPage();
 
