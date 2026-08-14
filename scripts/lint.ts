@@ -78,12 +78,12 @@ function readSeatbeltBooleanEnvVar(value: string | undefined): boolean | undefin
 // config/eslint/eslint.config.mjs and the same SEATBELT_READ_ONLY/SEATBELT_INCREASE/SEATBELT_DISABLE
 // escape hatches eslint-seatbelt itself honors, so pruning never dirties a local worktree.
 const seatbeltPath = `${projectRoot}/config/eslint/eslint.seatbelt.tsv`;
-const seatbeltIncreaseSet = !!process.env.SEATBELT_INCREASE;
+const isSeatbeltIncreaseSet = !!process.env.SEATBELT_INCREASE;
 const seatbeltArgs = SeatbeltArgs.fromConfig({
     seatbeltFile: seatbeltPath,
     disable: readSeatbeltBooleanEnvVar(process.env.SEATBELT_DISABLE) ?? false,
     frozen: readSeatbeltBooleanEnvVar(seatbeltFrozenEnv) ?? false,
-    readOnly: seatbeltIncreaseSet ? false : (readSeatbeltBooleanEnvVar(process.env.SEATBELT_READ_ONLY) ?? !process.env.CI),
+    readOnly: isSeatbeltIncreaseSet ? false : (readSeatbeltBooleanEnvVar(process.env.SEATBELT_READ_ONLY) ?? !process.env.CI),
 });
 if (!seatbeltArgs.disable) {
     const seatbeltFile = SeatbeltFile.readSync(seatbeltPath);
