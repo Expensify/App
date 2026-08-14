@@ -1154,7 +1154,7 @@ describe('libs/NextStepUtils', () => {
                 return translateLocal(path, ...parameters);
             };
 
-            const message = buildNextStepMessage(nextStep, translateEta, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateEta, undefined, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>15th</next-step>');
         });
 
