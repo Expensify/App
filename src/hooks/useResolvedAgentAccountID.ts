@@ -1,6 +1,6 @@
-import useOnyx from '@hooks/useOnyx';
-
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import useOnyx from './useOnyx';
 
 /**
  * Resolves an agent's optimistic accountID to the real one CreateAgent assigns, via the persisted
