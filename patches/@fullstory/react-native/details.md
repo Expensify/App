@@ -26,3 +26,13 @@
 - Upstream PR/issue: 🛑 TODO
 - E/App issue: https://github.com/Expensify/App/issues/91225
 - PR introducing patch: 🛑 TODO
+
+### [@fullstory+react-native+1.9.0+002+stable-static-ref-wrapper.patch](@fullstory+react-native+1.9.0+002+stable-static-ref-wrapper.patch)
+
+- Reason:
+
+    FullStory creates a new callback wrapper every time `applyFSPropertiesWithRef()` receives an existing ref, including when annotations are static. Components that update state from their ref callback can then enter a detach/render/attach loop because the wrapper identity changes on every render. Cache wrappers for stable refs when annotations are static, while continuing to recreate wrappers for dynamic FullStory attributes.
+
+- Upstream PR/issue: -
+- E/App issue: -
+- PR introducing patch: -
