@@ -1,22 +1,23 @@
-/**
- * @jest-environment node
- */
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, mock, test} from 'bun:test';
+
 import * as core from '@actions/core';
 
-import run from '../../.github/actions/javascript/isDeployChecklistLocked/isDeployChecklistLocked';
 import CONST from '../../.github/libs/CONST';
 import * as DeployChecklistUtils from '../../.github/libs/DeployChecklistUtils';
 import createMock from '../utils/createMock';
 
-jest.mock('../../.github/libs/DeployChecklistUtils', () => {
-    const actual = jest.requireActual<typeof DeployChecklistUtils>('../../.github/libs/DeployChecklistUtils');
-    return {
-        ...actual,
-        getDeployChecklist: jest.fn(),
-    };
-});
+const mockGetDeployChecklist = jest.fn<typeof DeployChecklistUtils.getDeployChecklist>();
 
-const mockGetDeployChecklist = jest.mocked(DeployChecklistUtils.getDeployChecklist);
+// Must run before `isDeployChecklistLocked` (which imports DeployChecklistUtils internally) is imported below:
+// mock.module patches the shared module registry entry, and existing named-import bindings to it are live, but
+// only if the patch happens before those bindings are first read.
+await mock.module('../../.github/libs/DeployChecklistUtils', () => ({
+    ...DeployChecklistUtils,
+    getDeployChecklist: mockGetDeployChecklist,
+}));
+
+// Must be imported after the mock.module() call above so it picks up the mock.
+const {default: run} = await import('../../.github/actions/javascript/isDeployChecklistLocked/isDeployChecklistLocked');
 
 beforeAll(() => {
     process.env.INPUT_GITHUB_TOKEN = 'fake_token';
@@ -85,7 +86,7 @@ describe('isDeployChecklistLockedTest', () => {
             const setFailedMock = jest.spyOn(core, 'setFailed').mockImplementation(() => {});
             return run().then(() => {
                 expect(setFailedMock).toHaveBeenCalledTimes(1);
-                expect(setFailedMock.mock.calls.at(0)?.at(0)).toEqual(expect.stringContaining('Could not resolve deploy checklist'));
+                expect(setFailedMock.mock.calls.at(0)?.at(0)).toContain('Could not resolve deploy checklist');
                 expect(setOutputMock).not.toHaveBeenCalledWith('IS_LOCKED', expect.anything());
                 expect(setOutputMock).not.toHaveBeenCalledWith('NUMBER', expect.anything());
             });

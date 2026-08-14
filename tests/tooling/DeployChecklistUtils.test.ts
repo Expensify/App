@@ -1,11 +1,11 @@
+import type {Mock} from 'bun:test';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 import {generateDeployChecklistBodyAndAssignees, getDeployChecklist, NoOpenDeployChecklistError} from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit, ListForRepoMethod, OctokitIssueItem} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-/**
- * @jest-environment node
- */
 /* eslint-disable @typescript-eslint/naming-convention */
 import {RequestError} from '@octokit/request-error';
 
@@ -19,9 +19,48 @@ type GetPullRequestResponse = Awaited<ReturnType<OctokitGetPullRequest>>;
 
 const createListForRepoResponse = (data: OctokitIssueItem[]): ListForRepoResponse => createMock<ListForRepoResponse>({data});
 
-const mockListIssues = jest.fn<ReturnType<ListForRepoMethod>, Parameters<ListForRepoMethod>>();
-let listForRepoSpy: jest.SpiedFunction<ListForRepoMethod>;
+let listForRepoSpy: Mock<ListForRepoMethod>;
 let internalOctokit: InternalOctokit;
+
+/**
+ * Runs `operation` with fake timers so its retry backoff resolves instantly, advancing the clock by exactly
+ * `expectedDelaysMs` in order. Advancing by the exact delays rather than some arbitrarily large amount keeps
+ * these tests pinned to LIST_RETRY_DELAYS_MS: lengthen a delay there and the operation never settles.
+ *
+ * Bun only exposes a synchronous `jest.advanceTimersByTime`, and the code under test schedules each backoff timer
+ * from a `catch` block - i.e. several microtasks after the call starts - so yield until that timer exists before
+ * firing it.
+ */
+async function runWithFakeTimers<T>(operation: () => Promise<T>, expectedDelaysMs: number[]): Promise<T> {
+    try {
+        jest.useFakeTimers();
+        let isSettled = false;
+        const pending = operation().finally(() => {
+            isSettled = true;
+        });
+
+        // The caller decides whether a rejection is expected; swallow it here only so driving the clock below
+        // doesn't trip Bun's unhandled-rejection reporting in the meantime.
+        pending.catch(() => {});
+
+        for (const delayMs of expectedDelaysMs) {
+            for (let i = 0; jest.getTimerCount() === 0 && !isSettled && i < 100; i++) {
+                await Promise.resolve();
+            }
+            jest.advanceTimersByTime(delayMs);
+        }
+
+        for (let i = 0; !isSettled && i < 100; i++) {
+            await Promise.resolve();
+        }
+        if (!isSettled) {
+            throw new Error(`Operation did not settle after advancing the clock by ${expectedDelaysMs.join(' + ')}ms; did its retry schedule change?`);
+        }
+        return await pending;
+    } finally {
+        jest.useRealTimers();
+    }
+}
 
 beforeAll(() => {
     GithubUtils.initOctokitWithToken('fake_token');
@@ -31,12 +70,11 @@ beforeAll(() => {
     }
 
     internalOctokit = initializedOctokit;
-    listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo').mockImplementation(mockListIssues);
+    listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo');
 });
 
 afterEach(() => {
-    listForRepoSpy.mockClear();
-    mockListIssues.mockReset();
+    listForRepoSpy.mockReset();
 });
 
 describe('DeployChecklistUtils', () => {
@@ -63,7 +101,7 @@ describe('DeployChecklistUtils', () => {
 
         issueWithDeployBlockers.body += `\r\n**Deploy Blockers:**\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/1\r\n- [x] https://github.com/${process.env.GITHUB_REPOSITORY}/issues/2\r\n- [ ] https://github.com/${process.env.GITHUB_REPOSITORY}/pull/1234\r\n`;
 
-        const baseExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
+        const baseExpectedResponse: Awaited<ReturnType<typeof getDeployChecklist>> = {
             PRList: [
                 {
                     url: `https://github.com/${process.env.GITHUB_REPOSITORY}/pull/21`,
@@ -130,23 +168,23 @@ describe('DeployChecklistUtils', () => {
                 body: `**Release Version:** \`1.0.1-47\`\r\n**Compare Changes:** https://github.com/${process.env.GITHUB_REPOSITORY}/compare/production...staging\r\n\r\ncc @Expensify/applauseleads\n`,
             });
 
-            const bareExpectedResponse: Partial<Awaited<ReturnType<typeof getDeployChecklist>>> = {
+            const bareExpectedResponse: Awaited<ReturnType<typeof getDeployChecklist>> = {
                 ...baseExpectedResponse,
                 PRList: [],
                 PRListMobileExpensify: [],
             };
 
-            mockListIssues.mockResolvedValue(createListForRepoResponse([bareIssue]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([bareIssue]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(bareExpectedResponse));
         });
 
         test('Test finding an open issue successfully', () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([baseIssue]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([baseIssue]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(baseExpectedResponse));
         });
 
         test('Test finding an open issue successfully and parsing with deploy blockers', () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([issueWithDeployBlockers]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([issueWithDeployBlockers]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
@@ -154,14 +192,14 @@ describe('DeployChecklistUtils', () => {
             const modifiedIssueWithDeployBlockers = {...issueWithDeployBlockers};
             modifiedIssueWithDeployBlockers.body = (modifiedIssueWithDeployBlockers.body ?? '').replaceAll('\r', '');
 
-            mockListIssues.mockResolvedValue(createListForRepoResponse([modifiedIssueWithDeployBlockers]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([modifiedIssueWithDeployBlockers]));
             return getDeployChecklist().then((data) => expect(data).toStrictEqual(expectedResponseWithDeployBlockers));
         });
 
         test('Test finding an open issue without a body', () => {
             const noBodyIssue = {...baseIssue, body: ''};
 
-            mockListIssues.mockResolvedValue(createListForRepoResponse([noBodyIssue]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([noBodyIssue]));
             return getDeployChecklist().then((data) =>
                 expect(data).toMatchObject({
                     PRList: [],
@@ -179,12 +217,12 @@ describe('DeployChecklistUtils', () => {
         test('Test finding an open issue with malformed URL', async () => {
             const malformedURLIssue = {...baseIssue, url: 'invalid-url'};
 
-            mockListIssues.mockResolvedValue(createListForRepoResponse([malformedURLIssue]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([malformedURLIssue]));
             await expect(getDeployChecklist()).rejects.toThrow(`Unable to find ${CONST.LABELS.STAGING_DEPLOY} issue with correct data.`);
         });
 
         test('Test finding more than one issue', async () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssueItem>({number: 1}), createMock<OctokitIssueItem>({number: 2})]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([createMock<OctokitIssueItem>({number: 1}), createMock<OctokitIssueItem>({number: 2})]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -194,7 +232,7 @@ describe('DeployChecklistUtils', () => {
         });
 
         test('state:open empty + state:all returns closed issue → NoOpenDeployChecklistError', async () => {
-            mockListIssues
+            listForRepoSpy
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 100, state: 'closed'})]));
             try {
@@ -205,12 +243,12 @@ describe('DeployChecklistUtils', () => {
                 if (!(e instanceof Error)) {
                     throw e;
                 }
-                expect(e.message).toEqual(expect.stringContaining('#100'));
+                expect(e.message).toContain('#100');
             }
         });
 
         test('state:open empty + state:all returns open issue → fails closed (inconsistency)', async () => {
-            mockListIssues
+            listForRepoSpy
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 500, state: 'open'})]));
             try {
@@ -221,13 +259,13 @@ describe('DeployChecklistUtils', () => {
                 if (!(e instanceof Error)) {
                     throw e;
                 }
-                expect(e.message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect(e.message).toEqual(expect.stringContaining('#500'));
+                expect(e.message).toContain('Inconsistent GitHub response');
+                expect(e.message).toContain('#500');
             }
         });
 
         test('state:open empty + state:all empty → fails closed (pathological)', async () => {
-            mockListIssues.mockResolvedValue(createListForRepoResponse([]));
+            listForRepoSpy.mockResolvedValue(createListForRepoResponse([]));
             try {
                 await getDeployChecklist();
                 throw new Error('Expected getDeployChecklist to reject');
@@ -236,7 +274,7 @@ describe('DeployChecklistUtils', () => {
                 if (!(e instanceof Error)) {
                     throw e;
                 }
-                expect(e.message).toEqual(expect.stringContaining(`No StagingDeployCash issues found at all`));
+                expect(e.message).toContain(`No StagingDeployCash issues found at all`);
             }
         });
     });
@@ -246,47 +284,31 @@ describe('DeployChecklistUtils', () => {
             const err503 = new RequestError('Service Unavailable', 503, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            mockListIssues
+            listForRepoSpy
                 .mockRejectedValueOnce(err503)
                 .mockResolvedValueOnce(
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 88, url: 'https://api.github.com/repos/o/i/issues/88', title: 't', labels: [], body: ''})]),
                 );
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                await jest.advanceTimersByTimeAsync(2000);
-                const data = await pending;
+            const data = await runWithFakeTimers(() => getDeployChecklist(), [2000]);
 
-                expect(data.number).toBe(88);
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(data.number).toBe(88);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
 
         test('re-throws after all retry attempts fail', async () => {
             const err503 = new RequestError('Service Unavailable', 503, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            mockListIssues.mockRejectedValue(err503);
+            listForRepoSpy.mockRejectedValue(err503);
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                const assertion = expect(pending).rejects.toThrow(RequestError);
-                await jest.advanceTimersByTimeAsync(2000);
-                await jest.advanceTimersByTimeAsync(5000);
-                await assertion;
+            await expect(runWithFakeTimers(() => getDeployChecklist(), [2000, 5000])).rejects.toThrow(RequestError);
 
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(3);
         });
 
         test('does not retry on empty result; falls through to state:all cross-check', async () => {
-            mockListIssues
+            listForRepoSpy
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(createListForRepoResponse([createMock<OctokitIssueItem>({number: 200, state: 'closed'})]));
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(NoOpenDeployChecklistError);
@@ -297,7 +319,7 @@ describe('DeployChecklistUtils', () => {
             const err404 = new RequestError('Not Found', 404, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            mockListIssues.mockRejectedValue(err404);
+            listForRepoSpy.mockRejectedValue(err404);
 
             await expect(getDeployChecklist()).rejects.toBeInstanceOf(RequestError);
             expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(1);
@@ -307,27 +329,20 @@ describe('DeployChecklistUtils', () => {
             const err403 = new RequestError('Secondary rate limit', 403, {
                 request: {method: 'GET', url: 'https://api.github.com/repos/o/i/issues', headers: {}},
             });
-            mockListIssues
+            listForRepoSpy
                 .mockRejectedValueOnce(err403)
                 .mockResolvedValueOnce(
                     createListForRepoResponse([createMock<OctokitIssueItem>({number: 77, url: 'https://api.github.com/repos/o/i/issues/77', title: 't', labels: [], body: ''})]),
                 );
 
-            jest.useFakeTimers();
-            try {
-                const pending = getDeployChecklist();
-                await jest.advanceTimersByTimeAsync(2000);
-                const data = await pending;
+            const data = await runWithFakeTimers(() => getDeployChecklist(), [2000]);
 
-                expect(data.number).toBe(77);
-                expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
-            } finally {
-                jest.useRealTimers();
-            }
+            expect(data.number).toBe(77);
+            expect(GithubUtils.octokit.issues.listForRepo).toHaveBeenCalledTimes(2);
         });
 
         test('state:all reports a non-first open issue → fails closed with that number', async () => {
-            mockListIssues
+            listForRepoSpy
                 .mockResolvedValueOnce(createListForRepoResponse([]))
                 .mockResolvedValueOnce(
                     createListForRepoResponse([
@@ -344,8 +359,8 @@ describe('DeployChecklistUtils', () => {
                 if (!(e instanceof Error)) {
                     throw e;
                 }
-                expect(e.message).toEqual(expect.stringContaining('Inconsistent GitHub response'));
-                expect(e.message).toEqual(expect.stringContaining('#800'));
+                expect(e.message).toContain('Inconsistent GitHub response');
+                expect(e.message).toContain('#800');
             }
         });
     });
@@ -360,8 +375,8 @@ describe('DeployChecklistUtils', () => {
             createMock<PullRequest>({number: 6, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
             createMock<PullRequest>({number: 7, title: '[Internal QA] Another Test Internal QA PR', labels: [{name: 'InternalQA'}]}),
         ];
-        let paginateSpy: jest.SpiedFunction<OctokitPaginate>;
-        let getPullRequestSpy: jest.SpiedFunction<OctokitGetPullRequest>;
+        let paginateSpy: Mock<OctokitPaginate>;
+        let getPullRequestSpy: Mock<OctokitGetPullRequest>;
 
         beforeAll(() => {
             paginateSpy = jest.spyOn(internalOctokit, 'paginate');
@@ -369,8 +384,10 @@ describe('DeployChecklistUtils', () => {
         });
 
         beforeEach(() => {
-            paginateSpy.mockImplementation(async () => mockPRs);
-            getPullRequestSpy.mockImplementation(async (parameters) => {
+            paginateSpy.mockResolvedValue(mockPRs);
+            // Octokit endpoint methods carry `defaults`/`endpoint` statics that mockImplementation insists on but
+            // the action never touches, so the stub only implements the call signature.
+            const getPullRequest = async (parameters?: Parameters<OctokitGetPullRequest>[0]) => {
                 if (!parameters) {
                     throw new Error('Expected pull request parameters.');
                 }
@@ -381,7 +398,9 @@ describe('DeployChecklistUtils', () => {
                         merged_by: pullRequest ? {login: 'octocat'} : null,
                     },
                 });
-            });
+            };
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub deliberately omits the statics described above
+            getPullRequestSpy.mockImplementation(getPullRequest as unknown as OctokitGetPullRequest);
         });
 
         afterEach(() => {

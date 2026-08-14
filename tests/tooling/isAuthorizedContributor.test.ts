@@ -1,6 +1,6 @@
-/**
- * @jest-environment node
- */
+import type {Mock} from 'bun:test';
+import {afterEach, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import {RequestError} from '@octokit/request-error';
 
 import {isAuthorizedContributor, isContributorPlusMember, isInternalExpensifyEngineer} from '../../.github/actions/javascript/isAuthorizedContributor/isAuthorizedContributor';
@@ -25,9 +25,11 @@ type MembershipResponse = Awaited<ReturnType<GetMembershipForUserInOrg>>;
 type PullResponse = Awaited<ReturnType<PullsGet>>;
 type IssueResponse = Awaited<ReturnType<IssuesGet>>;
 
-let mockGetMembershipForUserInOrg: jest.SpiedFunction<GetMembershipForUserInOrg>;
-let mockPullsGet: jest.SpiedFunction<PullsGet>;
-let mockIssuesGet: jest.SpiedFunction<IssuesGet>;
+// Narrowed to the call signature: octokit's methods also carry `defaults`/`endpoint` statics, which a mock
+// implementation has no way to supply, and this test only ever calls the endpoint.
+let mockGetMembershipForUserInOrg: Mock<(...args: Parameters<GetMembershipForUserInOrg>) => ReturnType<GetMembershipForUserInOrg>>;
+let mockPullsGet: Mock<PullsGet>;
+let mockIssuesGet: Mock<IssuesGet>;
 
 beforeEach(() => {
     jest.clearAllMocks();
@@ -38,8 +40,9 @@ beforeEach(() => {
     mockPullsGet = jest.spyOn(mockOctokit.pulls, 'get');
     mockIssuesGet = jest.spyOn(mockOctokit.issues, 'get');
 
+    // `octokit` is a getter over `internalOctokit.rest`, already populated by initOctokitWithToken above, so it
+    // resolves to mockOctokit without being stubbed. Bun's spyOn cannot wrap accessor properties in any case.
     jest.spyOn(GithubUtils, 'initOctokitWithToken').mockImplementation(() => {});
-    jest.spyOn(GithubUtils, 'octokit', 'get').mockReturnValue(mockOctokit);
 });
 
 afterEach(() => {

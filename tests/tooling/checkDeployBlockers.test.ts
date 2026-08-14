@@ -1,12 +1,10 @@
+import type {Mock} from 'bun:test';
+import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import run from '@github/actions/javascript/checkDeployBlockers/checkDeployBlockers';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
-
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
 
 import createMock from '../utils/createMock';
@@ -30,13 +28,14 @@ const mockGetInput = jest.fn().mockImplementation((arg: string): string | number
 });
 
 const mockSetOutput = jest.fn();
-let mockGetIssue: jest.SpiedFunction<GetIssueMethod>;
-let mockListComments: jest.SpiedFunction<ListCommentsMethod>;
+let mockGetIssue: Mock<GetIssueMethod>;
+let mockListComments: Mock<ListCommentsMethod>;
 
 beforeAll(() => {
-    // Mock core module
-    asMutable(core).getInput = mockGetInput;
-    asMutable(core).setOutput = mockSetOutput;
+    // Mock core module. Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be
+    // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+    jest.spyOn(core, 'setOutput').mockImplementation(mockSetOutput);
 
     GithubUtils.initOctokitWithToken('fake_token');
     if (!GithubUtils.internalOctokit) {

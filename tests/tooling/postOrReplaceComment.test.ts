@@ -1,20 +1,17 @@
+import type {Mock} from 'bun:test';
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import ghAction from '@github/actions/javascript/postOrReplaceComment/postOrReplaceComment';
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
-
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
 import {context} from '@actions/github';
 import * as GitHubEnvironment from '@actions/github/lib/utils';
-import {when} from 'jest-when';
 
 import createMock from '../utils/createMock';
 
-const mockGetInput = jest.fn();
+const mockGetInput = jest.fn<typeof core.getInput>();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
 type InternalOctokit = NonNullable<typeof GithubUtils.internalOctokit>;
 type CreateCommentResponse = Awaited<ReturnType<InternalOctokit['rest']['issues']['createComment']>>;
@@ -24,27 +21,26 @@ type ListCommentsEndpoint = ListCommentsMethod['endpoint'];
 type GraphqlMethod = InternalOctokit['graphql'];
 
 let internalOctokit: InternalOctokit;
-let listCommentsSpy: jest.SpiedFunction<ListCommentsEndpoint>;
-let graphqlSpy: jest.SpiedFunction<GraphqlMethod>;
+let listCommentsSpy: Mock<ListCommentsEndpoint>;
+let graphqlSpy: Mock<GraphqlMethod>;
 
-jest.mock('@actions/github', () => {
-    const repository = process.env.GITHUB_REPOSITORY;
-    if (!repository) {
-        throw new Error('GITHUB_REPOSITORY must be set in owner/repository format.');
-    }
+// `context` is a plain object instance, so the fields this action reads can be assigned directly rather than
+// mocking the module. `context.repo` derives from GITHUB_REPOSITORY, which tests/tooling/setup.ts defaults to
+// Expensify/App, and `runId` is fixed here so the expected messages below don't depend on the environment.
+context.runId = 1234;
 
-    const [owner, repo, ...extraParts] = repository.split('/');
-    if (!owner || !repo || extraParts.length > 0 || /\s/.test(owner) || /\s/.test(repo)) {
-        throw new Error(`GITHUB_REPOSITORY must be set in owner/repository format, received: ${repository}`);
-    }
-
-    return {
-        context: {
-            repo: {owner, repo},
-            runId: 1234,
-        },
-    };
-});
+/**
+ * Stubs `core.getInput` for one test. Reading an input the test didn't declare throws rather than silently
+ * returning the empty string, so a new `getInput` call in the action can't quietly change what these tests assert.
+ */
+function mockInputs(inputs: Record<string, string>) {
+    mockGetInput.mockImplementation((name: string) => {
+        if (!(name in inputs)) {
+            throw new Error(`Unexpected core.getInput('${name}'): add it to this test's inputs.`);
+        }
+        return inputs[name];
+    });
+}
 
 const previousCommentsResponse = createMock<ListCommentsResponse>({
     data: [
@@ -66,7 +62,7 @@ const commentsFetchResponse = createMock<Response>({
     headers: commentsResponseHeaders,
     json: () => Promise.resolve(previousCommentsResponse.data),
 });
-const fetchComments: typeof globalThis.fetch = () => Promise.resolve(commentsFetchResponse);
+const fetchComments: typeof globalThis.fetch = Object.assign(() => Promise.resolve(commentsFetchResponse), {preconnect: () => {}});
 
 beforeAll(() => {
     const getOctokitOptions = GitHubEnvironment.getOctokitOptions;
@@ -96,7 +92,7 @@ beforeAll(() => {
     listCommentsSpy = jest.spyOn(internalOctokit.rest.issues.listComments, 'endpoint');
     jest.spyOn(internalOctokit, 'paginate');
     graphqlSpy = jest.spyOn(internalOctokit, 'graphql');
-    graphqlSpy.mockImplementation(() => Promise.resolve({}));
+    graphqlSpy.mockResolvedValue({});
 });
 
 const androidLink = 'https://expensify.app/ANDROID_LINK';
@@ -163,8 +159,9 @@ Built from Mobile-Expensify PR Expensify/Mobile-Expensify#13.
 
 describe('postOrReplaceComment action tests', () => {
     beforeAll(() => {
-        // Mock core module
-        asMutable(core).getInput = mockGetInput;
+        // Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be reassigned
+        // directly the way Jest's Babel-transpiled CJS interop allowed; spy on it instead.
+        jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
     });
 
     beforeEach(() => {
@@ -191,17 +188,19 @@ describe('postOrReplaceComment action tests', () => {
     }
 
     test('Test GH action', async () => {
-        when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
-        when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
-        when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('13');
-        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
-        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
-        when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
-        when(core.getInput).calledWith('WEB_LINK').mockReturnValue('https://expensify.app/WEB_LINK');
+        mockInputs({
+            REPO: CONST.APP_REPO,
+            APP_PR_NUMBER: '12',
+            MOBILE_EXPENSIFY_PR_NUMBER: '13',
+            COMMENT_PREFIX: testBuildCommentPrefix,
+            COMMENT_BODY: '',
+            ANDROID: 'success',
+            IOS: 'success',
+            WEB: 'success',
+            ANDROID_LINK: androidLink,
+            IOS_LINK: iOSLink,
+            WEB_LINK: webLink,
+        });
         createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
         await ghAction();
         expectPreviousCommentToBeHidden();
@@ -210,15 +209,17 @@ describe('postOrReplaceComment action tests', () => {
     });
 
     test('Test GH action when only App PR number is provided', async () => {
-        when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.APP_REPO);
-        when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('12');
-        when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
-        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('skipped');
-        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
-        when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue('https://expensify.app/ANDROID_LINK');
+        mockInputs({
+            REPO: CONST.APP_REPO,
+            APP_PR_NUMBER: '12',
+            MOBILE_EXPENSIFY_PR_NUMBER: '',
+            COMMENT_PREFIX: testBuildCommentPrefix,
+            COMMENT_BODY: '',
+            ANDROID: 'success',
+            IOS: 'skipped',
+            WEB: 'skipped',
+            ANDROID_LINK: androidLink,
+        });
         createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
         await ghAction();
         expectPreviousCommentToBeHidden();
@@ -227,16 +228,18 @@ describe('postOrReplaceComment action tests', () => {
     });
 
     test('Test GH action when only Mobile-Expensify PR number is provided', async () => {
-        when(core.getInput).calledWith('REPO', {required: true}).mockReturnValue(CONST.MOBILE_EXPENSIFY_REPO);
-        when(core.getInput).calledWith('APP_PR_NUMBER', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('MOBILE_EXPENSIFY_PR_NUMBER', {required: false}).mockReturnValue('13');
-        when(core.getInput).calledWith('COMMENT_PREFIX', {required: true}).mockReturnValue(testBuildCommentPrefix);
-        when(core.getInput).calledWith('COMMENT_BODY', {required: false}).mockReturnValue('');
-        when(core.getInput).calledWith('ANDROID', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('IOS', {required: false}).mockReturnValue('success');
-        when(core.getInput).calledWith('ANDROID_LINK').mockReturnValue(androidLink);
-        when(core.getInput).calledWith('IOS_LINK').mockReturnValue(iOSLink);
-        when(core.getInput).calledWith('WEB', {required: false}).mockReturnValue('skipped');
+        mockInputs({
+            REPO: CONST.MOBILE_EXPENSIFY_REPO,
+            APP_PR_NUMBER: '',
+            MOBILE_EXPENSIFY_PR_NUMBER: '13',
+            COMMENT_PREFIX: testBuildCommentPrefix,
+            COMMENT_BODY: '',
+            ANDROID: 'success',
+            IOS: 'success',
+            WEB: 'skipped',
+            ANDROID_LINK: androidLink,
+            IOS_LINK: iOSLink,
+        });
         createCommentMock.mockResolvedValue(createMock<CreateCommentResponse>({}));
         await ghAction();
         expectPreviousCommentToBeHidden();

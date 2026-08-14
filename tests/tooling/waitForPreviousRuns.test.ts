@@ -1,12 +1,9 @@
+import {beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import run from '@github/actions/javascript/waitForPreviousRuns/waitForPreviousRuns';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import asMutable from '@src/types/utils/asMutable';
-
 /* eslint-disable @typescript-eslint/naming-convention */
-/**
- * @jest-environment node
- */
 import * as core from '@actions/core';
 
 import createMock from '../utils/createMock';
@@ -21,7 +18,7 @@ type ListWorkflowRunsResponse = Awaited<ReturnType<ListWorkflowRuns>>;
 type WorkflowRun = Pick<ListWorkflowRunsResponse['data']['workflow_runs'][number], 'id' | 'status'>;
 
 const mockGetInput = jest.fn();
-const mockListWorkflowRuns = jest.fn<ReturnType<ListWorkflowRuns>, Parameters<ListWorkflowRuns>>();
+const mockListWorkflowRuns = jest.fn<(...args: Parameters<ListWorkflowRuns>) => ReturnType<ListWorkflowRuns>>();
 
 /** Mock a single poll response with the given runs. */
 function mockPoll(runs: WorkflowRun[]) {
@@ -54,16 +51,10 @@ function getErrorMessages(): string[] {
     return coreErrorSpy.mock.calls.map((call) => String(call[0]));
 }
 
-jest.mock('@github/libs/CONST', () => ({
-    __esModule: true,
-    default: {
-        GITHUB_OWNER: 'Expensify',
-        APP_REPO: 'App',
-    },
-}));
-
 beforeAll(() => {
-    asMutable(core).getInput = mockGetInput;
+    // Real ESM module namespace exports are read-only live bindings, so `core.getInput` can't be reassigned
+    // directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
     mockGetInput.mockImplementation((name: string) => {
         if (name === 'WORKFLOW_ID') {
@@ -82,7 +73,10 @@ beforeAll(() => {
     });
 
     GithubUtils.initOctokitWithToken('fake_token');
-    jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(mockListWorkflowRuns);
+    // Octokit endpoint methods carry `defaults`/`endpoint` statics that a bare mock doesn't, so the real ones are
+    // copied onto the stub rather than asserted away.
+    const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;
+    jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(mockListWorkflowRuns, {endpoint, defaults}));
 });
 
 beforeEach(() => {

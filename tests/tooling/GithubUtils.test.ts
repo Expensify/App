@@ -1,10 +1,10 @@
+import type {Mock} from 'bun:test';
+import {afterEach, beforeAll, beforeEach, describe, expect, jest, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 import type {InternalOctokit} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 
-/**
- * @jest-environment node
- */
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
@@ -174,7 +174,7 @@ describe('GithubUtils', () => {
     };
 
     describe('getCommitHistoryBetweenTags', () => {
-        let mockCompareCommits: jest.SpiedFunction<OctokitCompareCommits>;
+        let mockCompareCommits: Mock<OctokitCompareCommits>;
 
         beforeEach(() => {
             jest.spyOn(core, 'getInput').mockImplementation((name) => {
@@ -246,7 +246,7 @@ describe('GithubUtils', () => {
         });
 
         test('should handle 404 RequestError with specific error message', async () => {
-            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation();
+            const coreErrorSpy = jest.spyOn(core, 'error').mockImplementation(() => {});
             const requestError = new RequestError('Not Found', 404, {
                 request: {
                     method: 'GET',

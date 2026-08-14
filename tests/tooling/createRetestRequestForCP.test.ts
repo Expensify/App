@@ -1,11 +1,9 @@
+import {describe, expect, it} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 
 import {buildRetestPayload, getCherryPickSourceSHAs, getLinkedIssueNumbers, getRetestMarker} from '@scripts/createRetestRequestForCP';
 import type {RetestHit} from '@scripts/createRetestRequestForCP';
-
-/**
- * @jest-environment node
- */
 
 describe('createRetestRequestForCP', () => {
     describe('getCherryPickSourceSHAs', () => {

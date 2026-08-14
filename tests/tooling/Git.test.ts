@@ -1,17 +1,23 @@
-import Git from '@scripts/utils/Git';
+import type {Mock} from 'bun:test';
+import {afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
 
-/**
- * @jest-environment node
- */
-import {execSync} from 'child_process';
+import * as childProcess from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
 
 import createMock from '../utils/createMock';
 
-// Mock execSync to control git diff output
-jest.mock('child_process');
-const mockExecSync = jest.mocked(execSync);
+// Mock execSync to control git diff output. Bun has no equivalent of `jest.mock(path)`'s automock, and
+// `child_process`'s named exports are read-only live bindings, so replace the whole module. This must run before
+// `Git` (which imports execSync internally) is imported below, and `bun test --isolate` keeps the replacement from
+// leaking into the other files in tests/tooling.
+// Typed to the single overload Git.ts actually uses (it always passes `encoding: 'utf8'`), so the test's
+// string-returning stubs type-check against it.
+const mockExecSync = jest.fn<(command: string, options?: childProcess.ExecSyncOptions) => string>();
+await mock.module('child_process', () => ({...childProcess, execSync: mockExecSync}));
+
+// Must be imported after the mock.module() call above so it picks up the mock.
+const {default: Git} = await import('@scripts/utils/Git');
 
 // Test constants for untracked files tests
 const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
@@ -1223,8 +1229,8 @@ describe('Git', () => {
     });
 
     describe('diff with shouldIncludeUntrackedFiles', () => {
-        let mockExistsSync: jest.SpyInstance;
-        let mockReadFileSync: jest.SpyInstance;
+        let mockExistsSync: Mock<typeof fs.existsSync>;
+        let mockReadFileSync: Mock<typeof fs.readFileSync>;
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -1252,7 +1258,7 @@ describe('Git', () => {
 
             // Verify git ls-files was not called
             const calls = mockExecSync.mock.calls.map((call) => call[0]);
-            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+            expect(calls.some((command) => command.includes('git ls-files'))).toBe(false);
         });
 
         it('does not include untracked files when toRef is provided even if shouldIncludeUntrackedFiles is true', () => {
@@ -1262,7 +1268,7 @@ describe('Git', () => {
 
             expect(mockExecSync).toHaveBeenCalledTimes(1);
             const calls = mockExecSync.mock.calls.map((call) => call[0]);
-            expect(calls).not.toContain(expect.stringContaining('git ls-files'));
+            expect(calls.some((command) => command.includes('git ls-files'))).toBe(false);
         });
 
         it('includes untracked files when shouldIncludeUntrackedFiles is true and toRef is undefined', () => {
