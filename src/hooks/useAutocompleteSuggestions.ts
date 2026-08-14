@@ -133,8 +133,7 @@ function useAutocompleteSuggestions({
     const {exportedToFilterOptions} = useExportedToFilterOptions();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 
-    // A blank query can't produce an autocomplete key, so skip the parser and its module evaluation.
-    const parsedQuery = autocompleteQueryValue.trim() ? parseForAutocomplete(autocompleteQueryValue) : undefined;
+    const parsedQuery = parseForAutocomplete(autocompleteQueryValue);
     const {autocomplete, ranges = []} = parsedQuery ?? {};
 
     let autocompleteKey = autocomplete?.key;
