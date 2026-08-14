@@ -149,6 +149,7 @@ import {
     getReportOrDraftReport,
     getReportPreviewReportActionMessage,
     getReportTransactions,
+    getUploadingAttachmentHtmlFromComment,
     hasOutstandingChildRequest,
     isAdminRoom,
     isChatThread as isChatThreadReportUtils,
@@ -166,8 +167,10 @@ import {
     isReportManuallyReimbursed,
     isReportNotFound,
     isSelfDM,
+    isUploadingAttachmentRemovedFromDraft,
     isValidReportIDFromPath,
     prepareOnboardingOnyxData,
+    replaceLocalAttachmentReferences,
 } from '@libs/ReportUtils';
 import {buildOptimisticSnapshotData, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -3532,19 +3535,21 @@ function editReportComment(
     // https://github.com/Expensify/App/issues/13221
     const originalCommentHTML = ReportActionsUtils.getReportActionHtml(originalReportAction);
     const originalCommentMarkdown = Parser.htmlToMarkdown(originalCommentHTML ?? '').trim();
+    const shouldRemoveQueuedAttachment = isUploadingAttachmentRemovedFromDraft(textForNewComment, originalCommentHTML);
+    const draftForNewComment = replaceLocalAttachmentReferences(textForNewComment, originalCommentHTML, originalReportAction.reportActionID);
 
     // Skip the Edit if draft is not changed
-    if (originalCommentMarkdown === textForNewComment) {
+    if (originalCommentMarkdown === draftForNewComment) {
         return;
     }
-    const htmlForNewComment = handleUserDeletedLinksInHtml(textForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache);
+    const htmlForNewComment = handleUserDeletedLinksInHtml(draftForNewComment, originalCommentMarkdown, currentUserLogin, personalDetails, videoAttributeCache);
 
     const reportComment = Parser.htmlToText(htmlForNewComment);
 
     // For comments shorter than or equal to 10k chars, convert the comment from MD into HTML because that's how it is stored in the database
     // For longer comments, skip parsing and display plaintext for performance reasons. It takes over 40s to parse a 100k long string!!
     let parsedOriginalCommentHTML = originalCommentHTML;
-    if (textForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
+    if (draftForNewComment.length <= CONST.MAX_MARKUP_LENGTH) {
         const autolinkFilter = {filterRules: Parser.rules.map((rule) => rule.name).filter((name) => name !== 'autolink')};
         parsedOriginalCommentHTML = Parser.replace(originalCommentMarkdown, autolinkFilter);
     }
@@ -3557,6 +3562,12 @@ function editReportComment(
     // Optimistically update the reportAction with the new message
     const reportActionID = originalReportAction.reportActionID;
     const originalMessage = ReportActionsUtils.getReportActionMessage(originalReportAction);
+
+    // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
+    const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
+    const optimisticHtml = uploadingAttachmentHtml ? `${htmlForNewComment}<br /><br />${uploadingAttachmentHtml}` : htmlForNewComment;
+    const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
+
     const optimisticReportActions: PartialDeep<ReportActions> = {
         [reportActionID]: {
             pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
@@ -3565,8 +3576,8 @@ function editReportComment(
                     ...originalMessage,
                     type: CONST.REPORT.MESSAGE.TYPE.COMMENT,
                     isEdited: true,
-                    html: htmlForNewComment,
-                    text: reportComment,
+                    html: optimisticHtml,
+                    text: optimisticText,
                 },
             ],
             lastModified: DateUtils.getDBTime(),
@@ -3633,7 +3644,7 @@ function editReportComment(
             checkAndFixConflictingRequest: (persistedRequests) => {
                 const addCommentIndex = persistedRequests.findIndex((request) => addNewMessageWithText.has(request.command) && request.data?.reportActionID === reportActionID);
                 if (addCommentIndex > -1) {
-                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex);
+                    return resolveEditCommentWithNewAddCommentRequest(persistedRequests, parameters, reportActionID, addCommentIndex, shouldRemoveQueuedAttachment);
                 }
                 return resolveDuplicationConflictAction(persistedRequests as AnyRequest[], createUpdateCommentMatcher(reportActionID));
             },
@@ -4407,7 +4418,9 @@ function buildNewReportOptimisticData({
         });
     }
 
-    optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+    if (!reportName) {
+        optimisticData.push(...updateTitleFieldToMatchPolicy(reportID, policy));
+    }
 
     const currentSearchQueryJSON = getCurrentSearchQueryJSON();
     if (currentSearchQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {

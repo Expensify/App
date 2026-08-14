@@ -9,7 +9,8 @@ import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import FrozenCardHeader from '@components/FrozenCardHeader';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useLockedAccountActions, useLockedAccountState} from '@components/LockedAccountModalProvider';
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useMultifactorAuthentication} from '@components/MultifactorAuthentication/Context';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
@@ -594,10 +595,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                         {(shouldShowChangePINRow || shouldShowActionRows) && (
                             <View style={styles.mt4}>
                                 {shouldShowChangePINRow && (
-                                    <MenuItem
+                                    <MenuItemNavigation
                                         title={translate('cardPage.changePin')}
                                         icon={expensifyIcons.Key}
-                                        shouldShowRightIcon
                                         onPress={() => {
                                             const physicalCardID = String(currentPhysicalCard?.cardID);
                                             if (isOfflinePINMarket(countryByIp)) {
@@ -643,10 +643,9 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                                 />
                                             ))}
                                         {shouldShowReportLostCardButton && (
-                                            <MenuItem
+                                            <MenuItemNavigation
                                                 title={translate('reportCardLostOrDamaged.screenTitle')}
                                                 icon={expensifyIcons.Flag}
-                                                shouldShowRightIcon
                                                 onPress={() => {
                                                     if (isAccountLocked) {
                                                         showLockedAccountModal();
@@ -663,7 +662,7 @@ function ExpensifyCardPage({route}: ExpensifyCardPageProps) {
                                         )}
 
                                         {shouldShowEditSpendRules && (
-                                            <MenuItem
+                                            <MenuItemAction
                                                 icon={expensifyIcons.CreditCardLock}
                                                 title={translate('cardPage.editSpendRules')}
                                                 onPress={navigateToSpendRulesPage}
