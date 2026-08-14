@@ -53,16 +53,20 @@ jest.mock('@hooks/useIsInLandscapeMode', () => ({
 const INPUT_TEST_ID = 'number-with-symbol-form-input';
 const getFlipLabel = () => translateLocal('iou.flip');
 
-function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
-    return render(
+function wrapForm(props: Partial<NumberWithSymbolFormProps> = {}) {
+    return (
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumberWithSymbolForm
                 symbol="$"
                 testID={INPUT_TEST_ID}
                 {...props}
             />
-        </ComposeProviders>,
+        </ComposeProviders>
     );
+}
+
+function renderForm(props: Partial<NumberWithSymbolFormProps> = {}) {
+    return render(wrapForm(props));
 }
 
 function queryAllById(id: string) {
@@ -141,16 +145,7 @@ describe('NumberWithSymbolForm', () => {
 
             expect(screen.getByDisplayValue('25')).toBeTruthy();
 
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberWithSymbolForm
-                        symbol="$"
-                        testID={INPUT_TEST_ID}
-                        displayAsTextInput
-                        value=""
-                    />
-                </ComposeProviders>,
-            );
+            rerender(wrapForm({displayAsTextInput: true, value: ''}));
 
             await waitForBatchedUpdatesWithAct();
 
@@ -162,16 +157,7 @@ describe('NumberWithSymbolForm', () => {
             const {rerender} = renderForm({displayAsTextInput: true, value: '5'});
             await waitForBatchedUpdatesWithAct();
 
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberWithSymbolForm
-                        symbol="$"
-                        testID={INPUT_TEST_ID}
-                        displayAsTextInput
-                        value="10"
-                    />
-                </ComposeProviders>,
-            );
+            rerender(wrapForm({displayAsTextInput: true, value: '10'}));
 
             await waitForBatchedUpdatesWithAct();
 
@@ -183,18 +169,7 @@ describe('NumberWithSymbolForm', () => {
             const {rerender} = renderForm({displayAsTextInput: true, value: '1.5', decimals: 2, onInputChange});
             await waitForBatchedUpdatesWithAct();
 
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberWithSymbolForm
-                        symbol="$"
-                        testID={INPUT_TEST_ID}
-                        displayAsTextInput
-                        value="1.5"
-                        decimals={0}
-                        onInputChange={onInputChange}
-                    />
-                </ComposeProviders>,
-            );
+            rerender(wrapForm({displayAsTextInput: true, value: '1.5', decimals: 0, onInputChange}));
 
             await waitForBatchedUpdatesWithAct();
 
@@ -957,15 +932,7 @@ describe('NumberWithSymbolForm', () => {
             expect(getTextInput().props.selection).toEqual({start: 1, end: 3});
 
             mockIsFocused.mockReturnValue(true);
-            rerender(
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-                    <NumberWithSymbolForm
-                        symbol="$"
-                        testID={INPUT_TEST_ID}
-                        value="1234"
-                    />
-                </ComposeProviders>,
-            );
+            rerender(wrapForm({value: '1234'}));
             await waitForBatchedUpdatesWithAct();
 
             expect(getTextInput().props.selection).toEqual({start: 3, end: 3});
