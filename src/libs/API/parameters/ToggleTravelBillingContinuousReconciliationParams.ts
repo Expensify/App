@@ -1,7 +1,8 @@
 type ToggleTravelBillingContinuousReconciliationParams = {
     policyAccountID: number;
     shouldUseContinuousReconciliation: boolean;
-    travelBillingContinuousReconciliationConnection?: string;
+    // The backend reads this request key, so it keeps the legacy spelling.
+    travelInvoicingContinuousReconciliationConnection?: string;
 };
 
 export default ToggleTravelBillingContinuousReconciliationParams;

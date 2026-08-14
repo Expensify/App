@@ -1435,9 +1435,10 @@ type OriginalMessageExportIntegration = {
     reimbursableUrls?: string[];
 
     /**
-     * A list of URLs to the Travel Billing Journal Entry records
+     * A list of URLs to the Travel Billing Journal Entry records.
+     * The key keeps the legacy spelling because it is stored in existing report actions.
      */
-    travelBillingUrls?: string[];
+    travelInvoicingUrls?: string[];
 
     /**
      * The Concierge reasoning for the action

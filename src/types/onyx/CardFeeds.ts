@@ -268,8 +268,8 @@ type CardFeeds = {
         /** List of member emails exempt from the domain's 2FA requirement */
         twoFactorAuthExemptEmails?: string[];
 
-        /** Travel billing provisioning data */
-        travelBilling?: {
+        /** Travel billing provisioning data. The key keeps the legacy spelling because the backend sends it. */
+        travelInvoicing?: {
             /** Provisioning errors keyed by the failed member's account ID */
             errors?: TravelBillingProvisioningErrors;
         };

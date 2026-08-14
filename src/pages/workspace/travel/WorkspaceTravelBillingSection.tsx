@@ -183,7 +183,7 @@ function WorkspaceTravelBillingSection({policyID}: WorkspaceTravelBillingSection
     const isOnWaitlist = !!cardOnWaitlist;
     const isLoading = !!cardSettings?.isLoading;
     const hasOutstandingBalance = hasOutstandingTravelBalance(travelSettings);
-    const travelProvisioningErrors = domainMemberData?.settings?.travelBilling?.errors;
+    const travelProvisioningErrors = domainMemberData?.settings?.travelInvoicing?.errors;
     const hasTravelProvisioningErrors = isTravelBillingEnabled && !!travelProvisioningErrors && Object.keys(travelProvisioningErrors).length > 0;
 
     /**

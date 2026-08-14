@@ -183,7 +183,7 @@ function toggleTravelBillingContinuousReconciliation(
         ? {
               policyAccountID: workspaceAccountID,
               shouldUseContinuousReconciliation,
-              travelBillingContinuousReconciliationConnection: connectionName,
+              travelInvoicingContinuousReconciliationConnection: connectionName,
           }
         : {
               policyAccountID: workspaceAccountID,
@@ -259,7 +259,7 @@ function setTravelBillingReconciliationBankAccount(
 ) {
     const parameters: SetTravelBillingReconciliationBankAccountParams = {
         domainName,
-        travelBillingReconciliationBankAccountID,
+        travelInvoicingReconciliationBankAccountID: travelBillingReconciliationBankAccountID,
     };
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID>> = [
@@ -530,7 +530,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 settings: {
-                    travelBilling: {
+                    travelInvoicing: {
                         // Errors are keyed by account ID, so a merge cannot clear them; null removes the field entirely.
                         errors: null,
                     },
@@ -545,7 +545,7 @@ function retryTravelCardsProvisioning(policyID: string, workspaceAccountID: numb
             key: `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`,
             value: {
                 settings: {
-                    travelBilling: {
+                    travelInvoicing: {
                         errors: currentProvisioningErrors,
                     },
                 },

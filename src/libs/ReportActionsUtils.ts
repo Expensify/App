@@ -2758,7 +2758,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
     const {label, markedManually, automaticAction} = originalMessage;
     const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
     const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
-    const travelBillingUrls = originalMessage.travelBillingUrls ?? [];
+    const travelBillingUrls = originalMessage.travelInvoicingUrls ?? [];
     const reportID = reportAction?.reportID;
     const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
     const base62ReportID = getBase62ReportID(Number(reportID));
