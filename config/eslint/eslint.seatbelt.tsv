@@ -1609,7 +1609,6 @@
 "../../tests/unit/useCreateReportTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/useGroupDraftRestoreTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	14
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/useSearchHighlightAndScrollTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/useSubPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/useTodosTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
