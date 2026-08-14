@@ -2,7 +2,7 @@
 
 ## HybridApp Architecture
 
-**IMPORTANT**: The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
+- The mobile application is built from the Mobile-Expensify submodule, not directly from the App repository.
 **IMPORTANT**: NewDot refers to the new Expensify App, OldDot or Expensify Classic refers to our Old expensify app and website
 
 ### Key Integration Points
