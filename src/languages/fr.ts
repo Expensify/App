@@ -7242,6 +7242,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
             yourWorkspace: `Votre espace de travail est défini sur une devise non prise en charge. Consultez la <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">liste des devises prises en charge</a>.`,
             chooseAnExisting: 'Choisissez un compte bancaire existant pour payer les dépenses ou ajoutez-en un nouveau.',
             changeBankAccount: 'Changer de compte bancaire',
+            updateCurrencyForExpensifyCard:
+                'La Carte Expensify fonctionne avec des comptes bancaires en USD, GBP et EUR. Mettez à jour cet espace de travail vers une devise prise en charge ou utilisez un autre espace de travail pour vous inscrire.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transférer le responsable',

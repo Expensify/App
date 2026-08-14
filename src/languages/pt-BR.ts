@@ -7170,6 +7170,8 @@ O plano Control começa em US$ 9 por membro ativo por mês.`,
             yourWorkspace: `Seu workspace está configurado para uma moeda não compatível. Veja a <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lista de moedas compatíveis</a>.`,
             chooseAnExisting: 'Escolha uma conta bancária existente para pagar despesas ou adicione uma nova.',
             changeBankAccount: 'Alterar conta bancária',
+            updateCurrencyForExpensifyCard:
+                'O Cartão Expensify funciona com contas bancárias em USD, GBP e EUR. Atualize este workspace para uma moeda compatível ou use outro workspace para se inscrever.',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir proprietário',
