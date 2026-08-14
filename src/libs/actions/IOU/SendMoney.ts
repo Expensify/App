@@ -563,6 +563,7 @@ function executeSendMoney(
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${params.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            destinationReportID: report?.reportID,
         },
     );
 }

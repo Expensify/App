@@ -875,6 +875,7 @@ function sendInvoice({
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        destinationReportID: invoiceRoom.reportID,
     });
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, transactionID, CONST.SEARCH.DATA_TYPES.INVOICE);

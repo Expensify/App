@@ -84,6 +84,7 @@ function clearChannelTimeout(channel: DeferredChannel) {
 type DeferredWriteOptions = {
     safetyTimeoutMs?: number;
     optimisticWatchKey?: OnyxKey;
+    destinationReportID?: string;
 };
 
 /**
@@ -92,7 +93,7 @@ type DeferredWriteOptions = {
  * immediately before registering the new one.
  */
 function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
-    const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey} = options;
+    const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey, destinationReportID: callerDestinationReportID} = options;
 
     // Preserve the destination report ID across the reservation -> registration handoff so
     // scoped consumers (`hasDeferredWriteForReport`) keep matching after the real callback
@@ -101,6 +102,20 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
     let destinationReportID: string | undefined = pendingRegistrations.get(key)?.destinationReportID;
 
     const existing = channels.get(key);
+
+    // Guards against a write for one report silently consuming another report's still-unresolved
+    // reservation on the same global key (SEARCH/DISMISS_MODAL are not per-report). Only compares
+    // when both sides actually supply a destinationReportID - fails open (allows the consume) when
+    // either side is unscoped, since a false mismatch would leave the rightful reservation's
+    // pendingRegistrations entry unresolved forever (no safety net resolves it once this bypasses
+    // the normal handoff). When a real mismatch is detected, run the caller's write immediately and
+    // leave the existing reservation/pendingRegistrations entry untouched for its rightful owner.
+    const reservedReportID = existing?.isReserved ? existing.destinationReportID : !existing ? pendingRegistrations.get(key)?.destinationReportID : undefined;
+    if (reservedReportID && callerDestinationReportID && reservedReportID !== callerDestinationReportID) {
+        callback();
+        return;
+    }
+
     if (existing) {
         if (existing.isReserved) {
             destinationReportID = existing.destinationReportID;
@@ -310,12 +325,15 @@ function hasDeferredWriteOrPendingRegistration(key: string): boolean {
     return hasDeferredWrite(key) || pendingRegistrations.has(key);
 }
 
-function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void}) {
-    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred} = options;
+function deferOrExecuteWrite(
+    apiWrite: () => void,
+    options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void; destinationReportID?: string},
+) {
+    const {shouldDeferForSearch, isRetry = false, optimisticWatchKey, onDeferred, destinationReportID} = options;
 
     if (shouldDeferForSearch) {
         onDeferred?.();
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey, destinationReportID});
         return;
     }
 
@@ -324,7 +342,7 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
     // but this is acceptable: retries are rare and the alternative is a stuck write.
     if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
         onDeferred?.();
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey});
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey, destinationReportID});
         return;
     }
 
@@ -332,7 +350,7 @@ function deferOrExecuteWrite(apiWrite: () => void, options: {shouldDeferForSearc
     // createTransaction) that wasn't matched by the explicit shouldDeferForSearch flag.
     if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
-        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey});
+        registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey, destinationReportID});
         return;
     }
 

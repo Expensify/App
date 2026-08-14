@@ -375,6 +375,7 @@ function splitBill({
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            destinationReportID: parameters.reportID,
         },
     );
     if (shouldHandleNavigation) {
@@ -493,6 +494,7 @@ function splitBillAndOpenReport({
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            destinationReportID: parameters.reportID,
         },
     );
     if (shouldHandleNavigation) {
@@ -895,6 +897,7 @@ function startSplitBill({
             shouldDeferForSearch,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            destinationReportID: parameters.chatReportID,
         },
     );
 
@@ -2335,6 +2338,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         shouldDeferForSearch: false,
         optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${parameters.transactionID}`,
         onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+        destinationReportID: activeReportID,
     });
 
     highlightTransactionOnSearchRouteIfNeeded(isFromGlobalCreate, parameters.transactionID, CONST.SEARCH.DATA_TYPES.EXPENSE);

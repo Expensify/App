@@ -1946,6 +1946,7 @@ function requestMoney(requestMoneyInformation: RequestMoneyInformation): {iouRep
             isRetry: requestMoneyInformation.isRetry,
             optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`,
             onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+            destinationReportID: activeReportID,
         });
     }
 
@@ -2904,6 +2905,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
                 isRetry: params.isRetry,
                 optimisticWatchKey: `${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`,
                 onDeferred: () => addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE),
+                destinationReportID: activeReportID,
             });
         }
     }
