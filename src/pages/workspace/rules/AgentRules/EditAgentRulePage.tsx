@@ -48,12 +48,11 @@ function EditAgentRulePage({
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
+    const shouldUseExpandedRevampFormLayout = !shouldUseScrollableLayout;
     const policy = usePolicy(policyID);
     const agentRule = policy?.rules?.agentRules?.[ruleID];
     const formRef = useRef<FormRef>(null);
-    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
+    const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {

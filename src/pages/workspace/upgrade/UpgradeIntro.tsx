@@ -2,7 +2,6 @@ import useHasTeam2025Pricing from '@hooks/useHasTeam2025Pricing';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -39,9 +38,7 @@ type Props = {
 function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizing, isDistanceRateUpgrade, isReporting, policyID, backTo, upgradePlanType}: Props) {
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
-    const {isBetaEnabled} = usePermissions();
     const isCurrentPolicySubmit = isSubmitPolicy(policy);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {translate} = useLocalize();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
@@ -136,7 +133,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
         if (feature.id === 'preventSelfApproval' || feature.id === 'autoApproveCompliantReports' || feature.id === 'autoPayApprovedReports') {
             return translate('workspace.upgrade.approvals.onlyAvailableOnPlan', planParams);
         }
-        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id && isRulesRevampEnabled) {
+        if (feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.id) {
             return translate('workspace.upgrade.rules.onlyAvailableOnPlanUnlimited', planParams);
         }
         return translate(`workspace.upgrade.${feature.id}.onlyAvailableOnPlan`, planParams);

@@ -42,7 +42,6 @@ import {View} from 'react-native';
 import WorkflowsApprovalsTab from './tabs/WorkflowsApprovalsTab';
 import WorkflowsPaymentsTab from './tabs/WorkflowsPaymentsTab';
 import WorkflowsSubmissionsTab from './tabs/WorkflowsSubmissionsTab';
-import WorkspaceWorkflowsPageRevamp from './WorkspaceWorkflowsPageRevamp';
 
 type WorkspaceWorkflowsPageProps = WithPolicyProps & PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.WORKFLOWS>;
 
@@ -57,20 +56,14 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isBetaEnabled} = usePermissions();
     const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
 
     const fetchData = useCallback(() => {
-        // This component still mounts (and keeps its hooks running) when the revamp renders below, so let the revamp
-        // page own fetching to avoid a duplicate OpenPolicyWorkflowsPage on mount and on every reconnect.
-        if (isRulesRevampEnabled) {
-            return;
-        }
         openPolicyWorkflowsPage(policyID, true);
         getPaymentMethods();
-    }, [policyID, isRulesRevampEnabled]);
+    }, [policyID]);
 
     const {isOffline} = useNetwork({onReconnect: fetchData});
     const canReadWorkflows = canMemberRead(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS);
@@ -140,10 +133,6 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
             translate,
         );
     }, [isOffline, showConfirmModal, translate, policyID]);
-
-    if (isRulesRevampEnabled) {
-        return <WorkspaceWorkflowsPageRevamp {...props} />;
-    }
 
     const shouldBlockApprovalWorkflowEditing = isAnyHRReadOnlyWorkflowMode(policy);
 

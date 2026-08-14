@@ -9,7 +9,6 @@ import TextInput from '@components/TextInput';
 
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import CONST from '@src/CONST';
@@ -32,11 +31,9 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const shouldUseScrollableLayout = useIsInLandscapeMode();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldUseExpandedRevampFormLayout = isRulesRevampEnabled && !shouldUseScrollableLayout;
+    const shouldUseExpandedRevampFormLayout = !shouldUseScrollableLayout;
     const formRef = useRef<FormRef>(null);
-    const describeRuleLabel = isRulesRevampEnabled ? translate('workspace.rules.agentRules.describeRuleForConcierge') : translate('workspace.rules.agentRules.describeRuleTitle');
+    const describeRuleLabel = translate('workspace.rules.agentRules.describeRuleForConcierge');
 
     const submitFormOnModEnter = (event: TextInputKeyPressEvent | KeyboardEvent) => {
         if (!('key' in event)) {
@@ -67,7 +64,7 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             formID={ONYXKEYS.FORMS.ADD_AGENT_RULE_FORM}
             validate={validate}
             onSubmit={onSave}
-            submitButtonText={isRulesRevampEnabled ? translate('workspace.rules.agentRules.createRule') : translate('common.save')}
+            submitButtonText={translate('workspace.rules.agentRules.createRule')}
             style={[styles.flex1, styles.ph5]}
             shouldUseScrollView={shouldUseScrollableLayout}
             submitFlexEnabled={shouldUseScrollableLayout ? undefined : false}
@@ -78,12 +75,6 @@ function AddAgentRuleWriteTab({onSave}: AddAgentRuleWriteTabProps) {
             keyboardSubmitBehavior={CONST.KEYBOARD_SUBMIT_BEHAVIOR.SUBMIT_ONLY}
         >
             <View style={styles.flex1}>
-                {!isRulesRevampEnabled && (
-                    <>
-                        <Text style={[styles.textHeadlineH1, styles.mv2]}>{translate('workspace.rules.agentRules.describeRuleHeadline')}</Text>
-                        <Text style={[styles.textSupporting, styles.mb5]}>{translate('workspace.rules.agentRules.describeRuleForConcierge')}</Text>
-                    </>
-                )}
                 <View style={inputWrapperStyles}>
                     <InputWrapper
                         InputComponent={TextInput}

@@ -39,14 +39,12 @@ import AgentRulesSection from './AgentRulesSection';
 import getImportMerchantRulesOption from './getImportMerchantRulesOption';
 import IndividualExpenseRulesSection from './IndividualExpenseRulesSection';
 import MerchantRulesSection from './MerchantRulesSection';
-import PolicyRulesPageRevamp from './PolicyRulesPageRevamp';
 
 type PolicyRulesPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.RULES>;
 
 const agentsRulesBannerDismissedSelector = (value: OnyxEntry<DismissedProductTraining>): boolean => !!value?.[CONST.AGENTS_RULES_BANNER];
 
-function PolicyRulesPage(props: PolicyRulesPageProps) {
-    const {route} = props;
+function PolicyRulesPage({route}: PolicyRulesPageProps) {
     const {translate} = useLocalize();
     const {policyID} = route.params;
     const policy = usePolicy(policyID);
@@ -57,7 +55,6 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['Table']);
     const {canWrite: canWriteRules, showReadOnlyModal, withReadOnlyFallback} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.RULES);
     const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const isCustomAgentBetaEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const [isAgentsRulesBannerDismissed = false] = useOnyx(ONYXKEYS.NVP_DISMISSED_PRODUCT_TRAINING, {selector: agentsRulesBannerDismissedSelector});
 
@@ -66,16 +63,8 @@ function PolicyRulesPage(props: PolicyRulesPageProps) {
     }, [policyID]);
 
     useEffect(() => {
-        // PolicyRulesPageRevamp fetches rules on its own mount — skip here to avoid duplicate OpenPolicyRulesPage calls.
-        if (isRulesRevampEnabled) {
-            return;
-        }
         fetchRules();
-    }, [fetchRules, isRulesRevampEnabled]);
-
-    if (isRulesRevampEnabled) {
-        return <PolicyRulesPageRevamp {...props} />;
-    }
+    }, [fetchRules]);
 
     const moreOptions: Array<DropdownOption<DeepValueOf<typeof CONST.POLICY.SECONDARY_ACTIONS>>> = [
         getImportMerchantRulesOption({policyID, canWriteRules, showReadOnlyModal, translate, icon: icons.Table}),

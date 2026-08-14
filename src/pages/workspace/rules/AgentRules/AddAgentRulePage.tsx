@@ -67,7 +67,6 @@ function AddAgentRulePage({
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
     const isCustomAgentEnabled = isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policy = usePolicy(policyID);
     const linkPressedRef = useRef(false);
     const {showConfirmModal, closeModal} = useConfirmModal();
@@ -138,13 +137,8 @@ function AddAgentRulePage({
     };
 
     const navigateBackToAgentsTab = () => {
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-            Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
-            return;
-        }
-
-        Navigation.goBack();
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
+        Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
     };
 
     const saveRule = (values: FormOnyxValues<AddAgentRuleFormID>): void => {
@@ -164,9 +158,7 @@ function AddAgentRulePage({
             closeModal();
         };
 
-        if (isRulesRevampEnabled) {
-            Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
-        }
+        Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.AGENTS);
 
         Navigation.dismissModal({
             afterTransition: () => {
@@ -181,7 +173,7 @@ function AddAgentRulePage({
                             />
                         </View>
                     ),
-                    confirmText: isRulesRevampEnabled ? translate('workspace.rules.agentRules.gotIt') : translate('common.buttonConfirm'),
+                    confirmText: translate('workspace.rules.agentRules.gotIt'),
                     shouldShowCancelButton: false,
                     shouldUseSuccessStyleForConfirm: true,
                     iconSource: BotAvatarBlue,
@@ -218,7 +210,7 @@ function AddAgentRulePage({
                 shouldEnableMaxHeight
             >
                 <HeaderWithBackButton
-                    title={isRulesRevampEnabled ? translate('workspace.rules.agentRules.newRuleTitle') : translate('workspace.rules.agentRules.addRuleTitle')}
+                    title={translate('workspace.rules.agentRules.newRuleTitle')}
                     shouldDisplayHelpButton
                     onBackButtonPress={handleBackButtonPress}
                 />

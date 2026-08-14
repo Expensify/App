@@ -8,7 +8,6 @@ import ROUTES from '@src/ROUTES';
 import {useEffect, useRef} from 'react';
 
 import useOnyx from './useOnyx';
-import usePermissions from './usePermissions';
 import usePolicy from './usePolicy';
 
 /**
@@ -24,13 +23,12 @@ import usePolicy from './usePolicy';
  */
 function useControlOnlyRuleUpgradeRedirect(policyID: string, backTo?: Route) {
     const policy = usePolicy(policyID);
-    const {isBetaEnabled} = usePermissions();
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
 
     const isCollect = isCollectPolicy(policy);
     // Mirrors the feature check in AccessOrNotFoundWrapper. When Rules itself is disabled, that wrapper already
     // redirects to More features, so redirecting to the upgrade page too would flash it on the way there.
-    const isRulesFeatureEnabled = arePolicyRulesEnabled(policy, policyCategories, isBetaEnabled(CONST.BETAS.RULES_REVAMP));
+    const isRulesFeatureEnabled = arePolicyRulesEnabled(policy, policyCategories);
     const hasRedirectedToUpgrade = useRef(false);
     const upgradeBackTo = backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policyID);
 

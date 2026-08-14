@@ -20,7 +20,7 @@ const loadWorkspaceInitialPage = () => require<ReactComponentModule>('../../../.
 
 const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.PROFILE]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceOverviewPage').default,
-    [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPage').default,
+    [SCREENS.WORKSPACE.WORKFLOWS]: () => require<ReactComponentModule>('../../../../pages/workspace/workflows/WorkspaceWorkflowsPageRevamp').default,
     [SCREENS.WORKSPACE.INVOICES]: () => require<ReactComponentModule>('../../../../pages/workspace/invoices/WorkspaceInvoicesPage').default,
     [SCREENS.WORKSPACE.MEMBERS]: () => require<ReactComponentModule>('../../../../pages/workspace/WorkspaceMembersPage').default,
     [SCREENS.WORKSPACE.ROOMS]: () => require<ReactComponentModule>('../../../../pages/workspace/rooms/WorkspaceRoomsPage').default,
@@ -38,7 +38,7 @@ const CENTRAL_PANE_WORKSPACE_SCREENS = {
     [SCREENS.WORKSPACE.RECEIPT_PARTNERS]: () => require<ReactComponentModule>('../../../../pages/workspace/receiptPartners/WorkspaceReceiptPartnersPage').default,
     [SCREENS.WORKSPACE.DISTANCE_RATES]: () => require<ReactComponentModule>('../../../../pages/workspace/distanceRates/PolicyDistanceRatesPage').default,
     [SCREENS.WORKSPACE.TRAVEL]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/PolicyTravelPage').default,
-    [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPage').default,
+    [SCREENS.WORKSPACE.RULES]: () => require<ReactComponentModule>('../../../../pages/workspace/rules/PolicyRulesPageRevamp').default,
     [SCREENS.WORKSPACE.TIME_TRACKING]: () => require<ReactComponentModule>('../../../../pages/workspace/timeTracking/WorkspaceTimeTrackingPage').default,
 } satisfies Screens;
 

@@ -9,17 +9,15 @@ import Text from '@components/Text';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {clearPolicyErrorField, getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
-import {clearPolicyTagListErrors, setPolicyRequiresTag, setPolicyShowTagGLCodes} from '@libs/actions/Policy/Tag';
+import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
+import {clearPolicyTagListErrors, setPolicyShowTagGLCodes} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {hasEnabledOptions as hasEnabledOptionsUtil} from '@libs/OptionsListUtils';
-import {getTagLists as getTagListsUtil, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {getTagLists as getTagListsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -32,7 +30,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceTagsSettingsPageProps =
@@ -45,27 +43,17 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const policyData = usePolicyData(policyID);
     const {tags: policyTags} = policyData;
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
-    const hasEnabledOptions = hasEnabledOptionsUtil(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
-    const updateWorkspaceRequiresTag = useCallback(
-        (value: boolean) => {
-            setPolicyRequiresTag(policyData, value);
-        },
-        [policyData],
-    );
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path);
-    const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading;
+    const shouldBlockEmptySettings = isMultiLevelTags && !isLoading;
 
     const getTagsSettings = (policy: OnyxEntry<Policy>) => {
         const updateShowTagGLCodes = (value: boolean) => {
             setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes);
         };
-        const hasDependentTags = hasDependentTagsUtil(policy, policyTags);
         return (
             <View style={styles.flexGrow1}>
                 {!isMultiLevelTags && (
@@ -94,50 +82,6 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                             shouldShowRightIcon
                         />
                     </OfflineWithFeedback>
-                )}
-                {!isRulesRevampEnabled && (
-                    <>
-                        {(!isMultiLevelTags || hasDependentTags) && (
-                            <OfflineWithFeedback
-                                errors={policy?.errorFields?.requiresTag}
-                                pendingAction={policy?.pendingFields?.requiresTag}
-                                errorRowStyles={styles.mh5}
-                            >
-                                <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                    <Text
-                                        style={[styles.textNormal, styles.flex1, styles.mr2]}
-                                        accessible={false}
-                                        aria-hidden
-                                    >
-                                        {translate('workspace.tags.requiresTag')}
-                                    </Text>
-                                    <Switch
-                                        isOn={policy?.requiresTag ?? false}
-                                        accessibilityLabel={translate('workspace.tags.requiresTag')}
-                                        onToggle={updateWorkspaceRequiresTag}
-                                        disabled={!policy?.areTagsEnabled || !hasEnabledOptions}
-                                    />
-                                </View>
-                            </OfflineWithFeedback>
-                        )}
-                        <OfflineWithFeedback pendingAction={getBillableExpensesPendingAction(policy)}>
-                            <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
-                                <Text
-                                    style={[styles.textNormal, styles.flex1, styles.mr2]}
-                                    accessible={false}
-                                    aria-hidden
-                                >
-                                    {translate('workspace.tags.trackBillable')}
-                                </Text>
-                                <Switch
-                                    isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
-                                    accessibilityLabel={translate('workspace.tags.trackBillable')}
-                                    onToggle={() => toggleBillableExpenses(policy)}
-                                    disabled={!policy?.areTagsEnabled}
-                                />
-                            </View>
-                        </OfflineWithFeedback>
-                    </>
                 )}
                 {!!policy?.glCodes && (
                     <OfflineWithFeedback

@@ -1013,7 +1013,6 @@ const CONST = {
         RILLET: 'rillet',
         DUALENTRY: 'dualEntry',
         INTUIT_ENTERPRISE_SUITE: 'intuitEnterpriseSuite',
-        RULES_REVAMP: 'rulesRevamp',
         COMMUTER_EXCLUSIONS: 'commuterExclusions',
         GLOBAL_REIMBURSEMENTS: 'globalReimbursements',
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',

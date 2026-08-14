@@ -8,7 +8,6 @@ import ScrollView from '@components/ScrollView';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -43,9 +42,7 @@ function RulesRequireFieldsPage({
     const {policy} = policyData;
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
     // Match the Categories/Tags toggles on WorkspaceMoreFeaturesPage: only an accounting connection owns these
@@ -201,7 +198,6 @@ function RulesRequireFieldsPage({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED}
             policyFeature={CONST.POLICY.POLICY_FEATURE.RULES}
             policyFeatureAccess={CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE}
-            shouldBeBlocked={!isRulesRevampEnabled}
         >
             <ScreenWrapper
                 enableEdgeToEdgeBottomSafeAreaPadding

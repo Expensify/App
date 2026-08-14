@@ -1455,14 +1455,14 @@ function isAttendeeTrackingEnabled(policy: OnyxEntry<Policy>): boolean {
 /**
  * Whether the policy can access a feature based on plan level.
  * Corporate-only features are restricted to control (Corporate) policies.
- * Rules are available on Control always, and on Collect only when the rulesRevamp beta is enabled.
+ * Rules are available on both Control and Collect.
  */
-function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, isRulesRevampEnabled = false): boolean {
+function canPolicyAccessFeature(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName): boolean {
     if (!isPaidGroupPolicy(policy)) {
         return false;
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return isControlPolicy(policy) || (isCollectPolicy(policy) && isRulesRevampEnabled);
+        return isControlPolicy(policy) || isCollectPolicy(policy);
     }
     const corporateOnlyFeatures = new Set<PolicyFeatureName>([CONST.POLICY.MORE_FEATURES.ARE_PER_DIEM_RATES_ENABLED, CONST.POLICY.MORE_FEATURES.IS_HR_ENABLED]);
     if (corporateOnlyFeatures.has(featureName)) {
@@ -1673,15 +1673,8 @@ function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
-/**
- * @param isRulesRevampEnabled - Prefer `isBetaEnabled(CONST.BETAS.RULES_REVAMP)` from `usePermissions()`, not raw betas from Onyx.
- * Collect workspaces can only access Rules when this beta is enabled.
- */
-function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: PolicyCategories | null): boolean {
     if (!isPaidGroupPolicy(policy)) {
-        return false;
-    }
-    if (isCollectPolicy(policy) && !isRulesRevampEnabled) {
         return false;
     }
     if (policy?.areRulesEnabled === true) {
@@ -1697,9 +1690,9 @@ function arePolicyRulesEnabled(policy: OnyxEntry<Policy>, policyCategories?: Pol
     return hasAnyCategoryRules(policyCategories ?? undefined);
 }
 
-function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null, isRulesRevampEnabled = false): boolean {
+function isPolicyFeatureEnabled(policy: OnyxEntry<Policy>, featureName: PolicyFeatureName, policyCategories?: PolicyCategories | null): boolean {
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_RULES_ENABLED) {
-        return arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
+        return arePolicyRulesEnabled(policy, policyCategories);
     }
     if (featureName === CONST.POLICY.MORE_FEATURES.ARE_TAXES_ENABLED) {
         return !!policy?.tax?.trackingEnabled;

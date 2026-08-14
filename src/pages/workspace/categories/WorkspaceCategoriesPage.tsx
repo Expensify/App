@@ -23,7 +23,6 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -87,13 +86,11 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_CATEGORIES.SETTINGS_CATEGORIES_ROOT;
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {canWrite: canWriteCategories, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.CATEGORIES);
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
 
     const [selectedCategoryKeys, setSelectedCategoryKeys] = useState<string[]>([]);
     const canSelectMultiple = canWriteCategories && (isSmallScreenWidth ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
-    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Gear', 'Plus', 'Table', 'Trashcan']);
+    const icons = useMemoizedLazyExpensifyIcons(['Checkmark', 'Close', 'Download', 'Plus', 'Table', 'Trashcan']);
 
     const {
         taskReport: setupCategoryTaskReport,
@@ -309,10 +306,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         formatPhoneNumber,
     ]);
 
-    const navigateToCategoriesSettings = useCallback(() => {
-        Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORIES_SETTINGS.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORIES_SETTINGS.path));
-    }, [isQuickSettingsFlow]);
-
     const navigateToCreateCategoryPage = () => {
         Navigation.navigate(createDynamicRoute(isQuickSettingsFlow ? DYNAMIC_ROUTES.SETTINGS_CATEGORY_CREATE.path : DYNAMIC_ROUTES.WORKSPACE_CATEGORY_CREATE.path));
     };
@@ -363,14 +356,6 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
 
     const secondaryActions = useMemo(() => {
         const menuItems = [];
-        if (canWriteCategories && !isRulesRevampEnabled) {
-            menuItems.push({
-                icon: icons.Gear,
-                text: translate('common.settings'),
-                onSelected: navigateToCategoriesSettings,
-                value: CONST.POLICY.SECONDARY_ACTIONS.SETTINGS,
-            });
-        }
         if (canWriteCategories && !policyHasAccountingConnections) {
             menuItems.push({
                 icon: icons.Table,
@@ -406,12 +391,9 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
     }, [
         showOfflineModal,
         icons.Download,
-        icons.Gear,
         icons.Table,
         translate,
-        navigateToCategoriesSettings,
         canWriteCategories,
-        isRulesRevampEnabled,
         policyHasAccountingConnections,
         hasVisibleCategories,
         navigateToImportSpreadsheet,

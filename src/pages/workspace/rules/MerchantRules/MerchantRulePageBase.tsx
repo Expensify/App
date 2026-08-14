@@ -111,7 +111,7 @@ const getErrorMessage = (translate: LocalizedTranslate, form?: MerchantRuleForm)
     return translate('workspace.rules.merchantRules.confirmError');
 };
 
-function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, testID}: MerchantRulePageBaseProps) {
+function MerchantRulePageBase({policyID, ruleID, initialCategoryName, testID}: MerchantRulePageBaseProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
@@ -121,9 +121,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const isEditing = !!ruleID;
     const isInLandscapeMode = useIsInLandscapeMode();
     const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const icons = useMemoizedLazyExpensifyIcons(['Basket', 'Folder', 'Pencil', 'InvoiceGeneric', 'Tag', 'Paycheck']);
-    const getItemIcon = (icon: IconAsset) => (isRulesRevampEnabled ? icon : undefined);
 
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
@@ -305,7 +303,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
             return;
         }
         setPolicyCodingRule(policyID, form, policy, ruleID, shouldUpdateMatchingTransactions);
-        if (!isEditing && isRulesRevampEnabled) {
+        if (!isEditing) {
             Tab.setSelectedTab(CONST.TAB.RULES_TAB_TYPE, CONST.TAB.RULES.EXPENSE_DEFAULTS);
             Navigation.goBack(ROUTES.WORKSPACE_RULES.getRoute(policyID));
         } else {
@@ -379,7 +377,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     required: true,
                     title: form?.merchantToMatch,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT_TO_MATCH.getRoute(policyID, ruleID)),
-                    icon: getItemIcon(icons.Basket),
+                    icon: icons.Basket,
                 },
             ],
         },
@@ -391,7 +389,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     description: translate('common.merchant'),
                     title: form?.merchant,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_MERCHANT.getRoute(policyID, ruleID)),
-                    icon: getItemIcon(icons.Basket),
+                    icon: icons.Basket,
                 },
                 hasCategories()
                     ? {
@@ -399,7 +397,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           description: translate('common.category'),
                           title: categoryDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_CATEGORY.getRoute(policyID, ruleID)),
-                          icon: getItemIcon(icons.Folder),
+                          icon: icons.Folder,
                       }
                     : undefined,
                 ...(hasTags()
@@ -412,7 +410,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                                   description: name,
                                   title: formTag ? getCleanedTagName(formTag) : undefined,
                                   onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAG.getRoute(policyID, ruleID, orderWeight)),
-                                  icon: getItemIcon(icons.Tag),
+                                  icon: icons.Tag,
                               };
                           })
                     : []),
@@ -422,7 +420,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           description: translate('common.tax'),
                           title: taxDisplayName(),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_TAX.getRoute(policyID, ruleID)),
-                          icon: getItemIcon(icons.InvoiceGeneric),
+                          icon: icons.InvoiceGeneric,
                       }
                     : undefined,
                 isVendorFeatureEnabled
@@ -431,7 +429,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           description: vendorFieldLabel,
                           title: vendorDisplayName,
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_VENDOR.getRoute(policyID, ruleID)),
-                          icon: getItemIcon(icons.Basket),
+                          icon: icons.Basket,
                       }
                     : undefined,
                 {
@@ -440,14 +438,14 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                     title: form?.comment ? Parser.replace(form.comment) : undefined,
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_DESCRIPTION.getRoute(policyID, ruleID)),
                     shouldRenderAsHTML: true,
-                    icon: getItemIcon(icons.Pencil),
+                    icon: icons.Pencil,
                 },
                 {
                     key: 'reimbursable',
                     description: translate('common.reimbursable'),
                     title: getBooleanTitle(form?.reimbursable, translate),
                     onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_REIMBURSABLE.getRoute(policyID, ruleID)),
-                    icon: getItemIcon(icons.Paycheck),
+                    icon: icons.Paycheck,
                 },
                 isBillableEnabled
                     ? {
@@ -455,7 +453,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                           description: translate('common.billable'),
                           title: getBooleanTitle(form?.billable, translate),
                           onPress: () => Navigation.navigate(ROUTES.RULES_MERCHANT_BILLABLE.getRoute(policyID, ruleID)),
-                          icon: getItemIcon(icons.Paycheck),
+                          icon: icons.Paycheck,
                       }
                     : undefined,
             ],
@@ -482,7 +480,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const footer = canWriteRules ? (
         <FormAlertWithSubmitButton
             buttonText={translate('workspace.rules.merchantRules.saveRule')}
-            containerStyles={[styles.m4, styles.mb5, isRulesRevampEnabled && styles.mh5]}
+            containerStyles={[styles.m4, styles.mb5, styles.mh5]}
             isAlertVisible={shouldShowError && !!errorMessage}
             message={errorMessage}
             onSubmit={handleSubmit}
@@ -540,7 +538,7 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
             shouldShowRightIcon={canWriteRules}
             interactive={canWriteRules}
             title={item.title}
-            numberOfLinesTitle={isRulesRevampEnabled ? 2 : undefined}
+            numberOfLinesTitle={2}
             titleStyle={styles.flex1}
             shouldRenderAsHTML={item.shouldRenderAsHTML}
             shouldApplyIconPaddingToHTMLTitle={!!item.icon && !!item.shouldRenderAsHTML}
@@ -557,17 +555,13 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
     const renderSections = () =>
         sections.map((section, sectionIndex) => (
             <View key={section.titleTranslationKey}>
-                {isRulesRevampEnabled ? (
-                    sectionIndex > 0 && (
-                        <>
-                            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
-                            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
-                                {translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}
-                            </Text>
-                        </>
-                    )
-                ) : (
-                    <Text style={[styles.textHeadlineH2, styles.reportHorizontalRule, styles.mt4, styles.mb2]}>{translate(section.titleTranslationKey)}</Text>
+                {sectionIndex > 0 && (
+                    <>
+                        <View style={[styles.sectionDividerLine, styles.mh5, styles.mv3]} />
+                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16, styles.ph5, styles.pv3]}>
+                            {translate('workspace.rules.merchantRules.thenApplyFollowingDefaults')}
+                        </Text>
+                    </>
                 )}
                 {section.items.filter((item): item is SectionItemType => !!item).map(renderSectionItem)}
             </View>
@@ -585,14 +579,12 @@ function MerchantRulePageBase({policyID, ruleID, initialCategoryName, titleKey, 
                 offlineIndicatorStyle={styles.mtAuto}
                 includeSafeAreaPaddingBottom
             >
-                <HeaderWithBackButton title={translate(isRulesRevampEnabled ? 'workspace.rules.merchantRules.expenseDefaultsTitle' : titleKey)} />
+                <HeaderWithBackButton title={translate('workspace.rules.merchantRules.expenseDefaultsTitle')} />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    {isRulesRevampEnabled && (
-                        <View style={[styles.ph5, styles.pv3, styles.gap6]}>
-                            <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
-                            <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
-                        </View>
-                    )}
+                    <View style={[styles.ph5, styles.pv3, styles.gap6]}>
+                        <Text style={[styles.textNormal, styles.textSupporting]}>{translate('workspace.rules.merchantRules.expenseDefaultsSubtitle')}</Text>
+                        <Text style={[styles.textLabel, styles.textSupporting, styles.lh16]}>{translate('workspace.rules.merchantRules.ifAnyExpenseMatches')}</Text>
+                    </View>
                     {renderSections()}
                     {isInLandscapeMode && footer}
                 </ScrollView>

@@ -4201,7 +4201,7 @@ describe('arePolicyRulesEnabled', () => {
     });
 
     it('returns true for a team policy with areRulesEnabled explicitly true when rules revamp beta is enabled', () => {
-        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined, true)).toBe(true);
+        expect(arePolicyRulesEnabled({...teamBase, areRulesEnabled: true}, undefined)).toBe(true);
     });
 
     it('returns false for a team policy with areRulesEnabled explicitly false', () => {
