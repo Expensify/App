@@ -12,9 +12,8 @@ import {GitHub} from '@actions/github/lib/utils';
 
 import createMock from '../utils/createMock';
 
-/* eslint-disable @typescript-eslint/naming-convention */
-
 type Workflow = {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     workflow_id: string;
     branch?: string;
     owner: string;
@@ -29,6 +28,7 @@ const INCOMPLETE_WORKFLOW: WorkflowStatus = {status: 'in_progress'};
 
 type MockListResponse = {
     data: {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         workflow_runs: WorkflowStatus[];
     };
 };
@@ -41,6 +41,7 @@ const mockListDeploysForTag: MockedFunctionListResponse = jest.fn();
 const mockListDeploys: MockedFunctionListResponse = jest.fn();
 const mockListPreDeploys: MockedFunctionListResponse = jest.fn();
 const mockListWorkflowRuns = jest.fn<Promise<MockListResponse>, [Workflow]>().mockImplementation((args) => {
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     const defaultReturn = Promise.resolve({data: {workflow_runs: []}});
 
     if (!args.workflow_id) {
@@ -67,10 +68,12 @@ type ListWorkflowRunsMethod = typeof GithubUtils.octokit.actions.listWorkflowRun
 function listWorkflowRuns(...parameters: Parameters<ListWorkflowRunsMethod>): ReturnType<ListWorkflowRunsMethod> {
     const [args] = parameters;
     if (!args) {
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         return Promise.resolve(createMock<Awaited<ReturnType<ListWorkflowRunsMethod>>>({data: {workflow_runs: []}}));
     }
 
     return mockListWorkflowRuns({
+        // eslint-disable-next-line @typescript-eslint/naming-convention
         workflow_id: String(args.workflow_id),
         branch: args.branch,
         owner: args.owner,
@@ -104,11 +107,13 @@ describe('awaitStagingDeploys', () => {
         // First ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [],
             },
         });
@@ -116,11 +121,13 @@ describe('awaitStagingDeploys', () => {
         // Second ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [],
             },
         });
@@ -128,11 +135,13 @@ describe('awaitStagingDeploys', () => {
         // Third ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
@@ -140,11 +149,13 @@ describe('awaitStagingDeploys', () => {
         // Fourth ping
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
@@ -164,16 +175,19 @@ describe('awaitStagingDeploys', () => {
         // First ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
@@ -181,16 +195,19 @@ describe('awaitStagingDeploys', () => {
         // Second ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW],
             },
         });
@@ -198,16 +215,19 @@ describe('awaitStagingDeploys', () => {
         // Third ping
         mockListDeploysForTag.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW],
             },
         });
         mockListDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [INCOMPLETE_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
         mockListPreDeploys.mockResolvedValueOnce({
             data: {
+                // eslint-disable-next-line @typescript-eslint/naming-convention
                 workflow_runs: [COMPLETED_WORKFLOW, COMPLETED_WORKFLOW, INCOMPLETE_WORKFLOW],
             },
         });
