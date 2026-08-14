@@ -8599,6 +8599,9 @@ ${reportName}`,
                 title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
         },
+        addedRule: 'ルールを追加しました',
+        updatedRule: 'ルールを更新しました',
+        removedRule: 'ルールを削除しました',
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
