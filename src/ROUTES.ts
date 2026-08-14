@@ -1178,6 +1178,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.HOME,
             SCREENS.TRANSACTION_DUPLICATE.DYNAMIC_CONFIRMATION,
             SCREENS.MERGE_TRANSACTION.DYNAMIC_CONFIRMATION_PAGE,
+            SCREENS.TRAVEL.DYNAMIC_TRIP_SUMMARY,
         ],
         getRoute: (reportID: string | undefined, transactionID: string | undefined, pnr: string | undefined, sequenceIndex: number) => {
             if (!reportID || !transactionID || !pnr) {
