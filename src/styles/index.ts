@@ -951,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -1181,6 +1181,90 @@ const staticStyles = (theme: ThemeColors) =>
                 web: {marginLeft: 4, transform: [{translateY: -2}]},
                 default: {transform: [{translateY: 4}, {translateX: 4}]},
             }),
+        },
+
+        // Positions the marketing window and centers the card when its narrow max width clamps below the viewport.
+        productMarketingWindowAnchor: {
+            ...positioning.pAbsolute,
+            alignItems: 'center',
+            // Keep the persistent window above route-backed side panels. Covering modals suppress it through ProductMarketingWindowManager.
+            zIndex: variables.modalBaseZIndex,
+        },
+        productMarketingWindowAnchorNarrow: {
+            left: variables.productMarketingWindowHorizontalOffsetNarrow,
+            right: variables.productMarketingWindowHorizontalOffsetNarrow,
+        },
+        productMarketingWindowAnchorWide: {
+            bottom: variables.productMarketingWindowOffset,
+            right: variables.productMarketingWindowOffset,
+        },
+        // The product marketing window intentionally contrasts with the app by using the opposite palette.
+        productMarketingWindowContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            boxShadow: theme.shadow,
+        },
+        productMarketingWindowContainerDark: {
+            backgroundColor: colors.green800,
+        },
+        productMarketingWindowContainerLight: {
+            backgroundColor: colors.productLight100,
+        },
+        productMarketingWindowContainerWide: {
+            width: variables.productMarketingWindowWidth,
+        },
+        // Full width on phones; capped and centered on mid-width narrow layouts (tablet portrait, resized windows).
+        productMarketingWindowContainerNarrow: {
+            width: '100%',
+            maxWidth: variables.productMarketingWindowMaxWidthNarrow,
+        },
+        // Keep the full card visible on short landscape viewports without changing its bottom anchor or cropping the illustration.
+        productMarketingWindowContainerNarrowCompact: {
+            maxWidth: variables.productMarketingWindowWidth,
+        },
+        productMarketingWindowIllustrationContainer: {
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.componentBorderRadiusNormal,
+            aspectRatio: variables.productMarketingWindowVisualAspectRatio,
+            overflow: 'hidden',
+        },
+        productMarketingWindowImage: {
+            width: '100%',
+            height: '100%',
+        },
+        productMarketingWindowIllustrationContainerDark: {
+            backgroundColor: colors.productDark300,
+        },
+        productMarketingWindowIllustrationContainerLight: {
+            backgroundColor: colors.productLight300,
+        },
+        productMarketingWindowHeadingDark: {
+            color: colors.productDark900,
+        },
+        productMarketingWindowHeadingLight: {
+            color: colors.productLight900,
+        },
+        productMarketingWindowBodyDark: {
+            color: colors.productDark800,
+        },
+        productMarketingWindowBodyLight: {
+            color: colors.productLight800,
+        },
+        productMarketingWindowDismissButtonDark: {
+            backgroundColor: colors.productDark400,
+        },
+        productMarketingWindowDismissButtonLight: {
+            backgroundColor: colors.productLight400,
+        },
+        productMarketingWindowDismissButtonHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
+        },
+        productMarketingWindowDismissButtonTextDark: {
+            color: colors.productDark900,
+        },
+        productMarketingWindowDismissButtonTextLight: {
+            color: colors.productLight900,
         },
 
         cardBadgeText: {
@@ -1902,7 +1986,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -1965,6 +2050,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojisWithTextFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
         },
 
         createMenuContainer: {
@@ -2067,13 +2161,6 @@ const staticStyles = (theme: ThemeColors) =>
         sidebarLinkTextBold: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             color: theme.heading,
-        },
-
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
         },
 
         optionItemAvatarNameWrapper: {
@@ -2722,6 +2809,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableLastRow: {
             borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
         },
 
         htmlTableCell: {
@@ -4291,6 +4389,19 @@ const staticStyles = (theme: ThemeColors) =>
             color: colors.productLight100,
         },
 
+        alternativeDistanceLabelWrapper: {
+            backgroundColor: colors.green100,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        alternativeDistanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.green800,
+        },
+
         productTrainingTooltipWrapper: {
             backgroundColor: theme.tooltipHighlightBG,
             borderRadius: variables.componentBorderRadiusNormal,
@@ -5219,6 +5330,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5460,26 +5597,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
-        },
-
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {
@@ -6393,6 +6510,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
@@ -7065,9 +7187,20 @@ const plainStyles = (theme: ThemeColors) =>
             lineCap: 'round',
         } satisfies MapDirectionStyle,
 
+        alternativeMapDirection: {
+            lineColor: colors.green200,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
         },
 
         mapDirectionLayerBorder: {

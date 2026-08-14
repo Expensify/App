@@ -36,6 +36,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
 import Log from '@libs/Log';
@@ -63,8 +64,8 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
-import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -98,6 +99,7 @@ import {doesPersonalDetailExistSelector} from '@src/selectors/PersonalDetails';
 import type {BillingGraceEndPeriod, ExportTemplate, Policy, Report, ReportAction, ReportNameValuePairs, SearchResults, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 import type DeepValueOf from '@src/types/utils/DeepValueOf';
+import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
@@ -224,6 +226,42 @@ function addSelectedGroupsFilter(queryJSON: SearchQueryJSON, selectedTransaction
     });
 
     return buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters: newFlatFilters})) ?? queryJSON;
+}
+
+function getAllMatchingExportQueryAndExclusions(
+    queryJSON: SearchQueryJSON,
+    excludedTransactions: SelectedTransactions,
+    searchData: SearchResultDataType | undefined,
+): {queryJSON: SearchQueryJSON; excludedTransactionIDList: string[]} | undefined {
+    const excludedTransactionIDList: string[] = [];
+    const excludedGroupEntries: Array<{key: SearchFilterKey; value: string | number}> = [];
+
+    for (const key of Object.keys(excludedTransactions)) {
+        if (!isGroupEntry(key)) {
+            excludedTransactionIDList.push(key);
+            continue;
+        }
+
+        const group = searchData?.[key];
+        const groupEntry = queryJSON.groupBy && group ? getSelectedGroupFilterEntry(queryJSON.groupBy, group) : undefined;
+        if (!groupEntry) {
+            return undefined;
+        }
+        excludedGroupEntries.push(groupEntry);
+    }
+
+    if (excludedGroupEntries.length === 0) {
+        return {queryJSON, excludedTransactionIDList};
+    }
+
+    const flatFilters = queryJSON.flatFilters.map((filter) => ({...filter, filters: [...filter.filters]}));
+    for (const entry of excludedGroupEntries) {
+        const exclusionFilter = {operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO, value: entry.value};
+        flatFilters.push({key: entry.key, filters: [exclusionFilter]});
+    }
+
+    const exportQueryJSON = buildSearchQueryJSON(buildSearchQueryString({...queryJSON, flatFilters}));
+    return exportQueryJSON ? {queryJSON: exportQueryJSON, excludedTransactionIDList} : undefined;
 }
 
 const MERCHANT_GROUP_EXACT_MATCH_FILTER_KEYS = new Set<SearchFilterKey>([CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT]);
@@ -384,7 +422,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {isProduction} = useEnvironment();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
-    const {selectedTransactions, selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {currentSearchKey} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
@@ -406,7 +444,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     } = usePaymentContext();
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const selfDMReport = useSelfDMReport();
@@ -489,6 +526,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'Pencil',
         'Workflows',
@@ -534,6 +572,40 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         ],
         [selectedTransactions],
     );
+
+    // A bulk selection can span several workspaces, so the Canadian Multiple Tax Export template is only offered when every selected item belongs to a workspace that outputs in CAD.
+    // Reports and transactions are both checked because a selection can mix whole reports with individual transactions from other reports, and the export request covers all of them.
+    const doAllSelectedItemsBelongToCADPolicies = useMemo(() => {
+        if (areAllMatchingItemsSelected) {
+            const policyIDFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID);
+            if (!policyIDFilter.value?.length || policyIDFilter.isNegated) {
+                return false;
+            }
+
+            return policyIDFilter.value.every((policyID) => policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
+        }
+
+        const selectedItems = [...selectedReports, ...Object.values(selectedTransactions)];
+        if (selectedItems.length === 0) {
+            return false;
+        }
+
+        return selectedItems.every((item) => {
+            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived
+            // fields on this selection entry. A selection entry built from a search row carries that row's report, which is the
+            // only copy available when the report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
+            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const policyID = item.policyID ?? report?.policyID;
+            if (!policyID) {
+                return false;
+            }
+
+            // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense
+            // report's currency is the workspace's output currency, so we can keep currency-specific templates available after archiving.
+            return (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? report?.currency) === CONST.CURRENCY.CAD;
+        });
+    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
+
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
 
@@ -601,6 +673,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     });
 
     const {hash} = queryJSON ?? {};
+    const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
     // so an empty current result yields no selection rather than one derived from the previous query's settlements.
@@ -818,6 +891,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 groupBy: getValidGroupBy(queryJSON?.groupBy),
                 shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
                 fallbackPolicyID: policyForMovingExpensesID,
+                sortBy: queryJSON?.sortBy,
             });
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
@@ -848,15 +922,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             const exportName = translate(isBasicExport ? 'export.basicExport' : 'export.currentView');
 
             if (areAllMatchingItemsSelected) {
-                if (selectedTransactionsKeys.length === 0 || !hash) {
+                if ((!isExpenseType && selectedTransactionsKeys.length === 0) || !hash) {
+                    return;
+                }
+                const allMatchingExportData = isExpenseType && queryJSON ? getAllMatchingExportQueryAndExclusions(queryJSON, excludedTransactions, currentSearchResults?.data) : undefined;
+                if (isExpenseType && !allMatchingExportData) {
+                    setIsDownloadErrorModalVisible(true);
                     return;
                 }
                 const reportIDList = selectedReports?.map((report) => report?.reportID).filter((reportID) => reportID !== undefined) ?? [];
-                const exportParameters = getCSVExportParameters(isBasicExport, queryJSON);
+                const exportParameters = getCSVExportParameters(isBasicExport, allMatchingExportData?.queryJSON ?? queryJSON);
                 const exportID = queueExportSearchItemsToCSV({
                     jsonQuery: exportParameters.jsonQuery,
                     reportIDList,
                     transactionIDList: selectedTransactionsKeys,
+                    ...(isExpenseType ? {excludedTransactionIDList: allMatchingExportData?.excludedTransactionIDList} : {}),
                     isBasicExport: exportParameters.isBasicExport,
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
@@ -902,6 +982,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             selectedTransactionReportIDs,
             selectedTransactions,
             selectedTransactionsKeys,
+            isExpenseType,
+            excludedTransactions,
             translate,
             clearSelectedTransactions,
             hash,
@@ -952,7 +1034,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             const reportPolicy = getPolicyFromSearchSnapshot(expenseReport.policyID, searchData, policies);
-            const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`];
             const hasViolations = hasViolationsReportUtils(reportID, allTransactionViolations, accountID, email ?? '');
             const policyToUpgrade = reportPolicy;
             const wouldNavigateToUpgrade = isSubmitPolicy(policyToUpgrade) && !!policyToUpgrade?.id;
@@ -960,13 +1041,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 !!expenseReport.policyID && shouldRestrictUserBillableActions(reportPolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID);
 
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport,
                 expenseReportPolicy: reportPolicy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -1009,7 +1090,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         email,
         searchResults?.data,
         allReports,
-        allNextSteps,
         allTransactionViolations,
         isBetaEnabled,
         betas,
@@ -1018,6 +1098,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         isTrackIntentUser,
         personalDetails,
         delegateAccountID,
+        getCurrencyDecimals,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1086,6 +1167,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations,
                     bankAccountList,
+                    delegateAccountID,
                     hash,
                 });
             }
@@ -1135,6 +1217,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportTransactions: validTransactions,
                     allTransactionViolations: transactionsViolations,
                     bankAccountList,
+                    delegateAccountID,
                 });
             }
         }
@@ -1160,6 +1243,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         deleteTransactionsFromHook,
         duplicateTransactions,
         duplicateTransactionViolations,
+        delegateAccountID,
     ]);
 
     const onBulkPaySelected = useCallback(
@@ -1169,7 +1253,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return;
             }
             if (isOffline) {
-                setIsOfflineModalVisible(true);
+                // On iOS, presenting the offline modal while the payment popover is still dismissing freezes the app,
+                // so defer it until the popover transition completes (matching the delegate/locked-account guards).
+                deferModalPresentationAfterPopoverDismiss(() => setIsOfflineModalVisible(true));
                 return;
             }
 
@@ -1261,10 +1347,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         accountID,
                         getLoginByAccountID(itemReport?.ownerAccountID, personalDetails),
                         doesPersonalDetailExistSelector(itemReport?.ownerAccountID)(personalDetails),
+                        getCurrencyDecimals,
                         reportTransactions,
                     );
                     if (!invite?.policyExpenseChatReportID) {
-                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, false, reportTransactions);
+                        moveIOUReportToPolicy(itemReport, adminPolicy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
                     }
                 }
             }
@@ -1289,22 +1376,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
+                    Log.info('[BulkPay] Skipping report: item has no reportID');
                     continue;
                 }
 
                 const iouReport = getReportFromSearchSnapshot(item.reportID, searchData, allReports);
                 if (!iouReport) {
+                    Log.info('[BulkPay] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID: item.reportID});
                     continue;
                 }
 
                 const chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
                 if (!chatReport) {
+                    Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
+                        reportID: item.reportID,
+                        chatReportID: item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID,
+                    });
                     continue;
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
                 const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
                 if (!resolvedPayment) {
+                    Log.info('[BulkPay] Skipping report: could not resolve a payment method', false, {reportID: item.reportID, policyID: item.policyID, rawPaymentMethod});
                     continue;
                 }
 
@@ -1328,7 +1422,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
-                const nextStep = allNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${item.reportID}`];
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
                 const isItemInvoice = isInvoiceReport(item.reportID);
 
@@ -1346,10 +1439,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     const payChatReportID = shouldUseB2BInvoiceReport ? existingB2BInvoiceReport.reportID : chatReport.reportID;
 
                     payInvoice({
+                        getCurrencyDecimals,
                         paymentMethodType: paymentItem.paymentType as PaymentMethodType,
                         chatReport,
                         invoiceReport: iouReport,
-                        invoiceReportCurrentNextStepDeprecated: nextStep,
                         introSelected,
                         currentUserAccountIDParam: accountID,
                         currentUserEmailParam: email ?? '',
@@ -1374,11 +1467,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: paymentItem.paymentType as PaymentMethodType,
                     chatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: nextStep,
                     currentUserAccountID: accountID,
                     currentUserLogin: currentUserLogin ?? '',
                     activePolicy,
@@ -1402,6 +1495,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 paidReportCount += 1;
             }
 
+            if (paidReportCount < itemsToPay.length) {
+                Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
+            }
+
             if (paidReportCount > 0) {
                 playSound(SOUNDS.SUCCESS);
                 clearSelectedTransactions();
@@ -1420,7 +1517,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             showDelegateNoAccessModal,
             allReports,
             allReportActions,
-            allNextSteps,
             personalPolicyID,
             lastPaymentMethods,
             allTransactions,
@@ -1443,6 +1539,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            getCurrencyDecimals,
         ],
     );
 
@@ -1608,7 +1705,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     }, [selectedReports, currentSearchResults?.data, isTrackIntentUser, policies, selectedTransactions]);
 
     const headerButtonsOptions = useMemo(() => {
-        if (selectedTransactionsKeys.length === 0 || !hash) {
+        if ((selectedTransactionsKeys.length === 0 && !(isExpenseType && areAllMatchingItemsSelected)) || !hash) {
             return CONST.EMPTY_ARRAY as unknown as Array<DropdownOption<SearchHeaderOptionValue>>;
         }
 
@@ -1638,7 +1735,15 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 policy,
                 includeReportLevelExport,
                 !isGroupedSearch,
+                doAllSelectedItemsBelongToCADPolicies,
             );
+            const shouldHideTemplateExports = isExpenseType && areAllMatchingItemsSelected && Object.keys(excludedTransactions).length > 0;
+            const availableCustomTemplates = shouldHideTemplateExports
+                ? customTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
+                : customTemplates;
+            const availableDefaultTemplates = shouldHideTemplateExports
+                ? defaultTemplates.filter((template) => template.templateName === CONST.REPORT.EXPORT_OPTIONS.DOWNLOAD_CSV)
+                : defaultTemplates;
 
             const exportOptions: PopoverMenuItem[] = [];
 
@@ -1702,10 +1807,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (areAnyReportsExported) {
                         showConfirmModal({
                             title: translate('workspace.exportAgainModal.title'),
-                            prompt: translate('workspace.exportAgainModal.description', {
-                                connectionName: connectedIntegration,
-                                reportName: exportedReportNames.join('\n'),
-                            }),
+                            prompt: translate('workspace.exportAgainModal.description', exportedReportNames.join('\n'), connectedIntegration),
                             confirmText: translate('workspace.exportAgainModal.confirmText'),
                             cancelText: translate('workspace.exportAgainModal.cancelText'),
                             shouldEnablePromptScroll: true,
@@ -1792,10 +1894,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 };
 
                 // Add each group's templates separately so the icon and the group-boundary divider come from the group itself, not from an index into a combined list.
-                for (const [index, template] of customTemplates.entries()) {
+                for (const [index, template] of availableCustomTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, false, index === 0));
                 }
-                for (const [index, template] of defaultTemplates.entries()) {
+                for (const [index, template] of availableDefaultTemplates.entries()) {
                     exportOptions.push(buildExportOption(template, true, index === 0));
                 }
             } else if (!isGroupedSearch) {
@@ -2074,7 +2176,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
         const {shouldEnableBulkPayOption} = getPayOption(selectedReports, selectedTransactions, lastPaymentMethods, selectedReportIDs, personalPolicyID);
 
-        const shouldShowPayOption = !isOffline && !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
+        // Keep Pay visible while offline: selecting it is handled by onBulkPaySelected, which shows the offline modal
+        // rather than attempting a payment. Gating on !isOffline here would hide Pay entirely offline, which is wrong.
+        const shouldShowPayOption = !isAnyTransactionOnHold && shouldEnableBulkPayOption && !!bulkPayButtonOptions?.length;
 
         if (shouldShowPayOption) {
             const shouldShowPaySubmenu = !!bulkPayButtonOptions?.length;
@@ -2200,6 +2304,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             accountID,
                             transactionViolations,
                             isTrackIntentUser,
+                            delegateAccountID,
                         );
                     }
                     clearSelectedTransactions();
@@ -2217,7 +2322,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         text: translate('common.merge'),
                         icon: expensifyIcons.ArrowCollapse,
                         value: CONST.SEARCH.BULK_ACTION_TYPES.MERGE,
-                        onSelected: () => setupMergeTransactionDataAndNavigate(transactionID, searchedTransactions, localeCompare, getCurrencyDecimals, reports, false, true),
+                        onSelected: () =>
+                            setupMergeTransactionDataAndNavigate(
+                                transactionID,
+                                searchedTransactions,
+                                localeCompare,
+                                getCurrencyDecimals,
+                                reports,
+                                false,
+                                true,
+                                undefined,
+                                accountID,
+                                personalDetails,
+                            ),
                     });
                 }
             }
@@ -2368,10 +2485,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         selectedTransactionsKeys,
         hash,
         selectedTransactions,
+        excludedTransactions,
         queryJSON?.type,
         expensifyIcons,
         translate,
         areAllMatchingItemsSelected,
+        isExpenseType,
         isOffline,
         selectedReports,
         lastPaymentMethods,
@@ -2436,6 +2555,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalPolicy?.outputCurrency,
         restrictedActionPolicyID,
         doSelectedItemsBelongToSubmitPolicy,
+        doAllSelectedItemsBelongToCADPolicies,
         openSearchReportSubmitToPopover,
         deleteTransactionsFromHook,
         duplicateTransactionViolations,
@@ -2448,6 +2568,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         allReportsShouldMarkAsDone,
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
+        delegateAccountID,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

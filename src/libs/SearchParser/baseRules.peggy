@@ -95,6 +95,8 @@ has = "has"i {return "has"; }
 is = "is"i {return "is"; }
 purchaseAmount = "purchaseAmount"i / "purchase-amount"i {return "purchaseAmount"}
 purchaseCurrency = "purchaseCurrency"i / "purchase-currency"i {return "purchaseCurrency"}
+amountDebited = "amountDebited"i / "amount-debited"i {return "amountDebited"}
+amountReimbursed = "amountReimbursed"i / "amount-reimbursed"i {return "amountReimbursed"}
 columns = "columns"i {
   isColumnsContext = true;
   return "columns";
@@ -128,6 +130,10 @@ columnsValues
   / groupBankAccount
   / groupWithdrawn
   / groupWithdrawalId
+  / groupAmountDebited
+  / groupAmountReimbursed
+  / amountDebitedColumn
+  / amountReimbursedColumn
   / groupCategory
   / groupTag
   / groupMerchant
@@ -162,6 +168,10 @@ groupFeed               = "group-feed"i &wordBoundary               { return "gr
 groupBankAccount        = "group-bank-account"i &wordBoundary       { return "groupBankAccount"; }
 groupWithdrawn          = "group-withdrawn"i &wordBoundary          { return "groupWithdrawn"; }
 groupWithdrawalId       = "group-withdrawal-id"i &wordBoundary      { return "groupWithdrawalID"; }
+groupAmountDebited      = "group-amount-debited"i &wordBoundary     { return "groupAmountDebited"; }
+groupAmountReimbursed   = "group-amount-reimbursed"i &wordBoundary  { return "groupAmountReimbursed"; }
+amountDebitedColumn     = "amount-debited"i &wordBoundary           { return "amountDebited"; }
+amountReimbursedColumn  = "amount-reimbursed"i &wordBoundary        { return "amountReimbursed"; }
 groupCategory           = "group-category"i &wordBoundary          { return "groupCategory"; }
 groupTag                = "group-tag"i &wordBoundary               { return "groupTag"; }
 groupMerchant           = "group-merchant"i &wordBoundary          { return "groupMerchant"; }

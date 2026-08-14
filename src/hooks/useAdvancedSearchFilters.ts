@@ -86,6 +86,8 @@ const typeFiltersKeys = {
         [
             CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+            CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.CURRENCY,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
             CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
@@ -305,6 +307,7 @@ function useAdvancedSearchFiltersWorkspaces(policies: OnyxCollection<Policy>, se
         selectedPolicyIDs: undefined,
         searchTerm: searchTerm ?? '',
         localeCompare,
+        includeArchivedPolicy: true,
     });
 
     return {workspaces, shouldShowWorkspaceSearchInput};

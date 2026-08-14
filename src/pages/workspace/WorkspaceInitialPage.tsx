@@ -53,7 +53,6 @@ import {
     shouldShowTaxRateError,
 } from '@libs/PolicyUtils';
 import type {PolicyFeature} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 
 import type WORKSPACE_TO_RHP from '@navigation/linkingConfig/RELATIONS/WORKSPACE_TO_RHP';
 import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
@@ -197,7 +196,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const policyAvatar = !policy
         ? {source: expensifyIcons.ExpensifyAppIcon, name: CONST.EXPENSIFY_ICON_NAME, type: CONST.ICON_TYPE_AVATAR}
         : {
-              source: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+              source: policy.avatarURL ?? '',
               name: policy.name ?? '',
               type: CONST.ICON_TYPE_WORKSPACE,
               id: policy.id,
@@ -228,7 +227,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
     const highlightedFeature = (Object.keys(policyFeatureStates) as PolicyFeatureName[]).find((key) => policyFeatureStates[key] && !prevPendingFields?.[key] && policy?.pendingFields?.[key]);
 
     const prevPolicy = usePrevious(policy);
-    const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin);
+    const shouldShowPolicy = checkIfShouldShowPolicy(policy, true, currentUserLogin, true);
     const isPendingDelete = isPendingDeletePolicy(policy);
     const prevIsPendingDelete = isPendingDeletePolicy(prevPolicy);
     // While the policy is being fetched (e.g., right after joinAccessiblePolicy), the role is not yet populated,
@@ -548,8 +547,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
+                    shouldUseHeadlineHeader
+                    titleStyles={styles.noWrap}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
+                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

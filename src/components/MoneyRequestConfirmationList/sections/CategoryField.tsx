@@ -85,25 +85,23 @@ function CategoryField({
 
                 if (shouldNavigateToUpgradePath) {
                     Navigation.navigate(
-                        createDynamicRoute(
-                            DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                action,
-                                iouType,
-                                transactionID,
-                                reportID,
-                                upgradeBackTo: ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                            }),
-                        ),
+                        ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action,
+                            iouType,
+                            transactionID,
+                            reportID,
+                            backTo: createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                        }),
                     );
                 } else if (!policy && shouldSelectPolicy) {
                     Navigation.navigate(
                         ROUTES.SET_DEFAULT_WORKSPACE.getRoute(
-                            ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
+                            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})),
                         ),
                     );
                 } else {
-                    Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID));
+                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action, iouType, transactionID, reportID, reportActionID})));
                 }
             }}
             style={[styles.moneyRequestMenuItem]}

@@ -116,10 +116,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                 <>
                     <View style={[styles.flexRow, styles.justifyContentBetween, styles.alignItemsCenter, styles.mb2]}>
                         <Text style={[styles.exportDownloadTitle, styles.flexShrink1]}>{translate('exportDownload.preparingTitle')}</Text>
-                        <ActivityIndicator
-                            size="small"
-                            reasonAttributes={{context: 'ExportDownloadStatusModal.preparing'}}
-                        />
+                        <ActivityIndicator size="small" />
                     </View>
                     <Text style={styles.mb5}>{translate('exportDownload.preparingBody')}</Text>
                     <Button
@@ -238,6 +235,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
             isVisible={isVisible}
             onClose={isNonDismissible ? () => {} : onClose}
             onBackdropPress={isNonDismissible ? () => {} : undefined}
+            shouldTreatModalAsCovering
             type={isSmallScreenWidth ? CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED : CONST.MODAL.MODAL_TYPE.CONFIRM}
             innerContainerStyle={styles.pv0}
         >
