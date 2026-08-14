@@ -118,7 +118,6 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
-    homePageRightColumnMaxWidth: 488,
     centeredContentMaxWidth: 1200,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
