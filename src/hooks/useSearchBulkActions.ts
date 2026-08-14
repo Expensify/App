@@ -886,16 +886,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
-            const columnsToExport = getColumnsToShow({
-                currentAccountID: accountID,
-                data: exportSearchData ?? {},
-                visibleColumns,
-                type: exportSearchType,
-                groupBy: getValidGroupBy(queryJSON?.groupBy),
-                shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                fallbackPolicyID: policyForMovingExpensesID,
-                sortBy: queryJSON?.sortBy,
-            });
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            let columnsToExport: SearchColumnType[];
+
+            if (groupBy) {
+                const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+
+                columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
+            } else {
+                columnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    groupBy: getValidGroupBy(queryJSON?.groupBy),
+                    shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
+                    fallbackPolicyID: policyForMovingExpensesID,
+                    sortBy: queryJSON?.sortBy,
+                });
+            }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
             for (const column of columnsToExport) {
@@ -1729,7 +1739,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
-            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            // the other default templates. It's excluded on a grouped search, where it carries fewer columns than "Current view" does.
             const {customTemplates, defaultTemplates} = getExportTemplates(
                 integrationsExportTemplates ?? [],
                 csvExportLayouts ?? {},
@@ -1856,16 +1866,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // "Current view" is pinned directly under the accounting actions.
-            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
-            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
                 text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    if (isGroupedSearch) {
-                        handleBasicExport();
-                        return;
-                    }
                     handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,
