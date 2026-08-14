@@ -17,10 +17,12 @@ import {isFromCreditCardImport} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomMergeTransaction from '../utils/collections/mergeTransaction';
+import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction, {createRandomDistanceRequestTransaction} from '../utils/collections/transaction';
 import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
@@ -355,6 +357,49 @@ describe('MergeTransactionUtils', () => {
                 taxName: '',
                 taxPolicyID: undefined,
                 taxValue: undefined,
+            });
+        });
+
+        it('should keep the commuter exclusion when two identical distance expenses are merged without conflicts', () => {
+            // Given two identical distance expenses on a report of a workspace that excludes 1 commuter mile, so that
+            // nothing conflicts and every field is merged automatically
+            const excludingWorkspace: Policy = {
+                ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+                commuterExclusions: {method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE, fixedDistance: 1, fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            };
+            const distanceExpense = {
+                ...createRandomDistanceRequestTransaction(0),
+                reportID: '9999',
+                merchant: '10.20 mi @ $1.00 / mi',
+                modifiedMerchant: '10.20 mi @ $1.00 / mi',
+                amount: -920,
+                comment: {
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        quantity: 10.2,
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        commuterExclusion: 1,
+                        reimbursableDistance: 9.2,
+                    },
+                },
+            };
+
+            // When they are merged
+            const result = getMergeableDataAndConflictFields(
+                distanceExpense,
+                {...distanceExpense, transactionID: 'secondTransaction'},
+                mockLocaleCompare,
+                mockGetCurrencyDecimals,
+                [],
+                excludingWorkspace,
+                excludingWorkspace,
+            );
+
+            // Then the workspace's exclusion survives, and the amount still pays for the reimbursable distance only
+            expect(result.conflictFields).not.toContain('merchant');
+            expect(result.mergeableData).toMatchObject({
+                amount: 920,
+                customUnit: expect.objectContaining({commuterExclusion: 1, reimbursableDistance: 9.2}),
             });
         });
 
@@ -1022,7 +1067,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Merchant Name';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
 
             // Then it should return an object with the field value
             expect(result).toEqual({
@@ -1039,7 +1084,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 2500;
 
             // When we get updated values for amount field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'amount', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
 
             // Then it should include both amount and currency
             expect(result).toEqual({
@@ -1058,7 +1103,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = '456';
 
             // When we get updated values for reportID field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'reportID', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
 
             // Then it should include both reportID and reportName
             expect(result).toEqual({
@@ -1093,7 +1138,7 @@ describe('MergeTransactionUtils', () => {
             const fieldValue = 'New Distance Merchant';
 
             // When we get updated values for merchant field
-            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals});
+            const result = getMergeFieldUpdatedValues({transaction, field: 'merchant', fieldValue, getCurrencyDecimals: mockGetCurrencyDecimals, destinationPolicy: undefined});
 
             // Then it should include merchant plus all distance-specific fields
             expect(result).toEqual({

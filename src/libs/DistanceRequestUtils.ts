@@ -336,6 +336,25 @@ function getCommuterExclusionDisplayData(customUnit: TransactionCustomUnit | und
     };
 }
 
+/**
+ * Returns the distance a workspace excludes from a distance of `distance` units, expressed in that same unit.
+ *
+ * Returns 0 when the workspace excludes nothing, so callers can treat it as "no exclusion applies". The exclusion never
+ * exceeds the distance itself, which is what keeps a reimbursable distance from going negative.
+ */
+function getPolicyCommuterExclusionForDistance(policy: OnyxEntry<Policy>, distance: number, distanceUnit: Unit): number {
+    const commuterExclusions = policy?.commuterExclusions;
+    if (commuterExclusions?.method !== CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE) {
+        return 0;
+    }
+
+    const fixedDistanceUnit: Unit =
+        commuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
+    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(commuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), distanceUnit);
+
+    return Math.max(0, Math.min(fixedDistanceInRequestUnit, distance));
+}
+
 function getTransactionCommuterExclusionData({
     transaction,
     policy,
@@ -384,15 +403,7 @@ function getTransactionCommuterExclusionData({
         return;
     }
 
-    const fixedDistanceUnit: Unit =
-        policyCommuterExclusions.fixedDistanceUnit === CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS ? CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS : CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES;
-    const fixedDistanceInRequestUnit = convertDistanceUnit(convertToDistanceInMeters(policyCommuterExclusions.fixedDistance ?? 0, fixedDistanceUnit), requestDistanceUnit);
-
-    if (fixedDistanceInRequestUnit <= 0) {
-        return;
-    }
-
-    const commuterExclusion = Math.min(fixedDistanceInRequestUnit, routeDistance);
+    const commuterExclusion = getPolicyCommuterExclusionForDistance(policy, routeDistance, requestDistanceUnit);
     if (commuterExclusion <= 0) {
         return;
     }
@@ -852,6 +863,7 @@ export default {
     getDistanceMerchant,
     getDistanceRequestAmount,
     getCommuterExclusionDisplayData,
+    getPolicyCommuterExclusionForDistance,
     getTransactionCommuterExclusionData,
     getDistanceDisplayDetailsWithCommuter,
     getFormattedRateValue,
