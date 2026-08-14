@@ -16,7 +16,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
-import {getCleanedTagName, getTagLists, hasAccountingConnections, hasDependentTags as hasDependentTagsUtil, isMultiLevelTags as isMultiLevelTagsUtil} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasAccountingConnections, hasPerTagListRequired} from '@libs/PolicyUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
@@ -29,6 +29,9 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type {PolicyTagLists} from '@src/types/onyx';
+
+import type {ValueOf} from 'type-fest';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 
@@ -61,7 +64,7 @@ function RulesRequireFieldsPage({
 
     // Independent multi-level tags carry Required per list, so a row each. Single-level and dependent have only the policy-wide flag.
     const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
-    const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
+    const hasPerLevelTagRequired = hasPerTagListRequired(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
 
@@ -71,7 +74,7 @@ function RulesRequireFieldsPage({
     const [tagRequiredByLevel, setTagRequiredByLevel] = useState<Record<number, boolean>>({});
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
-    const getLevelRequired = useCallback((orderWeight: number, isRequiredOnList: boolean | undefined) => tagRequiredByLevel[orderWeight] ?? !!isRequiredOnList, [tagRequiredByLevel]);
+    const getLevelRequired = useCallback((tagList: ValueOf<PolicyTagLists>) => tagRequiredByLevel[tagList.orderWeight] ?? !!tagList.required, [tagRequiredByLevel]);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
@@ -89,7 +92,7 @@ function RulesRequireFieldsPage({
     }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
 
     const changedTagLevels = useMemo(
-        () => (hasPerLevelTagRequired ? tagLists.filter((tagList) => getLevelRequired(tagList.orderWeight, tagList.required) !== !!tagList.required) : []),
+        () => (hasPerLevelTagRequired ? tagLists.filter((tagList) => getLevelRequired(tagList) !== !!tagList.required) : []),
         [hasPerLevelTagRequired, tagLists, getLevelRequired],
     );
 
@@ -109,14 +112,15 @@ function RulesRequireFieldsPage({
         }
 
         if (hasPerLevelTagRequired) {
-            // All changed levels go in one call so violations are recomputed once from the combined end state.
-            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, getLevelRequired(tagList.orderWeight, tagList.required)])));
+            // All changed levels go in one call so violations are recomputed once from the combined end state. Every changed
+            // level has a pending value by definition, and it can only be the opposite of the saved one.
+            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])));
         } else if (tagRequired !== initialTagRequired) {
             setPolicyRequiresTag(policyData, tagRequired);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, getLevelRequired, tagRequired, initialTagRequired, policyData]);
+    }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, tagRequired, initialTagRequired, policyData]);
 
     const showAllTagsOptionalWarning = useCallback(() => {
         showConfirmModal({
@@ -128,26 +132,23 @@ function RulesRequireFieldsPage({
     }, [showConfirmModal, translate]);
 
     // setPolicyTagsRequired doesn't write policy.requiresTag, so it stays false until a refresh. A saved required level means
-    // the same thing, and reading it saved (not pending) keeps a level toggled on this visit undoable.
+    // the same thing, and reading it saved (not pending) lets a level toggled on this visit still be switched back off.
     const doesWorkspaceRequireTag = !!policy?.requiresTag || tagLists.some((tagList) => tagList.required);
 
     // isMakingLastRequiredTagListOptional over pending edits, since it only sees saved state and would miss levels switched off this visit.
     const isLastRequiredLevel = useCallback(
-        (orderWeight: number) =>
-            doesWorkspaceRequireTag &&
-            getLevelRequired(orderWeight, tagLists.find((tagList) => tagList.orderWeight === orderWeight)?.required) &&
-            tagLists.filter((tagList) => getLevelRequired(tagList.orderWeight, tagList.required)).length === 1,
+        (tagList: ValueOf<PolicyTagLists>) => doesWorkspaceRequireTag && getLevelRequired(tagList) && tagLists.filter((currentTagList) => getLevelRequired(currentTagList)).length === 1,
         [doesWorkspaceRequireTag, getLevelRequired, tagLists],
     );
 
     const handleTagListRequiredToggle = useCallback(
-        (required: boolean, orderWeight: number) => {
-            if (!required && isLastRequiredLevel(orderWeight)) {
+        (required: boolean, tagList: ValueOf<PolicyTagLists>) => {
+            if (!required && isLastRequiredLevel(tagList)) {
                 showAllTagsOptionalWarning();
                 return;
             }
 
-            setTagRequiredByLevel((previous) => ({...previous, [orderWeight]: required}));
+            setTagRequiredByLevel((previous) => ({...previous, [tagList.orderWeight]: required}));
         },
         [isLastRequiredLevel, showAllTagsOptionalWarning],
     );
@@ -156,14 +157,10 @@ function RulesRequireFieldsPage({
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
     const shouldShowTagLock = isTagFeatureDisabled;
 
-    /** Admins name their tag lists, so prefer that name and fall back to the generic label. */
-    const getTagLevelLabel = (tagListName: string | undefined) => {
-        const cleanedName = tagListName ? getCleanedTagName(tagListName) : '';
-        return cleanedName || translate('workspace.rules.requireFields.tag');
-    };
+    const genericTagLabel = translate('workspace.rules.requireFields.tag');
 
     // One toggle covers every level, so a list name only fits when there is exactly one list.
-    const singleTagRowLabel = tagLists.length === 1 ? getTagLevelLabel(tagLists.at(0)?.name) : translate('workspace.rules.requireFields.tag');
+    const singleTagRowLabel = tagLists.length === 1 ? getTagListLabel(tagLists.at(0)?.name, genericTagLabel) : genericTagLabel;
 
     const categoryDisabledText = (() => {
         if (!shouldShowCategoryLock) {
@@ -304,7 +301,7 @@ function RulesRequireFieldsPage({
 
                     {hasPerLevelTagRequired ? (
                         tagLists.map((tagList, tagListIndex) => {
-                            const label = getTagLevelLabel(tagList.name);
+                            const label = getTagListLabel(tagList.name, genericTagLabel);
                             // Per the Tags table row: only this level's own tags gate its switch.
                             const areLevelTagsEnabled = hasEnabledOptions(Object.values(tagList.tags ?? {}));
                             const isLevelToggleDisabled = isTagFeatureDisabled || (!tagList.required && !areLevelTagsEnabled);
@@ -315,15 +312,15 @@ function RulesRequireFieldsPage({
                                     switchAccessibilityLabel={label}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
-                                    isActive={getLevelRequired(tagList.orderWeight, tagList.required) && areLevelTagsEnabled}
+                                    isActive={getLevelRequired(tagList) && areLevelTagsEnabled}
                                     disabled={isLevelToggleDisabled}
-                                    showLockIcon={shouldShowTagLock || isLastRequiredLevel(tagList.orderWeight)}
+                                    showLockIcon={shouldShowTagLock || isLastRequiredLevel(tagList)}
                                     disabledText={tagDisabledText}
                                     disabledAction={shouldShowTagLock ? () => promptEnableTagsForRequireTag(tagList.orderWeight) : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
                                     onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
-                                    onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList.orderWeight)}
+                                    onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList)}
                                 />
                             );
                         })

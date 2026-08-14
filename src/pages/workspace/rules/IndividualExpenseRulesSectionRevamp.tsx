@@ -12,15 +12,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
 import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
-import {
-    getCleanedTagName,
-    getTagLists,
-    hasDependentTags as hasDependentTagsUtil,
-    isAttendeeTrackingEnabled,
-    isCollectPolicy,
-    isMultiLevelTags as isMultiLevelTagsUtil,
-    tryNavigateToControlPolicyUpgrade,
-} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
@@ -135,20 +127,21 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     }, [policyID]);
 
     const tagLists = getTagLists(policyTags);
-    const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
 
     // Name the tag lists the way the Require fields page rows do, instead of a generic "Tag".
     const requiredTagLabels = (() => {
-        if (hasPerLevelTagRequired) {
-            return tagLists.filter((tagList) => tagList.required).map((tagList) => getCleanedTagName(tagList.name));
+        const genericTagLabel = translate('common.tag');
+
+        if (hasPerTagListRequired(policy, policyTags)) {
+            return tagLists.filter((tagList) => tagList.required).map((tagList) => getTagListLabel(tagList.name, genericTagLabel));
         }
 
         if (!policy?.requiresTag) {
             return [];
         }
 
-        const singleTagListName = tagLists.length === 1 ? getCleanedTagName(tagLists.at(0)?.name ?? '') : '';
-        return [singleTagListName || translate('common.tag')];
+        // One flag covers every level, so a list name only fits when there is exactly one list.
+        return [tagLists.length === 1 ? getTagListLabel(tagLists.at(0)?.name, genericTagLabel) : genericTagLabel];
     })();
 
     const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
