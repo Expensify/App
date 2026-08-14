@@ -126,7 +126,7 @@ describe('proposalPoliceComment', () => {
         MockedOpenAIUtils.prototype.parseJSONResponse.mockImplementation((text) => JSON.parse(text));
     });
 
-    it('skips duplicate/template checks and does nothing for a bot-authored comment', async () => {
+    it('does nothing at all for a bot-authored comment', async () => {
         setPayload({action: 'created', comment: makeComment({login: 'github-actions[bot]', type: 'Bot'})});
 
         await run();
@@ -136,7 +136,7 @@ describe('proposalPoliceComment', () => {
         expect(MockedOpenAIUtils.prototype.promptResponses).not.toHaveBeenCalled();
     });
 
-    it('does nothing when both checks return NO_ACTION', async () => {
+    it('does nothing when a valid proposal is not a duplicate', async () => {
         // Use an already-tracked Conversation so the only comments under test are the nag/notice ones,
         // not the one-time tracking comment created alongside a brand-new Conversation.
         mockComments([makeComment({id: 5, login: 'github-actions[bot]', type: 'Bot', body: '<!-- proposal-police-conversation-id: conv_existing -->'})]);
