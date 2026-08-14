@@ -58,13 +58,13 @@ import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {
-    canAccessSubmitWorkspaceFeatures,
     canMemberRead,
     getCorrectedAutoReportingFrequency,
     hasDynamicExternalWorkflow,
     isControlPolicy,
     isGroupPolicy as isGroupPolicyUtil,
     isPolicyAdmin,
+    isSubmitPolicy,
 } from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
@@ -171,7 +171,6 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
     const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
     const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
@@ -203,8 +202,8 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         [policy, personalDetails, localeCompare, currentUserLogin],
     );
 
-    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
-    const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
+    const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
+    const canAccessWalletConnectionStatusFeatures = isSubmitPolicyWorkspace && isWalletConnectionStatusBetaEnabled;
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const isAdvanceApproval = (approvalWorkflows.length > 1 || (approvalWorkflows?.at(0)?.approvers ?? []).length > 1) && isControlPolicy(policy);
@@ -311,7 +310,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             usedApproverEmails,
         });
 
-        if (canAccessSubmit2026Features) {
+        if (isSubmitPolicyWorkspace) {
             navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
@@ -328,7 +327,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         }
 
         Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_WORKFLOWS_APPROVALS_EXPENSES_FROM.path));
-    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    }, [policy, route.params.policyID, availableMembers, usedApproverEmails, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     // Reuses the Members spreadsheet importer (it already maps the `submitsTo` / `approvesTo` columns) so approval
     // workflows can be bulk-imported directly from the Workflows page.
@@ -348,12 +347,12 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
             return;
         }
         // Submit 2026 workspaces gate approvals behind the Submit approvals upgrade, so route them there instead of the importer.
-        if (canAccessSubmit2026Features) {
+        if (isSubmitPolicyWorkspace) {
             navigateToSubmitWorkspaceApprovalsUpgrade();
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(route.params.policyID));
-    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, canAccessSubmit2026Features, navigateToSubmitWorkspaceApprovalsUpgrade]);
+    }, [isAccountLocked, showLockedAccountModal, isOffline, showConfirmModal, translate, route.params.policyID, isSubmitPolicyWorkspace, navigateToSubmitWorkspaceApprovalsUpgrade]);
 
     // The Workflows CSV export reuses the Members export command so the downloaded file is identical to Members > Download CSV.
     const downloadWorkflowsAction = useCallback(() => {
@@ -669,7 +668,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                         showReadOnlyModal();
                         return;
                     }
-                    if (isEnabled && canAccessSubmit2026Features) {
+                    if (isEnabled && isSubmitPolicyWorkspace) {
                         navigateToSubmitWorkspaceApprovalsUpgrade();
                         return;
                     }
@@ -803,7 +802,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                 showLockIcon: !canWriteApprovals,
                 // Submit2026 workspaces have approval mode set to Advanced, but we want to show it here as off because configuring the advanced approvals is a paid feature.
                 isActive:
-                    !canAccessSubmit2026Features &&
+                    !isSubmitPolicyWorkspace &&
                     (isHRConnected ||
                         isDEWEnabled ||
                         (([CONST.POLICY.APPROVAL_MODE.BASIC, CONST.POLICY.APPROVAL_MODE.ADVANCED].some((approvalMode) => approvalMode === policy?.approvalMode) && !hasApprovalError) ??
@@ -823,7 +822,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
                                   showReadOnlyModal();
                                   return;
                               }
-                              if (isEnabled && canAccessSubmit2026Features) {
+                              if (isEnabled && isSubmitPolicyWorkspace) {
                                   Navigation.navigate(
                                       ROUTES.WORKSPACE_UPGRADE.getRoute(
                                           route.params.policyID,
@@ -1059,7 +1058,7 @@ function WorkspaceWorkflowsPage({policy, route}: WorkspaceWorkflowsPageProps) {
         showAddBankAccountPermissionModal,
         confirmCurrencyChangeAndHideModal,
         delegateAccountID,
-        canAccessSubmit2026Features,
+        isSubmitPolicyWorkspace,
         isGlobalReimbursementsBetaEnabled,
         isGlobalReimbursementFXBetaEnabled,
         canAccessWalletConnectionStatusFeatures,

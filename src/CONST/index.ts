@@ -1006,7 +1006,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
@@ -5451,7 +5450,6 @@ const CONST = {
         GO_TO_WORKSPACE: 'goToWorkspace',
         ERROR: 'error',
         TRACK: {
-            SUBMIT: 'submit',
             SUBMIT_TO_FRIEND: 'submitToFriend',
             SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
