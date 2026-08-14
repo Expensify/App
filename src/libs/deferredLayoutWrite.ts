@@ -56,13 +56,6 @@ type DeferredChannel = {
      * instead of creating a new deferred channel.
      */
     flushRequested?: boolean;
-
-    /**
-     * Resolves once the reservation's real callback is registered. Lets a caller that
-     * cannot itself register on this channel (e.g. submitReport) wait for the pending
-     * create to be dispatched before proceeding.
-     */
-    registrationPromise?: Promise<void>;
 };
 
 const channels = new Map<string, DeferredChannel>();
@@ -76,7 +69,7 @@ const channels = new Map<string, DeferredChannel>();
 // real write, so resolving early or dropping the scope on the timeout would let a submit-waiter proceed (or
 // fail to flush) before that write lands, reproducing the exact submit-before-create race this
 // mechanism exists to prevent.
-const pendingRegistrations = new Map<string, {resolve: () => void; destinationReportID?: string}>();
+const pendingRegistrations = new Map<string, {resolve: () => void; destinationReportID?: string; promise: Promise<void>}>();
 
 // Watch keys that outlive their channel. When a reserved channel is flushed
 // immediately (flushRequested path), the channel is deleted but the watch key
@@ -202,9 +195,11 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
 
     flushedWatchKeys.delete(key);
 
+    let resolveRegistration: () => void = () => {};
     const registrationPromise = new Promise<void>((resolve) => {
-        pendingRegistrations.set(key, {resolve, destinationReportID: options.destinationReportID});
+        resolveRegistration = resolve;
     });
+    pendingRegistrations.set(key, {resolve: resolveRegistration, destinationReportID: options.destinationReportID, promise: registrationPromise});
 
     // Deletes the channel (so hasDeferredWrite/flush stop treating it as pending) but does NOT
     // touch `pendingRegistrations` - every call site always follows up with the real write, so a
@@ -216,7 +211,7 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
         channels.delete(key);
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID, registrationPromise});
+    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID});
 }
 
 function hasDeferredWrite(key: string): boolean {
@@ -239,21 +234,26 @@ function hasDeferredWriteForReport(key: string, reportID: string | undefined): b
 }
 
 /**
- * Returns a promise that resolves once the reserved channel for `key` targeting `reportID`
- * gets its real callback registered (or the reservation times out). Returns undefined when
- * there is no matching reservation, so callers can distinguish "nothing to wait for" from
- * "already resolved". Used by callers that cannot register on the channel themselves (e.g.
- * submitReport) but must not race ahead of a pending create still waiting on the reservation.
+ * Returns a promise that resolves once the reservation for `key` targeting `reportID` gets its
+ * real callback registered. Returns undefined when there is no matching reservation, so callers
+ * can distinguish "nothing to wait for" from "already resolved". Used by callers that cannot
+ * register on the channel themselves (e.g. submitReport) but must not race ahead of a pending
+ * create still waiting on the reservation.
+ *
+ * Reads from `pendingRegistrations`, not `channels` - the reservation's safety timeout may have
+ * already deleted the channel while the real write is still forthcoming, and a caller invoked in
+ * that exact window must still get a promise to wait on, not `undefined` (which it would read as
+ * "nothing pending" and submit right away).
  */
 function getRegistrationPromiseForReport(key: string, reportID: string | undefined): Promise<void> | undefined {
     if (!reportID) {
         return undefined;
     }
-    const channel = channels.get(key);
-    if (!channel?.isReserved || channel.destinationReportID !== reportID) {
+    const pending = pendingRegistrations.get(key);
+    if (pending?.destinationReportID !== reportID) {
         return undefined;
     }
-    return channel.registrationPromise;
+    return pending.promise;
 }
 
 /**
