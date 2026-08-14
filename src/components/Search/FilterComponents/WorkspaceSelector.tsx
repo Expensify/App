@@ -142,7 +142,7 @@ function WorkspaceSelector({value = [], selectionListTextInputStyle, selectionLi
     };
 
     const toFilterItem = (item: WorkspaceOption): WorkspaceFilterItem => ({
-        text: `${item.text}${item.isArchived ? ` (${translate('search.filters.workspace.archived')})` : ''}`,
+        text: item.text,
         keyForList: item.value,
         isSelected: value.includes(item.value),
         icons: item.icons,
