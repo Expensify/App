@@ -942,14 +942,14 @@ function MoneyRequestView({
     const amountCopyValue = amountTitle || undefined;
     const descriptionHTML = updatedTransactionDescription ?? transactionDescription;
     const descriptionCopyValue = descriptionHTML ? Parser.htmlToText(descriptionHTML) : undefined;
-    const merchantCopyValue = updatedMerchantTitle || undefined;
-    const dateCopyValue = actualTransactionDate || undefined;
+    const merchantCopyValue = updatedMerchantTitle;
+    const dateCopyValue = actualTransactionDate;
     const categoryValue = updatedTransaction?.category ?? categoryForDisplay;
     const decodedCategoryName = getDecodedLeafCategoryName(categoryValue);
     const categoryCopyValue = decodedCategoryName || undefined;
     const cardCopyValue = cardProgramName;
     const taxRateValue = hasTaxValueChanged ? taxValue : (transaction?.taxName ?? taxRateTitle ?? fallbackTaxRateTitle ?? '');
-    const taxRateCopyValue = taxRateValue || undefined;
+    const taxRateCopyValue = taxRateValue;
     const taxAmountTitle = formattedTaxAmount ? formattedTaxAmount.toString() : '';
     const taxAmountCopyValue = taxAmountTitle || undefined;
 
