@@ -39,14 +39,17 @@ describe('ReportSettingsColumns route and navigation', () => {
     describe('linkingConfig', () => {
         it('should map COLUMNS screen to the correct route path', () => {
             const rightModalConfig = config?.screens?.[NAVIGATORS.RIGHT_MODAL_NAVIGATOR];
-            const reportSettingsConfig = typeof rightModalConfig === 'object' && 'screens' in rightModalConfig ? rightModalConfig.screens?.[SCREENS.RIGHT_MODAL.REPORT_SETTINGS] : undefined;
-            const reportSettingsScreens = typeof reportSettingsConfig === 'object' && 'screens' in reportSettingsConfig ? reportSettingsConfig.screens : undefined;
+            const reportSettingsConfig =
+                typeof rightModalConfig === 'object' && rightModalConfig !== null && 'screens' in rightModalConfig
+                    ? rightModalConfig.screens?.[SCREENS.RIGHT_MODAL.REPORT_SETTINGS]
+                    : undefined;
+            const reportSettingsScreens =
+                typeof reportSettingsConfig === 'object' && reportSettingsConfig !== null && 'screens' in reportSettingsConfig ? reportSettingsConfig.screens : undefined;
             const columnsConfig =
                 typeof reportSettingsScreens === 'object' && reportSettingsScreens !== null && SCREENS.REPORT_SETTINGS.COLUMNS in reportSettingsScreens
                     ? reportSettingsScreens[SCREENS.REPORT_SETTINGS.COLUMNS]
                     : undefined;
-            const columnsPath =
-                typeof columnsConfig === 'object' && columnsConfig !== null && 'path' in columnsConfig && typeof columnsConfig.path === 'string' ? columnsConfig.path : undefined;
+            const columnsPath = typeof columnsConfig === 'object' && columnsConfig !== null && 'path' in columnsConfig ? columnsConfig.path : undefined;
 
             expect(columnsPath).toBe(ROUTES.REPORT_SETTINGS_COLUMNS.route);
         });
