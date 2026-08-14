@@ -4,6 +4,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {createTransitionBarrier, write as apiWrite, writeWhenReady} from '@libs/API';
 import type {RevertSplitTransactionParams, SplitTransactionParams, SplitTransactionSplitsParam} from '@libs/API/parameters';
+import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -1960,7 +1961,13 @@ function updateSplitTransactions({
     // trying to paint. Inside the split-expenses flow there is always a navigation to hide behind, so
     // defer the write until that screen transition has finished. Outside it there is no transition to
     // wait on, and a default barrier would stall the write for ~2s, so write immediately instead.
-    const navigationBarrier = createTransitionBarrier('navigation');
+    const writeSplit = <TCommand extends WriteCommand>(command: TCommand, parameters: ApiRequestCommandParameters[TCommand]) => {
+        if (!isFromSplitExpensesFlow) {
+            apiWrite(command, parameters, onyxData);
+            return;
+        }
+        writeWhenReady(command, parameters, onyxData, createTransitionBarrier('navigation'));
+    };
 
     if (isReverseSplitOperation) {
         const parameters = {
@@ -1969,11 +1976,7 @@ function updateSplitTransactions({
             waypoints: splits.at(0)?.waypoints ? JSON.stringify(splits.at(0)?.waypoints) : undefined,
             copiedComments: splits.at(0)?.copiedComments ? JSON.stringify(splits.at(0)?.copiedComments) : undefined,
         } as RevertSplitTransactionParams;
-        if (isFromSplitExpensesFlow) {
-            writeWhenReady(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData, navigationBarrier);
-        } else {
-            apiWrite(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters, onyxData);
-        }
+        writeSplit(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, parameters);
     } else {
         // Prepare splitApiParams for the Transaction_Split API call which requires a specific format for the splits
         // The format is: splits[0][amount], splits[0][category], splits[0][tag] etc.
@@ -1989,12 +1992,7 @@ function updateSplitTransactions({
             transactionID: originalTransactionID,
         };
 
-        const command = isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION;
-        if (isFromSplitExpensesFlow) {
-            writeWhenReady(command, splitParameters, onyxData, navigationBarrier);
-        } else {
-            apiWrite(command, splitParameters, onyxData);
-        }
+        writeSplit(isCreationOfSplits ? WRITE_COMMANDS.SPLIT_TRANSACTION : WRITE_COMMANDS.UPDATE_SPLIT_TRANSACTION, splitParameters);
     }
     TransitionTracker.runAfterTransitions({callback: () => removeDraftSplitTransaction(originalTransactionID), waitForUpcomingTransition: true});
 }
@@ -2026,20 +2024,14 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
     // splits belonging to the current expense report, or the only remaining split moved to selfDM.
     // In any of these cases we must navigate away from the soon-to-be-empty report so the user
     // isn't stranded on a "Not Found" page.
-    // Scanned once and reused below. The two consumers differ in how they treat a missing
-    // expenseReportID: areAllExpenseReportTransactionsSplitChildren must see an empty list, while the
-    // last-transaction check historically matched transactions whose reportID is also undefined, so
-    // the guard stays on the derived value rather than on the scan itself.
-    const transactionsMatchingExpenseReportID = Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID);
-    const expenseReportTransactions = expenseReportID ? transactionsMatchingExpenseReportID : [];
+    const expenseReportTransactions = expenseReportID ? Object.values(params.allTransactionsList ?? {}).filter((itemTransaction) => itemTransaction?.reportID === expenseReportID) : [];
     const areAllExpenseReportTransactionsSplitChildren =
         expenseReportTransactions.length > 0 && expenseReportTransactions.every((itemTransaction) => itemTransaction?.comment?.originalTransactionID === originalTransactionID);
     const anyRemainingSplitStaysInExpenseReport = splitExpenses.some((expense) => expense.reportID === expenseReportID);
     const reverseSplitKeepsOriginalInExpenseReport = isReverseSplitOperation && splitExpenses.at(0)?.reportID === expenseReportID;
     const willExpenseReportBecomeEmpty =
         !!expenseReportID && areAllExpenseReportTransactionsSplitChildren && !anyRemainingSplitStaysInExpenseReport && !reverseSplitKeepsOriginalInExpenseReport;
-    const isLastTransactionInReport =
-        willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && transactionsMatchingExpenseReportID.length === 1);
+    const isLastTransactionInReport = willExpenseReportBecomeEmpty || (isReverseSplitOperation && !reverseSplitKeepsOriginalInExpenseReport && expenseReportTransactions.length === 1);
     const fallbackReportID = params.expenseReport?.chatReportID ?? params.expenseReport?.parentReportID;
 
     if (isLastTransactionInReport && fallbackReportID) {
@@ -2169,3 +2161,4 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 }
 
 export {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow};
+export type {UpdateSplitTransactionsParams};

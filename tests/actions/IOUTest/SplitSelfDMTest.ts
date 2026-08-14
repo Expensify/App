@@ -57,15 +57,7 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 
-jest.mock('@libs/API/writeWhenReady', () => ({
-    // Run the deferred write inline: no screen transition happens in a test, so the barrier would
-    // otherwise hold the write until its safety timeout and every optimistic-data assertion would fail.
-    writeWhenReady: jest.fn((command: string, params: unknown, onyxData: unknown) => {
-        const baseWrite = jest.requireActual<{default: (c: string, p: unknown, o: unknown) => Promise<unknown>}>('@libs/API/write').default;
-        return baseWrite(command, params, onyxData);
-    }),
-    createTransitionBarrier: jest.fn(() => () => new Promise(() => {})),
-}));
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@src/libs/SearchQueryUtils', () => {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     const actual = jest.requireActual('@src/libs/SearchQueryUtils');

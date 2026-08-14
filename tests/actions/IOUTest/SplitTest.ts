@@ -10,7 +10,7 @@ import {createWorkspace, generatePolicyID, setWorkspaceApprovalMode} from '@libs
 import {addComment, notifyNewAction} from '@libs/actions/Report';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {writeWhenReady} from '@libs/API/writeWhenReady';
+import {createTransitionBarrier, writeWhenReady} from '@libs/API/writeWhenReady';
 import {getCurrencyDecimals, getCurrencySymbol} from '@libs/CurrencyUtils';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import {rand64} from '@libs/NumberUtils';
@@ -28,6 +28,7 @@ import {
     updateSplitExpenseAmountField,
     updateSplitExpenseField,
 } from '@userActions/IOU/SplitExpenseItems';
+import type {UpdateSplitTransactionsParams} from '@userActions/IOU/SplitTransactionUpdate';
 import {updateSplitTransactions, updateSplitTransactionsFromSplitExpensesFlow} from '@userActions/IOU/SplitTransactionUpdate';
 
 import CONST from '@src/CONST';
@@ -101,22 +102,14 @@ jest.mock('@src/libs/actions/Report', () => {
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => jest.fn());
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator', () => jest.fn());
-jest.mock('@libs/API/writeWhenReady', () => ({
-    // Run the deferred write inline: no screen transition happens in a test, so the barrier would
-    // otherwise hold the write until its safety timeout and every optimistic-data assertion would fail.
-    writeWhenReady: jest.fn((command: string, params: unknown, onyxData: unknown) => {
-        const baseWrite = jest.requireActual<{default: (c: string, p: unknown, o: unknown) => Promise<unknown>}>('@libs/API/write').default;
-        return baseWrite(command, params, onyxData);
-    }),
-    createTransitionBarrier: jest.fn(() => () => new Promise(() => {})),
-}));
+jest.mock('@libs/API/writeWhenReady');
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
     cancelDeferredWrite: jest.fn(),
     hasDeferredWrite: () => false,
     getOptimisticWatchKey: () => undefined,
-    deferOrExecuteWrite: jest.fn((apiWrite: () => void) => apiWrite()),
+    deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
     reserveDeferredWriteChannel: jest.fn(),
 }));
 jest.mock('@hooks/useCardFeedsForDisplay', () => jest.fn(() => ({defaultCardFeed: null, cardFeedsByPolicy: {}})));
@@ -9599,8 +9592,12 @@ describe('startSplitBill delegateAccountID forwarding', () => {
 /**
  * Minimal fixture for the split-expenses save flow: one expense report holding one transaction,
  * with a draft that splits it in two.
+ *
+ * `withExistingSplitChildren` additionally seeds those two splits in Onyx, which is what makes a
+ * one-item `splitExpenses` read as a reverse split (collapsing an existing split back to one
+ * expense) rather than as a fresh one-way split.
  */
-const buildSplitFlowParams = async () => {
+const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) => {
     const expenseReport: Report = {
         ...createRandomReport(9001, undefined),
         type: CONST.REPORT.TYPE.EXPENSE,
@@ -9632,6 +9629,16 @@ const buildSplitFlowParams = async () => {
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThread.reportID}`, transactionThread);
     await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, {[iouAction.reportActionID]: iouAction});
     await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
+    if (withExistingSplitChildren) {
+        for (const childTransactionID of ['9003', '9004']) {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${childTransactionID}`, {
+                ...transaction,
+                transactionID: childTransactionID,
+                amount: 50,
+                comment: {originalTransactionID: transaction.transactionID, source: CONST.IOU.TYPE.SPLIT},
+            });
+        }
+    }
     await waitForBatchedUpdates();
 
     let allTransactions: OnyxCollection<Transaction>;
@@ -9650,7 +9657,7 @@ const buildSplitFlowParams = async () => {
     });
 
     const reports = getTransactionAndExpenseReports(expenseReport.reportID);
-    const params = {
+    const params: UpdateSplitTransactionsParams = {
         allTransactionsList: allTransactions,
         allReportsList: allReports,
         allReportActionsList: undefined,
@@ -9659,8 +9666,8 @@ const buildSplitFlowParams = async () => {
             reportID: expenseReport.reportID,
             originalTransactionID: transaction.transactionID,
             splitExpenses: [
-                {transactionID: '9003', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
-                {transactionID: '9004', amount: 50, currency: 'USD', description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+                {transactionID: '9003', amount: 50, description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
+                {transactionID: '9004', amount: 50, description: '', category: '', tags: [''], created: transaction.created, reportID: expenseReport.reportID},
             ],
             splitExpensesTotal: 100,
         },
@@ -9702,9 +9709,11 @@ describe('split save deferred write', () => {
         updateSplitTransactionsFromSplitExpensesFlow(params);
         await waitForBatchedUpdates();
 
-        // Then the write goes through writeWhenReady with a barrier, so its optimistic data does not
-        // land while the press is still trying to paint
-        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
+        // Then the write goes through writeWhenReady gated on a screen transition specifically, so its
+        // optimistic data does not land while the press is still trying to paint, and a stray modal or
+        // keyboard blip cannot release it early
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
     });
 
     it('defers the write the same way when saving from the Search page', async () => {
@@ -9716,9 +9725,28 @@ describe('split save deferred write', () => {
         updateSplitTransactionsFromSplitExpensesFlow(params);
         await waitForBatchedUpdates();
 
-        // Then the same barrier-gated path is used - writeWhenReady is route agnostic, so the Search
+        // Then the same barrier-gated path is used - the barrier is route agnostic, so the Search
         // branch needs no special casing
-        expect(writeWhenReady).toHaveBeenCalledWith(expect.any(String), expect.anything(), expect.anything(), expect.any(Function));
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
+    });
+
+    it('defers the reverse-split write behind the same barrier', async () => {
+        // Given an existing two-way split being collapsed back to a single expense
+        const {params} = await buildSplitFlowParams({withExistingSplitChildren: true});
+        const remainingSplit = params.transactionData.splitExpenses.at(0);
+
+        // When the reverse split is saved from the split-expenses flow
+        updateSplitTransactions({
+            ...params,
+            transactionData: {...params.transactionData, splitExpenses: remainingSplit ? [remainingSplit] : []},
+            isFromSplitExpensesFlow: true,
+        });
+        await waitForBatchedUpdates();
+
+        // Then REVERT_SPLIT_TRANSACTION goes through the same fork as the creation path
+        expect(createTransitionBarrier).toHaveBeenCalledWith('navigation');
+        expect(writeWhenReady).toHaveBeenCalledWith(WRITE_COMMANDS.REVERT_SPLIT_TRANSACTION, expect.anything(), expect.anything(), expect.any(Function));
     });
 
     it('writes immediately when the caller is not the split-expenses flow', async () => {
@@ -9729,7 +9757,8 @@ describe('split save deferred write', () => {
         updateSplitTransactions({...params, isFromSplitExpensesFlow: false});
         await waitForBatchedUpdates();
 
-        // Then there is no navigation to wait on, so the write is not deferred
+        // Then there is no navigation to wait on, so neither the write nor the barrier it would need is deferred
         expect(writeWhenReady).not.toHaveBeenCalled();
+        expect(createTransitionBarrier).not.toHaveBeenCalled();
     });
 });
