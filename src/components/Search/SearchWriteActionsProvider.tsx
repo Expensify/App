@@ -228,7 +228,7 @@ function SearchWriteActionsProvider({
     // Expense-report rows are the selectable unit. Only group-by rows are headers whose children flatten in.
     const hasValidGroupBy = areItemsGrouped && !isExpenseReportType;
     // One pass: the rows a range spans and the parent each belongs to cannot be built separately without being able to disagree.
-    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
+    const {items: flattenedShiftRangeItems, childrenByGroupKey, groupKeyByChildKey} = buildShiftRangeSource(renderedData, openGroupKeys, hasValidGroupBy);
     useLayoutEffect(() => {
         groupKeyByChildKeyRef.current = groupKeyByChildKey;
     }, [groupKeyByChildKey]);
@@ -240,13 +240,8 @@ function SearchWriteActionsProvider({
         if (!groupKey || getAreAllMatchingItemsSelected() || !selection[groupKey]?.isSelected) {
             return undefined;
         }
-        const loaded = childrenByGroupKey.get(groupKey) ?? [];
-        const totalCount = childCountByGroupKey.get(groupKey);
-        return {groupKey, loaded, isPartial: totalCount !== undefined && loaded.length < totalCount};
+        return {groupKey, loaded: childrenByGroupKey.get(groupKey) ?? []};
     };
-
-    // The group holds rows nobody can name yet, so enumerating it would drop the ones that never arrived.
-    const isCoveredByPartialGroup = (selection: SelectedTransactions, childKey: string) => !!resolveGroupBlock(selection, childKey)?.isPartial;
 
     // A group selected before its children loaded lives under the group key alone, so dropping one child needs the group written out first.
     const spellOutGroupSelection = (selection: SelectedTransactions, childKey: string): SelectedTransactions => {
@@ -317,10 +312,6 @@ function SearchWriteActionsProvider({
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
                         return;
                     }
-                    // Already selected through its group, and its own entry would only make a later narrowing impossible.
-                    if (isCoveredByPartialGroup(updated, tx.keyForList)) {
-                        return;
-                    }
                     updated = spellOutGroupSelection(updated, tx.keyForList);
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = blockGroupKey ?? groupKeyByChildKey.get(tx.keyForList);
@@ -328,7 +319,7 @@ function SearchWriteActionsProvider({
                 };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
-                        if (row.keyForList && !isCoveredByPartialGroup(updated, row.keyForList)) {
+                        if (row.keyForList) {
                             updated = spellOutGroupSelection(updated, row.keyForList);
                             delete updated[row.keyForList];
                         }
@@ -461,7 +452,7 @@ function SearchWriteActionsProvider({
             applySelection(
                 (selectedTransactions) => {
                     // Checked by a wider selection, so there is no entry to remove and adding one would check it twice.
-                    if (!isEmptyObject(clickExclusion) || isCoveredByPartialGroup(selectedTransactions, item.keyForList)) {
+                    if (!isEmptyObject(clickExclusion)) {
                         return selectedTransactions;
                     }
                     const {itemTransaction, originalItemTransaction, parentReport: itemParentReport} = resolveTransactionRefs(item);

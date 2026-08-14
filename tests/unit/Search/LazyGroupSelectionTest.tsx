@@ -141,28 +141,6 @@ function PagingWrapper({children}: {children: React.ReactNode}) {
     );
 }
 
-function PartiallyLoadedWrapper({children}: {children: React.ReactNode}) {
-    return (
-        <SearchContextProvider>
-            <SearchWriteActionsProvider
-                filteredData={[partiallyLoadedGroup]}
-                renderedData={[partiallyLoadedGroup]}
-                totalSelectableItemsCount={5}
-                searchResults={undefined}
-                searchHash={SEARCH_HASH}
-                transactions={undefined}
-                isMobileSelectionModeEnabled={false}
-                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                areItemsGrouped
-                isExpenseReportType={false}
-                isSearchResultsEmpty={false}
-            >
-                {children}
-            </SearchWriteActionsProvider>
-        </SearchContextProvider>
-    );
-}
-
 function TwoGroupWrapper({children}: {children: React.ReactNode}) {
     return (
         <SearchContextProvider>
@@ -582,29 +560,33 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
     });
 
-    it('keeps a group selected as a whole while its rows are still paging in', async () => {
-        const {result} = renderSelection(PartiallyLoadedWrapper);
-        const [firstChild] = loadedChildren;
+    it('writes a group out into the rows that arrived when one of them is clicked, rather than refusing the click', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
+        const [firstChild, secondChild] = loadedChildren;
 
-        // Given a group of five selected while collapsed, of which only two rows have loaded so far
+        // Given a group of five selected while collapsed, so the selection is held under its key
         await act(async () => {
-            result.current.toggle(partiallyLoadedGroup, []);
-            expandGroup(result, GROUP_KEY, loadedChildren);
+            result.current.toggle(pagingGroup, []);
             await waitForBatchedUpdatesWithAct();
         });
         expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
 
-        // When one of the loaded rows is clicked, which would otherwise write the group out as just those two
+        // When its first page arrives and one of those rows is clicked
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
         await act(async () => {
             result.current.toggle(firstChild);
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then the group stays selected as a whole, rather than silently dropping the three rows that never arrived
-        expect(result.current.selectedTransactions[GROUP_KEY]?.isSelected).toBe(true);
-        // And the click leaves no entry of its own behind, which would count the row twice and still not uncheck it
+        // Then the click lands: the rows that arrived carry the selection and the clicked one is out of it
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
         expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
-        expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
     });
 
     it('unchecks a child of a group selected while collapsed, once that group’s first page reaches the list', async () => {
@@ -639,13 +621,18 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[firstChild.keyForList]).toBeUndefined();
     });
 
-    it('leaves a range over a group that is still paging in exactly as it found it', async () => {
-        const {result} = renderSelection(PartiallyLoadedWrapper);
+    it('narrows a group that is still paging in down to the rows a range keeps', async () => {
+        const {result, rerender} = renderSelection(PagingWrapper);
         const [firstChild, secondChild] = loadedChildren;
 
-        // Given a group of five selected while collapsed, of which only two rows have loaded so far
+        // Given a group of five selected while collapsed, whose first page has since arrived
         await act(async () => {
-            result.current.toggle(partiallyLoadedGroup, []);
+            result.current.toggle(pagingGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        pagingGroup = cachedPartialGroup;
+        rerender({});
+        await act(async () => {
             expandGroup(result, GROUP_KEY, loadedChildren);
             await waitForBatchedUpdatesWithAct();
         });
@@ -660,18 +647,9 @@ describe('Lazily loaded group selection', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        // Then both rows still read as checked, since the group covers them, and neither gained an entry that would make a later narrowing impossible
-        const isChecked = (rowKey: string) =>
-            isRowChecked({
-                rowKey,
-                parentGroupKey: GROUP_KEY,
-                selectedTransactions: result.current.selectedTransactions,
-                excludedTransactions: result.current.excludedTransactions,
-                areAllMatchingItemsSelected: result.current.areAllMatchingItemsSelected,
-            });
-        expect(isChecked(firstChild.keyForList)).toBe(true);
-        expect(isChecked(secondChild.keyForList)).toBe(true);
-        expect(Object.keys(result.current.selectedTransactions)).toEqual([GROUP_KEY]);
+        // Then the range gives back the row it no longer covers, the same as it would in a group with nothing left to page in
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+        expect(result.current.selectedTransactions[secondChild.keyForList]).toBeUndefined();
     });
 
     it('anchors in the group just selected, not at a row selected earlier in another group', async () => {

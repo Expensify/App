@@ -433,18 +433,14 @@ type ShiftRangeSource = {
 
     /** The group a child row belongs to, so its selection is stored and removed under the right parent */
     groupKeyByChildKey: Map<string, string>;
-
-    /** How many rows each group holds in total, which is more than the loaded page while a group is still paging in */
-    childCountByGroupKey: Map<string, number>;
 };
 
 /** What a range spans and who owns each row, from one pass so the two cannot disagree. Flattens only in group-by views. */
 function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
     const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
     const groupKeyByChildKey = new Map<string, string>();
-    const childCountByGroupKey = new Map<string, number>();
     if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
-        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
+        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
     }
 
     const items: SearchListItem[] = [];
@@ -455,9 +451,6 @@ function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: Read
         }
         const children = resolveGroupChildren(group, openGroupKeys);
         childrenByGroupKey.set(group.keyForList, children);
-        if ('count' in group && typeof group.count === 'number') {
-            childCountByGroupKey.set(group.keyForList, group.count);
-        }
         for (const child of children) {
             items.push(child);
             if (child.keyForList) {
@@ -465,7 +458,7 @@ function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: Read
             }
         }
     }
-    return {items, childrenByGroupKey, groupKeyByChildKey, childCountByGroupKey};
+    return {items, childrenByGroupKey, groupKeyByChildKey};
 }
 
 export {
