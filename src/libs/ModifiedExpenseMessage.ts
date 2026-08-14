@@ -93,7 +93,7 @@ function buildDateChangeFragment(
     if (!oldCreated || !created) {
         return;
     }
-    const formattedOldCreated = DateUtils.formatWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
+    const formattedOldCreated = DateUtils.formatMachineDateWithUTCTimeZone(oldCreated, CONST.DATE.FNS_FORMAT_STRING);
     buildMessageFragmentForValue(translate, created, formattedOldCreated, translate('common.date'), false, setFragments, removalFragments, changeFragments);
 }
 
