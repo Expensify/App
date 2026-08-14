@@ -1,7 +1,19 @@
 import type {GuidedSetupTask} from '@libs/actions/Report';
 import {isRecord} from '@libs/ObjectUtils';
 
+import CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 type UnknownRecord = Record<string, unknown>;
+
+function isReportStateNum(value: unknown): value is ValueOf<typeof CONST.REPORT.STATE_NUM> {
+    return typeof value === 'number' && Object.values(CONST.REPORT.STATE_NUM).some((stateNum) => stateNum === value);
+}
+
+function isReportStatusNum(value: unknown): value is ValueOf<typeof CONST.REPORT.STATUS_NUM> {
+    return typeof value === 'number' && Object.values(CONST.REPORT.STATUS_NUM).some((statusNum) => statusNum === value);
+}
 
 function isObject(value: unknown): value is Record<PropertyKey, unknown> {
     return value !== null && typeof value === 'object';
@@ -87,6 +99,8 @@ export {
     hasDefinedProperty,
     isGuidedSetupTask,
     isObject,
+    isReportStateNum,
+    isReportStatusNum,
     parseJSONArray,
     parseJSONRecord,
     readProperty,

@@ -44,6 +44,7 @@ import {createExpenseReport, createRandomReport} from '../utils/collections/repo
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {isReportStateNum, isReportStatusNum} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -646,12 +647,7 @@ describe('Transaction', () => {
                     }
 
                     const {stateNum, statusNum} = update.value;
-                    return (
-                        typeof stateNum === 'number' &&
-                        Object.values(CONST.REPORT.STATE_NUM).some((validStateNum) => validStateNum === stateNum) &&
-                        typeof statusNum === 'number' &&
-                        Object.values(CONST.REPORT.STATUS_NUM).some((validStatusNum) => validStatusNum === statusNum)
-                    );
+                    return isReportStateNum(stateNum) && isReportStatusNum(statusNum);
                 });
                 if (!sourceReportUpdate || !sourceReportStateUpdate) {
                     throw new Error('Expected typed source report updates');
