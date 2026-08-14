@@ -6326,7 +6326,7 @@ const translations = {
                     },
                     codingSync: {
                         title: 'Code trips at booking',
-                        subtitle: 'Ask travelers for this workspace’s categories, tags, and report fields at checkout, so trips arrive already coded.',
+                        subtitle: "Ask travelers for this workspace's categories, tags, and report fields at checkout, so trips arrive already coded.",
                     },
                 },
                 travelInvoicing: {
