@@ -5329,6 +5329,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
