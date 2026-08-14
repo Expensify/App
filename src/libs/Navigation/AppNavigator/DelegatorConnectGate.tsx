@@ -7,8 +7,6 @@ import getCurrentUrl from '@libs/Navigation/currentUrl';
 import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getSearchParamFromUrl} from '@libs/Url';
 
-import * as App from '@userActions/App';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import React, {Suspense, use} from 'react';
@@ -41,9 +39,6 @@ function DelegatorConnectGate({children, delegatorEmail}: DelegatorConnectGatePr
             session,
             activePolicyID,
             isFromOldDot: true,
-        })?.then((success) => {
-            App.setAppLoading(!!success);
-            return success;
         }) ?? Promise.resolve(undefined);
 
     use(connectPromise);

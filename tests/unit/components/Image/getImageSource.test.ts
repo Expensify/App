@@ -99,6 +99,33 @@ describe('getImageSource', () => {
         ).toEqual({source: undefined, shouldReauthenticate: true});
     });
 
+    it('returns an authenticated source for an expired session running on a restricted token', () => {
+        const propsSource = {uri: MOCK_URI};
+        const session: Session = {
+            encryptedAuthToken: MOCK_TOKEN,
+            creationDate: NOW.getTime() - CONST.SESSION_EXPIRATION_TIME_MS - 1,
+            authTokenType: CONST.AUTH_TOKEN_TYPES.RESTRICTED,
+        };
+
+        expect(
+            getImageSource({
+                propsSource,
+                session,
+                isAuthTokenRequired: true,
+                isOffline: false,
+            }),
+        ).toEqual({
+            source: {
+                ...propsSource,
+                cacheKey: MOCK_URI,
+                headers: {
+                    [CONST.CHAT_ATTACHMENT_TOKEN_KEY]: MOCK_TOKEN,
+                },
+            },
+            shouldReauthenticate: false,
+        });
+    });
+
     it('preserves numeric image sources', () => {
         expect(
             getImageSource({
