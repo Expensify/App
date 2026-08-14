@@ -1,7 +1,7 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
@@ -336,34 +336,43 @@ function isGroupSelected({groupKey, children, selectedTransactions, excludedTran
 
 /** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
 function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
-    const selectable = children.filter((child) => child.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
     if (selectable.length === 0) {
         return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
     }
     return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
+/** The keys a group is worth to a selection count: one per row it carries, or its own key where it carries none. */
+function getGroupSelectableKeys(group: TransactionGroupListItemType): string[] {
+    if (group.transactions.length === 0) {
+        return group.keyForList && group.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [group.keyForList] : [];
+    }
+    return group.transactions.filter((child) => !isTransactionPendingDelete(child)).map((child) => child.keyForList);
+}
+
+/** How many items a selection can cover, which is what tells a full selection from a partial one. */
+function countSelectableItems(data: SearchData, areItemsGrouped: boolean): number {
+    if (!areItemsGrouped || !isGroupedItemArray(data)) {
+        return data.length;
+    }
+    return data.reduce((count, group) => count + getGroupSelectableKeys(group).length, 0);
+}
+
 /**
- * How many selectable items the exclusions cover, counted the same way `totalSelectableItemsCount` counts them: a row
- * each where a group carries rows, and the group itself where it carries none. Comparing raw exclusion keys against
- * that total measures nothing, since one group key stands for every row underneath it.
+ * How many of those items the exclusions cover. The two counts are compared directly, so both are taken from the same
+ * per-group shape: comparing raw exclusion keys against the total would measure nothing, since one group key stands
+ * for every row underneath it.
  */
 function countFullyExcludedItems(data: SearchData, excludedTransactions: SelectedTransactions, areItemsGrouped: boolean): number {
     if (!areItemsGrouped || !isGroupedItemArray(data)) {
         return Object.keys(excludedTransactions).length;
     }
-    const isExcluded = (key: string | undefined) => !!key && Object.hasOwn(excludedTransactions, key);
+    const isExcluded = (key: string) => Object.hasOwn(excludedTransactions, key);
     return data.reduce((count, group) => {
-        const selectable = group.transactions.filter((child) => child.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
-        if (selectable.length === 0) {
-            // The total skips a group being deleted, so counting its exclusion here would let the two sides drift apart.
-            const isCountedAsItsOwnItem = group.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-            return count + (isCountedAsItsOwnItem && isExcluded(group.keyForList) ? 1 : 0);
-        }
-        if (isExcluded(group.keyForList)) {
-            return count + selectable.length;
-        }
-        return count + selectable.filter((child) => isExcluded(child.keyForList)).length;
+        const selectableKeys = getGroupSelectableKeys(group);
+        // A group excluded whole covers every row underneath it, which is how a group that is not all here leaves the selection.
+        return count + (group.keyForList && isExcluded(group.keyForList) ? selectableKeys.length : selectableKeys.filter(isExcluded).length);
     }, 0);
 }
 
@@ -491,6 +500,7 @@ export {
     isGroupChecked,
     countCheckedGroupChildren,
     countFullyExcludedItems,
+    countSelectableItems,
     isRowChecked,
     NO_OPEN_GROUPS,
 };

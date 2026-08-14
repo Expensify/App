@@ -25,9 +25,8 @@ function useGroupChildrenForShiftRange({groupKey, ...rowArgs}: UseGroupChildrenF
     // Selection-independent on purpose: folding isSelected in would churn the registered children on every selection change.
     const rangeChildren = useGroupChildRows(rowArgs);
 
-    // Nothing is published until the source resolves, so "no rows" always means the group is empty rather than not loaded yet.
-    const hasResolvedRows = !!rowArgs.snapshotData || rowArgs.groupTransactions.length > 0;
-    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType && hasResolvedRows);
+    // Published as the rows are rendered, so a group whose source goes away stops contributing them instead of leaving them behind.
+    useRegisterGroupChildrenForShiftRange(groupKey, rangeChildren, !rowArgs.isExpenseReportType);
 
     // Where no rows have loaded, the group's own key answers for it — the same question the split layout's header asks.
     const isGroupChecked = isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});

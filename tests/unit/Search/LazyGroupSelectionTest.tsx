@@ -618,6 +618,29 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['4']).toBeUndefined();
     });
 
+    it('leaves another group’s rows alone when the block seeded for the next shift+click never loaded', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+
+        // Given the group above selected as a block, then the group below selected while it was still collapsed
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            result.current.toggle(earlierGroup, earlierChildren);
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+
+        // When a shift+click lands in the group above, with nothing of the seeded block on screen for it to narrow
+        await act(async () => {
+            result.current.toggle(earlierFirstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then it starts a range at the row it landed on, rather than collapsing a block it was never pointed at
+        expect(result.current.selectedTransactions['4']?.isSelected).toBe(true);
+    });
+
     it('narrows a group selected while collapsed with a cached snapshot, whose children were stored individually', async () => {
         const {result} = renderSelection();
         const [firstChild] = loadedChildren;
@@ -924,6 +947,26 @@ describe('Lazily loaded group selection', () => {
         // Then its rows are recorded as excluded, rather than the click reading the group as unselected and selecting it again
         expect(result.current.excludedTransactions[firstChild.keyForList]).toBeDefined();
         expect(result.current.excludedTransactions[secondChild.keyForList]).toBeDefined();
+    });
+
+    it('unchecks a group holding none of its rows, when select-all-matching is what checked it', async () => {
+        const {result} = renderSelection();
+
+        // Given every matching item selected, and a group whose children have never loaded
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // When its header checkbox is pressed once
+        await act(async () => {
+            result.current.toggle(categoryGroup, []);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the group is recorded as excluded, rather than the click reading it as unselected and selecting it outright
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+        expect(result.current.selectedTransactions[GROUP_KEY]).toBeUndefined();
     });
 
     it('excludes a whole group whose rows are only partly loaded, rather than the page it happens to hold', async () => {

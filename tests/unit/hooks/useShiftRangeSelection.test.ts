@@ -473,15 +473,14 @@ describe('useShiftRangeSelection', () => {
             expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['b', 'c'], toDeselect: ['d']});
         });
 
-        it('clears the session when the selection is empty, so the next shift+click resolves a cold anchor', () => {
+        it('starts at the clicked row when the seeded block holds nothing, rather than sweeping from the top', () => {
             const onApplyRange = makeApplyMock();
             const {result} = renderHook(() => useShiftRangeSelection<Row>(makeParams({onApplyRange})));
             act(() => result.current.seedRangeFromSelection([]));
             act(() => {
-                // Session cleared → cold shift+click resolves the anchor from the first selectable row (a).
                 result.current.applyShiftClick(ROW_C, true);
             });
-            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['a', 'b', 'c'], toDeselect: []});
+            expect(nthBatchKeys(onApplyRange, 0)).toEqual({toSelect: ['c'], toDeselect: []});
         });
 
         it('resolves a seeded block against the rows the list holds at shift+click, not the ones it held when seeded', () => {

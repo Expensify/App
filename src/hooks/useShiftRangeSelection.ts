@@ -128,8 +128,8 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
     return keyToIndex;
 }
 
-/** Builds a `ranging` session anchored at the first selectable item passing `isIncluded` and painting every passing key, or `IDLE` when none qualify. */
-function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): ResolvedSession {
+/** Builds a `ranging` session anchored at the first selectable item passing `isIncluded` and painting every passing key, or `null` when none qualify. */
+function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): ResolvedSession | null {
     let anchor: string | null = null;
     const painted = new Set<string>();
     for (const item of params.items) {
@@ -146,7 +146,7 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     if (anchor !== null) {
         return {kind: 'ranging', anchor, painted};
     }
-    return IDLE;
+    return null;
 }
 
 /**
@@ -195,8 +195,8 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
 
     const keyToIndex = buildKeyIndex(params);
 
-    // A seeded block resolves here rather than when it was seeded, against the rows the list holds now.
-    const resolved: ResolvedSession = state.kind === 'seeded' ? seedRangeState(params, state.isMember) : state;
+    // A seeded block resolves here rather than when it was seeded; with none of it on screen there is nothing to narrow, so the click starts a range where it landed.
+    const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember) ?? {kind: 'anchored', anchor: targetKey}) : state;
 
     const seed = resolved.kind === 'idle' ? null : resolved.anchor;
     const anchor = resolveAnchor(params, keyToIndex, seed);

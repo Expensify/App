@@ -23,7 +23,7 @@ import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
 import {getColumnsToShow} from '@libs/SearchUIUtils';
-import {isDeletedTransaction} from '@libs/TransactionUtils';
+import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -184,7 +184,7 @@ function GroupHeader({
     // Answered by the predicate the child rows render from, so the header cannot show unchecked above a block of checked rows.
     const {isSelectAllChecked, isIndeterminate} = useMemo(() => {
         const params = {groupKey: originalKey, children: effectiveTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
-        const selectableTransactions = effectiveTransactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
+        const selectableTransactions = effectiveTransactions.filter((transaction) => !isTransactionPendingDelete(transaction));
         // A group with no rows of its own answers from its key, which is the one case the count cannot speak for.
         if (selectableTransactions.length === 0) {
             return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: false};

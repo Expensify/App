@@ -62,7 +62,7 @@ import {
     getNavigateToReportsSpans,
 } from '@libs/telemetry/navigateToReportsSpans';
 import {cancelSubmitFollowUpActionSpan, getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import {isTransactionPendingDelete, shouldShowAttendees} from '@libs/TransactionUtils';
+import {shouldShowAttendees} from '@libs/TransactionUtils';
 
 import Navigation, {navigationRef} from '@navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@navigation/types';
@@ -90,7 +90,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useSharedValue, withTiming} from 'react-native-reanimated';
 
-import type {ReportActionListItemType, SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {ReportActionListItemType, SearchListItem, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps} from './searchViewProps';
 import type {SearchColumnType, SearchParams, SearchQueryJSON, SearchSortBy, SortOrder} from './types';
 
@@ -105,6 +105,7 @@ import {useSearchQueryActions, useSearchQueryContext, useSearchResultsActions, u
 import {SearchScopeProvider} from './SearchScopeProvider';
 import SearchTableHeader from './SearchTableHeader';
 import SearchWriteActionsProvider from './SearchWriteActionsProvider';
+import {countSelectableItems} from './selectionBuilders';
 import TaskSearchView from './TaskSearchView';
 
 type SearchProps = {
@@ -542,26 +543,8 @@ function Search({
     );
 
     const areItemsGrouped = !!validGroupBy || isExpenseReportType;
-    const totalSelectableItemsCount = useMemo(() => {
-        if (!areItemsGrouped) {
-            return filteredData.length;
-        }
-
-        return (filteredData as TransactionGroupListItemType[]).reduce((count, item) => {
-            // For empty groups, count the group itself as a selectable item
-            if (item.transactions.length === 0 && item.keyForList) {
-                if (item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
-                    return count;
-                }
-
-                return count + 1;
-            }
-            // For groups with transactions, count all transactions except pending delete ones
-            const selectableTransactions = item.transactions.filter((transaction) => !isTransactionPendingDelete(transaction));
-
-            return count + selectableTransactions.length;
-        }, 0);
-    }, [areItemsGrouped, filteredData]);
+    // Counted where the exclusions are counted, since the two are compared against each other to decide whether a selection still covers everything.
+    const totalSelectableItemsCount = useMemo(() => countSelectableItems(filteredData, areItemsGrouped), [areItemsGrouped, filteredData]);
 
     const onSelectRow = useCallback(
         (item: SearchListItem, transactionPreviewData?: TransactionPreviewData, event?: ModifiedMouseEvent) => {
