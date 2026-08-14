@@ -252,7 +252,7 @@ describe('WorkspaceUpgrade', () => {
             // Locate the confirmation button before asserting so its async lookup can't interleave with the press.
             const gotItButton = await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt'));
 
-            // Ignore any navigation triggered during mount/setup; we only care about the effect of the tap itself.
+            // Ignore any navigation triggered during mount/setup. We only care about the effect of the tap itself.
             navigateSpy.mockClear();
             goBackSpy.mockClear();
 

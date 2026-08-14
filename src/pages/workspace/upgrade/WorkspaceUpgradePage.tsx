@@ -185,7 +185,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
         }
     }, [feature, policyID, route.params?.backTo, route.params?.featureName, featureNameAlias]);
 
-    const afterUpgradeAcknowledged = useCallback(() => {
+    const afterUpgradeAcknowledged = () => {
         if (feature?.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.id && policyID) {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path, route.params.backTo ?? ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID)), {
                 forceReplace: true,
@@ -193,7 +193,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
             return;
         }
         goBack();
-    }, [feature?.id, policyID, route.params.backTo, goBack]);
+    };
 
     const onUpgradeToCorporate = () => {
         if (!canPerformUpgrade || !policy) {
