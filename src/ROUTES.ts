@@ -1168,13 +1168,6 @@ const DYNAMIC_ROUTES = {
         path: 'travel-upgrade',
         entryScreens: [SCREENS.TRAVEL.MY_TRIPS, SCREENS.WORKSPACE.TRAVEL, SCREENS.SEARCH.ROOT],
     },
-    // `trip-details` and `trip-summary` (below) are named to not start with `trip/`, so their literal
-    // segment doesn't collide with the legacy static routes `r/:reportID/trip/:transactionID/:pnr/:sequenceIndex`
-    // and `r/:reportID/trip/:transactionID` redirected in OldRoutes.ts - sharing the `trip/` prefix would make
-    // those old patterns' greedy trailing wildcard re-match these routes' own output.
-    // `reportID` is an explicit path param (not inherited from the entry screen) because this can be opened
-    // from a readonly transaction preview (TransactionDuplicate/TransactionMerge confirmation) whose own
-    // `reportID` param belongs to the duplicate/merge set, not to this transaction's trip room report.
     TRAVEL_TRIP_DETAILS: {
         path: 'trip-details/:reportID/:transactionID/:pnr/:sequenceIndex',
         entryScreens: [
