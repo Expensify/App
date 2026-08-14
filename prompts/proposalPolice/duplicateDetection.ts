@@ -8,9 +8,10 @@ export default Str.dedent(`
 
     Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with a comment_id attribute). Ignore every section except ROOT CAUSE and SOLUTION.
 
-    SCORING: Weight the SOLUTION section at least 80% and the ROOT CAUSE section at most 20%. Two proposals are similar only to the extent they propose the same technical change:
-    - Same mechanism or approach, even if worded differently → very high similarity.
-    - Different mechanism or approach → low similarity, even when the root cause, files, variables, or error messages are identical. Judge the actual change being proposed, not shared keywords.
+    SCORING: Two proposals are similar only to the extent they propose the same technical change. The SOLUTION section decides the score; the ROOT CAUSE only nudges it.
+    - Same mechanism or approach, even if worded differently → very high similarity (over 90), even when the stated root causes are entirely different.
+    - Both the root cause and the solution nearly identical → similarity close to 100.
+    - Different mechanism or approach → well below 90, even when the root cause, files, variables, or error messages are identical. Judge the actual change being proposed, not shared keywords.
     - Solutions that are mutually exclusive, or that would not be implemented together, are never similar.
 
     EXAMPLES:
@@ -19,5 +20,5 @@ export default Str.dedent(`
 
     Use your best judgment as a Senior React Engineer and code reviewer to determine whether the technical solution is the same.
 
-    HOW TO RESPOND: report the highest similarity you found, and the comment_id of the prior proposal that scored it. If no prior proposal is similar, report that highest score with a null comment_id.
+    HOW TO RESPOND: report the highest similarity you found, and the comment_id of the prior proposal that scored it. If several prior proposals tie at the highest similarity, report the earliest one. If no prior proposal is similar, report that highest score with a null comment_id.
 `);
