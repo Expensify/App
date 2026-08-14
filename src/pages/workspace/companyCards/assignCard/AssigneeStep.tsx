@@ -270,6 +270,9 @@ function AssigneeStep({route}: AssigneeStepProps) {
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
                 <SelectionList
+                    // Reset the list instance when the frozen selection changes on re-entry, so returning via the back
+                    // button remounts the list scrolled to the top with the selected assignee pinned and visible.
+                    key={initialAssigneeEmail ?? ''}
                     data={assignees}
                     onSelectRow={submit}
                     ListItem={UserListItem}
