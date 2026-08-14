@@ -1,4 +1,4 @@
-import {endSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, getSpanByPrefix, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 
@@ -31,5 +31,41 @@ describe('activeSpans', () => {
         endSpan(CONST.TELEMETRY.SPAN_APP_STARTUP_NETWORK_REQUEST);
 
         expect(consoleDebugSpy).toHaveBeenLastCalledWith(expect.stringContaining('Ending span (750ms)'), expect.objectContaining({durationMs: 750, timestamp: 1_786_362_201_750}));
+    });
+
+    describe('getSpanByPrefix', () => {
+        const prefix = CONST.TELEMETRY.SPAN_STARTUP_DATA.APPLY;
+
+        beforeEach(() => {
+            jest.spyOn(console, 'debug').mockImplementation(() => {});
+        });
+
+        it('returns nothing when no span id matches', () => {
+            const span = startSpan('SomethingElse', {name: 'SomethingElse'});
+
+            expect(getSpanByPrefix(prefix)).toBeUndefined();
+
+            endSpan('SomethingElse');
+            expect(span).toBeDefined();
+        });
+
+        it('finds a span stored under a suffixed id', () => {
+            const span = startSpan(`${prefix}_1`, {name: prefix});
+
+            expect(getSpanByPrefix(prefix)).toBe(span);
+
+            endSpan(`${prefix}_1`);
+            expect(getSpanByPrefix(prefix)).toBeUndefined();
+        });
+
+        it('returns the earliest attempt when several are active', () => {
+            const firstAttempt = startSpan(`${prefix}_1`, {name: prefix});
+            startSpan(`${prefix}_2`, {name: prefix});
+
+            expect(getSpanByPrefix(prefix)).toBe(firstAttempt);
+
+            endSpan(`${prefix}_1`);
+            endSpan(`${prefix}_2`);
+        });
     });
 });
