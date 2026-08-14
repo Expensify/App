@@ -56,11 +56,11 @@ function ReportPDFDownloadModal({reportID, isVisible, onClose, onModalHide, onCa
     return (
         <PDFDownloadModal
             isVisible={isVisible}
+            shouldTreatModalAsCovering
             onClose={handleClose}
             onModalHide={onModalHide}
             hasFinishedPDFDownload={hasFinishedPDFDownload}
             message={message}
-            loadingReasonContext="MoneyReportHeader.PDFModal"
             onDownloadPDF={() => {
                 if (!reportPDFFilename || reportPDFFilename === CONST.REPORT_DETAILS_MENU_ITEM.ERROR) {
                     return;

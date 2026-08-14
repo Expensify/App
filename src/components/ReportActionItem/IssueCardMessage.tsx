@@ -15,6 +15,7 @@ import type {ReportsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getCardIssuedMessage, getOriginalMessage, shouldShowActivateCard, shouldShowAddMissingDetails} from '@libs/ReportActionsUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -56,7 +57,7 @@ function IssueCardMessage({action, policyID}: IssueCardMessageProps) {
     return (
         <>
             <RenderHTML
-                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate})}</muted-text>`}
+                html={`<muted-text>${getCardIssuedMessage({reportAction: action, shouldRenderHTML: true, shouldNavigateToCardDetails, policyID, expensifyCard, companyCard, translate, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID})}</muted-text>`}
             />
             {shouldShowAddMissingDetailsButton && (
                 <Button

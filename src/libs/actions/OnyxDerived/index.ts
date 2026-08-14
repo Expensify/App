@@ -1,6 +1,7 @@
 import getCollectionDelta from '@libs/getCollectionDelta';
 import Log from '@libs/Log';
 import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import detectOnyxDerivedLoop from '@libs/telemetry/detectOnyxDerivedLoop';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
@@ -18,6 +19,7 @@ import type {OnyxCollection} from 'react-native-onyx';
  * The primary purpose is to optimize performance by reducing redundant computations. More info can be found in the README.
  */
 import Onyx from 'react-native-onyx';
+import OnyxCache, {TASK} from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -31,7 +33,7 @@ import {setDerivedValue} from './utils';
  * Using connectWithoutView in this function since this is only executed once while initializing the App.
  */
 function init() {
-    for (const [key, {compute, dependencies}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
+    for (const [key, {compute, dependencies, onReset}] of ObjectUtils.typedEntries(ONYX_DERIVED_VALUES)) {
         let areAllConnectionsSet = false;
         let connectionsEstablishedCount = 0;
         const totalConnections = dependencies.length;
@@ -80,17 +82,35 @@ function init() {
             const lastFlushedCollectionValues = new Array<OnyxCollection<unknown>>(totalConnections);
             let hasFlushedOnce = false;
 
+            // Guard so the clear reset runs once per clear window (see recomputeDerivedValue), not on every recompute.
+            let clearHandled = false;
+
+            // Called when Onyx is cleared. Coalescing collapses the clear (deps ->
+            // undefined) and rehydrate (deps -> populated) into one flush, so the engine never observes the empty
+            // intermediate state and would otherwise keep diffing rehydrated data against pre-clear state. Drop the
+            // surviving derived value and delta baselines, and let the config reset its own module state, so the next
+            // flush computes from scratch with the rehydrated dependencies.
+            const resetForClear = () => {
+                derivedValue = undefined;
+                hasFlushedOnce = false;
+                lastFlushedCollectionValues.length = 0;
+                onReset?.();
+            };
+
             const runCompute = (sourceValues: Record<string, unknown> | undefined, triggeredKeys: Set<OnyxKey>) => {
                 context.currentValue = derivedValue;
                 context.sourceValues = sourceValues as typeof context.sourceValues;
                 context.triggeredKeys = triggeredKeys;
 
                 const spanId = `${CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE}_${key}`;
+                const startupSpan = getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP);
                 startSpan(spanId, {
                     name: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
                     op: CONST.TELEMETRY.SPAN_ONYX_DERIVED_COMPUTE,
-                    parentSpan: getSpan(CONST.TELEMETRY.SPAN_APP_STARTUP),
-                    attributes: {derivedKey: key},
+                    parentSpan: startupSpan,
+                    // A span with no parent is sent as its own transaction, one per recompute.
+                    onlyIfParent: true,
+                    attributes: {derivedKey: key, [CONST.TELEMETRY.ATTRIBUTE_IS_STARTUP]: !!startupSpan},
                 });
 
                 try {
@@ -128,6 +148,8 @@ function init() {
                 for (const index of pendingDependencyIndexes) {
                     triggeredKeys.add(dependencies[index]);
                 }
+
+                detectOnyxDerivedLoop(key, triggeredKeys);
 
                 if (hasFlushedOnce) {
                     for (const index of pendingDependencyIndexes) {
@@ -189,6 +211,18 @@ function init() {
                 if (!areAllConnectionsSet) {
                     Log.info(`[OnyxDerived] not all connections set for ${key}, deferring Onyx write`);
                     return;
+                }
+
+                // Reset engine + config state once per cache clear. The clear notifies
+                // subscribers (deps -> undefined) while the CLEAR task is pending, so this fires during the clear;
+                // the guard makes it run exactly once, and it re-arms after the task finishes.
+                if (OnyxCache.hasPendingTask(TASK.CLEAR)) {
+                    if (!clearHandled) {
+                        clearHandled = true;
+                        resetForClear();
+                    }
+                } else {
+                    clearHandled = false;
                 }
 
                 pendingDependencyIndexes.add(triggeredByIndex);

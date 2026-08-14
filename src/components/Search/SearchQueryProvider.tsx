@@ -47,13 +47,13 @@ function SearchQueryProvider({children}: SearchQueryProviderProps) {
     const shouldLoadCategoryData = currentSearchQueryJSON?.flatFilters.some((filter) => filter.key === CONST.SEARCH.SYNTAX_FILTER_KEYS.CATEGORY) ?? false;
     useLoadSearchCategoryData({shouldLoad: shouldLoadCategoryData});
 
-    const {defaultCardFeed} = useCardFeedsForDisplay();
+    const {defaultCardFeed, activeExpensifyCardFeedID} = useCardFeedsForDisplay();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const [policies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const defaultCardFeedID = defaultCardFeed?.id;
     // Only policy IDs are needed so Top Spenders matches the type menu hash; card feeds aren't used for that eligibility.
     const topSpendersPolicyIDs = useMemo(() => getSuggestedSearchesVisibility(email, {}, policies, undefined).topSpendersPolicyIDs, [email, policies]);
-    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs);
+    const suggestedSearches = getSuggestedSearches(accountID, defaultCardFeedID, undefined, topSpendersPolicyIDs, activeExpensifyCardFeedID);
 
     const currentSearchHash = currentSearchQueryJSON?.hash ?? -1;
     const currentSimilarSearchHash = currentSearchQueryJSON?.similarSearchHash ?? -1;

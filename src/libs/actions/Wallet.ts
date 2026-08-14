@@ -294,7 +294,7 @@ function resetWalletAdditionalDetailsDraft() {
 }
 
 /**
- * Clears the errors shown while confirming a magic code in the wallet additional-details step
+ * Clears the errors shown while confirming a validateCode in the wallet additional-details step
  */
 function clearWalletAdditionalDetailsErrors() {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {errors: null, errorCode: null});

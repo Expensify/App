@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/naming-convention -- test fixtures use backend-shaped object keys that don't follow camelCase: email addresses for PolicyEmployeeList entries and human-readable names / 'GL Code' for PolicyCategories */
 import {renderHook, waitFor} from '@testing-library/react-native';
 
+import Navigation from '@libs/Navigation/Navigation';
+
 import useGettingStartedItems from '@pages/home/GettingStartedSection/hooks/useGettingStartedItems';
 
 import CONST from '@src/CONST';
@@ -980,7 +982,7 @@ describe('useGettingStartedItems', () => {
             await waitForBatchedUpdates();
 
             const approvalsItem = result.current.items.find((item) => item.key === 'configureApprovals');
-            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID));
+            expect(approvalsItem?.route).toBe(ROUTES.WORKSPACE_WORKFLOWS.getRoute(POLICY_ID, CONST.TAB.WORKFLOWS.APPROVALS));
         });
 
         it('should be not completed for the default workflow (approver is the owner, no forwarding, no custom submitters)', async () => {
@@ -1395,6 +1397,27 @@ describe('useGettingStartedItems', () => {
 
                 const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
                 expect(createWorkspaceItem?.route).toContain(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID).split('?').at(0) ?? '');
+            });
+
+            it('should pin the createWorkspace backTo to Home on narrow layout even when the active route has drifted to the workspace page', async () => {
+                // Regression guard for #96172: opening the Connect-to-accounting task re-renders this section while a
+                // workspaces/{id} route is active, so Navigation.getActiveRoute() returns that route. Baking it into backTo
+                // made the createWorkspace route self-referential (workspaces/{id}?backTo=workspaces/{id}), which the linkTo
+                // arePathAndBackToEqual guard swallows, so the tap did nothing. backTo must stay Home regardless of the live route.
+                const getActiveRouteSpy = jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID));
+                // renderHook re-renders as Onyx settles, so pin narrow across every render (mockReturnValueOnce gets consumed by an early render).
+                useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: true});
+                try {
+                    await setupTrackWorkspaceScenario();
+
+                    const {result} = renderHook(() => useGettingStartedItems());
+
+                    const createWorkspaceItem = result.current.items.find((item) => item.key === 'createWorkspace');
+                    expect(createWorkspaceItem?.route).toBe(ROUTES.WORKSPACE_INITIAL.getRoute(POLICY_ID, ROUTES.HOME));
+                } finally {
+                    useResponsiveLayoutMock.mockReturnValue({shouldUseNarrowLayout: false});
+                    getActiveRouteSpy.mockRestore();
+                }
             });
 
             it('should resolve customizeCategories route to WORKSPACE_CATEGORIES', async () => {
