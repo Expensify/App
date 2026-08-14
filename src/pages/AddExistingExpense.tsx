@@ -52,6 +52,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
+import canAddTransactionAmountToReport from './canAddTransactionAmountToReport';
 import UnreportedExpenseListItem from './UnreportedExpenseListItem';
 
 type AddExistingExpensePageType = PlatformStackScreenProps<AddExistingExpensesParamList, typeof SCREENS.ADD_EXISTING_EXPENSES_ROOT>;
@@ -121,13 +122,7 @@ function AddExistingExpense({route}: AddExistingExpensePageType) {
 
                 const transactionAmount = getTransactionDetails(item)?.amount ?? 0;
 
-                // Only block negative amounts for unreported expenses.
-                if (transactionAmount < 0 && isUnreported) {
-                    return false;
-                }
-
-                // Zero amount expenses are not allowed in IOU reports
-                if (isIOU && transactionAmount === 0) {
+                if (!canAddTransactionAmountToReport(transactionAmount, isIOU)) {
                     return false;
                 }
 
