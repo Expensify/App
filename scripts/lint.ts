@@ -87,9 +87,14 @@ const seatbeltArgs = SeatbeltArgs.fromConfig({
 });
 if (!seatbeltArgs.disable) {
     const seatbeltFile = SeatbeltFile.readSync(seatbeltPath);
+    const filenames = Array.from(seatbeltFile.filenames());
+    const missingFilenames = (await Promise.all(filenames.map(async (filename) => ((await file(filename).exists()) ? undefined : filename)))).filter(
+        (filename): filename is string => filename !== undefined,
+    );
+
     let removedCount = 0;
-    for (const filename of Array.from(seatbeltFile.filenames())) {
-        if (!(await file(filename).exists()) && seatbeltFile.removeFile(filename, seatbeltArgs)) {
+    for (const filename of missingFilenames) {
+        if (seatbeltFile.removeFile(filename, seatbeltArgs)) {
             removedCount++;
         }
     }
