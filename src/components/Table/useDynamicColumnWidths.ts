@@ -86,7 +86,9 @@ function measureColumnContentWidth<DataType extends TableData, ColumnKey extends
         }
     }
 
-    return widestContentWidth === 0 ? 0 : widestContentWidth + (dynamicSizing.extraWidth ?? 0);
+    // Rounded up because the widths end up as whole px grid tracks. Rounding a fraction down would leave a column
+    // narrower than the text it was sized to hold, and the browser would put an ellipsis on text that fits.
+    return widestContentWidth === 0 ? 0 : Math.ceil(widestContentWidth + (dynamicSizing.extraWidth ?? 0));
 }
 
 /**
@@ -100,7 +102,8 @@ function measureHeaderLabelWidth(label: string, sortIconWidth: number): number |
         return null;
     }
 
-    return width === 0 ? 0 : width + sortIconWidth;
+    // Rounded up for the same reason as the cell content above.
+    return width === 0 ? 0 : Math.ceil(width + sortIconWidth);
 }
 
 /**

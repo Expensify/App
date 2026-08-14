@@ -40,13 +40,23 @@ describe('calculateDynamicColumnWidths', () => {
     });
 
     describe('behavior 2: the content fits but unevenly', () => {
-        it('grows the long column, shrinks the short ones, and fills the available width', () => {
+        it('gives the long column exactly what it needs and splits the rest equally', () => {
             const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(100), buildConstraints(80)], 900);
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
-            // Each column gets its content width plus a share of the 120px left over, in proportion to what it asked for.
-            expect(result.widths).toEqual([693, 115, 92]);
+            // Only the first column can't fit an equal share (300px), so it takes its 600px of content and the other two
+            // split the remaining 300px equally, rather than the widest column also taking the largest share of the slack.
+            expect(result.widths).toEqual([600, 150, 150]);
+        });
+
+        it('settles a second column when the first one shrinks the share for the rest', () => {
+            // An equal share starts at 300px, so only the 600px column is settled first. That drops the share for the
+            // rest to 150px, which the 200px column no longer fits, so it settles too and the last column takes the rest.
+            const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(200), buildConstraints(80)], 900);
+
+            expect(result.widths).toEqual([600, 200, 100]);
+            expect(sumOf(result.widths)).toBe(900);
         });
 
         it('does not let a column grow past its maximum width', () => {
@@ -54,9 +64,8 @@ describe('calculateDynamicColumnWidths', () => {
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
-            // The capped column stops at 500px and takes no part in sharing the 220px left over, which goes to the two
-            // columns that can still use it.
-            expect(result.widths).toEqual([500, 223, 177]);
+            // The capped column stops at 500px and the other two split the remaining 400px equally.
+            expect(result.widths).toEqual([500, 200, 200]);
         });
 
         it('leaves space unclaimed when every column has reached its maximum', () => {

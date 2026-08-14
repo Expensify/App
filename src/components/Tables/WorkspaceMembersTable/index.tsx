@@ -123,7 +123,9 @@ export default function WorkspaceMembersTable({
             key: 'role',
             label: translate('common.role'),
             sortable: true,
-            width: variables.workspaceMembersRoleColumnWidth,
+            dynamicSizing: {
+                getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: variables.fontSizeNormal}],
+            },
         },
         {
             label: '',

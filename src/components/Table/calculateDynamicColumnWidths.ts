@@ -62,42 +62,54 @@ function roundWidths(widths: number[], availableWidth: number, maxWidths: number
 }
 
 /**
- * Shares the space left over once every column has what its content needs, in proportion to what each column asked for.
- * A column that reaches its maximum width drops out and what it declines is re-offered to the columns that can still
- * use it, which is what keeps `maxWidth` from being handed back the space it just refused.
+ * Splits the available width between the columns, keeping them equal wherever it can.
+ *
+ * A column whose content doesn't fit an equal share takes exactly the width its content needs, and a column capped
+ * below an equal share takes exactly its maximum. Whatever is left is then split equally between the remaining columns.
+ * Settling one column shrinks the share for the rest, which can leave another column unable to fit, so this repeats
+ * until every column fits its share. Each pass settles at least one column, so the column count bounds the passes.
+ *
+ * Splitting the leftover equally rather than in proportion to what each column asked for is what keeps an already-wide
+ * column from also taking the largest share of the slack.
  */
-function distributeLeftoverWidth(desiredWidths: number[], maxWidths: number[], availableWidth: number): number[] {
-    const widths = [...desiredWidths];
-    let leftoverWidth = availableWidth - sum(widths);
+function distributeAvailableWidth(desiredWidths: number[], maxWidths: number[], availableWidth: number): number[] {
+    const widths = desiredWidths.map(() => 0);
+    const isSettled = desiredWidths.map(() => false);
 
-    // Every pass either hands out all of the leftover or pins at least one more column to its maximum, so the column
-    // count bounds how many passes are needed.
-    for (let pass = 0; pass < widths.length && leftoverWidth > 0; pass++) {
-        const growableIndexes = widths.map((width, index) => (width < (maxWidths.at(index) ?? 0) ? index : -1)).filter((index) => index !== -1);
+    for (let pass = 0; pass <= desiredWidths.length; pass++) {
+        const settledWidth = sum(widths.filter((width, index) => isSettled.at(index)));
+        const unsettledIndexes = isSettled.map((settled, index) => (settled ? -1 : index)).filter((index) => index !== -1);
 
-        if (growableIndexes.length === 0) {
+        if (unsettledIndexes.length === 0) {
             break;
         }
 
-        // Columns are grown in proportion to their current width, unless they're all empty, in which case there's no
-        // proportion to go by and the leftover is split evenly.
-        const totalGrowableWidth = sum(growableIndexes.map((index) => widths.at(index) ?? 0));
-        let distributedWidth = 0;
+        const equalShare = (availableWidth - settledWidth) / unsettledIndexes.length;
+        let hasSettledAnyColumn = false;
 
-        for (const index of growableIndexes) {
-            const width = widths.at(index) ?? 0;
-            const share = totalGrowableWidth > 0 ? (leftoverWidth * width) / totalGrowableWidth : leftoverWidth / growableIndexes.length;
-            const grownWidth = Math.min(width + share, maxWidths.at(index) ?? 0);
+        for (const index of unsettledIndexes) {
+            const desiredWidth = desiredWidths.at(index) ?? 0;
+            const maxWidth = maxWidths.at(index) ?? 0;
 
-            distributedWidth += grownWidth - width;
-            widths[index] = grownWidth;
+            if (desiredWidth > equalShare) {
+                widths[index] = desiredWidth;
+            } else if (maxWidth < equalShare) {
+                widths[index] = maxWidth;
+            } else {
+                continue;
+            }
+
+            isSettled[index] = true;
+            hasSettledAnyColumn = true;
         }
 
-        if (distributedWidth <= 0) {
+        // Every remaining column fits an equal share, so they all take one.
+        if (!hasSettledAnyColumn) {
+            for (const index of unsettledIndexes) {
+                widths[index] = equalShare;
+            }
             break;
         }
-
-        leftoverWidth -= distributedWidth;
     }
 
     return widths;
@@ -108,10 +120,9 @@ function distributeLeftoverWidth(desiredWidths: number[], maxWidths: number[], a
  * has, implementing the three behaviors from https://github.com/Expensify/App/issues/96510:
  *
  * 1. Every column's content fits inside an equal share of the available width, so the columns stay equal (`1fr`).
- * 2. The content fits overall but unevenly, so each column takes what it needs and the leftover space is shared out
- *    among the columns that can still grow, in proportion to what each asked for. A column with long content grows and
- *    its short-content siblings shrink. Sharing the leftover equally instead would pad a short column with space it has
- *    nothing to put in.
+ * 2. The content fits overall but unevenly, so a column whose content can't fit an equal share takes exactly the width
+ *    it needs, and the remaining columns split what's left equally. A column with long content grows only as far as its
+ *    content, rather than also claiming the largest share of the slack.
  * 3. The content does not fit, so each column keeps the width its content needs and the table scrolls horizontally
  *    rather than truncating. A column only truncates when it has been given an explicit `maxWidth`, which is the one
  *    way a caller can choose truncation over an even wider scroll.
@@ -136,12 +147,12 @@ function calculateDynamicColumnWidths(constraints: DynamicColumnConstraints[], a
         return EQUAL_WIDTHS;
     }
 
-    // 2. Everything fits, so each column takes what it needs and the leftover space is shared out among the columns that
-    // can still grow, which keeps a short column from being padded with space it can't use.
+    // 2. Everything fits, so a column that can't fit an equal share takes exactly what its content needs and the rest of
+    // the columns split what's left equally.
     const totalDesiredWidth = sum(desiredWidths);
     if (totalDesiredWidth <= availableWidth) {
         return {
-            widths: roundWidths(distributeLeftoverWidth(desiredWidths, maxWidths, availableWidth), availableWidth, maxWidths),
+            widths: roundWidths(distributeAvailableWidth(desiredWidths, maxWidths, availableWidth), availableWidth, maxWidths),
             shouldScrollHorizontally: false,
         };
     }
