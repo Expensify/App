@@ -12,7 +12,7 @@ import {
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
@@ -41,6 +41,10 @@ function getReportPolicyID(report: OnyxEntry<Report>) {
 
 function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
+}
+
+function getReportParentReportID(report: OnyxEntry<Report>) {
+    return report?.parentReportID;
 }
 
 const policyIDsWithEmptyReportsSelector =
@@ -79,6 +83,40 @@ const policyChatRoomsSelector =
         }
         return list;
     };
+
+/**
+ * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
+ * This limits updates to data used to determine whether each destination report is archived.
+ */
+const createMoveExpenseReportNVPSelector = (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>, currentReportID: string | undefined) => {
+    const moveExpenseReportIDs = new Set<string>();
+    if (currentReportID) {
+        moveExpenseReportIDs.add(currentReportID);
+    }
+    for (const outstandingReports of Object.values(outstandingReportsByPolicyID ?? {})) {
+        for (const outstandingReport of Object.values(outstandingReports ?? {})) {
+            if (outstandingReport?.reportID) {
+                moveExpenseReportIDs.add(outstandingReport.reportID);
+            }
+        }
+    }
+
+    return (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<ReportNameValuePairs> => {
+        const moveExpenseReportNVPs: OnyxCollection<ReportNameValuePairs> = {};
+
+        for (const reportID of moveExpenseReportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
+            const reportNVP = reportNameValuePairs?.[key];
+            if (!isArchivedReport(reportNVP)) {
+                continue;
+            }
+
+            moveExpenseReportNVPs[key] = {private_isArchived: reportNVP?.private_isArchived};
+        }
+
+        return moveExpenseReportNVPs;
+    };
+};
 
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
     if (!reports) {
@@ -147,6 +185,10 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         submitterUserID: report.submitterUserID,
         submitterPayrollID: report.submitterPayrollID,
         orderDealNumbers: report.orderDealNumbers,
+        debitedAmount: report.debitedAmount,
+        debitedCurrency: report.debitedCurrency,
+        creditedAmount: report.creditedAmount,
+        creditedCurrency: report.creditedCurrency,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -170,7 +212,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
-        // Coerce sentinel `0` to `undefined`. The backend ships `managerID: 0` on chat reports
+        // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -213,10 +255,12 @@ export {
     getArchiveReason,
     getReportChatType,
     getReportOwnerAccountID,
+    getReportParentReportID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    createMoveExpenseReportNVPSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
     isDraftReportSelector,

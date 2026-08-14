@@ -38,6 +38,7 @@ import React from 'react';
 
 import useConfirmModal from './useConfirmModal';
 import useConfirmPendingRTERAndProceed from './useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import {useMemoizedLazyExpensifyIcons} from './useLazyAsset';
@@ -110,6 +111,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
 
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -174,6 +176,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
             currentUserAccountIDParam: accountID,
@@ -226,6 +229,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 return;
             }
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 policy,
                 currentUserAccountIDParam: accountID,
@@ -309,7 +313,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -317,7 +321,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser);
+                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {
@@ -352,7 +356,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     }
                 }
 
-                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
+                unapproveExpenseReport(moneyRequestReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser, getCurrencyDecimals);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT]: {
