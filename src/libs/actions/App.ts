@@ -159,7 +159,7 @@ const KEYS_TO_PRESERVE: OnyxKey[] = [
     ONYXKEYS.COLLECTION.DEVICE_BIOMETRICS,
     ONYXKEYS.STASHED_SESSION,
     ONYXKEYS.STASHED_CREDENTIALS,
-
+    ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW,
     // Preserve IS_USING_IMPORTED_STATE so that when the app restarts (especially in HybridApp mode),
     // we know if we're in imported state mode and should skip API calls that would cause infinite loading
     ONYXKEYS.IS_USING_IMPORTED_STATE,
@@ -411,8 +411,9 @@ function getOnyxDataForOpenOrReconnect(
  * @param shouldKeepPublicRooms - Whether to keep public rooms in Onyx
  * @param allReportsWithDraftComments - All reports with draft comments
  * @param forceRun - Force run even when using imported state (used when exiting imported state mode)
+ * @param shouldDedupeWithInFlight - Pass false when the response has to reflect state an in-flight OpenApp could not have seen.
  */
-function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false) {
+function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Record<string, string | undefined>, forceRun = false, shouldDedupeWithInFlight = true) {
     // Don't make API calls when using imported state to avoid infinite loading
     // The imported state already contains all the data, so we just need to mark the app as loaded
     // Exception: When forceRun is true (exiting imported state), always make the API call
@@ -434,18 +435,19 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
     }
 
     const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
-    const openAppPromise = API.writeWithNoDuplicatesConflictAction(
-        WRITE_COMMANDS.OPEN_APP,
+
+    // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
+    const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
+    const openAppPromise = API.writeWithNoDuplicatesOpenAppConflictAction(
         params,
         getOnyxDataForOpenOrReconnect(true, undefined, shouldKeepPublicRooms, allReportsWithDraftComments),
+        shouldDedupeWithInFlight && !hasPreservationData,
     ).finally(() => {
         if (!bootsplashSpan) {
             return;
         }
         endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
     });
-
-    loadPostDataForOpenOrReconnect();
 
     return openAppPromise;
 }
@@ -500,8 +502,6 @@ function reconnectApp(updateIDFrom: OnyxEntry<number> = 0) {
             }
             endSpan(CONST.TELEMETRY.SPAN_NAVIGATION.APP_OPEN);
         });
-
-        loadPostDataForOpenOrReconnect();
 
         return reconnectAppPromise;
     });
@@ -1000,6 +1000,7 @@ export {
     openApp,
     setAppLoading,
     reconnectApp,
+    loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
     handleRestrictedEvent,
     getMissingOnyxUpdates,

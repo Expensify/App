@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.50-0",
+  "version": "9.4.53-8",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -97,8 +97,8 @@
     "@expensify/react-native-hybrid-app": "file:./modules/hybrid-app",
     "@expensify/react-native-live-markdown": "0.1.334",
     "@expensify/react-native-wallet": "0.1.22",
-    "@expo/metro-config": "56.0.14",
-    "@expo/metro-runtime": "56.0.13",
+    "@expo/metro-config": "57.0.7",
+    "@expo/metro-runtime": "57.0.7",
     "@formatjs/intl-listformat": "^7.5.7",
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
@@ -141,18 +141,18 @@
     "dom-serializer": "^0.2.2",
     "domhandler": "^5.0.3",
     "expensify-common": "2.0.197",
-    "expo": "56.0.8",
-    "expo-asset": "56.0.15",
-    "expo-audio": "56.0.11",
-    "expo-font": "56.0.5",
-    "expo-image": "56.0.9",
-    "expo-image-manipulator": "56.0.16",
-    "expo-location": "56.0.15",
-    "expo-modules-core": "56.0.14",
-    "expo-store-review": "56.0.3",
-    "expo-task-manager": "56.0.16",
-    "expo-video": "56.1.2",
-    "expo-web-browser": "56.0.5",
+    "expo": "57.0.8",
+    "expo-asset": "57.0.7",
+    "expo-audio": "57.0.3",
+    "expo-font": "57.0.1",
+    "expo-image": "57.0.1",
+    "expo-image-manipulator": "57.0.6",
+    "expo-location": "57.0.6",
+    "expo-modules-core": "57.0.7",
+    "expo-store-review": "57.0.1",
+    "expo-task-manager": "57.0.6",
+    "expo-video": "57.0.2",
+    "expo-web-browser": "57.0.2",
     "fast-equals": "^5.2.2",
     "focus-trap-react": "^11.0.3",
     "group-ib-fp": "file:modules/group-ib-fp",
@@ -178,7 +178,7 @@
     "react-fast-pdf": "^1.0.34",
     "react-is": "^18.3.1",
     "react-map-gl": "^8.1.1",
-    "react-native": "0.85.3",
+    "react-native": "0.86.0",
     "react-native-advanced-input-mask": "1.4.6",
     "react-native-app-logs": "0.3.1",
     "react-native-blob-util": "0.24.9",
@@ -198,7 +198,7 @@
     "react-native-nitro-fetch": "1.5.4",
     "react-native-nitro-modules": "0.36.3",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.92",
+    "react-native-onyx": "3.0.94",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
@@ -252,9 +252,8 @@
     "@react-native-community/cli": "20.1.0",
     "@react-native-community/cli-platform-android": "20.1.0",
     "@react-native-community/cli-platform-ios": "20.1.0",
-    "@react-native/babel-preset": "0.85.3",
-    "@react-native/jest-preset": "0.85.3",
-    "@react-native/metro-config": "0.85.3",
+    "@react-native/babel-preset": "0.86.0",
+    "@react-native/metro-config": "0.86.0",
     "@react-navigation/devtools": "7.0.52",
     "@rock-js/platform-android": "0.13.4",
     "@rock-js/platform-ios": "0.13.4",
@@ -277,6 +276,7 @@
     "@types/canvas-size": "^1.2.2",
     "@types/concurrently": "^7.0.3",
     "@types/d3-scale": "^4.0.9",
+    "@types/geojson": "^7946.0.16",
     "@types/howler": "^2.2.12",
     "@types/jest": "^29.5.14",
     "@types/jest-when": "^3.5.2",
@@ -303,7 +303,7 @@
     "babel-plugin-module-resolver": "^5.0.0",
     "babel-plugin-react-compiler": "0.0.0-experimental-a1856f3-20260507",
     "babel-plugin-transform-remove-console": "^6.9.4",
-    "babel-preset-expo": "^56.0.15",
+    "babel-preset-expo": "^57.0.3",
     "bun": "^1.3.14",
     "concurrently": "^9.2.4",
     "cspell": "9.4.0",
@@ -330,7 +330,7 @@
     "jest-circus": "29.7.0",
     "jest-cli": "29.7.0",
     "jest-environment-jsdom": "^29.7.0",
-    "jest-expo": "56.0.4",
+    "jest-expo": "57.0.2",
     "jest-transformer-svg": "^2.0.1",
     "jest-when": "^3.5.2",
     "knip": "^6.14.0",
@@ -379,7 +379,7 @@
     "express": "4.20.0",
     "elliptic": "6.5.7",
     "fast-json-patch": "3.1.1",
-    "hermes-compiler": "250829098.0.10",
+    "hermes-compiler": "250829098.0.14",
     "webpack": "^5.108.4",
     "@blakeembrey/template": "1.2.0",
     "body-parser": "1.20.3",
@@ -401,22 +401,22 @@
     "pdfjs-dist": "^5.5.207",
     "lightningcss": "1.30.1",
     "@fullstory/react-native": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "@react-native-firebase/app": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "@react-native-firebase/perf": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "@react-native-google-signin/google-signin": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "@rnmapbox/maps": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "@sentry/react-native": {
-      "expo": "56.0.8"
+      "expo": "57.0.8"
     },
     "expo-modules-core": {
       "react-native-worklets": "0.11.1"

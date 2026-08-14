@@ -76,43 +76,11 @@ If you haven't done any intentional edits outside of `src/` (like adding new dep
 - To point the **Development Emulator** at your local VM, follow [these steps](https://stackoverflow.com/c/expensify/questions/7699).
 - You must configure the local dev email account; follow [these instructions](https://stackoverflowteams.com/c/expensify/questions/23537/23538#23538).
 
-## Enabling Prebuilt React Native Artifacts
+## Prebuilt React Native Artifacts
 
-By default, `react-native` is built from source when building the Android app. However, you can enable prebuilt artifacts to speed up the build process:
-
-### Disabling Build from Source
-- Open `android/gradle.properties` (for Standalone NewDot) or `Mobile-Expensify/Android/gradle.properties` (for HybridApp)
-- Set `patchedArtifacts.forceBuildFromSource=false`
-
-### Configuring GitHub CLI
-
-To use prebuilt artifacts, you need to have GitHub CLI installed and configured:
-
-1. **Install GitHub CLI**
-   - Install GitHub CLI by following the instructions from [cli.github.com](https://cli.github.com/)
-
-2. **Create a GitHub Personal Access Token**
-   - Go to [GitHub Settings > Developer Settings > Personal Access Tokens](https://github.com/settings/tokens)
-   - Click "Generate new token (classic)"
-   - Select the following scopes:
-     - `repo`
-     - `read:org`
-     - `gist`
-     - `read:packages`
-   - Copy the generated token
-
-3. **Login to GitHub CLI**
-   ```bash
-   echo "YOUR_TOKEN" | gh auth login --with-token
-   ```
-
-4. **Verify Login**
-   ```bash
-   gh auth status
-   ```
-   You should see a message confirming you are authenticated with your GitHub account.
-
-After completing these steps, you should be able to build Android apps with prebuilt `react-native` artifacts.
+Android builds download a prebuilt `react-native` from GitHub Packages instead of compiling it, which
+requires an authenticated GitHub CLI. See [Prebuilt React Native Artifacts](PREBUILT_REACT_NATIVE_ARTIFACTS.md)
+for the setup and for how to compile from source instead.
 
 ## Push Notifications Setup
 
