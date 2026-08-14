@@ -1,37 +1,32 @@
+import type {Mock} from 'bun:test';
+import {afterAll, afterEach, beforeAll, describe, expect, jest, mock, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 import * as DeployChecklistUtils from '@github/libs/DeployChecklistUtils';
 import type {InternalOctokit, ListForRepoMethod} from '@github/libs/GithubUtils';
 import GithubUtils from '@github/libs/GithubUtils';
 import GitUtils from '@github/libs/GitUtils';
 
-import run from '@scripts/createOrUpdateDeployChecklist';
-
 import * as core from '@actions/core';
 import * as fns from 'date-fns';
-import {vol} from 'memfs';
+import {fs as memfsFs, vol} from 'memfs';
 import path from 'path';
 
 import createMock from '../utils/createMock';
 
-/**
- * @jest-environment node
- */
-
 /* eslint-disable @typescript-eslint/naming-convention */
 
-// Mock fs
-jest.mock('fs');
+// Must run before `createOrUpdateDeployChecklist` (which imports `fs` internally) is imported below: mock.module
+// patches the shared module registry entry, and existing import bindings are live, but only if the patch happens
+// before those bindings are first read.
+await mock.module('fs', () => ({...memfsFs, default: memfsFs}));
 
-// Mock @actions/core for input handling and logging in tests
-jest.mock('@actions/core', () => ({
-    getInput: jest.fn(),
-    info: jest.fn(),
-    startGroup: jest.fn(),
-    endGroup: jest.fn(),
-    setFailed: jest.fn(),
-}));
+// Must be imported after the mock.module() call above so it picks up the mock.
+const {default: run} = await import('@scripts/createOrUpdateDeployChecklist');
 
-const mockGetInput = jest.mocked(core.getInput);
+type IssuesCreateResponse = Awaited<ReturnType<typeof GithubUtils.octokit.issues.create>>['data'];
+
+const mockGetInput = jest.fn();
 
 type ListForRepoParameters = Parameters<ListForRepoMethod>;
 type ListForRepoResponse = Awaited<ReturnType<ListForRepoMethod>>;
@@ -44,20 +39,27 @@ type PullsListResponse = Awaited<ReturnType<InternalOctokit['rest']['pulls']['li
 
 const PATH_TO_PACKAGE_JSON = path.resolve(__dirname, '../../package.json');
 
-let mockCreateIssue: jest.SpiedFunction<InternalOctokit['rest']['issues']['create']>;
-let mockUpdateIssue: jest.SpiedFunction<InternalOctokit['rest']['issues']['update']>;
-let mockListIssues: jest.MockedFunction<ListForRepoMethod>;
-const mockGetMergedPRsDeployedBetween = jest.fn<ReturnType<typeof GitUtils.getMergedPRsDeployedBetween>, Parameters<typeof GitUtils.getMergedPRsDeployedBetween>>();
+let mockCreateIssue: Mock<InternalOctokit['rest']['issues']['create']>;
+let mockUpdateIssue: Mock<InternalOctokit['rest']['issues']['update']>;
+let mockListIssues: Mock<ListForRepoMethod>;
+let listForRepoStatics: Pick<ListForRepoMethod, 'defaults' | 'endpoint'>;
+const mockGetMergedPRsDeployedBetween = jest.fn<typeof GitUtils.getMergedPRsDeployedBetween>();
 const mockGetWorkflowRunURLForCommit = jest.fn().mockResolvedValue(undefined);
 
 beforeAll(() => {
+    // The action stamps the checklist title with today's date and the assertions below re-derive it, so pin the
+    // clock: otherwise the two reads can straddle local midnight. Jest froze Date globally via fakeTimers.
+    jest.setSystemTime(new Date('2026-02-03T12:00:00Z'));
+
     GithubUtils.initOctokitWithToken('fake_token');
     const mockOctokit = GithubUtils.internalOctokit;
     if (!mockOctokit) {
         throw new Error('GithubUtils failed to initialize Octokit.');
     }
 
-    mockCreateIssue = jest.spyOn(mockOctokit.rest.issues, 'create').mockImplementation((...args: CreateIssueParameters): Promise<CreateIssueResponse> => {
+    // Octokit endpoint methods carry `defaults`/`endpoint` statics. A Bun mock doesn't, and `paginate` reads them
+    // off the method, so the real ones are copied back onto each mock and stub below.
+    const createIssue = (...args: CreateIssueParameters): Promise<CreateIssueResponse> => {
         const [arg] = args;
         if (!arg) {
             throw new Error('GithubUtils issues.create mock requires request parameters.');
@@ -69,8 +71,8 @@ beforeAll(() => {
                 },
             }),
         );
-    });
-    mockUpdateIssue = jest.spyOn(mockOctokit.rest.issues, 'update').mockImplementation((...args: UpdateIssueParameters): Promise<UpdateIssueResponse> => {
+    };
+    const updateIssue = (...args: UpdateIssueParameters): Promise<UpdateIssueResponse> => {
         const [arg] = args;
         if (!arg) {
             throw new Error('GithubUtils issues.update mock requires request parameters.');
@@ -82,21 +84,27 @@ beforeAll(() => {
                 },
             }),
         );
-    });
-    const listForRepoEndpoint = mockOctokit.rest.issues.listForRepo.endpoint;
-    const listForRepoDefaults = mockOctokit.rest.issues.listForRepo.defaults;
-    const pullsListEndpoint = mockOctokit.rest.pulls.list.endpoint;
-    const pullsListDefaults = mockOctokit.rest.pulls.list.defaults;
-    jest.spyOn(mockOctokit.rest.issues, 'listForRepo');
-    mockListIssues = jest.mocked(mockOctokit.rest.issues.listForRepo);
-    mockListIssues.endpoint = listForRepoEndpoint;
-    mockListIssues.defaults = listForRepoDefaults;
-    jest.spyOn(mockOctokit.rest.pulls, 'list');
-    const mockListPullRequests = jest.mocked(mockOctokit.rest.pulls.list, {shallow: true});
+    };
+    const {endpoint: createEndpoint, defaults: createDefaults} = mockOctokit.rest.issues.create;
+    const {endpoint: updateEndpoint, defaults: updateDefaults} = mockOctokit.rest.issues.update;
+    mockCreateIssue = jest.spyOn(mockOctokit.rest.issues, 'create').mockImplementation(Object.assign(createIssue, {endpoint: createEndpoint, defaults: createDefaults}));
+    mockUpdateIssue = jest.spyOn(mockOctokit.rest.issues, 'update').mockImplementation(Object.assign(updateIssue, {endpoint: updateEndpoint, defaults: updateDefaults}));
+    const {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults} = mockOctokit.rest.issues.listForRepo;
+    listForRepoStatics = {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults};
+    const {endpoint: pullsListEndpoint, defaults: pullsListDefaults} = mockOctokit.rest.pulls.list;
+    mockListIssues = Object.assign(jest.spyOn(mockOctokit.rest.issues, 'listForRepo'), {endpoint: listForRepoEndpoint, defaults: listForRepoDefaults});
+    const mockListPullRequests = Object.assign(jest.spyOn(mockOctokit.rest.pulls, 'list'), {endpoint: pullsListEndpoint, defaults: pullsListDefaults});
     mockListPullRequests.mockResolvedValue(createMock<PullsListResponse>({data: [], headers: {}}));
-    mockListPullRequests.endpoint = pullsListEndpoint;
-    mockListPullRequests.defaults = pullsListDefaults;
     GithubUtils.internalOctokit = mockOctokit;
+
+    // Mock @actions/core for input handling and logging in tests. Real ESM module namespace exports are read-only
+    // live bindings, so these can't be reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on
+    // them instead.
+    jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
+    jest.spyOn(core, 'info').mockImplementation(() => {});
+    jest.spyOn(core, 'startGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'endGroup').mockImplementation(() => {});
+    jest.spyOn(core, 'setFailed').mockImplementation(() => {});
 
     // Mock GitUtils
     GitUtils.getMergedPRsDeployedBetween = mockGetMergedPRsDeployedBetween;
@@ -120,10 +128,11 @@ afterEach(() => {
 
 afterAll(() => {
     jest.clearAllMocks();
+    jest.useRealTimers();
 });
 
 function mockDeployChecklistIssuesByLabel(responseByLabel: Partial<Record<string, Parameters<typeof createMock<ListForRepoResponse>>[0]['data']>>) {
-    mockListIssues.mockImplementation((...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
+    const listForRepo = (...parameters: ListForRepoParameters): Promise<ListForRepoResponse> => {
         const receivedParameters = parameters[0];
         if (!receivedParameters) {
             throw new Error('GithubUtils issues.listForRepo mock requires request parameters.');
@@ -140,7 +149,8 @@ function mockDeployChecklistIssuesByLabel(responseByLabel: Partial<Record<string
         }
         const data = labels === undefined ? [] : (responseByLabel[labels] ?? []);
         return Promise.resolve(createMock<ListForRepoResponse>({data, headers: {}}));
-    });
+    };
+    mockListIssues.mockImplementation(Object.assign(listForRepo, listForRepoStatics));
 }
 
 const LABELS = {
@@ -330,9 +340,11 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
         });
-        expect(result).toStrictEqual({
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-        });
+        expect(result).toStrictEqual(
+            createMock<IssuesCreateResponse>({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            }),
+        );
     });
 
     test('creates new issue when there are no Mobile-Expensify PRs', async () => {
@@ -376,9 +388,11 @@ describe('createOrUpdateDeployChecklist', () => {
                 `${lineBreak}${openCheckbox}${ghVerification}` +
                 `${lineBreak}${ccApplauseLeads}`,
         });
-        expect(result).toStrictEqual({
-            html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-        });
+        expect(result).toStrictEqual(
+            createMock<IssuesCreateResponse>({
+                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+            }),
+        );
     });
 
     describe('updates existing issue when there is one open', () => {
@@ -495,9 +509,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${openCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
 
         test('without NPM_VERSION input, just a new deploy blocker', async () => {
@@ -563,9 +579,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
 
         test('without Mobile-Expensify PRs, just app PRs and deploy blockers', async () => {
@@ -612,9 +630,11 @@ describe('createOrUpdateDeployChecklist', () => {
                     `${lineBreak}${closedCheckbox}${ghVerification}` +
                     `${lineBreak}${ccApplauseLeads}`,
             });
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/${openDeployChecklistBefore.number}`,
+                }),
+            );
         });
     });
 
@@ -673,9 +693,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -741,9 +763,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -812,9 +836,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -862,9 +888,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -938,9 +966,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const updateCall = mockUpdateIssue.mock.lastCall;
             if (!updateCall || !updateCall[0]) {
                 throw new Error('Expected issues.update to receive a request payload.');
@@ -1016,9 +1046,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');
@@ -1078,9 +1110,11 @@ describe('createOrUpdateDeployChecklist', () => {
             });
 
             const result = await run();
-            expect(result).toStrictEqual({
-                html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
-            });
+            expect(result).toStrictEqual(
+                createMock<IssuesCreateResponse>({
+                    html_url: `https://github.com/${process.env.GITHUB_REPOSITORY}/issues/29`,
+                }),
+            );
             const createCall = mockCreateIssue.mock.lastCall;
             if (!createCall || !createCall[0]) {
                 throw new Error('Expected issues.create to receive a request payload.');

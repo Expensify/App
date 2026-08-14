@@ -1,41 +1,43 @@
-import generateTranslations, {GENERATED_FILE_PREFIX} from '@scripts/generateTranslations';
+import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import type {Mock} from 'bun:test';
+
 import Git from '@scripts/utils/Git';
 import DummyTranslator from '@scripts/utils/Translator/DummyTranslator';
 import Translator from '@scripts/utils/Translator/Translator';
 
-/**
- * @jest-environment node
- */
 import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
 
-let processExitSpy: jest.SpyInstance;
-let consoleErrorSpy: jest.SpyInstance;
+let processExitSpy: Mock<typeof process.exit>;
+let consoleErrorSpy: Mock<typeof console.error>;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-assignment
-let mockEn: any = jest.requireActual('@src/languages/en');
-jest.mock('@src/languages/en', () => ({
-    __esModule: true,
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    get default() {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        return mockEn;
-    },
-}));
-jest.mock('openai');
-jest.mock('@scripts/utils/Git');
+/**
+ * Swaps the `en` strings the script reads as its source of truth. Re-mocking per call rather than reading a mutable
+ * variable through a getter: `generateTranslations` imports `en` as a default binding, which Bun resolves once at
+ * link time, so a getter would only ever be read for the first test.
+ *
+ * The first call has to happen before `generateTranslations` is imported below, because mock.module patches the
+ * shared module registry entry and existing bindings only pick that up if the patch lands first. `bun test
+ * --isolate` keeps the replacement from reaching the other files in tests/tooling.
+ */
+async function setMockEn(strings: unknown) {
+    await mock.module('@src/languages/en', () => ({default: strings}));
+}
 
-// Mock Git methods
-const mockIsValidRef = jest.fn<ReturnType<typeof Git.isValidRef>, Parameters<typeof Git.isValidRef>>();
-const mockDiff = jest.fn<ReturnType<typeof Git.diff>, Parameters<typeof Git.diff>>();
-const mockShow = jest.fn<ReturnType<typeof Git.show>, Parameters<typeof Git.show>>();
+await setMockEn((await import('@src/languages/en')).default);
 
-// Apply mocks to Git using jest.spyOn (ignore type errors for now)
-jest.spyOn(Git, 'isValidRef').mockImplementation(mockIsValidRef);
-jest.spyOn(Git, 'diff').mockImplementation(mockDiff);
-jest.spyOn(Git, 'show').mockImplementation(mockShow);
+// Must be imported after setMockEn above so it reads the mocked `en`.
+const {default: generateTranslations, GENERATED_FILE_PREFIX} = await import('@scripts/generateTranslations');
+
+// `Git` is a class of static methods, so the three the script calls can be spied on directly. Its remaining
+// methods are left real: the script never reaches them under --dry-run, and stubbing them would only hide it if
+// that changed. `openai` needs no stub either - the script builds a DummyTranslator under --dry-run and never
+// constructs the OpenAI client.
+const mockIsValidRef = jest.spyOn(Git, 'isValidRef');
+const mockDiff = jest.spyOn(Git, 'diff');
+const mockShow = jest.spyOn(Git, 'show');
 
 let tempDir: string;
 let LANGUAGES_DIR: string;
@@ -640,7 +642,7 @@ describe('generateTranslations', () => {
                     network: 'Network error',
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -716,7 +718,7 @@ describe('generateTranslations', () => {
                 },
             };
 
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -786,7 +788,7 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -842,7 +844,7 @@ describe('generateTranslations', () => {
                     save: 'Save',
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -894,7 +896,7 @@ describe('generateTranslations', () => {
                     generic: 'An error occurred',
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -960,7 +962,7 @@ describe('generateTranslations', () => {
                 },
                 simpleTemplate: (name: string) => `Welcome ${name} to our app`,
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             // Create English source file
             fs.writeFileSync(
@@ -1577,7 +1579,7 @@ describe('generateTranslations', () => {
                     },
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -1645,7 +1647,7 @@ describe('generateTranslations', () => {
                     },
                 },
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             fs.writeFileSync(
                 EN_PATH,
@@ -1860,7 +1862,7 @@ describe('generateTranslations', () => {
                 pin: 'Pin',
                 alsoUnchanged: 'Also unchanged',
             };
-            mockEn = strings;
+            await setMockEn(strings);
 
             // Create English source without context annotation
             fs.writeFileSync(
@@ -2270,7 +2272,7 @@ describe('generateTranslations', () => {
     });
 
     describe('error summary', () => {
-        let consoleLogSpy: jest.SpyInstance;
+        let consoleLogSpy: Mock<typeof console.log>;
 
         beforeEach(() => {
             consoleLogSpy = jest.spyOn(console, 'log');

@@ -1,3 +1,5 @@
+import {describe, expect, it} from 'bun:test';
+
 import {detectReactComponent} from '../../.github/actions/javascript/authorChecklist/categories/newComponentCategory';
 
 describe('detectReactComponent test', () => {

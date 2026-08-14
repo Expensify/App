@@ -1,30 +1,34 @@
-import GithubUtils from '@github/libs/GithubUtils';
+import {afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
 
-import resolveArtifacts, {ARTIFACT_IDS} from '@scripts/artifacts-utils/lib/artifactsResolver';
-import {getCredentials} from '@scripts/artifacts-utils/lib/githubCLI';
+import type GithubUtils from '@github/libs/GithubUtils';
 
-/**
- * @jest-environment node
- */
-import {execFileSync} from 'child_process';
+import type {getCredentials} from '@scripts/artifacts-utils/lib/githubCLI';
+
+import * as childProcess from 'child_process';
 import fs from 'fs';
 
-jest.mock('child_process');
-jest.mock('@scripts/artifacts-utils/lib/githubCLI');
-jest.mock('@github/libs/GithubUtils', () => ({
-    __esModule: true,
+const mockExecFileSync = jest.fn<(command: string) => string>();
+const mockGetCredentials = jest.fn<typeof getCredentials>();
+const mockPaginate = jest.fn<() => Promise<Array<{name: string}>>>();
+const mockInitGithubClient = jest.fn<typeof GithubUtils.initOctokitWithToken>();
+
+// Bun has no equivalent of `jest.mock(path)`'s automock, so each of these replaces the module explicitly. They must
+// run before `artifactsResolver` is imported below: mock.module patches the shared module registry entry, and
+// existing import bindings are live, but only if the patch happens before those bindings are first read.
+// `bun test --isolate` keeps the replacements from reaching the other files in tests/tooling.
+await mock.module('child_process', () => ({...childProcess, execFileSync: mockExecFileSync}));
+const realGithubCLI = await import('@scripts/artifacts-utils/lib/githubCLI');
+await mock.module('@scripts/artifacts-utils/lib/githubCLI', () => ({...realGithubCLI, getCredentials: mockGetCredentials}));
+await mock.module('@github/libs/GithubUtils', () => ({
     default: {
-        initOctokitWithToken: jest.fn(),
-        paginate: jest.fn(),
+        initOctokitWithToken: mockInitGithubClient,
+        paginate: mockPaginate,
         octokit: {packages: {getAllPackageVersionsForPackageOwnedByOrg: jest.fn()}},
     },
 }));
 
-const mockExecFileSync = jest.mocked(execFileSync);
-const mockGetCredentials = jest.mocked(getCredentials);
-const mockPaginate = jest.mocked(GithubUtils.paginate);
-// eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding
-const mockInitGithubClient = jest.mocked(GithubUtils.initOctokitWithToken);
+// Must be imported after the mock.module() calls above so it picks up the mocks.
+const {default: resolveArtifacts, ARTIFACT_IDS} = await import('@scripts/artifacts-utils/lib/artifactsResolver');
 
 const NEW_DOT_ROOT = '/repo';
 const LOCAL_HASH = 'abc123hash';
@@ -39,19 +43,21 @@ function fakeFetchResponse(body: string) {
 /** Replaces global fetch with a queue of POM responses (one per candidate lookup). */
 function mockFetchBodies(bodies: string[]) {
     let call = 0;
-    global.fetch = jest.fn().mockImplementation(() => Promise.resolve(fakeFetchResponse(bodies.at(call++) ?? '')));
+    // `preconnect` is part of the fetch type but nothing here calls it.
+    global.fetch = Object.assign(
+        jest.fn().mockImplementation(() => Promise.resolve(fakeFetchResponse(bodies.at(call++) ?? ''))),
+        {preconnect: () => {}},
+    );
 }
 
 /** Makes the package-versions API return the given version names. */
 function mockVersions(names: string[]) {
-    // Faking the paginate() surface in a unit test.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    (mockPaginate as unknown as jest.Mock).mockResolvedValue(names.map((name) => ({name})));
+    mockPaginate.mockResolvedValue(names.map((name) => ({name})));
 }
 
 /** Mocks the local patches hash and the react-native version read from package.json. */
 function mockLocalRepo() {
-    mockExecFileSync.mockImplementation((cmd: string) => (cmd === 'bash' ? LOCAL_HASH : ''));
+    mockExecFileSync.mockImplementation((command: string) => (command === 'bash' ? LOCAL_HASH : ''));
     jest.spyOn(fs, 'readFileSync').mockReturnValue('{"dependencies":{"react-native":"0.85.3"}}');
 }
 
@@ -141,8 +147,7 @@ describe('artifactsResolver', () => {
 
         it('falls back to source build when the packages API fails', async () => {
             mockLocalRepo();
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            (mockPaginate as unknown as jest.Mock).mockRejectedValue(new Error('403 Forbidden'));
+            mockPaginate.mockRejectedValue(new Error('403 Forbidden'));
 
             const result = await resolveArtifacts({platform: 'ios', packageName: 'react-hybrid', newDotRoot: NEW_DOT_ROOT, isHybrid: true});
 
