@@ -23,7 +23,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {clearPolicyTagListErrorField, enablePolicyTags, openPolicyTagsPage, setPolicyRequiresTag, setWorkspaceTagRequired} from '@userActions/Policy/Tag';
+import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setPolicyTagsRequired} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,8 +48,7 @@ function RulesRequireFieldsPage({
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
-    // Match the Categories/Tags toggles on WorkspaceMoreFeaturesPage: only an accounting connection owns these
-    // features. policy.connections also holds HR connections, which must not lock the Required toggles.
+    // Per WorkspaceMoreFeaturesPage: only accounting connections own these features, not the HR ones in policy.connections.
     const isConnectedToAccounting = hasAccountingConnections(policy);
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
@@ -57,12 +56,10 @@ function RulesRequireFieldsPage({
 
     const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
-    // A connection owns the tag lists, not whether an expense must carry one, so it doesn't lock this the way it locks
-    // Categories. The Tags table, tag list page and Tags settings all left Required editable while connected.
+    // A connection owns the tag lists, not whether an expense must carry one, so unlike Categories it doesn't lock this.
     const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags;
 
-    // Independent multi-level tags carry Required on each list, so they get a row per level. Single-level and
-    // dependent tags have only the policy-wide flag, matching where the Tags table offers a per-level switch.
+    // Independent multi-level tags carry Required per list, so a row each. Single-level and dependent have only the policy-wide flag.
     const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
     const hasPerLevelTagRequired = isMultiLevelTagsUtil(policyTags) && !hasDependentTagsUtil(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
@@ -70,8 +67,7 @@ function RulesRequireFieldsPage({
 
     const [categoryRequired, setCategoryRequired] = useState(initialCategoryRequired);
     const [tagRequired, setTagRequired] = useState(initialTagRequired);
-    // Only levels the user actually toggled live here. Everything else reads from the tag list, so tag lists that
-    // arrive after the first render can't be mistaken for edits.
+    // Pending per-level edits until Save, keyed by orderWeight. Only toggled levels are here, so late-arriving tag lists aren't edits.
     const [tagRequiredByLevel, setTagRequiredByLevel] = useState<Record<number, boolean>>({});
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
 
@@ -79,11 +75,6 @@ function RulesRequireFieldsPage({
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
-    }, [policyID]);
-
-    useEffect(() => {
-        // The tag lists are only fetched by the Tags pages, so without this the per-level rows stay hidden until one is opened.
-        openPolicyTagsPage(policyID);
     }, [policyID]);
 
     useEffect(() => {
@@ -118,15 +109,10 @@ function RulesRequireFieldsPage({
         }
 
         if (hasPerLevelTagRequired) {
-            // One call per direction so a mixed change is two requests rather than one per level.
-            const levelsToRequire = changedTagLevels.filter((tagList) => getLevelRequired(tagList.orderWeight, tagList.required)).map((tagList) => tagList.orderWeight);
-            const levelsToMakeOptional = changedTagLevels.filter((tagList) => !getLevelRequired(tagList.orderWeight, tagList.required)).map((tagList) => tagList.orderWeight);
-
-            if (levelsToRequire.length > 0) {
-                setWorkspaceTagRequired(policyData, levelsToRequire, true);
-            }
-            if (levelsToMakeOptional.length > 0) {
-                setWorkspaceTagRequired(policyData, levelsToMakeOptional, false);
+            // One call per level, like the Tags table. Batching via setWorkspaceTagRequired computes every request's
+            // violations from the same pre-change snapshot, so a mixed save drops the violation the other half added.
+            for (const tagList of changedTagLevels) {
+                setPolicyTagsRequired(policyData, getLevelRequired(tagList.orderWeight, tagList.required), tagList.orderWeight);
             }
         } else if (tagRequired !== initialTagRequired) {
             setPolicyRequiresTag(policyData, tagRequired);
@@ -135,41 +121,47 @@ function RulesRequireFieldsPage({
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
     }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, getLevelRequired, tagRequired, initialTagRequired, policyData]);
 
-    const handleToggleTagLevel = useCallback(
-        (orderWeight: number, isOn: boolean) => {
-            // The Tags table blocked clearing the last required level while the workspace still requires a tag, so that
-            // guard moves here with the control. It reads the pending edits rather than isMakingLastRequiredTagListOptional,
-            // which only sees saved state and would miss levels switched off earlier in this same visit.
-            const wouldClearLastRequiredLevel =
-                !isOn && !!policy?.requiresTag && tagLists.every((tagList) => tagList.orderWeight === orderWeight || !getLevelRequired(tagList.orderWeight, tagList.required));
+    const showAllTagsOptionalWarning = useCallback(() => {
+        showConfirmModal({
+            title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
+            prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
+            confirmText: translate('common.buttonConfirm'),
+            shouldShowCancelButton: false,
+        });
+    }, [showConfirmModal, translate]);
 
-            if (wouldClearLastRequiredLevel) {
-                showConfirmModal({
-                    title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
-                    prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
-                    confirmText: translate('common.buttonConfirm'),
-                    shouldShowCancelButton: false,
-                });
+    // isMakingLastRequiredTagListOptional over pending edits, since it only sees saved state and would miss levels switched off this visit.
+    const isLastRequiredLevel = useCallback(
+        (orderWeight: number) =>
+            !!policy?.requiresTag &&
+            getLevelRequired(orderWeight, tagLists.find((tagList) => tagList.orderWeight === orderWeight)?.required) &&
+            tagLists.filter((tagList) => getLevelRequired(tagList.orderWeight, tagList.required)).length === 1,
+        [getLevelRequired, policy?.requiresTag, tagLists],
+    );
+
+    const handleTagListRequiredToggle = useCallback(
+        (required: boolean, orderWeight: number) => {
+            if (!required && isLastRequiredLevel(orderWeight)) {
+                showAllTagsOptionalWarning();
                 return;
             }
 
-            setTagRequiredByLevel((previous) => ({...previous, [orderWeight]: isOn}));
+            setTagRequiredByLevel((previous) => ({...previous, [orderWeight]: required}));
         },
-        [getLevelRequired, policy?.requiresTag, showConfirmModal, tagLists, translate],
+        [isLastRequiredLevel, showAllTagsOptionalWarning],
     );
 
-    // Lock UX only when the feature itself is off (or categories are accounting-controlled).
-    // Feature on but no enabled items: toggle stays disabled without lock/modal.
+    // Lock only when the feature is off (or categories are accounting-controlled). No enabled items just disables, no lock/modal.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
     const shouldShowTagLock = isTagFeatureDisabled;
 
-    /** Tag lists are named by the admin, so show that name and keep the generic label only for unnamed lists. */
+    /** Admins name their tag lists, so prefer that name and fall back to the generic label. */
     const getTagLevelLabel = (tagListName: string | undefined) => {
         const cleanedName = tagListName ? getCleanedTagName(tagListName) : '';
         return cleanedName || translate('workspace.rules.requireFields.tag');
     };
 
-    // The single toggle covers every level, so a list name would only fit when there is exactly one list.
+    // One toggle covers every level, so a list name only fits when there is exactly one list.
     const singleTagRowLabel = tagLists.length === 1 ? getTagLevelLabel(tagLists.at(0)?.name) : translate('workspace.rules.requireFields.tag');
 
     const categoryDisabledText = (() => {
@@ -215,26 +207,60 @@ function RulesRequireFieldsPage({
         setCategoryRequired(true);
     }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
 
-    const tagDisabledText = shouldShowTagLock ? translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt') : undefined;
-
-    const promptEnableTagsForRequireTag = useCallback(async () => {
-        if (!isTagFeatureDisabled) {
-            return;
+    const tagDisabledText = (() => {
+        if (!shouldShowTagLock) {
+            return undefined;
         }
-
-        const {action} = await showConfirmModal({
-            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-            prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
-            confirmText: translate('common.ok'),
-            cancelText: translate('common.cancel'),
-        });
-        if (action !== ModalActions.CONFIRM) {
-            return;
+        if (isConnectedToAccounting) {
+            return translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText');
         }
-        enablePolicyTags(policyData, true);
-        setPolicyRequiresTag(policyData, true);
-        setTagRequired(true);
-    }, [isTagFeatureDisabled, policyData, showConfirmModal, translate]);
+        return translate('workspace.rules.individualExpenseRules.enableTagsToUnlockPrompt');
+    })();
+
+    /** Pass orderWeight from a per-level row so only that level is required; omit it for the policy-wide row. */
+    const promptEnableTagsForRequireTag = useCallback(
+        async (orderWeight?: number) => {
+            if (!isTagFeatureDisabled) {
+                return;
+            }
+
+            // The connection owns turning Tags on, so route to Accounting instead of calling enablePolicyTags.
+            if (isConnectedToAccounting) {
+                const {action} = await showConfirmModal({
+                    title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                    prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                    confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
+                    cancelText: translate('common.cancel'),
+                });
+                if (action !== ModalActions.CONFIRM) {
+                    return;
+                }
+                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+                return;
+            }
+
+            const {action} = await showConfirmModal({
+                title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
+                prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
+                confirmText: translate('common.ok'),
+                cancelText: translate('common.cancel'),
+            });
+            if (action !== ModalActions.CONFIRM) {
+                return;
+            }
+            enablePolicyTags(policyData, true);
+
+            if (orderWeight !== undefined) {
+                // setPolicyRequiresTag would require every list, not just this level.
+                setPolicyTagsRequired(policyData, true, orderWeight);
+                return;
+            }
+
+            setPolicyRequiresTag(policyData, true);
+            setTagRequired(true);
+        },
+        [isConnectedToAccounting, isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate],
+    );
 
     return (
         <AccessOrNotFoundWrapper
@@ -278,7 +304,9 @@ function RulesRequireFieldsPage({
                     {hasPerLevelTagRequired ? (
                         tagLists.map((tagList, tagListIndex) => {
                             const label = getTagLevelLabel(tagList.name);
-                            const isLevelToggleDisabled = isTagFeatureDisabled || (!tagList.required && !hasEnabledOptions(Object.values(tagList.tags ?? {})));
+                            // Per the Tags table row: only this level's own tags gate its switch.
+                            const areLevelTagsEnabled = hasEnabledOptions(Object.values(tagList.tags ?? {}));
+                            const isLevelToggleDisabled = isTagFeatureDisabled || (!tagList.required && !areLevelTagsEnabled);
                             return (
                                 <ToggleSettingOptionRow
                                     key={tagList.name}
@@ -286,15 +314,15 @@ function RulesRequireFieldsPage({
                                     switchAccessibilityLabel={label}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
-                                    isActive={getLevelRequired(tagList.orderWeight, tagList.required)}
+                                    isActive={getLevelRequired(tagList.orderWeight, tagList.required) && areLevelTagsEnabled}
                                     disabled={isLevelToggleDisabled}
-                                    showLockIcon={shouldShowTagLock}
+                                    showLockIcon={shouldShowTagLock || isLastRequiredLevel(tagList.orderWeight)}
                                     disabledText={tagDisabledText}
-                                    disabledAction={shouldShowTagLock ? promptEnableTagsForRequireTag : undefined}
+                                    disabledAction={shouldShowTagLock ? () => promptEnableTagsForRequireTag(tagList.orderWeight) : undefined}
                                     pendingAction={tagList.pendingFields?.required}
                                     errors={tagList.errorFields?.required ?? undefined}
                                     onCloseError={() => clearPolicyTagListErrorField({policyID, tagListIndex, errorField: 'required', policyTags})}
-                                    onToggle={(isOn) => handleToggleTagLevel(tagList.orderWeight, isOn)}
+                                    onToggle={(isOn) => handleTagListRequiredToggle(isOn, tagList.orderWeight)}
                                 />
                             );
                         })
