@@ -10068,6 +10068,7 @@ ${reportName}`,
             return '';
         },
         brokenConnection530Error: 'Η απόδειξη εκκρεμεί λόγω αποσυνδεδεμένου τραπεζικού λογαριασμού',
+        brokenConnection531Error: 'Η απόδειξη εκκρεμεί λόγω προσωρινού προβλήματος της τράπεζας. Δοκιμάστε ξανά αργότερα.',
         adminBrokenConnectionError: ({workspaceCompanyCardRoute}: {workspaceCompanyCardRoute: string}) =>
             `<muted-text-label>Η απόδειξη εκκρεμεί λόγω κατεστραμμένης σύνδεσης τράπεζας. Παρακαλώ επιλύστε το στις <a href="${workspaceCompanyCardRoute}">εταιρικές κάρτες</a>.</muted-text-label>`,
         memberBrokenConnectionError: 'Η απόδειξη εκκρεμεί λόγω προβλήματος στη σύνδεση με την τράπεζα. Παρακαλείστε να ζητήσετε από έναν διαχειριστή χώρου εργασίας να το επιλύσει.',
