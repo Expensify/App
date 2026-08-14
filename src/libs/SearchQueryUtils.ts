@@ -1741,7 +1741,13 @@ function getFilterDisplayValue({
     if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.IN) {
         return deprecatedGetReportName(reports?.[`${ONYXKEYS.COLLECTION.REPORT}${filterValue}`], reportAttributes) || filterValue;
     }
-    if (filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL || filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT) {
+    if (
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED ||
+        filterName === CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED
+    ) {
         // Added 2 here as this is the maximum number of decimals an amount can have. So, we can run a search with 2 decimals here.
         const frontendAmount = convertToFrontendAmountAsInteger(Number(filterValue), 2);
         return Number.isNaN(frontendAmount) ? filterValue : frontendAmount.toString();
