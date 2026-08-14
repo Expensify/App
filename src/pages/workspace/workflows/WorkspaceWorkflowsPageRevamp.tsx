@@ -7,7 +7,7 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -66,7 +66,6 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.workflows');
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const illustrations = useMemoizedLazyIllustrations(['Workflows']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download', 'Send', 'ThumbsUp', 'MoneyBag', 'Wrench']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
@@ -281,7 +280,6 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
         >
             <WorkspacePageWithSections
                 headerText={translate('workspace.common.workflows')}
-                icon={illustrations.Workflows}
                 route={route}
                 headerContent={headerButtons}
                 shouldShowOfflineIndicatorInWideScreen
