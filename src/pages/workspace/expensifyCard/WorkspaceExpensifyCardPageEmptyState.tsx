@@ -5,6 +5,7 @@ import {useLockedAccountActions, useLockedAccountState} from '@components/Locked
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import Text from '@components/Text';
 
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
@@ -33,8 +34,6 @@ import withPolicyAndFullscreenLoading from '@pages/workspace/withPolicyAndFullsc
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import variables from '@styles/variables';
-
-import {updateGeneralSettings as updatePolicyGeneralSettings} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -78,6 +77,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policy?.id);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
     const hasAccessibleFeeds = allFeeds.length > 0;
 
@@ -176,7 +176,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                         }
                         // The supported currency restriction only applies to enrolling a brand-new card program.
                         // If hasAccessibleFeeds is true, allow the flow to start in order to link an existing feed
-                        if (!hasAccessibleFeeds && !(policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported)) {
+                        if (!hasAccessibleFeeds && !canEnrollNewCardProgram) {
                             promptCurrencyChangeAndStartFlow();
                             return;
                         }

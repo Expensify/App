@@ -10,10 +10,10 @@ import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelec
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensifyCardProgram';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -84,7 +84,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policyID);
+    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policyID);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -204,7 +204,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     // Suppress the new-program branch on workspaces with unsupported currencies
     // These workspaces may only issue cards on existing feeds
-    const shouldShowIssueCardButton = issueCardFundID !== undefined || policy?.outputCurrency === CONST.CURRENCY.USD || isUkEuCurrencySupported;
+    const shouldShowIssueCardButton = issueCardFundID !== undefined || canEnrollNewCardProgram;
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
