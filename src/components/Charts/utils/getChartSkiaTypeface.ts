@@ -45,7 +45,7 @@ function getChartSkiaTypefaceKey(fontFamily: string | undefined, fontStyle: Char
     return matchingKey ?? 'EXP_NEUE';
 }
 
-/** Below this code point are ASCII control characters (e.g. the `\n` line separators callers split on) that legitimately have no glyph. */
+// Skip ASCII control characters (e.g. the `\n` line separators callers split on) that have no glyph.
 const FIRST_PRINTABLE_CODE_POINT = 0x20;
 
 function typefaceCanRenderText(typeface: SkTypeface, text: string): boolean {
