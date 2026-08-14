@@ -1675,6 +1675,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
         },
         moveExpenses: 'レポートに移動',
+        moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
             sendExpense: '経費を誰にでも送信できます',
@@ -1697,6 +1698,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
             bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `このレポートは、あなた（休暇代理人）ではなく、あなたが所属していないこのレポートのポリシーのメンバーであるため、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> がこのレポートのポリシーのメンバーではないため、代わりにあなたに送信されました`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `このレポートは、ご自身のレポートをご自身で承認することはできないため、承認のために <mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> さんが自分のレポートを承認できないため、承認のためにあなたに送信されました`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> は自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> に送信されました`,
         },
         chooseWorkspace: 'ワークスペースを選択',
         routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,
@@ -8694,6 +8707,8 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },

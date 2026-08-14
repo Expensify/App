@@ -10,6 +10,7 @@ import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -30,6 +31,7 @@ import {enablePolicyCategories, getPolicyCategories} from '@libs/actions/Policy/
 import {isCategoryMissing} from '@libs/CategoryUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {pickReportForPolicy} from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {hasAccountingConnections, isGroupPolicy, isPolicyAdmin} from '@libs/PolicyUtils';
@@ -38,7 +40,7 @@ import {getRequestType} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 
@@ -54,17 +56,17 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_CATEGORY>;
+type DynamicIOURequestStepCategoryProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY>;
 
-function IOURequestStepCategory({
+function DynamicIOURequestStepCategory({
     report: reportReal,
     reportDraft,
     route: {
-        params: {transactionID, backTo, action, iouType, reportActionID, reportID: routeReportID},
+        params: {transactionID, action, iouType, reportActionID, reportID: routeReportID},
     },
     transaction,
-}: IOURequestStepCategoryProps) {
+}: DynamicIOURequestStepCategoryProps) {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -75,13 +77,20 @@ function IOURequestStepCategory({
     const transactionReport = useReportOrReportDraft(transaction?.reportID);
     const participantReport = useReportOrReportDraft(transaction?.participants?.at(0)?.reportID);
     const report = reportReal ?? reportDraft ?? transactionReport ?? participantReport;
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path);
     // The self-DM a submissions-disabled workspace flow is seeded onto carries the placeholder '_FAKE_' policy;
     // don't let that shadow the selected workspace chat's real policy, or this page's categories never load. See #96576.
     const policyIdReal = getIOURequestPolicyID(transaction, pickReportForPolicy(reportReal, transactionReport, participantReport));
     const policyIdDraft = getIOURequestPolicyID(transaction, reportDraft);
     const isEditing = action === CONST.IOU.ACTION.EDIT;
     const isEditingSplit = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.SPLIT_EXPENSE) && isEditing;
-    const {policy: policyFromTransaction} = usePolicyForTransaction({transaction, reportPolicyID: policyIdReal ?? policyIdDraft, action, iouType, isPerDiemRequest});
+    const {policy: policyFromTransaction} = usePolicyForTransaction({
+        transaction,
+        reportPolicyID: policyIdReal ?? policyIdDraft,
+        action,
+        iouType,
+        isPerDiemRequest,
+    });
     const {policyForMovingExpenses} = usePolicyForMovingExpenses();
     const policy = policyFromTransaction ?? (isEditingSplit && isSelfDM(report) ? policyForMovingExpenses : undefined);
     const policyID = policy?.id;
@@ -94,7 +103,9 @@ function IOURequestStepCategory({
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(parentReport?.ownerAccountID)});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
-    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {
+        selector: isTrackIntentUserSelector,
+    });
 
     const policyCategories = policyCategoriesReal ?? policyCategoriesDraft;
     const policyData = usePolicyData(policy?.id);
@@ -123,7 +134,7 @@ function IOURequestStepCategory({
                       if (!policyID || !reportID) {
                           return;
                       }
-                      Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.getRoute(action, iouType, transactionID, reportID, reportActionID, backTo));
+                      Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path));
                   },
               },
           ]
@@ -155,11 +166,11 @@ function IOURequestStepCategory({
     }, [policyID]);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const saveAndNavigateBack = () => {
-        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const updateCategory = (category: ListItem) => {
@@ -202,7 +213,14 @@ function IOURequestStepCategory({
 
         setMoneyRequestCategory(transactionID, updatedCategory, policy, getCurrencyDecimals);
 
-        if (action === CONST.IOU.ACTION.CATEGORIZE && !backTo) {
+        // `action === CATEGORIZE` only ever occurs when categorizing a fresh tracked expense directly from a
+        // report (never from an existing Confirmation screen), so continue forward into Confirmation here.
+        if (action === CONST.IOU.ACTION.CATEGORIZE) {
+            if (backPath.includes('/confirmation/')) {
+                saveAndNavigateBack();
+                return;
+            }
+
             if (report?.reportID) {
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, report.reportID));
             }
@@ -219,7 +237,7 @@ function IOURequestStepCategory({
             shouldShowWrapper
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowOfflineIndicator={policyCategories !== undefined}
-            testID="IOURequestStepCategory"
+            testID="DynamicIOURequestStepCategory"
             shouldEnableKeyboardAvoidingView={false}
             threeDotsMenuItems={createCategoryMenuItems}
             shouldMinimizeMenuButton
@@ -255,12 +273,7 @@ function IOURequestStepCategory({
                                         enablePolicyCategories({...policyData, categories: policyCategories}, true, false);
                                     }
                                     requestAnimationFrame(() => {
-                                        Navigation.navigate(
-                                            ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(
-                                                policyID,
-                                                ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(action, iouType, transactionID, report.reportID, backTo, reportActionID),
-                                            ),
-                                        );
+                                        Navigation.navigate(ROUTES.SETTINGS_CATEGORIES_ROOT.getRoute(policyID, Navigation.getActiveRoute()));
                                     });
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_CATEGORIES_BUTTON}
@@ -283,7 +296,7 @@ function IOURequestStepCategory({
     );
 }
 
-const IOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepCategory);
+const DynamicIOURequestStepCategoryWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepCategory);
 
-const IOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepCategoryWithFullTransactionOrNotFound);
-export default IOURequestStepCategoryWithWritableReportOrNotFound;
+const DynamicIOURequestStepCategoryWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepCategoryWithFullTransactionOrNotFound);
+export default DynamicIOURequestStepCategoryWithWritableReportOrNotFound;
