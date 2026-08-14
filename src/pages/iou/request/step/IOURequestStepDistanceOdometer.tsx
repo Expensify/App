@@ -157,8 +157,8 @@ function IOURequestStepDistanceOdometer({
     const isFocused = useIsFocused();
     // Forces a fresh KeyboardAvoidingView instance (fresh native view, fresh internal Reanimated keyboard-tracking
     // state) on every focus change. Android's tab pager can recycle this screen's native view while it sits in the
-    // background (no `offscreenPageLimit` is set), which can desync the KeyboardAvoidingView's internal state from
-    // its own native view and strand the padding — a remount can't carry that staleness across, since nothing about
+    // background (no `offscreenPageLimit` is set), which can knock the KeyboardAvoidingView's internal state out of
+    // sync with its own native view and strand the padding — a remount can't carry that staleness across, since nothing about
     // the previous instance survives it. Keyed on `isFocused` rather than incremented every render so it only
     // remounts on an actual tab-focus transition, not on unrelated re-renders while focused.
     const keyboardAvoidingViewInstanceKey = isFocused ? 'focused' : 'unfocused';
