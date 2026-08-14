@@ -2076,7 +2076,9 @@ function updateSplitTransactionsFromSplitExpensesFlow(params: UpdateSplitTransac
 
     const targetReportID = params.expenseReport?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
 
-    signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+    if (!isReverseSplitOperation) {
+        signalExpenseAddedGrowl(getNewSplitTransactionIDs().at(-1), CONST.SEARCH.DATA_TYPES.EXPENSE);
+    }
 
     if (isSearchPageTopmostFullScreenRoute || !params.transactionReport?.parentReportID) {
         // Returns to Search, not the expense report, so rail flags would sit unconsumed and highlight stale rows the

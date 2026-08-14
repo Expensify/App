@@ -22,6 +22,7 @@ import Onyx from 'react-native-onyx';
 
 import currencyList from '../../unit/currencyList.json';
 import createMock from '../../utils/createMock';
+import getOnyxValue from '../../utils/getOnyxValue';
 import {getGlobalFetchMock, formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -898,6 +899,29 @@ describe('actions/IOU', () => {
             // And the transaction that already existed in the report is not flagged - it is not new, so highlighting it
             // would draw attention to a row the user has already seen
             expect(pendingNewTransactionIDs?.['existing-tx-2']).toBeUndefined();
+        });
+
+        it('does not signal the "Expense added" growl during a reverse split operation', async () => {
+            const existingChildTx = {
+                transactionID: 'child-tx-1',
+                reportID: EXPENSE_REPORT_ID,
+                comment: {originalTransactionID: ORIGINAL_TX_ID, source: CONST.IOU.TYPE.SPLIT},
+            };
+            const params = buildBaseParams({
+                allTransactionsList: {[`${ONYXKEYS.COLLECTION.TRANSACTION}child-tx-1`]: existingChildTx},
+                transactionData: {
+                    reportID: EXPENSE_REPORT_ID,
+                    originalTransactionID: ORIGINAL_TX_ID,
+                    splitExpenses: [{transactionID: 'new-merged-tx', reportID: EXPENSE_REPORT_ID, statusNum: 0, amount: 1000, created: '2024-01-01'}],
+                    splitExpensesTotal: 1000,
+                },
+            });
+
+            updateSplitTransactionsFromSplitExpensesFlow(params);
+            await waitForBatchedUpdates();
+
+            const growlTransactionIDs = await getOnyxValue(ONYXKEYS.EXPENSE_ADDED_GROWL_TRANSACTION_IDS);
+            expect(growlTransactionIDs?.['new-merged-tx']).toBeUndefined();
         });
     });
 });
