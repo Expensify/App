@@ -74,7 +74,6 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 ### Code Quality
 
 - **ESLint**: Linter. Pre-existing violations are grandfathered via [`eslint-seatbelt`](https://github.com/justjake/eslint-seatbelt).
-- **Oxfmt**: Code formatting - run `npm run fmt` after making changes
 
 ### Post-Edit Checklist (IMPORTANT)
 
