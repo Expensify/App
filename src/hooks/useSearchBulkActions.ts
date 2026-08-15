@@ -1820,14 +1820,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // reports here must resolve to the same companyID for this integration. When the selection spans
                     // workspaces connected to DIFFERENT companyIDs (e.g. two QBO workspaces on different QBO
                     // companies), the export can't be fulfilled — inform the user and exit without exporting.
-                    const companyIDs = new Set<string>();
+                    // An unresolved (undefined) companyID is kept as its own distinct value so a selection mixing a
+                    // known company with an unidentifiable one is still treated as spanning different companies.
+                    const companyIDs = new Set<string | undefined>();
                     for (const reportID of integrationReportIDs) {
                         const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
                         const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
                         const companyID = getConnectionCompanyID(reportPolicy, integration);
-                        if (companyID) {
-                            companyIDs.add(companyID);
-                        }
+                        companyIDs.add(companyID);
                     }
                     if (companyIDs.size > 1) {
                         showConfirmModal({

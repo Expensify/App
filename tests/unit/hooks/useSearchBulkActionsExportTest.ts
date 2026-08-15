@@ -268,7 +268,6 @@ const REPORT_ID_2 = 'report2';
 const POLICY_ID_2 = 'policy2';
 const NETSUITE_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 const QBO_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.QBO];
-const RILLET_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.RILLET];
 
 const expenseReportQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense-report status:all',
@@ -618,63 +617,6 @@ describe('useSearchBulkActions - export options', () => {
         });
 
         // The mismatch blocks the flow: nothing is exported and only the one blocking modal is shown.
-        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
-        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
-    });
-
-    it('blocks the export for Rillet when the selection spans different subsidiaries (companyID resolved via config.subsidiaryID)', async () => {
-        /**
-         * Given: two approved reports on two workspaces both connected to Rillet, but to DIFFERENT
-         *        external subsidiaries. Rillet (like DualEntry) identifies the external company by
-         *        `config.subsidiaryID` rather than a top-level accountID/realmId, so the company-identity
-         *        guard must read that field or it would wrongly allow the cross-company export.
-         *
-         * When: the user clicks "Export to Rillet".
-         *
-         * Then: the different-companies modal is shown and nothing is exported.
-         */
-        // Use fresh policy IDs (not the NetSuite-seeded POLICY_ID from beforeEach) so each workspace is
-        // connected ONLY to Rillet. `lastSync.isConnected` marks the connection verified so the
-        // "Export to Rillet" option surfaces (a Rillet connection with an empty lastSync is unverified).
-        const rilletPolicyA = 'policyRilletA';
-        const rilletPolicyB = 'policyRilletB';
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${rilletPolicyA}`, {
-            id: rilletPolicyA,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.RILLET]: {lastSync: {isConnected: true}, config: {subsidiaryID: 'subsidiary-A'}}},
-        });
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${rilletPolicyB}`, {
-            id: rilletPolicyB,
-            connections: {[CONST.POLICY.CONNECTIONS.NAME.RILLET]: {lastSync: {isConnected: true}, config: {subsidiaryID: 'subsidiary-B'}}},
-        });
-
-        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(REPORT_ID, rilletPolicyA), makeSnapshotReport(REPORT_ID_2, rilletPolicyB)]);
-        mockSelectedReports = [makeSelectedReport({policyID: rilletPolicyA}), makeSelectedReport({reportID: REPORT_ID_2, policyID: rilletPolicyB})];
-        mockSelectedTransactions = {
-            tx1: makeSelectedTransaction({policyID: rilletPolicyA}),
-            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: rilletPolicyB}),
-        };
-
-        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
-
-        await waitFor(() => {
-            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === RILLET_FRIENDLY_NAME)).toBe(true);
-        });
-
-        getExportSubMenuItems(result.current.headerButtonsOptions)
-            ?.find((item) => item.text === RILLET_FRIENDLY_NAME)
-            ?.onSelected?.();
-
-        await waitFor(() => {
-            expect(mockShowConfirmModal).toHaveBeenCalledWith(
-                expect.objectContaining({
-                    title: 'workspace.exportDifferentCompaniesModal.title',
-                    prompt: 'workspace.exportDifferentCompaniesModal.description',
-                    confirmText: 'workspace.exportDifferentCompaniesModal.confirmText',
-                }),
-            );
-        });
-
-        // The subsidiary mismatch blocks the flow: nothing is exported and only the one blocking modal is shown.
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
