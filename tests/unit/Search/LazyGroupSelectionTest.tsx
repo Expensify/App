@@ -949,6 +949,35 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions['2']?.isSelected).toBe(true);
     });
 
+    it('commits nothing when a shift+click re-covers the rows it already holds', async () => {
+        const {result} = renderSelection();
+        const [firstChild, secondChild] = loadedChildren;
+
+        // Given a range already covering both of a group's rows
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const selectionAfterRange = result.current.selectedTransactions;
+
+        // When the same endpoint is shift+clicked again, so every row it covers is already selected the same way
+        await act(async () => {
+            result.current.toggle(secondChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the selection is the same object, so the commit bails and no row re-renders
+        expect(result.current.selectedTransactions).toBe(selectionAfterRange);
+    });
+
     it('never anchors a cold shift+click on a row the user unchecked', async () => {
         const {result, rerender} = renderSelection();
         const [firstChild, , thirdChild] = threeLoadedChildren;

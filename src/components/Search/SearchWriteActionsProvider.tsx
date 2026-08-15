@@ -583,7 +583,12 @@ function SearchWriteActionsProvider({
                     if (parentGroupKey) {
                         (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
                     }
-                    updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
+                    const entry = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
+                    // Extending a range re-covers rows it already holds, so writing an equal entry would commit a map nothing reads differently.
+                    if (deepEqual(updated[key], entry)) {
+                        return;
+                    }
+                    updated[key] = entry;
                     hasWritten = true;
                 };
                 const removeRow = (row: SearchData[number]) => {
@@ -616,8 +621,10 @@ function SearchWriteActionsProvider({
                     } else if (isTransactionReportGroupListItemType(row) && row.transactions.length === 0) {
                         if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                             const [key, info] = mapEmptyReportToSelectedEntry(row);
-                            updated[key] = info;
-                            hasWritten = true;
+                            if (!deepEqual(updated[key], info)) {
+                                updated[key] = info;
+                                hasWritten = true;
+                            }
                         }
                     } else if (isTransactionGroupListItemType(row)) {
                         // Same as the group toggle: a group with nothing it can select is left exactly as it was.

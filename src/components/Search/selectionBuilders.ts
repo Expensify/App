@@ -347,18 +347,29 @@ function isGroupChecked({groupKey, children, selectedTransactions, excludedTrans
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
-function getGroupCheckboxState(params: GroupSelectionParams): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
-    const selectableParams = {...params, children: params.children.filter((child) => !isTransactionPendingDelete(child))};
-    const selectedCount = countCheckedGroupChildren(selectableParams);
-    return {isSelectAllChecked: isGroupChecked(selectableParams), isIndeterminate: selectedCount > 0 && selectedCount !== selectableParams.children.length};
-}
-
-/** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */
-function countCheckedGroupChildren({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): number {
-    return children.reduce(
-        (count, child) => (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}) ? count + 1 : count),
-        0,
-    );
+function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+    isSelectAllChecked: boolean;
+    isIndeterminate: boolean;
+} {
+    let selectableCount = 0;
+    let checkedCount = 0;
+    for (const child of children) {
+        if (isTransactionPendingDelete(child)) {
+            continue;
+        }
+        selectableCount++;
+        if (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+            checkedCount++;
+        }
+    }
+    // A group with no rows of its own answers from its own key, since there is nothing else to ask.
+    if (selectableCount === 0) {
+        return {
+            isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+            isIndeterminate: false,
+        };
+    }
+    return {isSelectAllChecked: checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
 }
 
 type RowCheckedParams = {
