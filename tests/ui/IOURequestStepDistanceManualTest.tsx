@@ -8,7 +8,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import IOURequestStepDistanceManual from '@pages/iou/request/step/IOURequestStepDistanceManual';
+import DynamicIOURequestStepDistanceManual from '@pages/iou/request/step/DynamicIOURequestStepDistanceManual';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -143,10 +143,10 @@ function renderEditMode() {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
-                <IOURequestStepDistanceManual
+                <DynamicIOURequestStepDistanceManual
                     route={{
-                        key: 'Money_Request_Step_Distance_Manual-test',
-                        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL,
+                        key: 'Dynamic_Money_Request_Step_Distance_Manual-test',
+                        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL,
                         params: {
                             action: CONST.IOU.ACTION.EDIT as never,
                             iouType: CONST.IOU.TYPE.SUBMIT,
