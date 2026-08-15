@@ -87,6 +87,7 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                     keyForList: email,
                     isSelected: selectedApprover === email,
                     login: email,
+                    value: email,
                     icons: [{source: avatar ?? icons.FallbackAvatar, type: CONST.ICON_TYPE_AVATAR, name: displayName, id: accountID}],
                     rightElement: (
                         <MemberRightIcon
@@ -124,7 +125,6 @@ function WorkspaceInviteMessageApproverPage({policy, personalDetails, isLoadingR
                 policy={policy}
                 isLoadingReportData={isLoadingReportData}
                 onBackButtonPress={goBack}
-                initiallyFocusedOptionKey={selectedApprover}
                 allApprovers={allApprovers}
                 onSelectApprover={handleOnSelectApprover}
                 shouldRequirePolicyAdmin={false}

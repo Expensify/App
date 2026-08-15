@@ -72,7 +72,7 @@ function IOURequestStepAmount({
     transaction,
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -202,7 +202,10 @@ function IOURequestStepAmount({
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, personalDetails, translate)
-            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID);
+            : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
+                  translate,
+                  dateFnsLocale,
+              });
     });
     const participant = participants.at(0);
     const policyTags = useMoneyRequestPolicyTags({
@@ -221,7 +224,9 @@ function IOURequestStepAmount({
         }
         suppressDiscardPrompt();
         submitAmount({
+            getCurrencyDecimals,
             translate,
+            dateFnsLocale,
             report,
             transaction,
             splitDraftTransaction,
@@ -241,6 +246,7 @@ function IOURequestStepAmount({
             navigateBack: saveAndNavigateBack,
             amount,
             paymentMethod,
+            formatPhoneNumber,
             isTrackIntentUser,
             policyTags,
             reportPolicyTags,

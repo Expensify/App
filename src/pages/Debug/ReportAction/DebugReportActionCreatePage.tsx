@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -152,11 +152,12 @@ function DebugReportActionCreatePage({
                         </View>
                         <Text style={[styles.headerText, styles.textAlignCenter]}>{translate('debug.hint')}</Text>
                         <Button
-                            success
-                            text={translate('common.save')}
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             isDisabled={!draftReportAction || !!error}
                             onPress={createReportAction}
-                        />
+                        >
+                            <Button.Text>{translate('common.save')}</Button.Text>
+                        </Button>
                     </ScrollView>
                 </View>
             )}

@@ -170,6 +170,20 @@ function SelectionButton({
                     e.stopPropagation();
                 }
                 onMouseDown?.(e);
+                // Stop Shift+mousedown from extending the text selection and swallowing the click, then emulate the suppressed defaults — collapse any text
+                // selection and move focus to the control — unless the consumer already prevented default to keep focus where it is. Covers radios too.
+                if (e.shiftKey && !disabled) {
+                    if (!e.defaultPrevented) {
+                        const selection = window.getSelection();
+                        if (selection && !selection.isCollapsed) {
+                            selection.removeAllRanges();
+                        }
+                        if (e.currentTarget instanceof HTMLElement) {
+                            e.currentTarget.focus({preventScroll: true});
+                        }
+                    }
+                    e.preventDefault();
+                }
             }}
             ref={ref as PressableRef}
             style={[StyleUtils.getSelectionButtonPressableStyle(borderRadius + 2), style]}
