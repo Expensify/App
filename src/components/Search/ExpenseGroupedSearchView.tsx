@@ -135,9 +135,6 @@ function ExpenseGroupedSearchView({
         });
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
-    const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
-    const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {
         isOffline,
@@ -218,7 +215,7 @@ function ExpenseGroupedSearchView({
 
     const renderItem = (item: SearchListItem, index: number, isItemFocused: boolean, onFocus?: (event: NativeSyntheticEvent<ExtendedTargetedEvent>) => void) => {
         if (isGroupHeaderItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('header_', '');
+            const originalKey = item.groupKeyForList;
             return (
                 <GroupHeader
                     item={item}
@@ -246,7 +243,7 @@ function ExpenseGroupedSearchView({
         }
 
         if (isGroupChildrenContainerItem(item)) {
-            const originalKey = (item.keyForList ?? '').replace('children_', '');
+            const originalKey = item.groupKeyForList;
             const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
             return (
                 <GroupChildrenContainer
@@ -263,9 +260,6 @@ function ExpenseGroupedSearchView({
                     onUndelete={handleUndelete}
                     isLastItem={index === lastVisibleIndex && !ListFooterComponent}
                     newTransactionID={containerNewTransactionID}
-                    bankAccountList={bankAccountList}
-                    cardFeeds={cardFeeds}
-                    conciergeReportID={conciergeReportID}
                 />
             );
         }

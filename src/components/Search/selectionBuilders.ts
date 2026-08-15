@@ -1,7 +1,7 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
@@ -309,4 +309,86 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports};
+type GroupSelectionParams = {
+    /** The group's own key, which is where a group selected before its children loaded is stored */
+    groupKey: string | undefined;
+
+    /** The group's loaded rows */
+    children: TransactionListItemType[];
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
+function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
+    if (selectable.length === 0) {
+        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+    }
+    return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
+/** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
+function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+    isSelectAllChecked: boolean;
+    isIndeterminate: boolean;
+} {
+    let selectableCount = 0;
+    let checkedCount = 0;
+    for (const child of children) {
+        if (isTransactionPendingDelete(child)) {
+            continue;
+        }
+        selectableCount++;
+        if (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+            checkedCount++;
+        }
+    }
+    // A group with no rows of its own answers from its own key, since there is nothing else to ask.
+    if (selectableCount === 0) {
+        return {
+            isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+            isIndeterminate: false,
+        };
+    }
+    return {isSelectAllChecked: checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+}
+
+type RowCheckedParams = {
+    /** The row's own selection key */
+    rowKey: string;
+
+    /** The group the row is rendered under, whose exclusion covers the row as well */
+    parentGroupKey: string | undefined;
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether a row's checkbox reads as checked, which is what a click has to toggle. */
+function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
+    // An entry of its own wins, since a row picked individually is not covered by anything wider.
+    if (selectedTransactions[rowKey]?.isSelected) {
+        return true;
+    }
+    if (Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey))) {
+        return false;
+    }
+    // Otherwise it is checked by whatever covers it: every matching item, or its group being selected as a whole.
+    return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
+}
+
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, isGroupChecked, getGroupCheckboxState, isRowChecked};
