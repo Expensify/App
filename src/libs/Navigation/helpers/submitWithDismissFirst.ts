@@ -24,6 +24,12 @@ type SubmitWithDismissFirstParams = {
     destinationReportID: string | undefined;
     /** Telemetry metadata for the submit-expense performance span. */
     telemetryContext: SubmitExpenseContext;
+    /** Whether the expense was initiated from the global FAB (no pre-existing report context). */
+    isFromGlobalCreate?: boolean;
+    /** Whether the user onboarded as "Something else" (LOOKING_AROUND) - they have no workspace. */
+    isLookingAroundUser?: boolean;
+    /** Whether the sole destination for this expense is the current user's self-DM (Personal Space). */
+    isSelfDMDestination?: boolean;
 };
 
 function startDismissFirstTracking(
@@ -47,14 +53,22 @@ function startDismissFirstTracking(
  *
  *   1. Search topmost            -> dismiss modal, defer write for Search skeleton
  *   2. Route pre-inserted        -> dismiss modal, write after transition (route already staged)
- *   3. Destination already shown -> dismiss modal, write after transition
- *   4. Destination loaded        -> reveal destination then dismiss, write after transition
- *   5. Destination not loaded    -> write immediately, then reveal-and-dismiss
- *   6. Fallback                  -> start tracking with default fast path, write with defaults
+ *   3. Looking-Around self-DM    -> write owns navigation (routes to Search via navigateAfterExpenseCreate)
+ *   4. Destination already shown -> dismiss modal, write after transition
+ *   5. Destination loaded        -> reveal destination then dismiss, write after transition
+ *   6. Destination not loaded    -> write immediately, then reveal-and-dismiss
+ *   7. Fallback                  -> start tracking with default fast path, write with defaults
  *
  * Must not be called from `src/libs/actions/` — view-layer only.
  */
-function submitWithDismissFirst({executeWrite, destinationReportID, telemetryContext}: SubmitWithDismissFirstParams): void {
+function submitWithDismissFirst({
+    executeWrite,
+    destinationReportID,
+    telemetryContext,
+    isFromGlobalCreate = false,
+    isLookingAroundUser = false,
+    isSelfDMDestination = false,
+}: SubmitWithDismissFirstParams): void {
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {
@@ -72,6 +86,18 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         Navigation.dismissModal({
             afterTransition: () => executeWrite({shouldHandleNavigation: false}),
         });
+        return;
+    }
+
+    // "Something else" (LOOKING_AROUND) users have no workspace, so a global-create expense lands in their self-DM, but
+    // the product requirement is to route them to Spend > Expenses instead. Every dismiss-first branch below calls
+    // executeWrite with shouldHandleNavigation: false, and cleanupAfterSkipConfirmSubmit drops the routing flags in that
+    // case - so navigateAfterExpenseCreate never runs and the destinationReportID branch reveals the self-DM. Hand
+    // navigation back to the write, same as the fallback below, so navigateAfterExpenseCreate owns the Search routing.
+    if (isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination) {
+        startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
+        setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        executeWrite({shouldHandleNavigation: true});
         return;
     }
 

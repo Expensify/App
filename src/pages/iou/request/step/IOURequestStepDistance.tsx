@@ -41,7 +41,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
-import {isPolicyExpenseChat as isPolicyExpenseChatUtil} from '@libs/ReportUtils';
+import {isPolicyExpenseChat as isPolicyExpenseChatUtil, isSelfDM} from '@libs/ReportUtils';
 import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, hasManualDistanceOverride, haveWaypointAddressesChanged} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -321,7 +321,9 @@ function IOURequestStepDistance({
         introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
         // Same self-DM predicate as the navigate half (handleMoneyRequestStepDistanceNavigation) so the guard suppresses in
         // exactly the cases navigation forces Search. Kept inline to stay under this component's React Compiler memo limit.
-        isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
+        // Both self-DM signals are ORed: on a quick-action flow participants are not populated yet when this runs, so the
+        // participants check alone misses and the self-DM gets pre-inserted, which navigateAfterExpenseCreate then reveals.
+        isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
     );
     usePreMountDestination(skipConfirmationPreMountRoute);
 

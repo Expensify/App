@@ -279,6 +279,9 @@ function handleMoneyRequestStepDistanceNavigation({
 
             if (isCreatingTrackExpense && participant) {
                 submitWithDismissFirst({
+                    isFromGlobalCreate: transactionIsFromGlobalCreate,
+                    isLookingAroundUser,
+                    isSelfDMDestination,
                     // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
@@ -366,6 +369,9 @@ function handleMoneyRequestStepDistanceNavigation({
             const distanceDestinationReportID = report?.reportID;
 
             submitWithDismissFirst({
+                isFromGlobalCreate: transactionIsFromGlobalCreate,
+                isLookingAroundUser,
+                isSelfDMDestination,
                 executeWrite: (overrides) => {
                     const {transactionID: writtenDistanceTransactionID} = createDistanceRequest({
                         report,

@@ -114,7 +114,11 @@ function navigateAfterExpenseCreate({
         } else if (getIsNarrowLayout()) {
             const isRHPStillOnTop = navigationRef.getRootState()?.routes?.at(-1)?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
             if (!alreadyOnSearchRoot || !isSameSearchType || isRHPStillOnTop) {
-                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: true});
+                // forceReplace makes linkTo dispatch a REPLACE against TAB_NAVIGATOR, but SEARCH.ROOT is in linkTo's
+                // ROOT_TAB_SCREENS, so the cross-tab PUSH branch is skipped and the REPLACE resolves to a no-op, leaving
+                // the user on the tab they submitted from. Skipped only for the LOOKING_AROUND self-DM flow so every
+                // other caller keeps its existing history behaviour.
+                Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: queryString}), {forceReplace: !(isLookingAroundUser && isSelfDMDestination)});
             } else {
                 Log.info('[IOU] navigateToSearch: already on matching Search root with RHP dismissed - no-op');
             }

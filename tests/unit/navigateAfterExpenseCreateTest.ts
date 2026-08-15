@@ -112,8 +112,28 @@ describe('navigateAfterExpenseCreate', () => {
             isSelfDMDestination: true,
         });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
+        // forceReplace is deliberately false here: it makes linkTo dispatch a REPLACE against TAB_NAVIGATOR, and because
+        // SEARCH.ROOT is a tab root that REPLACE is a no-op, which left these users stuck on the tab they submitted from.
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: false});
         expect(Navigation.dismissModalWithReport).not.toHaveBeenCalled();
+    });
+
+    it('should keep forceReplace for a narrow Search navigation that is not the LOOKING_AROUND self-DM flow', () => {
+        // The forceReplace opt-out is scoped to the flow this fix is about, so every other caller keeps its existing
+        // browser-history behaviour even though they hit the same linkTo no-op today.
+        mockIsReportTopmostSplitNavigator.mockReturnValue(false);
+        mockGetIsNarrowLayout.mockReturnValue(true);
+
+        navigateAfterExpenseCreate({
+            activeReportID: 'report-123',
+            transactionID: 'txn-1',
+            isFromGlobalCreate: true,
+            hasMultipleTransactions: false,
+            isLookingAroundUser: false,
+            isSelfDMDestination: false,
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: 'type:expense'}), {forceReplace: true});
     });
 
     it('should NOT route a LOOKING_AROUND user to search when the destination is a real report (not the self-DM)', () => {

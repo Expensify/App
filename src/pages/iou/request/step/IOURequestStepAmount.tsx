@@ -21,7 +21,7 @@ import Log from '@libs/Log';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, shouldEnableNegative} from '@libs/ReportUtils';
+import {getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from '@libs/ReportUtils';
 import {getRequestType, isDistanceRequest, isExpenseUnreported} from '@libs/TransactionUtils';
 
 import MoneyRequestAmountForm from '@pages/iou/MoneyRequestAmountForm';
@@ -159,13 +159,16 @@ function IOURequestStepAmount({
         return !(isReportArchived || isPolicyExpenseChat(report));
     }, [report, isSplitBill, skipConfirmation, isReportArchived]);
 
-    // Use the same self-DM predicate as the navigate half (IOUAmountSubmission) so the pre-mount guard suppresses in exactly
-    // the cases where navigation forces Search, rather than relying on report?.reportID being undefined to cover a mismatch.
+    // Both self-DM signals are ORed on purpose. The navigate half (IOUAmountSubmission) reads participants at submit time,
+    // but on a quick-action flow they are not populated yet when this pre-mount decision runs, so the participants check
+    // alone misses and the self-DM gets pre-inserted - then navigateAfterExpenseCreate reveals it instead of going to Search.
+    // isSelfDM(report) answers the question this site actually cares about ("is the report I am about to pre-insert the
+    // self-DM?") and is available immediately.
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
         shouldSkipConfirmation,
         report?.reportID,
         isLookingAroundUser,
-        isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
+        isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
     );
     usePreMountDestination(skipConfirmationPreMountRoute);
 

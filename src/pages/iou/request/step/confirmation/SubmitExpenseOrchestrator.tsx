@@ -284,6 +284,12 @@ function SubmitExpenseOrchestrator({
         // When Search is not visible (e.g. submitting from Home/Settings), we must navigate there.
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
+        // forceReplace makes linkTo dispatch a REPLACE against TAB_NAVIGATOR, but SEARCH.ROOT is in linkTo's
+        // ROOT_TAB_SCREENS, so the cross-tab PUSH branch is skipped and the REPLACE resolves to a no-op: the mounted
+        // tab navigator keeps its state and the user stays on the tab they submitted from. Skipping forceReplace makes
+        // the navigation actually happen. Scoped to the LOOKING_AROUND self-DM flow this fix is about - other callers
+        // keep forceReplace so their browser-history behaviour is unchanged, even though they hit the same no-op today.
+        const shouldSkipForceReplace = isFromGlobalCreateForNavigation && isLookingAroundUser && isSelfDMDestination;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
@@ -321,7 +327,7 @@ function SubmitExpenseOrchestrator({
                         return;
                     }
 
-                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: true});
+                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: searchType})}), {forceReplace: !shouldSkipForceReplace});
                 });
             },
         });

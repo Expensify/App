@@ -194,6 +194,106 @@ describe('submitWithDismissFirst', () => {
         });
     });
 
+    describe('Looking-Around self-DM branch', () => {
+        const LOOKING_AROUND_SELF_DM = {
+            isFromGlobalCreate: true,
+            isLookingAroundUser: true,
+            isSelfDMDestination: true,
+        };
+
+        it('hands navigation to the write instead of revealing the self-DM report', () => {
+            // Without this branch the destination-report fast path reveals the self-DM and calls executeWrite with
+            // shouldHandleNavigation: false, which makes cleanupAfterSkipConfirmSubmit drop the routing flags before
+            // navigateAfterExpenseCreate can route these users to Spend > Expenses.
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+            });
+
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            expect(mockDismissModal).not.toHaveBeenCalled();
+        });
+
+        it('still starts tracking so telemetry is not skipped', () => {
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
+
+            submitWithDismissFirst({
+                executeWrite: jest.fn(),
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+            });
+
+            expect(mockStartTracking).toHaveBeenCalledWith(TELEMETRY_CONTEXT, {skipSubmitExpenseSpan: true});
+            expect(mockSetFastPath).toHaveBeenCalledWith(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        });
+
+        it('does not divert when the destination is not the self-DM', () => {
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'r1'});
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'r1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+                isSelfDMDestination: false,
+            });
+
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalled();
+            expect(executeWrite).not.toHaveBeenCalledWith({shouldHandleNavigation: true});
+        });
+
+        it('does not divert when the expense is not from global create', () => {
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
+
+            submitWithDismissFirst({
+                executeWrite: jest.fn(),
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+                isFromGlobalCreate: false,
+            });
+
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalled();
+        });
+
+        it('does not divert for a non-Looking-Around user', () => {
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
+
+            submitWithDismissFirst({
+                executeWrite: jest.fn(),
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+                isLookingAroundUser: false,
+            });
+
+            expect(mockRevealRouteBeforeDismissingModal).toHaveBeenCalled();
+        });
+
+        it('yields to the Search-topmost branch, which already leaves the user on Search', () => {
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+            });
+
+            expect(mockDismissModal).toHaveBeenCalledTimes(1);
+            expect(executeWrite).not.toHaveBeenCalled();
+        });
+    });
+
     describe('Priority', () => {
         it('Search-topmost takes priority over destination report', () => {
             mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);

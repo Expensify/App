@@ -323,6 +323,9 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
         const scanDestinationReportID = iouType === CONST.IOU.TYPE.TRACK ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID;
         submitWithDismissFirst({
+            isFromGlobalCreate,
+            isLookingAroundUser,
+            isSelfDMDestination,
             executeWrite: (overrides) => {
                 // Cleanup runs after each write (not once up front) so a stalled GPS lookup can't clear the draft before the expense exists.
                 const runCleanup = () =>
