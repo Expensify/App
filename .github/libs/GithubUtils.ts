@@ -1,10 +1,7 @@
 import type {Octokit as OctokitCore} from '@octokit/core';
-import type {graphql} from '@octokit/graphql/dist-types/types';
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
+import type {graphql} from '@octokit/graphql/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
-import type {RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
-import type {RestEndpointMethods} from '@octokit/plugin-rest-endpoint-methods/dist-types/generated/method-types';
-import type {Api} from '@octokit/plugin-rest-endpoint-methods/dist-types/types';
+import type {Api, RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
@@ -15,13 +12,19 @@ import {RequestError} from '@octokit/request-error';
 
 import CONST from './CONST';
 
-type OctokitOptions = {method: string; url: string; request: {retryCount: number}};
+// @octokit/plugin-rest-endpoint-methods only exports `Api` (which wraps the methods as `{rest: RestEndpointMethods}`),
+// so the method map is derived from it here.
+type RestEndpointMethods = Api['rest'];
 
-type OctokitIssueItem = OctokitComponents['schemas']['issue'];
+// The @octokit/* packages resolve to two different @octokit/openapi-types versions (@octokit/core depends on a newer
+// one than the plugins do), and those versions disagree on some schema fields. Deriving these payload types from the
+// endpoint methods that return them keeps every type in this file on the one copy @octokit/plugin-rest-endpoint-methods
+// uses, so they always match what the calls below actually resolve to.
+type OctokitIssueItem = RestEndpointMethodTypes['issues']['listForRepo']['response']['data'][number];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
 
-type OctokitCommit = OctokitComponents['schemas']['commit'];
+type OctokitCommit = RestEndpointMethodTypes['repos']['compareCommits']['response']['data']['commits'][number];
 
 type CommitType = {
     commit: string;
@@ -30,9 +33,9 @@ type CommitType = {
     date: string;
 };
 
-type OctokitArtifact = OctokitComponents['schemas']['artifact'];
+type OctokitArtifact = RestEndpointMethodTypes['actions']['listArtifactsForRepo']['response']['data']['artifacts'][number];
 
-type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
+type OctokitPR = RestEndpointMethodTypes['pulls']['list']['response']['data'][number];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
 
@@ -55,16 +58,16 @@ class GithubUtils {
             getOctokitOptions(token, {
                 throttle: {
                     retryAfterBaseValue: 2000,
-                    onRateLimit: (retryAfter: number, options: OctokitOptions) => {
+                    onRateLimit: (retryAfter, options, octokit, retryCount) => {
                         console.warn(`Request quota exhausted for request ${options.method} ${options.url}`);
 
                         // Retry five times when hitting a rate limit error, then give up
-                        if (options.request.retryCount <= 5) {
+                        if (retryCount <= 5) {
                             console.log(`Retrying after ${retryAfter} seconds!`);
                             return true;
                         }
                     },
-                    onAbuseLimit: (retryAfter: number, options: OctokitOptions) => {
+                    onSecondaryRateLimit: (retryAfter, options) => {
                         // does not retry, only logs a warning
                         console.warn(`Abuse detected for request ${options.method} ${options.url}`);
                     },

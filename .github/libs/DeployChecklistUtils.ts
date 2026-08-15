@@ -1,6 +1,6 @@
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
-
 import {Str} from 'expensify-common';
+
+import type {OctokitIssueItem} from './GithubUtils';
 
 import CONST from './CONST';
 import GithubUtils from './GithubUtils';
@@ -43,8 +43,6 @@ class NoOpenDeployChecklistError extends Error {
         this.name = 'NoOpenDeployChecklistError';
     }
 }
-
-type OctokitIssueItem = OctokitComponents['schemas']['issue'];
 
 type ChecklistItem = {
     url: string;
