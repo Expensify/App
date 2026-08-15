@@ -109,6 +109,16 @@ function getConnectionCompanyID(policy: Policy | undefined, connectionName: Conn
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.QBD]?.config);
         case CONST.POLICY.CONNECTIONS.NAME.CERTINIA:
             return readCredentialsCompanyID(connections[CONST.POLICY.CONNECTIONS.NAME.CERTINIA]?.config);
+        case CONST.POLICY.CONNECTIONS.NAME.RILLET: {
+            // Rillet identifies the selected external entity by the chosen subsidiary.
+            const rilletSubsidiaryID = connections[CONST.POLICY.CONNECTIONS.NAME.RILLET]?.config?.subsidiaryID;
+            return rilletSubsidiaryID ?? undefined;
+        }
+        case CONST.POLICY.CONNECTIONS.NAME.DUALENTRY: {
+            // DualEntry identifies the selected external company by the chosen subsidiary.
+            const dualEntrySubsidiaryID = connections[CONST.POLICY.CONNECTIONS.NAME.DUALENTRY]?.config?.subsidiaryID;
+            return dualEntrySubsidiaryID ?? undefined;
+        }
         default:
             return undefined;
     }
