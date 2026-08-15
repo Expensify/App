@@ -6246,8 +6246,8 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
                 settings: {
                     autoAddTripName: {title: 'Reisenamen zu Ausgaben hinzufügen', subtitle: 'Reisenamen für in Expensify gebuchte Reisen automatisch zu Spesenbeschreibungen hinzufügen.'},
                     codingSync: {
-                        title: 'Fahrten bei der Buchung kodieren',
-                        subtitle: 'Fordern Sie Reisende beim Check-out nach den Kategorien, Tags und Berichtsfeldern dieses Workspaces, damit Reisen bereits vorkodiert ankommen.',
+                        title: 'Synchronisierungscodes mit Expensify Travel verknüpfen',
+                        subtitle: 'Übertragen Sie die Kategorien, Tags und Berichts­felder dieses Workspaces zu Expensify Travel, damit Reisende sie zum Buchungszeitpunkt beantworten.',
                     },
                 },
                 travelInvoicing: {

@@ -6126,9 +6126,9 @@ ${amount} para ${merchant} - ${date}`,
                         subtitle: 'Añade automáticamente los nombres de viajes a las descripciones de los gastos reservados en Expensify.',
                     },
                     codingSync: {
-                        title: 'Codifica viajes al reservar',
+                        title: 'Sincronizar codificación con Expensify Travel',
                         subtitle:
-                            'Pide a las personas que viajan las categorías, etiquetas y campos de informe de este workspace al finalizar la reserva, para que los viajes lleguen ya codificados.',
+                            'Envía las categorías, etiquetas y campos de informe de este espacio de trabajo a Expensify Travel para que los viajeros los completen en el momento de la reserva.',
                     },
                 },
                 travelInvoicing: {
