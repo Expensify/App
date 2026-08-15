@@ -1,7 +1,10 @@
 import {beforeAll, beforeEach, describe, expect, it} from '@jest/globals';
 
+import type * as NavigationModule from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import {replaceOptimisticReportWithActualReport} from '@src/libs/actions/replaceOptimisticReportWithActualReport';
+import type * as ReportActions from '@src/libs/actions/Report';
 import ONYXKEYS from '@src/ONYXKEYS';
 import SCREENS from '@src/SCREENS';
 
@@ -13,36 +16,44 @@ import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+type Navigation = typeof NavigationModule.default;
+
 type SwitchReportEventData = {
     preexistingReportID: string;
     reportToCopyDraftTo: string;
     callback: () => void;
 };
 
-const mockNavigate = jest.fn();
-const mockSetParams = jest.fn();
+const mockNavigate = jest.fn<ReturnType<Navigation['navigate']>, Parameters<Navigation['navigate']>>();
+const mockSetParams = jest.fn<ReturnType<Navigation['setParams']>, Parameters<Navigation['setParams']>>();
 const mockIsReady = jest.fn(() => false);
 const mockGetActiveRoute = jest.fn(() => '');
 const mockGetCurrentRoute = jest.fn(() => undefined as {name: string; params: Record<string, unknown>} | undefined);
 
-jest.mock('@libs/Navigation/Navigation', () => ({
-    navigate: (...args: unknown[]) => mockNavigate(...args) as void,
-    setParams: (...args: unknown[]) => mockSetParams(...args) as void,
-    getActiveRoute: () => mockGetActiveRoute(),
-    navigationRef: {
-        isReady: () => mockIsReady(),
-        getCurrentRoute: () => mockGetCurrentRoute(),
-    },
-}));
+jest.mock('@libs/Navigation/Navigation', () => {
+    const mockNavigation = {
+        navigate: (...args: Parameters<Navigation['navigate']>): ReturnType<Navigation['navigate']> => mockNavigate(...args),
+        setParams: (...args: Parameters<Navigation['setParams']>): ReturnType<Navigation['setParams']> => mockSetParams(...args),
+        getActiveRoute: () => mockGetActiveRoute(),
+        navigationRef: {
+            isReady: () => mockIsReady(),
+            getCurrentRoute: () => mockGetCurrentRoute(),
+        },
+    };
 
-const mockOpenReport = jest.fn();
+    return {
+        __esModule: true,
+        ...mockNavigation,
+        default: mockNavigation,
+    };
+});
+
+const mockOpenReport = jest.fn<ReturnType<typeof ReportActions.openReport>, Parameters<typeof ReportActions.openReport>>();
 jest.mock('@src/libs/actions/Report', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const originalModule = jest.requireActual('@src/libs/actions/Report');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    const originalModule = jest.requireActual<typeof ReportActions>('@src/libs/actions/Report');
     return {
         ...originalModule,
-        openReport: (...args: unknown[]) => mockOpenReport(...args) as void,
+        openReport: (...args: Parameters<typeof ReportActions.openReport>): ReturnType<typeof ReportActions.openReport> => mockOpenReport(...args),
     };
 });
 
@@ -56,6 +67,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
     beforeEach(async () => {
         await Onyx.clear();
         await waitForBatchedUpdates();
+        await Onyx.set(ONYXKEYS.SESSION, {accountID: 1});
         // Reset navigation mocks to default values
         mockIsReady.mockReturnValue(false);
         mockGetActiveRoute.mockReturnValue('');
@@ -70,7 +82,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         report.reportID = '';
         report.preexistingReportID = '2';
 
-        replaceOptimisticReportWithActualReport(report, undefined);
+        replaceOptimisticReportWithActualReport(report, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -83,7 +95,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         report.reportID = '1';
         report.preexistingReportID = undefined;
 
-        replaceOptimisticReportWithActualReport(report, undefined);
+        replaceOptimisticReportWithActualReport(report, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -145,7 +157,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(report, undefined);
+        replaceOptimisticReportWithActualReport(report, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -181,7 +193,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -217,7 +229,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -257,7 +269,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -296,7 +308,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
 
         await waitForBatchedUpdates();
 
@@ -369,7 +381,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // When replaceOptimisticReportWithActualReport is called
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
         if (report) {
-            replaceOptimisticReportWithActualReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined, 1);
         }
 
         await waitForBatchedUpdates();
@@ -448,7 +460,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // When replaceOptimisticReportWithActualReport is called
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
         if (report) {
-            replaceOptimisticReportWithActualReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined, 1);
         }
 
         await waitForBatchedUpdates();
@@ -508,7 +520,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         // When replaceOptimisticReportWithActualReport is called
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
         if (report) {
-            replaceOptimisticReportWithActualReport(report, undefined);
+            replaceOptimisticReportWithActualReport(report, undefined, 1);
         }
 
         await waitForBatchedUpdates();
@@ -543,7 +555,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
 
         await waitForBatchedUpdates();
 
@@ -615,7 +627,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
 
         await waitForBatchedUpdates();
 
@@ -665,7 +677,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
 
         await waitForBatchedUpdates();
 
@@ -697,7 +709,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with the draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
 
         await waitForBatchedUpdates();
 
@@ -732,7 +744,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the switchToPreExistingReport event should be emitted
@@ -797,7 +809,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         capturedEventData?.callback();
@@ -849,7 +861,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         capturedEventData?.callback();
@@ -908,7 +920,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         capturedEventData?.callback();
@@ -969,7 +981,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the switch event is emitted (the focused optimistic report is recognized on the RHP route)
@@ -1014,7 +1026,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called and the callback is executed
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         capturedEventData?.callback();
@@ -1067,7 +1079,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the emitted event should have the parent IOU report as reportToCopyDraftTo
@@ -1102,7 +1114,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         });
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the switchToPreExistingReport event should NOT be emitted
@@ -1151,11 +1163,11 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then openReport should be called with the parent IOU report ID
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: 1});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
@@ -1199,7 +1211,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
         await waitForBatchedUpdates();
 
         // Then the draft should be transferred to the parent IOU report
@@ -1207,7 +1219,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(parentDraft).toBe(draftComment);
 
         // And openReport should be called after the draft is saved
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: 1});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
@@ -1250,11 +1262,11 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then openReport should be called with the parent IOU report ID
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: 1});
     });
 
     it('should transfer draft to parent IOU report and call openReport when user is on search report view with draft comment', async () => {
@@ -1294,7 +1306,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called with a draft comment
-        replaceOptimisticReportWithActualReport(optimisticReport, draftComment);
+        replaceOptimisticReportWithActualReport(optimisticReport, draftComment, 1);
         await waitForBatchedUpdates();
 
         // Then the draft should be transferred to the parent IOU report
@@ -1302,7 +1314,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         expect(parentDraft).toBe(draftComment);
 
         // And openReport should be called after the draft is saved
-        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true});
+        expect(mockOpenReport).toHaveBeenCalledWith({reportID: iouReportID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: 1});
 
         // And the optimistic report should be cleared
         const deletedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${optimisticReportID}`);
@@ -1346,7 +1358,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the optimistic parent IOU action should be deleted
@@ -1390,7 +1402,7 @@ describe('replaceOptimisticReportWithActualReport', () => {
         await waitForBatchedUpdates();
 
         // When replaceOptimisticReportWithActualReport is called
-        replaceOptimisticReportWithActualReport(optimisticReport, undefined);
+        replaceOptimisticReportWithActualReport(optimisticReport, undefined, 1);
         await waitForBatchedUpdates();
 
         // Then the non-optimistic parent IOU action should NOT be deleted

@@ -59,6 +59,7 @@ function ReanimatedModal({
     shouldIgnoreBackHandlerDuringTransition = false,
     shouldEnableNewFocusManagement,
     shouldReturnFocus,
+    launcherRef,
     ...props
 }: ReanimatedModalProps) {
     const [isVisibleState, setIsVisibleState] = useState(isVisible);
@@ -69,6 +70,7 @@ function ReanimatedModal({
     const backHandlerListener = useRef<NativeEventSubscription | null>(null);
     const handleRef = useRef<number | undefined>(undefined);
     const transitionHandleRef = useRef<TransitionHandle | null>(null);
+    const containerRef = useRef<View | null>(null);
 
     const styles = useThemeStyles();
 
@@ -142,7 +144,13 @@ function ReanimatedModal({
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
-            blurActiveElement();
+            // Only drop focus that is inside this modal — its content is about to unmount. By now the focus trap may
+            // have already returned focus to the launcher that opened us, which sits outside; blurring that would
+            // silently undo the return (visible on Escape, where focus-trap deactivates before we close).
+            const container = containerRef.current;
+            if (container instanceof HTMLElement && container.contains(document.activeElement)) {
+                blurActiveElement();
+            }
             setIsVisibleState(false);
             setIsTransitioning(true);
         }
@@ -192,6 +200,7 @@ function ReanimatedModal({
 
     const containerView = (
         <Container
+            ref={containerRef}
             pointerEvents="box-none"
             animationInTiming={animationInTiming}
             animationOutTiming={animationOutTiming}
@@ -268,6 +277,7 @@ function ReanimatedModal({
                         initialFocus={initialFocus}
                         shouldReturnFocus={shouldReturnFocus ?? !shouldEnableNewFocusManagement}
                         shouldPreventScroll={shouldPreventScrollOnFocus}
+                        launcherRef={launcherRef}
                     >
                         {isVisibleState && containerView}
                     </FocusTrapForModal>

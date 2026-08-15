@@ -40,7 +40,7 @@ Hotel and invoice expenses are matched using a date range instead of a single da
 
 After an expense is flagged as a **Potential duplicate**, Expensify may automatically review it in the background to confirm whether the expenses are the same purchase.
 
-- If Expensify determines the expenses are clearly not duplicates, the violation is automatically dismissed and you'll see a note that Concierge resolved the duplicate, along with an **Explain** link describing why.
+- If Expensify determines the expenses are clearly not duplicates, the violation is automatically dismissed and you'll see a note that Concierge resolved the duplicate.
 - If Expensify is not confident the expenses are different, the **Potential duplicate** flag remains so you can resolve it manually.
 
 You can always resolve duplicates manually, whether or not they were reviewed automatically.

@@ -1,6 +1,8 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
@@ -100,6 +102,8 @@ type UpdateMultipleMoneyRequestsParams = {
     delegateAccountID: number | undefined;
     personalPolicyOutputCurrency?: string;
     personalDetailsList: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 function updateMultipleMoneyRequests({
@@ -119,6 +123,8 @@ function updateMultipleMoneyRequests({
     delegateAccountID,
     personalPolicyOutputCurrency,
     personalDetailsList,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateMultipleMoneyRequestsParams) {
     // Per-report running state so iterations in the same report see earlier edits (totals, transactions, snapshot).
     const optimisticReportsByID: Record<string, OnyxTypes.Report> = {};
@@ -363,7 +369,10 @@ function updateMultipleMoneyRequests({
             transactionChanges,
             isFromExpenseReport,
             policy: transactionPolicy,
+            policies: allPolicies,
             personalPolicyOutputCurrency,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
         const isTransactionOnHold = isOnHold(transaction);
 
@@ -493,6 +502,7 @@ function updateMultipleMoneyRequests({
             transaction,
             isTransactionOnHold,
             transactionPolicy,
+            getCurrencyDecimals,
             optimisticReportAction?.actorAccountID,
             transactionChanges,
             additionalTransactionsForFormula,

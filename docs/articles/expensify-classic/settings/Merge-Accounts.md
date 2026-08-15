@@ -28,8 +28,8 @@ Make sure you know:
 4. Enter the email address or phone number of the account you want to merge.
 5. Confirm the action by checking **“Yes, I understand this is not reversible.”**
 6. Click **Merge Accounts**.
-7. Check the inbox of the email you're merging in for a Magic Code.
-8. Enter the Magic Code to complete the merge.
+7. Check the inbox of the email you're merging in for a Security Code.
+8. Enter the Security Code to complete the merge.
 
 ---
 

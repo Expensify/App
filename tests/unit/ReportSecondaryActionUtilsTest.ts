@@ -157,6 +157,73 @@ describe('getSecondaryAction', () => {
         ).toEqual(result);
     });
 
+    it('includes DOWNLOAD_RECEIPTS when at least one transaction has a receipt', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+        const transactionWithReceipt = createMock<Transaction>({
+            receipt: {state: CONST.IOU.RECEIPT_STATE.OPEN},
+        });
+        const transactionWithoutReceipt = createMock<Transaction>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [transactionWithoutReceipt, transactionWithReceipt],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(true);
+    });
+
+    it('does not include DOWNLOAD_RECEIPTS when no transactions have receipts', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [createMock<Transaction>({})],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
+    });
+
+    it('does not include DOWNLOAD_RECEIPTS when there are no transactions', () => {
+        const report = createMock<Report>({});
+        const policy = createMock<Policy>({});
+
+        const result = getSecondaryReportActions({
+            currentUserLogin: EMPLOYEE_EMAIL,
+            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
+            submitterLogin: '',
+            report,
+            chatReport,
+            reportTransactions: [],
+            originalTransaction: createMock<Transaction>({}),
+            violations: {},
+            bankAccountList: {},
+            policy,
+            isProduction: false,
+        });
+
+        expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS)).toBe(false);
+    });
+
     it('includes PAY in secondary actions for non-payer admin when export failed', () => {
         const designatedPayerEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
@@ -210,14 +277,14 @@ describe('getSecondaryAction', () => {
     });
 
     it('does not include PRINT option when the report is in OPEN state', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.OPEN,
             statusNum: CONST.REPORT.STATUS_NUM.OPEN,
-        } as unknown as Report;
-        const policy = {} as unknown as Policy;
+        });
+        const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -226,7 +293,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -240,14 +307,14 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes PRINT option when the report is submitted', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
-        } as unknown as Report;
-        const policy = {} as unknown as Policy;
+        });
+        const policy = createMock<Policy>({});
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -256,7 +323,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -2180,7 +2247,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('includes RECEIVED_PAYMENT for submitter on Outstanding (Processing) report in Submit workspace', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2188,11 +2255,11 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: -100,
             nonReimbursableTotal: 0,
-        } as unknown as Report;
-        const policy = {
+        });
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.EDITOR,
-        } as unknown as Policy;
+        });
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -2201,7 +2268,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -2212,7 +2279,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('does not include RECEIVED_PAYMENT when current user did not submit the report (Submit workspace)', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: MANAGER_ACCOUNT_ID,
@@ -2220,11 +2287,11 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: -100,
             nonReimbursableTotal: 0,
-        } as unknown as Report;
-        const policy = {
+        });
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.EDITOR,
-        } as unknown as Policy;
+        });
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -2233,7 +2300,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -2244,7 +2311,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('does not include RECEIVED_PAYMENT for submitter on Submit workspace report waiting on bank account', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2253,11 +2320,11 @@ describe('getSecondaryAction', () => {
             total: -100,
             nonReimbursableTotal: 0,
             isWaitingOnBankAccount: true,
-        } as unknown as Report;
-        const policy = {
+        });
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.EDITOR,
-        } as unknown as Policy;
+        });
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -2266,7 +2333,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -2277,11 +2344,11 @@ describe('getSecondaryAction', () => {
     });
 
     it('does not include RECEIVED_PAYMENT for submitter on Submit workspace report with held expenses', () => {
-        const heldTransaction = {
+        const heldTransaction = createMock<Transaction>({
             transactionID: '1',
             comment: {hold: 'hold-id'},
-        } as unknown as Transaction;
-        const report = {
+        });
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2289,11 +2356,11 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: -100,
             nonReimbursableTotal: 0,
-        } as unknown as Report;
-        const policy = {
+        });
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.EDITOR,
-        } as unknown as Policy;
+        });
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -2302,7 +2369,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [heldTransaction],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -2313,7 +2380,7 @@ describe('getSecondaryAction', () => {
     });
 
     it('does not include RECEIVED_PAYMENT for submitter on Outstanding report in non-Submit workspace', () => {
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
@@ -2321,11 +2388,11 @@ describe('getSecondaryAction', () => {
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             total: -100,
             nonReimbursableTotal: 0,
-        } as unknown as Report;
-        const policy = {
+        });
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.TEAM,
             role: CONST.POLICY.ROLE.USER,
-        } as unknown as Policy;
+        });
 
         const result = getSecondaryReportActions({
             currentUserLogin: EMPLOYEE_EMAIL,
@@ -2334,7 +2401,7 @@ describe('getSecondaryAction', () => {
             report,
             chatReport,
             reportTransactions: [],
-            originalTransaction: {} as Transaction,
+            originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
@@ -3606,6 +3673,9 @@ describe('getSecondaryAction', () => {
         });
         const reportActions = [actionR14932];
         const policy = createMock<Policy>({});
+        const moveExpenseReportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
+        };
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -3622,10 +3692,17 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            moveExpenseReportNameValuePairs,
 
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: false,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
+            }),
+        );
     });
 
     it('does not include MOVE_EXPENSE option when canEditFieldOfMoneyRequest returns false', async () => {
@@ -5246,37 +5323,35 @@ describe('getSecondaryTransactionThreadActions', () => {
                 return acc;
             }, createMock<Record<string, Policy>>({}));
 
-        type MockFunction = ((...args: unknown[]) => unknown) | boolean;
+        type IsWorkspaceEligibleForReportChangeMock = (
+            ...args: Parameters<typeof ReportUtils.isWorkspaceEligibleForReportChange>
+        ) => ReturnType<typeof ReportUtils.isWorkspaceEligibleForReportChange>;
         type MockConfig = Partial<{
             isIOUReport: boolean;
             doesReportContainRequestsFromMultipleUsers: boolean;
             isCurrentUserSubmitter: boolean;
             isReportManager: boolean;
-            isWorkspaceEligibleForReportChange: MockFunction;
+            isWorkspaceEligibleForReportChange: boolean | IsWorkspaceEligibleForReportChangeMock;
             canEditReportPolicy: boolean;
             isExported: boolean;
             isSettled: boolean;
         }>;
 
         const setupMocks = (mocks: MockConfig = {}) => {
-            const defaults = {
-                isIOUReport: false,
-                doesReportContainRequestsFromMultipleUsers: false,
-                isCurrentUserSubmitter: false,
-                isReportManager: false,
-                isWorkspaceEligibleForReportChange: true,
-                canEditReportPolicy: true,
-                isExported: false,
-                isSettled: false,
-            };
+            jest.spyOn(ReportUtils, 'isIOUReport').mockReturnValue(mocks.isIOUReport ?? false);
+            jest.spyOn(ReportUtils, 'doesReportContainRequestsFromMultipleUsers').mockReturnValue(mocks.doesReportContainRequestsFromMultipleUsers ?? false);
+            jest.spyOn(ReportUtils, 'isCurrentUserSubmitter').mockReturnValue(mocks.isCurrentUserSubmitter ?? false);
+            jest.spyOn(ReportUtils, 'isReportManager').mockReturnValue(mocks.isReportManager ?? false);
+            jest.spyOn(ReportUtils, 'canEditReportPolicy').mockReturnValue(mocks.canEditReportPolicy ?? true);
+            jest.spyOn(ReportUtils, 'isExported').mockReturnValue(mocks.isExported ?? false);
+            jest.spyOn(ReportUtils, 'isSettled').mockReturnValue(mocks.isSettled ?? false);
 
-            for (const [method, value] of Object.entries({...defaults, ...mocks})) {
-                if (typeof value === 'function') {
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockImplementation(value as any);
-                } else {
-                    jest.spyOn(ReportUtils, method as keyof typeof ReportUtils).mockReturnValue(value);
-                }
+            const workspaceEligibilityMock = jest.spyOn(ReportUtils, 'isWorkspaceEligibleForReportChange');
+            const workspaceEligibility = mocks.isWorkspaceEligibleForReportChange ?? true;
+            if (typeof workspaceEligibility === 'function') {
+                workspaceEligibilityMock.mockImplementation(workspaceEligibility);
+            } else {
+                workspaceEligibilityMock.mockReturnValue(workspaceEligibility);
             }
         };
 
@@ -5325,7 +5400,12 @@ describe('getSecondaryTransactionThreadActions', () => {
         });
 
         it('should return true when only one available policy and it is different from current report policy', () => {
-            setupMocks({isWorkspaceEligibleForReportChange: ((_, policy: Policy) => policy?.id === POLICY_ID) as MockFunction});
+            setupMocks({
+                isWorkspaceEligibleForReportChange: (
+                    _submitterEmail: Parameters<typeof ReportUtils.isWorkspaceEligibleForReportChange>[0],
+                    policy: Parameters<typeof ReportUtils.isWorkspaceEligibleForReportChange>[1],
+                ) => policy?.id === POLICY_ID,
+            });
             const report = createReport({policyID: OLD_POLICY_ID});
             const policies = createPolicies(POLICY_ID, OLD_POLICY_ID);
 
@@ -5374,7 +5454,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('should return true when report is settled and currentUserLogin is admin of available policies', () => {
             setupMocks({isSettled: true});
-            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            const mockedIsPolicyAdmin = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin);
             mockedIsPolicyAdmin.mockReturnValue(true);
 
             const report = createReport({policyID: OLD_POLICY_ID});
@@ -5385,7 +5465,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('should return false when report is settled and currentUserLogin is not admin of any policy', () => {
             setupMocks({isSettled: true});
-            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            const mockedIsPolicyAdmin = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin);
             mockedIsPolicyAdmin.mockReturnValue(false);
 
             const report = createReport({policyID: OLD_POLICY_ID});
@@ -5396,8 +5476,8 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('should filter policies by admin role using currentUserLogin when report is settled', () => {
             setupMocks({isSettled: true});
-            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
-            mockedIsPolicyAdmin.mockImplementation((policy: Policy, login?: string) => {
+            const mockedIsPolicyAdmin = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin);
+            mockedIsPolicyAdmin.mockImplementation((policy, login) => {
                 return login === ADMIN_EMAIL && policy?.id === POLICY_ID;
             });
 
@@ -5412,7 +5492,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('should not filter policies by admin role when report is not settled', () => {
             setupMocks({isSettled: false});
-            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            const mockedIsPolicyAdmin = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin);
             mockedIsPolicyAdmin.mockReturnValue(false);
 
             const report = createReport({policyID: OLD_POLICY_ID});
@@ -5424,7 +5504,7 @@ describe('getSecondaryTransactionThreadActions', () => {
 
         it('should pass currentUserLogin to isPolicyAdmin for each candidate policy when settled', () => {
             setupMocks({isSettled: true});
-            const mockedIsPolicyAdmin = jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin as jest.Mock;
+            const mockedIsPolicyAdmin = jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPolicyAdmin);
             mockedIsPolicyAdmin.mockReturnValue(true);
 
             const report = createReport({policyID: OLD_POLICY_ID});

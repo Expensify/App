@@ -336,6 +336,7 @@ const config = defineConfig([
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
+            'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
                 {
@@ -699,6 +700,29 @@ const config = defineConfig([
     },
 
     {
+        // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See tests/tooling/README.md.
+        files: ['tests/tooling/CIGitLogic.test.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        files: ['tests/tooling/**/*.ts'],
+        rules: {
+            // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
+            // own docs recommend (and its runtime requires) awaiting them, so this rule reports every correct use
+            // of that pattern here. See https://github.com/oven-sh/bun/pull/23425. The cost of turning it off is
+            // that a *missing* await on `.rejects` also lints clean, so check those by hand in review.
+            '@typescript-eslint/await-thenable': 'off',
+        },
+    },
+
+    {
         files: ['server/victory-chart-renderer/**/*.ts', 'server/victory-chart-renderer/**/*.tsx'],
         languageOptions: {
             parserOptions: {
@@ -746,6 +770,7 @@ const config = defineConfig([
         'web/snippets/gib.js',
         // Generated language files - excluded from ESLint but still type-checked
         'src/languages/de.ts',
+        'src/languages/el.ts',
         'src/languages/es.ts',
         'src/languages/fr.ts',
         'src/languages/it.ts',

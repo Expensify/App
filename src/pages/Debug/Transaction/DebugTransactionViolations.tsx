@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -9,6 +9,7 @@ import useTransactionViolations from '@hooks/useTransactionViolations';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type {TransactionViolation} from '@src/types/onyx';
 
@@ -40,12 +41,13 @@ function DebugTransactionViolations({transactionID}: DebugTransactionViolationsP
     return (
         <ScrollView style={styles.mv5}>
             <Button
-                success
-                large
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.DEBUG_TRANSACTION_VIOLATION_CREATE.getRoute(transactionID))}
                 style={[styles.pb5, styles.ph3]}
-            />
+            >
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
             {/* This list was previously rendered as a FlatList, but it turned out that it caused the component to flash in some cases,
             so it was replaced by this solution. */}
             {transactionViolations?.map((item, index) => renderItem(item, index))}

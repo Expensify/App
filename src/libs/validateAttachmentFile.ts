@@ -4,6 +4,7 @@ import type {FileObject} from '@src/types/utils/Attachment';
 import type {ValueOf} from 'type-fest';
 
 import {cleanFileName, hasHeicOrHeifExtension, isValidReceiptExtension, normalizeFileObject, validateImageForCorruption} from './fileDownload/FileUtils';
+import snapshotPickedFile from './snapshotPickedFile';
 
 type ValidateAttachmentValidResult = {
     isValid: true;
@@ -67,12 +68,16 @@ async function validateAttachmentFile(file: FileObject, item?: DataTransferItem,
          */
         let updatedFile = normalizedFile;
         const cleanName = cleanFileName(updatedFile.name);
-        if (updatedFile.name !== cleanName) {
-            updatedFile = new File([updatedFile], cleanName, {type: updatedFile.type});
+        // On web this snapshots the bytes into a memory-backed File so a later change to the OS file
+        // can't invalidate the queued request (see snapshotPickedFile); on native it only cleans the name.
+        try {
+            updatedFile = await snapshotPickedFile(updatedFile, cleanName);
+        } catch {
+            // The backing file was already modified or deleted since it was picked.
+            return {isValid: false, error: CONST.FILE_VALIDATION_ERRORS.FILE_INVALID};
         }
-        // Read the superseded URI from normalizedFile: when the name needed cleaning, updatedFile was
-        // reassigned to a fresh File that doesn't carry the custom .uri property, so reading it there
-        // would skip the revoke exactly for cleaned filenames (e.g. default macOS screenshot names).
+        // Read the superseded URI from normalizedFile: snapshotPickedFile may return a fresh File that
+        // doesn't carry the custom .uri property, so updatedFile.uri is not reliable for the previous URL.
         const previousUri = normalizedFile.uri;
         const inputSource = URL.createObjectURL(updatedFile);
         if (previousUri && previousUri !== inputSource && previousUri.startsWith('blob:')) {

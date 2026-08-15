@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NumberWithSymbolForm from '@components/NumberWithSymbolForm';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
@@ -188,10 +188,8 @@ function IOURequestStepHours({
                 }}
                 footer={
                     <Button
-                        success
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => {
                             if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, accountID)) {
@@ -201,9 +199,11 @@ function IOURequestStepHours({
                             }
                             saveTime();
                         }}
-                        text={translate(isEditingConfirmation ? 'common.save' : 'common.next')}
                         sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.HOURS_NEXT_BUTTON}
-                    />
+                    >
+                        <Button.KeyboardShortcut />
+                        <Button.Text>{translate(isEditingConfirmation ? 'common.save' : 'common.next')}</Button.Text>
+                    </Button>
                 }
             />
         </StepScreenWrapper>
