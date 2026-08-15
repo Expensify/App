@@ -60,8 +60,8 @@ jest.mock('@hooks/useAutoFocusInput', () => ({
 }));
 
 const ROUTE = createMock<React.ComponentProps<typeof IOURequestStepDescription>['route']>({
-    key: 'Money_Request_Step_Description-test',
-    name: SCREENS.MONEY_REQUEST.STEP_DESCRIPTION,
+    key: 'Dynamic_Money_Request_Step_Description-test',
+    name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION,
     params: {
         action: CONST.IOU.ACTION.CREATE,
         iouType: CONST.IOU.TYPE.SUBMIT,
