@@ -1633,6 +1633,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: '无法拒绝该报表。请重试。',
         },
         moveExpenses: '移动到报告',
+        moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
             sendExpense: '将你的报销发送给任何人',
@@ -1654,6 +1655,17 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: '在我们将这些报表提交给其余审批流程之前，请为其选择一位额外审批人。',
             },
             bulkSubtitle: '选择一个选项来更改这些报表的审批人。',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `该报表已发送给 <mention-user>@${originalManager}</mention-user>，而不是发送给你（他们的休假代理人），因为你不是此报表所属政策的成员`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `此报表被发送给你，而不是你的休假代理人 <mention-user>@${delegate}</mention-user>，因为 TA 不是此报表所属政策的成员`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `此报表被发送给 <mention-user>@${originalManager}</mention-user>，而不是他们的假期代理人 <mention-user>@${delegate}</mention-user>，因为该代理人不是此报表所属策略的成员`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) => `由于你不能审批自己的报销单，此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `由于你的休假代理人 <mention-user>@${delegate}</mention-user> 无法审批自己的报销单，因此此报销单已发送给你审批`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `此报销单已发送给 <mention-user>@${originalManager}</mention-user> 审批，因为其休假代理人 <mention-user>@${delegate}</mention-user> 不能审批自己提交的报销单`,
         },
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
@@ -4491,6 +4503,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             paymentsAdminAlternateText: '管理工作流付款。',
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
+            noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -5754,6 +5767,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
+            monthlySettlementDate: (date: string) => `Expensify 卡将在每月的 ${date} 结算。`,
             applyCashbackToBill: '将返现用于抵扣我的 Expensify 账单',
             applyCashbackToBillDescription: 'Expensify 卡的返现将用于支付你的 Expensify 账单。',
             frequency: {
@@ -8469,6 +8483,8 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制发票设置`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `已从 <a href="${sourcePolicyURL}">${sourcePolicyName}</a> 复制出差设置`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
@@ -8665,6 +8681,7 @@ ${reportName}`,
                 travelInvoicing: '合并差旅账单',
             },
             bankAccount: {banks: '银行账户', closedBankAccounts: '已关闭的银行账户'},
+            workspace: {active: '活跃', archived: '已归档', selectAll: '全选'},
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
             past: '过去',

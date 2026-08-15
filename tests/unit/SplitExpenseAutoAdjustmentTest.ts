@@ -10,6 +10,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
@@ -27,7 +28,7 @@ describe('Split Expense Auto-Adjustment', () => {
 
     // Helper to create a mock draft transaction
     const createMockDraftTransaction = (splitExpenses: SplitExpense[], amount = TOTAL_AMOUNT): Transaction =>
-        ({
+        createMock<Transaction>({
             transactionID: ORIGINAL_TRANSACTION_ID,
             reportID: REPORT_ID,
             amount,
@@ -36,7 +37,7 @@ describe('Split Expense Auto-Adjustment', () => {
                 originalTransactionID: ORIGINAL_TRANSACTION_ID,
                 splitExpenses,
             },
-        }) as unknown as Transaction;
+        });
 
     // Helper to create a split expense
     const createSplitExpense = (transactionID: string, amount: number, isManuallyEdited = false): SplitExpense => ({
@@ -183,7 +184,7 @@ describe('Split Expense Auto-Adjustment', () => {
             const transactionID = 'currentTx456';
             const initialSplits = [createSplitExpense('split1', 1000, false)];
 
-            const draftTransaction = {
+            const draftTransaction = createMock<Transaction>({
                 transactionID,
                 reportID: REPORT_ID,
                 amount: TOTAL_AMOUNT,
@@ -194,9 +195,9 @@ describe('Split Expense Auto-Adjustment', () => {
                     splitsStartDate: '2024-01-01',
                     splitsEndDate: '2024-01-03',
                 },
-            } as unknown as Transaction;
+            });
 
-            const transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID,
                 reportID: REPORT_ID,
                 amount: TOTAL_AMOUNT,
@@ -207,7 +208,7 @@ describe('Split Expense Auto-Adjustment', () => {
                     attendees: [],
                     type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
                 },
-            } as unknown as Transaction;
+            });
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, draftTransaction);
             await waitForBatchedUpdates();

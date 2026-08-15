@@ -1694,6 +1694,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Der Bericht konnte nicht abgelehnt werden. Bitte versuchen Sie es erneut.',
         },
         moveExpenses: 'Zum Bericht verschieben',
+        moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         submitReportTo: {
             sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
@@ -1716,6 +1717,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Wähle eine zusätzliche genehmigende Person für diese Berichte aus, bevor wir sie durch den restlichen Genehmigungs-Workflow leiten.',
             },
             bulkSubtitle: 'Wählen Sie eine Option, um den Genehmiger für diese Berichte zu ändern.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Dieser Bericht wurde an <mention-user>@${originalManager}</mention-user> statt an Sie (deren Urlaubsvertretung) gesendet, weil Sie kein Mitglied der Richtlinie dieses Berichts sind`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Dieser Bericht wurde Ihnen anstelle Ihrer Urlaubsvertretung <mention-user>@${delegate}</mention-user> gesendet, weil sie kein Mitglied der Richtlinie dieses Berichts ist.`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Dieser Bericht wurde an <mention-user>@${originalManager}</mention-user> statt an die Urlaubsvertretung <mention-user>@${delegate}</mention-user> gesendet, weil diese Person kein Mitglied der Richtlinie dieses Berichts ist`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Dieser Bericht wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da Sie Ihre eigenen Berichte nicht genehmigen können`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Dieser Bericht wurde Ihnen zur Genehmigung gesendet, da Ihre Vertretung im Urlaub, <mention-user>@${delegate}</mention-user>, ihre eigenen Berichte nicht genehmigen kann.`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Dieser Bericht wurde zur Genehmigung an <mention-user>@${originalManager}</mention-user> gesendet, da deren Urlaubsvertretung, <mention-user>@${delegate}</mention-user>, eigene Berichte nicht genehmigen kann`,
         },
         chooseWorkspace: 'Wähle einen Arbeitsbereich',
         routedDueToDEW: (to: string, reason?: string) => `Bericht weitergeleitet an ${to}${reason ? ` weil ${reason}` : ''}`,
@@ -4657,6 +4670,7 @@ ${amount} für ${merchant} – ${date}`,
             paymentsAdminAlternateText: 'Workflow-Zahlungen verwalten.',
             readOnlyActionTitle: 'Nicht so schnell …',
             readOnlyActionPrompt: 'Ihre Arbeitsbereichsrolle kann diese Einstellungen anzeigen, aber nicht bearbeiten.',
+            noAccessActionPrompt: 'Ihre Arbeitsbereichsrolle hat keinen Zugriff auf diese Einstellungen. Bitten Sie eine/n Admin, falls Sie Zugriff benötigen.',
         },
         createdForClient: {
             title: 'Du hast einen Workspace für deinen Kunden erstellt!',
@@ -5982,6 +5996,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
                 'Wenn du zur monatlichen Abrechnung wechseln möchtest, musst du dein Bankkonto über Plaid verbinden und eine positive Kontohistorie der letzten 90 Tage haben.',
+            monthlySettlementDate: (date: string) => `Expensify Karten werden am ${date} jedes Monats abgerechnet.`,
             applyCashbackToBill: 'Cashback auf meine Expensify-Rechnung anwenden',
             applyCashbackToBillDescription: 'Das Cashback von der Expensify-Karte wird zur Begleichung deiner Expensify-Rechnung verwendet.',
             frequency: {
@@ -8834,6 +8849,8 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `Rechnungseinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `Reiseeinstellungen von <a href="${sourcePolicyURL}">${sourcePolicyName}</a> kopiert`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgabenkategorisierung`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgaben-Taggierung`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
@@ -9041,6 +9058,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 travelInvoicing: 'Konsolidierte Reiseabrechnung',
             },
             bankAccount: {banks: 'Bankkonten', closedBankAccounts: 'Geschlossene Bankkonten'},
+            workspace: {active: 'Aktiv', archived: 'Archiviert', selectAll: 'Alle auswählen'},
             reportField: (name: string, value: string) => `${name} ist ${value}`,
             current: 'Aktuell',
             past: 'Vergangenes',
