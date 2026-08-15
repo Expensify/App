@@ -6157,9 +6157,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                         subtitle: 'Ajouter automatiquement les noms de voyage aux descriptions des dépenses pour les voyages réservés dans Expensify.',
                     },
                     codingSync: {
-                        title: 'Coder les déplacements à la réservation',
+                        title: 'Synchroniser le codage avec Expensify Travel',
                         subtitle:
-                            'Demander aux voyageurs les catégories, tags et champs de note de frais de cet espace de travail au moment du paiement, afin que les déplacements arrivent déjà codés.',
+                            'Envoyez les catégories, tags et champs de note de frais de cet espace de travail vers Expensify Travel pour que les voyageurs y répondent au moment de la réservation.',
                     },
                 },
                 travelInvoicing: {

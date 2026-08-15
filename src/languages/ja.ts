@@ -6038,8 +6038,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 settings: {
                     autoAddTripName: {title: '経費に出張名を追加', subtitle: 'Expensifyで予約した出張について、経費の説明に出張名を自動的に追加します。'},
                     codingSync: {
-                        title: '予約時に出張をコード化',
-                        subtitle: 'チェックアウト時にこのワークスペースのカテゴリ、タグ、レポート項目を旅行者に入力してもらい、出張データがあらかじめコード化された状態で届くようにします。',
+                        title: 'コーディングを Expensify Travel と同期する',
+                        subtitle: 'このワークスペースのカテゴリ、タグ、レポートフィールドを Expensify Travel にプッシュして、出張者が予約時にそれらに回答できるようにします。',
                     },
                 },
                 travelInvoicing: {
