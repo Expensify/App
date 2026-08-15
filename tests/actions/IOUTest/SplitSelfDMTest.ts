@@ -15,10 +15,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-import type {MockFetch} from '../../utils/TestHelper';
-
 import createPersonalDetails from '../../utils/collections/personalDetails';
 import {createSelfDM} from '../../utils/collections/reports';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -71,9 +70,6 @@ jest.mock('@src/libs/SearchQueryUtils', () => {
 const RORY_EMAIL = 'rory@expensifail.com';
 const RORY_ACCOUNT_ID = 3;
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-let mockFetch: MockFetch;
-
 const currentUserPersonalDetails: CurrentUserPersonalDetails = {
     ...createPersonalDetails(RORY_ACCOUNT_ID),
     login: RORY_EMAIL,
@@ -97,7 +93,6 @@ beforeAll(() => {
 beforeEach(() => {
     jest.clearAllTimers();
     global.fetch = getGlobalFetchMock();
-    mockFetch = fetch as MockFetch;
     return Onyx.clear().then(waitForBatchedUpdates);
 });
 
@@ -333,11 +328,16 @@ describe('updateSplitTransactionsFromSplitExpensesFlow - selfDM', () => {
         // Set up a snapshot that contains the original transaction, simulating the state
         // where the user is on the Expenses screen and the snapshot has the tracked expense
         const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}-2` as `${typeof ONYXKEYS.COLLECTION.SNAPSHOT}${string}`;
-        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}`;
-        await Onyx.merge(snapshotKey, {
-            data: {[originalTransactionSnapshotKey]: originalTransaction},
-            search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
-        } as unknown as SearchResults);
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransaction.transactionID}` satisfies `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`;
+        const snapshotFixtureData: SearchResults['data'] = {};
+        snapshotFixtureData[originalTransactionSnapshotKey] = originalTransaction;
+        await Onyx.merge(
+            snapshotKey,
+            createMock<SearchResults>({
+                data: snapshotFixtureData,
+                search: {type: CONST.SEARCH.DATA_TYPES.EXPENSE, isLoading: false},
+            }),
+        );
         await waitForBatchedUpdates();
 
         let allTransactions: OnyxCollection<Transaction>;

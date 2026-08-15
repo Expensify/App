@@ -178,7 +178,7 @@ function IOURequestStepDescription({
 
     useDiscardChangesConfirmation({
         onCancel: () => {
-            focusComposerWithDelay(inputRef.current)(true);
+            focusComposerWithDelay(inputRef.current)(true, undefined, true);
         },
         getHasUnsavedChanges: () => {
             if (isSaved) {

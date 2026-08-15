@@ -29,7 +29,7 @@ import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Routes} from '@src/types/onyx/Transaction';
 import type Transaction from '@src/types/onyx/Transaction';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {NullishDeep, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 import {format} from 'date-fns';
@@ -42,8 +42,9 @@ import createPersonalDetails from '../../utils/collections/personalDetails';
 import createRandomPolicy, {createCategoryTaxExpenseRules} from '../../utils/collections/policies';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock} from '../../utils/TestHelper';
+import {createGlobalFetchMock, getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -111,6 +112,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         avatar: 'https://example.com/avatar.jpg',
     };
 
+    let mockFetch: MockFetch;
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -127,11 +129,10 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
         return waitForBatchedUpdates();
     });
 
-    let mockFetch: MockFetch;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -424,7 +425,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
@@ -461,8 +462,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             });
 
             await waitForBatchedUpdates();
-            mockFetch?.succeed?.();
-            await mockFetch?.resume?.();
+            mockFetch.succeed();
+            await mockFetch.resume();
 
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
@@ -498,7 +499,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
 
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${fakeTransaction.transactionID}`, fakeTransaction);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             updateMoneyRequestAmountAndCurrency({
                 transactionID: fakeTransaction.transactionID,
@@ -535,8 +536,8 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             });
 
             await waitForBatchedUpdates();
-            mockFetch?.fail?.();
-            await mockFetch?.resume?.();
+            mockFetch.fail();
+            await mockFetch.resume();
 
             const updatedTransaction = await new Promise<OnyxEntry<Transaction>>((resolve) => {
                 const connection = Onyx.connect({
@@ -589,19 +590,32 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 snapshotHash,
             );
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${snapshotHash}` as const;
-            const transactionKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}` as const;
+            const transactionKey: keyof SearchResults['data'] = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+            type SnapshotUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>, {onyxMethod: typeof Onyx.METHOD.SET | typeof Onyx.METHOD.MERGE}>;
 
-            const optimisticSnapshot = onyxData.optimisticData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
-            expect(optimisticSnapshot?.data?.[transactionKey]).toMatchObject({
+            const optimisticSnapshot = onyxData.optimisticData?.find(
+                (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
+            );
+            const optimisticSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = optimisticSnapshot?.value?.data;
+            const optimisticTransaction = optimisticSnapshotData?.[transactionKey];
+            expect(optimisticTransaction).toMatchObject({
                 modifiedAmount: -20000,
                 pendingFields: {amount: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
             });
 
-            const successSnapshot = onyxData.successData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
-            expect(successSnapshot?.data?.[transactionKey]).toEqual({pendingFields: {amount: null}});
+            const successSnapshot = onyxData.successData?.find(
+                (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
+            );
+            const successSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = successSnapshot?.value?.data;
+            const successTransaction = successSnapshotData?.[transactionKey];
+            expect(successTransaction).toEqual({pendingFields: {amount: null}});
 
-            const failureSnapshot = onyxData.failureData?.find((update) => update.key === snapshotKey)?.value as OnyxEntry<SearchResults>;
-            expect(failureSnapshot?.data?.[transactionKey]).toMatchObject({
+            const failureSnapshot = onyxData.failureData?.find(
+                (update): update is SnapshotUpdate => update.key === snapshotKey && (update.onyxMethod === Onyx.METHOD.SET || update.onyxMethod === Onyx.METHOD.MERGE),
+            );
+            const failureSnapshotData: NullishDeep<SearchResults['data']> | null | undefined = failureSnapshot?.value?.data;
+            const failureTransaction = failureSnapshotData?.[transactionKey];
+            expect(failureTransaction).toMatchObject({
                 transactionID,
                 amount: 10000,
                 pendingFields: {amount: null},
@@ -1129,14 +1143,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             const fakePolicy = createRandomPolicy(Number(policyID));
-            const transactionThreadReport = {
+            const transactionThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-            const parentReport = {
+            });
+            const parentReport = createMock<Report>({
                 reportID: parentReportID,
                 type: CONST.REPORT.TYPE.IOU,
-            } as Report;
+            });
             const recentWaypoints: RecentWaypoint[] = [];
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
@@ -1144,7 +1158,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             // When updating the money request with distance and waypoints
             updateMoneyRequestDistance({
@@ -1172,7 +1186,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
 
             await waitForBatchedUpdates();
 
@@ -1224,14 +1238,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             ];
 
             const fakePolicy = createRandomPolicy(Number(policyID));
-            const transactionThreadReport = {
+            const transactionThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-            const parentReport = {
+            });
+            const parentReport = createMock<Report>({
                 reportID: parentReportID,
                 type: CONST.REPORT.TYPE.IOU,
-            } as Report;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
@@ -1241,7 +1255,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             await Onyx.merge(ONYXKEYS.NVP_RECENT_WAYPOINTS, recentWaypoints);
 
             // Simulate a failed request - this will cause failureData to be applied
-            mockFetch?.fail?.();
+            mockFetch.fail();
 
             // When updating the money request WITHOUT distance (only waypoints)
             updateMoneyRequestDistance({
@@ -1348,21 +1362,21 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             const fakePolicy = createRandomPolicy(Number(policyID));
-            const transactionThreadReport = {
+            const transactionThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-            const parentReport = {
+            });
+            const parentReport = createMock<Report>({
                 reportID: parentReportID,
                 type: CONST.REPORT.TYPE.IOU,
-            } as Report;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${transactionThreadReportID}`, transactionThreadReport);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`, parentReport);
 
-            mockFetch?.pause?.();
+            mockFetch.pause();
 
             // First update: Add more waypoints to the expense
             updateMoneyRequestDistance({
@@ -1390,7 +1404,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            mockFetch?.resume?.();
+            mockFetch.resume();
             await waitForBatchedUpdates();
 
             // Verify the transaction was updated with complete route information
@@ -1429,14 +1443,14 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
             };
 
             const fakePolicy = createRandomPolicy(Number(policyID));
-            const transactionThreadReport = {
+            const transactionThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-            const parentReport = {
+            });
+            const parentReport = createMock<Report>({
                 reportID: parentReportID,
                 type: CONST.REPORT.TYPE.IOU,
-            } as Report;
+            });
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, fakePolicy);
@@ -1995,7 +2009,7 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     waypoints: {},
                 },
             };
-            const fakeThreadReport = {reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT} as Report;
+            const fakeThreadReport = createMock<Report>({reportID: transactionThreadReportID, type: CONST.REPORT.TYPE.CHAT});
             const fakePolicy = createRandomPolicy(Number(1));
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, fakeTransaction);
@@ -2039,11 +2053,11 @@ describe('actions/IOU/UpdateMoneyRequest', () => {
                     waypoints: {},
                 },
             };
-            const fakeThreadReport = {
+            const fakeThreadReport = createMock<Report>({
                 reportID: transactionThreadReportID,
                 type: CONST.REPORT.TYPE.CHAT,
                 parentReportID: 'self-dm-report',
-            } as Report;
+            });
             const fakePolicy: Policy = {
                 ...createRandomPolicy(Number(1)),
                 id: policyID,
