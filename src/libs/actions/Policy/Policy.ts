@@ -3461,6 +3461,7 @@ function buildOptimisticDuplicatePolicy(
         arePerDiemRatesEnabled: isPerDiemFeatureSelected,
         isTravelEnabled: isTravelFeatureSelected ? sourcePolicy?.isTravelEnabled : undefined,
         travelSettings: undefined,
+        invoice: undefined,
         policyAccountID: undefined,
         tax: isTaxesFeatureSelected ? sourcePolicy?.tax : undefined,
         employeeList: isMemberFeatureSelected ? employeeListWithoutPendingDelete : {[sourcePolicy.owner]: sourcePolicy?.employeeList?.[sourcePolicy.owner]},
@@ -4628,7 +4629,7 @@ function createWorkspaceFromIOUPayment({
             transactionsRecord[transaction.transactionID] = transaction;
         }
     }
-    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord);
+    const computedExpenseReportName = ReportUtils.computeOptimisticReportName(expenseReport, newWorkspace as Policy, policyID, transactionsRecord, getCurrencyDecimals);
     if (computedExpenseReportName !== null) {
         expenseReport.reportName = computedExpenseReportName;
     }
