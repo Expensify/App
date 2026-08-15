@@ -8,11 +8,11 @@ import type {GpsDraftDetails} from '@src/types/onyx';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
 import type {LocationObject} from 'expo-location';
+import type {OnyxEntry} from 'react-native-onyx';
 
 import NetInfo from '@react-native-community/netinfo';
 import {defineTask} from 'expo-task-manager';
 import Onyx from 'react-native-onyx';
-import type {OnyxEntry} from 'react-native-onyx';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
 
