@@ -14,8 +14,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {parseExpenseFilters} from '@libs/actions/Search';
 import {getFilterFromQuery} from '@libs/SearchQueryUtils';
 
-import variables from '@styles/variables';
-
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -86,7 +84,6 @@ function SearchNLFilterContent({onSuccess, containerStyle, buttonContainerStyle}
                     onChangeText={setNlQuery}
                     autoFocus
                     multiline
-                    maxAutoGrowHeight={variables.textInputAutoGrowMaxHeight}
                     containerStyles={[styles.flex1]}
                 />
             </View>
