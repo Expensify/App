@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import IOURequestStepDescription from '@pages/iou/request/step/IOURequestStepDescription';
+import IOURequestStepDescription from '@pages/iou/request/step/DynamicIOURequestStepDescription';
 
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
