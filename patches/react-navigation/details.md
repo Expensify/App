@@ -22,7 +22,7 @@
 - Upstream PR/issue: N/A
 - E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#93268](https://github.com/Expensify/App/pull/93268)
+- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
 ### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
 
