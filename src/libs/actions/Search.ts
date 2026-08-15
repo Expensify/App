@@ -940,7 +940,7 @@ function parseExpenseFilters(nlQuery: string, policyID?: string): Promise<ParseE
             }
             return {success: false, message: response?.message ?? ''} as const;
         })
-        .catch(() => ({success: false, message: ''} as const));
+        .catch(() => ({success: false, message: ''}) as const);
 }
 
 function openSearchCategoryFiltersPage() {

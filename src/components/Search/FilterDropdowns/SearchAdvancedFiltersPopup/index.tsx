@@ -53,7 +53,6 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     const {windowHeight} = useWindowDimensions();
     const [selectedFilter, setSelectedFilter] = useState<SearchFilter['key']>(CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE);
     const [isDescribeMode, setIsDescribeMode] = useState(false);
-    const [isDescribeButtonHovered, setIsDescribeButtonHovered] = useState(false);
     const filterContentRef = useRef<View>(null);
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'ArrowRight']);
@@ -66,7 +65,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
     };
 
     const getDescribeButtonBackground = (pressed: boolean) => {
-        if (pressed || isDescribeButtonHovered) {
+        if (pressed) {
             return styles.buttonHoveredBG;
         }
         if (isDescribeMode) {
@@ -90,8 +89,7 @@ function SearchAdvancedFiltersPopup({queryJSON, closeOverlay}: SearchAdvancedFil
                         accessibilityLabel={translate('search.filters.describeSearch.title')}
                         role={CONST.ROLE.BUTTON}
                         sentryLabel="SearchAdvancedFiltersPopup-DescribeSearch"
-                        onHoverIn={() => setIsDescribeButtonHovered(true)}
-                        onHoverOut={() => setIsDescribeButtonHovered(false)}
+                        onHoverIn={() => setIsDescribeMode(true)}
                         onPress={() => setIsDescribeMode(true)}
                     >
                         {({pressed}) => (
