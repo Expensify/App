@@ -68,7 +68,6 @@ type GroupHeaderProps = SearchListActionProps & {
     isFocused?: boolean;
     isFirstItem: boolean;
     isLastItem: boolean;
-    originalKey: string;
     visibleColumns?: SearchCustomColumnIds[];
 };
 
@@ -88,7 +87,6 @@ function GroupHeader({
     isFocused,
     isFirstItem,
     isLastItem,
-    originalKey,
     lastPaymentMethod,
     personalPolicyID,
     userBillingGracePeriodEnds,
@@ -177,13 +175,14 @@ function GroupHeader({
     const isDisabledOrEmpty = isEmpty || isDisabled;
 
     // The same derivation the narrow layout reads, so the two cannot disagree about what a group's checkbox shows.
-    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: originalKey, groupTransactions: groupItem.transactions});
+    const {isSelectAllChecked, isIndeterminate} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: groupItem.transactions});
 
     const isItemSelected = isSelectAllChecked || item?.isSelected;
 
+    // The row this half renders carries a prefixed key, so anything handed back to the selection gets the group's own.
     const withOriginalKey = <T extends SearchListItem>(rowItem: T): T => ({
         ...rowItem,
-        keyForList: originalKey,
+        keyForList: item.groupKeyForList,
     });
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({

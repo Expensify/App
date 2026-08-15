@@ -232,7 +232,6 @@ function ExpenseGroupedSearchView({
                     isFocused={isItemFocused}
                     isFirstItem={index === firstVisibleIndex}
                     isLastItem={false}
-                    originalKey={originalKey}
                     lastPaymentMethod={lastPaymentMethod}
                     personalPolicyID={personalPolicyID}
                     userBillingGracePeriodEnds={userBillingGracePeriodEnds}
