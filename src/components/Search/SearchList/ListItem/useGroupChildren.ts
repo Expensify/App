@@ -15,11 +15,6 @@ type GroupCheckboxArgs = {
     groupTransactions: TransactionListItemType[];
 };
 
-type UseGroupChildrenArgs = GroupCheckboxArgs & {
-    /** Whether this is the expense-report view, where the rows arrive ready to render */
-    isExpenseReportType: boolean;
-};
-
 /**
  * What a group's checkbox shows. Both grouped layouts read it from here: they disagreed for a round over whether a row
  * being deleted counts, and the checkbox is what the user compares between them.
@@ -31,7 +26,7 @@ function useGroupCheckboxState({groupKey, groupTransactions}: GroupCheckboxArgs)
 }
 
 /** The same, plus the group's rows stamped with the live selection. For the two call sites that render those rows. */
-function useGroupChildren({groupKey, isExpenseReportType, groupTransactions}: UseGroupChildrenArgs): {
+function useGroupChildren({groupKey, groupTransactions}: GroupCheckboxArgs): {
     transactions: TransactionListItemType[];
     isSelectAllChecked: boolean;
     isIndeterminate: boolean;
@@ -40,20 +35,18 @@ function useGroupChildren({groupKey, isExpenseReportType, groupTransactions}: Us
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const params = {groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected};
 
-    // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded. Expense-report rows carry both already.
-    const transactions: TransactionListItemType[] = isExpenseReportType
-        ? groupTransactions
-        : groupTransactions.map((transactionItem) => ({
-              ...transactionItem,
-              isSelected: isRowChecked({
-                  rowKey: transactionItem.keyForList,
-                  parentGroupKey: groupKey,
-                  selectedTransactions,
-                  excludedTransactions,
-                  areAllMatchingItemsSelected,
-              }),
-              selectionGroupKey: groupKey,
-          }));
+    // Stamp the live selection and the parent key onto each row, which is how a row checks whether its group was excluded.
+    const transactions: TransactionListItemType[] = groupTransactions.map((transactionItem) => ({
+        ...transactionItem,
+        isSelected: isRowChecked({
+            rowKey: transactionItem.keyForList,
+            parentGroupKey: groupKey,
+            selectedTransactions,
+            excludedTransactions,
+            areAllMatchingItemsSelected,
+        }),
+        selectionGroupKey: groupKey,
+    }));
 
     return {transactions, ...getGroupCheckboxState(params)};
 }

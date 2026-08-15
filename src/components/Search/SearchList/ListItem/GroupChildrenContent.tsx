@@ -46,7 +46,6 @@ function GroupChildrenContent({
     // Uses groupKeyForList: this split container's own keyForList is prefixed.
     const {transactions} = useGroupChildren({
         groupKey: groupItem.groupKeyForList,
-        isExpenseReportType,
         groupTransactions: groupItem.transactions,
     });
 

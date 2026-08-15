@@ -244,7 +244,7 @@ function ExpenseGroupedSearchView({
 
         if (isGroupChildrenContainerItem(item)) {
             const originalKey = item.groupKeyForList;
-            const containerNewTransactionID = item.keyForList ? newTransactionIDByItemKey.get(originalKey) : undefined;
+            const containerNewTransactionID = newTransactionIDByItemKey.get(originalKey);
             return (
                 <GroupChildrenContainer
                     item={item}

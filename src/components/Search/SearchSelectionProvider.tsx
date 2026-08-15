@@ -1,5 +1,5 @@
 import CONST from '@src/CONST';
-import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 
@@ -288,7 +288,7 @@ function useSyncSelectedReports(data: SearchData) {
 
 /** Narrow per-row selection read: whether the row for `keyForList` is selected (or covered by select-all). */
 function useRowSelection(keyForList: string | undefined, parentGroupKey?: string): {isSelected: boolean} {
-    const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), areAllMatchingItemsSelected} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     if (!keyForList) {
         return {isSelected: false};
     }

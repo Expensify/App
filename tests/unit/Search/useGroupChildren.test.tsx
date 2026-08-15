@@ -39,7 +39,6 @@ type HookArgs = Parameters<typeof useGroupChildren>[0];
 
 const baseArgs: HookArgs = {
     groupKey: GROUP_KEY,
-    isExpenseReportType: false,
     groupTransactions: rows,
 };
 
@@ -88,11 +87,6 @@ describe('useGroupChildren', () => {
         mockExcludedTransactions.current = selectEntry(GROUP_KEY);
         const {result} = renderGroupChildren();
         expect(result.current.transactions.every((transaction) => transaction.isSelected)).toBe(false);
-    });
-
-    it('hands expense-report rows through untouched, since they arrive carrying both already', () => {
-        const {result} = renderGroupChildren({isExpenseReportType: true});
-        expect(result.current.transactions).toBe(rows);
     });
 
     it('answers for a group carrying no rows from its own key, since there is nothing else to ask', () => {

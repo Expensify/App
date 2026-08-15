@@ -326,11 +326,6 @@ type GroupSelectionParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
-/** Whether a group's checkbox reads as fully checked. */
-function isGroupChecked(params: GroupSelectionParams): boolean {
-    return getGroupCheckboxState(params).isSelectAllChecked;
-}
-
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
 function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
     isSelectAllChecked: boolean;
@@ -387,4 +382,4 @@ function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTra
     return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, isGroupChecked, getGroupCheckboxState, isRowChecked};
+export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports, getGroupCheckboxState, isRowChecked};

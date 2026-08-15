@@ -143,7 +143,6 @@ function TransactionGroupListItemImpl({
 
     const {transactions, isSelectAllChecked, isIndeterminate} = useGroupChildren({
         groupKey: groupItem.keyForList,
-        isExpenseReportType,
         groupTransactions: groupItem.transactions,
     });
 
@@ -466,7 +465,7 @@ function TransactionGroupListItemImpl({
 
     const pendingAction =
         item.pendingAction ??
-        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)
+        (groupItem.transactions.length > 0 && groupItem.transactions.every((transaction) => isTransactionPendingDelete(transaction))
             ? CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE
             : undefined);
 
