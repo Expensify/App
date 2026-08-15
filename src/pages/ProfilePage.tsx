@@ -329,14 +329,14 @@ function ProfilePage({route}: ProfilePageProps) {
                         {!!accountID && !isAnonymousUserSession() && !!login && (
                             <MenuItem
                                 shouldShowRightIcon
-                                title={translate(isAgentEmail(login) ? 'profilePage.searchThisAgent' : 'profilePage.searchThisUser')}
+                                title={translate(isAgentEmail(login) ? 'profilePage.viewAgentHistory' : 'profilePage.viewUserHistory')}
                                 icon={expensifyIcons.MagnifyingGlass}
                                 onPress={() => {
                                     const query = buildQueryStringFromFilterFormValues({
                                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                                         from: [String(accountID)],
                                     });
-                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query}));
+                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
                                 }}
                             />
                         )}

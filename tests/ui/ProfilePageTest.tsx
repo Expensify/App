@@ -596,6 +596,16 @@ describe('ProfilePage - View user history', () => {
 
         expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
     });
+
+    it('hides the search entry when the account has no login', async () => {
+        await setUpPublicProfile('');
+
+        renderPublicProfilePage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
+        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
+    });
 });
 
 describe('ProfilePage - SMS domain handling', () => {
