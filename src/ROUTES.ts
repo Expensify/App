@@ -2857,11 +2857,13 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS: {
         route: 'workspaces/:policyID/workflows',
-        getRoute: (policyID: string | undefined) => {
+        // The tab is passed as a query param rather than a path segment because `workflows/` already owns static
+        // sub-routes (import, payer, approvals, ...) that a `:tab?` segment would shadow.
+        getRoute: (policyID: string | undefined, tab?: ValueOf<typeof CONST.TAB.WORKFLOWS>) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS route');
             }
-            return `workspaces/${policyID}/workflows` as const;
+            return `workspaces/${policyID}/workflows${tab ? `?tab=${tab}` : ''}` as const;
         },
     },
     WORKSPACE_WORKFLOWS_IMPORT: {

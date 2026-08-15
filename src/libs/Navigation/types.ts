@@ -2895,6 +2895,8 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
+        /** Query param that deep-links straight to a Workflows tab. Falls back to the persisted tab, then Submissions. */
+        tab?: ValueOf<typeof CONST.TAB.WORKFLOWS>;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
