@@ -3,6 +3,7 @@ import type {EnablePolicyTravelParams, SetPolicyTravelSettingsParams} from '@lib
 import {WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
+import {getObjectKeys} from '@libs/ObjectUtils';
 import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -72,6 +73,14 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
     const policyID = policy.id;
     const previousTravelSettings = policy?.travelSettings;
 
+    // Revert each changed key to its prior value, defaulting to null so a key that was absent
+    // before the optimistic update (e.g. a toggle that reads as off) is cleared by the merge
+    // instead of being left at its optimistic value.
+    const revertedSettings: Partial<OnyxTypes.WorkspaceTravelSettings> = {};
+    for (const key of getObjectKeys(settings)) {
+        (revertedSettings as Record<string, unknown>)[key] = previousTravelSettings?.[key] ?? null;
+    }
+
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
         optimisticData: [
             {
@@ -101,7 +110,7 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    travelSettings: previousTravelSettings,
+                    travelSettings: revertedSettings,
                     pendingFields: {
                         travelSettings: null,
                     },
