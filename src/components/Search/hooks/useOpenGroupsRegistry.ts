@@ -1,7 +1,9 @@
-import {NO_OPEN_GROUPS} from '@components/Search/selectionBuilders';
 import type {SearchShiftRangeGroupsActions} from '@components/Search/types';
 
 import {useState} from 'react';
+
+/** No group open. Shared so the registry and its subscribers compare against one empty set rather than allocating their own. */
+const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 type OpenGroupsRegistry = {
     /** The groups currently rendering their children as rows */
@@ -52,3 +54,4 @@ function useOpenGroupsRegistry(searchHash: number): OpenGroupsRegistry {
 }
 
 export default useOpenGroupsRegistry;
+export {NO_OPEN_GROUPS};

@@ -21,6 +21,7 @@ import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
 import type {SearchQueryJSON, SelectedTransactions} from './types';
 
+import {NO_OPEN_GROUPS} from './hooks/useOpenGroupsRegistry';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
@@ -31,7 +32,6 @@ import TransactionGroupListItem from './SearchList/ListItem/TransactionGroupList
 import {isGroupChildrenContainerItem, isGroupHeaderItem} from './SearchList/ListItem/types';
 import useOpenGroupsForShiftRange from './SearchList/ListItem/useOpenGroupsForShiftRange';
 import SearchListViewLayout from './SearchListViewLayout';
-import {NO_OPEN_GROUPS} from './selectionBuilders';
 
 type ExpenseGroupedSearchViewProps = CommonSearchViewProps & TransactionViewExtras;
 

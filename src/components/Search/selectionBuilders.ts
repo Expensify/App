@@ -424,8 +424,10 @@ function reconcileExclusions({previousSelectedTransactions, selectedTransactions
         }
     }
     // An excluded group already covers every row under it, so keeping their exclusions as well counts the same rows twice.
+    // Decided against the groups as this pass found them, so which row it reaches first cannot change the answer.
+    const excludedGroupKeys = new Set(Object.keys(next));
     for (const [key, transaction] of Object.entries(next)) {
-        if (transaction.groupKey && Object.hasOwn(next, transaction.groupKey)) {
+        if (transaction.groupKey && excludedGroupKeys.has(transaction.groupKey)) {
             delete next[key];
         }
     }
@@ -446,8 +448,6 @@ function countCheckedGroupChildren({groupKey, children, selectedTransactions, ex
         0,
     );
 }
-
-const NO_OPEN_GROUPS: ReadonlySet<string> = new Set();
 
 type RowCheckedParams = {
     /** The row's own selection key */
@@ -529,11 +529,9 @@ export {
     buildShiftRangeSource,
     isGroupSelected,
     isGroupChecked,
-    countCheckedGroupChildren,
     getGroupCheckboxState,
     countFullyExcludedItems,
     reconcileExclusions,
     countSelectableItems,
     isRowChecked,
-    NO_OPEN_GROUPS,
 };

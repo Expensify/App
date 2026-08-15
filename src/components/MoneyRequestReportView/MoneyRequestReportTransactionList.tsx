@@ -412,12 +412,6 @@ function MoneyRequestReportTransactionList({
         }, [showPendingExpensePlaceholder, reportID, transactions.length, hasOptimisticNewTransaction]),
     );
 
-    useEffect(() => {
-        clearSelectedTransactions(true);
-        // We don't want to run the effect on change of clearSelectedTransactions since it can cause an infinite loop.
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [reportID]);
-
     const [sortConfig, setSortConfig] = useState<SortedTransactions>({
         sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
         sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
@@ -583,10 +577,14 @@ function MoneyRequestReportTransactionList({
         onApplyRange: (batch) => setSelectedTransactions(applyShiftRangeBatchToKeySet(batch, selectedTransactionIDs, (t) => t.transactionID)),
     });
 
-    // The session belongs to one report, the same as the selection this list clears when the report changes: a transaction on both would otherwise let the old span collapse rows in the new one.
+    // This list is reused for the next report, so everything scoped to one report goes together: a transaction on both would
+    // otherwise leave the old span live and let it collapse rows in the new one.
     useEffect(() => {
+        clearSelectedTransactions(true);
         rangeApi.clearAnchor();
-    }, [reportID, rangeApi]);
+        // Only the report should re-run this; `clearSelectedTransactions` in the deps can loop, and `rangeApi` is stable.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [reportID]);
 
     const toggleTransaction = useCallback(
         (transactionID: string, shiftKey?: boolean) => {

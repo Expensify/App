@@ -1,5 +1,5 @@
+import {NO_OPEN_GROUPS} from '@components/Search/hooks/useOpenGroupsRegistry';
 import {useSearchShiftRangeGroups} from '@components/Search/SearchContext';
-import {NO_OPEN_GROUPS} from '@components/Search/selectionBuilders';
 
 import {useEffect, useRef} from 'react';
 

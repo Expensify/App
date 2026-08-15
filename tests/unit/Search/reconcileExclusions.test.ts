@@ -58,6 +58,12 @@ describe('reconcileExclusions', () => {
         expect(Object.keys(result)).toEqual([GROUP_KEY]);
     });
 
+    it('prunes a chain of covered exclusions the same way whichever it reaches first', () => {
+        // A row under a group that is itself recorded under another group, keyed so the parent is reached first.
+        const chained = {...entry('G0'), ...entry('G1', 'G0'), ...entry('rowA', 'G1')};
+        expect(Object.keys(reconcile({excludedTransactions: chained}))).toEqual(['G0']);
+    });
+
     // The order the two group rules run in is the whole reason they live in one function.
     it('keeps a row that left the selection excluded when the same gesture put its group back', () => {
         const result = reconcile({
