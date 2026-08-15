@@ -125,4 +125,12 @@ describe('useGroupChildren', () => {
         const {result} = renderGroupChildren({groupTransactions: [firstRow, deletedRow]});
         expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: true, indeterminate: false});
     });
+
+    it('reads unchecked while every row it carries is being deleted, rather than answering from its own key', () => {
+        const deletedRow = {...buildTransactionRow(3, '3'), pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+        // Carrying no rows is what makes a group answer from its own key. Carrying only rows it cannot select is a different thing.
+        mockAreAllMatchingItemsSelected.current = true;
+        const {result} = renderGroupChildren({groupTransactions: [deletedRow]});
+        expect({checked: result.current.isSelectAllChecked, indeterminate: result.current.isIndeterminate}).toEqual({checked: false, indeterminate: false});
+    });
 });

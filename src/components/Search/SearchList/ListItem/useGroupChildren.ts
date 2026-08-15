@@ -1,3 +1,7 @@
+/**
+ * A search group's rows and its checkbox state, read from the live selection, so the header and the rows below it
+ * cannot disagree about what the group shows.
+ */
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 import {getGroupCheckboxState, isRowChecked} from '@components/Search/selectionBuilders';
 

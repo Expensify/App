@@ -326,13 +326,9 @@ type GroupSelectionParams = {
     areAllMatchingItemsSelected: boolean;
 };
 
-/** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
-function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
-    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
-    if (selectable.length === 0) {
-        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
-    }
-    return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+/** Whether a group's checkbox reads as fully checked. */
+function isGroupChecked(params: GroupSelectionParams): boolean {
+    return getGroupCheckboxState(params).isSelectAllChecked;
 }
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
@@ -351,14 +347,14 @@ function getGroupCheckboxState({groupKey, children, selectedTransactions, exclud
             checkedCount++;
         }
     }
-    // A group with no rows of its own answers from its own key, since there is nothing else to ask.
-    if (selectableCount === 0) {
+    // A group carrying no rows answers from its own key. One whose rows are all being deleted has rows, so it does not.
+    if (children.length === 0) {
         return {
             isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
             isIndeterminate: false,
         };
     }
-    return {isSelectAllChecked: checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+    return {isSelectAllChecked: selectableCount > 0 && checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
 }
 
 type RowCheckedParams = {
