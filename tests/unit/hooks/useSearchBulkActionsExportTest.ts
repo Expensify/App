@@ -621,6 +621,49 @@ describe('useSearchBulkActions - export options', () => {
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
     });
 
+    it('does NOT show the different-companies modal and exports together when the workspaces share the same companyID', async () => {
+        /**
+         * Given: two approved reports on two DIFFERENT workspaces, both connected to NetSuite and to the
+         *        SAME external company (identical accountID). A single export lands in one accounting
+         *        company, and here every report already resolves to that one company.
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: the different-companies block is NOT triggered — no modal is shown (the export is neither
+         *       partial nor a re-export), and both reports are exported together in a single call.
+         */
+        // Both NetSuite workspaces point at the same external companyID (accountID).
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-A'}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-A'}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        // The shared companyID clears the different-companies block: no modal, both reports exported together.
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+    });
+
     it('shows the partial-export modal for a multi-integration selection, then exports only the chosen integration subset', async () => {
         /**
          * Given: two reports on workspaces connected to different integrations (report1 → NetSuite,
