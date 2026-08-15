@@ -818,6 +818,30 @@ function isInvalidMerchantValue(merchant?: string): boolean {
     return merchant === '' || merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT || merchant === CONST.TRANSACTION.DEFAULT_MERCHANT;
 }
 
+type MerchantValidationError = {type: 'required'} | {type: 'invalidValue'} | {type: 'tooLong'; byteLength: number};
+
+/**
+ * Shared merchant validation rules, so the normal merchant edit step (IOURequestStepMerchant) and inline
+ * table editing (via MoneyRequestUtils.isValidMerchant) validate against a single source of truth instead of
+ * re-implementing the checks. Returns the first validation error, or undefined when the merchant is valid.
+ * Callers decide how to surface it (a translated form error vs. silently blocking the inline save).
+ */
+function getMerchantError(merchant: string | undefined, isMerchantRequired: boolean): MerchantValidationError | undefined {
+    const trimmedMerchant = merchant?.trim() ?? '';
+
+    if (isMerchantRequired && !trimmedMerchant) {
+        return {type: 'required'};
+    }
+    if (trimmedMerchant && isInvalidMerchantValue(trimmedMerchant)) {
+        return {type: 'invalidValue'};
+    }
+    const {isValid: isLengthValid, byteLength} = isValidInputLength(trimmedMerchant, CONST.MERCHANT_NAME_MAX_BYTES);
+    if (!isLengthValid) {
+        return {type: 'tooLong', byteLength};
+    }
+    return undefined;
+}
+
 /**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
@@ -926,6 +950,7 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    getMerchantError,
     isValidPIN,
     containsHtmlTag,
 };
