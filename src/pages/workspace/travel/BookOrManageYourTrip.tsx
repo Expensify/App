@@ -10,6 +10,7 @@ import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearPolicyErrorField} from '@libs/actions/Policy/Policy';
 import {setPolicyTravelSettings} from '@libs/actions/Policy/Travel';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 
@@ -100,6 +101,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteMoreFeatures}
                     pendingAction={policy?.pendingFields?.travelSettings}
+                    errors={policy?.errorFields?.travelSettings ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'travelSettings')}
                     wrapperStyle={styles.mt3}
                 />
                 {isCodingSyncBetaEnabled && (
@@ -114,6 +117,8 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                         disabledAction={withReadOnlyFallback()}
                         showLockIcon={!canWriteMoreFeatures}
                         pendingAction={policy?.pendingFields?.travelSettings}
+                        errors={policy?.errorFields?.travelSettings ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'travelSettings')}
                         wrapperStyle={styles.mt3}
                     />
                 )}
