@@ -6,7 +6,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 
-import type {PendingAction} from '@src/types/onyx/OnyxCommon';
+import CONST from '@src/CONST';
 
 import React, {createRef} from 'react';
 import {View} from 'react-native';
@@ -87,15 +87,18 @@ describe('AvatarButtonWithIcon', () => {
             expect(screen.getByTestId(MOCK_TEST_ID, {includeHiddenElements: true})).toBeTruthy();
         });
 
-        it.each(['add', 'pending', 'delete'])('should render with pendingAction: %s', (action) => {
-            renderWithProvider(
-                <AvatarButtonWithIcon
-                    {...defaultProps}
-                    pendingAction={action as PendingAction}
-                />,
-            );
-            expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
-        });
+        it.each([CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD, CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE, CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE])(
+            'should render with pendingAction: %s',
+            (action) => {
+                renderWithProvider(
+                    <AvatarButtonWithIcon
+                        {...defaultProps}
+                        pendingAction={action}
+                    />,
+                );
+                expect(screen.getByLabelText(defaultProps.text)).toBeTruthy();
+            },
+        );
 
         it('should render with all props provided', () => {
             const onPressMock = jest.fn();
