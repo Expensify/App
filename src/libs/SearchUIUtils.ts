@@ -291,6 +291,7 @@ type GetTransactionSectionsParams = {
     queryJSON?: SearchQueryJSON;
     isAttendeesEnabledForMovingPolicy?: boolean;
     optimisticTransactionID?: string;
+    onyxPersonalDetailsList?: OnyxTypes.PersonalDetailsList;
 };
 
 const transactionColumnNamesToSortingProperty: TransactionSorting = {
@@ -2161,6 +2162,17 @@ function canOptimisticExpenseMatchStatusFilter(currentQueryJSON: SearchQueryJSON
 }
 
 /**
+ * Merges the global personal details list with the search snapshot's one (snapshot entries win).
+ * Memoized by input references: both lists are referentially stable across the getSections recomputes
+ * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
+ * actual data change instead of once per recompute.
+ */
+const mergePersonalDetailsLists = memoize(
+    (onyxList: OnyxTypes.PersonalDetailsList | undefined, dataList: OnyxTypes.PersonalDetailsList | undefined): OnyxTypes.PersonalDetailsList => ({...onyxList, ...dataList}),
+    {maxSize: 1, equality: 'shallow', monitoringName: 'SearchUIUtils.mergePersonalDetailsLists'},
+);
+
+/**
  * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
@@ -2179,6 +2191,7 @@ function getTransactionsSections({
     queryJSON,
     isAttendeesEnabledForMovingPolicy,
     optimisticTransactionID,
+    onyxPersonalDetailsList,
 }: GetTransactionSectionsParams): [TransactionListItemType[], number, boolean] {
     const {
         transactionKeys,
@@ -2199,6 +2212,10 @@ function getTransactionsSections({
     } = classifyAndPreprocess(data);
 
     const personalDetailsMap = new Map(Object.entries(data.personalDetailsList ?? {}));
+    // The search snapshot's personalDetailsList can lag live Onyx (e.g. an expense moved to the
+    // self-DM while offline), which blanks out the payer. Merge in live details — the snapshot
+    // still wins where present, live only fills the gaps.
+    const mergedPersonalDetails = mergePersonalDetailsLists(onyxPersonalDetailsList, data.personalDetailsList);
 
     const transactionsSections: TransactionListItemType[] = [];
 
@@ -2241,8 +2258,8 @@ function getTransactionsSections({
             );
             // Use Map.get() for faster lookups with default values
             const fromAccountID = reportAction?.actorAccountID ?? report?.ownerAccountID;
-            const from = fromAccountID ? (personalDetailsMap.get(fromAccountID.toString()) ?? emptyPersonalDetails) : emptyPersonalDetails;
-            const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
+            const from = fromAccountID ? (mergedPersonalDetails?.[fromAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
+            const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
             const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
@@ -2922,17 +2939,6 @@ function getReportActionsSections(
     }
     return [reportActionItems, n];
 }
-
-/**
- * Merges the global personal details list with the search snapshot's one (snapshot entries win).
- * Memoized by input references: both lists are referentially stable across the getSections recomputes
- * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
- * actual data change instead of once per recompute.
- */
-const mergePersonalDetailsLists = memoize(
-    (onyxList: OnyxTypes.PersonalDetailsList | undefined, dataList: OnyxTypes.PersonalDetailsList | undefined): OnyxTypes.PersonalDetailsList => ({...onyxList, ...dataList}),
-    {maxSize: 1, equality: 'shallow', monitoringName: 'SearchUIUtils.mergePersonalDetailsLists'},
-);
 
 /**
  * @private
@@ -3868,6 +3874,7 @@ function getSections({
         queryJSON,
         isAttendeesEnabledForMovingPolicy,
         optimisticTransactionID,
+        onyxPersonalDetailsList,
     });
 }
 
