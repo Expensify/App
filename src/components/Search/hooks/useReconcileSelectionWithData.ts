@@ -143,8 +143,8 @@ function useReconcileSelectionWithData({
                 for (const transactionItem of transactionGroup.transactions) {
                     const listKey = transactionItem.keyForList ?? transactionItem.transactionID;
                     const isDirectlyExcluded = Object.hasOwn(excludedTransactions, listKey) || Object.hasOwn(excludedTransactions, transactionItem.transactionID);
-                    const isExcluded = isParentGroupExcluded || isDirectlyExcluded;
                     const isSelected = listKey in selectedTransactions || transactionItem.transactionID in selectedTransactions;
+                    const isExcluded = !isSelected && (isParentGroupExcluded || isDirectlyExcluded);
 
                     // Include transaction if: already individually selected, part of select-all, or group-level propagation (expense report / empty group expanded)
                     const shouldInclude = !isExcluded && (isSelected || areAllMatchingItemsSelected || propagateSelectionToAllRows);

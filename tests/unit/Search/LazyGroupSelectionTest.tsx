@@ -1151,6 +1151,35 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.excludedTransactions[GROUP_KEY]).toBeUndefined();
     });
 
+    it('keeps a row re-checked inside an excluded group checked when the data refreshes', async () => {
+        const {result, rerender} = renderSelection(CachedPartialWrapper);
+        const [firstChild] = loadedChildren;
+
+        // Given a group of five excluded whole under select-all-matching
+        await act(async () => {
+            result.current.selectAllMatchingItems(true);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(cachedPartialGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.excludedTransactions[GROUP_KEY]).toBeDefined();
+
+        // When one of its rows is checked again on its own
+        await act(async () => {
+            result.current.toggle(firstChild);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+
+        // Then a data refresh leaves it checked, rather than the group's exclusion quietly taking it back
+        rerender({});
+        await act(async () => waitForBatchedUpdatesWithAct());
+        expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
+    });
+
     it('turns select-all-matching off once every group has been unchecked', async () => {
         const {result} = renderSelection(SettledGroupWrapper);
 
