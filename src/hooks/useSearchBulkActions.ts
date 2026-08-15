@@ -1834,6 +1834,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             title: translate('workspace.exportDifferentCompaniesModal.title'),
                             prompt: translate('workspace.exportDifferentCompaniesModal.description', integration),
                             confirmText: translate('workspace.exportDifferentCompaniesModal.confirmText'),
+                            shouldShowCancelButton: false,
                         });
                         return;
                     }
