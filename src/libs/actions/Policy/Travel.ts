@@ -9,6 +9,7 @@ import {goBackWhenEnableFeature} from '@libs/PolicyUtils';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type {ErrorFields, PendingFields} from '@src/types/onyx/OnyxCommon';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -77,8 +78,18 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
     // before the optimistic update (e.g. a toggle that reads as off) is cleared by the merge
     // instead of being left at its optimistic value.
     const revertedSettings: Partial<OnyxTypes.WorkspaceTravelSettings> = {};
+
+    // Pending and error state is tracked per setting so that updating one setting does not
+    // put every other travel setting's row into a pending or failed state.
+    const pendingSettings: PendingFields<keyof OnyxTypes.WorkspaceTravelSettings> = {};
+    const clearedPendingSettings: Record<string, null> = {};
+    const settingErrors: ErrorFields = {};
+
     for (const key of getObjectKeys(settings)) {
         (revertedSettings as Record<string, unknown>)[key] = previousTravelSettings?.[key] ?? null;
+        pendingSettings[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
+        clearedPendingSettings[key] = null;
+        settingErrors[key] = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     }
 
     const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
@@ -88,9 +99,7 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     travelSettings: {...previousTravelSettings, ...settings},
-                    pendingFields: {
-                        travelSettings: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
-                    },
+                    pendingFields: pendingSettings,
                 },
             },
         ],
@@ -99,9 +108,7 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: {
-                        travelSettings: null,
-                    },
+                    pendingFields: clearedPendingSettings,
                 },
             },
         ],
@@ -111,12 +118,8 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     travelSettings: revertedSettings,
-                    pendingFields: {
-                        travelSettings: null,
-                    },
-                    errorFields: {
-                        travelSettings: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
-                    },
+                    pendingFields: clearedPendingSettings,
+                    errorFields: settingErrors,
                 },
             },
         ],

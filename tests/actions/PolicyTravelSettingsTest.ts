@@ -12,6 +12,18 @@ import createRandomPolicy from '../utils/collections/policies';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+function getPolicy(policyID: string): Promise<Policy | undefined> {
+    return new Promise((resolve) => {
+        const connection = Onyx.connect({
+            key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+            callback: (value) => {
+                Onyx.disconnect(connection);
+                resolve(value);
+            },
+        });
+    });
+}
+
 describe('actions/Policy/Travel', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
@@ -36,18 +48,10 @@ describe('actions/Policy/Travel', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<Policy | undefined>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const policy = await getPolicy(fakePolicy.id);
 
             expect(policy?.travelSettings?.isCodingSyncEnabled).toBeUndefined();
-            expect(policy?.pendingFields?.travelSettings).toBeFalsy();
+            expect(policy?.pendingFields?.isCodingSyncEnabled).toBeFalsy();
         });
 
         it('reverts a toggled setting to its prior value on failure', async () => {
@@ -61,18 +65,10 @@ describe('actions/Policy/Travel', () => {
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            const policy = await new Promise<Policy | undefined>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const policy = await getPolicy(fakePolicy.id);
 
             expect(policy?.travelSettings?.autoAddTripName).toBe(true);
-            expect(policy?.errorFields?.travelSettings).toBeTruthy();
+            expect(policy?.errorFields?.autoAddTripName).toBeTruthy();
         });
 
         it('applies the optimistic update and clears pending state on success', async () => {
@@ -83,32 +79,37 @@ describe('actions/Policy/Travel', () => {
             setPolicyTravelSettings(fakePolicy, {isCodingSyncEnabled: true});
             await waitForBatchedUpdates();
 
-            const optimisticPolicy = await new Promise<Policy | undefined>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const optimisticPolicy = await getPolicy(fakePolicy.id);
             expect(optimisticPolicy?.travelSettings?.isCodingSyncEnabled).toBe(true);
-            expect(optimisticPolicy?.pendingFields?.travelSettings).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(optimisticPolicy?.pendingFields?.isCodingSyncEnabled).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             await mockFetch?.resume?.();
             await waitForBatchedUpdates();
 
-            const settledPolicy = await new Promise<Policy | undefined>((resolve) => {
-                const connection = Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                    callback: (value) => {
-                        Onyx.disconnect(connection);
-                        resolve(value);
-                    },
-                });
-            });
+            const settledPolicy = await getPolicy(fakePolicy.id);
             expect(settledPolicy?.travelSettings?.isCodingSyncEnabled).toBe(true);
-            expect(settledPolicy?.pendingFields?.travelSettings).toBeFalsy();
+            expect(settledPolicy?.pendingFields?.isCodingSyncEnabled).toBeFalsy();
+        });
+
+        it('leaves the other travel settings free of pending and error state', async () => {
+            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {autoAddTripName: true}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            mockFetch?.pause?.();
+            setPolicyTravelSettings(fakePolicy, {isCodingSyncEnabled: true});
+            await waitForBatchedUpdates();
+
+            const pendingPolicy = await getPolicy(fakePolicy.id);
+            expect(pendingPolicy?.pendingFields?.autoAddTripName).toBeFalsy();
+
+            mockFetch?.fail?.();
+            await mockFetch?.resume?.();
+            await waitForBatchedUpdates();
+
+            const failedPolicy = await getPolicy(fakePolicy.id);
+            expect(failedPolicy?.errorFields?.isCodingSyncEnabled).toBeTruthy();
+            expect(failedPolicy?.errorFields?.autoAddTripName).toBeFalsy();
+            expect(failedPolicy?.travelSettings?.autoAddTripName).toBe(true);
         });
     });
 });

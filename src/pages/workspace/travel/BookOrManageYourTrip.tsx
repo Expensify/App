@@ -100,9 +100,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     disabled={!canWriteMoreFeatures}
                     disabledAction={withReadOnlyFallback()}
                     showLockIcon={!canWriteMoreFeatures}
-                    pendingAction={policy?.pendingFields?.travelSettings}
-                    errors={policy?.errorFields?.travelSettings ?? undefined}
-                    onCloseError={() => clearPolicyErrorField(policyID, 'travelSettings')}
+                    pendingAction={policy?.pendingFields?.autoAddTripName}
+                    errors={policy?.errorFields?.autoAddTripName ?? undefined}
+                    onCloseError={() => clearPolicyErrorField(policyID, 'autoAddTripName')}
                     wrapperStyle={styles.mt3}
                 />
                 {isCodingSyncBetaEnabled && (
@@ -116,9 +116,9 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                         disabled={!canWriteMoreFeatures}
                         disabledAction={withReadOnlyFallback()}
                         showLockIcon={!canWriteMoreFeatures}
-                        pendingAction={policy?.pendingFields?.travelSettings}
-                        errors={policy?.errorFields?.travelSettings ?? undefined}
-                        onCloseError={() => clearPolicyErrorField(policyID, 'travelSettings')}
+                        pendingAction={policy?.pendingFields?.isCodingSyncEnabled}
+                        errors={policy?.errorFields?.isCodingSyncEnabled ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policyID, 'isCodingSyncEnabled')}
                         wrapperStyle={styles.mt3}
                     />
                 )}
