@@ -1,12 +1,12 @@
 import type {ApiRequestCommandParameters, WriteCommand} from '@libs/API/types';
-import type * as writeImport from '@libs/API/write';
+import type baseWrite from '@libs/API/write';
 import type {WriteReadyBarrier} from '@libs/API/writeWhenReady';
 
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxKey} from 'react-native-onyx';
 
-const write = jest.requireActual<typeof writeImport>('@libs/API/write').default;
+const write = jest.requireActual<{default: typeof baseWrite}>('@libs/API/write').default;
 
 /**
  * Jest manual mock for `writeWhenReady`, enabled by a bare `jest.mock('@libs/API/writeWhenReady')`.
