@@ -580,7 +580,12 @@ describe('ProfilePage - View user history', () => {
         fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`}));
+        expect(Navigation.navigate).toHaveBeenCalledWith(
+            ROUTES.SEARCH_ROOT.getRoute({
+                query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
+                rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
+            }),
+        );
     });
 
     it('hides the search entry for an anonymous session', async () => {
