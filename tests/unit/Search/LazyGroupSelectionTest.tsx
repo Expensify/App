@@ -1180,6 +1180,28 @@ describe('Lazily loaded group selection', () => {
         expect(result.current.selectedTransactions[firstChild.keyForList]?.isSelected).toBe(true);
     });
 
+    it('leaves the selection untouched when a group has no row it can select', async () => {
+        const {result} = renderSelection();
+        const [firstLoadedChild] = loadedChildren;
+        const deletedChild = {...firstLoadedChild, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE};
+
+        // Given a group whose only row is being deleted, so its checkbox reads unchecked with nothing to check
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+        const before = result.current.selectedTransactions;
+
+        // When its header is pressed
+        await act(async () => {
+            result.current.toggle(categoryGroup, [deletedChild]);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the commit is skipped entirely, rather than replacing the map with an equal one and re-rendering every row
+        expect(result.current.selectedTransactions).toBe(before);
+    });
+
     it('turns select-all-matching off once every group has been unchecked', async () => {
         const {result} = renderSelection(SettledGroupWrapper);
 

@@ -549,15 +549,18 @@ function SearchWriteActionsProvider({
                     return reducedSelectedTransactions;
                 }
 
+                const selectableTransactions = groupTransactions.filter((transactionItem) => !isTransactionPendingDelete(transactionItem));
+                // Same map, not an equal one: the commit bails on identity, so a group with nothing to select must not re-render every row.
+                if (selectableTransactions.length === 0) {
+                    return selectedTransactions;
+                }
                 return {
                     ...selectedTransactions,
                     ...Object.fromEntries(
-                        groupTransactions
-                            .filter((t) => !isTransactionPendingDelete(t))
-                            .map((transactionItem) => {
-                                const [key, entry] = buildSelectedEntry(transactionItem);
-                                return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
-                            }),
+                        selectableTransactions.map((transactionItem) => {
+                            const [key, entry] = buildSelectedEntry(transactionItem);
+                            return [key, {...entry, groupKey: item.keyForList, isSelectedViaGroup: !!item.keyForList}];
+                        }),
                     ),
                 };
             },

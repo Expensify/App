@@ -657,8 +657,9 @@ function MoneyRequestReportTransactionList({
                 return;
             }
             const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
+            const groupTransactionIDSet = new Set(groupTransactionIDs);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
-            const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
+            const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDSet.has(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
             setSelectedTransactions(nextSelectedIDs);
             if (anySelected) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
