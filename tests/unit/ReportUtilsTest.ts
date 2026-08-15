@@ -10361,6 +10361,88 @@ describe('ReportUtils', () => {
             expect(result2).toBe(true);
         });
 
+        it('should return true for a submitted report awaiting first-level approval', async () => {
+            // Given a policy with a basic approval workflow where the current user submits to themselves
+            const basicApprovalPolicy: Policy = {
+                ...createRandomPolicy(2963),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10003, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: basicApprovalPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            const createdAction: ReportAction = {...createRandomReportAction(124), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${basicApprovalPolicy.id}`, basicApprovalPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if the transactions can be added
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is true because the report has not moved past the first approver yet
+            expect(result).toBe(true);
+        });
+
+        it('should return false for a submitted report on a policy with a Dynamic External Workflow', async () => {
+            // Given a policy with a Dynamic External Workflow where the current user submits to themselves
+            const dynamicExternalWorkflowPolicy: Policy = {
+                ...createRandomPolicy(2964),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+                employeeList: {
+                    [currentUserEmail]: {email: currentUserEmail, submitsTo: currentUserEmail},
+                },
+                approver: currentUserEmail,
+            };
+            const report: Report = {
+                ...createRandomReport(10004, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                policyID: dynamicExternalWorkflowPolicy.id,
+                ownerAccountID: currentUserAccountID,
+                managerID: currentUserAccountID,
+            };
+            const createdAction: ReportAction = {...createRandomReportAction(125), actionName: CONST.REPORT.ACTIONS.TYPE.CREATED, originalMessage: {submittedTo: currentUserAccountID}};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {[createdAction.reportActionID]: createdAction});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${dynamicExternalWorkflowPolicy.id}`, dynamicExternalWorkflowPolicy);
+            await Onyx.set(`${ONYXKEYS.PERSONAL_DETAILS_LIST}`, {
+                [currentUserAccountID]: {
+                    accountID: currentUserAccountID,
+                    login: currentUserEmail,
+                },
+            });
+
+            mockedPolicyUtils.isPaidGroupPolicy.mockReturnValue(true);
+
+            // When it's checked if the transactions can be added
+            const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
+            const result = canAddTransaction(report, isReportArchived.current);
+
+            // Then the result is false because the external system decides the next approver, so the report is not treated as awaiting first-level approval
+            expect(result).toBe(false);
+        });
+
         it('should return false for an archived report', async () => {
             // Given an archived expense report
             const report: Report = {
