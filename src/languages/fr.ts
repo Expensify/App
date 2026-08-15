@@ -7300,6 +7300,12 @@ ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
             cancelText: 'Annuler',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Attention !',
+            description: (connectionName: ConnectionName) =>
+                `Les notes de frais sélectionnées sont connectées à différentes entreprises ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais connectées à la même entreprise, puis réessayez.`,
+            confirmText: 'Compris',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,

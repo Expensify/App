@@ -6984,6 +6984,12 @@ ${reportName}`,
             confirmText: '是，再次导出',
             cancelText: '取消',
         },
+        exportDifferentCompaniesModal: {
+            title: '小心！',
+            description: (connectionName: ConnectionName) =>
+                `所选报表连接到不同的 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择连接到同一公司的报表，然后重试。`,
+            confirmText: '知道了',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,

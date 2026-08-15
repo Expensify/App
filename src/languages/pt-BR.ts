@@ -7228,6 +7228,12 @@ ${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Cuidado!',
+            description: (connectionName: ConnectionName) =>
+                `Os relatórios selecionados estão conectados a empresas ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diferentes, portanto não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
+            confirmText: 'Entendi',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `Exportar ${exportableCount}/${selectedCount} relatórios para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,

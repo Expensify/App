@@ -568,6 +568,59 @@ describe('useSearchBulkActions - export options', () => {
         expect(markAsManuallyExported).not.toHaveBeenCalled();
     });
 
+    it('blocks the export and shows the different-companies modal when the selection spans one integration on different companyIDs', async () => {
+        /**
+         * Given: two approved reports on two workspaces both connected to NetSuite, but to DIFFERENT
+         *        external companies (distinct accountIDs). A single export lands in one accounting
+         *        company, so reports from different companies can't be exported together.
+         *
+         * When: the user clicks "Export to NetSuite".
+         *
+         * Then: the different-companies modal is shown and nothing is exported (the flow exits before
+         *       the partial-export / export-again modals).
+         */
+        // Give each NetSuite workspace a distinct external companyID (accountID).
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-A'}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-B'}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === NETSUITE_FRIENDLY_NAME)).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === NETSUITE_FRIENDLY_NAME)
+            ?.onSelected?.();
+
+        await waitFor(() => {
+            expect(mockShowConfirmModal).toHaveBeenCalledWith(
+                expect.objectContaining({
+                    title: 'workspace.exportDifferentCompaniesModal.title',
+                    prompt: 'workspace.exportDifferentCompaniesModal.description',
+                    confirmText: 'workspace.exportDifferentCompaniesModal.confirmText',
+                }),
+            );
+        });
+
+        // The mismatch blocks the flow: nothing is exported and only the one blocking modal is shown.
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+        expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+    });
+
     it('shows the partial-export modal for a multi-integration selection, then exports only the chosen integration subset', async () => {
         /**
          * Given: two reports on workspaces connected to different integrations (report1 → NetSuite,

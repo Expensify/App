@@ -36,6 +36,7 @@ import {
 } from '@libs/actions/Search';
 import initSplitExpense from '@libs/actions/SplitExpenses';
 import {setNameValuePair} from '@libs/actions/User';
+import {getConnectionCompanyID} from '@libs/CopyPolicySettingsUtils';
 import deferModalPresentationAfterPopoverDismiss from '@libs/deferModalPresentationAfterPopoverDismiss';
 import {getExpensifyCardStatementParamsFromFeed, getExpensifyCardStatementSelection} from '@libs/ExpensifyCardStatementUtils';
 import type {ExpensifyCardStatementParams} from '@libs/ExpensifyCardStatementUtils';
@@ -1814,6 +1815,28 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         clearSelectedTransactions();
                         exportAction();
                     };
+
+                    // Every report exported in one action lands in a single external accounting company, so all
+                    // reports here must resolve to the same companyID for this integration. When the selection spans
+                    // workspaces connected to DIFFERENT companyIDs (e.g. two QBO workspaces on different QBO
+                    // companies), the export can't be fulfilled — inform the user and exit without exporting.
+                    const companyIDs = new Set<string>();
+                    for (const reportID of integrationReportIDs) {
+                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                        const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                        const companyID = getConnectionCompanyID(reportPolicy, integration);
+                        if (companyID) {
+                            companyIDs.add(companyID);
+                        }
+                    }
+                    if (companyIDs.size > 1) {
+                        showConfirmModal({
+                            title: translate('workspace.exportDifferentCompaniesModal.title'),
+                            prompt: translate('workspace.exportDifferentCompaniesModal.description', integration),
+                            confirmText: translate('workspace.exportDifferentCompaniesModal.confirmText'),
+                        });
+                        return;
+                    }
 
                     const exportableReportNames: string[] = [];
                     const exportedReportNames: string[] = [];

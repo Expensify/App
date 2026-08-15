@@ -7207,6 +7207,12 @@ ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
             cancelText: 'Anuluj',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Uwaga!',
+            description: (connectionName: ConnectionName) =>
+                `Wybrane raporty są połączone z różnymi firmami ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
+            confirmText: 'Rozumiem',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,

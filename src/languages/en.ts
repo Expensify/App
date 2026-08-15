@@ -7460,6 +7460,12 @@ const translations = {
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Careful!',
+            description: (connectionName: ConnectionName) =>
+                `The selected reports are connected to different ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
+            confirmText: 'Got it',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,

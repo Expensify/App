@@ -7229,6 +7229,12 @@ ${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
             cancelText: 'Annuleren',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Voorzichtig!',
+            description: (connectionName: ConnectionName) =>
+                `De geselecteerde rapporten zijn verbonden met verschillende ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-bedrijven en kunnen daarom niet samen worden geëxporteerd. Selecteer rapporten die met hetzelfde bedrijf zijn verbonden en probeer het opnieuw.`,
+            confirmText: 'Begrepen',
+        },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
                 `${exportableCount}/${selectedCount} rapporten exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
