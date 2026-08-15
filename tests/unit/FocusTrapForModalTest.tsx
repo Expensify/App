@@ -22,9 +22,6 @@ jest.mock('focus-trap-react', () => ({
     },
 }));
 
-const mockSetActivePopoverLauncher = jest.mocked(setActivePopoverLauncher);
-const mockMarkActivePopoverLauncherDeactivated = jest.mocked(markActivePopoverLauncherDeactivated);
-
 jest.mock('@libs/Accessibility/blurActiveElement', () => ({__esModule: true, default: jest.fn()}));
 
 const mockRestoreFocusWithModality = jest.fn();
@@ -51,8 +48,8 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
-        mockSetActivePopoverLauncher.mockClear();
-        mockMarkActivePopoverLauncherDeactivated.mockClear();
+        jest.mocked(setActivePopoverLauncher).mockClear();
+        jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });

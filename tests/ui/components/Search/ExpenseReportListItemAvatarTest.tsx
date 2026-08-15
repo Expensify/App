@@ -230,23 +230,6 @@ function buildSearchListItem(report: Report, policyForReport: typeof policy): Ex
     });
 }
 
-function parseRenderedAvatarData(dataSet: unknown): AvatarData {
-    if (typeof dataSet !== 'object' || dataSet === null || !('uri' in dataSet) || typeof dataSet.uri !== 'string' || !('parent' in dataSet) || typeof dataSet.parent !== 'string') {
-        throw new Error('Rendered avatar data is missing its URI or parent');
-    }
-
-    const avatarID = 'avatarID' in dataSet ? dataSet.avatarID : undefined;
-    const name = 'name' in dataSet ? dataSet.name : undefined;
-    if (avatarID !== undefined && typeof avatarID !== 'number' && typeof avatarID !== 'string') {
-        throw new Error('Rendered avatar data has an invalid avatar ID');
-    }
-    if (name !== undefined && typeof name !== 'string') {
-        throw new Error('Rendered avatar data has an invalid name');
-    }
-
-    return {uri: dataSet.uri, parent: dataSet.parent, avatarID, name};
-}
-
 async function retrieveAvatarData(item: ExpenseReportListItemType) {
     render(
         <AvatarTooltipsProvider isEnabled={false}>
@@ -266,7 +249,23 @@ async function retrieveAvatarData(item: ExpenseReportListItemType) {
     });
 
     return {
-        images: images.map((img) => parseRenderedAvatarData(img.props.dataSet)),
+        images: images.map((img): AvatarData => {
+            const dataSet: unknown = img.props.dataSet;
+            if (typeof dataSet !== 'object' || dataSet === null || !('uri' in dataSet) || typeof dataSet.uri !== 'string' || !('parent' in dataSet) || typeof dataSet.parent !== 'string') {
+                throw new Error('Rendered avatar data is missing its URI or parent');
+            }
+
+            const avatarID = 'avatarID' in dataSet ? dataSet.avatarID : undefined;
+            const name = 'name' in dataSet ? dataSet.name : undefined;
+            if (avatarID !== undefined && typeof avatarID !== 'number' && typeof avatarID !== 'string') {
+                throw new Error('Rendered avatar data has an invalid avatar ID');
+            }
+            if (name !== undefined && typeof name !== 'string') {
+                throw new Error('Rendered avatar data has an invalid name');
+            }
+
+            return {uri: dataSet.uri, parent: dataSet.parent, avatarID, name};
+        }),
         fragments,
     };
 }
