@@ -63,9 +63,9 @@ const defaultSearchSelectionContext: SearchSelectionContextValue = {
 
 const defaultSearchSelectionActions: SearchSelectionActionsValue = {
     setSelectedTransactions: () => {},
-    getSelectedTransactions: () => ({}),
-    getExcludedTransactions: () => ({}),
-    getAreAllMatchingItemsSelected: () => false,
+    getSelectedTransactions: () => defaultSearchSelectionContext.selectedTransactions,
+    getExcludedTransactions: () => defaultSearchSelectionContext.excludedTransactions,
+    getAreAllMatchingItemsSelected: () => defaultSearchSelectionContext.areAllMatchingItemsSelected,
     applySelection: () => {},
     setSelectedReports: () => {},
     setCurrentSelectedTransactionReportID: () => {},

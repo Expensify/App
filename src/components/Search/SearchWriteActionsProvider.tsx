@@ -560,9 +560,18 @@ function SearchWriteActionsProvider({
         applySelection(
             (selectedTransactions) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
+                // The same rule the group toggle follows: a batch that writes nothing returns the map it was given, so the commit bails on identity rather than re-rendering every row.
+                let hasWritten = false;
                 // Groups this batch took a row from, and groups it took whole. Whole wins, since that is the gesture a header click makes.
                 const partialGroupKeys = new Set<string>();
                 const wholeGroupKeys = new Set<string>();
+                const dropKey = (key: string) => {
+                    if (!Object.hasOwn(updated, key)) {
+                        return;
+                    }
+                    delete updated[key];
+                    hasWritten = true;
+                };
                 // `blockGroupKey` is set only when a whole group row joins the range, which is what makes its children narrowable later.
                 const addTransaction = (tx: TransactionListItemType, blockGroupKey: string | undefined) => {
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
@@ -575,6 +584,7 @@ function SearchWriteActionsProvider({
                         (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
                     }
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
+                    hasWritten = true;
                 };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
@@ -584,18 +594,18 @@ function SearchWriteActionsProvider({
                                 partialGroupKeys.add(parentGroupKey);
                             }
                             updated = spellOutGroupSelection(updated, row.keyForList);
-                            delete updated[row.keyForList];
+                            dropKey(row.keyForList);
                         }
                         return;
                     }
                     if (isTransactionGroupListItemType(row)) {
                         // Mirrors the group toggle: a group can hold an entry under its own key as well as under its children's.
                         if (row.keyForList) {
-                            delete updated[row.keyForList];
+                            dropKey(row.keyForList);
                         }
                         for (const child of row.transactions ?? []) {
                             if (child.keyForList) {
-                                delete updated[child.keyForList];
+                                dropKey(child.keyForList);
                             }
                         }
                     }
@@ -607,6 +617,7 @@ function SearchWriteActionsProvider({
                         if (row.keyForList && row.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                             const [key, info] = mapEmptyReportToSelectedEntry(row);
                             updated[key] = info;
+                            hasWritten = true;
                         }
                     } else if (isTransactionGroupListItemType(row)) {
                         // Same as the group toggle: a group with nothing it can select is left exactly as it was.
@@ -616,7 +627,7 @@ function SearchWriteActionsProvider({
                         }
                         // The children carry the selection once they are here, the same as the group toggle: leaving the group's own entry behind would count it twice.
                         if (row.keyForList) {
-                            delete updated[row.keyForList];
+                            dropKey(row.keyForList);
                         }
                         for (const child of selectable) {
                             addTransaction(child, row.keyForList);
@@ -633,9 +644,10 @@ function SearchWriteActionsProvider({
                 for (const [key, transaction] of Object.entries(updated)) {
                     if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
                         updated[key] = {...transaction, isSelectedViaGroup: false};
+                        hasWritten = true;
                     }
                 }
-                return updated;
+                return hasWritten ? updated : selectedTransactions;
             },
             {...commitOptions, data: filteredData},
         );
