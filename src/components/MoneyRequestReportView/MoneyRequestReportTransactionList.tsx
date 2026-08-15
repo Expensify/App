@@ -807,9 +807,10 @@ function MoneyRequestReportTransactionList({
     const isDesktopTableLayout = !shouldUseNarrowLayout;
 
     const lastTransactionID = useMemo(() => {
-        const visibleTransactions = visualOrderTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
+        const allTransactions = shouldGroupTransactions ? groupedTransactions.flatMap((group) => group.transactions) : resolvedTransactions;
+        const visibleTransactions = allTransactions.filter((t) => isOffline || !isTransactionPendingDelete(t));
         return visibleTransactions.at(-1)?.transactionID;
-    }, [visualOrderTransactions, isOffline]);
+    }, [shouldGroupTransactions, groupedTransactions, resolvedTransactions, isOffline]);
 
     const listItems: TransactionListItemData[] = [];
     if (shouldGroupTransactions) {

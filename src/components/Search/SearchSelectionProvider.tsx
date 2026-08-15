@@ -7,7 +7,7 @@ import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValu
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports, isRowChecked, reconcileExclusions} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -94,18 +94,7 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
         setSelectionState((prevState) => {
             const selectedTransactions = updater(prevState.selectedTransactions);
             const reconciledExcludedTransactions = options?.reconciledExcludedTransactions;
-            const hasNamedDeselection = !isEmptyObject(options?.deselectedWithoutEntry ?? {});
-            const canRecordNamedDeselection = hasNamedDeselection && prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection;
-            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions) && !canRecordNamedDeselection;
-            const shouldRecordExclusions = prevState.areAllMatchingItemsSelected && !!options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection;
-            const hasDeselectedWithoutEntry = shouldRecordExclusions && hasNamedDeselection;
-            const needsAllMatchingClear = !!shouldClearAllMatchingSelection && prevState.areAllMatchingItemsSelected;
-            if (
-                selectedTransactions === prevState.selectedTransactions &&
-                !hasDeselectedWithoutEntry &&
-                !needsAllMatchingClear &&
-                (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)
-            ) {
+            if (selectedTransactions === prevState.selectedTransactions && (!reconciledExcludedTransactions || reconciledExcludedTransactions === prevState.excludedTransactions)) {
                 return prevState;
             }
 
@@ -114,27 +103,22 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
                 totalSelectableItemsCount && totalSelectableItemsCount !== Object.keys(selectedTransactions).length ? false : prevState.areAllMatchingItemsSelected;
             let excludedTransactions = reconciledExcludedTransactions ?? prevState.excludedTransactions;
 
+            const shouldClearAllMatchingSelection = options?.shouldClearAllMatchingSelectionWhenEmpty && isEmptyObject(selectedTransactions);
             if (shouldClearAllMatchingSelection) {
                 areAllMatchingItemsSelected = false;
             }
-            if (shouldRecordExclusions) {
+            if (prevState.areAllMatchingItemsSelected && options?.shouldPreserveAllMatchingSelection && !shouldClearAllMatchingSelection) {
                 areAllMatchingItemsSelected = true;
-                // Built on whatever the caller passed, so a reconcile that pruned or refreshed exclusions in the same commit is not thrown away.
-                excludedTransactions = reconcileExclusions({
-                    previousSelectedTransactions: prevState.selectedTransactions,
-                    selectedTransactions,
-                    excludedTransactions,
-                    deselectedWithoutEntry: options?.deselectedWithoutEntry ?? {},
-                });
-                // Under all-matching the exclusions are the whole story, so the selection has run out once they cover every selectable row.
-                const hasSelectableItems = totalSelectableItemsCount !== undefined && totalSelectableItemsCount > 0;
-                const fullyExcludedItemCount =
-                    options?.shouldClearAllMatchingSelectionWhenEmpty && hasSelectableItems && isEmptyObject(selectedTransactions)
-                        ? options.countFullyExcludedItems?.(excludedTransactions)
-                        : undefined;
-                if (fullyExcludedItemCount !== undefined && totalSelectableItemsCount !== undefined && fullyExcludedItemCount >= totalSelectableItemsCount) {
-                    areAllMatchingItemsSelected = false;
-                    excludedTransactions = {};
+                excludedTransactions = {...prevState.excludedTransactions};
+                for (const [key, transaction] of Object.entries(prevState.selectedTransactions)) {
+                    if (!Object.hasOwn(selectedTransactions, key)) {
+                        excludedTransactions[key] = transaction;
+                    }
+                }
+                for (const key of Object.keys(selectedTransactions)) {
+                    if (!Object.hasOwn(prevState.selectedTransactions, key) && Object.hasOwn(excludedTransactions, key)) {
+                        delete excludedTransactions[key];
+                    }
                 }
             } else if (!areAllMatchingItemsSelected) {
                 excludedTransactions = {};

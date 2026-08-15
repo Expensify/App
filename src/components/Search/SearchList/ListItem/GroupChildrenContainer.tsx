@@ -74,7 +74,7 @@ function GroupChildrenContainer({
                     >
                         <GroupChildrenContent
                             item={item}
-                            isExpanded={isExpanded}
+                            isExpanded={isContentVisible}
                             groupBy={groupBy}
                             searchType={searchType}
                             columns={columns}

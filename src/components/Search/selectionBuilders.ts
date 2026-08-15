@@ -1,47 +1,15 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isReportEntry, isTransactionEntry, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
-
-type SearchLookupSources = {
-    /** The raw search snapshot, which holds the denormalized rows the list was built from */
-    searchResultsData: SearchResults['data'] | undefined;
-
-    /** The live TRANSACTION collection, read where the snapshot has not caught up */
-    transactions: OnyxCollection<Transaction>;
-};
-
-/**
- * One lookup policy for the rows a selection is built from, so a row's action flags cannot depend on which gesture
- * selected it. A transaction reads from the snapshot first and live Onyx second; a report reads from the snapshot,
- * which is where the list's denormalized reports live. The key guards do the narrowing, so neither needs a cast.
- */
-function createSearchLookups({searchResultsData, transactions}: SearchLookupSources) {
-    const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
-        if (!transactionID) {
-            return undefined;
-        }
-        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
-    };
-    const readSnapshotReport = (reportID: string | undefined): OnyxEntry<Report> => {
-        if (!reportID) {
-            return undefined;
-        }
-        const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
-        return isReportEntry(key) ? searchResultsData?.[key] : undefined;
-    };
-    return {readTransaction, readSnapshotReport};
-}
 
 type MapTransactionItemToSelectedEntryParams = {
     /** The transaction row being added to the selection */
@@ -378,94 +346,6 @@ function isGroupChecked({groupKey, children, selectedTransactions, excludedTrans
     return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 }
 
-/** The keys a group is worth to a selection count: one per row it carries, or its own key where it carries none. */
-function getGroupSelectableKeys(group: TransactionGroupListItemType): string[] {
-    if (group.transactions.length === 0) {
-        return group.keyForList && group.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ? [group.keyForList] : [];
-    }
-    return group.transactions.filter((child) => !isTransactionPendingDelete(child)).map((child) => child.keyForList);
-}
-
-/** How many items a selection can cover, which is what tells a full selection from a partial one. */
-function countSelectableItems(data: SearchData, areItemsGrouped: boolean): number {
-    if (!areItemsGrouped || !isGroupedItemArray(data)) {
-        return data.length;
-    }
-    return data.reduce((count, group) => count + getGroupSelectableKeys(group).length, 0);
-}
-
-/**
- * How many of those items the exclusions cover. The two counts are compared directly, so both are taken from the same
- * per-group shape: comparing raw exclusion keys against the total would measure nothing, since one group key stands
- * for every row underneath it.
- */
-function countFullyExcludedItems(data: SearchData, excludedTransactions: SelectedTransactions, areItemsGrouped: boolean): number {
-    if (!areItemsGrouped || !isGroupedItemArray(data)) {
-        return Object.keys(excludedTransactions).length;
-    }
-    const isExcluded = (key: string) => Object.hasOwn(excludedTransactions, key);
-    return data.reduce((count, group) => {
-        const selectableKeys = getGroupSelectableKeys(group);
-        // A group excluded whole covers every row underneath it, which is how a group that is not all here leaves the selection.
-        return count + (group.keyForList && isExcluded(group.keyForList) ? selectableKeys.length : selectableKeys.filter(isExcluded).length);
-    }, 0);
-}
-
-type ReconcileExclusionsParams = {
-    /** The selection this commit started from */
-    previousSelectedTransactions: SelectedTransactions;
-
-    /** The selection the updater returned */
-    selectedTransactions: SelectedTransactions;
-
-    /** The exclusions to build on, which the caller may already have pruned or refreshed this commit */
-    excludedTransactions: SelectedTransactions;
-
-    /** Rows the caller deselected that had no entry of their own, which the diff cannot see leave */
-    deselectedWithoutEntry: SelectedTransactions;
-};
-
-/**
- * The exclusions after one commit, under an all-matching selection where they are the whole story. Order matters and
- * is the reason this is one function: a group's exclusion has to go before its rows are pruned against it, or a row
- * put back by the same gesture loses the exclusion that no longer covers it.
- */
-function reconcileExclusions({previousSelectedTransactions, selectedTransactions, excludedTransactions, deselectedWithoutEntry}: ReconcileExclusionsParams): SelectedTransactions {
-    const next: SelectedTransactions = {...excludedTransactions};
-
-    for (const [key, transaction] of Object.entries(previousSelectedTransactions)) {
-        if (!Object.hasOwn(selectedTransactions, key)) {
-            next[key] = transaction;
-        }
-    }
-    for (const key of Object.keys(selectedTransactions)) {
-        if (!Object.hasOwn(previousSelectedTransactions, key) && Object.hasOwn(next, key)) {
-            delete next[key];
-        }
-    }
-    // The diff above cannot see a row leave the selection when it was never in it, so the caller names those.
-    for (const [key, transaction] of Object.entries(deselectedWithoutEntry)) {
-        if (!Object.hasOwn(selectedTransactions, key)) {
-            next[key] = transaction;
-        }
-    }
-    // A row selected as part of its group puts the whole group back, so the exclusion that stood for it goes too.
-    for (const [key, transaction] of Object.entries(selectedTransactions)) {
-        if (transaction.isSelectedViaGroup && transaction.groupKey && !Object.hasOwn(previousSelectedTransactions, key)) {
-            delete next[transaction.groupKey];
-        }
-    }
-    // An excluded group already covers every row under it, so keeping their exclusions as well counts the same rows twice.
-    // Decided against the groups as this pass found them, so which row it reaches first cannot change the answer.
-    const excludedGroupKeys = new Set(Object.keys(next));
-    for (const [key, transaction] of Object.entries(next)) {
-        if (transaction.groupKey && excludedGroupKeys.has(transaction.groupKey)) {
-            delete next[key];
-        }
-    }
-    return next;
-}
-
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
 function getGroupCheckboxState(params: GroupSelectionParams): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
     const selectable = params.children.filter((child) => !isTransactionPendingDelete(child));
@@ -554,7 +434,6 @@ function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: Read
 }
 
 export {
-    createSearchLookups,
     mapTransactionItemToSelectedEntry,
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,
@@ -563,8 +442,5 @@ export {
     isGroupSelected,
     isGroupChecked,
     getGroupCheckboxState,
-    countFullyExcludedItems,
-    reconcileExclusions,
-    countSelectableItems,
     isRowChecked,
 };

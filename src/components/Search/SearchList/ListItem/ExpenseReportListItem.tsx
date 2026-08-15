@@ -249,7 +249,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
-            goToItem: () => onSelectRow(item),
+            goToItem: () => onSelectRow(reportItem as unknown as TItem),
             snapshotReport,
             snapshotPolicy,
             submitterLogin,
@@ -308,7 +308,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         });
     }, [
         currentSearchHash,
-        item,
+        reportItem,
         liveReportItem,
         onSelectRow,
         searchData,

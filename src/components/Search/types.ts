@@ -245,7 +245,6 @@ type SearchSelectionActionsValue = {
      * `shouldPreserveAllMatchingSelection` keeps that mode active for row toggles and records removed rows as exclusions.
      * `shouldClearAllMatchingSelectionWhenEmpty` exits that mode when no selected rows or additional results remain.
      * `reconciledExcludedTransactions` refreshes or prunes exclusions when the underlying search data changes.
-     * `deselectedWithoutEntry` names rows the caller deselected that had no entry of their own, which the diff cannot see leave.
      */
     applySelection: (
         updater: (previousSelectedTransactions: SelectedTransactions) => SelectedTransactions,
@@ -255,8 +254,6 @@ type SearchSelectionActionsValue = {
             shouldPreserveAllMatchingSelection?: boolean;
             shouldClearAllMatchingSelectionWhenEmpty?: boolean;
             reconciledExcludedTransactions?: SelectedTransactions;
-            deselectedWithoutEntry?: SelectedTransactions;
-            countFullyExcludedItems?: (excludedTransactions: SelectedTransactions) => number;
         },
     ) => void;
     /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */
