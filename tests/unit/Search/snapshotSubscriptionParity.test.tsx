@@ -35,7 +35,7 @@ function List() {
 /**
  * A group's rows reach the list twice: the expanded row subscribes to that group's sub-snapshot directly, and
  * `useSearchSnapshot` subscribes to the whole collection to enrich `group.transactions`. The shift-range source reads
- * the second, so it is only safe while the two land together — in an ancestor and a descendant, as they do in the app.
+ * the second, so it is only safe while the two land together in an ancestor and a descendant, as they do in the app.
  */
 describe('sub-snapshot subscriptions', () => {
     beforeAll(() => Onyx.init({keys: ONYXKEYS}));

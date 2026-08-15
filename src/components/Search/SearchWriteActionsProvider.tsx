@@ -462,13 +462,13 @@ function SearchWriteActionsProvider({
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
-    // One lookup policy (snapshot first, live Onyx fallback) so a row's action flags can't differ by selection gesture.
+    // One policy for every gesture, live Onyx first: the hold and split flags read the optimistic row, and the snapshot only refreshes when the search returns.
     const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
         if (!transactionID) {
             return undefined;
         }
         const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
+        return isTransactionEntry(key) ? (transactions?.[key] ?? searchResultsData?.[key]) : undefined;
     };
 
     const resolveTransactionRefs = (item: TransactionListItemType) => {
@@ -560,6 +560,9 @@ function SearchWriteActionsProvider({
         applySelection(
             (selectedTransactions) => {
                 let updated: SelectedTransactions = {...selectedTransactions};
+                // Groups this batch took a row from, and groups it took whole. Whole wins, since that is the gesture a header click makes.
+                const partialGroupKeys = new Set<string>();
+                const wholeGroupKeys = new Set<string>();
                 // `blockGroupKey` is set only when a whole group row joins the range, which is what makes its children narrowable later.
                 const addTransaction = (tx: TransactionListItemType, blockGroupKey: string | undefined) => {
                     if (!tx.keyForList || isTransactionPendingDelete(tx)) {
@@ -568,11 +571,18 @@ function SearchWriteActionsProvider({
                     updated = spellOutGroupSelection(updated, tx.keyForList);
                     const [key, info] = buildSelectedEntry(tx);
                     const parentGroupKey = blockGroupKey ?? groupKeyByChildKeyRef.current.get(tx.keyForList);
+                    if (parentGroupKey) {
+                        (blockGroupKey ? wholeGroupKeys : partialGroupKeys).add(parentGroupKey);
+                    }
                     updated[key] = parentGroupKey ? {...info, groupKey: parentGroupKey, isSelectedViaGroup: !!blockGroupKey} : info;
                 };
                 const removeRow = (row: SearchData[number]) => {
                     if (isTransactionListItemType(row) || (isTransactionReportGroupListItemType(row) && row.transactions.length === 0)) {
                         if (row.keyForList) {
+                            const parentGroupKey = groupKeyByChildKeyRef.current.get(row.keyForList);
+                            if (parentGroupKey) {
+                                partialGroupKeys.add(parentGroupKey);
+                            }
                             updated = spellOutGroupSelection(updated, row.keyForList);
                             delete updated[row.keyForList];
                         }
@@ -599,11 +609,16 @@ function SearchWriteActionsProvider({
                             updated[key] = info;
                         }
                     } else if (isTransactionGroupListItemType(row)) {
+                        // Same as the group toggle: a group with nothing it can select is left exactly as it was.
+                        const selectable = (row.transactions ?? []).filter((child) => !isTransactionPendingDelete(child));
+                        if (selectable.length === 0) {
+                            return;
+                        }
                         // The children carry the selection once they are here, the same as the group toggle: leaving the group's own entry behind would count it twice.
-                        if (row.keyForList && row.transactions.length > 0) {
+                        if (row.keyForList) {
                             delete updated[row.keyForList];
                         }
-                        for (const child of row.transactions ?? []) {
+                        for (const child of selectable) {
                             addTransaction(child, row.keyForList);
                         }
                     }
@@ -613,6 +628,12 @@ function SearchWriteActionsProvider({
                 }
                 for (const row of batch.toSelect) {
                     addRow(row);
+                }
+                // Taking part of a group makes it partial, so the rows left behind stop claiming it covers them. Otherwise an export sends a whole-group filter.
+                for (const [key, transaction] of Object.entries(updated)) {
+                    if (transaction.isSelectedViaGroup && transaction.groupKey && partialGroupKeys.has(transaction.groupKey) && !wholeGroupKeys.has(transaction.groupKey)) {
+                        updated[key] = {...transaction, isSelectedViaGroup: false};
+                    }
                 }
                 return updated;
             },
@@ -688,8 +709,8 @@ function SearchWriteActionsProvider({
             if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();
-            } else {
-                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them.
+            } else if (groupTransactions.length === 0 || groupTransactions.some((transactionItem) => !isTransactionPendingDelete(transactionItem))) {
+                // Seed just this block: seeding the whole selection would span unrelated rows and deselect them. A group holding rows it cannot select commits nothing, so it seeds nothing.
                 seedGroup(item.keyForList);
             }
         } else if (!isShiftRangeHeaderItem(item)) {

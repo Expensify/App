@@ -348,9 +348,9 @@ function isGroupChecked({groupKey, children, selectedTransactions, excludedTrans
 
 /** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
 function getGroupCheckboxState(params: GroupSelectionParams): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
-    const selectable = params.children.filter((child) => !isTransactionPendingDelete(child));
-    const selectedCount = countCheckedGroupChildren({...params, children: selectable});
-    return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectable.length};
+    const selectableParams = {...params, children: params.children.filter((child) => !isTransactionPendingDelete(child))};
+    const selectedCount = countCheckedGroupChildren(selectableParams);
+    return {isSelectAllChecked: isGroupChecked(selectableParams), isIndeterminate: selectedCount > 0 && selectedCount !== selectableParams.children.length};
 }
 
 /** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */

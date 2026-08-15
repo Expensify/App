@@ -554,6 +554,34 @@ describe('Lazily loaded group selection', () => {
         expect(Object.keys(result.current.selectedTransactions)).toEqual(['1', '2']);
     });
 
+    it('stops marking a group as covering the rows a range left on the far side of the anchor', async () => {
+        const {result} = renderSelection(TwoGroupWrapper);
+        const [earlierFirstChild] = earlierChildren;
+        const [, secondChild] = loadedChildren;
+
+        // Given the lower group selected from its header, so both of its rows are marked as covered by the group
+        await act(async () => {
+            expandGroup(result, EARLIER_GROUP_KEY, earlierChildren);
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        await act(async () => {
+            result.current.toggle(categoryGroup, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBe(true);
+
+        // When a shift+click reaches up into the group above, so the block's second row is left on the far side of the anchor
+        await act(async () => {
+            result.current.toggle(earlierFirstChild, undefined, true);
+            await waitForBatchedUpdatesWithAct();
+        });
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelected).toBe(true);
+
+        // Then that row stops claiming its group covers it, or an export would send a whole-group filter and reach every row in it
+        expect(result.current.selectedTransactions[secondChild.keyForList]?.isSelectedViaGroup).toBeFalsy();
+    });
+
     it('writes a group out into the rows that arrived when one of them is clicked, rather than refusing the click', async () => {
         const {result, rerender} = renderSelection(PagingWrapper);
         const [firstChild, secondChild] = loadedChildren;
