@@ -14,7 +14,7 @@ type OpenGroupsRegistry = {
 };
 
 /**
- * Which groups a shift+click range may reach into. A group's rows come from the list itself; the one thing the rows
+ * Which groups a shift+click range may reach into. A group's rows come from the list itself. The one thing the rows
  * cannot answer for the provider is whether the group is open, because whoever owns the expanded state owns that.
  * Scoped to one search, so a group left open across a query change cannot range over the previous results.
  */
@@ -49,7 +49,7 @@ function useOpenGroupsRegistry(searchHash: number): OpenGroupsRegistry {
             }),
     }));
 
-    // Only the container changes when the registry is dropped; the methods keep their identity, so subscribers stay put.
+    // Only the container changes when the registry is dropped. The methods keep their identity, so subscribers stay put.
     return {openGroupKeys, shiftRangeGroupsActions: {...methods, registryGeneration: registryHash}};
 }
 

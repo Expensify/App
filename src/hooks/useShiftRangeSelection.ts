@@ -53,6 +53,9 @@ type SessionState = ResolvedSession | {kind: 'seeded'; isMember: (key: string) =
 
 const IDLE: ResolvedSession = {kind: 'idle'};
 
+/** Nothing painted. Shared so a session that adopts no block compares against one empty set rather than allocating its own. */
+const NO_KEYS: ReadonlySet<string> = new Set();
+
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
     // The api methods are built once and read the latest params here, refreshed during the commit so a click in the same frame as a re-render sees the current rows.
@@ -157,11 +160,8 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
  * A session with no continuity adopts rows that read as selected without having been picked on their own, since those came from a
  * block selection a range may narrow. Inert unless `isItemProtected` is passed.
  */
-function startingPainted<TItem>(params: Params<TItem>, sameAnchor: boolean): ReadonlySet<string> {
+function adoptUnprotectedBlock<TItem>(params: Params<TItem>): ReadonlySet<string> {
     const keys = new Set<string>();
-    if (sameAnchor) {
-        return keys;
-    }
     const isProtected = params.isItemProtected ?? params.isItemSelected;
     for (const row of params.items) {
         if (isExcluded(params, row)) {
@@ -199,7 +199,7 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
 
     const keyToIndex = buildKeyIndex(params);
 
-    // A seeded block resolves here rather than when it was seeded; with none of it on screen there is nothing to narrow, so the click starts a range where it landed.
+    // A seeded block resolves here rather than when it was seeded. With none of it on screen there is nothing to narrow, so the click starts a range where it landed.
     const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember) ?? {kind: 'anchored', anchor: targetKey}) : state;
 
     const seed = resolved.kind === 'idle' ? null : resolved.anchor;
@@ -210,7 +210,15 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
     const sameAnchor = resolved.kind !== 'idle' && anchor === resolved.anchor;
     const continuing = resolved.kind === 'ranging' && sameAnchor;
-    const prevPainted: ReadonlySet<string> = continuing ? resolved.painted : startingPainted(params, sameAnchor);
+    let prevPainted: ReadonlySet<string>;
+    if (continuing) {
+        prevPainted = resolved.painted;
+    } else if (sameAnchor) {
+        // The anchor is the row the user just clicked, so there is no earlier block for this session to adopt.
+        prevPainted = NO_KEYS;
+    } else {
+        prevPainted = adoptUnprotectedBlock(params);
+    }
     const preSelected = protectedKeys(params, prevPainted);
 
     const anchorIdx = keyToIndex.get(anchor);

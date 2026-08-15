@@ -10,9 +10,7 @@ import {turnOffMobileSelectionMode, turnOnMobileSelectionMode} from '@libs/actio
 import {
     isGroupedItemArray,
     isReportActionListItemType,
-    isReportEntry,
     isTaskListItemType,
-    isTransactionEntry,
     isTransactionGroupListItemType,
     isTransactionListItemType,
     isTransactionReportGroupListItemType,
@@ -26,7 +24,7 @@ import type {SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
 import React, {useEffect, useLayoutEffect, useRef} from 'react';
@@ -42,6 +40,7 @@ import {useSyncSelectedReports} from './SearchSelectionProvider';
 import {
     buildShiftRangeSource,
     countFullyExcludedItems,
+    createSearchLookups,
     isGroupSelected,
     isRowChecked,
     mapEmptyReportToSelectedEntry,
@@ -177,23 +176,15 @@ function SearchWriteActionsProvider({
     const currentUserEmail = email ?? '';
     const currentUserLogin = login ?? '';
 
-    // One lookup policy (snapshot first, live Onyx fallback) so a row's action flags can't differ by selection gesture.
-    const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
-        if (!transactionID) {
-            return undefined;
-        }
-        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
-        return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
-    };
+    // Shared with the reconcile pass, so a row's action flags can't differ by selection gesture.
+    const {readTransaction, readSnapshotReport} = createSearchLookups({searchResultsData, transactions});
 
     const resolveTransactionRefs = (item: TransactionListItemType) => {
         const itemTransaction = readTransaction(item.transactionID);
-        const parentReportID = item.report?.parentReportID;
-        const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${parentReportID}`;
         return {
             itemTransaction,
             originalItemTransaction: readTransaction(itemTransaction?.comment?.originalTransactionID),
-            parentReport: parentReportID && isReportEntry(parentReportKey) ? searchResultsData?.[parentReportKey] : undefined,
+            parentReport: readSnapshotReport(item.report?.parentReportID),
         };
     };
 
@@ -395,7 +386,7 @@ function SearchWriteActionsProvider({
     // A row checked through a group header belongs to that block, so a range may take it back. Report rows are the row the user clicked, not a block.
     const isRowHandPicked = (item: SearchData[number]) => {
         const selectedTransactions = getSelectedTransactions();
-        // A report row is the row the user clicked, so any selected child makes it hand-picked — unlike a group header, which selects a block.
+        // A report row is the row the user clicked, so any selected child makes it hand-picked. A group header selects a block instead.
         if (isTransactionGroupListItemType(item) && item.transactions.length > 0) {
             return item.transactions.some((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
         }
@@ -434,7 +425,7 @@ function SearchWriteActionsProvider({
         // One children source for the seed and the selection, so a group can't seed a different block than it selects.
         const groupTransactions = isTransactionGroupListItemType(item) ? (itemTransactions ?? item.transactions ?? []) : [];
 
-        if (isShiftRangeHeaderItem(item) && isTransactionGroupListItemType(item)) {
+        if (isTransactionGroupListItemType(item) && isShiftRangeHeaderItem(item)) {
             if (isGroupSelected(groupSelectionParams(item.keyForList, groupTransactions))) {
                 // Deselecting paints no block, so reset instead of leaving a stale span to collapse.
                 rangeApi.clearAnchor();

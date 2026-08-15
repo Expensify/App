@@ -292,7 +292,7 @@ type SearchRowSelectionActionsValue = {
     toggleAll: () => void;
 };
 
-/** Lets lazily-loaded group-by children publish themselves to the shift-range source. */
+/** Lets whoever owns a group's expanded state say whether a shift+click range may reach the rows it renders. */
 type SearchShiftRangeGroupsActions = {
     /** Let a range reach a group's rows, for as long as it is open. Called by whoever owns the expanded state. */
     addGroupToRange: (groupKey: string) => void;

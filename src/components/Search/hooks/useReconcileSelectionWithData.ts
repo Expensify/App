@@ -1,11 +1,10 @@
 import {useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import {mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry} from '@components/Search/selectionBuilders';
+import {createSearchLookups, mapEmptyReportToSelectedEntry, mapTransactionItemToSelectedEntry} from '@components/Search/selectionBuilders';
 import type {SearchData, SelectedTransactionInfo, SelectedTransactions} from '@components/Search/types';
 
 import {canRejectReportAction} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -97,6 +96,8 @@ function useReconcileSelectionWithData({
         if (type === CONST.SEARCH.DATA_TYPES.CHAT) {
             return;
         }
+        // The same lookups the write path uses, so a reconcile cannot compute different action flags than the click that selected the row.
+        const {readTransaction, readSnapshotReport} = createSearchLookups({searchResultsData, transactions});
         const newTransactionList: SelectedTransactions = {};
         const liveSelectionEntries = new Map<string, SelectedTransactionInfo>();
         const presentGroupKeys = new Set<string>();
@@ -152,15 +153,12 @@ function useReconcileSelectionWithData({
                         continue;
                     }
 
-                    const itemTransaction = (searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] ??
-                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`]) as OnyxEntry<Transaction>;
-                    const originalItemTransaction =
-                        searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`] ??
-                        transactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                    const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                    const itemTransaction = readTransaction(transactionItem.transactionID);
+                    const originalItemTransaction = readTransaction(itemTransaction?.comment?.originalTransactionID);
+                    const itemParentReport = readSnapshotReport(transactionItem.report?.parentReportID);
                     const previousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
-                    // The overrides below are what reconcile computes differently from a toggle — keep them.
+                    // The overrides below are what reconcile computes differently from a toggle, so keep them.
                     const [, baseEntry] = mapTransactionItemToSelectedEntry({
                         item: transactionItem,
                         itemTransaction,
@@ -201,9 +199,9 @@ function useReconcileSelectionWithData({
                     continue;
                 }
 
-                const itemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionItem.transactionID}`] as OnyxEntry<Transaction>;
-                const originalItemTransaction = searchResultsData?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${itemTransaction?.comment?.originalTransactionID}`];
-                const itemParentReport = searchResultsData?.[`${ONYXKEYS.COLLECTION.REPORT}${transactionItem.report?.parentReportID}`] as OnyxEntry<Report>;
+                const itemTransaction = readTransaction(transactionItem.transactionID);
+                const originalItemTransaction = readTransaction(itemTransaction?.comment?.originalTransactionID);
+                const itemParentReport = readSnapshotReport(transactionItem.report?.parentReportID);
                 const flatPreviousSelection = selectedTransactions[listKey] ?? selectedTransactions[transactionItem.transactionID];
 
                 const [, baseEntry] = mapTransactionItemToSelectedEntry({
@@ -268,7 +266,7 @@ function useReconcileSelectionWithData({
                 }
 
                 // Lazy group children are held in a separate snapshot. Keep their exclusions while the parent
-                // group is still present; if the parent disappears, the child no longer matches this search.
+                // group is still present. If the parent disappears, the child no longer matches this search.
                 if (excludedTransaction.groupKey && liveSelectionEntries.has(excludedTransaction.groupKey)) {
                     nextExcludedTransactions[key] = excludedTransaction;
                 }

@@ -582,7 +582,7 @@ function MoneyRequestReportTransactionList({
     useEffect(() => {
         clearSelectedTransactions(true);
         rangeApi.clearAnchor();
-        // Only the report should re-run this; `clearSelectedTransactions` in the deps can loop, and `rangeApi` is stable.
+        // Only the report should re-run this. `clearSelectedTransactions` in the deps can loop, and `rangeApi` is stable.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [reportID]);
 

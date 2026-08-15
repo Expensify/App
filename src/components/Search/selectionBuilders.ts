@@ -1,15 +1,47 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {isGroupedItemArray, isReportEntry, isTransactionEntry, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
 import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
-import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
+
+type SearchLookupSources = {
+    /** The raw search snapshot, which holds the denormalized rows the list was built from */
+    searchResultsData: SearchResults['data'] | undefined;
+
+    /** The live TRANSACTION collection, read where the snapshot has not caught up */
+    transactions: OnyxCollection<Transaction>;
+};
+
+/**
+ * One lookup policy for the rows a selection is built from, so a row's action flags cannot depend on which gesture
+ * selected it. A transaction reads from the snapshot first and live Onyx second; a report reads from the snapshot,
+ * which is where the list's denormalized reports live. The key guards do the narrowing, so neither needs a cast.
+ */
+function createSearchLookups({searchResultsData, transactions}: SearchLookupSources) {
+    const readTransaction = (transactionID: string | undefined): OnyxEntry<Transaction> => {
+        if (!transactionID) {
+            return undefined;
+        }
+        const key = `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`;
+        return isTransactionEntry(key) ? (searchResultsData?.[key] ?? transactions?.[key]) : undefined;
+    };
+    const readSnapshotReport = (reportID: string | undefined): OnyxEntry<Report> => {
+        if (!reportID) {
+            return undefined;
+        }
+        const key = `${ONYXKEYS.COLLECTION.REPORT}${reportID}`;
+        return isReportEntry(key) ? searchResultsData?.[key] : undefined;
+    };
+    return {readTransaction, readSnapshotReport};
+}
 
 type MapTransactionItemToSelectedEntryParams = {
     /** The transaction row being added to the selection */
@@ -522,6 +554,7 @@ function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: Read
 }
 
 export {
+    createSearchLookups,
     mapTransactionItemToSelectedEntry,
     mapEmptyReportToSelectedEntry,
     prepareTransactionsList,
