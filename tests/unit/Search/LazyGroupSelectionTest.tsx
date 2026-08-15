@@ -373,6 +373,22 @@ describe('Lazily loaded group selection', () => {
         });
     });
 
+    it('keeps the row actions stable when a group opens, so expanding one does not re-render every row', async () => {
+        const {result} = renderSelection();
+        const toggleBefore = result.current.toggle;
+        const toggleAllBefore = result.current.toggleAll;
+
+        // When a group opens, which changes the rows a range spans and the parent each belongs to
+        await act(async () => {
+            expandGroup(result, GROUP_KEY, loadedChildren);
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        // Then the actions every row holds are the same functions, since the write path reads that index at the gesture
+        expect(result.current.toggle).toBe(toggleBefore);
+        expect(result.current.toggleAll).toBe(toggleAllBefore);
+    });
+
     it('stores the selection under the group key while the children are still unknown', async () => {
         const {result} = renderSelection();
 

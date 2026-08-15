@@ -432,6 +432,13 @@ function reconcileExclusions({previousSelectedTransactions, selectedTransactions
     return next;
 }
 
+/** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
+function getGroupCheckboxState(params: GroupSelectionParams): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
+    const selectable = params.children.filter((child) => !isTransactionPendingDelete(child));
+    const selectedCount = countCheckedGroupChildren({...params, children: selectable});
+    return {isSelectAllChecked: isGroupChecked(params), isIndeterminate: selectedCount > 0 && selectedCount !== selectable.length};
+}
+
 /** How many of a group's rows read as checked, which is what tells a full selection from a partial one. */
 function countCheckedGroupChildren({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): number {
     return children.reduce(
@@ -523,6 +530,7 @@ export {
     isGroupSelected,
     isGroupChecked,
     countCheckedGroupChildren,
+    getGroupCheckboxState,
     countFullyExcludedItems,
     reconcileExclusions,
     countSelectableItems,

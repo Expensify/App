@@ -658,8 +658,7 @@ function MoneyRequestReportTransactionList({
             if (!group) {
                 return;
             }
-            const selectableChildren = group.transactions.filter((t) => !isTransactionPendingDelete(t));
-            const groupTransactionIDs = selectableChildren.map((t) => t.transactionID);
+            const groupTransactionIDs = group.transactions.filter((t) => !isTransactionPendingDelete(t)).map((t) => t.transactionID);
             const anySelected = groupTransactionIDs.some((id) => selectedTransactionIDs.includes(id));
             const nextSelectedIDs = anySelected ? selectedTransactionIDs.filter((id) => !groupTransactionIDs.includes(id)) : [...selectedTransactionIDs, ...groupTransactionIDs];
             setSelectedTransactions(nextSelectedIDs);
