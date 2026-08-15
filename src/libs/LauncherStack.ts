@@ -49,14 +49,6 @@ function pickLauncher(): HTMLElement | null {
     return null;
 }
 
-/**
- * Whether `element` is still tracked. A forward navigation consumes its launcher (see captureTriggerForRoute), so a
- * missing entry means navigation already claimed this launcher and owns the focus restore from here on.
- */
-function hasLauncher(element: HTMLElement): boolean {
-    return launcherStack.some((entry) => entry.element === element);
-}
-
 function consumeLauncher(element: HTMLElement): void {
     const idx = launcherStack.findIndex((e) => e.element === element);
     if (idx >= 0) {
@@ -105,4 +97,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};
+export {pickLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};
