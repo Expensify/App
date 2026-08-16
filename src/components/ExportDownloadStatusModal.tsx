@@ -103,6 +103,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     const handleDownloadFile = () => {
         downloadFile();
+        // Clearing the export download is owned by the parent's onClose handler (it runs on every dismissal and
+        // skips the clear for the Concierge path). Clearing here too would queue a duplicate ClearExportDownload write.
         onClose();
     };
 
