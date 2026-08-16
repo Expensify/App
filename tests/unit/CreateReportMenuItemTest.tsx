@@ -11,10 +11,6 @@ import type {Policy} from '@src/types/onyx';
 
 import React from 'react';
 
-type MockOnyxOptions = {
-    selector?: (value: unknown) => unknown;
-};
-
 jest.mock('@hooks/useCreateReport', () => jest.fn(() => ({createReport: jest.fn(), isVisible: false})));
 const mockUseCreateReport = jest.mocked(useCreateReport);
 
@@ -37,7 +33,7 @@ jest.mock('@hooks/useLocalize', () => ({
 }));
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
-const mockUseOnyx = jest.mocked(useOnyx);
+const mockUseOnyx: jest.Mock = jest.mocked(useOnyx);
 
 jest.mock('@hooks/usePermissions', () => ({
     __esModule: true,
@@ -121,7 +117,7 @@ function setupUseOnyx() {
         [ONYXKEYS.NVP_INTRO_SELECTED, false],
     ]);
 
-    mockUseOnyx.mockImplementation((key: string, options?: MockOnyxOptions) => {
+    mockUseOnyx.mockImplementation((key: string, options?: {selector?: (value: unknown) => unknown}) => {
         const value = values.get(key);
         return [options?.selector ? options.selector(value) : value, {status: 'loaded'}];
     });

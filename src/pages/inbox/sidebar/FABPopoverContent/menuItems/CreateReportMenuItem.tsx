@@ -39,7 +39,7 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
     }
     const result: OnyxTypes.Policy[] = [];
     for (const policy of Object.values(policies)) {
-        if (policy?.isJoinRequestPending || !isGroupPolicy(policy) || !shouldShowPolicy(policy, false, currentUserLogin)) {
+        if (!policy || policy.isJoinRequestPending || !isGroupPolicy(policy) || !shouldShowPolicy(policy, false, currentUserLogin)) {
             continue;
         }
 
