@@ -12,6 +12,7 @@ import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
@@ -27,7 +28,7 @@ import CONST from '@src/CONST';
 import type {Camera, PhotoFile} from 'react-native-vision-camera';
 
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
-import {Modal, View} from 'react-native';
+import {Modal, Platform, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
@@ -58,6 +59,7 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const {translate} = useLocalize();
     const insets = useSafeAreaInsets();
     const StyleUtils = useStyleUtils();
+    const {windowWidth, windowHeight} = useWindowDimensions();
     const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'boltSlash', 'CameraFlip', 'Close']);
     const lazyIllustrations = useMemoizedLazyIllustrations(['Shutter', 'Hand']);
 
@@ -72,9 +74,18 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
 
+    // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
+    // format. The live viewfinder renders from the video pipeline, so videoResolution controls preview
+    // quality (capture uses takePhoto and always renders at the photo resolution):
+    //  - iOS: match the photo target so the selector doesn't pair the photo size with a low video
+    //    resolution, which would otherwise make the preview blurry/grainy.
+    //  - Android: keep screen dimensions to avoid burning GPU on a higher-than-needed preview surface.
     const format = useCameraFormat(device, [
         {photoAspectRatio: CONST.RECEIPT_CAMERA.PHOTO_ASPECT_RATIO},
         {photoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}},
+        Platform.OS === 'ios'
+            ? {videoResolution: {width: CONST.RECEIPT_CAMERA.PHOTO_WIDTH, height: CONST.RECEIPT_CAMERA.PHOTO_HEIGHT}}
+            : {videoResolution: {width: windowHeight, height: windowWidth}},
     ]);
     const hasFlash = !!device?.hasFlash;
     // Format dimensions are in landscape orientation, so height/width gives portrait aspect ratio
