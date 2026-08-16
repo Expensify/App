@@ -1,5 +1,5 @@
 import AutoGrowHeightInputContainer from '@components/AutoGrowHeightInputContainer';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
@@ -17,6 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 
 import type {TextInput as RNTextInput, StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
@@ -25,7 +26,7 @@ type TextInputFilterContentProps = {
     baseFilterKey: Exclude<SearchTextFilterKeys, typeof CONST.SEARCH.SYNTAX_ROOT_KEYS.LIMIT | ReportFieldTextKey>;
     value: string | undefined;
     isNegated: boolean;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
     shouldFillAvailableHeight?: boolean;
     style?: StyleProp<ViewStyle>;
@@ -36,16 +37,7 @@ function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({
-    baseFilterKey,
-    value: initialValue,
-    isNegated: initialIsNegated,
-    autoFocus,
-    largeButton,
-    shouldFillAvailableHeight,
-    style,
-    onChange,
-}: TextInputFilterContentProps) {
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, shouldFillAvailableHeight, style, onChange}: TextInputFilterContentProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -98,12 +90,13 @@ function TextInputFilterContent({
             </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
-                success
-                large={largeButton}
-                text={translate('common.confirm')}
-                pressOnEnter={!shouldFillAvailableHeight}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={size}
                 onPress={submit}
-            />
+            >
+                {!shouldFillAvailableHeight && <Button.KeyboardShortcut />}
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </View>
     );
 }

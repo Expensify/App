@@ -10,7 +10,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 type ButtonMockProps = {
-    pressOnEnter?: boolean;
+    children?: React.ReactNode;
 };
 
 type NegatableFilterMockProps = {
@@ -33,6 +33,7 @@ type TextInputMockProps = {
 };
 
 const mockButton = jest.fn<void, [ButtonMockProps]>();
+const mockKeyboardShortcut = jest.fn();
 const mockNegatableFilter = jest.fn<void, [NegatableFilterMockProps]>();
 const mockTextInput = jest.fn<void, [TextInputMockProps]>();
 const MockView = View;
@@ -45,9 +46,22 @@ jest.mock('@components/AutoGrowHeightInputContainer', () => ({
         return MockReact.createElement(MockView, {testID: 'auto-grow-container'}, children(420));
     },
 }));
-jest.mock('@components/Button', () => (props: ButtonMockProps) => {
-    mockButton(props);
-    return null;
+jest.mock('@components/ButtonComposed', () => {
+    function MockButton(props: ButtonMockProps) {
+        mockButton(props);
+        return props.children;
+    }
+
+    MockButton.KeyboardShortcut = () => {
+        mockKeyboardShortcut();
+        return null;
+    };
+    MockButton.Text = ({children}: {children: React.ReactNode}) => children;
+
+    return {
+        __esModule: true,
+        default: MockButton,
+    };
 });
 jest.mock('@components/Search/FilterComponents/NegatableFilter', () => {
     const MockReact = jest.requireActual<typeof React>('react');
@@ -84,6 +98,7 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
 describe('TextInputFilterContent', () => {
     beforeEach(() => {
         mockButton.mockClear();
+        mockKeyboardShortcut.mockClear();
         mockNegatableFilter.mockClear();
         mockTextInput.mockClear();
         mockValidationError = '';
@@ -159,7 +174,7 @@ describe('TextInputFilterContent', () => {
         const textInputProps = mockTextInput.mock.calls.at(-1)?.[0];
         expect(textInputProps?.submitBehavior).toBe('submit');
         expect(typeof textInputProps?.onSubmitEditing).toBe('function');
-        expect(mockButton.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({pressOnEnter: false}));
+        expect(mockKeyboardShortcut).not.toHaveBeenCalled();
 
         act(() => {
             mockTextInput.mock.calls.at(-1)?.[0].onChangeText?.('Tea');
@@ -218,6 +233,6 @@ describe('TextInputFilterContent', () => {
                 onSubmitEditing: undefined,
             }),
         );
-        expect(mockButton.mock.calls.at(-1)?.[0]).toEqual(expect.objectContaining({pressOnEnter: true}));
+        expect(mockKeyboardShortcut).toHaveBeenCalledTimes(1);
     });
 });
