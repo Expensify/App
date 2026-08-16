@@ -28,17 +28,14 @@ type AllCountries = Record<Country, string>;
 
 const translations = {
     common: {
-        // @context A duration of whole days, e.g. "2 days". Joined with other units by Intl.ListFormat.
         durationDays: ({count}: {count: number}) => ({
             one: '1 day',
             other: `${count} days`,
         }),
-        // @context A duration of whole hours, e.g. "2 hours". Joined with other units by Intl.ListFormat.
         durationHours: ({count}: {count: number}) => ({
             one: '1 hour',
             other: `${count} hours`,
         }),
-        // @context A duration of whole minutes, e.g. "2 minutes". Joined with other units by Intl.ListFormat.
         durationMinutes: ({count}: {count: number}) => ({
             one: '1 minute',
             other: `${count} minutes`,

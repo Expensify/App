@@ -1287,7 +1287,7 @@ describe('SubscriptionUtils', () => {
         };
 
         const translate = jest.fn((key: string, ...parameters: unknown[]) => {
-            const remainingDays = parameters.at(0) as number | undefined;
+            const remainingDays = (parameters.at(0) as {count?: number} | undefined)?.count;
             if (key === 'subscription.billingBanner.trialStarted.title' && remainingDays !== undefined) {
                 return `trialStarted:${remainingDays}`;
             }
@@ -1327,7 +1327,7 @@ describe('SubscriptionUtils', () => {
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
+            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', {count: expectedRemainingDays});
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 
