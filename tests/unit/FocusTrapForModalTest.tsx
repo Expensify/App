@@ -10,7 +10,7 @@ import React from 'react';
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
     markActivePopoverLauncherDeactivated: jest.fn(),
-    // Still on the stack by default — i.e. the trap closed without a forward navigation consuming its launcher.
+    // Still on the stack by default, i.e. the trap closed without a forward navigation consuming its launcher.
     hasLauncher: jest.fn(() => true),
     pickLauncher: jest.fn(() => null),
 }));
