@@ -216,6 +216,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
@@ -403,12 +404,13 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 introSelected,
                 isSelfTourViewed,
                 betas,
+                reportNameValuePairs,
             );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom, reportNameValuePairs);
     }, [
         isRootGroupChat,
         isPolicyEmployee,
@@ -420,6 +422,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
+        reportNameValuePairs,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
@@ -1049,6 +1052,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
+                    reportNameValuePairs,
                 },
             );
             return;
@@ -1105,6 +1109,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        reportNameValuePairs,
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,

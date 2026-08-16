@@ -1238,11 +1238,12 @@ describe('actions/Task', () => {
         it('should return most recent report route when no parentReportID and getMostRecentReportID returns a value', () => {
             const taskReport = {...getFakeReport(), parentReportID: undefined};
             const mostRecentReportID = 'recent_456';
+            const reportNameValuePairs = {};
             getMostRecentReportIDSpy.mockReturnValue(mostRecentReportID);
 
-            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined);
+            const result = getNavigationUrlOnTaskDelete(taskReport, 'concierge_123', undefined, reportNameValuePairs);
             expect(result).toBe(`r/${mostRecentReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123');
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, 'concierge_123', reportNameValuePairs);
         });
 
         it('should pass conciergeReportID to getMostRecentReportID as fallback', () => {
@@ -1252,7 +1253,7 @@ describe('actions/Task', () => {
 
             const result = getNavigationUrlOnTaskDelete(taskReport, conciergeReportID, undefined);
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID, undefined);
         });
 
         it('should return undefined when no parentReportID, no most recent report, and conciergeReportID is undefined', () => {
@@ -1610,7 +1611,7 @@ describe('actions/Task', () => {
             const result = deleteTask(taskReport, undefined, false, mockCurrentUserAccountID, false, undefined, conciergeReportID, undefined, undefined);
 
             expect(result).toBe(`r/${conciergeReportID}`);
-            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID);
+            expect(getMostRecentReportIDSpy).toHaveBeenCalledWith(taskReport, conciergeReportID, undefined);
             expect(Navigation.goBack).toHaveBeenCalled();
         });
 

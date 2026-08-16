@@ -36,6 +36,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const hasRefetchedPublicRoom = useRef(false);
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -56,7 +57,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
+        if (
+            isLoadingOnyxValue(allReportsMetadata, reportNameValuePairsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)
+        ) {
             return;
         }
 
@@ -113,6 +116,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         isSelfTourViewed,
                         betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        reportNameValuePairs,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -147,7 +151,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+            openReportFromDeepLink(
+                state.url,
+                allReports,
+                isCurrentlyAuthenticated,
+                conciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportNameValuePairs,
+            );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
@@ -156,12 +170,13 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             clearTimeout(timeoutId);
             linkingChangeListener.current?.remove();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- intentionally excluding allReports, reportNameValuePairs, isAuthenticated, and onInitialUrl to avoid re-triggering deep link handling on every report update
     }, [
         conciergeReportID,
         introSelected,
         betas,
         allReportsMetadata.status,
+        reportNameValuePairsMetadata.status,
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
         introSelectedMetadata.status,
