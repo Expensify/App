@@ -7,6 +7,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import truncate from 'lodash/truncate';
@@ -36,6 +37,7 @@ import {
     isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
+    isManagedCardTransaction,
     isMerchantMissing,
     isOnHold,
     isPending,
@@ -123,6 +125,10 @@ type TranslationPathOrText = {
     text?: string;
 };
 
+const dotSeparator: TranslationPathOrText = {
+    text: ` ${CONST.DOT_SEPARATOR} `,
+};
+
 /**
  * Normalize the last four digits to always return 4 characters.
  * If the number is shorter than 4 digits, it will be padded with X's.
@@ -195,6 +201,7 @@ function getUniqueActionErrorsForTransaction(reportActions: OnyxTypes.ReportActi
 
 function getTransactionPreviewTextAndTranslationPaths({
     iouReport,
+    iouReportOwnerLogin,
     policy,
     transaction,
     action,
@@ -202,13 +209,16 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails,
     isBillSplit,
     shouldShowRBR,
-    shouldShowCanceledStatus,
     violationMessage,
     reportActions,
+    currentUserEmail,
+    currentUserAccountID,
     originalTransaction,
     convertToDisplayString,
+    dateFnsLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
+    iouReportOwnerLogin: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     action: OnyxEntry<OnyxTypes.ReportAction>;
@@ -216,17 +226,20 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
-    /** Whether a cancelled payment has to be reported on this line, because the enclosing surface doesn't show it anywhere else */
-    shouldShowCanceledStatus: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
+    currentUserEmail: string;
+    currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    dateFnsLocale: DateFnsLocale | undefined;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
+    const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isSettlementOrApprovalPartial = !!iouReport?.pendingFields?.partial;
+    const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
 
     // We don't use isOnHold because it's true for duplicated transaction too and we only want to show hold message if the transaction is truly on hold
     const shouldShowHoldMessage = !(isMoneyRequestSettled && !isSettlementOrApprovalPartial) && !!transaction?.comment?.hold;
@@ -234,6 +247,8 @@ function getTransactionPreviewTextAndTranslationPaths({
     const hasFieldErrors = hasMissingSmartscanFields(transaction, iouReport);
     const isGroupPolicy = isGroupPolicyUtil(policy);
 
+    const hasViolationsOfTypeNotice =
+        hasNoticeTypeViolation(transaction, violations, currentUserEmail ?? '', currentUserAccountID, iouReport, iouReportOwnerLogin, policy, true) && isGroupPolicy;
     const hasActionWithErrors = hasActionWithErrorsForTransaction(iouReport?.reportID, transaction, reportActions);
 
     const {amount: requestAmount, currency: requestCurrency} = transactionDetails;
@@ -294,60 +309,89 @@ function getTransactionPreviewTextAndTranslationPaths({
         }
     }
 
-    let previewTypeText: TranslationPathOrText = {translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction))};
+    let previewHeaderText: TranslationPathOrText[] = [
+        {
+            translationPath: getExpenseTypeTranslationKey(getTransactionType(transaction)),
+        },
+    ];
 
     if (isTransactionScanning) {
-        previewTypeText = {translationPath: 'common.receipt'};
+        previewHeaderText = [{translationPath: 'common.receipt'}];
     } else if (isBillSplit) {
-        previewTypeText = {translationPath: 'iou.split'};
+        previewHeaderText = [{translationPath: 'iou.split'}];
     }
 
     if (RBRMessage?.text === CONST.ERROR.BANK_ACCOUNT_SAME_DEPOSIT_AND_WITHDRAWAL_ERROR) {
-        RBRMessage = {translationPath: 'bankAccount.error.sameDepositAndWithdrawalAccount'};
+        RBRMessage = {
+            translationPath: 'bankAccount.error.sameDepositAndWithdrawalAccount',
+        };
     }
 
     RBRMessage ??= {text: ''};
 
-    let previewDateText: TranslationPathOrText | undefined;
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
-        const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT);
-        previewDateText = {text: date};
+        const date = DateUtils.formatWithUTCTimeZone(
+            created,
+            DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
+        );
+        previewHeaderText.unshift({text: date}, dotSeparator);
     }
-
-    // Paid, Approved and Review required are intentionally omitted here because the report status badge and the violation
-    // row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
-    // stateNum/statusNum, so surfaces without their own report status badge have to report it here.
-    const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
-        previewStatusText.push({translationPath: 'iou.pending'});
+        previewHeaderText.push(dotSeparator, {translationPath: 'iou.pending'});
     }
 
-    if (shouldShowCanceledStatus && iouReport?.isCancelledIOU) {
-        previewStatusText.push({translationPath: 'iou.canceled'});
-    } else if (hasPendingRTERViolation(violations)) {
-        previewStatusText.push({translationPath: 'iou.pendingMatch'});
-    } else if (shouldShowHoldMessage) {
-        previewStatusText.push({translationPath: 'violations.hold'});
+    if (hasPendingRTERViolation(violations)) {
+        previewHeaderText.push(dotSeparator, {
+            translationPath: 'iou.pendingMatch',
+        });
+    }
+
+    let isPreviewHeaderTextComplete = false;
+
+    if (isMoneyRequestSettled && !iouReport?.isCancelledIOU && !isPartialHold && !hasActionWithErrors) {
+        previewHeaderText.push(dotSeparator, {
+            translationPath: isTransactionMadeWithCard ? 'common.done' : 'iou.settledExpensify',
+        });
+        isPreviewHeaderTextComplete = true;
+    }
+
+    if (!isPreviewHeaderTextComplete) {
+        if (hasViolationsOfTypeNotice && transaction && !isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID)) {
+            previewHeaderText.push(dotSeparator, {
+                translationPath: 'violations.reviewRequired',
+            });
+        } else if (isExpenseReport(iouReport) && isGroupPolicyUtil(policy) && isReportApproved({report: iouReport}) && !isSettled(iouReport?.reportID) && !isPartialHold) {
+            previewHeaderText.push(dotSeparator, {translationPath: 'iou.approved'});
+        } else if (iouReport?.isCancelledIOU) {
+            previewHeaderText.push(dotSeparator, {translationPath: 'iou.canceled'});
+        } else if (shouldShowHoldMessage) {
+            previewHeaderText.push(dotSeparator, {
+                translationPath: 'violations.hold',
+            });
+        }
     }
 
     const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
+    } else if (hasFieldErrors && isAmountMissing(transaction, isExpenseReport(iouReport))) {
+        displayAmountText = {text: ''};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
-    const displayDeleteAmountText: TranslationPathOrText = {text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency)};
+    const displayDeleteAmountText: TranslationPathOrText = {
+        text: convertToDisplayString(iouOriginalMessage?.amount, iouOriginalMessage?.currency),
+    };
 
     return {
         RBRMessage,
         displayAmountText,
         displayDeleteAmountText,
-        previewDateText,
-        previewStatusText,
-        previewTypeText,
+        previewHeaderText,
     };
 }
 
@@ -382,8 +426,12 @@ function createTransactionPreviewConditionals({
 }) {
     const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
 
-    const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
-    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
+    const requestMerchant = truncate(merchant, {
+        length: CONST.REQUEST_PREVIEW.MAX_LENGTH,
+    });
+    const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {
+        length: CONST.REQUEST_PREVIEW.MAX_LENGTH,
+    });
 
     const isMoneyRequestSettled = isSettled(iouReport?.reportID);
     const isApproved = isReportApproved({report: iouReport});

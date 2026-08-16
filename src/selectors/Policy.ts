@@ -30,8 +30,6 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
 
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
-
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
@@ -271,29 +269,6 @@ const createFilteredPoliciesInfoSelector =
         return {filteredPoliciesCount, firstPolicyID};
     };
 
-/**
- * Maps every policy ID to the default category configured on its distance unit. Used when an expense is moved to
- * another workspace, where the destination policy isn't known until the user picks it, so subscribing to that single
- * policy isn't an option. Only the default categories are kept so the subscriber re-renders when one of them changes
- * rather than on any change to any policy.
- */
-const policyDistanceDefaultCategoriesSelector = (policies: OnyxCollection<Policy>): Record<string, string | undefined> => {
-    const result: Record<string, string | undefined> = {};
-
-    for (const policy of Object.values(policies ?? {})) {
-        if (!policy?.id) {
-            continue;
-        }
-        const distanceUnit = Object.values(policy.customUnits ?? {}).find((customUnit) => customUnit.name === CONST.CUSTOM_UNITS.NAME_DISTANCE);
-        if (!distanceUnit?.defaultCategory) {
-            continue;
-        }
-        result[policy.id] = distanceUnit.defaultCategory;
-    }
-
-    return result;
-};
-
 const hasOnlyPersonalPoliciesSelector = (policies: OnyxCollection<Policy>): boolean => {
     return !Object.values(policies ?? {}).some((policy) => policy && policy.type !== CONST.POLICY.TYPE.PERSONAL && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 };
@@ -379,6 +354,8 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -414,7 +391,6 @@ const createAdminPoliciesSelector =
 
 export type {PolicySelector};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
@@ -433,8 +409,8 @@ export {
     hasReusablePoliciesConnectedToSelector,
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
-    policyDistanceDefaultCategoriesSelector,
     policyNameSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,
