@@ -73,6 +73,8 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
         onReconnect: loadPolicyCompanyCardsPage,
     });
 
+    // A freshly created workspace has no account ID until the back end returns one, so we can't treat the policy as loaded yet.
+    // Offline that response can never arrive, so we consider the policy loaded to avoid showing a spinner that would never resolve.
     const isPolicyLoaded = !!policy && (policy.policyAccountID !== undefined || isOffline);
 
     const isLoading = !isOffline && (!allCardFeeds || (isFeedAdded && isLoadingOnyxValue(cardListMetadata)));

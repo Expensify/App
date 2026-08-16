@@ -53,7 +53,7 @@ type WorkspaceCompanyCardsTableProps = {
     /** Policy ID */
     policyID: string;
 
-    /** Whether the policy is fully loaded, i.e. its account ID has resolved */
+    /** Whether the policy is done loading, i.e. its account ID has resolved. Offline this is `true` even without an account ID, since it can never resolve until we reconnect */
     isPolicyLoaded: boolean;
 
     /** Whether the company cards page fetch is still expected to land, i.e. no feeds are cached for the workspace yet */
