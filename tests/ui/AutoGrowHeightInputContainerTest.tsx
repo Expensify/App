@@ -9,15 +9,17 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import variables from '@styles/variables';
 
+import type ReactNative from 'react-native';
+
 import React from 'react';
 import {Platform, View} from 'react-native';
 
 type MeasureContent = NonNullable<React.ComponentProps<typeof AutoGrowHeightInputContainer>['measureContent']>;
 
 const mockMeasureContent = jest.fn<void, Parameters<MeasureContent>>();
-const mockUseKeyboardState = useKeyboardState as jest.MockedFunction<typeof useKeyboardState>;
-const mockUseSafeAreaInsets = useSafeAreaInsets as jest.MockedFunction<typeof useSafeAreaInsets>;
-const mockUseWindowDimensions = useWindowDimensions as jest.MockedFunction<typeof useWindowDimensions>;
+const mockUseKeyboardState = jest.mocked(useKeyboardState);
+const mockUseSafeAreaInsets = jest.mocked(useSafeAreaInsets);
+const mockUseWindowDimensions = jest.mocked(useWindowDimensions);
 
 let platformReplaceProperty: jest.ReplaceProperty<string>;
 
@@ -36,7 +38,7 @@ jest.mock('@hooks/useWindowDimensions', () => jest.fn(() => ({windowWidth: 300, 
 jest.mock('@libs/getKeyboardHeight', () => ({
     __esModule: true,
     default: (height: number, bottomInset: number) => {
-        const {Platform: nativePlatform} = jest.requireActual<typeof import('react-native')>('react-native');
+        const {Platform: nativePlatform} = jest.requireActual<typeof ReactNative>('react-native');
         return nativePlatform.OS === 'android' ? height - bottomInset : height;
     },
 }));
