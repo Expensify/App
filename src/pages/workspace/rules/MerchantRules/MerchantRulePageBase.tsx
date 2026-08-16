@@ -41,7 +41,6 @@ import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
-import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {MerchantRuleForm} from '@src/types/form';
@@ -62,7 +61,6 @@ type MerchantRulePageBaseProps = {
     ruleID?: string;
     /** Pre-scopes the category default when creating a rule (e.g. from the category details RHP). */
     initialCategoryName?: string;
-    titleKey: TranslationPaths;
     testID: string;
 };
 

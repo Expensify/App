@@ -52,7 +52,6 @@ import {View} from 'react-native';
 type SpendRulePageBaseProps = {
     policyID: string;
     ruleID?: string;
-    titleKey: TranslationPaths;
     testID: string;
 
     /** Where the Control upgrade page should return to. Defaults to the workspace Rules page. */

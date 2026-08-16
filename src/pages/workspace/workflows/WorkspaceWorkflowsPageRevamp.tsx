@@ -30,6 +30,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 import ExpenseReportRulesSection from '@pages/workspace/rules/ExpenseReportRulesSection';
 import type {WithPolicyProps} from '@pages/workspace/withPolicy';
+import withPolicy from '@pages/workspace/withPolicy';
 import WorkspacePageWithSections from '@pages/workspace/WorkspacePageWithSections';
 
 import {getPaymentMethods} from '@userActions/PaymentMethods';
@@ -319,4 +320,4 @@ function WorkspaceWorkflowsPageRevamp({policy, route}: WorkspaceWorkflowsPageRev
     );
 }
 
-export default WorkspaceWorkflowsPageRevamp;
+export default withPolicy(WorkspaceWorkflowsPageRevamp);
