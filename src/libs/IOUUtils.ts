@@ -1,7 +1,9 @@
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {IOUAction, IOURequestType, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
-import type {OnyxInputOrEntry, Policy, Report, ReportAction, Transaction} from '@src/types/onyx';
+import type {OnyxInputOrEntry, Policy, Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
@@ -73,11 +75,19 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
  * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param getCurrencyDecimals - Currency lookup supplied by React consumers. Falls back during staged migration.
  */
-function calculateAmount(numberOfSplits: number, total: number, currency: string, isDefaultUser = false, useFloorToLastRounding = false): number {
+function calculateAmount(
+    numberOfSplits: number,
+    total: number,
+    currency: string,
+    isDefaultUser = false,
+    useFloorToLastRounding = false,
+    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, getCurrencyDecimals ? 10 ** getCurrencyDecimals(currency) : getCurrencyUnit(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
@@ -543,16 +553,19 @@ function resolveReportForMoneyRequest({
     transactionReport,
     routeReport,
     policy,
+    reportNameValuePair,
 }: {
     transaction: OnyxEntry<Transaction>;
     transactionReport: OnyxEntry<Report>;
     routeReport: OnyxEntry<Report>;
     policy: OnyxEntry<Policy>;
+    reportNameValuePair: OnyxInputOrEntry<ReportNameValuePairs>;
 }): OnyxEntry<Report> {
     if (transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID) {
         return undefined;
     }
-    const canUseTransactionReport = !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, undefined, false);
+    const canUseTransactionReport =
+        !(isProcessingReport(transactionReport) && !policy?.harvesting?.enabled) && isReportOutstanding(transactionReport, policy?.id, reportNameValuePair, false);
     const shouldUseTransactionReport = !!transactionReport && (canUseTransactionReport || !routeReport);
     if (shouldUseTransactionReport) {
         return transactionReport;

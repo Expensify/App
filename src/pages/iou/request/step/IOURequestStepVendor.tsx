@@ -18,6 +18,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getMatchingVendors, hasVendorFeature, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
+
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
@@ -64,6 +66,7 @@ function IOURequestStepVendor({
 
     const isFeatureAvailable = hasVendorFeature(policy, isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
     const isOnXero = isXeroActiveMatchingSource(policy);
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     // Vendor is scoped to non-reimbursable expenses on a policy expense chat; block deep-link / stale-open access if the transaction is reimbursable or is an invoice (invoices are non-reimbursable but don't route through the vendor-matching flow).
     const isReimbursable = !!transaction?.reimbursable;
@@ -109,6 +112,9 @@ function IOURequestStepVendor({
             updateMoneyRequestVendor({
                 transactionID,
                 vendorID: item.value,
+                // The injected "None" row clears the vendor: its value is '' but its text is the localized "None" label.
+                // Only forward a display name for a real vendor so a clear request never persists a bogus name.
+                vendorName: item.value ? (item.text ?? '') : '',
                 transaction,
                 transactionThreadReport: report,
                 parentReport,
@@ -128,7 +134,7 @@ function IOURequestStepVendor({
                 iconWidth={variables.emptyListIconWidth}
                 iconHeight={variables.emptyListIconHeight}
                 title={isOnXero ? translate('workspace.xero.noSuppliersFound') : translate('workspace.qbo.noAccountsFound')}
-                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription')}
+                subtitle={isOnXero ? translate('workspace.xero.noSuppliersFoundDescription') : translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
                 containerStyle={styles.pb10}
             />
         ) : null;

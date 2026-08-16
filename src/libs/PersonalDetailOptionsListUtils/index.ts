@@ -10,7 +10,7 @@ import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report, ReportAttributesDerivedValue} from '@src/types/onyx';
+import type {LoginList, OnyxInputOrEntry, PersonalDetails, PersonalDetailsList, Report} from '@src/types/onyx';
 import type {ReportAttributes} from '@src/types/onyx/DerivedValues';
 import type {Attendee} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -30,7 +30,7 @@ function createOption(
     report: OnyxInputOrEntry<Report>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     config?: PreviewConfig,
-    reportAttributesDerived?: ReportAttributes,
+    reportAttributesDerived?: Pick<ReportAttributes, 'reportErrors' | 'brickRoadStatus'>,
     isReportArchived?: boolean,
     translate?: LocaleContextProps['translate'],
 ): OptionData {
@@ -89,6 +89,7 @@ function createOption(
             fallbackIcon: personalDetail.fallbackIcon,
         },
     ];
+    result.searchText = deburr(`${result.text} ${result.login ?? ''}`.toLocaleLowerCase());
 
     return result;
 }
@@ -239,7 +240,12 @@ function filterUserToInvite(options: Omit<Options, 'userToInvite'>, currentUserL
 }
 
 function matchesSearchTerms(option: OptionData, searchTerms: string[], extraSearchTerms?: string[]): boolean {
-    let searchText = deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
+    // Every option matches an empty search, so skip building the normalized search text entirely
+    if (searchTerms.length === 0) {
+        return true;
+    }
+
+    let searchText = option.searchText ?? deburr(`${option.text} ${option.login ?? ''}`.toLocaleLowerCase());
     if (extraSearchTerms?.length) {
         searchText += ` ${deburr(extraSearchTerms.join(' ').toLocaleLowerCase())}`;
     }
@@ -441,7 +447,7 @@ function createOptionList(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     accountIDToReportIDMap: Record<number, string>,
     reports: OnyxCollection<Report>,
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
+    reportAttributesDerived: Record<string, Pick<ReportAttributes, 'reportErrors' | 'brickRoadStatus'>> | undefined,
     privateIsArchivedMap: PrivateIsArchivedMap,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     translate: LocaleContextProps['translate'],
@@ -477,6 +483,21 @@ function createOptionList(
         currentUserOption: currentUserRef.current,
         options: allPersonalDetailsOptions,
     };
+}
+
+/**
+ * Keeps only the personal details whose login is in the given set. Meant to be applied before createOptionList so that no
+ * option is built for the accounts that are going to be filtered out anyway (e.g. everyone outside of a workspace).
+ */
+function filterPersonalDetailsByLogins(personalDetails: OnyxEntry<PersonalDetailsList>, logins: Set<string>): PersonalDetailsList {
+    const filteredPersonalDetails: PersonalDetailsList = {};
+    for (const [accountID, personalDetail] of Object.entries(personalDetails ?? {})) {
+        if (!personalDetail?.login || !logins.has(personalDetail.login)) {
+            continue;
+        }
+        filteredPersonalDetails[accountID] = personalDetail;
+    }
+    return filteredPersonalDetails;
 }
 
 /**
@@ -543,6 +564,7 @@ export {
     matchesSearchTerms,
     getValidOptions,
     createOptionList,
+    filterPersonalDetailsByLogins,
     getHeaderMessage,
     getUserToInviteOption,
     getFilteredRecentAttendees,
