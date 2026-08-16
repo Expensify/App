@@ -69,10 +69,16 @@ jest.mock('@libs/PolicyUtils', () => {
 
     return {
         getDefaultChatEnabledPolicy: jest.fn((policies: Policy[]) => policies.at(0)),
-        isGroupPolicy: jest.fn(
-            (policy?: Policy) => policy?.type === CONSTANTS.POLICY.TYPE.TEAM || policy?.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy?.type === CONSTANTS.POLICY.TYPE.SUBMIT,
+        getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined, isSubmit2026BetaEnabled: boolean) =>
+            Object.values(policies ?? {}).filter(
+                (policy): policy is Policy =>
+                    !!policy &&
+                    !policy.isJoinRequestPending &&
+                    (policy.type === CONSTANTS.POLICY.TYPE.TEAM ||
+                        policy.type === CONSTANTS.POLICY.TYPE.CORPORATE ||
+                        (policy.type === CONSTANTS.POLICY.TYPE.SUBMIT && isSubmit2026BetaEnabled)),
+            ),
         ),
-        shouldShowPolicy: jest.fn(() => true),
     };
 });
 
@@ -101,6 +107,7 @@ function makePolicy(id: string, type: Policy['type'], isPolicyExpenseChatEnabled
 function setupUseOnyx() {
     const personalPolicy = makePolicy('personal-1', CONST.POLICY.TYPE.PERSONAL, true);
     const groupPolicy = makePolicy('team-1', CONST.POLICY.TYPE.TEAM, true);
+    const submitPolicy = makePolicy('submit-1', CONST.POLICY.TYPE.SUBMIT, true);
     const values = new Map<string, unknown>([
         [ONYXKEYS.NVP_ACTIVE_POLICY_ID, personalPolicy.id],
         [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`, personalPolicy],
@@ -109,6 +116,7 @@ function setupUseOnyx() {
             {
                 [`${ONYXKEYS.COLLECTION.POLICY}${personalPolicy.id}`]: personalPolicy,
                 [`${ONYXKEYS.COLLECTION.POLICY}${groupPolicy.id}`]: groupPolicy,
+                [`${ONYXKEYS.COLLECTION.POLICY}${submitPolicy.id}`]: submitPolicy,
             },
         ],
         [ONYXKEYS.SESSION, {accountID: 1, email: 'user@test.com'}],
@@ -129,7 +137,7 @@ describe('CreateReportMenuItem', () => {
         setupUseOnyx();
     });
 
-    it('passes only group workspaces to useCreateReport', () => {
+    it('passes only paid group workspaces to useCreateReport when Submit beta is off', () => {
         render(<CreateReportMenuItem />);
 
         const params = mockUseCreateReport.mock.calls.at(0)?.at(0);

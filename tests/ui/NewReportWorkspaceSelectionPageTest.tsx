@@ -43,6 +43,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 jest.mock('@navigation/helpers/isRHPOnSearchMoneyRequestReportPage', () => () => false);
+jest.mock('@hooks/usePermissions', () => ({
+    __esModule: true,
+    default: () => ({isBetaEnabled: jest.fn(() => false)}),
+}));
 
 const mockCreateNewReport = jest.mocked(createNewReport);
 
@@ -174,5 +178,27 @@ describe('NewReportWorkspaceSelectionPage', () => {
 
         expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
         expect(screen.queryByText('Personal Workspace')).not.toBeOnTheScreen();
+    });
+
+    it('hides Submit workspaces in the selector when Submit beta is off', async () => {
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}submit-policy`, {
+                id: 'submit-policy',
+                name: 'Submit Workspace',
+                role: CONST.POLICY.ROLE.EDITOR,
+                type: CONST.POLICY.TYPE.SUBMIT,
+                owner: EMAIL,
+                employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.EDITOR}},
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
+        expect(screen.queryByText('Submit Workspace')).not.toBeOnTheScreen();
     });
 });
