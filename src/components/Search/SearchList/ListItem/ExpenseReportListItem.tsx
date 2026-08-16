@@ -100,7 +100,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    // A report is a group of rows, checked by them once it has them and by its own key while it has none.
+    /*
+     * Selection for a non-empty expense report is keyed by child transaction ID, never by the report row key,
+     * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
+     * by its own key only while it has none.
+     */
     const {isSelectAllChecked: isSelected} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
