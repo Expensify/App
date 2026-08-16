@@ -10,6 +10,7 @@ import Switch from '@components/Switch';
 import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
@@ -31,6 +32,7 @@ import {
     clearPolicyCommuterExclusionsErrors,
     clearPolicyDistanceRatesErrorFields,
     clearWorkspaceDistanceAutoUpdateErrors,
+    openPolicyDistanceRatesPage,
     setWorkspaceDistanceAutoUpdate,
 } from '@userActions/Policy/DistanceRate';
 import {enableDistanceRequestTax} from '@userActions/Policy/Policy';
@@ -42,7 +44,7 @@ import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
@@ -78,6 +80,17 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
     const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
+
+    const fetchDistanceRates = useCallback(() => {
+        openPolicyDistanceRatesPage(policyID);
+    }, [policyID]);
+
+    useNetwork({onReconnect: fetchDistanceRates});
+
+    useEffect(() => {
+        fetchDistanceRates();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
         if (!customUnit) {
