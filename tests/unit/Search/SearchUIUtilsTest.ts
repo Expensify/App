@@ -7637,6 +7637,36 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
+        it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: {
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    },
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            expect(submitItem).toBeDefined();
+            expect(submitItem?.emptyState?.buttons).toEqual([]);
+        });
+
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
             const mockPolicies = {
                 policy1: {
@@ -9214,6 +9244,22 @@ describe('SearchUIUtils', () => {
 
             expect(groupResponse.hasEligibleGroupPolicies).toBe(true);
             expect(personalResponse.hasEligibleGroupPolicies).toBe(false);
+        });
+
+        test('Should keep deleted group workspaces eligible when they still have errors', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: {name: 'Workspace still has an error'},
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            expect(response.hasEligibleGroupPolicies).toBe(true);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
