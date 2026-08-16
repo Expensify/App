@@ -1,11 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import React, {useContext} from 'react';
+
 import {CurrentUserPersonalDetailsContext, CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import {useSession} from '@components/OnyxListItemProvider';
+
 import useOnyx from '@hooks/useOnyx';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import React, {useContext} from 'react';
 
 jest.mock('@hooks/useOnyx', () => jest.fn());
 jest.mock('@components/OnyxListItemProvider', () => ({

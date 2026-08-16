@@ -1,17 +1,19 @@
-import {randAmount} from '@ngneat/falso';
-import Onyx from 'react-native-onyx';
-import {measureFunction} from 'reassure';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
+
+import {randAmount} from '@ngneat/falso';
+import Onyx from 'react-native-onyx';
+import {measureFunction} from 'reassure';
+
 import {getForReportAction} from '../../src/libs/ModifiedExpenseMessage';
 import createCollection from '../utils/collections/createCollection';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const CURRENT_USER_LOGIN = 'test@example.com';
@@ -67,6 +69,7 @@ test('[ModifiedExpenseMessage] getForReportAction on 1k reports and policies', a
     await waitForBatchedUpdates();
     await measureFunction(() =>
         getForReportAction({
+            convertToDisplayString,
             translate: translateLocal,
             reportAction,
             policy: undefined,

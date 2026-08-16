@@ -1,5 +1,3 @@
-/** Onyx selectors used by the confirmation field leaves. */
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import {canSendInvoice} from '@libs/PolicyUtils';
 import {
     getCategory,
@@ -13,9 +11,13 @@ import {
     isMerchantMissing,
     willFieldBeAutomaticallyFilled,
 } from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+/** Onyx selectors used by the confirmation field leaves. */
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 type Transaction = OnyxTypes.Transaction;
 
@@ -243,7 +245,14 @@ const invoiceSenderSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Invoic
 // --- DistanceMapSection ---
 
 type DistanceMapSlice = Pick<Transaction, 'pendingFields' | 'errors' | 'errorFields' | 'routes'> & {
-    comment: {waypoints: NonNullable<Transaction['comment']>['waypoints']} | undefined;
+    comment:
+        | {
+              waypoints: NonNullable<Transaction['comment']>['waypoints'];
+              selectedRouteKey: NonNullable<Transaction['comment']>['selectedRouteKey'];
+              // `getSelectedRouteKey` falls back to this when the frontend-only `selectedRouteKey` is absent (e.g. on an already-saved expense)
+              customUnit: {routeDistanceMeters: NonNullable<NonNullable<Transaction['comment']>['customUnit']>['routeDistanceMeters']} | undefined;
+          }
+        | undefined;
 };
 
 const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transaction> => {
@@ -255,7 +264,13 @@ const distanceMapSliceSelector = (t: OnyxEntry<Transaction>): OnyxEntry<Transact
         errors: t.errors,
         errorFields: t.errorFields,
         routes: t.routes,
-        comment: t.comment ? {waypoints: t.comment.waypoints} : undefined,
+        comment: t.comment
+            ? {
+                  waypoints: t.comment.waypoints,
+                  selectedRouteKey: t.comment.selectedRouteKey,
+                  customUnit: t.comment.customUnit ? {routeDistanceMeters: t.comment.customUnit.routeDistanceMeters} : undefined,
+              }
+            : undefined,
     };
     return slice as Transaction;
 };

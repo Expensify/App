@@ -1,25 +1,28 @@
-import React, {useMemo} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useReusablePoliciesConnectedTo from '@hooks/useReusablePoliciesConnectedTo';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {copyExistingPolicyConnection} from '@libs/actions/connections';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {getIntegrationLastSuccessfulDate} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
-import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
+
+import React, {useMemo} from 'react';
+
 import getQuickbooksDesktopSetupEntryRoute from './utils';
 
 type QuickbooksDesktopExistingConnectionsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_DESKTOP_REUSE_EXISTING_CONNECTIONS>;
@@ -42,7 +45,7 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
                     title: policy.name,
                     key: policy.id,
                     avatarID: policy.id,
-                    icon: policy.avatarURL ? policy.avatarURL : getDefaultWorkspaceAvatar(policy.name),
+                    icon: policy.avatarURL,
                     iconType: CONST.ICON_TYPE_WORKSPACE,
                     shouldShowRightIcon: true,
                     description: date
@@ -64,17 +67,15 @@ function QuickbooksDesktopExistingConnectionsPage({route}: QuickbooksDesktopExis
             testID="QuickbooksDesktopExistingConnectionsPage"
         >
             <HeaderWithBackButton
-                title={translate('workspace.common.connectTo', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}
+                title={translate('workspace.common.connectTo', CONST.POLICY.CONNECTIONS.NAME.QBD)}
                 shouldShowBackButton
                 onBackButtonPress={() => Navigation.goBack()}
             />
             <ScrollView style={[styles.flex1]}>
-                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', {connectionName: CONST.POLICY.CONNECTIONS.NAME.QBD})}</Text>
-                <MenuItem
+                <Text style={[styles.mh5, styles.mb4]}>{translate('workspace.common.existingConnectionsDescription', CONST.POLICY.CONNECTIONS.NAME.QBD)}</Text>
+                <MenuItemNavigation
                     title={translate('workspace.common.createNewConnection')}
                     icon={icons.LinkCopy}
-                    iconStyles={{borderRadius: variables.componentBorderRadiusNormal}}
-                    shouldShowRightIcon
                     onPress={() => Navigation.navigate(getQuickbooksDesktopSetupEntryRoute(policyID))}
                 />
                 <Text style={[styles.sectionTitle, styles.pl5, styles.pr5, styles.pb2, styles.mt3]}>{translate('workspace.common.existingConnections')}</Text>

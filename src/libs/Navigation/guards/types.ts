@@ -1,5 +1,6 @@
-import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Route} from '@src/ROUTES';
+
+import type {NavigationAction, NavigationState} from '@react-navigation/native';
 
 /**
  * Result returned by a navigation guard after evaluation
@@ -18,6 +19,9 @@ type GuardContext = {
 
     /** Current URL (for HybridApp and deep link checks) */
     currentUrl: string;
+
+    /** Whether the current session is a supportal (support-logged-in) session */
+    isSupportalSession: boolean;
 };
 
 /**

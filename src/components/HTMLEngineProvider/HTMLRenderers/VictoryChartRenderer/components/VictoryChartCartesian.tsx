@@ -1,29 +1,42 @@
-import React from 'react';
-import {CartesianChart} from 'victory-native';
 import ChartFontsLoaderProvider from '@components/Charts/context/ChartFontsLoaderProvider';
 import {useVictoryChartContext} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import {VictoryChartRenderArgsProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartRenderArgsContext';
+import type {CartesianChartData, YKey} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import getChartDesignWidth from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartDesignWidth';
 import getChartLayoutModeProps from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getChartLayoutModeProps';
 import getHierarchyID from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/getHierarchyID';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
+
 import useCurrentTimezone from '@hooks/useCurrentTimezone';
 import useTheme from '@hooks/useTheme';
+
 import ThemeContext from '@styles/theme/context/ThemeContext';
+
+import type {CartesianChartRenderArg} from 'victory-native';
+
+import React from 'react';
+import {CartesianChart} from 'victory-native';
+
 import VictoryChartLabel from './VictoryChartLabel';
 import VictoryChartLegend from './VictoryChartLegend';
 import VictoryChartSeries from './VictoryChartSeries';
 
 type VictoryChartCartesianProps = {
+    /** Explicit width/height when chart is rendered outside auto-layout */
     explicitSize?: {width: number; height: number};
+
+    /** When true, renders without visible chrome (used for snapshots/tests) */
     headless?: boolean;
+
+    /** Callback invoked with render args on each chart render pass */
+    onRenderArgs?: (renderArgs: CartesianChartRenderArg<CartesianChartData, YKey>) => void;
 };
 
 /**
  * Renders the CartesianChart with data, axes, and domain config drawn from context.
  * Labels and legend overlays are handled internally via `renderOutside`.
  */
-function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianProps) {
+function VictoryChartCartesian({explicitSize, headless, onRenderArgs}: VictoryChartCartesianProps) {
     const {tnode, data, xKey, yKeys, xAxis, yAxis, domain, domainPadding, padding, isHorizontal, labelItems, legendItems, chartContentStyles} = useVictoryChartContext();
     const theme = useTheme();
     const timezone = useCurrentTimezone();
@@ -74,7 +87,7 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                 );
 
                 if (headless) {
-                    return overlayContent;
+                    return <ThemeContext.Provider value={theme}>{overlayContent}</ThemeContext.Provider>;
                 }
 
                 // React context does not propagate across the Skia renderOutside boundary.
@@ -85,17 +98,21 @@ function VictoryChartCartesian({explicitSize, headless}: VictoryChartCartesianPr
                 );
             }}
         >
-            {(renderArgs) => (
-                <VictoryChartRenderArgsProvider value={renderArgs}>
-                    {tnode.children.map((child) => (
-                        <VictoryChartSeries
-                            key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
-                            tnode={child}
-                            isHorizontal={isHorizontal}
-                        />
-                    ))}
-                </VictoryChartRenderArgsProvider>
-            )}
+            {(renderArgs) => {
+                onRenderArgs?.(renderArgs);
+
+                return (
+                    <VictoryChartRenderArgsProvider value={renderArgs}>
+                        {tnode.children.map((child) => (
+                            <VictoryChartSeries
+                                key={`${child.tagName ?? 'node'}-${getHierarchyID(child)}`}
+                                tnode={child}
+                                isHorizontal={isHorizontal}
+                            />
+                        ))}
+                    </VictoryChartRenderArgsProvider>
+                );
+            }}
         </CartesianChart>
     );
 }

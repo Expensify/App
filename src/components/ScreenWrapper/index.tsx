@@ -1,17 +1,10 @@
-import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
-import type {Route} from '@react-navigation/native';
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import type {ReactNode} from 'react';
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
-import type {StyleProp, View, ViewStyle} from 'react-native';
-import {DeviceEventEmitter, Keyboard} from 'react-native';
-import type {EdgeInsets} from 'react-native-safe-area-context';
 import CustomDevMenu from '@components/CustomDevMenu';
 import FocusTrapForScreen from '@components/FocusTrap/FocusTrapForScreen';
 import type FocusTrapForScreenProps from '@components/FocusTrap/FocusTrapForScreen/FocusTrapProps';
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 import {MFA_OVERLAY_SCREENS} from '@components/MultifactorAuthentication/mfaNavigation';
 import withNavigationFallback from '@components/withNavigationFallback';
+
 import useAccessibilityFocus from '@hooks/useAccessibilityFocus';
 import useEnvironment from '@hooks/useEnvironment';
 import useNetwork from '@hooks/useNetwork';
@@ -19,24 +12,40 @@ import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSafeAreaPaddings from '@hooks/useSafeAreaPaddings';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isMobile} from '@libs/Browser';
 import type {ForwardedFSClassProps} from '@libs/Fullstory/types';
 import getPlatform from '@libs/getPlatform';
 import mergeRefs from '@libs/mergeRefs';
 import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPaneContext';
+import doesInitialURLMatchActiveRoute from '@libs/Navigation/helpers/doesInitialURLMatchActiveRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackNavigationProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ReportsSplitNavigatorParamList, RightModalNavigatorParamList, RootNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {Route} from '@react-navigation/native';
+import type {ReactNode} from 'react';
+import type {StyleProp, View, ViewStyle} from 'react-native';
+import type {EdgeInsets} from 'react-native-safe-area-context';
+
+import {NavigationRouteContext, useFocusEffect, useIsFocused, useNavigation, usePreventRemove} from '@react-navigation/native';
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
+import {DeviceEventEmitter, Keyboard} from 'react-native';
+
 import type {ScreenWrapperContainerProps} from './ScreenWrapperContainer';
+import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
+
 import ScreenWrapperContainer from './ScreenWrapperContainer';
 import ScreenWrapperOfflineIndicatorContext from './ScreenWrapperOfflineIndicatorContext';
-import type {ScreenWrapperOfflineIndicatorsProps} from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperOfflineIndicators from './ScreenWrapperOfflineIndicators';
 import ScreenWrapperStatusContext from './ScreenWrapperStatusContext';
 
@@ -148,15 +157,9 @@ function ScreenWrapper({
     const isMobileWebNarrowLayout = getPlatform() === CONST.PLATFORM.WEB && isMobile() && shouldUseNarrowLayout;
     const shouldMoveAccessibilityFocus = isMobileWebNarrowLayout && isInNarrowPane;
     const shouldHideFromAccessibility = isMobileWebNarrowLayout && !isFocused;
-    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens, originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
+    const {addSafeAreaPadding, showOnSmallScreens, showOnWideScreens} = useContext(ScreenWrapperOfflineIndicatorContext);
     const offlineIndicatorContextValue = useMemo(() => {
         const newAddSafeAreaPadding = isInNarrowPane ? isSmallScreenWidth : addSafeAreaPadding;
-
-        const newOriginalValues = originalValues ?? {
-            addSafeAreaPadding: newAddSafeAreaPadding,
-            showOnSmallScreens,
-            showOnWideScreens,
-        };
 
         return {
             // Allows for individual screens to disable the offline indicator safe area padding for the screen and all nested ScreenWrapper components.
@@ -164,11 +167,8 @@ function ScreenWrapper({
             // Prevent any nested ScreenWrapper components from rendering another offline indicator.
             showOnSmallScreens: false,
             showOnWideScreens: false,
-            // Pass down the original values by the outermost ScreenWrapperOfflineIndicatorContext.Provider,
-            // to allow nested ScreenWrapperOfflineIndicatorContext.Provider to access these values. (e.g. in Modals)
-            originalValues: newOriginalValues,
         };
-    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth, originalValues, showOnSmallScreens, showOnWideScreens]);
+    }, [addSafeAreaPadding, disableOfflineIndicatorSafeAreaPadding, isInNarrowPane, isSmallScreenWidth]);
 
     /** If there is no bottom content, the mobile offline indicator will stick to the bottom of the screen by default. */
     const displayStickySmallScreenOfflineIndicator = shouldSmallScreenOfflineIndicatorStickToBottom && !bottomContent;
@@ -191,20 +191,20 @@ function ScreenWrapper({
     useEffect(() => {
         Navigation.isNavigationReady().then(() => setInitialActiveRouteWithoutParams(Navigation.getActiveRouteWithoutParams()));
     }, []);
-    const initialURLWithoutParams = initialURL?.replaceAll(/\?.*/g, '');
-    const doesInitialURLMatchActiveRoute = !!initialURLWithoutParams?.endsWith(Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams);
+    const activeRouteWithoutParams = Navigation.getActiveRouteWithoutParams() || initialActiveRouteWithoutParams;
+    const initialURLMatchesActiveRoute = doesInitialURLMatchActiveRoute(initialURL, activeRouteWithoutParams);
 
     // A multifactor authentication flow (e.g. Face ID to reveal UK/EU card details) renders in an independent navigation tree
     // overlaid above the single NewDot entry, and each MFA screen renders its own ScreenWrapper. Navigation.getActiveRouteWithoutParams()
-    // still reports the underlying NewDot route while the overlay is up, so doesInitialURLMatchActiveRoute is true on the MFA screens too.
+    // still reports the underlying NewDot route while the overlay is up, so initialURLMatchesActiveRoute is true on the MFA screens too.
     // usePreventRemove calls e.preventDefault() unconditionally whenever the guard is active, so guarding these instances would consume the
-    // MFA navigator's own stack actions (e.g. replacing the magic-code page with the Face ID prompt, or popping the outcome screen on close),
+    // MFA navigator's own stack actions (e.g. replacing the validateCode page with the Face ID prompt, or popping the outcome screen on close),
     // blocking transitions within the flow. Guard only the outer NewDot ScreenWrapper, never the ScreenWrappers inside the MFA overlay.
     // NavigationRouteContext is undefined when tests mock @react-navigation/native without re-exporting it, so fall back to a noop context to keep useContext valid.
     const route = useContext(NavigationRouteContext ?? FallbackRouteContext);
     const isMfaOverlayScreen = !!route && MFA_OVERLAY_SCREENS.has(route.name);
 
-    usePreventRemove(isSingleNewDotEntry && doesInitialURLMatchActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
+    usePreventRemove(isSingleNewDotEntry && initialURLMatchesActiveRoute && !shouldBlockSingleEntryOldAppExit && !isMfaOverlayScreen, () => {
         if (!CONFIG.IS_HYBRID_APP) {
             return;
         }

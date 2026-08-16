@@ -1,7 +1,10 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import CONST from '@src/CONST';
+import INPUT_IDS from '@src/types/form/ReimbursementAccountForm';
 import type {ReimbursementAccountForm} from '@src/types/form/ReimbursementAccountForm';
 import type {ACHDataReimbursementAccount} from '@src/types/onyx/ReimbursementAccount';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
 import getInitialSubPageForSignerInfoStep from './getInitialSubPageForSignerInfoStep';
 import requiresDocusignStep from './requiresDocusignStep';
 
@@ -45,6 +48,12 @@ function getStartPageForContinueSetup(
         !!(reimbursementAccountDraft?.consentToPrivacyNotice ?? achData?.corpay?.consentToPrivacyNotice) &&
         !!(reimbursementAccountDraft?.provideTruthfulInformation ?? achData?.corpay?.provideTruthfulInformation);
 
+    // AUD accounts must upload a bank statement, which is collected on the Agreements page and only lives in the draft until
+    // it's submitted on the Docusign page. Accounts that checked the agreements before the bank statement became required won't
+    // have one, so gate the Docusign resume on it to avoid submitting without a bank statement.
+    const isBankStatementNeeded = policyCurrency === CONST.CURRENCY.AUD;
+    const isBankStatementUploaded = !!reimbursementAccountDraft?.[INPUT_IDS.ADDITIONAL_DATA.CORPAY.BANK_STATEMENT]?.length;
+
     if (nonUSDCountryDraftValue !== '' && achData?.created === undefined) {
         return {page: PAGE_NAME.BANK_INFO, subPage: BANK_INFO_SUB_PAGES.BANK_ACCOUNT_DETAILS};
     }
@@ -71,6 +80,9 @@ function getStartPageForContinueSetup(
     }
 
     if (isPastSignerStep() && allAgreementsChecked && isDocusignStepRequired && achData?.state !== CONST.BANK_ACCOUNT.STATE.VERIFYING) {
+        if (isBankStatementNeeded && !isBankStatementUploaded) {
+            return {page: PAGE_NAME.AGREEMENTS};
+        }
         return {page: PAGE_NAME.DOCUSIGN};
     }
 

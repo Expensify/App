@@ -1,6 +1,8 @@
-import React from 'react';
-import useLoadingBarVisibility from '@hooks/useLoadingBarVisibility';
+import {useLoadingBarVisibility} from '@hooks/useInFlightRequests';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
+import React from 'react';
+
 import LoadingBar from './LoadingBar';
 
 function HeaderLoadingBar() {

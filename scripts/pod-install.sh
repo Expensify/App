@@ -110,7 +110,7 @@ if [ -d "$CACHED_PODSPEC_DIR" ]; then
 fi
 
 cd ios || cleanupAndExit 1
-bundle exec pod install
+RCT_USE_RN_DEP=0 RCT_USE_PREBUILT_RNCORE=0 bundle exec pod install
 
 # Go back to where we started
 cleanupAndExit 0

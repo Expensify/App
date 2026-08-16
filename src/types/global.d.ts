@@ -43,7 +43,8 @@ interface NodeRequire {
 type MetroModuleFactory = (...args: unknown[]) => void;
 
 // Metro's module-define function injected into the global scope by the runtime
-type MetroDefine = (factory: MetroModuleFactory, moduleId: number, deps: number[], moduleName?: string) => void;
+type MetroInverseDependencies = Readonly<Record<number, readonly number[]>>;
+type MetroDefine = (factory: MetroModuleFactory, moduleId: number, deps: number[], moduleName?: string, inverseDependencies?: MetroInverseDependencies) => void;
 
 // Typed view of the Metro/Hermes globals accessed by moduleInitPolyfill.ts.
 // String-literal keys are used intentionally to match Metro's __double_underscore

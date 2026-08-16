@@ -1,13 +1,25 @@
-import {StackActions, TabActions} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
+
+import useOnyx from '@hooks/useOnyx';
+import useRestoreWorkspacesTabOnNavigate from '@hooks/useRestoreWorkspacesTabOnNavigate';
+
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import {isPendingDeletePolicy, shouldShowPolicy} from '@libs/PolicyUtils';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {NavigationState} from '@react-navigation/native';
+import type {PartialDeep} from 'type-fest';
+
+import {StackActions, TabActions} from '@react-navigation/native';
+
 import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
 
 jest.mock('@libs/Navigation/AppNavigator/createSplitNavigator/usePreserveNavigatorState', () => ({
     getPreservedNavigatorState: jest.fn(() => undefined),
@@ -18,8 +30,11 @@ jest.mock('@hooks/useResponsiveLayout', () => () => mockResponsiveLayout());
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => () => ({login: 'test@example.com'}));
 
-const mockUseOnyx = jest.fn().mockReturnValue([undefined]);
-jest.mock('@hooks/useOnyx', () => (key: unknown, opts?: unknown) => mockUseOnyx(key, opts) as unknown[]);
+jest.mock('@hooks/useOnyx', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+const mockUseOnyx = jest.mocked(useOnyx);
 
 jest.mock('@libs/interceptAnonymousUser', () => (cb: () => void) => cb());
 
@@ -67,34 +82,35 @@ const fakeDomainAccountID = 4242;
 const mockDomain = {accountID: fakeDomainAccountID, validated: true, email: 'admin@example.com'};
 const TAB_NAV_STATE_KEY = 'tab-nav-1';
 /* eslint-disable @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding */
-const mockedGetRootState = navigationRef.getRootState as unknown as jest.Mock<{routes: unknown[]} | undefined>;
+const mockedGetRootState = jest.mocked(navigationRef.getRootState);
 const mockedDispatch = jest.mocked(navigationRef.dispatch);
 /* eslint-enable @typescript-eslint/unbound-method */
 
-const useRestoreWorkspacesTabOnNavigate = (require('@hooks/useRestoreWorkspacesTabOnNavigate') as {default: () => () => void}).default;
-
-const PolicyUtils = require('@libs/PolicyUtils') as {shouldShowPolicy: jest.Mock; isPendingDeletePolicy: jest.Mock};
+const mockedShouldShowPolicy = jest.mocked(shouldShowPolicy);
+const mockedIsPendingDeletePolicy = jest.mocked(isPendingDeletePolicy);
 
 function setupOnyxForPolicy() {
-    mockUseOnyx.mockImplementation((key: unknown) => {
+    mockUseOnyx.mockImplementation((key) => {
         if (key === ONYXKEYS.COLLECTION.POLICY) {
-            return [{[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: mockPolicy}];
+            return [{[`${ONYXKEYS.COLLECTION.POLICY}${fakePolicyID}`]: mockPolicy}, {status: 'loaded'}];
         }
-        return [undefined];
+        return [undefined, {status: 'loaded'}];
     });
 }
 
 function setupOnyxForDomain() {
-    mockUseOnyx.mockImplementation((key: unknown) => {
+    mockUseOnyx.mockImplementation((key) => {
         if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-            return [{[`${ONYXKEYS.COLLECTION.DOMAIN}${fakeDomainAccountID}`]: mockDomain}];
+            return [{[`${ONYXKEYS.COLLECTION.DOMAIN}${fakeDomainAccountID}`]: mockDomain}, {status: 'loaded'}];
         }
-        return [undefined];
+        return [undefined, {status: 'loaded'}];
     });
 }
 
-function buildStateWithUserOnDifferentTab(workspaceRoutes: unknown[]) {
-    return {
+type NavigationRouteInput = PartialDeep<NavigationState['routes'][number]>;
+
+function buildStateWithUserOnDifferentTab(workspaceRoutes: NavigationRouteInput[]): NavigationState {
+    return createMock<NavigationState>({
         routes: [
             {
                 name: NAVIGATORS.TAB_NAVIGATOR,
@@ -111,17 +127,17 @@ function buildStateWithUserOnDifferentTab(workspaceRoutes: unknown[]) {
                 },
             },
         ],
-    };
+    });
 }
 
 describe('useRestoreWorkspacesTabOnNavigate', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockReturnValue([undefined]);
+        mockUseOnyx.mockReturnValue([undefined, {status: 'loaded'}]);
         mockResponsiveLayout.mockReturnValue({shouldUseNarrowLayout: false});
-        PolicyUtils.shouldShowPolicy.mockReturnValue(true);
-        PolicyUtils.isPendingDeletePolicy.mockReturnValue(false);
-        mockedGetRootState.mockReturnValue({routes: []});
+        mockedShouldShowPolicy.mockReturnValue(true);
+        mockedIsPendingDeletePolicy.mockReturnValue(false);
+        mockedGetRootState.mockReturnValue(createMock<NavigationState>({routes: []}));
     });
 
     it('restores to the last visited workspace when re-entering the Workspaces tab', () => {
@@ -146,14 +162,16 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     });
 
     it('falls back to the workspaces list when no workspace was previously visited', () => {
-        mockedGetRootState.mockReturnValue({
-            routes: [
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
-                },
-            ],
-        });
+        mockedGetRootState.mockReturnValue(
+            createMock<NavigationState>({
+                routes: [
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {index: 0, routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}]},
+                    },
+                ],
+            }),
+        );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
@@ -162,7 +180,7 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     });
 
     it('falls back to the workspaces list when the last visited policy was deleted', () => {
-        PolicyUtils.isPendingDeletePolicy.mockReturnValue(true);
+        mockedIsPendingDeletePolicy.mockReturnValue(true);
 
         setupOnyxForPolicy();
         mockedGetRootState.mockReturnValue(
@@ -218,46 +236,48 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // hydration is then handled by WorkspaceRouter.getInitialState from sessionStorage.
     it('jumps to the topmost TabNavigator even when its workspace slot is empty', () => {
         setupOnyxForPolicy();
-        mockedGetRootState.mockReturnValue({
-            routes: [
-                // Older TabNavigator with workspace state. Should be ignored.
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        index: 1,
-                        routes: [
-                            {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
-                            {
-                                name: NAVIGATORS.WORKSPACE_NAVIGATOR,
-                                state: {
-                                    routes: [
-                                        {
-                                            name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
-                                            state: {
-                                                index: 1,
-                                                routes: [
-                                                    {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
-                                                    {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
-                                                ],
+        mockedGetRootState.mockReturnValue(
+            createMock<NavigationState>({
+                routes: [
+                    // Older TabNavigator with workspace state. Should be ignored.
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            index: 1,
+                            routes: [
+                                {name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR},
+                                {
+                                    name: NAVIGATORS.WORKSPACE_NAVIGATOR,
+                                    state: {
+                                        routes: [
+                                            {
+                                                name: NAVIGATORS.WORKSPACE_SPLIT_NAVIGATOR,
+                                                state: {
+                                                    index: 1,
+                                                    routes: [
+                                                        {name: SCREENS.WORKSPACE.INITIAL, params: {policyID: fakePolicyID}},
+                                                        {name: SCREENS.WORKSPACE.WORKFLOWS, params: {policyID: fakePolicyID}},
+                                                    ],
+                                                },
                                             },
-                                        },
-                                    ],
+                                        ],
+                                    },
                                 },
-                            },
-                        ],
+                            ],
+                        },
                     },
-                },
-                // Topmost TabNavigator with empty WORKSPACE_NAVIGATOR.
-                {
-                    name: NAVIGATORS.TAB_NAVIGATOR,
-                    state: {
-                        key: TAB_NAV_STATE_KEY,
-                        index: 0,
-                        routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+                    // Topmost TabNavigator with empty WORKSPACE_NAVIGATOR.
+                    {
+                        name: NAVIGATORS.TAB_NAVIGATOR,
+                        state: {
+                            key: TAB_NAV_STATE_KEY,
+                            index: 0,
+                            routes: [{name: NAVIGATORS.REPORTS_SPLIT_NAVIGATOR}, {name: NAVIGATORS.WORKSPACE_NAVIGATOR}],
+                        },
                     },
-                },
-            ],
-        });
+                ],
+            }),
+        );
 
         const {result} = renderHook(() => useRestoreWorkspacesTabOnNavigate());
         result.current();
@@ -329,11 +349,11 @@ describe('useRestoreWorkspacesTabOnNavigate', () => {
     // (e.g. user lost access), the lookup yields undefined and we fall back to the workspaces list.
     it('falls back to the workspaces list when the last visited domain is missing from Onyx', () => {
         // Onyx returns no matching domain for the params.domainAccountID
-        mockUseOnyx.mockImplementation((key: unknown) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
-                return [{}];
+                return [{}, {status: 'loaded'}];
             }
-            return [undefined];
+            return [undefined, {status: 'loaded'}];
         });
         mockedGetRootState.mockReturnValue(
             buildStateWithUserOnDifferentTab([

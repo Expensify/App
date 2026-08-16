@@ -1,9 +1,14 @@
-import React, {useState} from 'react';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
 import useLocalize from '@hooks/useLocalize';
+
 import type {Option} from '@libs/searchOptions';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React, {useState} from 'react';
+
 import CountrySelectorModal from './CountrySelectorModal';
 
 type CountryPickerProps = {

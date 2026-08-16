@@ -1,10 +1,15 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import useReportActionAvatars from '@components/ReportActionAvatars/useReportActionAvatars';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList} from '@src/types/onyx';
+import type ReportActionName from '@src/types/onyx/ReportActionName';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createAdminRoom, createAnnounceRoom, createInvoiceReport, createInvoiceRoom, createRegularChat} from '../utils/collections/reports';
@@ -43,17 +48,17 @@ describe('useReportActionAvatars', () => {
 
         test.each(
             Object.values(CONST.REPORT.ACTIONS.TYPE)
-                .reduce((result, cur) => {
+                .reduce<ReportActionName[]>((result, cur) => {
                     if (typeof cur === 'object') {
                         result.push(...Object.values(cur));
                     } else {
                         result.push(cur);
                     }
                     return result;
-                }, [] as string[])
-                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value]),
+                }, [])
+                .map((value) => [value === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW, value] as const),
         )('With an invoice report, isWorkspaceActor should be %s when the actionName is "%s"', async (expected, actionName) => {
-            const reportAction = {...mockReportAction, actionName: actionName as typeof CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT};
+            const reportAction = {...mockReportAction, actionName};
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportAction.reportActionID}`, {[reportAction.reportActionID]: reportAction});
 
             const {

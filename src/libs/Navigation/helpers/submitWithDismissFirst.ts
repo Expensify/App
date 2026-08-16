@@ -5,9 +5,12 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {getReportOrDraftReport} from '@libs/ReportUtils';
 import {setFastPath, setPendingSubmitFollowUpAction, startTracking} from '@libs/telemetry/submitFollowUpAction';
 import type {SubmitExpenseContext} from '@libs/telemetry/submitFollowUpAction';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
 import getTopmostReportParams from './getTopmostReportParams';
+import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
 import isSearchTopmostFullScreenRoute from './isSearchTopmostFullScreenRoute';
 
 type WriteOverrides = {
@@ -43,10 +46,11 @@ function startDismissFirstTracking(
  * at the matching moment (after dismiss / after reveal / synchronously):
  *
  *   1. Search topmost            -> dismiss modal, defer write for Search skeleton
- *   2. Destination already shown -> dismiss modal, write after transition
- *   3. Destination loaded        -> reveal destination then dismiss, write after transition
- *   4. Destination not loaded    -> write immediately, then reveal-and-dismiss
- *   5. Fallback                  -> start tracking with default fast path, write with defaults
+ *   2. Route pre-inserted        -> dismiss modal, write after transition (route already staged)
+ *   3. Destination already shown -> dismiss modal, write after transition
+ *   4. Destination loaded        -> reveal destination then dismiss, write after transition
+ *   5. Destination not loaded    -> write immediately, then reveal-and-dismiss
+ *   6. Fallback                  -> start tracking with default fast path, write with defaults
  *
  * Must not be called from `src/libs/actions/` — view-layer only.
  */
@@ -62,9 +66,20 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
         return;
     }
 
+    if (Navigation.getIsFullscreenPreInsertedUnderRHP()) {
+        Navigation.clearFullscreenPreInsertedFlag();
+        startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+        Navigation.dismissModal({
+            afterTransition: () => executeWrite({shouldHandleNavigation: false}),
+        });
+        return;
+    }
+
     if (destinationReportID) {
         const isDestinationLoaded = !!getReportOrDraftReport(destinationReportID)?.reportID;
-        const currentReportID = !getIsNarrowLayout() ? getTopmostReportParams(navigationRef.getRootState())?.reportID : undefined;
+        const isNarrow = getIsNarrowLayout();
+        const isReportVisible = !isNarrow && isReportTopmostSplitNavigator();
+        const currentReportID = isReportVisible ? getTopmostReportParams(navigationRef.getRootState())?.reportID : undefined;
         const isAlreadyOnDestination = currentReportID === destinationReportID;
 
         if (isAlreadyOnDestination) {

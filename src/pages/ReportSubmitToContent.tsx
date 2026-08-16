@@ -1,8 +1,3 @@
-import {delegateEmailSelector} from '@selectors/Account';
-import type {RefObject} from 'react';
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import BlockingView from '@components/BlockingViews/BlockingView';
 import FormHelpMessage from '@components/FormHelpMessage';
 import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
@@ -10,15 +5,21 @@ import SelectionList from '@components/SelectionList';
 import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMemberListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {search} from '@libs/actions/Search';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import Navigation from '@libs/Navigation/Navigation';
@@ -28,14 +29,26 @@ import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getS
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
+
 import variables from '@styles/variables';
+
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 import {searchUserInServer} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {RefObject} from 'react';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {delegateEmailSelector} from '@selectors/Account';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import {View} from 'react-native';
 
 type WorkspaceMemberItem = ListItem & {email: string; accountID?: number};
 
@@ -65,18 +78,24 @@ function ReportSubmitToContent({
     canSubmitRef,
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const StyleUtils = useStyleUtils();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
+    const isInLandscapeMode = useIsInLandscapeMode();
+    const {keyboardActiveHeight} = useKeyboardState();
+
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
@@ -86,7 +105,7 @@ function ReportSubmitToContent({
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(report?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.login ?? '');
 
-    const prepopulatedEmail = useMemo(() => getSubmitToEmail(policy, report), [policy, report]);
+    const prepopulatedEmail = getSubmitToEmail(policy, report, submitterLogin);
 
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
@@ -143,7 +162,7 @@ function ReportSubmitToContent({
         }
 
         const accountID = getKnownAccountIDByLogin(email);
-        const details = accountID ? getPersonalDetailsByID(accountID, personalDetails) : undefined;
+        const details = getPersonalDetailsByID(accountID, personalDetails);
 
         return {
             accountID,
@@ -185,6 +204,7 @@ function ReportSubmitToContent({
         }
 
         const inviteOption = getUserToInviteOption({
+            dateFnsLocale,
             searchValue: trimmed,
             personalDetails,
             loginList,
@@ -205,7 +225,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
@@ -275,19 +295,21 @@ function ReportSubmitToContent({
         }
 
         submitReport({
+            getCurrencyDecimals,
             expenseReport: report,
             policy,
             currentUserAccountIDParam: currentUserDetails.accountID,
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            submitterLogin,
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
+            isTrackIntentUser,
             onSubmitted: () => {
                 if (currentSearchQueryJSON && !isOffline) {
                     search({
@@ -299,8 +321,8 @@ function ReportSubmitToContent({
                         isLoading: !!currentSearchResults?.search?.isLoading,
                     });
                 }
-                onDismiss();
                 onSubmitSuccess?.();
+                onDismiss();
                 if (shouldDismissRHPAfterSubmit) {
                     Navigation.dismissToPreviousRHP();
                 }
@@ -316,11 +338,11 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStep,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        submitterLogin,
         currentSearchQueryJSON,
         isOffline,
         currentSearchKey,
@@ -331,6 +353,8 @@ function ReportSubmitToContent({
         onSubmitWithManagerEmail,
         canSubmitRef,
         shouldDismissRHPAfterSubmit,
+        isTrackIntentUser,
+        getCurrencyDecimals,
     ]);
 
     const onSelectMember = useCallback(
@@ -381,13 +405,22 @@ function ReportSubmitToContent({
 
     const confirmButtonOptions = useMemo(
         () => ({
-            showButton: true,
+            showButton: !keyboardActiveHeight || !isInLandscapeMode,
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
             confirmButtonSize: 'medium' as const,
         }),
-        [handleSubmit, translate],
+        [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode],
     );
+
+    const containerStyle = useMemo(() => {
+        const baseStyle = [styles.w100, styles.flex1, styles.pt3, styles.pb3];
+        if (isInLandscapeMode) {
+            return baseStyle;
+        }
+
+        return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
+    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
 
     if (shouldShowNotFoundView) {
         return (
@@ -398,7 +431,7 @@ function ReportSubmitToContent({
     }
 
     return (
-        <View style={[styles.w100, styles.flex1, styles.pt3, styles.pb3, {minHeight: CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT}]}>
+        <View style={containerStyle}>
             <SelectionList
                 data={submitToSelectionData}
                 ListItem={InviteMemberListItem}
@@ -413,6 +446,7 @@ function ReportSubmitToContent({
                 isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
+                addBottomSafeAreaPadding={!isInLandscapeMode}
             >
                 {hasError && (
                     <FormHelpMessage

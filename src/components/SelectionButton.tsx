@@ -1,17 +1,23 @@
-import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
-import React from 'react';
-import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type ChildrenProps from '@src/types/utils/ChildrenProps';
 import type WithSentryLabel from '@src/types/utils/SentryLabel';
-import Icon from './Icon';
+
+import type {ForwardedRef, MouseEventHandler, KeyboardEvent as ReactKeyboardEvent} from 'react';
+import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {PressableRef} from './Pressable/GenericPressable/types';
+
+import Icon from './Icon';
 import PressableWithFeedback from './Pressable/PressableWithFeedback';
 
 type BaseSelectionButtonProps = Partial<ChildrenProps> &
@@ -164,6 +170,20 @@ function SelectionButton({
                     e.stopPropagation();
                 }
                 onMouseDown?.(e);
+                // Stop Shift+mousedown from extending the text selection and swallowing the click, then emulate the suppressed defaults — collapse any text
+                // selection and move focus to the control — unless the consumer already prevented default to keep focus where it is. Covers radios too.
+                if (e.shiftKey && !disabled) {
+                    if (!e.defaultPrevented) {
+                        const selection = window.getSelection();
+                        if (selection && !selection.isCollapsed) {
+                            selection.removeAllRanges();
+                        }
+                        if (e.currentTarget instanceof HTMLElement) {
+                            e.currentTarget.focus({preventScroll: true});
+                        }
+                    }
+                    e.preventDefault();
+                }
             }}
             ref={ref as PressableRef}
             style={[StyleUtils.getSelectionButtonPressableStyle(borderRadius + 2), style]}

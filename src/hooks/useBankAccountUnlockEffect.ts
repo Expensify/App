@@ -1,9 +1,14 @@
-import {useEffect} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import {isConciergeChatReport} from '@libs/ReportUtils';
+
 import {initiateBankAccountUnlock} from '@userActions/BankAccounts';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
+
 import useOnyx from './useOnyx';
 
 function useBankAccountUnlockEffect(report: OnyxEntry<Report> | undefined) {

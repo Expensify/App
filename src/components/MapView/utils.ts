@@ -1,11 +1,18 @@
-import is2dArray from '@libs/is2dArray';
-import type {Coordinate} from './MapViewTypes';
+import type {AlternateDirection, Coordinate} from './MapViewTypes';
 
 /** A geographic point as a plain longitude/latitude pair. Mapbox's `LngLat` became a class in mapbox-gl 3.x, but these helpers only read `.lng`/`.lat`, so a literal shape is all that's needed. */
 type LngLatLiteral = {lng: number; lat: number};
 
+/** Where along its own route each distance symbol sits, as a share of the route length */
+const PRIMARY_ROUTE_FRACTION = 0.33;
+const ALTERNATE_ROUTE_FRACTION = 0.66;
+
 function isSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): directionCoordinates is Coordinate[] {
-    return is2dArray<Coordinate>(directionCoordinates);
+    const firstElement = directionCoordinates.at(0);
+    if (!firstElement) {
+        return true;
+    }
+    return typeof firstElement.at(0) === 'number';
 }
 
 function getBounds(waypoints: Coordinate[], directionCoordinates: undefined | Coordinate[]): {southWest: Coordinate; northEast: Coordinate} {
@@ -112,6 +119,18 @@ function closestPointOnSegment(point: LngLatLiteral, startPoint: Coordinate, end
     return {lng: closestX, lat: closestY};
 }
 
+function areCoordinatesEqual(coordinate1: Coordinate | undefined, coordinate2: Coordinate | undefined) {
+    if (!coordinate1 || !coordinate2) {
+        return false;
+    }
+    return coordinate1[0] === coordinate2[0] && coordinate1[1] === coordinate2[1];
+}
+
+// Simple linear interpolation of a coordinate between two points
+function simpleInterpolateCoordinate(start: Coordinate, end: Coordinate, progress: number): Coordinate {
+    return [start[0] + (end[0] - start[0]) * progress, start[1] + (end[1] - start[1]) * progress];
+}
+
 function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate}) {
     const {
         southWest: [south, west],
@@ -124,10 +143,102 @@ function getBoundsCenter(bounds: {southWest: Coordinate; northEast: Coordinate})
     return {lng: latitudeCenter, lat: longitudeCenter};
 }
 
+/** Coordinate that lies `fraction` of the way along a route, measured by length rather than by index, as the density of the coordinates varies along a route. */
+function findCoordinateAtRouteFraction(lineCoordinates: Coordinate[], fraction: number): Coordinate | null {
+    let totalLength = 0;
+
+    for (let i = 0; i < lineCoordinates.length - 1; i++) {
+        const startPoint = lineCoordinates.at(i);
+        const endPoint = lineCoordinates.at(i + 1);
+
+        if (!startPoint || !endPoint) {
+            break;
+        }
+
+        // map Coordinates are [long, lat], but haversineDistance treats [0] as latitude and [1] as longitude
+        totalLength += haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+    }
+
+    const targetLength = totalLength * fraction;
+    let walkedLength = 0;
+
+    for (let i = 0; i < lineCoordinates.length - 1; i++) {
+        const startPoint = lineCoordinates.at(i);
+        const endPoint = lineCoordinates.at(i + 1);
+
+        if (!startPoint || !endPoint) {
+            break;
+        }
+
+        const segmentLength = haversineDistance([startPoint[1], startPoint[0]], [endPoint[1], endPoint[0]]);
+
+        if (walkedLength + segmentLength >= targetLength) {
+            return simpleInterpolateCoordinate(startPoint, endPoint, segmentLength > 0 ? (targetLength - walkedLength) / segmentLength : 0);
+        }
+
+        walkedLength += segmentLength;
+    }
+
+    return lineCoordinates.at(-1) ?? null;
+}
+
+/**
+ * Coordinates at which the distance symbols of the primary and the alternate route should be anchored.
+ * Each symbol is anchored at a different share of its own route, so that the two always sit at a
+ * different point of the trip.
+ */
+function getDistanceSymbolCoordinates(
+    waypoints: Coordinate[],
+    primaryRouteCoordinates: Coordinate[] | undefined,
+    alternateRouteCoordinates: Coordinate[] | undefined,
+): {primary: Coordinate | null; alternate: Coordinate | null} {
+    const primaryRoute = primaryRouteCoordinates ?? [];
+    const alternateRoute = alternateRouteCoordinates ?? [];
+
+    if (!waypoints.length || primaryRoute.length < 2) {
+        return {primary: null, alternate: null};
+    }
+
+    // A single set of bounds is shared by both symbols, so that they are placed relative to the same map.
+    const bounds = getBounds(waypoints, [...primaryRoute, ...alternateRoute]);
+    const center = getBoundsCenter(bounds);
+
+    // A lone symbol has nothing to overlap with, so it stays at the point of its route closest to the center of the map.
+    if (alternateRoute.length < 2) {
+        return {primary: findClosestCoordinateOnLineFromCenter(center, primaryRoute), alternate: null};
+    }
+
+    return {
+        primary: findCoordinateAtRouteFraction(primaryRoute, PRIMARY_ROUTE_FRACTION),
+        alternate: findCoordinateAtRouteFraction(alternateRoute, ALTERNATE_ROUTE_FRACTION),
+    };
+}
+
+/** Flattens a route made of several segments into a single list of coordinates, leaving a single segment route as is. */
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][]): Coordinate[];
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined): Coordinate[] | undefined;
+function convertSegmentedRouteToSingleSegmentRoute(directionCoordinates: Coordinate[] | Coordinate[][] | undefined) {
+    return !directionCoordinates || isSingleSegmentRoute(directionCoordinates) ? directionCoordinates : directionCoordinates.flat();
+}
+
+function getCoordinatesFromAllDirections(directionCoordinates: Coordinate[] | Coordinate[][] | undefined, alternateDirection: AlternateDirection | undefined) {
+    const directionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(directionCoordinates);
+
+    const alternateDirectionCoordinates = alternateDirection?.coordinates;
+    const alternateDirectionCoordinatesFlattened = convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates);
+
+    return [...(directionCoordinatesFlattened ?? []), ...(alternateDirectionCoordinatesFlattened ?? [])];
+}
+
 export default {
     getBounds,
     areSameCoordinate,
+    areCoordinatesEqual,
     findClosestCoordinateOnLineFromCenter,
     getBoundsCenter,
+    getDistanceSymbolCoordinates,
+    simpleInterpolateCoordinate,
     isSingleSegmentRoute,
+    convertSegmentedRouteToSingleSegmentRoute,
+    getCoordinatesFromAllDirections,
 };

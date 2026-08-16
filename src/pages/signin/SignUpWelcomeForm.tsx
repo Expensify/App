@@ -1,18 +1,24 @@
-import {Str} from 'expensify-common';
-import React, {useMemo, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CheckboxWithLabel from '@components/CheckboxWithLabel';
 import FormHelpMessage from '@components/FormHelpMessage';
+
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import {setReadyToShowAuthScreens} from '@userActions/HybridApp';
 import {clearSignInData, signUpUser} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {Str} from 'expensify-common';
+import React, {useMemo, useState} from 'react';
+import {View} from 'react-native';
+
 import ChangeExpensifyLoginLink from './ChangeExpensifyLoginLink';
 import Terms from './Terms';
 
@@ -43,18 +49,19 @@ function SignUpWelcomeForm() {
             <View style={[styles.mt3, styles.mb2]}>
                 <Button
                     isDisabled={network.isOffline || !!account?.message}
-                    success
-                    large
-                    text={translate('welcomeSignUpForm.join')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     isLoading={account?.isLoading}
                     onPress={() => {
-                        signUpUser(preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
+                        signUpUser(login, preferredLocale, isPhoneSignup ? hasSMSMarketingConsent : undefined);
                         setReadyToShowAuthScreens(true);
                     }}
-                    pressOnEnter
                     style={[styles.mb2]}
                     sentryLabel={CONST.SENTRY_LABEL.SIGN_IN.JOIN}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('welcomeSignUpForm.join')}</Button.Text>
+                </Button>
                 {!!serverErrorText && (
                     <FormHelpMessage
                         isError

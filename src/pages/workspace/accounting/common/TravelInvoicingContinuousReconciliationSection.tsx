@@ -1,23 +1,29 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {getRouteParamForConnection} from '@libs/AccountingUtils';
 import {toggleTravelInvoicingContinuousReconciliation} from '@libs/actions/TravelInvoicing';
 import {getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsTravelInvoicingEnabled} from '@libs/TravelInvoicingUtils';
+
 import RECONCILIATION_ACCOUNT_SETTINGS_TYPE from '@pages/workspace/accounting/reconciliation/constants';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import type {ConnectionName} from '@src/types/onyx/Policy';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
 
 type TravelInvoicingContinuousReconciliationSectionProps = {
     policy: OnyxEntry<Policy>;

@@ -1,15 +1,26 @@
-import type {OnyxEntry} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../../utils/collections/policies';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
+jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
+    __esModule: true,
+    default: (callback: () => void) => callback(),
+}));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     dismissModal: jest.fn(),
@@ -329,11 +340,14 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when report has one transaction on hold and action is approve', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
@@ -341,7 +355,10 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -349,11 +366,14 @@ describe('handleActionButtonPress', () => {
     test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
         const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             userBillingGracePeriodEnds: undefined,
@@ -361,7 +381,10 @@ describe('handleActionButtonPress', () => {
             amountOwed: undefined,
             onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -370,18 +393,24 @@ describe('handleActionButtonPress', () => {
     test('Should not navigate to item when the hold is removed', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
             snapshotReport: snapshotReport as Report,
             snapshotPolicy: snapshotPolicy as Policy,
+            submitterLogin: undefined,
             lastPaymentMethod: mockLastPaymentMethod,
             personalPolicyID: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
             policy: snapshotPolicy as Policy,
+            chatReportActions: undefined,
             currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
     });
@@ -404,8 +433,10 @@ describe('handleBulkPayItemSelected', () => {
         confirmPayment: jest.fn(),
         userBillingGracePeriodEnds: undefined,
         businessBankAccountOptions: undefined,
+        bankAccountList: undefined,
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
+        isOffline: false,
     };
 
     beforeEach(async () => {
@@ -511,6 +542,139 @@ describe('handleBulkPayItemSelected', () => {
             amountOwed: 0,
         });
 
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should not navigate to verify account and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isUserValidated: false,
+            item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
+        });
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
+    });
+
+    it('should navigate to verify account when user is unvalidated and item is a bank-funded payment type (VBBA)', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            isUserValidated: false,
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+        });
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should call confirmPayment directly when an open business bank account is selected, even if it is not linked to the policy', async () => {
+        const bankAccountID = 2409153;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            bankAccountList: {
+                [bankAccountID]: {
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.OPEN},
+                },
+            },
+            item: {
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                text: 'Business account',
+                icon: () => null,
+                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+            },
+        });
+
+        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
+    });
+
+    it('should trigger the KYC flow when the selected business bank account is not open', async () => {
+        const bankAccountID = 2409153;
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            bankAccountList: {
+                [bankAccountID]: {
+                    bankCurrency: CONST.CURRENCY.USD,
+                    bankCountry: CONST.COUNTRY.US,
+                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
+                },
+            },
+            item: {
+                key: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
+                text: 'Business account',
+                icon: () => null,
+                additionalData: {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT},
+            },
+        });
+
+        expect(baseParams.triggerKYCFlow).toHaveBeenCalled();
+        expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should defer to confirmPayment (offline modal) and never navigate to KYC/verify-account when offline, even for a bank-funded payment type', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            // VBBA + unvalidated user would normally route to account verification / KYC; offline must short-circuit that.
+            isUserValidated: false,
+            isOffline: true,
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+        });
+
+        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 });

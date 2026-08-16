@@ -1,16 +1,22 @@
-import React, {useCallback} from 'react';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import Onfido from '@components/Onfido';
 import type {OnfidoData} from '@components/Onfido/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import Growl from '@libs/Growl';
 import Navigation from '@libs/Navigation/Navigation';
+
 import {verifyIdentity as verifyIdentityAction} from '@userActions/BankAccounts';
 import {updateCurrentStep} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React, {useCallback} from 'react';
+
 import OnfidoPrivacy from './OnfidoPrivacy';
 
 function OnfidoStep() {

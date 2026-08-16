@@ -1,8 +1,10 @@
-import {useLayoutEffect, useRef, useState} from 'react';
+import {easing} from '@components/Modal/ReanimatedModal/utils';
+
 import type {LayoutChangeEvent} from 'react-native';
+
+import {useLayoutEffect, useRef, useState} from 'react';
 import {useAnimatedStyle, useDerivedValue, useSharedValue, withTiming} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import {easing} from '@components/Modal/ReanimatedModal/utils';
 
 const EXPAND_COLLAPSE_DURATION = 300;
 

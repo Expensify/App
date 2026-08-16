@@ -1,5 +1,6 @@
 import React from 'react';
 import {Collapse} from 'react-collapse';
+
 import type CollapsibleProps from './types';
 
 function Collapsible({isOpened = false, children}: CollapsibleProps) {

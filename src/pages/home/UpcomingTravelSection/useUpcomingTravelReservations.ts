@@ -1,10 +1,14 @@
-import {accountIDSelector} from '@selectors/Session';
-import {useMemo} from 'react';
 import useOnyx from '@hooks/useOnyx';
+
 import type {ReservationData} from '@libs/TripReservationUtils';
 import {getReservationsFromTripReport} from '@libs/TripReservationUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {accountIDSelector} from '@selectors/Session';
+import {useMemo} from 'react';
+
 import useTripRoomReports from './useTripRoomReports';
 
 type UpcomingReservation = ReservationData & {

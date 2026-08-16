@@ -1,7 +1,10 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 /* eslint-disable @typescript-eslint/naming-convention -- Translation keys use dot-notation which violates naming conventions */
 const translationMap: Record<string, string> = {

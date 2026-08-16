@@ -1,10 +1,13 @@
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type CONST from '@src/CONST';
+import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ReactElement, Ref} from 'react';
 import type {GestureResponderEvent, InputModeOptions, StyleProp, TextStyle, ViewStyle} from 'react-native';
 import type {ValueOf} from 'type-fest';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import type CONST from '@src/CONST';
-import type ChildrenProps from '@src/types/utils/ChildrenProps';
+
 import type {ListItem, ValidListItem} from './ListItem/types';
 import type {SelectionListWithSectionsHandle, SelectionListWithSectionsProps} from './SelectionListWithSections/types';
 
@@ -304,8 +307,6 @@ type ConfirmButtonOptions<TItem extends ListItem> = {
     confirmButtonSize?: 'large' | 'medium' | 'small';
 };
 
-type InteractiveElementRoles = 'button' | 'checkbox' | 'switch';
-
 type SelectionListHandle<TItem extends ListItem> = {
     /** Scrolls to and highlights the specified items */
     scrollAndHighlightItem: (items: string[]) => void;
@@ -351,7 +352,6 @@ export type {
     TextInputOptions,
     ConfirmButtonOptions,
     ListItem,
-    InteractiveElementRoles,
     SelectionListStyle,
     SelectionListWithSectionsHandle,
     SelectionListWithSectionsProps,

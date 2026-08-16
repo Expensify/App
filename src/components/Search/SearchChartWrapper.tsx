@@ -1,11 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
 import {ChartHeader} from '@components/Charts';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
-import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {SearchGroupBy} from './types';
+
+import CHART_GROUP_BY_CONFIG from './chartGroupByConfig';
 
 function SearchChartWrapper({children, title, groupBy}: {children: React.ReactNode; title?: string; groupBy: SearchGroupBy}) {
     const styles = useThemeStyles();

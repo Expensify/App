@@ -1,9 +1,14 @@
+import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import CONST from '@src/CONST';
+
 import React, {useState} from 'react';
 import {View} from 'react-native';
-import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import Navigation from '@libs/Navigation/Navigation';
-import CONST from '@src/CONST';
+
 import type {ValuePickerItem, ValuePickerProps} from './types';
+
 import ValueSelectionList from './ValueSelectionList';
 import ValueSelectorModal from './ValueSelectorModal';
 
@@ -14,6 +19,7 @@ function ValuePicker({
     placeholder = '',
     errorText = '',
     onInputChange,
+    onOpen,
     furtherDetails,
     shouldShowTooltips = true,
     shouldShowModal = true,
@@ -27,6 +33,7 @@ function ValuePicker({
 
     const showPickerModal = () => {
         setIsPickerVisible(true);
+        onOpen?.();
     };
 
     const hidePickerModal = () => {

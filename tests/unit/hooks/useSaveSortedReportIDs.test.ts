@@ -1,9 +1,13 @@
 import {renderHook} from '@testing-library/react-native';
-import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+
 import useSaveSortedReportIDs from '@hooks/useSaveSortedReportIDs';
+
 import CONST from '@src/CONST';
 
 const mockSetSortedReportIDs = jest.fn();
+type SearchResultItem = Parameters<typeof useSaveSortedReportIDs>[1][number];
+
+const makeSearchItems = (...reportIDs: string[]): SearchResultItem[] => reportIDs.map((reportID) => ({reportID}));
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchResultsActions: () => ({setSortedReportIDs: mockSetSortedReportIDs}),
@@ -22,19 +26,19 @@ describe('useSaveSortedReportIDs', () => {
         });
 
         it('stores only the provided report IDs in context', () => {
-            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [{reportID: '1'}, {reportID: '3'}] as TransactionListItemType[]));
+            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, makeSearchItems('1', '3')));
 
             expect(mockSetSortedReportIDs).toHaveBeenCalledWith(['1', '3']);
         });
 
         it('stores all IDs in context', () => {
-            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, [{reportID: '1'}, {reportID: '2'}, {reportID: '3'}] as TransactionListItemType[]));
+            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, makeSearchItems('1', '2', '3')));
 
             expect(mockSetSortedReportIDs).toHaveBeenCalledWith(['1', '2', '3']);
         });
 
         it('clears context when type is not expense-report', () => {
-            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE, [{reportID: '1'}, {reportID: '2'}] as TransactionListItemType[]));
+            renderHook(() => useSaveSortedReportIDs(CONST.SEARCH.DATA_TYPES.EXPENSE, makeSearchItems('1', '2')));
 
             expect(mockSetSortedReportIDs).toHaveBeenCalledWith([]);
         });

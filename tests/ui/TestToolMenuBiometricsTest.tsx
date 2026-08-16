@@ -1,10 +1,18 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return */
 import {fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import TestToolMenu from '@components/TestToolMenu';
+
+import type {revokeMultifactorAuthenticationCredentials} from '@libs/actions/MultifactorAuthentication';
+import type * as MultifactorAuthenticationSharedValues from '@libs/MultifactorAuthentication/shared/VALUES';
 import MULTIFACTOR_AUTHENTICATION_VALUES from '@libs/MultifactorAuthentication/VALUES';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+
+import createMock from '../utils/createMock';
 
 const REGISTRATION_STATUS = MULTIFACTOR_AUTHENTICATION_VALUES.REGISTRATION_STATUS;
 
@@ -17,7 +25,7 @@ let mockBiometricStatus = {
 };
 
 jest.mock('@hooks/useBiometricRegistrationStatus', () => {
-    const actual = require('@libs/MultifactorAuthentication/shared/VALUES') as {default: {REGISTRATION_STATUS: Record<string, string>}};
+    const actual = jest.requireActual<typeof MultifactorAuthenticationSharedValues>('@libs/MultifactorAuthentication/shared/VALUES');
     return {
         __esModule: true,
         default: () => mockBiometricStatus,
@@ -65,15 +73,21 @@ jest.mock('@hooks/useThemeStyles', () => ({
         ),
 }));
 
-const mockRevokeCredentials = jest.fn().mockResolvedValue({httpStatusCode: 200});
+const mockRevokeCredentials = jest
+    .fn<ReturnType<typeof revokeMultifactorAuthenticationCredentials>, Parameters<typeof revokeMultifactorAuthenticationCredentials>>()
+    .mockResolvedValue(createMock<Awaited<ReturnType<typeof revokeMultifactorAuthenticationCredentials>>>({httpStatusCode: 200}));
 jest.mock('@libs/actions/MultifactorAuthentication', () => ({
-    revokeMultifactorAuthenticationCredentials: (...args: unknown[]): Promise<{httpStatusCode: number}> => mockRevokeCredentials(...args) as Promise<{httpStatusCode: number}>,
+    revokeMultifactorAuthenticationCredentials: (...args: Parameters<typeof revokeMultifactorAuthenticationCredentials>): ReturnType<typeof revokeMultifactorAuthenticationCredentials> =>
+        mockRevokeCredentials(...args),
 }));
 
 jest.mock('@libs/ApiUtils', () => ({
     isUsingStagingApi: () => false,
     getCommandURL: () => 'https://test-api.expensify.com/api/Ping?',
 }));
+
+let mockIsAgentAccount = false;
+jest.mock('@hooks/useIsAgentAccount', () => () => mockIsAgentAccount);
 
 const mockExecuteScenario = jest.fn().mockResolvedValue(undefined);
 jest.mock('@components/MultifactorAuthentication/Context', () => ({
@@ -188,6 +202,7 @@ function setBiometricStatus(overrides: Partial<typeof mockBiometricStatus>) {
 describe('TestToolMenu biometrics', () => {
     afterEach(() => {
         jest.clearAllMocks();
+        mockIsAgentAccount = false;
     });
 
     it('renders biometrics title with "Never registered" status', () => {
@@ -297,5 +312,15 @@ describe('TestToolMenu biometrics', () => {
 
         expect(mockDismissModal).not.toHaveBeenCalled();
         expect(mockExecuteScenario).toHaveBeenCalledWith(CONST.MULTIFACTOR_AUTHENTICATION.SCENARIO.BIOMETRICS_TEST);
+    });
+
+    it('hides the biometrics test row for agent accounts', () => {
+        mockIsAgentAccount = true;
+        setBiometricStatus({registrationStatus: REGISTRATION_STATUS.NEVER_REGISTERED});
+
+        render(<TestToolMenu />);
+
+        expect(screen.queryByText(/troubleshootBiometricsStatus/)).toBeNull();
+        expect(screen.queryByText('multifactorAuthentication.biometricsTest.test')).toBeNull();
     });
 });

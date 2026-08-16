@@ -1,10 +1,15 @@
 import {act, render} from '@testing-library/react-native';
-import React, {useEffect, useMemo, useState} from 'react';
+
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useSyncSelectedReports} from '@components/Search/SearchContextProvider';
 import type {TransactionListItemType, TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
+import React, {useEffect, useMemo, useState} from 'react';
+
+import createMock from '../../utils/createMock';
 
 type HookData = TransactionListItemType[] | TransactionReportGroupListItemType[];
 
@@ -12,6 +17,7 @@ const createSetSelectedReportsMock = () => jest.fn<void, [SelectedReports[]]>();
 
 const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
@@ -20,7 +26,7 @@ const baseSelectionContext = {
 } satisfies Omit<SearchSelectionContextValue, 'selectedTransactions'>;
 
 function buildTransactionItem(overrides: Partial<TransactionListItemType> & {keyForList: string; transactionID: string}) {
-    return {
+    return createMock<TransactionListItemType>({
         amount: 100,
         currency: 'USD',
         reportID: 'report_1',
@@ -29,7 +35,7 @@ function buildTransactionItem(overrides: Partial<TransactionListItemType> & {key
         allActions: [CONST.SEARCH.ACTION_TYPES.VIEW],
         report: undefined,
         ...overrides,
-    } as unknown as TransactionListItemType;
+    });
 }
 
 function buildSelected(...keys: string[]): SelectedTransactions {

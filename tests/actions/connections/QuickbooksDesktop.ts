@@ -1,11 +1,13 @@
-import Onyx from 'react-native-onyx';
 import * as API from '@libs/API';
-import type {WriteCommand} from '@libs/API/types';
+import type {ApiRequestCommandParameters} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
+
 import CONST from '@src/CONST';
 import {updateQuickbooksDesktopTravelInvoicingPayableAccount} from '@src/libs/actions/connections/QuickbooksDesktop';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AnyOnyxData} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/API');
@@ -19,15 +21,6 @@ jest.mock('@expensify/react-native-hybrid-app', () => ({
 const writeSpy = jest.spyOn(API, 'write');
 
 const MOCK_POLICY_ID = 'MOCK_POLICY_ID';
-
-function getFirstWriteCall(): {command: WriteCommand; onyxData?: AnyOnyxData} {
-    const call = writeSpy.mock.calls.at(0);
-    if (!call) {
-        throw new Error('API.write was not called');
-    }
-    const [command, , onyxData] = call;
-    return {command, onyxData};
-}
 
 describe('actions/connections/QuickbooksDesktop', () => {
     beforeAll(() => {
@@ -45,25 +38,41 @@ describe('actions/connections/QuickbooksDesktop', () => {
         it('writes the dedicated payable account command with the selected account', () => {
             updateQuickbooksDesktopTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
-            const {command} = getFirstWriteCall();
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+            const [command, parameters] = call;
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
-            const call = writeSpy.mock.calls.at(0);
-            const params = call?.[1] as {idempotencyKey: string; policyID: string; settingValue: string};
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.settingValue).toBe('account-123');
-            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
+            const expectedParameters = {
+                policyID: MOCK_POLICY_ID,
+                settingValue: 'account-123',
+                idempotencyKey: String(CONST.QUICKBOOKS_DESKTOP_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+            } satisfies ApiRequestCommandParameters[typeof WRITE_COMMANDS.UPDATE_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT];
+            expect(parameters).toEqual(expectedParameters);
         });
 
         it('merges the payable account optimistically onto the QBD export config', () => {
             updateQuickbooksDesktopTravelInvoicingPayableAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
 
-            const {onyxData} = getFirstWriteCall();
+            const call = writeSpy.mock.calls.at(0);
+            if (!call) {
+                throw new Error('API.write was not called');
+            }
+            const [, , onyxData] = call;
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             expect(optimisticUpdate?.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
 
-            const value = optimisticUpdate?.value as {connections: {quickbooksDesktop: {config: {export: {travelInvoicingPayableAccountID: string}}}}};
-            expect(value.connections.quickbooksDesktop.config.export.travelInvoicingPayableAccountID).toBe('account-123');
+            expect(optimisticUpdate?.value).toEqual(
+                expect.objectContaining({
+                    connections: expect.objectContaining({
+                        quickbooksDesktop: expect.objectContaining({
+                            config: expect.objectContaining({export: expect.objectContaining({travelInvoicingPayableAccountID: 'account-123'})}),
+                        }),
+                    }),
+                }),
+            );
         });
     });
 });

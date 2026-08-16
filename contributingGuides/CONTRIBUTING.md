@@ -141,6 +141,10 @@ This helps future investigators understand the history and current status of err
 ## Working on Expensify Jobs
 *Reminder: For technical guidance, please refer to the [README](https://github.com/Expensify/App/blob/main/README.md)*.
 
+### Make sure you have access to the affected codebase
+
+* Proposals for solutions can only be accepted if contributors have access to the affected repositories.
+
 ### Make sure you can test on all platforms
 * Expensify requires that you can test the app on iOS, MacOS, Android, Web, and mWeb.
 * You'll need a Mac to test the iOS and MacOS app.
@@ -240,7 +244,7 @@ During communication with Expensify, you will come across a variety of acronyms 
 - **VBA:** Verified Bank Account (Bank account that has been verified as real and belonging to the correct business/individual)
 - **NAB:** Not a Blocker (An issue that doesn't block progress, but would be nice to not have)
 - **IOU:** I owe you (used to describe payment requests between users)
-- **OTP:** One-time password, or magic sign-in
+- **OTP:** One-time password, or security sign-in
 - **RHP:** Right Hand Panel (on larger screens, pages are often displayed docked to the right side of the screen)
 - **QA:** Quality Assurance
 - **GH:** GitHub

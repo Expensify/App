@@ -1,12 +1,16 @@
-import React from 'react';
+import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
+
+import type CONST from '@src/CONST';
+import type {ReportAction} from '@src/types/onyx';
+
 import type {RefObject} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {GestureResponderEvent, Text as RNText, TextInput, View} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
-import type {ComposerType} from '@libs/ReportActionComposeFocusManager';
-import type CONST from '@src/CONST';
-import type {ReportAction} from '@src/types/onyx';
+
+import React from 'react';
+
 import type {ContextMenuAction} from './ContextMenuActions';
 
 type OnConfirm = () => void;

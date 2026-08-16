@@ -1,12 +1,16 @@
-import delay from 'lodash/delay';
-import React, {useEffect, useRef, useState} from 'react';
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import useNetwork from '@hooks/useNetwork';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+
+import delay from 'lodash/delay';
+import React, {useEffect, useRef, useState} from 'react';
+import {View} from 'react-native';
+
+import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
+
 import AttachmentOfflineIndicator from './AttachmentOfflineIndicator';
 import Image from './Image';
-import type {ImageObjectPosition, ImageOnLoadEvent, ImageProps} from './Image/types';
 import LoadingIndicator from './LoadingIndicator';
 
 type ImageWithSizeLoadingProps = {
@@ -47,6 +51,9 @@ function ImageWithLoading({
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    // The full-resolution image is not guaranteed to ever emit `onLoad`/`onError` (e.g. a receipt derivative that is
+    // still being generated server-side), so `isLoading` can stay `true` indefinitely. Once the low-resolution preview
+    // is on screen we have something readable to show, so the loading state must stop being visible at that point.
     const [isThumbnailLoading, setIsThumbnailLoading] = useState(!!previewUri);
     const {isOffline} = useNetwork();
 
@@ -88,21 +95,22 @@ function ImageWithLoading({
             style={[styles.w100, styles.h100, containerStyles]}
             onLayout={onLayout}
         >
-            {isLoading && !!previewUri && (
-                // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
-                <Image
-                    {...rest}
-                    source={{uri: previewUri}}
-                    style={[styles.w100, styles.h100, style]}
-                    resizeMode={resizeMode}
-                    onLoad={(e) => {
-                        setIsThumbnailLoading(false);
-                        onLoad?.(e);
-                    }}
-                    loadingIconSize={loadingIconSize}
-                    loadingIndicatorStyles={loadingIndicatorStyles}
-                />
-            )}
+            {isLoading &&
+                !!previewUri && (
+                    // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
+                    <Image
+                        {...rest}
+                        source={{uri: previewUri}}
+                        style={[styles.w100, styles.h100, style]}
+                        resizeMode={resizeMode}
+                        onLoad={(e) => {
+                            setIsThumbnailLoading(false);
+                            onLoad?.(e);
+                        }}
+                        loadingIconSize={loadingIconSize}
+                        loadingIndicatorStyles={loadingIndicatorStyles}
+                    />
+                )}
             {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
             <Image
                 {...rest}
@@ -144,3 +152,4 @@ function ImageWithLoading({
 ImageWithLoading.displayName = 'ImageWithLoading';
 
 export default React.memo(ImageWithLoading);
+export type {ImageWithSizeLoadingProps};

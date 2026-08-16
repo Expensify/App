@@ -1,18 +1,26 @@
-import type {ParamListBase} from '@react-navigation/native';
-import {NavigationContainer} from '@react-navigation/native';
 import {render, renderHook} from '@testing-library/react-native';
-import React from 'react';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import createSplitNavigator from '@libs/Navigation/AppNavigator/createSplitNavigator';
 import useNavigationResetOnLayoutChange from '@libs/Navigation/AppNavigator/useNavigationResetOnLayoutChange';
 import navigationRef from '@libs/Navigation/navigationRef';
 import type {CustomEffectsHookProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+
 import InitialSettingsPage from '@pages/settings/InitialSettingsPage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
+
 import CONST from '@src/CONST';
 import SCREENS from '@src/SCREENS';
+
+import type {ParamListBase} from '@react-navigation/native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+
+import createMock from '../utils/createMock';
 
 const Split = createSplitNavigator<SettingsSplitNavigatorParamList>();
 
@@ -31,8 +39,8 @@ const INITIAL_STATE = {
     ],
 };
 
-const mockedGetIsNarrowLayout = getIsNarrowLayout as jest.MockedFunction<typeof getIsNarrowLayout>;
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedGetIsNarrowLayout = jest.mocked(getIsNarrowLayout);
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 describe('Resize screen', () => {
     it('Should display the settings profile after resizing the screen with the settings page opened to the wide layout', () => {
@@ -62,14 +70,34 @@ describe('Resize screen', () => {
             </NavigationContainer>,
         );
 
-        const {rerender} = renderHook(() =>
-            useNavigationResetOnLayoutChange({
-                navigation: navigationRef.current as unknown as CustomEffectsHookProps<ParamListBase>['navigation'],
-                displayName: 'SplitNavigator',
-                descriptors: {},
-                state: navigationRef.current?.getState() as CustomEffectsHookProps<ParamListBase>['state'],
-            }),
-        );
+        const navigation = navigationRef.current;
+        if (!navigation) {
+            throw new Error('Navigation container ref was not initialized');
+        }
+
+        const customEffectsState = createMock<CustomEffectsHookProps<ParamListBase>['state']>({
+            ...navigation.getState(),
+            type: 'stack',
+            preloadedRoutes: [],
+        });
+        let stateReturnedOnResize: ReturnType<typeof navigation.getState> | undefined;
+        const mockedGetState = jest.fn(() => {
+            const state = navigation.getState();
+            stateReturnedOnResize = state;
+            return state;
+        });
+        const mockedReset = jest.fn((state: ReturnType<typeof mockedGetState>) => navigation.reset(state));
+        const customEffectsProps = createMock<CustomEffectsHookProps<ParamListBase>>({
+            navigation: {
+                getState: mockedGetState,
+                reset: mockedReset,
+            },
+            displayName: 'SplitNavigator',
+            descriptors: {},
+            state: customEffectsState,
+        });
+
+        const {rerender} = renderHook(() => useNavigationResetOnLayoutChange(customEffectsProps));
 
         const rootStateBeforeResize = navigationRef.current?.getRootState();
 
@@ -84,9 +112,14 @@ describe('Resize screen', () => {
 
         const rootStateAfterResize = navigationRef.current?.getRootState();
 
+        if (!stateReturnedOnResize) {
+            throw new Error('Expected the navigation getState mock to be called during resize');
+        }
+
         // Then the settings profile page should be displayed on the screen
         expect(rootStateAfterResize?.routes.at(0)?.name).toBe(SCREENS.SETTINGS.ROOT);
         expect(rootStateAfterResize?.routes.at(1)?.name).toBe(SCREENS.SETTINGS.PROFILE.ROOT);
         expect(rootStateAfterResize?.index).toBe(1);
+        expect(mockedReset).toHaveBeenLastCalledWith(stateReturnedOnResize);
     });
 });

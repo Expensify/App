@@ -1,14 +1,20 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
+
 import initOnyxDerivedValues from '@userActions/OnyxDerived';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -18,39 +24,47 @@ const FAKE_TRANSACTION_ID = '2';
 const FAKE_EMAIL = 'fake@gmail.com';
 const FAKE_ACCOUNT_ID = 1;
 const FAKE_SECOND_ACCOUNT_ID = 2;
+const mockShowConfirmModal = jest.fn();
 
-/**
- * Mock the OptionListContextProvider to provide test data for the component.
- * This ensures consistent test data and isolates the component from external dependencies.
- */
-jest.mock('@components/OptionListContextProvider', () => ({
-    useOptionsList: () => ({
-        options: {
-            reports: [
-                {
-                    reportID: FAKE_REPORT_ID,
-                    text: 'Expense Report',
-                    keyForList: FAKE_REPORT_ID,
-                    brickRoadIndicator: 'error',
-                },
-            ],
-        },
-    }),
-    OptionsListContextProvider: ({children}: {children: React.ReactNode}) => children,
+jest.mock('@hooks/useConfirmModal', () => () => ({
+    showConfirmModal: mockShowConfirmModal,
 }));
 
 /**
  * Helper function to render the IOURequestEditReportCommon component with required providers.
  * This encapsulates the component setup and makes tests more readable.
  */
-const renderIOURequestEditReportCommon = ({selectedReportID = '', selectedPolicyID}: {selectedReportID: string; selectedPolicyID?: string}) =>
+const renderIOURequestEditReportCommon = ({
+    selectedReportID = '',
+    selectedPolicyID,
+    transactionPolicyID,
+    transactionIDs,
+    isManualDistanceRequest = false,
+    isOdometerDistanceRequest = false,
+    selectReport = jest.fn(),
+    createReport,
+}: {
+    selectedReportID: string;
+    selectedPolicyID?: string;
+    transactionPolicyID?: string;
+    transactionIDs?: string[];
+    isManualDistanceRequest?: boolean;
+    isOdometerDistanceRequest?: boolean;
+    selectReport?: jest.Mock;
+    createReport?: jest.Mock;
+}) =>
     render(
         <NavigationContainer>
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <IOURequestEditReportCommon
                     selectedReportID={selectedReportID}
                     selectedPolicyID={selectedPolicyID}
-                    selectReport={jest.fn()}
+                    transactionPolicyID={transactionPolicyID}
+                    transactionIDs={transactionIDs}
+                    isManualDistanceRequest={isManualDistanceRequest}
+                    isOdometerDistanceRequest={isOdometerDistanceRequest}
+                    selectReport={selectReport}
+                    createReport={createReport}
                     backTo=""
                     isPerDiemRequest={false}
                 />
@@ -123,6 +137,76 @@ describe('IOURequestEditReportCommon', () => {
             // Then do not show RBR
             const dotIndicators = screen.queryAllByTestId(CONST.DOT_INDICATOR_TEST_ID);
             expect(dotIndicators).toHaveLength(0);
+        });
+
+        const setUpCommuterExclusionTest = async () => {
+            const currentReport: Report = {
+                reportID: 'currentReport',
+                reportName: 'Current Report',
+                ownerAccountID: FAKE_ACCOUNT_ID,
+                policyID: 'currentPolicy',
+            };
+            await act(async () => {
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${currentReport.reportID}`, currentReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${FAKE_POLICY_ID}`, {
+                    ...createRandomPolicy(Number(FAKE_POLICY_ID), CONST.POLICY.TYPE.TEAM),
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: undefined,
+                    commuterExclusions: {
+                        method: CONST.POLICY.COMMUTER_EXCLUSION_METHOD.FIXED_DISTANCE,
+                        fixedDistance: 1,
+                        fixedDistanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                    },
+                });
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            return currentReport;
+        };
+
+        it.each([
+            ['a manual', {isManualDistanceRequest: true}],
+            ['an odometer', {isOdometerDistanceRequest: true}],
+        ])('blocks moving %s distance expense to a report with commuter exclusions', async (_distanceType, requestTypeProps) => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport, ...requestTypeProps});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
+            expect(selectReport).not.toHaveBeenCalled();
+        });
+
+        it('allows moving a GPS distance expense to a report with commuter exclusions', async () => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const selectReport = jest.fn();
+
+            renderIOURequestEditReportCommon({selectedReportID: currentReport.reportID, transactionIDs: [FAKE_TRANSACTION_ID], selectReport});
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Expense Report'));
+
+            expect(mockShowConfirmModal).not.toHaveBeenCalled();
+            expect(selectReport).toHaveBeenCalledTimes(1);
+        });
+
+        it('blocks creating a report for a manual distance expense with commuter exclusions', async () => {
+            const currentReport = await setUpCommuterExclusionTest();
+            const createReport = jest.fn();
+
+            renderIOURequestEditReportCommon({
+                selectedReportID: currentReport.reportID,
+                transactionPolicyID: FAKE_POLICY_ID,
+                transactionIDs: [FAKE_TRANSACTION_ID],
+                isManualDistanceRequest: true,
+                createReport,
+            });
+            await waitForBatchedUpdatesWithAct();
+            fireEvent.press(screen.getByText('Create report'), {});
+
+            expect(createReport).not.toHaveBeenCalled();
+            expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
         });
     });
 

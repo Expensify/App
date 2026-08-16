@@ -76,8 +76,7 @@ This layer uses `@react-native-community/netinfo` to detect whether the device h
 The NetInfo listener tracks `isInternetReachable` transitions in both directions:
 
 - **any non-`false` → `false`** (`true→false`, `null→false`, `undefined→false`) — `api/Ping` failed. Sets the `internetUnreachable` hard stop. Only `false→false` is skipped (already offline). This covers cold start with no internet (`null→false` after the initial indeterminate event), post-recovery resets, and normal online→offline transitions. Without this, an idle user would never see the offline indicator because no API requests are failing.
-- **`false` → `true`** and **`null` → `true`** — `api/Ping` succeeded after a previous failure. Triggers `onReachabilityRestored()` which clears all hard stops and fires reconnect listeners.
-- **`undefined` → `true`** — the initial event on subscribe, delivering current state. This is **not** treated as a recovery to prevent duplicate `openApp()`/`reconnectApp()` calls on boot.
+- **any non-`true` → `true`** — `api/Ping` succeeded. This counts as a recovery only when there is something to recover from: the app was offline at that moment, or a debug tool just cleared its own hard stop and asked for a recovery (`pendingReachabilityRecovery`). A recovery calls `onReachabilityRestored()`, which clears all hard stops and fires reconnect listeners. Any other confirmation (boot, re-subscription after a reconfigure, a `refresh()` re-emit) is a re-read of a network that never went down and is ignored, so it cannot fire duplicate `openApp()`/`reconnectApp()` calls.
 
 **Platform behavior:**
 

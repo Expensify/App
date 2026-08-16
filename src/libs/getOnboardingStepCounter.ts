@@ -1,8 +1,10 @@
-import type {ValueOf} from 'type-fest';
 import CONST from '@src/CONST';
 import type {StepCounterParams} from '@src/languages/params';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import type {ValueOf} from 'type-fest';
+
 import getOnboardingRouteFromScreen from './Navigation/helpers/getOnboardingRouteFromScreen';
 
 type OnboardingScreen = ValueOf<typeof SCREENS.ONBOARDING>;
@@ -13,11 +15,13 @@ type OnboardingFlowContext = {
     hasAccessibleDomainPolicies?: boolean;
     purposeSelected?: ValueOf<typeof CONST.ONBOARDING_CHOICES>;
     isMergeAccountStepSkipped?: boolean;
+    isAccountingEnabled?: boolean;
+    isAccountValidated?: boolean;
+    hasJoinablePolicies?: boolean;
 };
 
 type OnboardingStepResult = {
     stepCounter: StepCounterParams;
-    progressBarPercentage: number;
 };
 
 const {ONBOARDING} = SCREENS;
@@ -40,7 +44,7 @@ const screenResolution: Record<OnboardingScreen, OnboardingScreen> = {
 const TRACK_PURPOSE_SUFFIXES = [ONBOARDING.PERSONAL_DETAILS];
 
 const purposeSuffixes = {
-    [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_CHOICES.MANAGE_TEAM]: [ONBOARDING.EMPLOYEES, ONBOARDING.INTERESTED_FEATURES, ONBOARDING.ACCOUNTING],
     [ONBOARDING_CHOICES.TRACK_BUSINESS]: TRACK_PURPOSE_SUFFIXES,
     [ONBOARDING_CHOICES.TRACK_PERSONAL]: [ONBOARDING.PERSONAL_TRACK_GOAL, ...TRACK_PURPOSE_SUFFIXES],
     [ONBOARDING_CHOICES.PERSONAL_SPEND]: TRACK_PURPOSE_SUFFIXES,
@@ -54,13 +58,17 @@ const purposeSuffixes = {
 
 // VSB/SMB have fixed suffixes; individual (null) is handled via purposeSuffixes.
 const qualifierSuffixes = {
-    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
-    [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.ACCOUNTING, ONBOARDING.INTERESTED_FEATURES],
+    [ONBOARDING_SIGNUP_QUALIFIERS.VSB]: [ONBOARDING.EMPLOYEES, ONBOARDING.INTERESTED_FEATURES, ONBOARDING.ACCOUNTING],
+    [ONBOARDING_SIGNUP_QUALIFIERS.SMB]: [ONBOARDING.EMPLOYEES, ONBOARDING.INTERESTED_FEATURES, ONBOARDING.ACCOUNTING],
     [ONBOARDING_SIGNUP_QUALIFIERS.INDIVIDUAL]: null,
 } satisfies Record<ValueOf<typeof ONBOARDING_SIGNUP_QUALIFIERS>, OnboardingScreen[] | null>;
 
-const maxSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.length));
-const maxPrivateSuffixLength = Math.max(...Object.values(purposeSuffixes).map((s) => s.filter((p) => p !== ONBOARDING.PERSONAL_DETAILS).length));
+function getAdjustedSuffix(suffix: OnboardingScreen[], context: OnboardingFlowContext): OnboardingScreen[] {
+    if (context.isAccountingEnabled === false) {
+        return suffix.filter((screen) => screen !== ONBOARDING.ACCOUNTING);
+    }
+    return suffix;
+}
 
 function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext): OnboardingScreen {
     // In public domain flows, PRIVATE_DOMAIN is used as a variant of WORK_EMAIL_VALIDATION
@@ -72,18 +80,26 @@ function getResolvedPage(page: OnboardingScreen, context: OnboardingFlowContext)
 
 function getDomainPrefix(context: OnboardingFlowContext): OnboardingScreen[] {
     if (context.isFromPublicDomain) {
+        // Validated or skipped work-email steps are no longer reachable: navigating back to them immediately redirects
+        // forward again. Excluding them keeps the step counter accurate and prevents a dead back button.
+        if (context.isAccountValidated || context.isMergeAccountStepSkipped === true) {
+            return [];
+        }
         if (context.isMergeAccountStepSkipped === false) {
             return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION, ONBOARDING.WORKSPACES];
-        }
-        // The user skipped the work email step, so it is no longer a reachable part of the flow: navigating back to it
-        // immediately redirects forward again. Excluding it keeps the step counter accurate and prevents a dead back button.
-        if (context.isMergeAccountStepSkipped === true) {
-            return [];
         }
         return [ONBOARDING.WORK_EMAIL, ONBOARDING.WORK_EMAIL_VALIDATION];
     }
     if (context.hasAccessibleDomainPolicies) {
-        return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN, ONBOARDING.WORKSPACES];
+        // A private-domain user reaches exactly one of PRIVATE_DOMAIN / WORKSPACES before EMPLOYEES, and only when it
+        // is actually shown. Unvalidated users see PRIVATE_DOMAIN and skip straight to EMPLOYEES on the validateCode
+        // screen. Validated users skip PRIVATE_DOMAIN and see WORKSPACES only when joinable workspaces exist; with
+        // none, that screen auto-skips too. Keeping a never-traversed screen in the flow makes the EMPLOYEES back
+        // button resolve to a blank, never-visited screen and inflates the step counter.
+        if (!context.isAccountValidated) {
+            return [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.PRIVATE_DOMAIN];
+        }
+        return context.hasJoinablePolicies ? [ONBOARDING.PERSONAL_DETAILS, ONBOARDING.WORKSPACES] : [ONBOARDING.PERSONAL_DETAILS];
     }
     return [];
 }
@@ -94,7 +110,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
 
     const qualifierSuffix = context.signupQualifier ? qualifierSuffixes[context.signupQualifier] : null;
     if (qualifierSuffix) {
-        return [...prefix, ...qualifierSuffix];
+        return [...prefix, ...getAdjustedSuffix(qualifierSuffix, context)];
     }
 
     if (!context.purposeSelected) {
@@ -102,7 +118,7 @@ function getOnboardingFlow(context: OnboardingFlowContext): OnboardingScreen[] |
     }
 
     const suffix = purposeSuffixes[context.purposeSelected];
-    const adjustedSuffix = isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix;
+    const adjustedSuffix = getAdjustedSuffix(isPrivateDomain ? suffix.filter((s) => s !== ONBOARDING.PERSONAL_DETAILS) : suffix, context);
     return [...prefix, ONBOARDING.PURPOSE, ...adjustedSuffix];
 }
 
@@ -117,11 +133,8 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
         if (index === -1) {
             return undefined;
         }
-        const isPrivateDomain = !context.isFromPublicDomain && !!context.hasAccessibleDomainPolicies;
-        const maxFlowLength = prefix.length + 1 + (isPrivateDomain ? maxPrivateSuffixLength : maxSuffixLength);
         return {
             stepCounter: {step: index + 1},
-            progressBarPercentage: Math.round(((index + 1) / maxFlowLength) * 100),
         };
     }
 
@@ -131,7 +144,6 @@ function getOnboardingStepCounter(page: OnboardingScreen, context: OnboardingFlo
     }
     return {
         stepCounter: {step: index + 1, total: flow.length},
-        progressBarPercentage: Math.round(((index + 1) / flow.length) * 100),
     };
 }
 

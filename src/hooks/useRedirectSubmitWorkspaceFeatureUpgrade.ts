@@ -1,10 +1,13 @@
-import {useEffect, useRef} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import Navigation from '@libs/Navigation/Navigation';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
+
 import ROUTES from '@src/ROUTES';
 import type Policy from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect, useRef} from 'react';
 
 type UseRedirectSubmitWorkspaceFeatureUpgradeParams = {
     policy: OnyxEntry<Policy> | undefined;

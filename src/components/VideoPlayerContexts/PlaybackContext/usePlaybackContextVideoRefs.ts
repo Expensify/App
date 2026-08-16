@@ -1,4 +1,5 @@
 import {useRef} from 'react';
+
 import type {PlaybackContextVideoRefs, StopVideo} from './types';
 
 function usePlaybackContextVideoRefs(resetCallback: () => void) {

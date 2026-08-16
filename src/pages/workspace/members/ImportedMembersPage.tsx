@@ -1,27 +1,35 @@
-import React, {useCallback, useState} from 'react';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
 import ScreenWrapper from '@components/ScreenWrapper';
+
 import useCloseImportPage from '@hooks/useCloseImportPage';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useImportSpreadsheetConfirmModal from '@hooks/useImportSpreadsheetConfirmModal';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
+
 import {importPolicyMembers, setImportedSpreadsheetMemberData} from '@libs/actions/Policy/Member';
+import Tab from '@libs/actions/Tab';
 import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+import {canMemberAssignElevatedRole, canMemberAssignRole, canMemberManageMemberWithRole, isControlPolicy as isControlPolicyUtil, isPolicyMemberWithoutPendingDelete} from '@libs/PolicyUtils';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
-type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED>;
+import React, {useCallback, useState} from 'react';
+
+type ImportedMembersPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.MEMBERS_IMPORTED | typeof SCREENS.WORKSPACE.WORKFLOWS_IMPORTED>;
 
 function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const {translate} = useLocalize();
@@ -32,6 +40,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const showImportSpreadsheetConfirmModal = useImportSpreadsheetConfirmModal();
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
+    const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const canAssignElevatedRoles = canMemberAssignElevatedRole(policy, currentUserLogin);
+    const {isBetaEnabled} = usePermissions();
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+
+    // The same mapping screen is reused for the Members importer and the Workflows importer. When it is reached from the
+    // Workflows page we keep the user in the Workflows context (title + back + return + confirmation navigation).
+    const isWorkflowsImport = route.name === SCREENS.WORKSPACE.WORKFLOWS_IMPORTED;
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
     const {containsHeader = true} = spreadsheet ?? {};
@@ -40,14 +56,18 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
     const columnRoles: ColumnRole[] = [
         {text: translate('common.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
         {text: translate('common.email'), value: CONST.CSV_IMPORT_COLUMNS.EMAIL, isRequired: true},
-        {text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE},
+    ];
+    if (canAssignElevatedRoles) {
+        columnRoles.push({text: translate('common.role'), value: CONST.CSV_IMPORT_COLUMNS.ROLE});
+    }
+    columnRoles.push(
         {text: translate('common.submitTo'), value: CONST.CSV_IMPORT_COLUMNS.SUBMIT_TO},
         {text: translate('common.forwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO},
         {text: translate('workspace.common.customField1'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_1},
         {text: translate('workspace.common.customField2'), value: CONST.CSV_IMPORT_COLUMNS.CUSTOM_FIELD_2},
         {text: translate('common.approvalLimit'), value: CONST.CSV_IMPORT_COLUMNS.REPORT_THRESHOLD},
         {text: translate('common.overLimitForwardTo'), value: CONST.CSV_IMPORT_COLUMNS.APPROVE_TO_ALTERNATE},
-    ];
+    );
 
     const requiredColumns = columnRoles.filter((role) => role.isRequired).map((role) => role);
 
@@ -76,8 +96,14 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         setIsImporting(false);
     };
 
+    // Only runs once the import succeeded (it is the confirm modal's onModalHide). Workflows returns to a tabbed page that
+    // reopens on the tab the user left, so point it at Approvals — otherwise the imported workflows are hidden behind it.
     const navigateBackToMembers = () => {
-        Navigation.goBack(ROUTES.WORKSPACE_MEMBERS.getRoute(policyID), {waitForTransition: true});
+        const returnRoute = isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS.getRoute(policyID);
+        if (isWorkflowsImport && isRulesRevampEnabled) {
+            Tab.setSelectedTab(CONST.TAB.WORKFLOWS_TAB_TYPE, CONST.TAB.WORKFLOWS.APPROVALS);
+        }
+        Navigation.goBack(returnRoute, {waitForTransition: true});
     };
 
     const importMembers = async () => {
@@ -89,6 +115,7 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         let isRoleMissing = false;
+        let shouldShowMemberRolePermissionWarning = false;
 
         const columns = Object.values(spreadsheet?.columns ?? {});
 
@@ -118,6 +145,9 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
                     route.params.policyID,
                     hasControlPolicyOnlyRole ? CONST.UPGRADE_FEATURE_INTRO_MAPPING.controlPolicyRoles.alias : CONST.UPGRADE_FEATURE_INTRO_MAPPING.approvals.alias,
                     Navigation.getActiveRoute(),
+                    undefined,
+                    // Both the Control-only roles and the Control-only columns require the Control plan, so a Submit workspace must upgrade to Control here rather than the Collect default
+                    CONST.POLICY.TYPE.CORPORATE,
                 ),
             );
             return;
@@ -141,11 +171,22 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         const members = membersEmails?.slice(containsHeader ? 1 : 0).map((email, index) => {
             const isPolicyMember = isPolicyMemberWithoutPendingDelete(email, policy);
             let role = isPolicyMember ? (policy?.employeeList?.[email]?.role ?? '') : '';
-            if (membersRolesColumn !== -1 && membersRoles?.[containsHeader ? index + 1 : index]) {
-                role = membersRoles?.[containsHeader ? index + 1 : index];
+            const importedRole = membersRoles?.[containsHeader ? index + 1 : index];
+            const canManageCurrentRole = !isPolicyMember || canMemberManageMemberWithRole(policy, currentUserLogin, role);
+            const isImportedRoleValid = Object.values(CONST.POLICY.ROLE).some((policyRole) => policyRole === importedRole);
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && importedRole && canManageCurrentRole) {
+                if (canMemberAssignRole(policy, currentUserLogin, importedRole)) {
+                    role = importedRole;
+                } else if (!isPolicyMember && isImportedRoleValid) {
+                    role = CONST.POLICY.ROLE.USER;
+                    shouldShowMemberRolePermissionWarning = true;
+                }
             }
-            if (membersRolesColumn !== -1 && !role) {
+            if (canAssignElevatedRoles && membersRolesColumn !== -1 && !role) {
                 isRoleMissing = true;
+            }
+            if (!canAssignElevatedRoles && !role) {
+                role = CONST.POLICY.ROLE.USER;
             }
             let submitsTo = '';
             if (membersSubmitsToColumn !== -1 && membersSubmitsTo?.[containsHeader ? index + 1 : index]) {
@@ -226,11 +267,11 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
         }
 
         if (isRoleMissing) {
-            setImportedSpreadsheetMemberData(allMembers);
-            Navigation.navigate(ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
+            await setImportedSpreadsheetMemberData(allMembers, shouldShowMemberRolePermissionWarning);
+            Navigation.navigate(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORTED_CONFIRMATION.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORTED_CONFIRMATION.getRoute(policyID));
         } else {
             setIsImporting(true);
-            const importFinalModal = await importPolicyMembers(policy, allMembers);
+            const importFinalModal = await importPolicyMembers(policy, allMembers, shouldShowMemberRolePermissionWarning);
             const didShowImportFinalModal = await showImportSpreadsheetConfirmModal(importFinalModal, {onModalHide: navigateBackToMembers});
             if (!didShowImportFinalModal) {
                 setIsImporting(false);
@@ -256,8 +297,8 @@ function ImportedMembersPage({route}: ImportedMembersPageProps) {
             shouldShowOfflineIndicatorInWideScreen
         >
             <HeaderWithBackButton
-                title={translate('workspace.people.importMembers')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
+                title={isWorkflowsImport ? translate('spreadsheet.importWorkflows') : translate('workspace.people.importMembers')}
+                onBackButtonPress={() => Navigation.goBack(isWorkflowsImport ? ROUTES.WORKSPACE_WORKFLOWS_IMPORT.getRoute(policyID) : ROUTES.WORKSPACE_MEMBERS_IMPORT.getRoute(policyID))}
             />
             <ImportSpreadsheetColumns
                 spreadsheetColumns={spreadsheetColumns}

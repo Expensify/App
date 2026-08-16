@@ -1,10 +1,12 @@
-import type {OnyxKey} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import {deletePolicyDistanceRates, enablePolicyDistanceRates} from '@libs/actions/Policy/DistanceRate';
 import {pause, resetQueue} from '@libs/Network/SequentialQueue';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Transaction, TransactionViolations} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -85,7 +87,6 @@ describe('DistanceRate', () => {
                 Onyx.connect({
                     key: ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS,
                     callback: resolve,
-                    waitForCollectionCallback: true,
                 });
             });
 
@@ -145,12 +146,13 @@ describe('DistanceRate', () => {
             }
             await waitForBatchedUpdates();
             const onyxPolicy = await new Promise<Policy>((resolve) => {
+                const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as const;
                 Onyx.connect({
-                    key: `${ONYXKEYS.COLLECTION.POLICY}${policy.id}` as OnyxKey,
+                    key: policyKey,
                     // eslint-disable-next-line rulesdir/prefer-early-return
                     callback: (value) => {
                         if (value !== undefined) {
-                            resolve(value as Policy);
+                            resolve(value);
                         }
                     },
                 });

@@ -1,6 +1,9 @@
-import type {AppStateStatus} from 'react-native';
-import {AppState} from 'react-native';
 import CONST from '@src/CONST';
+
+import type {AppStateStatus} from 'react-native';
+
+import {AppState} from 'react-native';
+
 import shouldReportActivity from './shouldReportActivity';
 
 /**

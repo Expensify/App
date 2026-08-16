@@ -26,6 +26,9 @@ type WorkspaceTravelSettings = {
 
     /** Whether to automatically add trip names to expense descriptions during travel */
     autoAddTripName?: boolean;
+
+    /** Legal entity tax ID, collected during Travel enablement on non-USD workspaces so Solutions can provision a DK number */
+    taxID?: string;
 };
 
 export type {TravelSettings, WorkspaceTravelSettings};

@@ -1,5 +1,6 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
 
 /** Possible states of an export download */
 type ExportDownloadState = ValueOf<typeof CONST.EXPORT_DOWNLOAD.STATE>;
@@ -26,6 +27,12 @@ type ExportDownload = {
 
     /** Number of reports that failed to export (PDF exports only) */
     failedReportCount?: number;
+
+    /** Number of receipts included in the export (receipts exports only) */
+    receiptCount?: number;
+
+    /** Number of receipts that failed to export (receipts exports only) */
+    failedReceiptCount?: number;
 
     /** Whether the export file should be sent from Concierge */
     shouldSendFromConcierge?: boolean;

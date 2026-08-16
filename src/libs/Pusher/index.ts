@@ -1,12 +1,15 @@
-import * as Sentry from '@sentry/react-native';
-import isObject from 'lodash/isObject';
-import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
-import Pusher from 'pusher-js/with-encryption';
-import Onyx from 'react-native-onyx';
 import Log from '@libs/Log';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import TYPE from './EventType';
+
+import type {Channel, ChannelAuthorizerGenerator, Options} from 'pusher-js/with-encryption';
+
+import * as Sentry from '@sentry/react-native';
+import isObject from 'lodash/isObject';
+import Pusher from 'pusher-js/with-encryption';
+import Onyx from 'react-native-onyx';
+
 import type {
     Args,
     ChunkedDataEvents,
@@ -21,6 +24,8 @@ import type {
     States,
 } from './types';
 import type PusherModule from './types';
+
+import TYPE from './EventType';
 
 let shouldForceOffline = false;
 
@@ -237,7 +242,9 @@ function subscribe<EventName extends PusherEventName>(
                             const error = new Error('[Pusher] instance not found. Pusher.subscribe() most likely has been called before Pusher.init()');
 
                             if (__DEV__) {
-                                throw error;
+                                // TransitionTracker isolates callback errors, so reject explicitly instead of relying on a thrown scheduler callback to reject this Promise.
+                                reject(error);
+                                return;
                             }
 
                             // In production, report to Sentry without crashing the app.

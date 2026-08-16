@@ -1,10 +1,14 @@
+import useLocalize from '@hooks/useLocalize';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {AvatarSource} from '@libs/UserAvatarUtils';
+
+import CONST from '@src/CONST';
+
 import {Str} from 'expensify-common';
 import React from 'react';
 import {View} from 'react-native';
-import useLocalize from '@hooks/useLocalize';
-import useThemeStyles from '@hooks/useThemeStyles';
-import type {AvatarSource} from '@libs/UserAvatarUtils';
-import CONST from '@src/CONST';
+
 import PressableWithoutFeedback from './Pressable/PressableWithoutFeedback';
 import Text from './Text';
 import Tooltip from './Tooltip';

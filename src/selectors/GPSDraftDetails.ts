@@ -1,5 +1,6 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import type {GpsDraftDetails} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 const isTrackingSelector = (gpsDraftDetails?: OnyxEntry<GpsDraftDetails>) => !!gpsDraftDetails?.isTracking;
 

@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     clearTravelInvoicingSettlementAccountErrors,
     clearTravelInvoicingSettlementFrequencyErrors,
@@ -10,12 +9,14 @@ import {
     toggleTravelInvoicingContinuousReconciliation,
     updateTravelInvoiceSettlementFrequency,
 } from '@libs/actions/TravelInvoicing';
-// We need to import API because it is used in the tests
-
 import * as API from '@libs/API';
+// We need to import API because it is used in the tests
 import {getTravelInvoicingCardSettingsKey} from '@libs/TravelInvoicingUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
 
 describe('TravelInvoicing', () => {
     let spyAPIWrite: jest.SpyInstance;
@@ -418,7 +419,8 @@ describe('TravelInvoicing', () => {
     it('retryTravelCardsProvisioning restores provisioning errors on the shared domain member key when the retry fails', () => {
         const policyID = '123';
         const workspaceAccountID = 456;
-        const currentProvisioningErrors = ['provisioning-failed'];
+        const failedAccountID = 769;
+        const currentProvisioningErrors = {[failedAccountID]: {accountID: failedAccountID, email: 'rodrigo+9@testfeedfilter5.com'}};
         const travelInvoicingKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER}${workspaceAccountID}`;
 
         retryTravelCardsProvisioning(policyID, workspaceAccountID, currentProvisioningErrors);
@@ -435,7 +437,7 @@ describe('TravelInvoicing', () => {
                         value: {
                             settings: {
                                 travelInvoicing: {
-                                    errors: [],
+                                    errors: null,
                                 },
                             },
                         },

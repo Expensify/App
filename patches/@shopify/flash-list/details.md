@@ -132,12 +132,72 @@
 
 ### [@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch](@shopify+flash-list+2.3.0+012+fix-scrollbar-oscillation-crash.patch)
 
-- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars". For a vertical list FlashList derives its cross-axis bounded size from `firstChildViewLayout.width` (the scroll viewport's **client** width, which excludes the scrollbar). When the vertical scrollbar toggles, that width steps by the scrollbar size (e.g. 375 ↔ 355); each change re-triggers layout, which changes content height, which toggles the scrollbar again — an infinite loop. This patch breaks the loop inside `LinearLayoutManager.updateLayoutParams` by detecting the scrollbar ping-pong and settling `boundedSize` instead of thrashing it — reserving no width. A change is treated as scrollbar-induced only when all hold, so a real window resize is never misread:
-  1. **Strict alternation**: the last 4 *rounded* cross-axis sizes form a clean `A,B,A,B` (exactly two values, three consecutive flips). A manual drag sweeps through many distinct values and never matches; rounding keeps the equality robust against subpixel drift.
-  2. **Scrollbar-sized delta**: the two values differ by no more than `SCROLLBAR_OSCILLATION_TOLERANCE` (25px — classic scrollbars are ~15–17px, with headroom for thicker/zoomed bars).
+- Reason: Fixes a "Maximum update depth exceeded" (#185) infinite render loop on web with classic (non-overlay) scrollbars — i.e. Windows/Linux Chrome and macOS with "Always show scroll bars".
 
-  When detected, `boundedSize` settles on the **smaller** of the two values, which already accounts for the scrollbar so items never overflow the client width.
+  A vertical list gets its width from `firstChildViewLayout.width`, the scroll viewport's **client** width, which leaves out the scrollbar. So every time the scrollbar shows or hides, the width changes by about 15px. That relayouts, which changes the content height, which toggles the scrollbar again, and it never settles.
+
+  This only happens on lists that get **shorter as they get narrower**. If narrowing made them taller, the scrollbar would stay put after one toggle and the layout would settle on its own. That matters for how the lock is released below.
+
+  `LinearLayoutManager.updateLayoutParams` sends the measured size through `settleScrollbarOscillation` (web only, since native scrollbars overlay the content). We only call it a flicker when all of these are true, so a real resize is never mistaken for one:
+
+  1. **Two distinct values** in the last 8 rounded sizes. A drag passes through many widths, and rounding absorbs subpixel drift.
+  2. **At least 3 flips** between them. One toggle only flips twice. We keep 8 samples rather than 4 because the toggle can lag a frame, so the bounce is often `A,A,B,B`.
+  3. **A scrollbar-sized gap**, at most 25px. Classic scrollbars are ~15-17px.
+  4. **The current frame is on the smaller value**, so we lock to the width that's actually on screen.
+
+  Then we lock `boundedSize` to the smaller value, which already leaves room for the scrollbar, so rows never overflow.
+
+  **Releasing.** Once we lock, the scrollbar disappears and the next frame measures the wider width again. Releasing as soon as we see it doesn't end the loop, it just makes each round slower. So:
+
+  - The **smaller** value keeps the lock.
+  - The **larger** value gives the real width back `MAX_LOCK_RELEASE_CYCLES` (1) time, then the lock holds. The counter isn't reset when the same pair locks again, or a flicker would top it up forever.
+  - Anything **outside the pair** is a real resize, so release and reset.
+
+  With the lock held, `boundedSize` stops changing, `recomputeLayouts` stops running and the re-renders stop. The trade-off: the flicker usually uses up the one allowed release, so the width stays put until the next real resize. A list that later stops needing a scrollbar keeps about 15px of empty space on the right.
 - Files changed: `dist/recyclerview/layout-managers/LinearLayoutManager.js` only.
 - Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2334
-- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263
-- PR introducing patch: https://github.com/Expensify/App/pull/92520
+- E/App issue: https://github.com/Expensify/App/issues/91584, https://github.com/Expensify/App/issues/92263, https://github.com/Expensify/App/issues/95719
+- PR introducing patch: https://github.com/Expensify/App/pull/92520 (hardened for #95719)
+
+### [@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch](@shopify+flash-list+2.3.0+013+improve-scroll-key-handling.patch)
+
+- Reason: Adds `viewPosition` support to `initialScrollIndexParams` (0 = start, 0.5 = center, 1 = end — same semantics as `scrollToIndex`'s `viewPosition`). Six changes:
+  1. **`applyInitialScrollIndex`** in `useRecyclerViewController.js`: the corrective scroll for `initialScrollIndex` now shifts the target offset by `(containerSize - itemSize) * viewPosition` (clamped to ≥ 0, and skipped while the container is unmeasured), mirroring `scrollToIndex`'s math.
+  2. **`applyInitialScrollAdjustment`** in `RecyclerViewManager.js`: the initial render window is anchored with the same `viewPosition` adjustment, so the very first painted frame already renders the items around the centered position — without this, the first frame renders items from the target's raw offset (target at the viewport edge) and visibly jumps once the first corrective scroll lands.
+  3. **Bottom crop** in `applyInitialScrollIndex` (`useRecyclerViewController.js`): for inverted vertical lists positioned via `viewPosition`, when the bottom-most visible item is flush against the bottom edge and another item exists underneath it, the offset is nudged up so the current bottom item is cropped by a few pixels — signaling there is more content below.
+  4. **`recomputeLayouts` range** in `applyInitialScrollAdjustment` (`RecyclerViewManager.js`): the recompute that precedes reading the target offset is widened from `recomputeLayouts(0, initialScrollIndex)` to `recomputeLayouts(0, this.getDataLength() - 1)`, so every item gets a measured/re-estimated layout before the positioning.
+  5. **Deferred re-scroll reads the latest offset** in `applyInitialScrollIndex` (`useRecyclerViewController.js`): the `setTimeout(0)` re-scroll used to close over the `offset` from its own commit. When a later commit recomputed a newer offset before that timeout fired, the stale timeout snapped the list back to the outdated offset — a visible jump. The offset is now stored in `latestInitialScrollOffsetRef` and read at fire-time, so any pending re-scroll targets the current offset instead of a stale one.
+  6. **Progressive render covers the drawDistance buffer** in `renderProgressively` (`RecyclerViewManager.js`): with an explicit `initialScrollIndex`, the drawDistance buffer used to mount right after first paint; its measurements re-estimated every still-unmeasured item before the target, which could collapse the content height below the applied scroll offset and make the native ScrollView clamp. Now the progressive-render phase also waits for the buffer around the viewport to be measured, so the layout converges before anything is painted. Only applies when `initialScrollIndex` is set; other lists keep stock behavior.
+- Files changed: `dist/FlashListProps.d.ts`, `dist/recyclerview/hooks/useRecyclerViewController.js`, `dist/recyclerview/RecyclerViewManager.js`.
+- Upstream PR/issue: https://github.com/Shopify/flash-list/pull/2318 (for point 4)
+- E/App issue: https://github.com/Expensify/App/issues/92152
+- PR introducing patch: https://github.com/Expensify/App/pull/93403
+
+### [@shopify+flash-list+2.3.0+014+external-window-size.patch](@shopify+flash-list+2.3.0+014+external-window-size.patch)
+
+- Reason: Adds an **`overrideWindowSize`** prop that lets a list declare its visible window (`{width, height}`) instead of deriving it from `measureParentSize(internalViewRef)`. Needed for an *externally-driven* list — one whose `renderScrollComponent` is a non-scrolling `View` that grows to the full content height and receives synthetic scroll events from a parent scroller. Without this, FlashList measures the outer container (as tall as all content) as its viewport and renders every row, defeating virtualization. The change is minimal: `measureParentSize` is still assigned to `outerViewSize` and used for `containerViewSizeRef` (layout-change detection) and the 0×0 hidden-guard from patch 002; only the `windowSize` fed to `updateLayoutParams` is `overrideWindowSize ?? outerViewSize`. Fully backward compatible — when the prop is unset, `windowSize === outerViewSize` and behavior is byte-identical. Used by `MoneyRequestReportView`'s horizontally-scrollable transaction table (`ExternalScrollFlashListTable`), which windows its rows against the unified list's vertical scroll.
+- Files changed: `src/FlashListProps.ts`, `src/recyclerview/RecyclerView.tsx`, `dist/FlashListProps.d.ts`, `dist/recyclerview/RecyclerView.js`.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91425
+- PR introducing patch: https://github.com/Expensify/App/pull/91422
+
+### [@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch](@shopify+flash-list+2.3.0+015+mvcp-header-aware.patch)
+
+- Reason: Makes `maintainVisibleContentPosition` aware of the `ListHeaderComponent`. Item layouts are header-relative, so MVCP was blind to the header in two symmetric ways:
+  1. **Header resize was never corrected**: when the header changes height after layout (e.g. a nested virtualized table settling from estimated to measured row heights, ~400px on a 207-row table), every data item shifts on screen but no tracked `x`/`y` changes — the anchored item (e.g. a deep-linked report action positioned via `initialScrollIndex`) drifts out of the viewport with no correction. Fixed by capturing `firstItemOffset` alongside the anchor layout (`firstVisibleItemFirstItemOffset`) and including its delta in the correction diff. On the `ScrollAnchor.scrollBy` path (iOS/Android) the full diff is applied; on the `scrollTo` fallback paths (web, Android inverted) only the layout diff is added, because `getAbsoluteLastScrollOffset()` already reflects the current `firstItemOffset` (the tracker's relative offset only resyncs on scroll events), so the header delta is already embedded in it.
+  2. **Wrong anchor while viewing the header**: `computeFirstVisibleIndexForOffsetCorrection` clamps the anchor to `Math.max(0, startIndex)`, so with the viewport over the header it tracked item 0 — possibly far below the fold — and "maintained" that off-screen item's position through data prepends/header growth, yanking the viewport away from the header (report opening at the top visibly jumped down to the chat). Fixed by dropping the anchor (`firstVisibleItemKey = undefined`) whenever the absolute scroll offset is smaller than `firstItemOffset`: the header is the user's visual anchor then, and its top never moves, so the correct correction is none.
+  Additionally, `RecyclerView` now observes the header wrapper's `onLayout` (main-axis size only, skipped for inverted lists where `firstItemOffset` is forced to 0) and triggers `recyclerViewContext.layout()` on change. Without this, a header that resizes from a commit inside its own subtree (the nested table settling) never causes the parent list to re-measure `firstItemOffset`, so items keep stale positions and `applyOffsetCorrection` never sees the delta.
+  Used by `MoneyRequestReportView`'s horizontally-scrollable transaction table, where the whole table is the unified list's `ListHeaderComponent`: deep links into the report actions below the table now stay anchored while the table settles, and MVCP could be re-enabled for that mode (the `{disabled: true}` workaround is removed).
+- Files changed: `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/hooks/useRecyclerViewController.tsx`, `src/recyclerview/hooks/useSecondaryProps.tsx`, and their `dist` counterparts.
+- Upstream PR/issue: TBD
+- E/App issue: https://github.com/Expensify/App/issues/91425
+- PR introducing patch: https://github.com/Expensify/App/pull/91422
+
+### [@shopify+flash-list+2.3.0+016+ignore-stale-viewholder-render-layout.patch](@shopify+flash-list+2.3.0+016+ignore-stale-viewholder-render-layout.patch)
+
+- Reason: Prevents an `index out of bounds, not enough layouts` crash thrown while `ViewHolderCollection` renders. This is the render-path sibling of patch `009`, which only guarded the `validateItemSize` measurement callback. The crash originates in upstream flash-list and reproduces on **every platform** (native crash: `APP-8PG`), not just web. The render stack (`RenderStackManager.keyMap`, returned by `RecyclerViewManager.getRenderStack()`) can hold an entry whose stored `index` exceeds the current `layouts` length when the list `data` shrinks between renders (e.g. deleting a report action, IOU actions being filtered once transactions load, or a Concierge draft being removed). This is a timing gap inside flash-list's own update pipeline: on a data shrink `LayoutManager.modifyLayout` truncates `this.layouts` synchronously (`getLayoutCount()` drops immediately), but the render stack is pruned of the now-out-of-bounds keys only later, when `RenderStackManager.sync()` runs. Any render committed in that gap iterates a `keyMap` still carrying a pre-shrink `index` against the already-shortened `layouts`, so the unguarded `getLayout(index)` wired at `RecyclerView` → `LayoutManager.getLayout` throws. Upstream already guards this same staleness on the measurement path — `modifyLayout` filters stale `layoutInfo` with the comment _"layoutInfo may contain stale indices from ViewHolders that were rendered before the data shrunk"_ — but left the render path unguarded. The patch wires `ViewHolderCollection`'s `getLayout` prop to the bounds-safe `recyclerViewManager.tryGetLayout(index)` and skips (returns `null` for) any render entry whose layout is `undefined`, so a stale index is dropped for that render instead of crashing. Because `keyMap`/`LayoutManager` are shared, platform-agnostic state, the guard applies on both render branches — web's `renderEntriesRef.current.map` and native's `Array.from(renderStack.entries())`. Patch `011` (which introduces web's `renderEntriesRef` copy) only carries the index forward; it is not the source of the stale index.
+- Files changed: `src/recyclerview/RecyclerView.tsx`, `src/recyclerview/ViewHolderCollection.tsx`, and their `dist` counterparts (`dist/recyclerview/RecyclerView.js`, `dist/recyclerview/ViewHolderCollection.js`, `dist/recyclerview/ViewHolderCollection.d.ts`).
+- Upstream PR/issue: https://github.com/Shopify/flash-list/issues/2440
+- E/App issue: https://github.com/Expensify/App/issues/97472
+- Sentry: https://expensify.sentry.io/issues/APP-8PG
+- PR introducing patch: https://github.com/Expensify/App/pull/98015

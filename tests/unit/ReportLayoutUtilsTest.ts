@@ -1,11 +1,14 @@
 import {groupTransactionsByCategory, groupTransactionsByTag} from '@libs/ReportLayoutUtils';
+
 import CONST from '@src/CONST';
 import type {Report, Transaction} from '@src/types/onyx';
+
+import createMock from '../utils/createMock';
 
 const mockLocaleCompare = (a: string, b: string) => a.localeCompare(b);
 
 const createMockTransaction = (overrides: Partial<Transaction> = {}): Transaction =>
-    ({
+    createMock<Transaction>({
         transactionID: `transaction_${Math.random()}`,
         amount: -1000,
         currency: 'USD',
@@ -13,7 +16,7 @@ const createMockTransaction = (overrides: Partial<Transaction> = {}): Transactio
         tag: '',
         comment: {},
         ...overrides,
-    }) as Transaction;
+    });
 
 const createMockReport = (overrides: Partial<Report> = {}): Report =>
     ({

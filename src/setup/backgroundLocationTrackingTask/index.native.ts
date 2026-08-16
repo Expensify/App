@@ -1,12 +1,16 @@
-import NetInfo from '@react-native-community/netinfo';
-import type {LocationObject} from 'expo-location';
-import {defineTask} from 'expo-task-manager';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import {addGpsPoints, setStartWaypointAddress} from '@libs/actions/GPSDraftDetails';
 import {addressFromGpsPoint, coordinatesToString, getGpsPoints, getTotalGpsTripPointsInLastSegment} from '@libs/GPSDraftDetailsUtils';
+
 import {BACKGROUND_LOCATION_TRACKING_TASK_NAME} from '@pages/iou/request/step/IOURequestStepDistanceGPS/const';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint} from '@src/types/onyx/GpsDraftDetails';
+
+import type {LocationObject} from 'expo-location';
+
+import NetInfo from '@react-native-community/netinfo';
+import {defineTask} from 'expo-task-manager';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 type BackgroundLocationTrackingTaskData = {locations: LocationObject[]};
 
@@ -21,6 +25,10 @@ defineTask<BackgroundLocationTrackingTaskData>(BACKGROUND_LOCATION_TRACKING_TASK
     // in NetworkState.ts hasn't been populated via Onyx/NetInfo subscribers.
     const [gpsDraftDetailsPromiseResult, netInfoState] = await Promise.all([OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS).catch(() => undefined), NetInfo.fetch()]);
     const gpsDraftDetails = gpsDraftDetailsPromiseResult ?? undefined;
+    if (!gpsDraftDetails) {
+        return;
+    }
+
     const isOffline = netInfoState.isConnected === false;
 
     const newGpsPoints = data.locations.map((location) => ({lat: location.coords.latitude, long: location.coords.longitude}));

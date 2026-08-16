@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import lightTheme from './light';
 
 const lightContrastTheme = {
@@ -15,6 +16,7 @@ const lightContrastTheme = {
     textLight: colors.productLight900,
     iconColorfulBackground: colors.yellow800,
     receiptPlaceholderPlus: colors.green800,
+    isHighContrast: true,
 } satisfies ThemeColors;
 
 export default lightContrastTheme;

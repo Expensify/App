@@ -1,9 +1,13 @@
-import React from 'react';
 import type {IllustrationName} from '@components/Icon/chunks/illustrations.chunk';
+
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+
 import HomeSectionEmptyState from '@pages/home/HomeSectionEmptyState';
+
 import type {TranslationPaths} from '@src/languages/types';
+
+import React from 'react';
 
 const MSG = 'homePage.forYouSection.emptyStateMessages' as const;
 

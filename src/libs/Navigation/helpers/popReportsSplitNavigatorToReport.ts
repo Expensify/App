@@ -1,7 +1,9 @@
-import {StackActions} from '@react-navigation/native';
 import navigationRef from '@libs/Navigation/navigationRef';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
+
+import {StackActions} from '@react-navigation/native';
 
 /**
  * Pops any report screens stacked above the given target report in the active

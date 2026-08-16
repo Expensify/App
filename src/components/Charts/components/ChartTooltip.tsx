@@ -1,11 +1,14 @@
+import VictoryTheme from '@components/Charts/VictoryTheme';
+import Text from '@components/Text';
+
+import useTheme from '@hooks/useTheme';
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import type {SharedValue} from 'react-native-reanimated';
+
 import React, {useLayoutEffect, useRef} from 'react';
 import {View} from 'react-native';
 import Animated, {useAnimatedStyle, useDerivedValue, useSharedValue} from 'react-native-reanimated';
-import type {SharedValue} from 'react-native-reanimated';
-import VictoryTheme from '@components/Charts/VictoryTheme';
-import Text from '@components/Text';
-import useTheme from '@hooks/useTheme';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 type ChartTooltipProps = {
     /** Label text (e.g., "Airfare", "Amazon") */
@@ -24,6 +27,18 @@ type ChartTooltipProps = {
     initialTooltipPosition: SharedValue<{x: number; y: number}>;
 };
 
+function getTooltipContent(label: string, amount: string, percentage?: string): string {
+    if (!amount) {
+        return label;
+    }
+
+    if (!percentage) {
+        return `${label} • ${amount}`;
+    }
+
+    return `${label} • ${amount} (${percentage})`;
+}
+
 function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosition}: ChartTooltipProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
@@ -31,7 +46,7 @@ function ChartTooltip({label, amount, percentage, chartWidth, initialTooltipPosi
     /** Shared value to store the measured width of the tooltip container */
     const tooltipMeasuredWidth = useSharedValue(0);
 
-    const content = percentage ? `${label} • ${amount} (${percentage})` : `${label} • ${amount}`;
+    const content = getTooltipContent(label, amount, percentage);
 
     /**
      * Synchronously reset the width and hide the tooltip whenever the content changes.

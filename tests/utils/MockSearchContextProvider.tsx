@@ -1,4 +1,3 @@
-import React from 'react';
 import {
     SearchQueryActionsContext,
     SearchQueryContext,
@@ -17,6 +16,8 @@ import type {
     SearchSelectionContextValue,
     SearchStateContextValue,
 } from '@components/Search/types';
+
+import React from 'react';
 
 type MockSearchContextProviderProps = {
     state: SearchStateContextValue;
@@ -40,6 +41,8 @@ function splitState(value: SearchStateContextValue): {
         },
         results: {
             currentSearchResults: value.currentSearchResults,
+            currentSearchTransactionsByReportID: value.currentSearchTransactionsByReportID,
+            currentSearchViolations: value.currentSearchViolations,
             shouldUseLiveData: value.shouldUseLiveData,
             sortedReportIDs: value.sortedReportIDs,
             shouldShowFiltersBarLoading: value.shouldShowFiltersBarLoading,
@@ -47,6 +50,7 @@ function splitState(value: SearchStateContextValue): {
         },
         selection: {
             selectedTransactions: value.selectedTransactions,
+            excludedTransactions: value.excludedTransactions,
             selectedTransactionIDs: value.selectedTransactionIDs,
             selectedReports: value.selectedReports,
             currentSelectedTransactionReportID: value.currentSelectedTransactionReportID,

@@ -1,11 +1,15 @@
-import React from 'react';
-import {Keyboard} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
+
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
+import {Keyboard} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
 import type SafeAreaProps from './types';
 
 function SafeArea({children}: SafeAreaProps) {

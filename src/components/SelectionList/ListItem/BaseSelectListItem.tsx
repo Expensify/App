@@ -1,11 +1,17 @@
+import TextWithTooltip from '@components/TextWithTooltip';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
+
 import React from 'react';
 import {View} from 'react-native';
-import TextWithTooltip from '@components/TextWithTooltip';
-import useThemeStyles from '@hooks/useThemeStyles';
-import variables from '@styles/variables';
-import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
 import type {BaseSelectListItemProps, ListItem} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A text-only row with a title and optional subtitle, built on BaseListItem. Serves as the
@@ -70,18 +76,20 @@ function BaseSelectListItem<TItem extends ListItem>({
                         text={fullTitle ?? ''}
                         style={[
                             styles.optionDisplayName,
-                            isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText,
+                            styles.sidebarLinkText,
                             styles.sidebarLinkTextBold,
                             isMultilineSupported ? styles.preWrap : styles.pre,
-                            item.alternateText ? styles.mb1 : null,
+                            item.alternateText || item.alternateTextComponent ? styles.mb1 : null,
                             isDisabled && styles.colorMuted,
                             isMultilineSupported ? {paddingLeft} : null,
                             titleStyles,
+                            item.titleStyles,
                         ]}
                         numberOfLines={isMultilineSupported ? titleNumberOfLines : 1}
                     />
 
-                    {!!item.alternateText && (
+                    {!!item.alternateTextComponent && item.alternateTextComponent}
+                    {!item.alternateTextComponent && !!item.alternateText && (
                         <TextWithTooltip
                             shouldShowTooltip={showTooltip}
                             text={item.alternateText}

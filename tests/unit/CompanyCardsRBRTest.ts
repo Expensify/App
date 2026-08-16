@@ -1,10 +1,12 @@
-import type {OnyxCollection} from 'react-native-onyx';
 import type {DerivedValueContext} from '@libs/actions/OnyxDerived/types';
 import {getCardFeedWithDomainID} from '@libs/CardUtils';
+
 import CONST from '@src/CONST';
 import cardFeedErrorsConfig from '@src/libs/actions/OnyxDerived/configs/cardFeedErrors';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, CardFeeds, CardList, WorkspaceCardsList} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 const DERIVED_VALUE_CONTEXT: DerivedValueContext<typeof cardFeedErrorsConfig.key, typeof cardFeedErrorsConfig.dependencies> = {
     currentValue: undefined,
@@ -21,7 +23,8 @@ const DIRECT_BANK_FEED = {
 } as const;
 
 // Plaid connection feed (Plaid feed names are dynamically generated at runtime and not part of the static CardFeedWithNumber union)
-const PLAID_FEED_NAME = 'plaid.chase_bank' as unknown as Card['bank'];
+// @ts-expect-error -- Dynamic Plaid feed names are real server values not yet represented by CardFeedWithNumber.
+const PLAID_FEED_NAME: Card['bank'] = 'plaid.chase_bank';
 const PLAID_FEED = {
     policyAccountID: WORKSPACE_ACCOUNT_ID,
     feedName: PLAID_FEED_NAME,
@@ -59,7 +62,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             });
 
             const globalCardList: CardList = {card1: card};
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.isFeedConnectionBroken).toBe(true);
@@ -81,7 +84,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 }),
             };
 
-            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.isFeedConnectionBroken).toBe(true);
@@ -97,7 +100,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             });
 
             const globalCardList: CardList = {card1: card};
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(false);
             expect(result.all.isFeedConnectionBroken).toBe(false);
@@ -115,7 +118,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             });
 
             const globalCardList: CardList = {card3: card};
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.isFeedConnectionBroken).toBe(true);
@@ -135,7 +138,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 [`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${PLAID_FEED.policyAccountID}_${PLAID_FEED.feedNameWithDomainID}`]: createWorkspaceCardsList({card4: card}),
             };
 
-            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.isFeedConnectionBroken).toBe(true);
@@ -151,7 +154,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
             });
 
             const globalCardList: CardList = {card3: card};
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(false);
             expect(result.all.isFeedConnectionBroken).toBe(false);
@@ -185,7 +188,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 },
             };
 
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.hasFeedErrors).toBe(true);
@@ -217,7 +220,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 },
             };
 
-            const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([globalCardList, {}, cardFeeds, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
             expect(result.all.hasFeedErrors).toBe(true);
@@ -235,7 +238,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: 403,
             });
 
-            const brokenResult = cardFeedErrorsConfig.compute([{card1: brokenCard}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const brokenResult = cardFeedErrorsConfig.compute([{card1: brokenCard}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
             expect(brokenResult.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
 
             // Then: connection is fixed (lastScrapeResult returns to 200)
@@ -246,7 +249,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: 200,
             });
 
-            const fixedResult = cardFeedErrorsConfig.compute([{card1: fixedCard}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const fixedResult = cardFeedErrorsConfig.compute([{card1: fixedCard}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
             expect(fixedResult.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(false);
             expect(fixedResult.all.shouldShowRBR).toBe(false);
             expect(fixedResult.cardsWithBrokenFeedConnection).toEqual({});
@@ -261,7 +264,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: 401,
             });
 
-            const brokenResult = cardFeedErrorsConfig.compute([{card3: brokenCard}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const brokenResult = cardFeedErrorsConfig.compute([{card3: brokenCard}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
             expect(brokenResult.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(true);
 
             // Then: Plaid re-authenticated successfully
@@ -272,7 +275,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: 200,
             });
 
-            const fixedResult = cardFeedErrorsConfig.compute([{card3: fixedCard}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const fixedResult = cardFeedErrorsConfig.compute([{card3: fixedCard}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
             expect(fixedResult.shouldShowRbrForWorkspaceAccountID[WORKSPACE_ACCOUNT_ID]).toBe(false);
             expect(fixedResult.all.shouldShowRBR).toBe(false);
             expect(fixedResult.cardsWithBrokenFeedConnection).toEqual({});
@@ -295,7 +298,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 }),
             };
 
-            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty('1');
         });
@@ -315,7 +318,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 }),
             };
 
-            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{}, allWorkspaceCards, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.cardsWithBrokenFeedConnection).not.toHaveProperty('3');
         });
@@ -330,7 +333,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: status,
             });
 
-            const result = cardFeedErrorsConfig.compute([{card1: card}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{card1: card}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.all.isFeedConnectionBroken).toBe(false);
             expect(result.cardsWithBrokenFeedConnection).toEqual({});
@@ -344,7 +347,7 @@ describe('Company Cards RBR - broken bank/Plaid connection', () => {
                 lastScrapeResult: status,
             });
 
-            const result = cardFeedErrorsConfig.compute([{card3: card}, {}, {}], DERIVED_VALUE_CONTEXT);
+            const result = cardFeedErrorsConfig.compute([{card3: card}, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
 
             expect(result.all.isFeedConnectionBroken).toBe(false);
             expect(result.cardsWithBrokenFeedConnection).toEqual({});

@@ -1,15 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {BankName} from '@src/types/onyx/Bank';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {ListItem} from './SelectionList/types';
+
 import Icon from './Icon';
 import getBankIcon from './Icon/BankIcons';
-import MenuItem from './MenuItem';
+import MenuItemAction from './MenuItem/presets/MenuItemAction';
 import SelectionList from './SelectionList';
 import SingleSelectListItem from './SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from './SelectionList/types';
 
 type BankAccountListItem = ListItem & {value: number | undefined};
 
@@ -72,9 +76,9 @@ function SettlementAccountSelector({
     };
 
     // Render "Add new bank account" as list footer when enabled
-    const listFooterContent =
+    const addNewBankAccountItem =
         showAddNewAccountOption && onAddNewBankAccount ? (
-            <MenuItem
+            <MenuItemAction
                 icon={icons.Plus}
                 title={translate('workspace.expensifyCard.addNewBankAccount')}
                 onPress={onAddNewBankAccount}
@@ -86,11 +90,7 @@ function SettlementAccountSelector({
         return (
             <View style={styles.flex1}>
                 {customHeaderContent}
-                <MenuItem
-                    icon={icons.Plus}
-                    title={translate('workspace.expensifyCard.addNewBankAccount')}
-                    onPress={onAddNewBankAccount}
-                />
+                {addNewBankAccountItem}
             </View>
         );
     }
@@ -104,7 +104,7 @@ function SettlementAccountSelector({
             shouldSingleExecuteRowSelect
             initiallyFocusedItemKey={initiallyFocusedItemKey}
             customListHeaderContent={customHeaderContent}
-            listFooterContent={listFooterContent}
+            listFooterContent={addNewBankAccountItem}
         />
     );
 }

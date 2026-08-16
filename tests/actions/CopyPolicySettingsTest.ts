@@ -1,5 +1,3 @@
-import type {OnyxCollection} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
 import CONST from '@src/CONST';
 import {buildCopyPolicySettingsData} from '@src/libs/actions/Policy/CopyPolicySettings';
 import type {Part} from '@src/libs/actions/Policy/CopyPolicySettings';
@@ -8,6 +6,11 @@ import type {Policy, PolicyCategories, PolicyTagLists} from '@src/types/onyx';
 import type CopyPolicySettings from '@src/types/onyx/CopyPolicySettings';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 import type {WorkspaceTravelSettings} from '@src/types/onyx/TravelSettings';
+
+import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomPolicy from '../utils/collections/policies';
 
 const SOURCE_POLICY_ID = 'SOURCE000000000A';
@@ -142,7 +145,8 @@ describe('actions/Policy/CopyPolicySettings', () => {
     describe('buildCopyPolicySettingsData', () => {
         describe('per-part field patches and pendingFields', () => {
             it.each<[Part, ReadonlyArray<keyof Policy>]>([
-                ['overview', ['outputCurrency', 'address', 'description']],
+                ['overview', ['address', 'description']],
+                ['currency', ['outputCurrency']],
                 ['members', ['employeeList']],
                 ['reports', ['fieldList', 'areReportFieldsEnabled']],
                 ['accounting', ['connections', 'areConnectionsEnabled']],
@@ -196,6 +200,19 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
                 expect(policy?.areCategoriesEnabled).toEqual(targetPolicy.areCategoriesEnabled);
                 expect(policy?.employeeList).toEqual(targetPolicy.employeeList);
+            });
+
+            it('copies showTagGLCodes with rules so tag pickers match the source workspace', () => {
+                const sourcePolicy = makeSourcePolicy({glCodes: true, showTagGLCodes: true});
+                const targetPolicy = makeTargetPolicy({glCodes: false, showTagGLCodes: false});
+
+                const {optimisticData} = buildCopyPolicySettingsData(sourcePolicy, [targetPolicy], ['rules'], {}, {});
+                const policy = getOptimisticPolicy(optimisticData);
+
+                expect(policy?.glCodes).toBe(true);
+                expect(policy?.showTagGLCodes).toBe(true);
+                expect(policy?.pendingFields?.glCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+                expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
             });
 
             it('copies only autoAddTripName from travelSettings, never the Spotnana identity fields or terms acceptance', () => {
@@ -596,7 +613,7 @@ describe('actions/Policy/CopyPolicySettings', () => {
 
             it('successData clears errors on target policies after retry-success', () => {
                 const targetPolicy = makeTargetPolicy();
-                const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview'], {}, {});
+                const {successData} = buildCopyPolicySettingsData(makeSourcePolicy(), [targetPolicy], ['overview', 'currency'], {}, {});
 
                 const targetSuccess = successData.find((entry) => entry.key === POLICY_KEY && entry.onyxMethod === Onyx.METHOD.MERGE);
                 const successPatch = getMergedPolicyPatch(targetSuccess);

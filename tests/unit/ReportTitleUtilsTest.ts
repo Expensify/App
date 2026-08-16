@@ -1,9 +1,12 @@
-import Onyx from 'react-native-onyx';
-import {getTitleFieldFromRNVP, removeTitleFieldFromReport, shouldUpdateTitleField, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
+import {getTitleFieldFromRNVP, updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import * as ReportUtils from '@libs/ReportUtils';
-import CONST from '@src/CONST';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Policy, PolicyReportField, Report} from '@src/types/onyx';
+import type {Policy, PolicyReportField} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
+import createMock from '../utils/createMock';
 
 // Mock dependencies
 jest.mock('@libs/ReportUtils', () => ({
@@ -14,7 +17,7 @@ jest.mock('@libs/Permissions', () => ({
     isBetaEnabled: jest.fn().mockReturnValue(true),
 }));
 
-const mockedReportUtils = ReportUtils as jest.Mocked<typeof ReportUtils>;
+const mockedReportUtils = jest.mocked(ReportUtils);
 
 describe('ReportTitleUtils', () => {
     beforeAll(async () => {
@@ -56,18 +59,18 @@ describe('ReportTitleUtils', () => {
 
     describe('updateTitleFieldToMatchPolicy', () => {
         const mockReportID = '12345';
-        const mockTitleField: PolicyReportField = {
+        const mockTitleField = createMock<PolicyReportField>({
             defaultValue: 'Test report Title',
-        } as unknown as PolicyReportField;
+        });
 
         it('should return optimistic update when valid inputs provided', () => {
-            const mockPolicy: Policy = {
+            const mockPolicy = createMock<Policy>({
                 id: 'policy123',
                 fieldList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
                     text_title: mockTitleField,
                 },
-            } as unknown as Policy;
+            });
 
             mockedReportUtils.getTitleReportField.mockReturnValue(mockTitleField);
 
@@ -90,68 +93,6 @@ describe('ReportTitleUtils', () => {
 
             expect(result).toEqual([]);
             expect(mockedReportUtils.getTitleReportField).not.toHaveBeenCalled();
-        });
-    });
-
-    describe('removeTitleFieldFromReport', () => {
-        const mockReportID = '12345';
-
-        it('should return optimistic update with null value for valid reportID', () => {
-            const result = removeTitleFieldFromReport(mockReportID);
-
-            expect(result).toHaveLength(1);
-            expect(result.at(0)).toEqual({
-                onyxMethod: Onyx.METHOD.MERGE,
-                key: `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${mockReportID}`,
-                value: {
-                    // eslint-disable-next-line @typescript-eslint/naming-convention
-                    expensify_text_title: null,
-                },
-            });
-        });
-    });
-
-    describe('shouldUpdateTitleField', () => {
-        const mockReportID = '12345';
-
-        it('should return false when report is chat report', () => {
-            const mockReport: Report = {
-                reportID: mockReportID,
-                type: CONST.REPORT.TYPE.CHAT,
-            } as Report;
-
-            mockedReportUtils.isChatReport.mockReturnValue(true);
-
-            const result = shouldUpdateTitleField(mockReport);
-
-            expect(mockedReportUtils.isChatReport).toHaveBeenCalledWith(mockReport);
-            expect(result).toBe(false);
-        });
-
-        it('should return false when report has no title field in RNVP', () => {
-            const mockReport: Report = {
-                reportID: '5555',
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-
-            mockedReportUtils.isChatReport.mockReturnValue(false);
-
-            const result = shouldUpdateTitleField(mockReport);
-
-            expect(result).toBe(false);
-        });
-
-        it('should return true when non-chat report has title field', () => {
-            const mockReport: Report = {
-                reportID: mockReportID,
-                type: CONST.REPORT.TYPE.EXPENSE,
-            } as Report;
-
-            mockedReportUtils.isChatReport.mockReturnValue(false);
-
-            const result = shouldUpdateTitleField(mockReport);
-
-            expect(result).toBe(true);
         });
     });
 });

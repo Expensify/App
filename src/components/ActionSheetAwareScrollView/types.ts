@@ -1,9 +1,10 @@
+import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
+
 import type {Ref} from 'react';
 // eslint-disable-next-line no-restricted-imports
 import type {ScrollView, ScrollViewProps} from 'react-native';
 import type Reanimated from 'react-native-reanimated';
 import type {SharedValue} from 'react-native-reanimated';
-import type {ActionWithPayload, State} from '@hooks/useWorkletStateMachine';
 
 type ActionSheetAwareScrollViewMeasurements = {
     frameY?: number;

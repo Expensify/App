@@ -1,10 +1,15 @@
-import {findFocusedRoute} from '@react-navigation/native';
 import {renderHook} from '@testing-library/react-native';
-import {useEffect, useMemo} from 'react';
+
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {navigationRef} from '@libs/Navigation/Navigation';
+
 import SCREENS from '@src/SCREENS';
+
+import {findFocusedRoute} from '@react-navigation/native';
+import {useEffect, useMemo} from 'react';
+
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 
 // Mock the TransactionThreadNavigation module
 jest.mock('@libs/actions/TransactionThreadNavigation', () => ({
@@ -58,11 +63,12 @@ describe('MoneyRequestReportTransactionList - Active Transaction IDs Effect', ()
     const mockClearActiveTransactionIDs = jest.mocked(clearActiveTransactionIDs);
     const mockGetActiveTransactionIDs = jest.mocked(getActiveTransactionIDs);
     const mockFindFocusedRoute = jest.mocked(findFocusedRoute);
+    const mockGetRootState = jest.spyOn(navigationRef, 'getRootState');
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockGetActiveTransactionIDs.mockReturnValue({ids: null, descriptors: null});
-        (navigationRef.getRootState as jest.Mock).mockReturnValue({} as ReturnType<typeof navigationRef.getRootState>);
+        mockGetRootState.mockReturnValue(createMock<NonNullable<ReturnType<typeof navigationRef.getRootState>>>({}));
     });
 
     it('should call setActiveTransactionIDs when focused route is SEARCH_REPORT', () => {

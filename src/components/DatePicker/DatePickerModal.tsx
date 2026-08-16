@@ -1,14 +1,21 @@
-import {setYear} from 'date-fns';
-import React, {useEffect, useRef, useState} from 'react';
-import type {View} from 'react-native';
 import PopoverWithMeasuredContent from '@components/PopoverWithMeasuredContent';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setDraftValues} from '@userActions/FormActions';
+
 import CONST from '@src/CONST';
-import CalendarPicker from './CalendarPicker';
+
+import type {View} from 'react-native';
+
+import {setYear} from 'date-fns';
+import React, {useEffect, useRef, useState} from 'react';
+
 import type {DatePickerProps} from './types';
+
+import CalendarPicker from './CalendarPicker';
 
 const DEFAULT_ANCHOR_ORIGIN = {
     horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,

@@ -1,13 +1,19 @@
-import type * as ReactNavigationModule from '@react-navigation/native';
 import {act, renderHook} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import useFormErrorManagement from '@components/MoneyRequestConfirmationList/hooks/useFormErrorManagement';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
+
+import type * as ReactNavigationModule from '@react-navigation/native';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => {
@@ -21,7 +27,7 @@ jest.mock('@react-navigation/native', () => {
 type Params = Parameters<typeof useFormErrorManagement>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 100, merchant: 'Coffee', comment: {}}),
     transactionReport: undefined,
     iouMerchant: 'Coffee',
     iouCategory: '',
@@ -39,6 +45,8 @@ const baseParams: Params = {
     routeError: undefined,
     isTypeSplit: false,
     shouldShowReadOnlySplits: false,
+    isNewManualExpenseFlowEnabled: false,
+    isDistanceRequest: false,
 };
 
 function Wrapper({children}: {children: React.ReactNode}) {
@@ -64,8 +72,8 @@ describe('useFormErrorManagement', () => {
                     ...baseParams,
                     isEditingSplitBill: true,
                     hasSmartScanFailed: true,
-                    transaction: {transactionID: 'txn1', amount: 0, merchant: '', comment: {}, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}} as unknown as OnyxTypes.Transaction,
-                    transactionReport: {type: CONST.REPORT.TYPE.IOU} as unknown as OnyxTypes.Report,
+                    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 0, merchant: '', comment: {}, receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED}}),
+                    transactionReport: createMock<OnyxTypes.Report>({type: CONST.REPORT.TYPE.IOU}),
                 }),
             {wrapper: Wrapper},
         );
@@ -105,5 +113,39 @@ describe('useFormErrorManagement', () => {
         const {result} = renderHook(() => useFormErrorManagement(baseParams), {wrapper: Wrapper});
         act(() => result.current.setFormError('violations.missingAttendees'));
         expect(result.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage suppresses required/invalid amount errors in the new manual expense flow (surfaced inline)', () => {
+        const {result: required} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => required.current.setFormError('common.error.fieldRequired'));
+        expect(required.current.errorMessage).toBeUndefined();
+
+        const {result: invalid} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => invalid.current.setFormError('common.error.invalidAmount'));
+        expect(invalid.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage still shows required/invalid amount errors when the new manual expense flow is disabled', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('common.error.invalidAmount'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('errorMessage still shows the invalid amount error for a distance request in the new manual expense flow (no inline surface)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true, isDistanceRequest: true}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('common.error.invalidAmount'));
+        expect(result.current.errorMessage).toBeDefined();
+    });
+
+    it('errorMessage suppresses the invalid merchant error in the new manual expense flow (surfaced inline)', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: true}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeUndefined();
+    });
+
+    it('errorMessage still shows the invalid merchant error when the new manual expense flow is disabled', () => {
+        const {result} = renderHook(() => useFormErrorManagement({...baseParams, isNewManualExpenseFlowEnabled: false}), {wrapper: Wrapper});
+        act(() => result.current.setFormError('iou.error.invalidMerchant'));
+        expect(result.current.errorMessage).toBeDefined();
     });
 });

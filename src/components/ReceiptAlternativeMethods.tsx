@@ -1,6 +1,3 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {LayoutChangeEvent} from 'react-native';
 import useEnvironment from '@hooks/useEnvironment';
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
@@ -8,9 +5,18 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
+
 import CONST from '@src/CONST';
 import {addLeadingForwardSlash} from '@src/libs/Url';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+
+import type {LayoutChangeEvent} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import Icon from './Icon';
 import RenderHTML from './RenderHTML';
 import Text from './Text';
@@ -29,7 +35,7 @@ function ReceiptAlternativeMethods({onLayout}: ReceiptAlternativeMethodsProps) {
     const {hasPhoneNumberLogin, isPhoneNumberLoaded} = useHasPhoneNumberLogin();
 
     const downloadAppHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_APP_DOWNLOAD_LINKS)}`;
-    const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(ROUTES.SETTINGS_CONTACT_METHODS.route)}`;
+    const contactMethodsHref = `${environmentURL}${addLeadingForwardSlash(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path))}`;
 
     if (!isLastMobileAppLoginLoaded || !isPhoneNumberLoaded) {
         return null;

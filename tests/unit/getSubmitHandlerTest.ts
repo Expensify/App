@@ -294,6 +294,61 @@ describe('getSubmitHandler', () => {
             ),
         ).toBe(SUBMIT_HANDLER.DEFAULT);
     });
+
+    it('returns SEARCH_DISMISS for global create on unrecognized tab (neither Search nor Report topmost)', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.SEARCH_DISMISS);
+    });
+
+    it('returns DEFAULT for global create on unrecognized tab when canDismissFromSearch is false (SPLIT/PAY)', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: false,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('returns DEFAULT for destination-report flows (TRACK) from unrecognized tab even with canDismissFromSearch', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    navigatesToDestinationReport: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: false,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DEFAULT);
+    });
+
+    it('does not use unrecognized-tab fallback when report is topmost split', () => {
+        expect(
+            getSubmitHandler(
+                snap({
+                    isFromGlobalCreate: true,
+                    canDismissFromSearch: true,
+                    isSearchTopmostFullScreen: false,
+                    isReportTopmostSplit: true,
+                    destinationReportID: '123',
+                    isDestinationReportLoaded: true,
+                }),
+            ),
+        ).toBe(SUBMIT_HANDLER.DISMISS_MODAL);
+    });
 });
 
 describe('canUseDismissModalFastPath', () => {

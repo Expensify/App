@@ -1,10 +1,11 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import SkeletonRect from '@components/SkeletonRect';
+
 import useContainerWidth from '@hooks/useContainerWidth';
 import useThemeStyles from '@hooks/useThemeStyles';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-import useSkeletonSpan from '@libs/telemetry/useSkeletonSpan';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import ItemListSkeletonView from './ItemListSkeletonView';
 
 const barHeight = 7;
@@ -15,13 +16,11 @@ const shortBarWidth = 40;
 type MergeExpensesSkeletonProps = {
     fixedNumItems?: number;
     speed?: number;
-    reasonAttributes: SkeletonSpanReasonAttributes;
 };
 
-function MergeExpensesSkeleton({fixedNumItems, speed, reasonAttributes}: MergeExpensesSkeletonProps) {
+function MergeExpensesSkeleton({fixedNumItems, speed}: MergeExpensesSkeletonProps) {
     const {onLayout, containerWidth: pageWidth} = useContainerWidth(24);
     const styles = useThemeStyles();
-    useSkeletonSpan('MergeExpensesSkeleton', reasonAttributes);
 
     const skeletonItem = useCallback(() => {
         return (

@@ -1,4 +1,5 @@
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
+
 import NAVIGATORS from '@src/NAVIGATORS';
 import SCREENS from '@src/SCREENS';
 

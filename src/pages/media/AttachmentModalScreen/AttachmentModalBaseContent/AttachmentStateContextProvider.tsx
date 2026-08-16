@@ -1,5 +1,6 @@
-import React, {createContext, useCallback, useMemo, useState} from 'react';
 import type {AttachmentSource} from '@components/Attachments/types';
+
+import React, {createContext, useCallback, useMemo, useState} from 'react';
 
 function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {

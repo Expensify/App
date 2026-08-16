@@ -1,4 +1,5 @@
 import * as Sentry from '@sentry/react-native';
+
 import {breadcrumbsIntegration, browserProfilingIntegration, consoleIntegration, navigationIntegration, shouldCreateSpanForRequest} from './common';
 
 const tracingIntegration = Sentry.reactNativeTracingIntegration({
@@ -9,4 +10,8 @@ const tracingIntegration = Sentry.reactNativeTracingIntegration({
 // the web/native export shape in parity; it is filtered out of the integrations list on native.
 const reportingObserverIntegration = undefined;
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration};
+// Only the web bundle is stamped with an application key by `@sentry/webpack-plugin`, so on native every
+// frame would look foreign. Stub for export shape parity; filtered out of the integrations list here.
+const thirdPartyErrorFilterIntegration = undefined;
+
+export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};

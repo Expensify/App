@@ -1,9 +1,26 @@
 import DateUtils from '@libs/DateUtils';
-import {getLastFullReconnectTimeToRecord, shouldTriggerFullReconnect} from '@libs/FullReconnectUtils';
+import {getLastFullReconnectTimeToRecord, recordFullReconnectTimeFromResponse, shouldTriggerFullReconnect} from '@libs/FullReconnectUtils';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
+
+import Onyx from 'react-native-onyx';
 
 const CLIENT_NOW = '2026-06-12 10:00:00.000';
 const BEFORE_CLIENT_NOW = '2026-06-12 09:59:00.000';
 const AFTER_CLIENT_NOW = '2026-06-12 10:05:00.000';
+
+function cutoffEntry(cutoff: string): AnyOnyxUpdate {
+    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE, value: cutoff};
+}
+
+function recordedTimeEntry(time: string): AnyOnyxUpdate {
+    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.LAST_FULL_RECONNECT_TIME, value: time};
+}
+
+function someOtherEntry(): AnyOnyxUpdate {
+    return {onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.HAS_LOADED_APP, value: true};
+}
 
 describe('FullReconnectUtils', () => {
     describe('shouldTriggerFullReconnect', () => {
@@ -40,6 +57,63 @@ describe('FullReconnectUtils', () => {
         it('never records a time that would ask for another reconnect at the same cutoff', () => {
             for (const cutoff of ['', BEFORE_CLIENT_NOW, CLIENT_NOW, AFTER_CLIENT_NOW]) {
                 expect(shouldTriggerFullReconnect(getLastFullReconnectTimeToRecord(cutoff), cutoff)).toBe(false);
+            }
+        });
+    });
+
+    describe('recordFullReconnectTimeFromResponse', () => {
+        beforeEach(() => {
+            jest.spyOn(DateUtils, 'getDBTime').mockReturnValue(CLIENT_NOW);
+        });
+
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it('records the reconnect time right before the delivered cutoff', () => {
+            const responseOnyxData = [someOtherEntry(), cutoffEntry(AFTER_CLIENT_NOW)];
+
+            recordFullReconnectTimeFromResponse(responseOnyxData, '');
+
+            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(AFTER_CLIENT_NOW), cutoffEntry(AFTER_CLIENT_NOW)]);
+        });
+
+        it('records client-now when the response delivers no cutoff and none is held', () => {
+            const responseOnyxData = [someOtherEntry()];
+
+            recordFullReconnectTimeFromResponse(responseOnyxData, '');
+
+            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(CLIENT_NOW)]);
+        });
+
+        it('records the held cutoff when the response delivers no cutoff, so an already-held cutoff never reads as stale again', () => {
+            const responseOnyxData = [someOtherEntry()];
+
+            recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
+
+            expect(responseOnyxData).toEqual([someOtherEntry(), recordedTimeEntry(AFTER_CLIENT_NOW)]);
+        });
+
+        it('records the held cutoff when the response delivers an older one, so a Pusher update that overtook the response never reads as stale again', () => {
+            const responseOnyxData = [cutoffEntry(BEFORE_CLIENT_NOW)];
+
+            recordFullReconnectTimeFromResponse(responseOnyxData, AFTER_CLIENT_NOW);
+
+            expect(responseOnyxData).toEqual([recordedTimeEntry(AFTER_CLIENT_NOW), cutoffEntry(BEFORE_CLIENT_NOW)]);
+        });
+
+        it('never records a time that would ask for another reconnect at the delivered or the held cutoff', () => {
+            for (const deliveredCutoff of ['', BEFORE_CLIENT_NOW, CLIENT_NOW, AFTER_CLIENT_NOW]) {
+                for (const heldCutoff of ['', BEFORE_CLIENT_NOW, CLIENT_NOW, AFTER_CLIENT_NOW]) {
+                    const responseOnyxData = deliveredCutoff === '' ? [] : [cutoffEntry(deliveredCutoff)];
+
+                    recordFullReconnectTimeFromResponse(responseOnyxData, heldCutoff);
+
+                    const recordedTime: unknown = responseOnyxData.at(0)?.value;
+                    const recorded = typeof recordedTime === 'string' ? recordedTime : '';
+                    expect(shouldTriggerFullReconnect(recorded, deliveredCutoff)).toBe(false);
+                    expect(shouldTriggerFullReconnect(recorded, heldCutoff)).toBe(false);
+                }
             }
         });
     });

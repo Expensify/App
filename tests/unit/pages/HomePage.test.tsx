@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-return -- Jest factory mocks use CommonJS require() which returns untyped modules; typing each mock precisely is not practical here */
 import {render, screen, within} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import HomePage from '@pages/home/HomePage';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn(() => ({shouldUseNarrowLayout: true})));
@@ -16,7 +21,6 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useDocumentTitle', () => jest.fn());
-jest.mock('@hooks/useConfirmReadyToOpenApp', () => jest.fn());
 jest.mock('@hooks/useThemeStyles', () =>
     jest.fn(() => ({
         flex1: {},
@@ -83,7 +87,7 @@ jest.mock('@pages/home/ForYouSection', () => mockSection('ForYouSection'));
 jest.mock('@pages/home/UpcomingTravelSection', () => mockSection('UpcomingTravelSection'));
 jest.mock('@pages/home/RecentlyAddedSection', () => mockSection('RecentlyAddedSection'), {virtual: true});
 jest.mock('@pages/home/YourSpendSection', () => mockSection('YourSpendSection'));
-jest.mock('@pages/home/SpendOverTimeSection', () => mockSection('SpendOverTimeSection'));
+jest.mock('@pages/home/InsightsSection', () => mockSection('InsightsSection'));
 jest.mock('@pages/home/DiscoverSection', () => mockSection('DiscoverSection'));
 jest.mock('@pages/home/AnnouncementSection', () => mockSection('AnnouncementSection'));
 
@@ -171,7 +175,7 @@ describe('HomePage', () => {
                 'section-UpcomingTravelSection',
                 'section-RecentlyAddedSection',
                 'section-YourSpendSection',
-                'section-SpendOverTimeSection',
+                'section-InsightsSection',
                 'section-DiscoverSection',
                 'section-AnnouncementSection',
             ]);
@@ -201,6 +205,25 @@ describe('HomePage', () => {
             expect(within(rightColumn).getByTestId('section-DiscoverSection')).toBeOnTheScreen();
             expect(within(leftColumn).queryByTestId('section-DiscoverSection')).not.toBeOnTheScreen();
             expect(within(leftColumn).getByTestId('section-RecentlyAddedSection')).toBeOnTheScreen();
+        });
+
+        // Promote Getting started into the left column above For you on wide layout (matching mobile placement).
+        it('renders Getting started in the left column above For you and not in the right column', async () => {
+            setWideLayout();
+            await waitForBatchedUpdates();
+
+            renderHomePage();
+
+            const leftColumn = screen.getByTestId('homePageLeftColumn');
+            const rightColumn = screen.getByTestId('homePageRightColumn');
+
+            expect(within(leftColumn).getByTestId('section-GettingStartedSection')).toBeOnTheScreen();
+            expect(within(rightColumn).queryByTestId('section-GettingStartedSection')).not.toBeOnTheScreen();
+
+            const leftOrder = within(leftColumn)
+                .getAllByTestId(/^section-/)
+                .map((el) => String(el.props.testID));
+            expect(leftOrder.indexOf('section-GettingStartedSection')).toBeLessThan(leftOrder.indexOf('section-ForYouSection'));
         });
     });
 });

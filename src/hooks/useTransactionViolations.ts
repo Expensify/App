@@ -1,32 +1,47 @@
-import {useMemo} from 'react';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
+import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/TransactionUtils';
+import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
+
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {TransactionViolation, TransactionViolations} from '@src/types/onyx';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
+import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useDistanceRateOriginalPolicy from './useDistanceRateOriginalPolicy';
 import useOnyx from './useOnyx';
 
-function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true): TransactionViolations {
+function useTransactionViolations(transactionID?: string, shouldShowRterForSettledReport = true, policyOverride?: OnyxEntry<Policy>): TransactionViolations {
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
-    const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
+    const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
+    const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
+    const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
+    const distanceOriginalPolicy = useDistanceRateOriginalPolicy(customUnitRateID, shouldLookupDistancePolicy);
+    const policy = policyOverride ?? distanceOriginalPolicy ?? reportPolicy;
     const currentUserDetails = useCurrentUserPersonalDetails();
 
-    return useMemo(
-        () =>
-            getVisibleTransactionViolations(
-                transaction,
-                transactionViolations,
-                currentUserDetails.email ?? '',
-                currentUserDetails.accountID,
-                iouReport,
-                policy,
-                shouldShowRterForSettledReport,
-            ),
-        [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID],
-    );
+    return useMemo(() => {
+        const syncedViolations = syncCustomUnitRateOutOfDateRangeViolation(transactionViolations, transaction, policy);
+
+        return getVisibleTransactionViolations(
+            transaction,
+            syncedViolations,
+            currentUserDetails.email ?? '',
+            currentUserDetails.accountID,
+            iouReport,
+            ownerLogin,
+            policy,
+            shouldShowRterForSettledReport,
+        );
+    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
 }
 
 export default useTransactionViolations;

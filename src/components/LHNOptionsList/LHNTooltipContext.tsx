@@ -1,6 +1,8 @@
-import {createContext, useContext} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import type {Onboarding, OnboardingPurpose} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {createContext, useContext} from 'react';
 
 type LHNTooltipContextValue = {
     onboardingPurpose: OnboardingPurpose | undefined;
