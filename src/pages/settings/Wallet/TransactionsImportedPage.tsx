@@ -14,7 +14,6 @@ import {findDuplicate, generateColumnNames} from '@libs/importSpreadsheetUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {isOFXStatement} from '@libs/OFXUtils';
 
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
@@ -64,9 +63,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
             return;
         }
 
-        // An OFX statement already carries its own roles, and a saved CSV layout can map one of its headers
-        // to a different role and overwrite them.
-        if (!existingCardID || !spreadsheet?.data || !savedColumnLayouts || isOFXStatement(spreadsheet.fileName ?? '')) {
+        if (!existingCardID || !spreadsheet?.data || !savedColumnLayouts) {
             return;
         }
 
@@ -77,7 +74,7 @@ function TransactionsImportedPage({route}: TransactionsImportedPageProps) {
 
         hasAppliedSavedMappings.current = true;
         applySavedColumnMappings(spreadsheet.data, savedLayout);
-    }, [existingCardID, spreadsheet?.data, spreadsheet?.fileName, savedColumnLayouts]);
+    }, [existingCardID, spreadsheet?.data, savedColumnLayouts]);
 
     const columnRoles: ColumnRole[] = useMemo(
         () => [
