@@ -44,22 +44,15 @@ jest.mock('@userActions/IOU/PerDiem', () => ({
 
 jest.mock('@userActions/IOU/Split', () => ({
     createDistanceRequest: (...args: Parameters<CreateDistanceRequest>) => mockCreateDistanceRequestAction(...args),
-    splitBill: jest.fn(),
-    splitBillAndOpenReport: jest.fn(),
+    splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
+    splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
+    resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
     startSplitBill: jest.fn(),
 }));
 
 jest.mock('@userActions/IOU/SendInvoice', () => ({
     sendInvoice: (...args: unknown[]) => mockSendInvoiceAction(...args),
     getReceiverType: jest.fn(),
-}));
-
-jest.mock('@userActions/IOU/Split', () => ({
-    splitBill: (...args: unknown[]) => mockSplitBillAction(...args),
-    splitBillAndOpenReport: (...args: unknown[]) => mockSplitBillAndOpenReportAction(...args),
-    resolveOptimisticSplitChatReportID: (...args: unknown[]) => mockResolveOptimisticSplitChatReportID(...args),
-    startSplitBill: jest.fn(),
-    createDistanceRequest: jest.fn(),
 }));
 
 jest.mock('@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab', () => ({

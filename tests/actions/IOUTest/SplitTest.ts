@@ -9976,6 +9976,7 @@ describe('resolveOptimisticSplitChatReportID', () => {
             comment: '',
             amount: 100,
             currency: CONST.CURRENCY.USD,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             merchant: 'test',
             created: '',
             optimisticSplitChatReportID,
