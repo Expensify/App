@@ -79,7 +79,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
     const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
 
-    const onToggleAutoUpdateGovernmentRate = (isOn: boolean) => {
+    const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
         if (!customUnit) {
             return;
         }
@@ -191,7 +191,7 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                             <Switch
                                                 isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                                 accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
-                                                onToggle={onToggleAutoUpdateGovernmentRate}
+                                                onToggle={toggleAutoUpdateGovernmentRate}
                                                 disabled={!canWriteDistanceRates}
                                                 disabledAction={withReadOnlyFallback()}
                                                 showLockIcon={!canWriteDistanceRates}
