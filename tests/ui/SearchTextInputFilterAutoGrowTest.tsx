@@ -6,7 +6,7 @@ import TextInputFilterContentPageWrapper from '@pages/Search/SearchAdvancedFilte
 
 import CONST from '@src/CONST';
 
-const mockTextInputFilterContent = jest.fn(() => null);
+const mockTextInputFilterContent = jest.fn<null, [Record<string, unknown>]>(() => null);
 
 jest.mock('@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent', () => ({
     __esModule: true,

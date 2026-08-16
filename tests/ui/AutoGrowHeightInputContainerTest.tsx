@@ -128,7 +128,7 @@ describe('AutoGrowHeightInputContainer', () => {
 
     it('recomputes the cap across keyboard shrink, dismissal, and reopen without a reduced container layout', async () => {
         let currentWindowHeight = 800;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseWindowDimensions.mockImplementation(() => ({
             windowWidth: 300,
             windowHeight: currentWindowHeight,
@@ -176,7 +176,7 @@ describe('AutoGrowHeightInputContainer', () => {
 
     it('uses an exact container layout as the baseline after a viewport fallback', async () => {
         let currentWindowHeight = 800;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseWindowDimensions.mockImplementation(() => ({
             windowWidth: 300,
             windowHeight: currentWindowHeight,
@@ -229,7 +229,7 @@ describe('AutoGrowHeightInputContainer', () => {
         let isKeyboardShown = false;
         let keyboardHeight = 0;
         let keyboardActiveHeight = 0;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown,
             isKeyboardActive,
@@ -304,7 +304,7 @@ describe('AutoGrowHeightInputContainer', () => {
 
         let isKeyboardActive = false;
         let keyboardActiveHeight = 0;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown: isKeyboardActive,
             isKeyboardActive,
@@ -394,7 +394,7 @@ describe('AutoGrowHeightInputContainer', () => {
         let isKeyboardActive = false;
         let keyboardHeight = 0;
         let keyboardActiveHeight = 0;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown,
             isKeyboardActive,
@@ -452,7 +452,7 @@ describe('AutoGrowHeightInputContainer', () => {
         let isKeyboardActive = true;
         let keyboardHeight = 300;
         let keyboardActiveHeight = 300;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown,
             isKeyboardActive,
@@ -509,7 +509,7 @@ describe('AutoGrowHeightInputContainer', () => {
 
         let isKeyboardActive = false;
         let keyboardActiveHeight = 0;
-        let renderedMaxAutoGrowHeight = variables.textInputAutoGrowMaxHeight;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
         mockUseKeyboardState.mockImplementation(() => ({
             isKeyboardShown: false,
             isKeyboardActive,

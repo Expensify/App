@@ -43,7 +43,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
     const isNativePlatform = Platform.OS !== 'web';
     const nativeKeyboardHeight =
         isNativePlatform && (isKeyboardActive || isKeyboardShown) ? Math.max(keyboardActiveHeight > 0 ? getKeyboardHeight(keyboardActiveHeight, bottom) : keyboardHeight, 0) : 0;
-    const availableHeightRef = useRef(variables.textInputAutoGrowMaxHeight);
+    const availableHeightRef = useRef<number>(variables.textInputAutoGrowMaxHeight);
     const viewportHeightRef = useRef(windowHeight);
     const keyboardHeightRef = useRef(nativeKeyboardHeight);
     const lastExactContainerHeightRef = useRef<number | null>(null);
@@ -54,10 +54,10 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
     const containerWidthRef = useRef(0);
     const measurementGenerationRef = useRef(0);
     const measurementPhaseRef = useRef<MeasurementPhase>('normal');
-    const maxAutoGrowHeightRef = useRef(variables.textInputAutoGrowMaxHeight);
+    const maxAutoGrowHeightRef = useRef<number>(variables.textInputAutoGrowMaxHeight);
     const [measurementPhase, setMeasurementPhase] = useState<MeasurementPhase>('normal');
     const [measurementRequestVersion, setMeasurementRequestVersion] = useState(0);
-    const [maxAutoGrowHeight, setMaxAutoGrowHeight] = useState(variables.textInputAutoGrowMaxHeight);
+    const [maxAutoGrowHeight, setMaxAutoGrowHeight] = useState<number>(variables.textInputAutoGrowMaxHeight);
 
     const startMeasurement = useCallback((phase: Exclude<MeasurementPhase, 'normal'>, nextMaxAutoGrowHeight: number, shouldReplaceActiveMeasurement = false) => {
         if (!shouldReplaceActiveMeasurement && measurementPhaseRef.current === phase && maxAutoGrowHeightRef.current === nextMaxAutoGrowHeight) {
