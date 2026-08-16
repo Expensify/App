@@ -31,30 +31,6 @@ function formatDefaultTaxRateText(translate: LocaleContextProps['translate'], ta
     return `${taxRateText}${suffix ? ` ${CONST.DOT_SEPARATOR} ${suffix}` : ``}`;
 }
 
-function formatRequireReceiptsOverText(
-    translate: LocaleContextProps['translate'],
-    policy: Policy,
-    categoryMaxAmountNoReceipt: number | null | undefined,
-    convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
-) {
-    const isAlwaysSelected = categoryMaxAmountNoReceipt === 0;
-    const isNeverSelected = categoryMaxAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE;
-
-    if (isAlwaysSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.always`);
-    }
-
-    if (isNeverSelected) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
-    }
-
-    if (policy?.maxExpenseAmountNoReceipt === CONST.DISABLED_MAX_EXPENSE_VALUE || policy?.maxExpenseAmountNoReceipt === undefined) {
-        return translate(`workspace.rules.categoryRules.requireReceiptsOverList.never`);
-    }
-
-    return translate(`workspace.rules.categoryRules.requireReceiptsOverList.default`, convertToDisplayString(policy.maxExpenseAmountNoReceipt, policy?.outputCurrency ?? CONST.CURRENCY.USD));
-}
-
 function formatRequireItemizedReceiptsOverText(
     translate: LocaleContextProps['translate'],
     policy: Policy,
@@ -241,7 +217,6 @@ function hasAnyCategoryRules(categories: PolicyCategories | undefined): boolean 
 
 export {
     formatDefaultTaxRateText,
-    formatRequireReceiptsOverText,
     formatRequireItemizedReceiptsOverText,
     getCategoryApproverRule,
     getCategoryExpenseRule,
