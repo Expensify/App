@@ -32,7 +32,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
-import {canSubmitPerDiemExpenseFromWorkspace, isGroupPolicy, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
+import {canSubmitPerDiemExpenseFromWorkspace, getGroupPoliciesWhereReportCanBeCreated, isPolicyAdmin} from '@libs/PolicyUtils';
 import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
@@ -78,6 +78,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
+    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
@@ -231,13 +232,9 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     if (policies && !isEmptyObject(policies)) {
         const result = [];
         let index = 0;
-        for (const policy of Object.values(policies)) {
-            if (
-                policy?.isJoinRequestPending ||
-                !isGroupPolicy(policy) ||
-                !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
-                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
-            ) {
+        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, currentUserPersonalDetails?.login);
+        for (const policy of eligiblePolicies) {
+            if (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                 continue;
             }
 
