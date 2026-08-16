@@ -16,6 +16,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+import type Session from '@src/types/onyx/Session';
 
 import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useEffect, useState} from 'react';
@@ -24,10 +25,14 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
+const sessionAccountIDSelector = (session: Session | undefined) => session?.accountID;
+
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
+    const [currentAccountID, currentAccountIDResult] = useOnyx(ONYXKEYS.SESSION, {selector: sessionAccountIDSelector});
+    const isSessionLoaded = currentAccountIDResult.status === 'loaded';
     const {isOffline} = useNetwork();
 
     const {splashScreenState} = useSplashScreenState();
@@ -37,20 +42,33 @@ function GPSTripStateChecker() {
     useUpdateGpsTripOnReconnect({gpsPoints: getGpsPoints(gpsDraftDetails)});
     useUpdateGpsNotification();
 
+    // A trip kept across a forced re-auth belongs to whoever started it. Wait for the session to load before
+    // judging that, otherwise a trip would be discarded just because the accountID had not arrived yet.
+    const isTripFromDifferentUser = isSessionLoaded && !!gpsDraftDetails && gpsDraftDetails.accountID !== currentAccountID;
+
+    useEffect(() => {
+        if (!isTripFromDifferentUser) {
+            return;
+        }
+
+        resetGPSDraftDetails();
+        hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).then((isRunning) => {
+            if (!isRunning) {
+                return;
+            }
+
+            stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
+                console.error('[GPS distance request] Failed to stop tracking for a trip from another user', error),
+            );
+        });
+    }, [isTripFromDifferentUser]);
+
     useEffect(() => {
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
             const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
 
-            // A trip kept across a forced re-auth belongs to whoever started it, so it is never offered to another user.
-            const currentAccountID = (await OnyxUtils.get(ONYXKEYS.SESSION))?.accountID;
-            const isTripFromDifferentUser = gpsTrip?.accountID !== undefined && gpsTrip.accountID !== currentAccountID;
-
-            if (isTripFromDifferentUser) {
-                resetGPSDraftDetails();
-            }
-
-            if (!gpsTrip?.isTracking || isTripFromDifferentUser) {
+            if (!gpsTrip?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {
                     stopLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME).catch((error) =>
@@ -120,7 +138,7 @@ function GPSTripStateChecker() {
 
     return (
         <ConfirmModal
-            isVisible={showContinueTripModal && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
+            isVisible={showContinueTripModal && !!gpsDraftDetails?.isTracking && !isTripFromDifferentUser && splashScreenState === CONST.BOOT_SPLASH_STATE.HIDDEN}
             title={translate('gps.continueGpsTripModal.title')}
             prompt={translate('gps.continueGpsTripModal.prompt')}
             shouldReverseStackedButtons
