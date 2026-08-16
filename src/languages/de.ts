@@ -697,7 +697,10 @@ const translations: TranslationDeepObject<typeof en> = {
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Eins', 'Zwei', 'Drei', 'Vier', 'Fünf', 'Sechs', 'Sieben', 'Acht', 'Neun'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} weitere ${count === 1 ? 'Gerät' : 'Geräte'}`;
+                return {
+                    one: 'Ein weiteres Gerät',
+                    other: `${displayCount} weitere Geräte`,
+                };
             },
             confirmationPromptThisDevice: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesem Gerät.',
             confirmationPromptMultiple: 'Sind Sie sicher? Sie benötigen einen Sicherheitscode für die nächste Verifizierung auf diesen Geräten.',
@@ -991,10 +994,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: 'Sieh dir an, was Expensify in 2 Minuten kann',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} einreichen`,
-            approve: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} genehmigen`,
-            pay: ({count}: {count: number}) => `Zahle ${count} ${count === 1 ? 'Bericht' : 'Berichte'}`,
-            export: ({count}: {count: number}) => `${count} ${count === 1 ? 'Bericht' : 'Berichte'} exportieren`,
+            submit: ({count}: {count: number}) => ({
+                one: '1 Bericht einreichen',
+                other: `${count} Berichte einreichen`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: '1 Bericht genehmigen',
+                other: `${count} Berichte genehmigen`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: '1 Bericht bezahlen',
+                other: `${count} Berichte bezahlen`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: '1 Bericht exportieren',
+                other: `${count} Berichte exportieren`,
+            }),
             begin: 'Begin',
             emptyStateMessages: {
                 thumbsUpStarsTitle: 'Sie sind fertig!',
@@ -1028,7 +1043,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Alles erledigt',
                 f1FlagsDescription: 'Sie haben alle offenen Aufgaben abgeschlossen.',
             },
-            reviewExpenses: ({count}: {count: number}) => `Überprüfen Sie ${count} ${count === 1 ? 'Ausgabe' : 'Spesen'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: 'Überprüfen Sie 1 Ausgabe',
+                other: `Überprüfen Sie ${count} Ausgaben`,
+            }),
         },
         upcomingTravel: 'Bevorstehende Reisen',
         upcomingTravelSection: {
@@ -1143,7 +1161,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} ${added === 1 ? 'Kategorie' : 'Kategorien'} hinzugefügt, ${updated} ${updated === 1 ? 'Kategorie' : 'Kategorien'} aktualisiert.`,
-        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} Transaktionen wurden hinzugefügt.` : '1 Transaktion wurde hinzugefügt.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 Transaktion wurde hinzugefügt.',
+            other: `${count} Transaktionen wurden hinzugefügt.`,
+        }),
         importMembersNoneAddedOrUpdated: 'Es wurden keine Mitglieder hinzugefügt oder aktualisiert.',
         importMembersAdded: ({count}: {count: number}) => ({
             one: '1 Mitglied wurde hinzugefügt.',
@@ -1155,9 +1176,15 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} Mitglied${added > 1 ? 's' : ''} hinzugefügt, ${updated} Mitglied${updated > 1 ? 's' : ''} aktualisiert.`,
-        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} Tags wurden hinzugefügt.` : '1 Tag wurde hinzugefügt.'),
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 Tag wurde hinzugefügt.',
+            other: `${count} Tags wurden hinzugefügt.`,
+        }),
         importMultiLevelTagsSuccessfulDescription: 'Mehrstufige Tags wurden hinzugefügt.',
-        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} Tagessätze wurden hinzugefügt.` : '1 Tagegeldsatz wurde hinzugefügt.'),
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 Tagessatz wurde hinzugefügt.',
+            other: `${count} Tagessätze wurden hinzugefügt.`,
+        }),
         importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
             if (count === 0) {
                 return 'Es wurden keine Händlerregeln hinzugefügt, da sie alle bereits existieren.';
@@ -1173,7 +1200,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMerchantRulesRequiredColumns:
             'Ups! Du musst mindestens eine Spalte („Händler ist“ oder „Händler enthält“) zuordnen sowie mindestens ein zu aktualisierendes Feld. Bitte überprüfe es und versuche es erneut.',
-        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} Buchungen wurden importiert.` : '1 Transaktion wurde importiert.'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 Transaktion wurde importiert.',
+            other: `${count} Transaktionen wurden importiert.`,
+        }),
         importFailedTitle: 'Import fehlgeschlagen',
         importFailedDescription: 'Bitte stelle sicher, dass alle Felder korrekt ausgefüllt sind, und versuche es erneut. Wenn das Problem weiterhin besteht, wende dich bitte an Concierge.',
         importDescription: 'Wähle aus, welche Felder aus deiner Tabelle zugeordnet werden sollen, indem du unten in der Dropdown-Liste neben jeder importierten Spalte klickst.',
@@ -1751,7 +1781,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Wähle einen Arbeitsbereich',
         routedDueToDEW: (to: string, reason?: string) => `Bericht weitergeleitet an ${to}${reason ? ` weil ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? 'Stunde' : 'Stunden'} @ ${rate} / Stunde`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `1 Stunde @ ${rate} / Stunde`,
+                other: `${count} Stunden @ ${rate} / Stunde`,
+            }),
             hrs: 'Std.',
             hours: 'Stunden',
             ratePreview: (rate: string) => `${rate} / Stunde`,
@@ -2242,14 +2275,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: 'Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
         saveReceiptsConfirmation: {
             title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst.`,
+            prompt: ({count}: {count: number}) => ({
+                one: 'Es wird noch 1 Beleg hochgeladen. Wenn du dich jetzt abmeldest, speichern wir ihn in deinen Fotos, damit du ihn später zu einer neuen Ausgabe hinzufügen kannst.',
+                other: `Es werden noch ${count} Belege hochgeladen. Wenn du dich jetzt abmeldest, speichern wir sie in deinen Fotos, damit du sie später zu einer neuen Ausgabe hinzufügen kannst.`,
+            }),
             confirm: 'Speichern und abmelden',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: 'Belege speichern?',
-            prompt: ({count}: {count: number}) =>
-                `Es ${count === 1 ? 'wird noch 1 Beleg' : `werden noch ${count} Belege`} hochgeladen. Wenn du dich jetzt abmeldest, ${count === 1 ? 'speichern wir ihn' : 'speichern wir sie'} in deinen Fotos, damit du ${count === 1 ? 'ihn' : 'sie'} später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
+            prompt: ({count}: {count: number}) => ({
+                one: 'Es wird noch 1 Beleg hochgeladen. Wenn du dich jetzt abmeldest, speichern wir ihn in deinen Fotos, damit du ihn später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.',
+                other: `Es werden noch ${count} Belege hochgeladen. Wenn du dich jetzt abmeldest, speichern wir sie in deinen Fotos, damit du sie später zu einer neuen Ausgabe hinzufügen kannst. Alle Offline-Änderungen gehen verloren, wenn du dich abmeldest.`,
+            }),
             confirm: 'Speichern und abmelden',
         },
         versionLetter: 'v',
@@ -3136,7 +3173,10 @@ ${amount} für ${merchant} – ${date}`,
         requiredWhen2FAEnabled: 'Erforderlich, wenn 2FA aktiviert ist',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Fordere einen neuen Code an in <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Neuen Code anfordern',
-        timeRemainingAnnouncement: ({count}) => `Verbleibende Zeit: ${count} ${count === 1 ? 'Sekunde' : 'Sekunden'}`,
+        timeRemainingAnnouncement: ({count}: {count: number}) => ({
+            one: 'Verbleibende Zeit: 1 Sekunde',
+            other: `Verbleibende Zeit: ${count} Sekunden`,
+        }),
         timeExpiredAnnouncement: 'Die Zeit ist abgelaufen',
         error: {
             pleaseFillSecurityCode: 'Bitte geben Sie Ihren Sicherheitscode ein',
@@ -3187,7 +3227,10 @@ ${amount} für ${merchant} – ${date}`,
         joinAWorkspace: 'Einem Arbeitsbereich beitreten',
         listOfWorkspaces: 'Hier ist die Liste der Arbeitsbereiche, denen Sie beitreten können.',
         skipForNow: 'Vorerst überspringen',
-        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} Mitglied${count > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `1 Mitglied • ${policyOwner}`,
+            other: `${count} Mitglieder • ${policyOwner}`,
+        }),
         whereYouWork: 'Wo arbeitest du?',
         errorSelection: 'Wähle eine Option, um fortzufahren',
         purpose: {
@@ -8993,10 +9036,16 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             hold: 'Warteschleife',
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
-            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Ausgabe' : 'Ausgaben'} duplizieren`,
+            duplicateExpense: ({count}: {count: number}) => ({
+                one: 'Ausgabe duplizieren',
+                other: 'Ausgaben duplizieren',
+            }),
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             undelete: 'Wiederherstellen',
-            duplicateReport: ({count}: {count: number}) => `Duplikat ${count === 1 ? 'Bericht' : 'Berichte'}`,
+            duplicateReport: ({count}: {count: number}) => ({
+                one: 'Bericht duplizieren',
+                other: 'Berichte duplizieren',
+            }),
         },
         expensifyCardStatementPDF: {
             title: 'Kontoauszug herunterladen',
@@ -9346,7 +9395,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary} für ${count} ${count === 1 ? 'Tag' : 'Tage'} bis ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary} für 1 Tag bis ${date}`,
+            other: `${summary} für ${count} Tage bis ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} von ${timePeriod} am ${date}`,
         startTimer: 'Timer starten',
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
@@ -9936,7 +9988,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         authenticatePaymentCard: 'Zahlungskarte authentifizieren',
         mobileReducedFunctionalityMessage: 'In der mobilen App kannst du dein Abonnement nicht ändern.',
         badge: {
-            freeTrial: ({count}: {count: number}) => `Kostenlose Testversion: Noch ${count} ${count === 1 ? 'Tag' : 'Tage'} übrig`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: 'Kostenlose Testversion: Noch 1 Tag übrig',
+                other: `Kostenlose Testversion: Noch ${count} Tage übrig`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9998,7 +10053,10 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: 'Als nächsten Schritt <a href="#">schließe deine Einrichtungs-Checkliste ab</a>, damit dein Team mit der Spesenerfassung beginnen kann.',
             },
             trialStarted: {
-                title: ({count}: {count: number}) => `Testversion: Noch ${count} ${count === 1 ? 'Tag' : 'Tage'} übrig!`,
+                title: ({count}: {count: number}) => ({
+                    one: 'Testversion: Noch 1 Tag übrig!',
+                    other: `Testversion: Noch ${count} Tage übrig!`,
+                }),
                 subtitle: 'Füge eine Zahlungskarte hinzu, um alle deine Lieblingsfunktionen weiterhin nutzen zu können.',
             },
             trialEnded: {
@@ -10592,7 +10650,10 @@ Hier ist ein *Testbeleg*, um dir zu zeigen, wie es funktioniert:`,
             cannotSetVacationDelegateForMember: (email: string) => `Du kannst keine Urlaubsvertretung für ${email} festlegen, weil sie derzeit die Vertretung für folgende Mitglieder sind:`,
             emptyMembers: {title: 'Keine Mitglieder in dieser Gruppe', subtitle: 'Fügen Sie ein Mitglied hinzu oder versuchen Sie, den Filter oben zu ändern.'},
             moveToGroup: 'In Gruppe verschieben',
-            chooseWhereToMove: ({count}: {count: number}) => `Wählen Sie aus, wohin Sie ${count} ${count === 1 ? 'Mitglied' : 'Mitglieder'} verschieben möchten.`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: 'Wählen Sie aus, wohin Sie 1 Mitglied verschieben möchten.',
+                other: `Wählen Sie aus, wohin Sie ${count} Mitglieder verschieben möchten.`,
+            }),
             domainGroup: 'Domain-Gruppe',
             chooseWhereToMoveName: ({name}: {name: string}) => `Wähle aus, wohin ${name} verschoben werden soll.`,
             membersFeatureList: {

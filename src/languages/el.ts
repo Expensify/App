@@ -713,9 +713,12 @@ const translations: TranslationDeepObject<typeof en> = {
             error: 'Η αίτηση απέτυχε. Προσπαθήστε ξανά αργότερα.',
             thisDevice: 'Αυτή η συσκευή',
             otherDevices: ({count}: {count: number}) => {
-                const numberWords = ['Ένα', 'Δύο', 'Τρία', 'Τέσσερα', 'Πέντε', 'Έξι', 'Επτά', 'Οκτώ', 'Εννέα'];
+                const numberWords = ['Μία', 'Δύο', 'Τρεις', 'Τέσσερις', 'Πέντε', 'Έξι', 'Επτά', 'Οκτώ', 'Εννέα'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} άλλο ${count === 1 ? 'συσκευή' : 'συσκευές'}`;
+                return {
+                    one: `${displayCount} άλλη συσκευή`,
+                    other: `${displayCount} άλλες συσκευές`,
+                };
             },
         },
         setPin: {
@@ -1056,11 +1059,26 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: 'Δείτε τι μπορεί να κάνει το Expensify σε 2 λεπτά',
         },
         forYouSection: {
-            reviewExpenses: ({count}: {count: number}) => `Ελέγξτε ${count} ${count === 1 ? 'δαπάνη' : 'έξοδα'}`,
-            submit: ({count}: {count: number}) => `Υποβολή ${count} ${count === 1 ? 'αναφορά' : 'αναφορές'}`,
-            approve: ({count}: {count: number}) => `Έγκριση ${count} ${count === 1 ? 'αναφορά' : 'αναφορές'}`,
-            pay: ({count}: {count: number}) => `Πληρώστε ${count} ${count === 1 ? 'αναφορά' : 'αναφορές'}`,
-            export: ({count}: {count: number}) => `Εξαγωγή ${count} ${count === 1 ? 'αναφορά' : 'αναφορές'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: 'Ελέγξτε 1 δαπάνη',
+                other: `Ελέγξτε ${count} δαπάνες`,
+            }),
+            submit: ({count}: {count: number}) => ({
+                one: 'Υποβολή 1 αναφοράς',
+                other: `Υποβολή ${count} αναφορών`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: 'Έγκριση 1 αναφοράς',
+                other: `Έγκριση ${count} αναφορών`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: 'Πληρώστε 1 αναφορά',
+                other: `Πληρώστε ${count} αναφορές`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: 'Εξαγωγή 1 αναφοράς',
+                other: `Εξαγωγή ${count} αναφορών`,
+            }),
             begin: 'Έναρξη',
             emptyStateMessages: {
                 thumbsUpStarsTitle: 'Ολοκληρώσατε!',
@@ -1191,7 +1209,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} ${added === 1 ? 'κατηγορία' : 'κατηγορίες'} προστέθηκαν, ${updated} ${updated === 1 ? 'κατηγορία' : 'κατηγορίες'} ενημερώθηκαν.`,
-        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Προστέθηκαν ${count} συναλλαγές.` : 'Προστέθηκε 1 συναλλαγή.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'Προστέθηκε 1 συναλλαγή.',
+            other: `Προστέθηκαν ${count} συναλλαγές.`,
+        }),
         importCompanyCardTransactionsPendingMessage: 'Οι νέες κάρτες και συναλλαγές μπορεί να χρειαστούν λίγο χρόνο για να εμφανιστούν, παρακαλούμε περιμένετε.',
         importMembersNoneAddedOrUpdated: 'Δεν προστέθηκαν ή ενημερώθηκαν μέλη.',
         importMembersAdded: ({count}: {count: number}) => ({
@@ -1204,10 +1225,19 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} μέλος${added > 1 ? 'ς' : ''} προστέθηκε, ${updated} μέλος${updated > 1 ? 'ς' : ''} ενημερώθηκε.`,
-        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Προστέθηκαν ${count} ετικέτες.` : 'Προστέθηκε 1 ετικέτα.'),
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'Προστέθηκε 1 ετικέτα.',
+            other: `Προστέθηκαν ${count} ετικέτες.`,
+        }),
         importMultiLevelTagsSuccessfulDescription: 'Προστέθηκαν ετικέτες πολλαπλών επιπέδων.',
-        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Έχουν προστεθεί ${count} ημερήσια επιδόματα.` : 'Προστέθηκε 1 ημερήσιο επίδομα.'),
-        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Έχουν εισαχθεί ${count} συναλλαγές.` : '1 συναλλαγή έχει εισαχθεί.'),
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'Προστέθηκε 1 ημερήσιο επίδομα.',
+            other: `Προστέθηκαν ${count} ημερήσια επιδόματα.`,
+        }),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'Εισήχθη 1 συναλλαγή.',
+            other: `Εισήχθησαν ${count} συναλλαγές.`,
+        }),
         importFailedTitle: 'Η εισαγωγή απέτυχε',
         importFailedDescription: 'Βεβαιωθείτε ότι όλα τα πεδία έχουν συμπληρωθεί σωστά και δοκιμάστε ξανά. Αν το πρόβλημα συνεχιστεί, επικοινωνήστε με το Concierge.',
         importDescription: 'Επιλέξτε ποια πεδία θα αντιστοιχίσετε από το υπολογιστικό σας φύλλο, κάνοντας κλικ στο αναπτυσσόμενο μενού δίπλα σε κάθε εισαγόμενη στήλη παρακάτω.',
@@ -1805,7 +1835,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Επιλέξτε ένα χώρο εργασίας',
         routedDueToDEW: (to: string, reason?: string) => `η αναφορά προωθήθηκε σε ${to}${reason ? `επειδή ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? 'ώρα' : 'ώρες'} @ ${rate} / ώρα`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `1 ώρα @ ${rate} / ώρα`,
+                other: `${count} ώρες @ ${rate} / ώρα`,
+            }),
             hrs: 'ώρες',
             hours: 'Ώρες',
             ratePreview: (rate: string) => `${rate} / ώρα`,
@@ -2295,14 +2328,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: 'Θα χάσετε τυχόν αλλαγές εκτός σύνδεσης αν αποσυνδεθείτε.',
         saveReceiptsConfirmation: {
             title: 'Αποθήκευση των αποδείξεών σας;',
-            prompt: ({count}: {count: number}) =>
-                `Έχετε ${count} ${count === 1 ? 'απόδειξη' : 'αποδείξεις'} που εξακολουθούν να μεταφορτώνονται. Αν αποσυνδεθείτε τώρα, θα ${count === 1 ? 'την' : 'τις'} αποθηκεύσουμε στις φωτογραφίες σας, ώστε να ${count === 1 ? 'μπορέσετε να την προσθέσετε' : 'μπορέσετε να τις προσθέσετε'} σε μια νέα δαπάνη αργότερα.`,
+            prompt: ({count}: {count: number}) => ({
+                one: 'Έχετε 1 απόδειξη που εξακολουθεί να μεταφορτώνεται. Αν αποσυνδεθείτε τώρα, θα την αποθηκεύσουμε στις φωτογραφίες σας, ώστε να μπορέσετε να την προσθέσετε σε μια νέα δαπάνη αργότερα.',
+                other: `Έχετε ${count} αποδείξεις που εξακολουθούν να μεταφορτώνονται. Αν αποσυνδεθείτε τώρα, θα τις αποθηκεύσουμε στις φωτογραφίες σας, ώστε να μπορέσετε να τις προσθέσετε σε μια νέα δαπάνη αργότερα.`,
+            }),
             confirm: 'Αποθήκευση και αποσύνδεση',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: 'Αποθήκευση των αποδείξεών σας;',
-            prompt: ({count}: {count: number}) =>
-                `Έχετε ${count} ${count === 1 ? 'απόδειξη' : 'αποδείξεις'} που εξακολουθούν να μεταφορτώνονται. Αν αποσυνδεθείτε τώρα, θα ${count === 1 ? 'την' : 'τις'} αποθηκεύσουμε στις φωτογραφίες σας, ώστε να ${count === 1 ? 'μπορέσετε να την προσθέσετε' : 'μπορέσετε να τις προσθέσετε'} σε μια νέα δαπάνη αργότερα. Θα χάσετε επίσης τυχόν άλλες αλλαγές εκτός σύνδεσης.`,
+            prompt: ({count}: {count: number}) => ({
+                one: 'Έχετε 1 απόδειξη που εξακολουθεί να μεταφορτώνεται. Αν αποσυνδεθείτε τώρα, θα την αποθηκεύσουμε στις φωτογραφίες σας, ώστε να μπορέσετε να την προσθέσετε σε μια νέα δαπάνη αργότερα. Θα χάσετε επίσης τυχόν άλλες αλλαγές εκτός σύνδεσης.',
+                other: `Έχετε ${count} αποδείξεις που εξακολουθούν να μεταφορτώνονται. Αν αποσυνδεθείτε τώρα, θα τις αποθηκεύσουμε στις φωτογραφίες σας, ώστε να μπορέσετε να τις προσθέσετε σε μια νέα δαπάνη αργότερα. Θα χάσετε επίσης τυχόν άλλες αλλαγές εκτός σύνδεσης.`,
+            }),
             confirm: 'Αποθήκευση και αποσύνδεση',
         },
         versionLetter: 'ν',
@@ -3191,7 +3228,10 @@ ${amount} για ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Απαιτείται όταν είναι ενεργοποιημένος ο 2FA',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Ζητήστε νέο κωδικό σε <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Ζητήστε νέο κωδικό',
-        timeRemainingAnnouncement: ({count}: {count: number}) => `Χρόνος που απομένει: ${count} ${count === 1 ? 'δευτερόλεπτο' : 'δευτερόλεπτα'}`,
+        timeRemainingAnnouncement: ({count}: {count: number}) => ({
+            one: 'Χρόνος που απομένει: 1 δευτερόλεπτο',
+            other: `Χρόνος που απομένει: ${count} δευτερόλεπτα`,
+        }),
         timeExpiredAnnouncement: 'Ο χρόνος έχει λήξει',
         error: {
             pleaseFillTwoFactorAuth: 'Εισαγάγετε τον κωδικό ελέγχου ταυτότητας δύο παραγόντων σας',
@@ -3243,7 +3283,10 @@ ${amount} για ${merchant} - ${date}`,
         joinAWorkspace: 'Συμμετοχή σε χώρο εργασίας',
         listOfWorkspaces: 'Ακολουθεί η λίστα με τους χώρους εργασίας στους οποίους μπορείτε να συμμετάσχετε.',
         skipForNow: 'Παράλειψη προς το παρόν',
-        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} μέλος${count > 1 ? 'ς' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `1 μέλος • ${policyOwner}`,
+            other: `${count} μέλη • ${policyOwner}`,
+        }),
         whereYouWork: 'Πού εργάζεστε;',
         errorSelection: 'Επιλέξτε μια επιλογή για να συνεχίσετε',
         purpose: {
@@ -9216,8 +9259,14 @@ ${reportName}`,
             hold: 'Σε αναμονή',
             unhold: 'Αφαίρεση κράτησης',
             reject: 'Απόρριψη',
-            duplicateExpense: ({count}: {count: number}) => `Διπλότυπο ${count === 1 ? 'δαπάνη' : 'έξοδα'}`,
-            duplicateReport: ({count}: {count: number}) => `Διπλότυπο ${count === 1 ? 'αναφορά' : 'αναφορές'}`,
+            duplicateExpense: ({count}: {count: number}) => ({
+                one: 'Διπλότυπη δαπάνη',
+                other: 'Διπλότυπες δαπάνες',
+            }),
+            duplicateReport: ({count}: {count: number}) => ({
+                one: 'Διπλότυπη αναφορά',
+                other: 'Διπλότυπες αναφορές',
+            }),
             undelete: 'Αναίρεση διαγραφής',
             noOptionsAvailable: 'Δεν υπάρχουν διαθέσιμες επιλογές για την επιλεγμένη ομάδα δαπανών.',
         },
@@ -9565,7 +9614,10 @@ ${reportName}`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary} για ${count} ${count === 1 ? 'ημέρα' : 'ημέρες'} έως ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary} για 1 ημέρα έως ${date}`,
+            other: `${summary} για ${count} ημέρες έως ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} από ${timePeriod} στις ${date}`,
         startTimer: 'Έναρξη χρονομέτρου',
         stopTimer: (duration: string) => `Διακοπή χρονομέτρου (${duration})`,
@@ -10170,7 +10222,10 @@ ${reportName}`,
         authenticatePaymentCard: 'Πιστοποιήστε την κάρτα πληρωμής',
         mobileReducedFunctionalityMessage: 'Δεν μπορείτε να κάνετε αλλαγές στη συνδρομή σας στην εφαρμογή για κινητά.',
         badge: {
-            freeTrial: ({count}: {count: number}) => `Δωρεάν δοκιμή: απομένουν ${count} ${count === 1 ? 'ημέρα' : 'ημέρες'}`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: 'Δωρεάν δοκιμή: απομένει 1 ημέρα',
+                other: `Δωρεάν δοκιμή: απομένουν ${count} ημέρες`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -10231,7 +10286,10 @@ ${reportName}`,
                 subtitle: 'Ως επόμενο βήμα, <a href="#">ολοκληρώστε τη λίστα ελέγχου ρύθμισης</a> ώστε η ομάδα σας να μπορεί να αρχίσει να καταχωρίζει έξοδα.',
             },
             trialStarted: {
-                title: ({count}: {count: number}) => `Δοκιμή: απομένουν ${count} ${count === 1 ? 'ημέρα' : 'ημέρες'} ημέρες!`,
+                title: ({count}: {count: number}) => ({
+                    one: 'Δοκιμή: απομένει 1 ημέρα!',
+                    other: `Δοκιμή: απομένουν ${count} ημέρες!`,
+                }),
                 subtitle: 'Προσθέστε μια κάρτα πληρωμής για να συνεχίσετε να χρησιμοποιείτε όλες τις αγαπημένες σας δυνατότητες.',
             },
             trialEnded: {
@@ -10799,7 +10857,10 @@ ${reportName}`,
             }),
             moveToGroup: 'Μετακίνηση στην ομάδα',
             domainGroup: 'Ομάδα τομέα',
-            chooseWhereToMove: ({count}: {count: number}) => `Επιλέξτε πού θα μετακινήσετε ${count} ${count === 1 ? 'μέλος' : 'μέλη'}.`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: 'Επιλέξτε πού θα μετακινήσετε 1 μέλος.',
+                other: `Επιλέξτε πού θα μετακινήσετε ${count} μέλη.`,
+            }),
             chooseWhereToMoveName: ({name}: {name: string}) => `Επιλέξτε πού θέλετε να μετακινήσετε το ${name}.`,
             error: {
                 addMember: 'Δεν είναι δυνατή η προσθήκη αυτού του μέλους. Παρακαλούμε δοκιμάστε ξανά.',

@@ -679,7 +679,10 @@ const translations: TranslationDeepObject<typeof en> = {
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} 个其他 ${count === 1 ? '设备' : '设备'}`;
+                return {
+                    one: `${displayCount} 个其他设备`,
+                    other: `${displayCount} 个其他设备`,
+                };
             },
             confirmationPromptThisDevice: '你确定吗？你将在此设备上的下一次验证中需要输入安全码。',
             confirmationPromptMultiple: '您确定吗？下次在这些设备上进行验证时，您需要输入安全代码。',
@@ -956,10 +959,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: '了解 Expensify 的强大功能，只需 2 分钟',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `提交 ${count} ${count === 1 ? '报表' : '报表'}`,
-            approve: ({count}: {count: number}) => `批准 ${count} ${count === 1 ? '报表' : '报表'}`,
-            pay: ({count}: {count: number}) => `支付 ${count} ${count === 1 ? '报表' : '报表'}`,
-            export: ({count}: {count: number}) => `导出 ${count} 个 ${count === 1 ? '报表' : '报表'}`,
+            submit: ({count}: {count: number}) => ({
+                one: `提交 ${count} 份报表`,
+                other: `提交 ${count} 份报表`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: `批准 ${count} 份报表`,
+                other: `批准 ${count} 份报表`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: `支付 ${count} 份报表`,
+                other: `支付 ${count} 份报表`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: `导出 ${count} 份报表`,
+                other: `导出 ${count} 份报表`,
+            }),
             begin: '开始',
             emptyStateMessages: {
                 thumbsUpStarsTitle: '你已完成！',
@@ -993,7 +1008,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: '全部完成',
                 f1FlagsDescription: '你已完成所有未完成的待办事项。',
             },
-            reviewExpenses: ({count}: {count: number}) => `审核 ${count} ${count === 1 ? '费用' : '费用'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: `审核 ${count} 笔费用`,
+                other: `审核 ${count} 笔费用`,
+            }),
         },
         upcomingTravel: '即将出行',
         upcomingTravelSection: {
@@ -1098,7 +1116,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`,
-        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 笔交易。` : '已添加 1 笔交易。'),
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 笔交易。`,
+            other: `已添加 ${count} 笔交易。`,
+        }),
         importMembersNoneAddedOrUpdated: '尚未添加或更新任何成员。',
         importMembersAdded: ({count}: {count: number}) => ({
             one: '已添加 1 名成员。',
@@ -1110,9 +1131,15 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `已添加 ${added} 名成员${added > 1 ? '秒' : ''}，已更新 ${updated} 名成员${updated > 1 ? '秒' : ''}。`,
-        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 个标签。` : '已添加 1 个标签。'),
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 个标签。`,
+            other: `已添加 ${count} 个标签。`,
+        }),
         importMultiLevelTagsSuccessfulDescription: '已添加多级标签。',
-        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已添加 ${count} 条每日补贴标准。`,
+            other: `已添加 ${count} 条每日补贴标准。`,
+        }),
         importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
             if (count === 0) {
                 return '未添加任何商户规则，因为它们均已存在。';
@@ -1127,7 +1154,10 @@ const translations: TranslationDeepObject<typeof en> = {
             other: `已跳过 ${count} 个类别，因为它们在此工作区中不存在。`,
         }),
         importMerchantRulesRequiredColumns: '哎呀！您必须至少映射一列“商户为”或“商户包含”，并且至少映射一个要更新的字段。请检查后重试。',
-        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已导入 ${count} 笔交易。` : '已导入 1 笔交易。'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: `已导入 ${count} 笔交易。`,
+            other: `已导入 ${count} 笔交易。`,
+        }),
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
         importDescription: '通过点击下方每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
@@ -1690,7 +1720,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `${count} 小时，按 ${rate} / 小时`,
+                other: `${count} 小时，按 ${rate} / 小时`,
+            }),
             hrs: '小时',
             hours: '小时',
             ratePreview: (rate: string) => `${rate} / 小时`,
@@ -2164,13 +2197,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: '如果你退出登录，所有离线更改都会丢失。',
         saveReceiptsConfirmation: {
             title: '保存你的收据？',
-            prompt: ({count}: {count: number}) => `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+                other: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。`,
+            }),
             confirm: '保存并退出登录',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: '保存你的收据？',
-            prompt: ({count}: {count: number}) =>
-                `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            prompt: ({count}: {count: number}) => ({
+                one: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+                other: `还有 ${count} 张收据正在上传。如果你现在退出登录，我们会将其保存到你的照片中，以便你稍后将其添加到新的支出中。你的所有其他离线更改都会丢失。`,
+            }),
             confirm: '保存并退出登录',
         },
         versionLetter: 'v',
@@ -3024,7 +3062,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         requiredWhen2FAEnabled: '启用双重验证时必填',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `在<a>${timeRemaining}</a>后请求新代码`,
         requestNewCodeAfterErrorOccurred: '请求新验证码',
-        timeRemainingAnnouncement: ({count}) => `剩余时间：${count}秒`,
+        timeRemainingAnnouncement: ({count}) => ({
+            one: `剩余时间：${count} 秒`,
+            other: `剩余时间：${count} 秒`,
+        }),
         timeExpiredAnnouncement: '时间已到期',
         error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
     },
@@ -3069,7 +3110,10 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作区列表。',
         skipForNow: '暂时跳过',
-        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} 位成员${count > 1 ? '秒' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `${count} 位成员 • ${policyOwner}`,
+            other: `${count} 位成员 • ${policyOwner}`,
+        }),
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
         purpose: {
@@ -8615,10 +8659,16 @@ ${reportName}`,
             hold: '暂挂',
             unhold: '解除保留',
             reject: '拒绝',
-            duplicateExpense: ({count}: {count: number}) => `复制${count === 1 ? '报销' : '报销费用'}`,
+            duplicateExpense: ({count}: {count: number}) => ({
+                one: '复制报销',
+                other: '复制报销',
+            }),
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
             undelete: '取消删除',
-            duplicateReport: ({count}: {count: number}) => `重复 ${count === 1 ? '报表' : '报表'}`,
+            duplicateReport: ({count}: {count: number}) => ({
+                one: '复制报表',
+                other: '复制报表',
+            }),
         },
         expensifyCardStatementPDF: {
             title: '下载对账单',
@@ -8953,7 +9003,10 @@ ${reportName}`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary}，共计 ${count} ${count === 1 ? '天' : '天'}，截至 ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary}，共计 ${count} 天，截至 ${date}`,
+            other: `${summary}，共计 ${count} 天，截至 ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
         stopTimer: (duration: string) => `停止计时器 (${duration})`,
@@ -9534,7 +9587,10 @@ ${reportName}`,
         authenticatePaymentCard: '验证支付卡',
         mobileReducedFunctionalityMessage: '您无法在移动应用中更改订阅。',
         badge: {
-            freeTrial: ({count}: {count: number}) => `免费试用：剩余 ${count} ${count === 1 ? '天' : '天'}`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: `免费试用：剩余 ${count} 天`,
+                other: `免费试用：剩余 ${count} 天`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9590,7 +9646,10 @@ ${reportName}`,
                 subtitle: '下一步，请<a href="#">完成设置清单</a>，以便您的团队可以开始报销费用。',
             },
             trialStarted: {
-                title: ({count}: {count: number}) => `试用期：剩余 ${count} ${count === 1 ? '天' : '天'} 天！`,
+                title: ({count}: {count: number}) => ({
+                    one: `试用期：剩余 ${count} 天！`,
+                    other: `试用期：剩余 ${count} 天！`,
+                }),
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
             trialEnded: {
@@ -10172,7 +10231,10 @@ ${reportName}`,
             reportSuspiciousActivityConfirmationPrompt: '我们会审核账户以确认解锁是否安全，如有任何问题将通过 Concierge 与您联系。',
             emptyMembers: {title: '此群组中没有成员', subtitle: '添加成员或尝试更改上方的筛选条件。'},
             moveToGroup: '移至群组',
-            chooseWhereToMove: ({count}: {count: number}) => `选择将 ${count} 个 ${count === 1 ? '成员' : '成员'} 移动到哪里。`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: `选择将 ${count} 位成员移动到哪里。`,
+                other: `选择将 ${count} 位成员移动到哪里。`,
+            }),
             domainGroup: '域名组',
             chooseWhereToMoveName: ({name}: {name: string}) => `选择将 ${name} 移动到哪里。`,
             membersFeatureList: {

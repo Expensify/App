@@ -696,7 +696,10 @@ const translations: TranslationDeepObject<typeof en> = {
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Eén', 'Twee', 'Drie', 'Vier', 'Vijf', 'Zes', 'Zeven', 'Acht', 'Negen'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} andere ${count === 1 ? 'apparaat' : 'apparaten'}`;
+                return {
+                    one: `${displayCount} ander apparaat`,
+                    other: `${displayCount} andere apparaten`,
+                };
             },
             confirmationPromptThisDevice: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op dit apparaat.',
             confirmationPromptMultiple: 'Weet je het zeker? Je hebt een beveiligingscode nodig voor de volgende verificatie op die apparaten.',
@@ -990,10 +993,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: 'Ontdek wat Expensify in 2 minuten kan doen',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `Verzend ${count} ${count === 1 ? 'rapport' : 'rapporten'}`,
-            approve: ({count}: {count: number}) => `Keur ${count} ${count === 1 ? 'rapport' : 'rapporten'} goed`,
-            pay: ({count}: {count: number}) => `Betaal ${count} ${count === 1 ? 'rapport' : 'rapporten'}`,
-            export: ({count}: {count: number}) => `Exporteer ${count} ${count === 1 ? 'rapport' : 'rapporten'}`,
+            submit: ({count}: {count: number}) => ({
+                one: 'Verzend 1 rapport',
+                other: `Verzend ${count} rapporten`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: 'Keur 1 rapport goed',
+                other: `Keur ${count} rapporten goed`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: 'Betaal 1 rapport',
+                other: `Betaal ${count} rapporten`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: 'Exporteer 1 rapport',
+                other: `Exporteer ${count} rapporten`,
+            }),
             begin: 'Begin',
             emptyStateMessages: {
                 thumbsUpStarsTitle: 'Je bent klaar!',
@@ -1027,7 +1042,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Helemaal bij',
                 f1FlagsDescription: "Je hebt alle openstaande to-do's afgerond.",
             },
-            reviewExpenses: ({count}: {count: number}) => `Beoordeel ${count} ${count === 1 ? 'uitgave' : 'uitgaven'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: 'Beoordeel 1 uitgave',
+                other: `Beoordeel ${count} uitgaven`,
+            }),
         },
         upcomingTravel: 'Aankomende reizen',
         upcomingTravelSection: {
@@ -1142,7 +1160,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} ${added === 1 ? 'categorie' : 'categorieën'} toegevoegd, ${updated} ${updated === 1 ? 'categorie' : 'categorieën'} bijgewerkt.`,
-        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} transacties zijn toegevoegd.` : '1 transactie is toegevoegd.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 transactie is toegevoegd.',
+            other: `${count} transacties zijn toegevoegd.`,
+        }),
         importMembersNoneAddedOrUpdated: 'Er zijn geen leden toegevoegd of bijgewerkt.',
         importMembersAdded: ({count}: {count: number}) => ({
             one: '1 lid is toegevoegd.',
@@ -1154,9 +1175,15 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} lid${added > 1 ? 's' : ''} toegevoegd, ${updated} lid${updated > 1 ? 's' : ''} bijgewerkt.`,
-        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} count zijn toegevoegd.` : '1 tag is toegevoegd.'),
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 tag is toegevoegd.',
+            other: `${count} tags zijn toegevoegd.`,
+        }),
         importMultiLevelTagsSuccessfulDescription: 'Tags met meerdere niveaus zijn toegevoegd.',
-        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} per diem-tarieven zijn toegevoegd.` : '1 dagvergoeding is toegevoegd.'),
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 per diem-tarief is toegevoegd.',
+            other: `${count} per diem-tarieven zijn toegevoegd.`,
+        }),
         importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
             if (count === 0) {
                 return 'Er zijn geen handelaarregels toegevoegd, omdat ze allemaal al bestaan.';
@@ -1172,7 +1199,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMerchantRulesRequiredColumns:
             'Oeps! Je moet ten minste één kolom "Handelaar is" of "Handelaar bevat" toewijzen, plus ten minste één veld om bij te werken. Controleer het en probeer het opnieuw.',
-        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} transacties zijn geïmporteerd.` : '1 transactie is geïmporteerd.'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 transactie is geïmporteerd.',
+            other: `${count} transacties zijn geïmporteerd.`,
+        }),
         importFailedTitle: 'Import mislukt',
         importFailedDescription: 'Zorg dat alle velden correct zijn ingevuld en probeer het opnieuw. Neem als het probleem aanhoudt contact op met Concierge.',
         importDescription: 'Kies welke velden je uit je spreadsheet wilt koppelen door op het dropdownmenu naast elke geïmporteerde kolom hieronder te klikken.',
@@ -1746,7 +1776,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Kies een werkruimte',
         routedDueToDEW: (to: string, reason?: string) => `rapport doorgestuurd naar ${to}${reason ? ` omdat ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? 'uur' : 'uren'} @ ${rate} / uur`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `1 uur @ ${rate} / uur`,
+                other: `${count} uren @ ${rate} / uur`,
+            }),
             hrs: 'uur',
             hours: 'Uren',
             ratePreview: (rate: string) => `${rate} / uur`,
@@ -2234,14 +2267,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: 'Je verliest alle offline wijzigingen als je je afmeldt.',
         saveReceiptsConfirmation: {
             title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen.`,
+            prompt: ({count}: {count: number}) => ({
+                one: "Er wordt nog 1 bon geüpload. Als je je nu afmeldt, slaan we deze op in je foto's zodat je deze later aan een nieuwe uitgave kunt toevoegen.",
+                other: `Er worden nog ${count} bonnen geüpload. Als je je nu afmeldt, slaan we ze op in je foto's zodat je ze later aan een nieuwe uitgave kunt toevoegen.`,
+            }),
             confirm: 'Opslaan en afmelden',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: 'Bonnen opslaan?',
-            prompt: ({count}: {count: number}) =>
-                `Er ${count === 1 ? 'wordt nog 1 bon' : `worden nog ${count} bonnen`} geüpload. Als je je nu afmeldt, slaan we ${count === 1 ? 'deze' : 'ze'} op in je foto's zodat je ${count === 1 ? 'deze' : 'ze'} later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
+            prompt: ({count}: {count: number}) => ({
+                one: "Er wordt nog 1 bon geüpload. Als je je nu afmeldt, slaan we deze op in je foto's zodat je deze later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.",
+                other: `Er worden nog ${count} bonnen geüpload. Als je je nu afmeldt, slaan we ze op in je foto's zodat je ze later aan een nieuwe uitgave kunt toevoegen. Je verliest alle andere offline wijzigingen.`,
+            }),
             confirm: 'Opslaan en afmelden',
         },
         versionLetter: 'v',
@@ -3127,7 +3164,10 @@ ${amount} voor ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Vereist wanneer 2FA is ingeschakeld',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Vraag een nieuwe code aan over <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Een nieuwe code aanvragen',
-        timeRemainingAnnouncement: ({count}) => `Resterende tijd: ${count} ${count === 1 ? 'seconde' : 'seconden'}`,
+        timeRemainingAnnouncement: ({count}) => ({
+            one: 'Resterende tijd: 1 seconde',
+            other: `Resterende tijd: ${count} seconden`,
+        }),
         timeExpiredAnnouncement: 'De tijd is verstreken',
         error: {
             pleaseFillSecurityCode: 'Voer je beveiligingscode in',
@@ -3177,7 +3217,10 @@ ${amount} voor ${merchant} - ${date}`,
         joinAWorkspace: 'Lid worden van een workspace',
         listOfWorkspaces: 'Hier is de lijst met werkruimtes waartoe je je kunt aansluiten.',
         skipForNow: 'Voorlopig overslaan',
-        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} lid${count > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `1 lid • ${policyOwner}`,
+            other: `${count} leden • ${policyOwner}`,
+        }),
         whereYouWork: 'Waar werk je?',
         errorSelection: 'Selecteer een optie om verder te gaan',
         purpose: {
@@ -8934,10 +8977,16 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             hold: 'Vasthouden',
             unhold: 'Blokkering opheffen',
             reject: 'Afwijzen',
-            duplicateExpense: ({count}: {count: number}) => `${count === 1 ? 'Declaratie' : 'Declaraties'} dupliceren`,
+            duplicateExpense: ({count}: {count: number}) => ({
+                one: 'Declaratie dupliceren',
+                other: 'Declaraties dupliceren',
+            }),
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
             undelete: 'Terugzetten',
-            duplicateReport: ({count}: {count: number}) => `Duplicaat ${count === 1 ? 'rapport' : 'rapporten'}`,
+            duplicateReport: ({count}: {count: number}) => ({
+                one: 'Rapport dupliceren',
+                other: 'Rapporten dupliceren',
+            }),
         },
         expensifyCardStatementPDF: {
             title: 'Afschrift downloaden',
@@ -9287,7 +9336,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary} voor ${count} ${count === 1 ? 'dag' : 'dagen'} tot ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary} voor 1 dag tot ${date}`,
+            other: `${summary} voor ${count} dagen tot ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} van ${timePeriod} op ${date}`,
         startTimer: 'Timer starten',
         stopTimer: (duration: string) => `Timer stoppen (${duration})`,
@@ -9876,7 +9928,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         authenticatePaymentCard: 'Betalingskaart verifiëren',
         mobileReducedFunctionalityMessage: 'Je kunt je abonnement niet wijzigen in de mobiele app.',
         badge: {
-            freeTrial: ({count}: {count: number}) => `Gratis proefperiode: nog ${count} ${count === 1 ? 'dag' : 'dagen'} over`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: 'Gratis proefperiode: nog 1 dag over',
+                other: `Gratis proefperiode: nog ${count} dagen over`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9937,7 +9992,10 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
                 subtitle: 'Als volgende stap kun je <a href="#">je configuratiechecklist voltooien</a>, zodat je team kan beginnen met declareren.',
             },
             trialStarted: {
-                title: ({count}: {count: number}) => `Proefperiode: nog ${count} ${count === 1 ? 'dag' : 'dagen'}!`,
+                title: ({count}: {count: number}) => ({
+                    one: 'Proefperiode: nog 1 dag!',
+                    other: `Proefperiode: nog ${count} dagen!`,
+                }),
                 subtitle: 'Voeg een betaalkaart toe om al je favoriete functies te blijven gebruiken.',
             },
             trialEnded: {
@@ -10532,7 +10590,10 @@ Hier is een *proefbon* om je te laten zien hoe het werkt:`,
                 'We beoordelen de account om te verifiëren dat het veilig is om deze te ontgrendelen en nemen via Concierge contact op als we vragen hebben.',
             emptyMembers: {title: 'Geen leden in deze groep', subtitle: 'Voeg een lid toe of probeer het filter hierboven te wijzigen.'},
             moveToGroup: 'Verplaatsen naar groep',
-            chooseWhereToMove: ({count}: {count: number}) => `Kies waar je ${count} ${count === 1 ? 'lid' : 'leden'} naartoe wilt verplaatsen.`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: 'Kies waar je 1 lid naartoe wilt verplaatsen.',
+                other: `Kies waar je ${count} leden naartoe wilt verplaatsen.`,
+            }),
             domainGroup: 'Domeingroep',
             chooseWhereToMoveName: ({name}: {name: string}) => `Kies waar je ${name} naartoe wilt verplaatsen.`,
             membersFeatureList: {

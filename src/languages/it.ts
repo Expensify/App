@@ -698,7 +698,10 @@ const translations: TranslationDeepObject<typeof en> = {
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Uno', 'Due', 'Tre', 'Quattro', 'Cinque', 'Sei', 'Sette', 'Otto', 'Nove'];
                 const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
-                return `${displayCount} altro ${count === 1 ? 'dispositivo' : 'dispositivi'}`;
+                return {
+                    one: 'Un altro dispositivo',
+                    other: `${displayCount} altri dispositivi`,
+                };
             },
             confirmationPromptThisDevice: 'Sei sicuro? Avrai bisogno di un codice di sicurezza per la prossima verifica su questo dispositivo.',
             confirmationPromptMultiple: 'Sei sicuro? Ti servirà un codice di sicurezza per la prossima verifica su quei dispositivi.',
@@ -992,10 +995,22 @@ const translations: TranslationDeepObject<typeof en> = {
             menuItemDescription: 'Scopri cosa può fare Expensify in 2 minuti',
         },
         forYouSection: {
-            submit: ({count}: {count: number}) => `Invia ${count} ${count === 1 ? 'report' : 'report'}`,
-            approve: ({count}: {count: number}) => `Approva ${count} ${count === 1 ? 'report' : 'report'}`,
-            pay: ({count}: {count: number}) => `Paga ${count} ${count === 1 ? 'report' : 'report'}`,
-            export: ({count}: {count: number}) => `Esporta ${count} ${count === 1 ? 'report' : 'report'}`,
+            submit: ({count}: {count: number}) => ({
+                one: 'Invia 1 report',
+                other: `Invia ${count} report`,
+            }),
+            approve: ({count}: {count: number}) => ({
+                one: 'Approva 1 report',
+                other: `Approva ${count} report`,
+            }),
+            pay: ({count}: {count: number}) => ({
+                one: 'Paga 1 report',
+                other: `Paga ${count} report`,
+            }),
+            export: ({count}: {count: number}) => ({
+                one: 'Esporta 1 report',
+                other: `Esporta ${count} report`,
+            }),
             begin: 'Inizia',
             emptyStateMessages: {
                 thumbsUpStarsTitle: 'Hai finito!',
@@ -1029,7 +1044,10 @@ const translations: TranslationDeepObject<typeof en> = {
                 f1FlagsTitle: 'Tutto a posto',
                 f1FlagsDescription: 'Hai completato tutte le attività in sospeso.',
             },
-            reviewExpenses: ({count}: {count: number}) => `Esamina ${count} ${count === 1 ? 'spesa' : 'spese'}`,
+            reviewExpenses: ({count}: {count: number}) => ({
+                one: 'Esamina 1 spesa',
+                other: `Esamina ${count} spese`,
+            }),
         },
         upcomingTravel: 'Prossimi viaggi',
         upcomingTravelSection: {
@@ -1144,7 +1162,10 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} ${added === 1 ? 'categoria aggiunta' : 'categorie aggiunte'}, ${updated} ${updated === 1 ? 'categoria aggiornata' : 'categorie aggiornate'}.`,
-        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} transazioni sono state aggiunte.` : '1 transazione è stata aggiunta.'),
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 transazione è stata aggiunta.',
+            other: `${count} transazioni sono state aggiunte.`,
+        }),
         importMembersNoneAddedOrUpdated: 'Non è stato aggiunto o aggiornato alcun membro.',
         importMembersAdded: ({count}: {count: number}) => ({
             one: 'È stato aggiunto 1 membro.',
@@ -1156,9 +1177,15 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `${added} membro${added > 1 ? 's' : ''} aggiunto, ${updated} membro${updated > 1 ? 's' : ''} aggiornato.`,
-        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Sono stati aggiunti ${count} tag.` : 'È stato aggiunto 1 tag.'),
+        importTagsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'È stato aggiunto 1 tag.',
+            other: `Sono stati aggiunti ${count} tag.`,
+        }),
         importMultiLevelTagsSuccessfulDescription: 'Sono state aggiunte etichette multilivello.',
-        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `Sono state aggiunte le diarie giornaliere ${count}.` : 'È stata aggiunta 1 diaria.'),
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => ({
+            one: 'È stata aggiunta 1 diaria giornaliera.',
+            other: `Sono state aggiunte ${count} diarie giornaliere.`,
+        }),
         importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
             if (count === 0) {
                 return 'Nessuna regola esercente è stata aggiunta, poiché esistono già tutte.';
@@ -1173,7 +1200,10 @@ const translations: TranslationDeepObject<typeof en> = {
             other: `${count} categorie sono state ignorate perché non esistono in questo spazio di lavoro.`,
         }),
         importMerchantRulesRequiredColumns: 'Ops! Devi mappare almeno una colonna “L’esercente è” o “L’esercente contiene”, oltre ad almeno un campo da aggiornare. Controlla e riprova.',
-        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `${count} transazioni sono state importate.` : '1 transazione è stata importata.'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => ({
+            one: '1 transazione è stata importata.',
+            other: `${count} transazioni sono state importate.`,
+        }),
         importFailedTitle: 'Importazione non riuscita',
         importFailedDescription: 'Assicurati che tutti i campi siano compilati correttamente e riprova. Se il problema persiste, contatta Concierge.',
         importDescription: 'Scegli quali campi mappare dal tuo foglio di calcolo facendo clic sul menu a discesa accanto a ciascuna colonna importata qui sotto.',
@@ -1750,7 +1780,10 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: 'Scegli uno spazio di lavoro',
         routedDueToDEW: (to: string, reason?: string) => `report indirizzato a ${to}${reason ? ` perché ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? 'ora' : 'ore'} @ ${rate} / ora`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => ({
+                one: `1 ora @ ${rate} / ora`,
+                other: `${count} ore @ ${rate} / ora`,
+            }),
             hrs: 'ore',
             hours: 'Ore',
             ratePreview: (rate: string) => `${rate} / ora`,
@@ -2239,14 +2272,18 @@ const translations: TranslationDeepObject<typeof en> = {
         signOutConfirmationText: 'Perderai tutte le modifiche offline se esci.',
         saveReceiptsConfirmation: {
             title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi.`,
+            prompt: ({count}: {count: number}) => ({
+                one: "C'è ancora 1 ricevuta in fase di caricamento. Se esci ora, la salveremo nelle tue foto così potrai aggiungerla a una nuova spesa più tardi.",
+                other: `Ci sono ancora ${count} ricevute in fase di caricamento. Se esci ora, le salveremo nelle tue foto così potrai aggiungerle a una nuova spesa più tardi.`,
+            }),
             confirm: 'Salva ed esci',
         },
         saveReceiptsAndSignOutConfirmation: {
             title: 'Salvare le tue ricevute?',
-            prompt: ({count}: {count: number}) =>
-                `${count === 1 ? "C'è ancora 1 ricevuta" : `Ci sono ancora ${count} ricevute`} in fase di caricamento. Se esci ora, ${count === 1 ? 'la salveremo' : 'le salveremo'} nelle tue foto così potrai ${count === 1 ? 'aggiungerla' : 'aggiungerle'} a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
+            prompt: ({count}: {count: number}) => ({
+                one: "C'è ancora 1 ricevuta in fase di caricamento. Se esci ora, la salveremo nelle tue foto così potrai aggiungerla a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.",
+                other: `Ci sono ancora ${count} ricevute in fase di caricamento. Se esci ora, le salveremo nelle tue foto così potrai aggiungerle a una nuova spesa più tardi. Perderai tutte le altre modifiche offline.`,
+            }),
             confirm: 'Salva ed esci',
         },
         versionLetter: 'v',
@@ -3127,7 +3164,10 @@ ${amount} per ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Obbligatorio quando l’autenticazione a due fattori è abilitata',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Richiedi un nuovo codice tra <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Richiedi un nuovo codice',
-        timeRemainingAnnouncement: ({count}) => `Tempo rimanente: ${count} ${count === 1 ? 'secondo' : 'secondi'}`,
+        timeRemainingAnnouncement: ({count}) => ({
+            one: 'Tempo rimanente: 1 secondo',
+            other: `Tempo rimanente: ${count} secondi`,
+        }),
         timeExpiredAnnouncement: 'Il tempo è scaduto',
         error: {
             pleaseFillSecurityCode: 'Inserisci il tuo codice di sicurezza',
@@ -3176,7 +3216,10 @@ ${amount} per ${merchant} - ${date}`,
         joinAWorkspace: 'Unisciti a uno spazio di lavoro',
         listOfWorkspaces: "Ecco l'elenco degli spazi di lavoro a cui puoi unirti.",
         skipForNow: 'Salta per ora',
-        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} membro${count > 1 ? 's' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => ({
+            one: `1 membro • ${policyOwner}`,
+            other: `${count} membri • ${policyOwner}`,
+        }),
         whereYouWork: 'Dove lavori?',
         errorSelection: 'Seleziona un’opzione per procedere',
         purpose: {
@@ -8963,10 +9006,16 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             hold: 'Metti in attesa',
             unhold: 'Rimuovi blocco',
             reject: 'Rifiuta',
-            duplicateExpense: ({count}: {count: number}) => `Duplica ${count === 1 ? 'spesa' : 'spese'}`,
+            duplicateExpense: ({count}: {count: number}) => ({
+                one: 'Duplica spesa',
+                other: 'Duplica spese',
+            }),
             noOptionsAvailable: 'Nessuna opzione disponibile per il gruppo di spese selezionato.',
             undelete: 'Ripristina',
-            duplicateReport: ({count}: {count: number}) => `Duplica ${count === 1 ? 'report' : 'report'}`,
+            duplicateReport: ({count}: {count: number}) => ({
+                one: 'Duplica report',
+                other: 'Duplica report',
+            }),
         },
         expensifyCardStatementPDF: {
             title: 'Scarica estratto conto',
@@ -9316,7 +9365,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary} per ${count} ${count === 1 ? 'giorno' : 'giorni'} fino al ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => ({
+            one: `${summary} per 1 giorno fino al ${date}`,
+            other: `${summary} per ${count} giorni fino al ${date}`,
+        }),
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary} dal ${timePeriod} del ${date}`,
         startTimer: 'Avvia timer',
         stopTimer: (duration: string) => `Ferma timer (${duration})`,
@@ -9907,7 +9959,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         authenticatePaymentCard: 'Autentica carta di pagamento',
         mobileReducedFunctionalityMessage: 'Non puoi apportare modifiche al tuo abbonamento nell’app mobile.',
         badge: {
-            freeTrial: ({count}: {count: number}) => `Prova gratuita: ${count} ${count === 1 ? 'giorno' : 'giorni'} rimanenti`,
+            freeTrial: ({count}: {count: number}) => ({
+                one: 'Prova gratuita: 1 giorno rimanente',
+                other: `Prova gratuita: ${count} giorni rimanenti`,
+            }),
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9968,7 +10023,10 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 subtitle: 'Come prossimo passo, <a href="#">completa la tua checklist di configurazione</a> così il tuo team può iniziare a registrare le spese.',
             },
             trialStarted: {
-                title: ({count}: {count: number}) => `Prova: ${count} ${count === 1 ? 'giorno' : 'giorni'} rimanenti!`,
+                title: ({count}: {count: number}) => ({
+                    one: 'Prova: 1 giorno rimanente!',
+                    other: `Prova: ${count} giorni rimanenti!`,
+                }),
                 subtitle: 'Aggiungi una carta di pagamento per continuare a usare tutte le tue funzionalità preferite.',
             },
             trialEnded: {
@@ -10563,7 +10621,10 @@ Ecco una *ricevuta di prova* per mostrarti come funziona:`,
             reportSuspiciousActivityConfirmationPrompt: 'Esamineremo l’account per verificare che sia sicuro sbloccarlo e ti contatteremo tramite Concierge per qualsiasi domanda.',
             emptyMembers: {title: 'Nessun membro in questo gruppo', subtitle: 'Aggiungi un membro o prova a cambiare il filtro qui sopra.'},
             moveToGroup: 'Sposta nel gruppo',
-            chooseWhereToMove: ({count}: {count: number}) => `Scegli dove spostare ${count} ${count === 1 ? 'membro' : 'membri'}.`,
+            chooseWhereToMove: ({count}: {count: number}) => ({
+                one: 'Scegli dove spostare 1 membro.',
+                other: `Scegli dove spostare ${count} membri.`,
+            }),
             domainGroup: 'Gruppo di domini',
             chooseWhereToMoveName: ({name}: {name: string}) => `Scegli dove spostare ${name}.`,
             membersFeatureList: {
