@@ -262,7 +262,6 @@ export {
     validateCreateDistanceRateForm,
     buildOnyxDataForPolicyDistanceRateUpdates,
     getRateStatus,
-    isGovernmentRateUnmodified,
     getGovernmentRateCountryForCurrency,
     isCurrencySupportedForAutoUpdate,
     getExpectedUnitForCurrency,
