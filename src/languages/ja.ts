@@ -38,7 +38,7 @@ const translations: TranslationDeepObject<typeof en> = {
     common: {
         durationDays: ({count}: {count: number}) => ({
             one: `1 日`,
-            other: `${count} 日数`,
+            other: `${count} 日`,
         }),
         durationHours: ({count}: {count: number}) => ({
             one: `1 時間`,
@@ -46,7 +46,7 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         durationMinutes: ({count}: {count: number}) => ({
             one: `1 分`,
-            other: `${count} 分 minutes`,
+            other: `${count} 分`,
         }),
         count: '数',
         cancel: 'キャンセル',
@@ -8895,7 +8895,7 @@ ${reportName}`,
             reject: '却下',
             duplicateExpense: ({count}: {count: number}) => ({
                 one: '経費を複製',
-                other: '経費を複製',
+                other: count === 1 ? '経費を複製' : '経費を一括複製',
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             undelete: '削除を取り消す',
