@@ -7644,7 +7644,7 @@ describe('SearchUIUtils', () => {
                 cardFeedsByPolicy: {},
                 defaultCardFeed: undefined,
                 policies: {
-                    policy1: {
+                    policy1: createMock<OnyxTypes.Policy>({
                         id: 'policy1',
                         name: 'Test Policy',
                         owner: adminEmail,
@@ -7652,7 +7652,7 @@ describe('SearchUIUtils', () => {
                         role: CONST.POLICY.ROLE.ADMIN,
                         type: CONST.POLICY.TYPE.TEAM,
                         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                    },
+                    }),
                 },
                 savedSearches: {},
                 isOffline: false,
