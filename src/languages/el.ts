@@ -5013,9 +5013,9 @@ ${amount} για ${merchant} - ${date}`,
                     `Επιλέξτε από πού θα πληρώνετε τους λογαριασμούς και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
                 invoiceAccountSelectorDescription: (integrationName = 'QuickBooks Online') =>
                     `Επιλέξτε πού θα λαμβάνετε τις πληρωμές τιμολογίων και θα δημιουργήσουμε την πληρωμή στο ${integrationName}.`,
-                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `λογαριασμός χρέωσης μετατροπής νομίσματος ${integrationName}`,
+                qboFxExpenseAccount: (integrationName = 'QuickBooks Online') => `λογαριασμός προμήθειας μετατροπής νομίσματος ${integrationName}`,
                 fxExpenseAccountDescription: (integrationName = 'QuickBooks Online') =>
-                    `Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε πληρωμή που έγινε στο εξωτερικό, θα καταχωρούμε αυτό το κόστος σε αυτόν τον λογαριασμό στο ${integrationName} ως λογιστική εγγραφή.`,
+                    `Όταν η εταιρεία σας καλύπτει το κόστος μετατροπής νομίσματος σε μια πληρωμή που έγινε στο εξωτερικό, θα καταχωρίσουμε αυτό το κόστος σε αυτόν τον λογαριασμό στο ${integrationName} ως λογιστική εγγραφή.`,
             },
             debitCardExportDescription: (integrationName = 'QuickBooks Online') =>
                 `Θα αντιστοιχίσουμε αυτόματα το όνομα εμπόρου στη συναλλαγή χρεωστικής κάρτας με τυχόν αντίστοιχους προμηθευτές στο ${integrationName}. Αν δεν υπάρχουν προμηθευτές, θα δημιουργήσουμε έναν προμηθευτή «Debit Card Misc.» για τη συσχέτιση.`,
