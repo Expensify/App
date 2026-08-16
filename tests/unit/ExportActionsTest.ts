@@ -159,4 +159,16 @@ describe('Export actions', () => {
         const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge`);
         expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true});
     });
+
+    test('clearStaleExportDownloads leaves a failed Concierge hand-off untouched', async () => {
+        const key = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge-failed` as const;
+        await Onyx.merge(key, {state: 'failed', shouldSendFromConcierge: true});
+        await waitForBatchedUpdates();
+
+        Export.clearStaleExportDownloads();
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge-failed`);
+        expect(value).toEqual({state: 'failed', shouldSendFromConcierge: true});
+    });
 });
