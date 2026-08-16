@@ -36,6 +36,18 @@ type States = Record<keyof typeof COMMON_CONST.STATES, StateValue>;
 type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
+        durationDays: ({count}: {count: number}) => ({
+            one: `1 天`,
+            other: `${count} 天`,
+        }),
+        durationHours: ({count}: {count: number}) => ({
+            one: `1 小时`,
+            other: `${count} 小时`,
+        }),
+        durationMinutes: ({count}: {count: number}) => ({
+            one: `1 分钟`,
+            other: `${count} 分钟`,
+        }),
         count: '数量',
         cancel: '取消',
         dismiss: '关闭',
@@ -664,10 +676,10 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmationPromptAll: '您确定吗？在任何设备上的下次验证中，您都需要输入安全验证码。',
             ctaAll: '全部撤销',
             thisDevice: '此设备',
-            otherDevices: (otherDeviceCount?: number) => {
+            otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-                const displayCount = otherDeviceCount !== undefined && otherDeviceCount >= 1 && otherDeviceCount <= 9 ? numberWords.at(otherDeviceCount - 1) : `${otherDeviceCount}`;
-                return `${displayCount} 个其他 ${otherDeviceCount === 1 ? '设备' : '设备'}`;
+                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                return `${displayCount} 个其他 ${count === 1 ? '设备' : '设备'}`;
             },
             confirmationPromptThisDevice: '你确定吗？你将在此设备上的下一次验证中需要输入安全码。',
             confirmationPromptMultiple: '您确定吗？下次在这些设备上进行验证时，您需要输入安全代码。',
@@ -994,7 +1006,10 @@ const translations: TranslationDeepObject<typeof en> = {
             today: '今天',
         },
         freeTrialSection: {
-            title: ({days}: {days: number}) => `免费试用：剩余 ${days} ${days === 1 ? '天' : '天'} 天！`,
+            title: ({count}: {count: number}) => ({
+                one: `免费试用：剩余 1 天 天！`,
+                other: `免费试用：剩余 ${count} 天 天！`,
+            }),
             offer50Body: '首年可享受五折优惠',
             offer25Body: '首年可享 75 折优惠',
             addCardBody: '添加付款卡',
@@ -1072,42 +1087,47 @@ const translations: TranslationDeepObject<typeof en> = {
         singleFieldMultipleColumns: (fieldName: string) => `哎呀！你已将单个字段（“${fieldName}”）映射到多个列。请检查后重试。`,
         emptyMappedField: (fieldName: string) => `哎呀！字段（“${fieldName}”）包含一个或多个空值。请检查后重试。`,
         importSuccessfulTitle: '导入成功',
-        importCategoriesSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return '尚未添加或更新任何类别。';
-            }
-            if (added && updated) {
-                return `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`;
-            }
-            if (added) {
-                return added === 1 ? '已添加 1 个类别。' : `已添加 ${added} 个类别。`;
-            }
-            return updated === 1 ? '1 个类别已更新。' : `已更新 ${updated} 个类别。`;
-        },
-        importCompanyCardTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已添加 ${transactions} 笔交易。` : '已添加 1 笔交易。'),
-        importMembersSuccessfulDescription: ({added, updated}: {added: number; updated: number}) => {
-            if (!added && !updated) {
-                return '尚未添加或更新任何成员。';
-            }
-            if (added && updated) {
-                return `已添加 ${added} 名成员${added > 1 ? '秒' : ''}，已更新 ${updated} 名成员${updated > 1 ? '秒' : ''}。`;
-            }
-            if (updated) {
-                return updated > 1 ? `已更新 ${updated} 位成员。` : '已更新 1 名成员。';
-            }
-            return added > 1 ? `已添加 ${added} 位成员。` : '已添加 1 名成员。';
-        },
-        importTagsSuccessfulDescription: ({tags}: {tags: number}) => (tags > 1 ? `已添加 ${tags} 个标签。` : '已添加 1 个标签。'),
+        importCategoriesNoneAddedOrUpdated: '尚未添加或更新任何类别。',
+        importCategoriesAdded: ({count}: {count: number}) => ({
+            one: '已添加 1 个类别。',
+            other: `已添加 ${count} 个类别。`,
+        }),
+        importCategoriesUpdated: ({count}: {count: number}) => ({
+            one: '1 个类别已更新。',
+            other: `已更新 ${count} 个类别。`,
+        }),
+        importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
+            `已添加 ${added} 个，${added === 1 ? '类别' : '类别'} 新增；已更新 ${updated} 个，${updated === 1 ? '类别' : '类别'} 更新。`,
+        importCompanyCardTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 笔交易。` : '已添加 1 笔交易。'),
+        importMembersNoneAddedOrUpdated: '尚未添加或更新任何成员。',
+        importMembersAdded: ({count}: {count: number}) => ({
+            one: '已添加 1 名成员。',
+            other: `已添加 ${count} 位成员。`,
+        }),
+        importMembersUpdated: ({count}: {count: number}) => ({
+            one: '已更新 1 名成员。',
+            other: `已更新 ${count} 位成员。`,
+        }),
+        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
+            `已添加 ${added} 名成员${added > 1 ? '秒' : ''}，已更新 ${updated} 名成员${updated > 1 ? '秒' : ''}。`,
+        importTagsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 个标签。` : '已添加 1 个标签。'),
         importMultiLevelTagsSuccessfulDescription: '已添加多级标签。',
-        importPerDiemRatesSuccessfulDescription: ({rates}: {rates: number}) => (rates > 1 ? `已添加 ${rates} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
-        importMerchantRulesSuccessfulDescription: ({rules}: {rules: number}) => {
-            if (rules === 0) {
+        importPerDiemRatesSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已添加 ${count} 个每日补贴标准。` : '已添加 1 条日津贴费率。'),
+        importMerchantRulesSuccessfulDescription: ({count}: {count: number}) => {
+            if (count === 0) {
                 return '未添加任何商户规则，因为它们均已存在。';
             }
-            return rules > 1 ? `已添加 ${rules} 条商户规则。` : '已添加 1 条商户规则。';
+            return {
+                one: '已添加 1 条商户规则。',
+                other: `已添加 ${count} 条商户规则。`,
+            };
         },
+        importMerchantRulesSkippedCategories: ({count}: {count: number}) => ({
+            one: `已跳过 ${count} 个类别，因为它们在此工作区中不存在。`,
+            other: `已跳过 ${count} 个类别，因为它们在此工作区中不存在。`,
+        }),
         importMerchantRulesRequiredColumns: '哎呀！您必须至少映射一列“商户为”或“商户包含”，并且至少映射一个要更新的字段。请检查后重试。',
-        importTransactionsSuccessfulDescription: ({transactions}: {transactions: number}) => (transactions > 1 ? `已导入 ${transactions} 笔交易。` : '已导入 1 笔交易。'),
+        importTransactionsSuccessfulDescription: ({count}: {count: number}) => (count > 1 ? `已导入 ${count} 笔交易。` : '已导入 1 笔交易。'),
         importFailedTitle: '导入失败',
         importFailedDescription: '请确保所有字段均已正确填写，然后重试。如果问题仍然存在，请联系 Concierge。',
         importDescription: '通过点击下方每个导入列旁边的下拉菜单，选择要从电子表格中映射的字段。',
@@ -1670,7 +1690,7 @@ const translations: TranslationDeepObject<typeof en> = {
         chooseWorkspace: '选择工作区',
         routedDueToDEW: (to: string, reason?: string) => `报销单已转交给 ${to}${reason ? ` 因为 ${reason}` : ''}`,
         timeTracking: {
-            hoursAt: (hours: number, rate: string) => `${hours} ${hours === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
+            hoursAt: ({count, rate}: {count: number; rate: string}) => `${count} ${count === 1 ? '小时' : '小时'}，按 ${rate} / 小时`,
             hrs: '小时',
             hours: '小时',
             ratePreview: (rate: string) => `${rate} / 小时`,
@@ -3004,7 +3024,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         requiredWhen2FAEnabled: '启用双重验证时必填',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `在<a>${timeRemaining}</a>后请求新代码`,
         requestNewCodeAfterErrorOccurred: '请求新验证码',
-        timeRemainingAnnouncement: ({timeRemaining}) => `剩余时间：${timeRemaining}秒`,
+        timeRemainingAnnouncement: ({count}) => `剩余时间：${count}秒`,
         timeExpiredAnnouncement: '时间已到期',
         error: {pleaseFillSecurityCode: '请输入您的安全码', incorrectSecurityCode: '安全码不正确或无效。请重试或请求新代码。', pleaseFillTwoFactorAuth: '请输入您的双重身份验证代码'},
     },
@@ -3049,7 +3069,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         joinAWorkspace: '加入工作区',
         listOfWorkspaces: '以下是你可以加入的工作区列表。',
         skipForNow: '暂时跳过',
-        workspaceMemberList: (employeeCount: number, policyOwner: string) => `${employeeCount} 位成员${employeeCount > 1 ? '秒' : ''} • ${policyOwner}`,
+        workspaceMemberList: ({count, policyOwner}: {count: number; policyOwner: string}) => `${count} 位成员${count > 1 ? '秒' : ''} • ${policyOwner}`,
         whereYouWork: '你在哪里工作？',
         errorSelection: '选择一个选项以继续',
         purpose: {
@@ -3451,38 +3471,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
     smsDeliveryFailurePage: {
         smsDeliveryFailureMessage: (login: string) => `我们暂时无法向 ${login} 发送短信，因此已暂时停用该号码。请尝试验证您的号码：`,
         validationSuccess: '您的号码已验证！点击下方发送新的安全登录验证码。',
-        validationFailed: ({
-            timeData,
-        }: {
-            timeData?: {
-                days?: number;
-                hours?: number;
-                minutes?: number;
-            } | null;
-        }) => {
-            if (!timeData) {
-                return '请稍等片刻再重试。';
-            }
-            const timeParts = [];
-            if (timeData.days) {
-                timeParts.push(`${timeData.days} ${timeData.days === 1 ? '天' : '天'}`);
-            }
-            if (timeData.hours) {
-                timeParts.push(`${timeData.hours} ${timeData.hours === 1 ? '小时' : '小时'}`);
-            }
-            if (timeData.minutes) {
-                timeParts.push(`${timeData.minutes} ${timeData.minutes === 1 ? '分钟' : '分钟'}`);
-            }
-            let timeText = '';
-            if (timeParts.length === 1) {
-                timeText = timeParts.at(0) ?? '';
-            } else if (timeParts.length === 2) {
-                timeText = `${timeParts.at(0)} and ${timeParts.at(1)}`;
-            } else if (timeParts.length === 3) {
-                timeText = `${timeParts.at(0)}, ${timeParts.at(1)}, and ${timeParts.at(2)}`;
-            }
-            return `请稍等！在再次尝试验证您的号码之前，您需要等待 ${timeText}。`;
-        },
+        validationFailed: ({timeText}: {timeText: string}) => (timeText ? `请稍等！在再次尝试验证您的号码之前，您需要等待 ${timeText}。` : '请稍等片刻再重试。'),
     },
     welcomeSignUpForm: {
         join: '加入',
@@ -8964,7 +8953,7 @@ ${reportName}`,
         },
     },
     chronos: {
-        oooEventSummaryFullDay: (summary: string, dayCount: number, date: string) => `${summary}，共计 ${dayCount} ${dayCount === 1 ? '天' : '天'}，截至 ${date}`,
+        oooEventSummaryFullDay: ({summary, count, date}: {summary: string; count: number; date: string}) => `${summary}，共计 ${count} ${count === 1 ? '天' : '天'}，截至 ${date}`,
         oooEventSummaryPartialDay: (summary: string, timePeriod: string, date: string) => `${summary}，时间范围：${timePeriod}，日期：${date}`,
         startTimer: '开始计时',
         stopTimer: (duration: string) => `停止计时器 (${duration})`,
@@ -9545,7 +9534,7 @@ ${reportName}`,
         authenticatePaymentCard: '验证支付卡',
         mobileReducedFunctionalityMessage: '您无法在移动应用中更改订阅。',
         badge: {
-            freeTrial: (numOfDays: number) => `免费试用：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'}`,
+            freeTrial: ({count}: {count: number}) => `免费试用：剩余 ${count} ${count === 1 ? '天' : '天'}`,
         },
         billingBanner: {
             policyOwnerAmountOwed: {
@@ -9601,7 +9590,7 @@ ${reportName}`,
                 subtitle: '下一步，请<a href="#">完成设置清单</a>，以便您的团队可以开始报销费用。',
             },
             trialStarted: {
-                title: (numOfDays: number) => `试用期：剩余 ${numOfDays} ${numOfDays === 1 ? '天' : '天'} 天！`,
+                title: ({count}: {count: number}) => `试用期：剩余 ${count} ${count === 1 ? '天' : '天'} 天！`,
                 subtitle: '添加一张付款卡片以继续使用您所有喜爱的功能。',
             },
             trialEnded: {
