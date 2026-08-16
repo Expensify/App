@@ -6,6 +6,7 @@ import IntlStore from '@src/languages/IntlStore';
 import type {ExpenseRuleForm} from '@src/types/form';
 import type {ExpenseRule, TaxRate} from '@src/types/onyx';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -112,12 +113,12 @@ describe('extractRuleFromForm', () => {
     });
 
     it('should correctly map form values to ExpenseRule', () => {
-        const form = {
+        const form = createMock<ExpenseRuleForm>({
             merchantToMatch: 'Test',
             category: 'Food',
             billable: 'true',
             tax: 'TAX_123',
-        } as ExpenseRuleForm;
+        });
         const taxRate: TaxRate = {name: 'Tax Rate 1', value: '7.5'};
 
         const result = extractRuleFromForm(form, taxRate);
@@ -129,13 +130,15 @@ describe('extractRuleFromForm', () => {
     });
 
     it('drops every empty string field but keeps an explicit false', () => {
-        const emptyForm = {
+        const emptyForm = createMock<ExpenseRuleForm>({
             merchantToMatch: 'Test',
+            // @ts-expect-error -- Classic stores unset boolean fields as empty strings at this legacy runtime boundary.
             billable: '',
+            // @ts-expect-error -- Classic stores unset boolean fields as empty strings at this legacy runtime boundary.
             reimbursable: '',
             category: '',
             tag: '',
-        } as unknown as ExpenseRuleForm;
+        });
 
         const emptyRule = extractRuleFromForm(emptyForm);
         expect(emptyRule.billable).toBeUndefined();

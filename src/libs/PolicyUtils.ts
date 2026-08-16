@@ -2447,21 +2447,25 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
- * enabled AND a supported accounting integration is connected with a non-reimbursable export type
- * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
- * side so the App and backend agree on which workspaces see the field.
+ * Vendor matching feature gate. Returns true when a supported accounting integration is connected
+ * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
+ * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
+ * the field.
  *
- * Supported integrations:
- *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
- *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
- *   - Xero (R4) — no export-destination enum; connection present is sufficient
+ * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
+ *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Xero (R3) has no export destination enum, so a present connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
-    if (!isVendorMatchingBetaEnabled || !policy) {
+    if (!policy) {
         return false;
     }
-    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
+    if (isQBOVendorMatchingActive(policy)) {
+        return true;
+    }
+    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy));
 }
 
 /**

@@ -4,10 +4,12 @@ import {getSearchOnyxUpdate, shouldOptimisticallyUpdateSearch} from '@libs/actio
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import '@libs/actions/IOU/MoneyRequest';
 import type * as PolicyUtils from '@libs/PolicyUtils';
+import type * as SearchQueryUtils from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
+import {buildCannedSearchQuery} from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Policy, Report} from '@src/types/onyx';
 
@@ -546,6 +548,48 @@ describe('actions/IOU', () => {
                 isInvoice: false,
             });
             expect(result).toBeUndefined();
+        });
+
+        it('patches the default Spend > Expenses snapshot even when the page was never visited', async () => {
+            // Compute the real canned Expenses hash from the unmocked helpers.
+            const actualSearchQueryUtils = jest.requireActual<typeof SearchQueryUtils>('@src/libs/SearchQueryUtils');
+            const cannedExpensesQuery = actualSearchQueryUtils.buildCannedSearchQuery();
+            const cannedExpensesHash = actualSearchQueryUtils.buildSearchQueryJSON(cannedExpensesQuery)?.hash;
+
+            // Feed the real canned query strings through the mocked builder so getSearchOnyxUpdate can
+            // register the canned hashes (the mock returns undefined by default).
+            jest.mocked(buildCannedSearchQuery).mockImplementation(actualSearchQueryUtils.buildCannedSearchQuery);
+
+            // Simulate a never-visited Spend > Expenses page: SEARCH_QUERY_BY_HASH holds no entry for the
+            // canned hash and the active search (mocked) is a different hash.
+            await Onyx.set(ONYXKEYS.SEARCH_QUERY_BY_HASH, {});
+            await waitForBatchedUpdates();
+
+            const iouReport: Report = {
+                ...createRandomReport(2, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            };
+
+            const result = getSearchOnyxUpdate({
+                transaction: {...createRandomTransaction(1)},
+                participant: {accountID: 42, login: 'test@test.com'},
+                iouReport,
+                iouAction: undefined,
+                policy: undefined,
+                transactionThreadReportID: undefined,
+                isFromOneTransactionReport: false,
+                isInvoice: false,
+            });
+
+            const cannedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${cannedExpensesHash}`;
+            const cannedUpdate = result?.optimisticData?.find((update) => update.key === cannedSnapshotKey);
+            expect(cannedUpdate).toBeDefined();
+
+            // The snapshot must carry its own `hash` or the never-visited page's `isSearchDataLoaded` gate stays
+            // false and the page renders "Nothing to show" even though the transaction data was merged in.
+            expect(cannedUpdate?.value).toHaveProperty('search.hash', cannedExpensesHash);
         });
     });
 });
