@@ -8659,13 +8659,13 @@ ${reportName}`,
             hold: '暂挂',
             unhold: '解除保留',
             reject: '拒绝',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: '复制报销',
                 other: '复制报销',
             }),
             noOptionsAvailable: '所选报销的费用组没有可用选项。',
             undelete: '取消删除',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: '复制报表',
                 other: '复制报表',
             }),

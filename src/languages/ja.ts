@@ -8893,13 +8893,16 @@ ${reportName}`,
             hold: '保留',
             unhold: '保留を解除',
             reject: '却下',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: '経費を複製',
-                other: count === 1 ? '経費を複製' : '経費を一括複製',
+                // Japanese has no grammatical plural, so `Intl.PluralRules` selects `other` for every count,
+                // including 1. The single/bulk distinction here is semantic rather than grammatical, so `other`
+                // branches on the count itself to keep 一括 (bulk) on the multi-expense action only.
+                other: (count: number) => (count === 1 ? '経費を複製' : '経費を一括複製'),
             }),
             noOptionsAvailable: '選択した経費グループには利用できるオプションがありません。',
             undelete: '削除を取り消す',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'レポートを複製',
                 other: 'レポートを複製',
             }),

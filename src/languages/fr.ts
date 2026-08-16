@@ -9069,13 +9069,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             hold: 'En attente',
             unhold: 'Supprimer la mise en attente',
             reject: 'Rejeter',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Dupliquer la dépense',
                 other: 'Dupliquer les dépenses',
             }),
             noOptionsAvailable: 'Aucune option n’est disponible pour le groupe de dépenses sélectionné.',
             undelete: 'Restaurer',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Dupliquer la note de frais',
                 other: 'Dupliquer les notes de frais',
             }),

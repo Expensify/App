@@ -8986,7 +8986,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             hold: 'Wstrzymaj',
             unhold: 'Usuń blokadę',
             reject: 'Odrzuć',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Duplikuj wydatek',
                 few: 'Duplikuj wydatki',
                 many: 'Duplikuj wydatki',
@@ -8994,7 +8994,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             }),
             noOptionsAvailable: 'Brak opcji dostępnych dla wybranej grupy wydatków.',
             undelete: 'Cofnij usunięcie',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Duplikuj raport',
                 few: 'Duplikuj raporty',
                 many: 'Duplikuj raporty',

@@ -9036,13 +9036,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             hold: 'Warteschleife',
             unhold: 'Zurückhalten aufheben',
             reject: 'Ablehnen',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Ausgabe duplizieren',
                 other: 'Ausgaben duplizieren',
             }),
             noOptionsAvailable: 'Für die ausgewählte Ausgabengruppe sind keine Optionen verfügbar.',
             undelete: 'Wiederherstellen',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Bericht duplizieren',
                 other: 'Berichte duplizieren',
             }),

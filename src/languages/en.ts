@@ -9163,11 +9163,11 @@ const translations = {
             hold: 'Hold',
             unhold: 'Remove hold',
             reject: 'Reject',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Duplicate expense',
                 other: 'Duplicate expenses',
             }),
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Duplicate report',
                 other: 'Duplicate reports',
             }),

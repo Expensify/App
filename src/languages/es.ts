@@ -8902,11 +8902,11 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             hold: 'Retener',
             unhold: 'Desbloquear',
             reject: 'Rechazar',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Duplicar gasto',
                 other: 'Duplicar gastos',
             }),
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Duplicar informe',
                 other: 'Duplicar informes',
             }),

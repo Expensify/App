@@ -8977,13 +8977,13 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             hold: 'Vasthouden',
             unhold: 'Blokkering opheffen',
             reject: 'Afwijzen',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Declaratie dupliceren',
                 other: 'Declaraties dupliceren',
             }),
             noOptionsAvailable: 'Geen opties beschikbaar voor de geselecteerde groep onkosten.',
             undelete: 'Terugzetten',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Rapport dupliceren',
                 other: 'Rapporten dupliceren',
             }),

@@ -8972,13 +8972,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             hold: 'Reter',
             unhold: 'Remover bloqueio',
             reject: 'Rejeitar',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Duplicar despesa',
                 other: 'Duplicar despesas',
             }),
             noOptionsAvailable: 'Nenhuma opção disponível para o grupo de despesas selecionado.',
             undelete: 'Restaurar',
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Duplicar relatório',
                 other: 'Duplicar relatórios',
             }),

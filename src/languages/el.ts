@@ -9259,11 +9259,11 @@ ${reportName}`,
             hold: 'Σε αναμονή',
             unhold: 'Αφαίρεση κράτησης',
             reject: 'Απόρριψη',
-            duplicateExpense: ({count}: {count: number}) => ({
+            duplicateExpense: () => ({
                 one: 'Διπλότυπη δαπάνη',
                 other: 'Διπλότυπες δαπάνες',
             }),
-            duplicateReport: ({count}: {count: number}) => ({
+            duplicateReport: () => ({
                 one: 'Διπλότυπη αναφορά',
                 other: 'Διπλότυπες αναφορές',
             }),
