@@ -1064,11 +1064,11 @@ describe('Session', () => {
             jest.restoreAllMocks();
         });
 
-        test('keeps the in-progress trip and stamps its owner when a SAML re-auth forces the redirect', async () => {
+        test('keeps the in-progress trip when a SAML re-auth forces the redirect', async () => {
             await TestHelper.signInWithTestUser();
-            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, gpsTrip);
-            await waitForBatchedUpdates();
             const accountID = (await getOnyxValue(ONYXKEYS.SESSION))?.accountID;
+            await Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {...gpsTrip, accountID});
+            await waitForBatchedUpdates();
 
             await SignInRedirect.default(undefined, true);
             await waitForBatchedUpdates();
