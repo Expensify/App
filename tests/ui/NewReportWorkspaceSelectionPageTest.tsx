@@ -72,7 +72,7 @@ function renderPage() {
     );
 }
 
-async function seedBaseOnyx() {
+async function seedBaseOnyx(policyOverrides?: Partial<Policy>) {
     const policy: Partial<Policy> = {
         id: POLICY_ID,
         name: POLICY_NAME,
@@ -82,6 +82,7 @@ async function seedBaseOnyx() {
         owner: EMAIL,
         employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
         pendingAction: null,
+        ...policyOverrides,
     };
     const report: Partial<Report> = {
         reportID: REPORT_ID,
@@ -151,5 +152,27 @@ describe('NewReportWorkspaceSelectionPage', () => {
 
         expect(mockCreateNewReport).toHaveBeenCalled();
         expect(mockOpenCreateReportConfirmation).not.toHaveBeenCalled();
+    });
+
+    it('shows only group workspaces in the selector', async () => {
+        await act(async () => {
+            await seedBaseOnyx();
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}personal-policy`, {
+                id: 'personal-policy',
+                name: 'Personal Workspace',
+                role: CONST.POLICY.ROLE.ADMIN,
+                type: CONST.POLICY.TYPE.PERSONAL,
+                owner: EMAIL,
+                employeeList: {[EMAIL]: {email: EMAIL, role: CONST.POLICY.ROLE.ADMIN}},
+                pendingAction: null,
+            });
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
+        expect(screen.queryByText('Personal Workspace')).not.toBeOnTheScreen();
     });
 });
