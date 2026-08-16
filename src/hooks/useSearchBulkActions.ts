@@ -65,6 +65,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -128,6 +129,7 @@ import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
@@ -423,7 +425,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -585,8 +587,21 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return false;
         }
 
-        return selectedItems.every((item) => !!item.policyID && policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`]?.outputCurrency === CONST.CURRENCY.CAD);
-    }, [areAllMatchingItemsSelected, queryJSON, selectedReports, selectedTransactions, policies]);
+        return selectedItems.every((item) => {
+            // Expense rows don't have a policyID, as it's derived from the report they belong to, same as the other report-derived
+            // fields on this selection entry. A selection entry built from a search row carries that row's report, which is the
+            // only copy available when the report is in the search snapshot but not in live Onyx, so prefer it over the Onyx lookup.
+            const report = ('report' in item ? item.report : undefined) ?? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${item.reportID}`];
+            const policyID = item.policyID ?? report?.policyID;
+            if (!policyID) {
+                return false;
+            }
+
+            // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense
+            // report's currency is the workspace's output currency, so we can keep currency-specific templates available after archiving.
+            return (policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]?.outputCurrency ?? report?.currency) === CONST.CURRENCY.CAD;
+        });
+    }, [areAllMatchingItemsSelected, allReports, queryJSON, selectedReports, selectedTransactions, policies]);
 
     const selectedBulkCurrency = selectedReports.at(0)?.currency ?? Object.values(selectedTransactions).at(0)?.currency;
     const totalFormattedAmount = getTotalFormattedAmount(convertToDisplayString, selectedReports, selectedTransactions, selectedBulkCurrency);
@@ -655,6 +670,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     });
 
     const {hash} = queryJSON ?? {};
+    const shouldCalculateTotalsOnRefresh = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
     const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
@@ -867,15 +883,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
-            const columnsToExport = getColumnsToShow({
-                currentAccountID: accountID,
-                data: exportSearchData ?? {},
-                visibleColumns,
-                type: exportSearchType,
-                groupBy: getValidGroupBy(queryJSON?.groupBy),
-                shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                fallbackPolicyID: policyForMovingExpensesID,
-            });
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            let columnsToExport: SearchColumnType[];
+
+            if (groupBy) {
+                const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+
+                columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
+            } else {
+                columnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    groupBy: getValidGroupBy(queryJSON?.groupBy),
+                    shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
+                    fallbackPolicyID: policyForMovingExpensesID,
+                    sortBy: queryJSON?.sortBy,
+                });
+            }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
             for (const column of columnsToExport) {
@@ -1361,22 +1388,29 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             let paidReportCount = 0;
             for (const item of itemsToPay) {
                 if (!item.reportID) {
+                    Log.info('[BulkPay] Skipping report: item has no reportID');
                     continue;
                 }
 
                 const iouReport = getReportFromSearchSnapshot(item.reportID, searchData, allReports);
                 if (!iouReport) {
+                    Log.info('[BulkPay] Skipping report: expense report not found in the search snapshot or Onyx', false, {reportID: item.reportID});
                     continue;
                 }
 
                 const chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
                 if (!chatReport) {
+                    Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
+                        reportID: item.reportID,
+                        chatReportID: item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID,
+                    });
                     continue;
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
                 const resolvedPayment = resolveSearchPayPaymentMethod(rawPaymentMethod, searchData, policies);
                 if (!resolvedPayment) {
+                    Log.info('[BulkPay] Skipping report: could not resolve a payment method', false, {reportID: item.reportID, policyID: item.policyID, rawPaymentMethod});
                     continue;
                 }
 
@@ -1471,6 +1505,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     conciergeChat,
                 });
                 paidReportCount += 1;
+            }
+
+            if (paidReportCount < itemsToPay.length) {
+                Log.info('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount, selectedCount: itemsToPay.length});
             }
 
             if (paidReportCount > 0) {
@@ -1700,7 +1738,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
-            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            // the other default templates. It's excluded on a grouped search, where it carries fewer columns than "Current view" does.
             const {customTemplates, defaultTemplates} = getExportTemplates(
                 integrationsExportTemplates ?? [],
                 csvExportLayouts ?? {},
@@ -1827,16 +1865,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // "Current view" is pinned directly under the accounting actions.
-            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
-            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
                 text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    if (isGroupedSearch) {
-                        handleBasicExport();
-                        return;
-                    }
                     handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,
@@ -2131,6 +2163,13 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         managerEmail,
                                         managerAccountID,
                                     );
+                                    refreshSearchAfterReportAction({
+                                        currentSearchQueryJSON,
+                                        currentSearchKey,
+                                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                                        isOffline,
+                                        isLoading: !!currentSearchResults?.search?.isLoading,
+                                    });
                                     clearSelectedTransactions();
                                 },
                             });
@@ -2144,6 +2183,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
                         }
                     }
+                    // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
+                    // context (which still offers Submit) until the snapshot is refetched, the same way approving and
+                    // paying from Search already do.
+                    refreshSearchAfterReportAction({
+                        currentSearchQueryJSON,
+                        currentSearchKey,
+                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                        isOffline,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                    });
                     clearSelectedTransactions();
                 },
             });
@@ -2545,6 +2594,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
         delegateAccountID,
+        currentSearchQueryJSON,
+        currentSearchResults?.search?.isLoading,
+        shouldCalculateTotalsOnRefresh,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {

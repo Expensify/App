@@ -205,7 +205,7 @@ describe('WorkspaceCompanyCardsPage selection mode', () => {
         render(getWorkspaceCompanyCardsPage());
 
         expect(screen.getByText('workspace.common.companyCards')).toBeTruthy();
-        expect(screen.getByTestId('WorkspaceCompanyCardsPageIcon')).toBeTruthy();
+        expect(screen.queryByTestId('WorkspaceCompanyCardsPageIcon')).toBeNull();
         expect(screen.getByText('true')).toBeTruthy();
         expect(mockTableProps.current?.isSelectionModeEnabled).toBe(false);
     });
