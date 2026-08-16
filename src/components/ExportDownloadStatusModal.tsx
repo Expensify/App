@@ -2,6 +2,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
 import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -13,6 +14,7 @@ import fileDownload from '@libs/fileDownload';
 import {buildSecureDownloadURL} from '@libs/UrlUtils';
 
 import {sendExportFileFromConcierge} from '@userActions/Export';
+import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -63,6 +65,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const receiptCount = displayedExport?.receiptCount;
     const failedReceiptCount = displayedExport?.failedReceiptCount ?? 0;
     const isPreparing = state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && !shouldSendFromConcierge;
+    const isConcierge = !!shouldSendFromConcierge;
     const isReady = state === CONST.EXPORT_DOWNLOAD.STATE.READY;
     const isFailed = state === CONST.EXPORT_DOWNLOAD.STATE.FAILED;
     const isEmptyReceipts = isReady && exportType === CONST.EXPORT_DOWNLOAD.TYPE.RECEIPTS && receiptCount === 0;
@@ -92,11 +95,14 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     const handleSendFromConcierge = () => {
         sendExportFileFromConcierge(exportID, displayedExport ?? undefined);
     };
+    const {openConciergeAnywhere} = useOpenConciergeAnywhere();
+
+    const handleGoToConcierge = () => {
+        close(() => openConciergeAnywhere({forceConcierge: true}));
+    };
 
     const handleDownloadFile = () => {
         downloadFile();
-        // Clearing the export download is owned by the parent's onClose handler (it runs on every dismissal).
-        // Clearing here too would queue a duplicate ClearExportDownload write.
         onClose();
     };
 
@@ -115,6 +121,26 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
                         text={translate('exportDownload.sendFromConcierge')}
                         onPress={handleSendFromConcierge}
                         style={styles.w100}
+                    />
+                </>
+            );
+        }
+
+        if (isConcierge) {
+            return (
+                <>
+                    <Text style={[styles.exportDownloadTitle, styles.mb2]}>{translate('exportDownload.conciergeTitle')}</Text>
+                    <Text style={styles.mb5}>{translate('exportDownload.conciergeBody')}</Text>
+                    <Button
+                        success
+                        text={translate('exportDownload.goToConcierge')}
+                        onPress={handleGoToConcierge}
+                        style={styles.w100}
+                    />
+                    <Button
+                        text={translate('exportDownload.dismiss')}
+                        onPress={onClose}
+                        style={[styles.w100, styles.mt3]}
                     />
                 </>
             );

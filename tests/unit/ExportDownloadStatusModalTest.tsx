@@ -5,6 +5,7 @@ import ExportDownloadStatusModal from '@components/ExportDownloadStatusModal';
 import fileDownload from '@libs/fileDownload';
 
 import {clearExportDownload, sendExportFileFromConcierge} from '@userActions/Export';
+import * as Modal from '@userActions/Modal';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
@@ -24,11 +25,24 @@ jest.mock('@userActions/Export', () => ({
     sendExportFileFromConcierge: jest.fn(),
     clearExportDownload: jest.fn(),
 }));
+jest.mock('@userActions/Modal', () => ({
+    ...jest.requireActual<typeof Modal>('@userActions/Modal'),
+    // Run the after-close callback synchronously so the test can assert what "Go to Concierge" opens next.
+    close: jest.fn((cb?: () => void) => cb?.()),
+}));
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
     isTopmostRouteModalScreen: jest.fn(() => false),
     getActiveRouteWithoutParams: jest.fn(() => ''),
+}));
+const mockOpenConciergeAnywhere = jest.fn();
+jest.mock('@hooks/useOpenConciergeAnywhere', () => ({
+    __esModule: true,
+    default: () => ({
+        openConciergeAnywhere: mockOpenConciergeAnywhere,
+        isInSidePanel: false,
+    }),
 }));
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
@@ -44,6 +58,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
 const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
+const mockModalClose = jest.mocked(Modal.close);
 
 const EXPORT_ID = 'test-export-123';
 const CSV_FILE_NAME = 'export_2026-06-09_02-41-38_6a277d629c569.csv';
@@ -92,7 +107,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(onClose).not.toHaveBeenCalled();
     });
 
-    it('calls sendExportFileFromConcierge when the Send button is pressed', async () => {
+    it('transitions to Concierge state on Send button press', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing'});
 
         renderModal();
@@ -101,6 +116,18 @@ describe('ExportDownloadStatusModal', () => {
         fireEvent.press(screen.getByText('exportDownload.sendFromConcierge'));
 
         expect(mockSendFromConcierge).toHaveBeenCalledWith(EXPORT_ID, expect.objectContaining({state: 'preparing'}));
+    });
+
+    it('shows Concierge state when shouldSendFromConcierge is true', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByText('exportDownload.conciergeTitle')).toBeTruthy();
+        expect(screen.getByText('exportDownload.conciergeBody')).toBeTruthy();
+        expect(screen.getByText('exportDownload.goToConcierge')).toBeTruthy();
+        expect(screen.getByText('exportDownload.dismiss')).toBeTruthy();
     });
 
     it('auto-downloads CSV on ready state transition with csvexport secureType', async () => {
@@ -184,6 +211,19 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
+    });
+
+    it('"Go to Concierge" closes the modal and then opens the Concierge side panel', async () => {
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'preparing', shouldSendFromConcierge: true});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent.press(screen.getByText('exportDownload.goToConcierge'));
+
+        // The side panel is opened through Modal.close's after-hide callback so it does not race the closing modal.
+        expect(mockModalClose).toHaveBeenCalled();
+        expect(mockOpenConciergeAnywhere).toHaveBeenCalledWith({forceConcierge: true});
     });
 
     it('shows partial failure body when failedReportCount > 0 in ready state', async () => {
