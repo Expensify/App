@@ -12,6 +12,8 @@ import QuickActionMenuItem from '@pages/inbox/sidebar/FABPopoverContent/menuItem
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {ValueOf} from 'type-fest';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -67,7 +69,7 @@ describe('QuickActionMenuItem', () => {
         mockGetDisplayNameForParticipant.mockClear();
     });
 
-    const renderWithActivePolicy = async (policyType: (typeof CONST.POLICY.TYPE)[keyof typeof CONST.POLICY.TYPE]) => {
+    const renderWithActivePolicy = async (policyType: ValueOf<typeof CONST.POLICY.TYPE>) => {
         const activePolicy = createRandomPolicy(Number(ACTIVE_POLICY_ID), policyType);
         Reflect.deleteProperty(activePolicy as Record<string, unknown>, 'isPolicyExpenseChatEnabled');
 
