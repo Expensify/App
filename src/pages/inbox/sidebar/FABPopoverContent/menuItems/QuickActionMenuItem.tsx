@@ -15,7 +15,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -115,7 +115,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         }
     }
 
-    const quickActionSubtitle = !hideQABSubtitle ? getReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
+    const quickActionSubtitle = !hideQABSubtitle ? deprecatedGetReportName(quickActionReport, reportAttributes) || translate('quickAction.updateDestination') : '';
 
     const selectOption = (onSelected: () => void, shouldRestrictAction: boolean) => {
         if (
@@ -194,7 +194,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
             shouldTeleportPortalToModalLayer
             icon={icons.ReceiptScan}
             title={translate('quickAction.scanReceipt')}
-            description={getReportName(policyChatForActivePolicy, reportAttributes)}
+            description={deprecatedGetReportName(policyChatForActivePolicy, reportAttributes)}
             rightIconReportID={policyChatForActivePolicy?.reportID}
             onPress={() =>
                 interceptAnonymousUser(() => {

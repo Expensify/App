@@ -50,7 +50,7 @@ Each row represents an expense and includes:
 
 ## Available Actions on the Table
 - **Click an expense** to view or edit it in the right-hand panel  
-- **Edit a cell directly (desktop only):** Hover over a **date**, **merchant**, **description**, **category**, **tag**, or **amount** cell (or use the Tab key to move to it), then click the pencil edit icon that appears to edit the value inline without opening the expense details. Click outside the cell or press Enter to save. Clicking anywhere else in the cell opens the expense instead.
+- **Edit a cell directly:** Hover over **date**, **merchant**, **description**, **category**, **tag**, or **amount** and click the pencil icon to edit the value inline without opening the expense details. 
 - **Select multiple expenses** using checkboxes, then apply bulk actions such as:
   - **Move to another report:** When you need to have multiple reports or need to break up expenses across multiple weeks or months.
   - **Download:** For exporting to a CSV file for analysis or to share with your accountant.
@@ -69,7 +69,7 @@ Each row represents an expense and includes:
    - Create report
    - An existing draft report
    - Remove from report 
-5. Expenses are moved, and a system message logs the action.
+4. The expenses are moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
 
 **From the expense details**
 
@@ -79,7 +79,7 @@ Each row represents an expense and includes:
    - Create report
    - An existing draft report
    - Remove from report 
-5. Expense is moved, and a system message logs the action.
+4. The expense is moved. A system message records the move when the expense leaves a submitted report or is removed from a report. Moving expenses between draft reports does not add a system message.
 
 ## How to add a new expense to the table
 - The expense appears in the table.  

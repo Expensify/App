@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, RoomMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -36,7 +36,7 @@ import Parser from '@libs/Parser';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {isPolicyAdmin, isPolicyEmployee as isPolicyEmployeeUtils} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportForHeader,
     getReportPersonalDetailsParticipants,
@@ -112,9 +112,8 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const [selectedMembers, setSelectedMembers] = useFilteredSelection(personalDetailsParticipants, shouldIncludeMember);
     const firstSelectedMember = selectedMembers?.at(0);
-    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: personalDetailsSelector(firstSelectedMember),
-    });
+    const firstSelectedMemberSelector = useMemo(() => personalDetailsSelector(firstSelectedMember), [firstSelectedMember]);
+    const [firstSelectedMemberDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: firstSelectedMemberSelector});
 
     const clearTableSelection = useCallback(() => {
         setSelectedMembers((prevSelectedMembers) => (prevSelectedMembers.length > 0 ? [] : prevSelectedMembers));
@@ -225,12 +224,11 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 keyForList: String(accountID),
                 accountID,
                 login: details.login ?? '',
-                name: formatPhoneNumber(
-                    temporaryGetDisplayNameOrDefault({
-                        passedPersonalDetails: details,
-                        translate,
-                    }),
-                ),
+                name: temporaryGetDisplayNameOrDefault({
+                    passedPersonalDetails: details,
+                    translate,
+                    formatPhoneNumber,
+                }),
                 email: formatPhoneNumber(details.login ?? ''),
                 disabled: isDisabled,
                 isSelectionDisabled,
@@ -319,24 +317,20 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                     />
                 ) : (
                     <Button
-                        success
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
                         onPress={inviteUser}
-                        text={translate('workspace.invite.member')}
-                        icon={icons.Plus}
                         innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
                         style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
-                    />
+                    >
+                        <Button.Icon src={icons.Plus} />
+                        <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                    </Button>
                 )}
             </View>
         );
     }, [bulkActionsButtonOptions, inviteUser, isSmallScreenWidth, selectedMembers.length, styles, translate, canSelectMultiple, shouldUseNarrowLayout, icons.Plus]);
 
     const selectionModeHeader = isMobileSelectionModeEnabled && isSmallScreenWidth;
-    const reasonAttributes = {
-        context: 'DynamicRoomMembersPage',
-        didLoadRoomMembers,
-        isPersonalDetailsReady: isPersonalDetailsReady(personalDetails),
-    };
 
     let subtitleKey: '' | TranslationPaths | undefined;
     if (!isEmptyObject(report)) {
@@ -357,7 +351,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 <HeaderWithBackButton
                     title={selectionModeHeader ? translate('common.selectMultiple') : translate('workspace.common.members')}
                     subtitle={StringUtils.lineBreaksToSpaces(
-                        shouldParserToHTML ? Parser.htmlToText(getReportName(reportForSubtitle, reportAttributes)) : getReportName(reportForSubtitle, reportAttributes),
+                        shouldParserToHTML ? Parser.htmlToText(deprecatedGetReportName(reportForSubtitle, reportAttributes)) : deprecatedGetReportName(reportForSubtitle, reportAttributes),
                     )}
                     onBackButtonPress={() => {
                         if (isMobileSelectionModeEnabled) {
@@ -372,10 +366,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 />
                 <View style={[styles.pl5, styles.pr5]}>{headerButtons}</View>
                 {isLoading ? (
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={reasonAttributes}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 ) : (
                     <View style={[styles.w100, styles.flex1]}>
                         <RoomMembersTable

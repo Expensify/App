@@ -8,7 +8,7 @@ import useCardsLists from '@hooks/useCardsLists';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
+import {findMatchingCards, getCardsUsingCustomExportCount} from '@libs/CardFeedUtils';
 import {getCardFeedWithDomainID, getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {areSettingsInErrorFields, settingsPendingAction} from '@libs/PolicyUtils';
@@ -33,6 +33,7 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardsUsingCustomAccountsCount = getCardsUsingCustomExportCount(cardFeeds ?? {}, cardLists, CONST.COMPANY_CARDS.EXPORT_CARD_TYPES.NVP_RILLET_EXPORT_ACCOUNT);
+    const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_EXPORT.getRoute(policyID) : undefined;
 
     return (
         <ConnectionLayout
@@ -44,46 +45,51 @@ function RilletCardProgramAccount({policy}: WithPolicyConnectionsProps) {
             contentContainerStyle={styles.pb2}
             titleStyle={styles.ph5}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
+            onBackButtonPress={() => Navigation.goBack(backPath)}
             shouldBeBlocked
         >
             <View>
                 <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.cardProgramAccount.description')}</Text>
             </View>
-            {Object.values(cardFeeds ?? {}).map((cardFeed) => {
-                const feedKey = cardFeed.feed;
-                const feedName = getCustomOrFormattedFeedName(translate, feedKey, cardFeed.customFeedName, false);
-                const feedDomainID = cardFeed.domainID ?? CONST.DEFAULT_MISSING_ID;
-                const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
-                const isUsingCustomAccount = !!cardProgramsUsingCustomAccounts?.[feedKey];
-                const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
-                const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
-                const cardProgramAccountDisplayName = cardProgramAccount
-                    ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
-                    : '';
-                return (
-                    <OfflineWithFeedback
-                        key={feedKey}
-                        pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.pendingFields)}
-                    >
-                        <MenuItemWithTopDescription
-                            title={cardProgramAccountDisplayName}
-                            description={feedName}
-                            hintText={
-                                cardsUsingCustomAccountsCount.perFeedCount[feedKey]
-                                    ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])
-                                    : undefined
-                            }
-                            onPress={() => (policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined)}
-                            shouldShowRightIcon
-                            brickRoadIndicator={
-                                areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.errorFields)
-                                    ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
-                                    : undefined
-                            }
-                        />
-                    </OfflineWithFeedback>
-                );
-            })}
+            {Object.values(cardFeeds ?? {})
+                .filter((cardFeed) => findMatchingCards(cardFeeds ?? {}, cardLists, cardFeed.feed).length > 0)
+                .map((cardFeed) => {
+                    const feedKey = cardFeed.feed;
+                    const feedName = getCustomOrFormattedFeedName(translate, feedKey, cardFeed.customFeedName, false);
+                    const feedDomainID = cardFeed.domainID ?? CONST.DEFAULT_MISSING_ID;
+                    const feedWithDomainID = getCardFeedWithDomainID(feedKey, feedDomainID);
+                    const isUsingCustomAccount = !!cardProgramsUsingCustomAccounts?.[feedKey];
+                    const cardProgramAccountCode = cardProgramsUsingCustomAccounts?.[feedKey] ?? creditCardAccountCode;
+                    const cardProgramAccount = rilletData?.accounts?.find((account) => account.code === cardProgramAccountCode);
+                    const cardProgramAccountDisplayName = cardProgramAccount
+                        ? `${cardProgramAccount.code} ${cardProgramAccount.name}${isUsingCustomAccount ? '' : ` (${translate('common.default').toLocaleLowerCase()})`}`
+                        : '';
+                    return (
+                        <OfflineWithFeedback
+                            key={feedKey}
+                            pendingAction={settingsPendingAction([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.pendingFields)}
+                        >
+                            <MenuItemWithTopDescription
+                                title={cardProgramAccountDisplayName}
+                                description={feedName}
+                                hintText={
+                                    cardsUsingCustomAccountsCount.perFeedCount[feedKey]
+                                        ? translate('workspace.rillet.cardAccount.countInfo', cardsUsingCustomAccountsCount.perFeedCount[feedKey])
+                                        : undefined
+                                }
+                                onPress={() =>
+                                    policyID ? Navigation.navigate(ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT_SELECTOR.getRoute(policyID, feedWithDomainID)) : undefined
+                                }
+                                shouldShowRightIcon
+                                brickRoadIndicator={
+                                    areSettingsInErrorFields([`${CONST.RILLET_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${feedKey}`], rilletConfig?.errorFields)
+                                        ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR
+                                        : undefined
+                                }
+                            />
+                        </OfflineWithFeedback>
+                    );
+                })}
         </ConnectionLayout>
     );
 }

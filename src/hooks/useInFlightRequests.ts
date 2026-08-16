@@ -1,10 +1,15 @@
 import {WRITE_COMMANDS} from '@libs/API/types';
 import type {WriteCommand} from '@libs/API/types';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {isLoadingInitialReportActionsSelector} from '@src/selectors/ReportMetaData';
 import type {AnyRequest} from '@src/types/onyx';
+import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxEntry} from 'react-native-onyx';
+
+import {useEffect} from 'react';
 
 import useNetwork from './useNetwork';
 import useOnyx from './useOnyx';
@@ -99,19 +104,95 @@ function useIsPendingInternal(group: PendingRequestGroup, scopeKey?: string | nu
     return !!hasPendingPersistedRequest || !!hasPendingOngoingRequest;
 }
 
-/** Whether an OpenApp request is currently in the queue (the initial app load, not background reconnects). */
+// Process-session memory: an OpenApp was seen in the queue this session and its deferred updates (whose
+// finallyData clears IS_LOADING_APP) have not flushed yet. The sequential queue drops the request from
+// PERSISTED_(ONGOING_)REQUESTS before it flushes those held updates, so `hasPendingOpenApp` alone goes
+// false too early and the migrated screens would render cleared/stale data during that window. This latch
+// keeps the gate pending across it. It is NOT a stored flag: a stranded IS_LOADING_APP read from disk on
+// a fresh reload never sets it, because that reload runs ReconnectApp, not OpenApp. Keying on an observed
+// OpenApp rather than HAS_LOADED_APP is what also covers an account switch, where HAS_LOADED_APP is
+// already true but a real OpenApp still fires (see Delegate's atomic reset).
+//
+// This is deliberately module scoped, not a useRef: the observing consumer can unmount while the flush is
+// still in progress (an account switch remounts screens), and a different consumer that mounts during the
+// window must still see the latch. Reading a mutable module value during render is safe here because the
+// only value the render combines it with is the reactive isLoadingApp, and the latch only changes inside
+// the effect below, whose deps are exactly [hasPendingOpenApp, isLoadingApp]: any latch change is therefore
+// accompanied by a dep change that re-renders every consumer, so no consumer can strand a stale read.
+let hasObservedOpenAppFlushPending = false;
+
+// Keep this outside the hook so a new consumer can see a report whose deferred updates are still pending.
+const reportIDsWithPendingOpenReportFlush = new Set<string>();
+
+/** Whether an OpenApp request or its deferred Onyx updates are pending. */
 function useIsAppLoadPending(): boolean {
-    return useIsPendingInternal('appLoad');
+    const hasPendingOpenApp = useIsPendingInternal('appLoad');
+    const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+
+    useEffect(() => {
+        if (hasPendingOpenApp) {
+            hasObservedOpenAppFlushPending = true;
+        } else if (isLoadingApp !== true) {
+            // The flag cleared, so the deferred OpenApp updates flushed: stop covering the window.
+            hasObservedOpenAppFlushPending = false;
+        }
+    }, [hasPendingOpenApp, isLoadingApp]);
+
+    return hasPendingOpenApp || (hasObservedOpenAppFlushPending && isLoadingApp === true);
 }
 
 /**
- * Whether an OpenReport request for the given report is currently in the queue.
+ * Whether the initial app skeleton should be visible and why.
  *
- * Do not call this inside list-item render paths (e.g. per row in a list): every call opens two Onyx
- * subscriptions. Lift it to the screen level and pass the result down instead.
+ * HAS_LOADED_APP prevents the skeleton from returning after the first OpenApp completes. The legacy
+ * IS_LOADING_APP flag only recovers interrupted cold starts after HAS_LOADED_APP hydrates false.
  */
-function useIsReportLoadPending(reportID: string): boolean {
-    return useIsPendingInternal('reportLoad', reportID);
+function useAppLoadSkeletonState({isLoadingReportData = false}: {isLoadingReportData?: boolean} = {}) {
+    const isAppLoadPending = useIsAppLoadPending();
+    const [isLoadingApp = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const [hasLoadedApp = false, hasLoadedAppMetadata] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const isLoadingHasLoadedApp = isLoadingOnyxValue(hasLoadedAppMetadata);
+    const isColdRestartRecoveryFallback = !hasLoadedApp && isLoadingApp;
+    const shouldShowSkeleton = (!hasLoadedApp && (isAppLoadPending || isLoadingHasLoadedApp || isLoadingReportData)) || isColdRestartRecoveryFallback;
+
+    return {
+        shouldShowSkeleton,
+        isAppLoadPending,
+        hasLoadedApp,
+        isLoadingHasLoadedApp,
+        isColdRestartRecoveryFallback,
+    };
+}
+
+/**
+ * Whether an OpenReport request or its deferred Onyx updates are pending for this report.
+ *
+ * `undefined` returns false, so callers can pass an optional reportID without a fallback value.
+ *
+ * Do not use this hook in list rows. Each call creates three Onyx subscriptions.
+ * Use it in report-level components or guards.
+ */
+function useIsReportLoadPending(reportID: string | undefined): boolean {
+    const hasPendingRequest = useIsPendingInternal('reportLoad', reportID);
+    const [isLoadingInitialReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(reportID)}`, {
+        selector: isLoadingInitialReportActionsSelector,
+    });
+
+    // Track the loading flag only after this session sees a matching OpenReport request, so stale flags are ignored.
+    // Keep tracking until the deferred updates clear the flag.
+    useEffect(() => {
+        if (!reportID) {
+            return;
+        }
+
+        if (hasPendingRequest) {
+            reportIDsWithPendingOpenReportFlush.add(reportID);
+        } else if (isLoadingInitialReportActions !== true) {
+            reportIDsWithPendingOpenReportFlush.delete(reportID);
+        }
+    }, [hasPendingRequest, isLoadingInitialReportActions, reportID]);
+
+    return hasPendingRequest || (!!reportID && reportIDsWithPendingOpenReportFlush.has(reportID) && isLoadingInitialReportActions === true);
 }
 
 /** Whether any request relevant to the top-of-screen loading bar is currently in the queue. */
@@ -130,4 +211,4 @@ function useLoadingBarVisibility(): boolean {
     return !isOffline && hasPendingLoadingBarRequest;
 }
 
-export {useIsAppLoadPending, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};
+export {useIsAppLoadPending, useAppLoadSkeletonState, useIsReportLoadPending, useIsLoadingBarPending, useLoadingBarVisibility};

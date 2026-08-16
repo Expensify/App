@@ -3,6 +3,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -23,7 +24,7 @@ import Clipboard from '@libs/Clipboard';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {BackToParams} from '@libs/Navigation/types';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getChatRoomSubtitle,
     getDefaultWorkspaceAvatar,
@@ -136,7 +137,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
 
     const reportForTitle = useMemo(() => getReportForHeader(report), [report]);
 
-    const title = isReport ? getReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
+    const title = isReport ? deprecatedGetReportName(reportForTitle, reportAttributes) : (currentUserPersonalDetails.displayName ?? '');
     const urlWithTrailingSlash = addTrailingForwardSlash(environmentURL);
     const url = isReport
         ? `${urlWithTrailingSlash}${ROUTES.REPORT_WITH_ID.getRoute(report.reportID)}`
@@ -218,13 +219,12 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         />
                     )}
 
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
                         }}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

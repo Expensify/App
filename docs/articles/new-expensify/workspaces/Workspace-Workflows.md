@@ -1,7 +1,8 @@
 ---
 title: Workspace Workflows
 description: Configure your workspace approval and submission workflows to match your team's needs.
-keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency]
+keywords: [New Expensify, workflows, approval workflows, delay submission, add approver, connect bank, workspace settings, submission frequency, authorized payer, mark as paid, payer]
+internalScope: Audience is Workspace Admins. Covers configuring approval, submission, and reimbursement workflows including choosing an authorized payer; does not cover connecting a bank account.
 ---
 
 Workflows help you automate how expenses are submitted, approved, and reimbursed in your workspace. Whether you're tracking personal expenses or managing a team, you can adjust workflows to match your use case.
@@ -10,7 +11,9 @@ Workflows help you automate how expenses are submitted, approved, and reimbursed
 
 ---
 
-# Enable Workflows
+# Workspace Workflows
+
+## How to enable Workflows 
 
 To get started, enable the **Workflows** feature for your workspace.
 
@@ -25,7 +28,7 @@ To get started, enable the **Workflows** feature for your workspace.
 
 ---
 
-## Configure Workflow Settings
+## How to configure Workflow Settings
 
 Once enabled, go to the **Workflows** tab in the left menu to customize your submission and approval logic.
 
@@ -83,6 +86,20 @@ If you reimburse employees through another method, such as payroll or cash, you 
 2. Enable **Payments**.
 
 Once enabled, you can use **Mark as Paid** to keep track of reimbursements made outside of Expensify.
+
+---
+
+## How to choose an authorized payer without a connected bank account
+
+When **Payments** is enabled, you can set an **Authorized payer** even if no bank account is connected. The authorized payer is the admin responsible for paying reports, and they'll be the one prompted to pay.
+
+1. In the navigation tabs (on the left on web, and on the bottom on mobile), click **Workspaces > [Workspace name] > Workflows**.
+2. Under **Payments**, click **Payer**.
+3. Select the **admin** you want to set as the authorized payer.
+
+## What happens after you set an authorized payer
+
+Only the authorized payer is prompted to pay reports. They'll see a payment reminder in their **Inbox** and a **Pay** button next to the workspace chat, while other admins won't receive those prompts. Other admins can still open a report and pay it.
 
 ---
 

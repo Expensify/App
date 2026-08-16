@@ -91,7 +91,7 @@ const PromotedActions = {
             }
 
             if (login) {
-                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, betas, false, true);
+                navigateToAndOpenReport([login], personalDetails, currentUserAccountID, introSelected, isSelfTourViewed, hasCompletedGuidedSetupFlow, betas, false, true);
                 return;
             }
             if (accountID) {

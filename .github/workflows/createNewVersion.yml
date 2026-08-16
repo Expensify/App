@@ -39,22 +39,20 @@ on:
         description: Private key for OSBotify GitHub App
         required: true
 
+concurrency:
+  group: createNewVersion
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   createNewVersion:
     runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
-      # v3.2.4
-      - name: Run turnstyle
-        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
       - name: Check out
-        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: main
           submodules: true
@@ -136,16 +134,16 @@ jobs:
               echo "::notice::Successfully pushed E/App changes on attempt $i"
               exit 0
             fi
-            
+
             echo "::warning::Push attempt $i failed, retrying in ${RETRY_DELAY}s..."
             sleep $RETRY_DELAY
             RETRY_DELAY=$((RETRY_DELAY * 2))
-            
+
             if ! git fetch origin main; then
               echo "::error::Unable to fetch main on attempt $i"
               continue
             fi
-            
+
             if ! git rebase origin/main; then
               echo "::warning::Rebase failed on attempt $i, aborting and retrying..."
               git rebase --abort || true

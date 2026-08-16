@@ -8,7 +8,6 @@ import {
     isCategoryMissing,
     processCategoryNameSegments,
 } from '@libs/CategoryUtils';
-import {convertToDisplayString} from '@libs/CurrencyUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -16,7 +15,8 @@ import type {Policy, PolicyCategories} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
 
-import {translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, translateLocal} from '../utils/TestHelper';
 
 describe(`isMissingCategory`, () => {
     it('returns true if category is undefined', () => {
@@ -39,13 +39,13 @@ describe(`isMissingCategory`, () => {
 });
 
 describe('formatRequireItemizedReceiptsOverText', () => {
-    const mockPolicy: Policy = {
+    const mockPolicy = createMock<Policy>({
         id: '1',
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.CORPORATE,
         outputCurrency: CONST.CURRENCY.USD,
         maxExpenseAmountNoItemizedReceipt: 7500,
-    } as Policy;
+    });
 
     it('returns "Always" text when category amount is 0', () => {
         const result = formatRequireItemizedReceiptsOverText(translateLocal, mockPolicy, 0, convertToDisplayString);

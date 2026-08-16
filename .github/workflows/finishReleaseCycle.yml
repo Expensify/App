@@ -63,7 +63,7 @@ jobs:
           GITHUB_TOKEN: ${{ steps.setupGitForOSBotify.outputs.OS_BOTIFY_API_TOKEN }}
           ISSUE_NUMBER: ${{ github.event.issue.number }}
           COMMENT: |
-            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval.
+            This issue either has unchecked items or has not yet been marked with the `:shipit:` emoji of approval. (The emoji needs to be the *last* comment before closing)
             Reopening!
 
       - name: Announce failed workflow in Slack

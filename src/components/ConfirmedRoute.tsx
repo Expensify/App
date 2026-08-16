@@ -1,4 +1,3 @@
-import useMapMarkers from '@hooks/useMapMarkers';
 import type {MapMarkerType} from '@hooks/useMapMarkers/types';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -6,7 +5,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import getArrayDepth from '@libs/getArrayDepth';
-import {getWaypointIndex} from '@libs/TransactionUtils';
+import {getSelectedRouteKey, getWaypointIndex} from '@libs/TransactionUtils';
 
 import {init as initMapboxToken, stop as stopMapboxToken} from '@userActions/MapboxToken';
 
@@ -14,7 +13,6 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Transaction} from '@src/types/onyx';
 
-import type {ReactNode} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React, {useEffect} from 'react';
@@ -47,12 +45,12 @@ type ConfirmedRouteProps = {
 
 function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = true, requireRouteToDisplayMap = false, interactive, shouldDisplayCompass = true}: ConfirmedRouteProps) {
     const {isOffline} = useNetwork();
-    const {route0: route} = transaction?.routes ?? {};
+    const selectedRouteKey = getSelectedRouteKey(transaction);
+    const route = transaction?.routes?.[selectedRouteKey] ?? transaction?.routes?.[CONST.TRANSACTION.DEFAULT_ROUTE_KEY];
     const waypoints = transaction?.comment?.waypoints ?? {};
     const coordinates = route?.geometry?.coordinates ?? [];
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const getMapMarkerIconComponent = useMapMarkers();
 
     const [mapboxAccessToken] = useOnyx(ONYXKEYS.MAPBOX_ACCESS_TOKEN);
 
@@ -79,7 +77,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
         waypointMarkers.push({
             id: `${waypoint.lng},${waypoint.lat},${index}`,
             coordinate: [waypoint.lng, waypoint.lat] as const,
-            markerComponent: (): ReactNode => getMapMarkerIconComponent(markerType),
+            markerType,
         });
     }
 
@@ -96,7 +94,7 @@ function ConfirmedRoute({transaction, isSmallerIcon, shouldHaveBorderRadius = tr
                 zoom: CONST.MAPBOX.DEFAULT_ZOOM,
                 location: waypointMarkers?.at(0)?.coordinate ?? CONST.MAPBOX.DEFAULT_COORDINATE,
             }}
-            directionCoordinates={coordinates as Array<[number, number]>}
+            directionCoordinates={coordinates}
             style={[styles.mapView, shouldHaveBorderRadius && styles.br4]}
             waypoints={waypointMarkers}
             styleURL={CONST.MAPBOX.STYLE_URL}

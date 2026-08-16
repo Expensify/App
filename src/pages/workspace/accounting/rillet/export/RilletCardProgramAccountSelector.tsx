@@ -4,13 +4,17 @@ import SelectionScreen from '@components/SelectionScreen';
 import Text from '@components/Text';
 
 import useCardFeeds from '@hooks/useCardFeeds';
+import useCardsLists from '@hooks/useCardsLists';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useSelectionListSearch from '@hooks/useSelectionListSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearRilletErrorField, updateRilletCardProgramAccount} from '@libs/actions/connections/Rillet';
-import {getCustomOrFormattedFeedName, splitCardFeedWithDomainID} from '@libs/CardUtils';
+import {findMatchingCards} from '@libs/CardFeedUtils';
+import {getCustomOrFormattedFeedName} from '@libs/CardUtils';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import {sortDefaultToTop} from '@libs/ListUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
@@ -48,12 +52,14 @@ function RilletCardProgramAccountSelector({
     const policyID = policy?.id;
     const [cardFeeds] = useCardFeeds(policyID);
     const cardFeed = cardFeeds?.[feedWithDomainID];
-    const feedKey = splitCardFeedWithDomainID(feedWithDomainID)?.feedName;
+    const [cardLists] = useCardsLists();
+    const feedKey = cardFeed?.feed;
     const rilletConfig = policy?.connections?.rillet?.config;
     const rilletData = policy?.connections?.rillet?.data;
     const creditCardAccountCode = rilletConfig?.export?.creditCardAccountCode;
     const cardProgramsUsingCustomAccounts = rilletConfig?.export?.cardProgramAccounts;
     const cardProgramAccountCode = (feedKey ? cardProgramsUsingCustomAccounts?.[feedKey] : undefined) ?? creditCardAccountCode;
+    const hasActiveCards = feedKey && findMatchingCards(cardFeeds ?? {}, cardLists, feedKey).length > 0;
     const title = getCustomOrFormattedFeedName(translate, feedKey, cardFeed?.customFeedName, false);
     const backPath = policyID ? ROUTES.POLICY_ACCOUNTING_RILLET_CARD_PROGRAM_ACCOUNT.getRoute(policyID) : undefined;
 
@@ -71,6 +77,8 @@ function RilletCardProgramAccountSelector({
                 keyForList: accountItem.code,
                 isSelected: cardProgramAccountCode === accountItem.code,
             })) ?? [];
+    const {filteredData: filteredUnprocessedData, textInputOptions} = useSelectionListSearch(data);
+    const filteredData = sortDefaultToTop(filteredUnprocessedData, (accountItem) => creditCardAccountCode === accountItem.keyForList, styles);
 
     const headerContent = (
         <View>
@@ -106,7 +114,9 @@ function RilletCardProgramAccountSelector({
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
             displayName="RilletCardProgramAccountSelector"
             headerTitleAlreadyTranslated={title}
-            data={data}
+            data={filteredData}
+            textInputOptions={textInputOptions}
+            shouldBeBlocked={!hasActiveCards}
             headerContent={headerContent}
             listEmptyContent={listEmptyContent}
             onSelectRow={selectCreditCardAccount}

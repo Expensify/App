@@ -7,8 +7,9 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {SearchKey} from './SearchUIUtils';
 
 import {getLoginByAccountID} from './PersonalDetailsUtils';
+import {isGroupPolicy} from './PolicyUtils';
 import {isApproveAction, isExportAction, isPrimaryPayAction, isSubmitAction} from './ReportPrimaryActionUtils';
-import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions} from './ReportUtils';
+import {hasOnlyHeldExpenses, hasOnlyNonReimbursableTransactions, isArchivedReport, isOpenReport} from './ReportUtils';
 
 type CreateTodosReportsAndTransactionsParams = {
     /** Every report, keyed by report Onyx key - iterated to find the expense reports that belong in a to-do bucket */
@@ -40,6 +41,9 @@ type CreateTodosReportsAndTransactionsParams = {
 
     /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
+
+    /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
+    areTransactionsLoaded: boolean;
 };
 
 /**
@@ -89,6 +93,9 @@ type TodoBucketContext = {
 
     /** The current user's primary login - matched against policy roles (e.g. exporter, reimburser) */
     login: string;
+
+    /** Whether the transaction collection has hydrated - an empty `reportTransactions` doesn't mean zero expenses until this is true */
+    areTransactionsLoaded: boolean;
 };
 
 /**
@@ -99,10 +106,33 @@ type TodoBucketContext = {
 function reportMatchesTodoBucket(
     searchKey: SearchKey,
     report: Report,
-    {policy, reportNameValuePair, reportTransactions, reportMetadata, allReportActions, allExpensesHeld, ownerLogin, bankAccountList, currentUserAccountID, login}: TodoBucketContext,
+    {
+        policy,
+        reportNameValuePair,
+        reportTransactions,
+        reportMetadata,
+        allReportActions,
+        allExpensesHeld,
+        ownerLogin,
+        bankAccountList,
+        currentUserAccountID,
+        login,
+        areTransactionsLoaded,
+    }: TodoBucketContext,
 ): boolean {
     switch (searchKey) {
         case CONST.SEARCH.SEARCH_KEYS.SUBMIT:
+            if (report.ownerAccountID !== currentUserAccountID) {
+                return false;
+            }
+
+            // Empty drafts can't be submitted, but they still belong in the Drafts tab and to-do so users can find and clean them up.
+            // Gate on areTransactionsLoaded since unloaded transactions look identical to zero transactions.
+            if (reportTransactions.length === 0) {
+                return areTransactionsLoaded && isOpenReport(report) && isGroupPolicy(policy) && !isArchivedReport(reportNameValuePair);
+            }
+
+            // isSubmitAction also allows workflow approvers to submit on the owner's behalf; the to-do only nudges the owner.
             return isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePair, undefined, login, currentUserAccountID) && !allExpensesHeld;
         case CONST.SEARCH.SEARCH_KEYS.APPROVE:
             return isApproveAction(report, reportTransactions, currentUserAccountID, reportMetadata, policy) && !allExpensesHeld;
@@ -144,6 +174,7 @@ function createTodosReportsAndTransactions({
     bankAccountList,
     currentUserAccountID,
     login,
+    areTransactionsLoaded,
 }: CreateTodosReportsAndTransactionsParams) {
     const reportsToSubmit: Report[] = [];
     const reportsToApprove: Report[] = [];
@@ -174,6 +205,7 @@ function createTodosReportsAndTransactions({
             bankAccountList,
             currentUserAccountID,
             login,
+            areTransactionsLoaded,
         };
         if (reportMatchesTodoBucket(CONST.SEARCH.SEARCH_KEYS.SUBMIT, report, context)) {
             reportsToSubmit.push(report);
@@ -209,6 +241,7 @@ function getTodoReportsForSearchKey(
         bankAccountList,
         currentUserAccountID,
         login,
+        areTransactionsLoaded,
     }: CreateTodosReportsAndTransactionsParams,
 ) {
     const reports: Report[] = [];
@@ -230,6 +263,7 @@ function getTodoReportsForSearchKey(
             bankAccountList,
             currentUserAccountID,
             login,
+            areTransactionsLoaded,
         };
 
         if (reportMatchesTodoBucket(searchKey, report, context)) {

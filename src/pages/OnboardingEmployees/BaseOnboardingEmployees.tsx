@@ -1,6 +1,6 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormHelpMessage from '@components/FormHelpMessage';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
@@ -116,6 +116,15 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             });
     }, [translate, selectedCompanySize, onboardingValues?.signupQualifier]);
 
+    const submitCompanySize = () => {
+        if (!selectedCompanySize) {
+            setError(translate('onboarding.errorSelection'));
+            return;
+        }
+        setOnboardingCompanySize(selectedCompanySize);
+        Navigation.navigate(ROUTES.ONBOARDING_INTERESTED_FEATURES.getRoute());
+    };
+
     const footerContent = (
         <>
             {!!error && (
@@ -126,20 +135,14 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
                 />
             )}
             <Button
-                success
-                large
-                text={translate('common.continue')}
-                onPress={() => {
-                    if (!selectedCompanySize) {
-                        setError(translate('onboarding.errorSelection'));
-                        return;
-                    }
-                    setOnboardingCompanySize(selectedCompanySize);
-                    Navigation.navigate(ROUTES.ONBOARDING_ACCOUNTING.getRoute());
-                }}
-                pressOnEnter
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
+                onPress={submitCompanySize}
                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.CONTINUE}
-            />
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.continue')}</Button.Text>
+            </Button>
         </>
     );
 
@@ -148,12 +151,9 @@ function BaseOnboardingEmployees({shouldUseNativeStyles, route}: BaseOnboardingE
             testID="BaseOnboardingEmployees"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton={!isEmployeesFirstStep}
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={handleBackButtonPress}
-                shouldDisplayHelpButton={false}
             />
             <Text
                 style={[styles.textHeadlineH1, styles.mb5, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}

@@ -1,12 +1,12 @@
+import AccountAvatar from '@components/Avatar/connected/AccountAvatar';
 import Icon from '@components/Icon';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import Table from '@components/Table';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -33,20 +33,15 @@ type ReportParticipantsTableRowProps = {
 export default function ReportParticipantsTableRow({item, rowIndex, shouldUseNarrowTableLayout}: ReportParticipantsTableRowProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const styleUtils = useStyleUtils();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const avatarSize = shouldUseNarrowTableLayout ? CONST.AVATAR_SIZE.DEFAULT : CONST.AVATAR_SIZE.SMALL;
     // Only admins surface a role, matching the production Members list where non-admins have no role indicator.
     const roleLabel = item.isGroupChat && item.isAdmin ? translate('common.admin') : '';
     const accessibilityLabel = roleLabel ? `${item.name}, ${item.email}, ${roleLabel}` : `${item.name}, ${item.email}`;
     const memberSubtitle = shouldUseNarrowTableLayout && roleLabel ? `${roleLabel} • ${item.email}` : item.email;
-
-    const getSecondaryAvatarContainerStyle = (hovered: boolean) => [
-        styleUtils.getBackgroundAndBorderStyle(theme.sidebar),
-        hovered ? styleUtils.getBackgroundAndBorderStyle(styles.sidebarLinkHover?.backgroundColor ?? theme.sidebar) : undefined,
-    ];
 
     return (
         <Table.Row
@@ -60,12 +55,14 @@ export default function ReportParticipantsTableRow({item, rowIndex, shouldUseNar
         >
             {(hovered) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
-                        <ReportActionAvatars
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
+                        <AccountAvatar
                             size={avatarSize}
-                            accountIDs={[item.accountID]}
+                            accountID={item.accountID}
                             fallbackDisplayName={item.name ?? item.email}
-                            secondaryAvatarContainerStyle={getSecondaryAvatarContainerStyle(!!hovered)}
                         />
                         <View style={[shouldUseNarrowTableLayout && styles.gap1, styles.flex1]}>
                             <TextWithTooltip
@@ -84,18 +81,23 @@ export default function ReportParticipantsTableRow({item, rowIndex, shouldUseNar
                     </View>
 
                     {!shouldUseNarrowTableLayout && item.isGroupChat && (
-                        <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                        <View
+                            style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
+                            {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                        >
                             <Text numberOfLines={1}>{roleLabel}</Text>
                         </View>
                     )}
 
-                    <Icon
-                        src={icons.ArrowRight}
-                        fill={theme.icon}
-                        additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
-                        width={variables.iconSizeNormal}
-                        height={variables.iconSizeNormal}
-                    />
+                    <View {...getCellAccessibilityProps(isTableSemanticsEnabled)}>
+                        <Icon
+                            src={icons.ArrowRight}
+                            fill={theme.icon}
+                            additionalStyles={[styles.justifyContentCenter, styles.alignItemsCenter, !hovered && styles.opacitySemiTransparent]}
+                            width={variables.iconSizeNormal}
+                            height={variables.iconSizeNormal}
+                        />
+                    </View>
                 </>
             )}
         </Table.Row>

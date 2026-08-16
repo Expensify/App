@@ -45,7 +45,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, undefined, false, true);
     });
 
     it('should pass introSelected to navigateToAndOpenReportWithAccountIDs when accountID is provided', () => {
@@ -114,7 +114,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, undefined, false, true);
         expect(mockNavigateToAndOpenReportWithAccountIDs).not.toHaveBeenCalled();
     });
 
@@ -168,7 +168,7 @@ describe('PromotedActions.message', () => {
 
         action.onSelected();
 
-        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, betas, false, true);
+        expect(mockNavigateToAndOpenReport).toHaveBeenCalledWith(['test@example.com'], {}, 1, introSelected, false, undefined, betas, false, true);
     });
 
     it('should prefer reportID for self profile message action', () => {

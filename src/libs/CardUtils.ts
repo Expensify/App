@@ -46,6 +46,7 @@ import type {Connections} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {TupleToUnion, ValueOf} from 'type-fest';
 
@@ -119,6 +120,27 @@ type CompanyCardBankIconName = TupleToUnion<typeof COMPANY_CARD_BANK_ICON_NAMES>
 type CompanyCardBankIcons = Record<CompanyCardBankIconName, IconAsset>;
 
 const CUSTOM_FEED_PREFIXES = [CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX];
+
+type CardConnectionStatusDisplay = {
+    statusKey: TranslationPaths;
+    statusTone: 'success' | 'danger';
+    messageKey?: TranslationPaths;
+    actionKey?: TranslationPaths;
+    shouldUsePersonalCardFix?: boolean;
+    shouldUseCompanyCardsLink?: boolean;
+    shouldUseReauthMessage?: boolean;
+};
+
+type CardConnectionStatusDisplayParams = {
+    shouldShowConnectionStatus: boolean;
+    isCardBroken: boolean;
+    shouldShowRBR: boolean;
+    isCardInactive: boolean;
+    isPersonalCard: boolean;
+    isAdminForCardPolicy: boolean;
+    doesCardNeedReauthentication?: boolean;
+    policyID?: string;
+};
 
 const feedNamesMapping = {
     [CONST.COMPANY_CARD.FEED_BANK_NAME.CSV]: CONST.COMPANY_CARDS.CARD_TYPE_NAMES.CSV,
@@ -533,17 +555,27 @@ function getConnectionBankAccountsForReconciliation(connections: OnyxEntry<Parti
     }
 }
 
-function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, outputCurrency?: string) {
+/**
+ * Resolves the Expensify Card supported countries for a settlement currency, falling back to the hard-coded
+ * list until the backend supplies it via Onyx.
+ */
+function getSupportedCardCountriesForCurrency(supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, currency?: string): readonly string[] {
+    const byCurrency: Record<string, readonly string[]> = supportedCountriesByCurrency ?? CONST.EXPENSIFY_CARD_SUPPORTED_COUNTRIES_BY_CURRENCY;
+    return byCurrency[currency ?? ''] ?? [];
+}
+
+function getEligibleBankAccountsForUkEuCard(bankAccountsList: OnyxEntry<BankAccountList>, supportedCountriesByCurrency: OnyxEntry<Record<string, string[]>>, outputCurrency?: string) {
     if (!bankAccountsList || isEmptyObject(bankAccountsList)) {
         return [];
     }
+    const supportedCountries = getSupportedCardCountriesForCurrency(supportedCountriesByCurrency, outputCurrency);
     return Object.values(bankAccountsList).filter(
         (bankAccount) =>
             bankAccount?.accountData?.type === CONST.BANK_ACCOUNT.TYPE.BUSINESS &&
             bankAccount?.accountData?.allowDebit &&
             !isBankAccountPartiallySetup(bankAccount?.accountData?.state) &&
             bankAccount?.bankCurrency === outputCurrency &&
-            (CONST.EXPENSIFY_UK_EU_SUPPORTED_COUNTRIES as unknown as string).includes(bankAccount?.bankCountry),
+            supportedCountries.includes(bankAccount?.bankCountry),
     );
 }
 
@@ -604,12 +636,13 @@ function sortCardsByCardholderName(
     personalDetails: OnyxEntry<PersonalDetailsList>,
     localeCompare: LocaleContextProps['localeCompare'],
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): Card[] {
     return cards.sort((cardA: Card, cardB: Card) => {
         const userA = cardA.accountID ? (personalDetails?.[cardA.accountID] ?? {}) : {};
         const userB = cardB.accountID ? (personalDetails?.[cardB.accountID] ?? {}) : {};
-        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate});
-        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate});
+        const aName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userA, translate, formatPhoneNumber});
+        const bName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: userB, translate, formatPhoneNumber});
         return localeCompare(aName, bName);
     });
 }
@@ -1339,6 +1372,59 @@ function isCardConnectionBroken(card: Card): boolean {
 }
 
 /**
+ * Check if the card connection is broken specifically because the user needs to re-authenticate with their bank
+ *
+ * @param card the card to check
+ * @returns true if the connection needs re-authentication, false otherwise
+ */
+function doesCardConnectionNeedReauthentication(card: Card): boolean {
+    return isCardConnectionBroken(card) && !!card.lastScrapeResult && CONST.COMPANY_CARDS.REAUTH_SCRAPE_STATUSES.includes(card.lastScrapeResult);
+}
+
+function getCardConnectionStatusDisplay({
+    shouldShowConnectionStatus,
+    isCardBroken,
+    shouldShowRBR,
+    isCardInactive: isCardInactiveStatus,
+    isPersonalCard: isPersonalCardStatus,
+    isAdminForCardPolicy,
+    doesCardNeedReauthentication,
+    policyID,
+}: CardConnectionStatusDisplayParams): CardConnectionStatusDisplay | undefined {
+    if (!shouldShowConnectionStatus) {
+        return undefined;
+    }
+
+    const shouldShowMessage = isCardBroken || shouldShowRBR || isCardInactiveStatus;
+    const shouldUsePersonalCardFix = shouldShowMessage && isPersonalCardStatus;
+    const shouldUseCompanyCardsLink = shouldShowMessage && !isPersonalCardStatus && isAdminForCardPolicy && !!policyID;
+    const shouldUseReauthMessage = shouldShowMessage && !!doesCardNeedReauthentication && isPersonalCardStatus;
+    let messageKey: TranslationPaths | undefined;
+
+    if (shouldShowMessage) {
+        if (shouldUseCompanyCardsLink) {
+            messageKey = 'walletPage.cardStatus.fixConnectionIn';
+        } else if (shouldUseReauthMessage) {
+            messageKey = 'walletPage.cardStatus.reconnectBank';
+        } else if (isPersonalCardStatus) {
+            messageKey = 'walletPage.cardStatus.fixConnection';
+        } else {
+            messageKey = 'walletPage.cardStatus.askAdminToFixConnection';
+        }
+    }
+
+    return {
+        statusKey: shouldShowMessage ? 'walletPage.cardStatus.inactive' : 'walletPage.cardStatus.active',
+        statusTone: shouldShowMessage ? 'danger' : 'success',
+        messageKey,
+        actionKey: shouldUsePersonalCardFix ? 'common.actionBadge.fix' : undefined,
+        shouldUsePersonalCardFix,
+        shouldUseCompanyCardsLink,
+        shouldUseReauthMessage,
+    };
+}
+
+/**
  * Check whether a broken card connection has been unresolved long enough that we should stop
  * actively prompting the user (remove the time-sensitive task and the RBR). The error itself is
  * kept, so this is only used to gate the proactive surfacing, not the underlying broken state.
@@ -1592,7 +1678,7 @@ function isActionableVirtualExpensifyCard(card: Card | undefined): boolean {
 
 function hasVirtualExpensifyCardMissingPersonalDetails(cards: CardList | undefined, privatePersonalDetails?: PrivatePersonalDetails, isActingAsDelegate?: boolean) {
     // Delegates can't complete the missing-personal-details flow (it requires the original
-    // account's magic code), so surfacing a brick road in the wallet would be misleading.
+    // account's validateCode), so surfacing a brick road in the wallet would be misleading.
     // Mirrors the same gate applied in useTimeSensitiveCards for the home prompt.
     if (isActingAsDelegate) {
         return false;
@@ -1954,13 +2040,19 @@ function getSelectedCardsSharedCurrency(cardIDs: string[] | undefined, cardsList
     return Array.from(currencies).at(0);
 }
 
-function getCardHintText(validFrom: string | undefined, validThru: string | undefined, assigneeTimeZone: SelectedTimezone | undefined, translate: LocalizedTranslate) {
+function getCardHintText(
+    validFrom: string | undefined,
+    validThru: string | undefined,
+    assigneeTimeZone: SelectedTimezone | undefined,
+    dateFnsLocale: DateFnsLocale | undefined,
+    translate: LocalizedTranslate,
+) {
     if (!validFrom || !validThru) {
         return;
     }
     const formatDateForDisplay = (utcDateTime: string): string => {
         const dateInTimezone = DateUtils.formatUTCDateTimeToDateInTimezone(utcDateTime, assigneeTimeZone);
-        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone) : '';
+        return dateInTimezone ? DateUtils.formatToReadableString(dateInTimezone, dateFnsLocale) : '';
     };
     const startDate = formatDateForDisplay(validFrom);
     const endDate = formatDateForDisplay(validThru);
@@ -2057,6 +2149,8 @@ export {
     getCSVFeedType,
     getFeedType,
     isCardConnectionBroken,
+    doesCardConnectionNeedReauthentication,
+    getCardConnectionStatusDisplay,
     isBrokenConnectionPastDismissThreshold,
     isSmartLimitEnabled,
     lastFourNumbersFromCardName,
@@ -2100,6 +2194,7 @@ export {
     getCardFeedWithDomainID,
     splitCardFeedWithDomainID,
     getEligibleBankAccountsForUkEuCard,
+    getSupportedCardCountriesForCurrency,
     getConnectionBankAccountsForReconciliation,
     isPersonalCard,
     COMPANY_CARD_FEED_ICON_NAMES,

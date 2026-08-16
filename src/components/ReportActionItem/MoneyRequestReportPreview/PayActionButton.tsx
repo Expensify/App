@@ -4,6 +4,7 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -11,7 +12,6 @@ import useOnyx from '@hooks/useOnyx';
 import useParticipantsInvoiceReport from '@hooks/useParticipantsInvoiceReport';
 import usePayChatReportActions from '@hooks/usePayChatReportActions';
 import usePolicy from '@hooks/usePolicy';
-import useReportTransactionViolations from '@hooks/useReportTransactionViolations';
 
 import {generateDefaultWorkspaceName} from '@libs/actions/Policy/Policy';
 import {getTotalAmountForIOUReportPreviewButton} from '@libs/MoneyRequestReportUtils';
@@ -34,7 +34,14 @@ import ROUTES from '@src/ROUTES';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import React from 'react';
 
-import {useReportPreviewActions, useReportPreviewActionState, useReportPreviewAnimationState, useReportPreviewData, useReportPreviewUIState} from './MoneyRequestReportPreviewContext';
+import {
+    useReportPreviewActions,
+    useReportPreviewActionState,
+    useReportPreviewAnimationState,
+    useReportPreviewData,
+    useReportPreviewTransactionViolations,
+    useReportPreviewUIState,
+} from './MoneyRequestReportPreviewContext';
 import useConfirmApproveReportAction from './useConfirmApproveReportAction';
 import useReportPreviewActionButtonData from './useReportPreviewActionButtonData';
 
@@ -44,10 +51,11 @@ function PayActionButton() {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
+    const delegateAccountID = useDelegateAccountID();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const lastWorkspaceNumber = useLastWorkspaceNumber();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
 
     const {iouReportID, chatReportID, chatReport, transactions} = useReportPreviewData();
     const {isPaidAnimationRunning, isApprovedAnimationRunning} = useReportPreviewAnimationState();
@@ -60,13 +68,13 @@ function PayActionButton() {
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const activePolicy = usePolicy(activePolicyID);
     const actionButtonData = useReportPreviewActionButtonData(iouReportID);
-    const {iouReport, policy, userBillingGracePeriodEnds, iouReportNextStep, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
+    const {iouReport, policy, userBillingGracePeriodEnds, amountOwed, ownerBillingGracePeriodEnd} = actionButtonData;
     const chatReportPolicy = usePolicy(chatReport?.policyID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
 
-    const [transactionViolations] = useReportTransactionViolations(transactions);
+    const {transactionViolations} = useReportPreviewTransactionViolations();
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
 
     const existingB2BInvoiceReport = useParticipantsInvoiceReport(activePolicyID, CONST.REPORT.INVOICE_RECEIVER_TYPE.BUSINESS, chatReport?.policyID);
@@ -94,10 +102,10 @@ function PayActionButton() {
             if (isInvoiceReportUtils(iouReport)) {
                 startAnimation();
                 payInvoice({
+                    getCurrencyDecimals,
                     paymentMethodType: type,
                     chatReport: currentChatReport,
                     invoiceReport: iouReport,
-                    invoiceReportCurrentNextStepDeprecated: iouReportNextStep,
                     introSelected,
                     currentUserAccountIDParam: currentUserAccountID,
                     currentUserEmailParam: currentUserEmail,
@@ -112,15 +120,16 @@ function PayActionButton() {
                     isSelfTourViewed,
                     defaultWorkspaceName: generateDefaultWorkspaceName(currentUserEmail, lastWorkspaceNumber, translate),
                     chatReportActions: getChatReportActions(payAsBusiness),
+                    delegateAccountID,
                     isTrackIntentUser,
                 });
             } else {
                 payMoneyRequest({
+                    getCurrencyDecimals,
                     paymentType: type,
                     chatReport: currentChatReport,
                     iouReport,
                     introSelected,
-                    iouReportCurrentNextStepDeprecated: iouReportNextStep,
                     currentUserAccountID,
                     currentUserLogin: currentUserDetails.login ?? '',
                     activePolicy,
@@ -134,7 +143,9 @@ function PayActionButton() {
                     methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
                     onPaid: startAnimation,
                     chatReportActions: getChatReportActions(false),
+                    delegateAccountID,
                     isTrackIntentUser,
+                    conciergeChat,
                 });
             }
         }
