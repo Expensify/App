@@ -4,6 +4,7 @@ import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -1315,7 +1316,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     ))}
 
                     {shouldShowDeleteButton && (
-                        <MenuItem
+                        <MenuItemAction
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
                             title={deleteMenuItemTitle}
