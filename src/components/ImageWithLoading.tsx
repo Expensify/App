@@ -51,6 +51,10 @@ function ImageWithLoading({
     const isLoadedRef = useRef<boolean | null>(null);
     const [isImageCached, setIsImageCached] = useState(true);
     const [isLoading, setIsLoading] = useState(false);
+    // The full-resolution image is not guaranteed to ever emit `onLoad`/`onError` (e.g. a receipt derivative that is
+    // still being generated server-side), so `isLoading` can stay `true` indefinitely. Once the low-resolution preview
+    // is on screen we have something readable to show, so the loading state must stop being visible at that point.
+    const [isThumbnailLoading, setIsThumbnailLoading] = useState(!!previewUri);
     const {isOffline} = useNetwork();
 
     const handleError = () => {
@@ -97,9 +101,12 @@ function ImageWithLoading({
                     <Image
                         {...rest}
                         source={{uri: previewUri}}
-                        style={[styles.w100, styles.h100, styles.opacitySemiTransparent, style]}
+                        style={[styles.w100, styles.h100, style]}
                         resizeMode={resizeMode}
-                        onLoad={onLoad}
+                        onLoad={(e) => {
+                            setIsThumbnailLoading(false);
+                            onLoad?.(e);
+                        }}
                         loadingIconSize={loadingIconSize}
                         loadingIndicatorStyles={loadingIndicatorStyles}
                     />
@@ -125,12 +132,13 @@ function ImageWithLoading({
                     isLoadedRef.current = false;
                     setIsImageCached(false);
                     setIsLoading(true);
+                    setIsThumbnailLoading(!!previewUri);
                     waitForSession?.();
                 }}
                 loadingIconSize={loadingIconSize}
                 loadingIndicatorStyles={loadingIndicatorStyles}
             />
-            {(previewUri ? isLoading : isLoading && !isImageCached) && !isOffline && (
+            {isLoading && (!previewUri || isThumbnailLoading) && !isImageCached && !isOffline && (
                 <LoadingIndicator
                     iconSize={loadingIconSize}
                     style={[styles.opacity1, styles.bgTransparent, loadingIndicatorStyles]}

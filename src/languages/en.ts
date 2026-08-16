@@ -1775,6 +1775,7 @@ const translations = {
         },
         moveExpenses: 'Move to report',
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
+        moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
             sendExpense: 'Send your expense to anyone',
             sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
@@ -1785,6 +1786,18 @@ const translations = {
                 `Choose an option to change the approver for this report. (Update your <a href="${workflowSettingLink}">workspace settings</a> to change this permanently for all reports.)`,
             changedApproverMessage: (managerID: number) => `changed the approver to <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `reassigned the approver to <mention-user accountID="${managerID}"/> via a workflow update`,
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> instead of you (their Vacation Delegate) because you are not a member of this report's policy`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `This report was sent to you instead of your Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> instead of their Vacation Delegate <mention-user>@${delegate}</mention-user> because they are not a member of this report's policy`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since you can't approve your own reports`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `This report was sent to you for approval since your Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `This report was sent to <mention-user>@${originalManager}</mention-user> for approval since their Vacation Delegate, <mention-user>@${delegate}</mention-user> can't approve their own reports`,
             actions: {
                 addApprover: 'Add approver',
                 addApproverSubtitle: 'Add an additional approver to the existing workflow.',
@@ -4672,6 +4685,7 @@ const translations = {
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             readOnlyActionTitle: 'Not so fast...',
             readOnlyActionPrompt: "Your workspace role can view these settings, but can't edit them.",
+            noAccessActionPrompt: "Your workspace role doesn't have access to these settings. Ask an admin if you need it.",
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
@@ -6070,6 +6084,7 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
             settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
+            monthlySettlementDate: (date: string) => `Expensify cards will settle on the ${date} of each month.`,
             applyCashbackToBill: 'Apply cash back to my Expensify bill',
             applyCashbackToBillDescription: 'Cash back from the Expensify Card will be used towards payment for your Expensify bill.',
             frequency: {
@@ -8800,6 +8815,8 @@ const translations = {
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} attendee tracking`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense categorization requirement`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense tagging requirement`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -9178,6 +9195,11 @@ const translations = {
             bankAccount: {
                 banks: 'Bank accounts',
                 closedBankAccounts: 'Closed bank accounts',
+            },
+            workspace: {
+                active: 'Active',
+                archived: 'Archived',
+                selectAll: 'Select all',
             },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',

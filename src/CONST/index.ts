@@ -343,10 +343,6 @@ const CONST = {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
-        // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
-        // to the confirmation screen. Past this, we navigate and let the confirm-side hook
-        // generate the thumbnail lazily (brief source swap is acceptable).
-        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -1019,6 +1015,7 @@ const CONST = {
         GLOBAL_REIMBURSEMENT_FX: 'globalReimbursementFX',
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
+        CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',
@@ -1283,6 +1280,8 @@ const CONST = {
         EUR: 'EUR',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
+    // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
+    EXCHANGE_RATE_DISPLAY_DECIMALS: 4,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
@@ -1475,6 +1474,9 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        // The backend rejects moving an expense into a report that already holds this many transactions, so the App
+        // blocks the move up front with a warning instead of letting it fail silently.
+        MAX_TRANSACTIONS: 500,
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
@@ -1763,6 +1765,8 @@ const CONST = {
                     UPDATE_FEATURE_ENABLED: 'POLICYCHANGELOG_UPDATE_FEATURE_ENABLED',
                     UPDATE_IS_ATTENDEE_TRACKING_ENABLED: 'POLICYCHANGELOG_UPDATE_IS_ATTENDEE_TRACKING_ENABLED',
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
+                    UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
+                    UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -2189,6 +2193,13 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
+        /** Phases of the OpenApp/ReconnectApp data load. */
+        SPAN_STARTUP_DATA: {
+            WAIT: 'StartupData.Wait',
+            DOWNLOAD: 'StartupData.Download',
+            APPLY: 'StartupData.Apply',
+            RENDER: 'StartupData.Render',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2206,7 +2217,6 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
-        SPAN_THUMBNAIL_GATE: 'ManualThumbnailGate',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2242,6 +2252,7 @@ const CONST = {
             EMOJI_TRIE_BUILD: 'LocaleEmojiTrieBuild',
         },
         SPAN_ONYX_DERIVED_COMPUTE: 'OnyxDerivedCompute',
+        SPAN_STARTUP_NEW_DOT_JS_INIT: 'StartupNewDotJSInit',
         SPAN_NAVIGATION: {
             ROOT: 'BootsplashVisibleNavigation',
             PUSHER_INIT: 'NavigationPusherInit',
@@ -2288,6 +2299,10 @@ const CONST = {
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
+        ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_ATTEMPT: 'attempt',
+        ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
+        ATTRIBUTE_TIMED_OUT: 'timed_out',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
         ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
@@ -6223,6 +6238,13 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        WORKFLOWS_TAB_TYPE: 'workflowsTabType',
+        WORKFLOWS: {
+            SUBMISSIONS: 'submissions',
+            APPROVALS: 'approvals',
+            PAYMENTS: 'payments',
+            ADVANCED: 'advanced',
+        },
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
@@ -7138,6 +7160,8 @@ const CONST = {
                     SUBMITTER_USER_ID: this.TABLE_COLUMNS.SUBMITTER_USER_ID,
                     SUBMITTER_PAYROLL_ID: this.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
                     ORDER_DEAL_NUMBERS: this.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+                    AMOUNT_DEBITED: this.TABLE_COLUMNS.AMOUNT_DEBITED,
+                    AMOUNT_REIMBURSED: this.TABLE_COLUMNS.AMOUNT_REIMBURSED,
                     EXPORTED_ICON: this.TABLE_COLUMNS.EXPORTED_TO,
                     ACTION: this.TABLE_COLUMNS.ACTION,
                 },
@@ -7350,6 +7374,8 @@ const CONST = {
             SUBMITTER_USER_ID: 'submitterUserID',
             SUBMITTER_PAYROLL_ID: 'submitterPayrollID',
             ORDER_DEAL_NUMBERS: 'orderDealNumbers',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             AVATAR: 'avatar',
             STATUS: 'status',
             PAID_STATUS: 'paidstatus',
@@ -7443,6 +7469,8 @@ const CONST = {
             PAID_STATUS: 'paidStatus',
             WITHDRAWN: 'withdrawn',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amountDebited',
+            AMOUNT_REIMBURSED: 'amountReimbursed',
             TITLE: 'title',
             ASSIGNEE: 'assignee',
             REIMBURSABLE: 'reimbursable',
@@ -7495,6 +7523,8 @@ const CONST = {
             DATE: 'date',
             AMOUNT: 'amount',
             TOTAL: 'total',
+            AMOUNT_DEBITED: 'amount-debited',
+            AMOUNT_REIMBURSED: 'amount-reimbursed',
             EXPENSE_TYPE: 'expense-type',
             RECEIPT_TYPE: 'receipt-type',
             CURRENCY: 'currency',
@@ -7608,6 +7638,8 @@ const CONST = {
                 [this.TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS]: 'group-withdrawal-status',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: 'group-amount-debited',
                 [this.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: 'group-amount-reimbursed',
+                [this.TABLE_COLUMNS.AMOUNT_DEBITED]: 'amount-debited',
+                [this.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'amount-reimbursed',
             };
         },
         NOT_PREFIX: '-',
@@ -8645,6 +8677,7 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
