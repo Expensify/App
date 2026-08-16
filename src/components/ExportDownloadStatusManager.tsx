@@ -41,7 +41,7 @@ function ExportDownloadStatusManager() {
     const exportDownload = activeEntry[1];
 
     const handleClose = () => {
-        if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && exportDownload?.shouldSendFromConcierge) {
+        if (exportDownload?.shouldSendFromConcierge) {
             markExportDownloadSurfaced(exportID);
             return;
         }
