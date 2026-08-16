@@ -9192,6 +9192,30 @@ describe('SearchUIUtils', () => {
             expect(response.visibility.topCategories).toBe(false);
         });
 
+        test('Should set hasEligibleGroupPolicies only for group workspaces', () => {
+            const groupPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const personalPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const groupResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, groupPolicies, undefined);
+            const personalResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, personalPolicies, undefined);
+
+            expect(groupResponse.hasEligibleGroupPolicies).toBe(true);
+            expect(personalResponse.hasEligibleGroupPolicies).toBe(false);
+        });
+
         test('Should show Top Categories if at least one policy has categories enabled', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 policyOne: createMock<OnyxTypes.Policy>({
