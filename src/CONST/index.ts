@@ -7881,7 +7881,7 @@ const CONST = {
                 name: 'Intuit Enterprise Suite',
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
-                icon: 'QBOSquare',
+                icon: 'IntuitSquare',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
