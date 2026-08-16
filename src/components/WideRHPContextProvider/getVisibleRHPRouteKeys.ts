@@ -33,6 +33,11 @@ function getVisibleRHPKeys(state: NavigationState | undefined, allWideRHPKeys: s
         return emptyRHPKeysState;
     }
 
+    // An RHP whose own stack has not been populated yet says nothing about its screens, so none of them is treated as displayed or as dismissing.
+    if (lastRHPRoute && !lastRHPRoute.state?.routes) {
+        return emptyRHPKeysState;
+    }
+
     let visibleRHPKeys = new Set<string>();
     if (lastRHPRoute) {
         const superWideRHPIndex = lastRHPRoute.state?.routes.findLastIndex((route) => route?.key && allSuperWideRHPKeys.includes(route.key)) ?? -1;

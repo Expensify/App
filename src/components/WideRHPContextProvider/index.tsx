@@ -52,11 +52,18 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
-let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: [], superWide: []};
+const NO_VISIBLE_RHP_ROUTE_KEYS: string[] = [];
+
+let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: NO_VISIBLE_RHP_ROUTE_KEYS, superWide: NO_VISIBLE_RHP_ROUTE_KEYS};
 const visibleRHPRouteKeysListeners = new Set<() => void>();
 
+function haveSameRHPRouteKeys(current: string[], next: string[]) {
+    return current.length === next.length && current.every((routeKey, index) => routeKey === next.at(index));
+}
+
 function setVisibleRHPRouteKeysSnapshot(wide: string[], superWide: string[]) {
-    if (visibleRHPRouteKeys.wide === wide && visibleRHPRouteKeys.superWide === superWide) {
+    // Compared by content, since the keys are re-derived into fresh arrays on every navigation event and every subscriber is a mounted screen.
+    if (haveSameRHPRouteKeys(visibleRHPRouteKeys.wide, wide) && haveSameRHPRouteKeys(visibleRHPRouteKeys.superWide, superWide)) {
         return;
     }
     visibleRHPRouteKeys = {wide, superWide};
@@ -176,7 +183,7 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     /**
      * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.
      */
-    useEffect(() => () => setVisibleRHPRouteKeysSnapshot([], []), []);
+    useEffect(() => () => setVisibleRHPRouteKeysSnapshot(NO_VISIBLE_RHP_ROUTE_KEYS, NO_VISIBLE_RHP_ROUTE_KEYS), []);
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.

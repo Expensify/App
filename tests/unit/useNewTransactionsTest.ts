@@ -1105,6 +1105,37 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         expect(result.current).toEqual([txD]);
     });
 
+    it('keeps a diff-detected add highlighted when the list re-sorts around it', () => {
+        const txA = {...baseTx, transactionID: 'A'};
+        const txB = {...baseTx, transactionID: 'B'};
+        const txC = {...baseTx, transactionID: 'C'};
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+            initialProps: {transactions: [txA, txB]},
+        });
+
+        rerender({transactions: [txA, txB, txC]});
+        expect(result.current).toEqual([txC]);
+
+        // The optimistic row gets its server created date and the list re-sorts, which is not a change to what is new.
+        rerender({transactions: [txC, txA, txB]});
+        expect(result.current).toEqual([txC]);
+    });
+
+    it('drops a diff-detected add once it leaves the list', () => {
+        const txA = {...baseTx, transactionID: 'A'};
+        const txB = {...baseTx, transactionID: 'B'};
+        const txC = {...baseTx, transactionID: 'C'};
+        const {rerender, result} = renderHook<Transaction[], {transactions: Transaction[]}>((props) => useNewTransactions(true, props.transactions, undefined, 'report1', true), {
+            initialProps: {transactions: [txA, txB]},
+        });
+
+        rerender({transactions: [txA, txB, txC]});
+        expect(result.current).toEqual([txC]);
+
+        rerender({transactions: [txA, txB]});
+        expect(result.current).toEqual([]);
+    });
+
     it('expires a rail-backed diff add in the first window, so it cannot resurface once the rail clears', () => {
         jest.useFakeTimers();
         try {

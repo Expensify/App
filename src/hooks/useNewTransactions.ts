@@ -63,6 +63,12 @@ function useNewTransactions(
             } else if (!hasReplacedBaseline) {
                 addedIDs = trackedTransactionIDs.filter((transactionID) => !baselineSet.has(transactionID));
             }
+        } else if (diffState.addedIDs.length && trackedTransactionIDs !== undefined) {
+            // A reorder or a removal says nothing about what is new, so latched adds that are still listed keep the window they were given.
+            const trackedIDs = new Set(trackedTransactionIDs);
+            const stillListed = diffState.addedIDs.filter((transactionID) => trackedIDs.has(transactionID));
+            // Same identity when nothing dropped, so the window is not restarted by a reorder.
+            addedIDs = stillListed.length === diffState.addedIDs.length ? diffState.addedIDs : stillListed;
         }
         setDiffState({reportID, sourceIDs: trackedTransactionIDs, addedIDs});
     }

@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import type {RHPWidth, RHPWidthHint} from '@components/WideRHPContextProvider/types';
 
@@ -72,12 +72,14 @@ describe('useRHPWidth', () => {
         expect(lastRegisteredWidth()).toBe('super-wide');
     });
 
-    it('clears the hint on unmount, bounding one left behind by a navigation that mounted no screen', () => {
+    it('clears the hint on unmount, bounding one left behind by a navigation that mounted no screen', async () => {
         mockGetReportRHPWidthHint.mockReturnValue(undefined);
         const {unmount} = renderHarness('wide');
         mockUnmarkReportRHPWidth.mockClear();
 
-        unmount();
+        await act(async () => {
+            unmount();
+        });
 
         expect(mockUnmarkReportRHPWidth).toHaveBeenCalledWith('report1');
     });

@@ -28,9 +28,9 @@ function useRHPWidth(width: RHPWidth) {
 
     const onClose = useEffectEvent(() => {
         removeRHPRouteKey(route);
-        // Bounds a hint's life: one marked for a navigation that never mounted a screen has nothing else to clear it.
+        // Clears a hint no screen consumed, deferred past this commit so a screen replacing this one gets it first.
         if (reportID) {
-            unmarkReportRHPWidth(reportID);
+            Promise.resolve().then(() => unmarkReportRHPWidth(reportID));
         }
         // When the RHP has been closed, expandedRHPProgress should be set to 0.
         if (navigationRef?.getRootState()?.routes?.at(-1)?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR) {
