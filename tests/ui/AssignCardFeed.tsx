@@ -225,6 +225,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -265,6 +266,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -303,6 +305,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -347,6 +350,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -380,6 +384,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -417,6 +422,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -445,6 +451,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -478,6 +485,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -514,6 +522,7 @@ describe('AssignCardFeed', () => {
             await TestHelper.signInWithTestUser();
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -551,6 +560,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -591,6 +601,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -634,6 +645,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -670,6 +682,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -719,6 +732,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -766,6 +780,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -829,6 +844,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -909,6 +925,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -946,6 +963,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
@@ -996,6 +1014,7 @@ describe('AssignCardFeed', () => {
 
             const policy = {
                 ...LHNTestUtils.getFakePolicy(),
+                areCompanyCardsEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 policyAccountID: WORKSPACE_ACCOUNT_ID,
             };
