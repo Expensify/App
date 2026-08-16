@@ -9,7 +9,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import {resetSignInFlow} from './HybridApp';
 
@@ -17,7 +16,6 @@ let currentShouldForceOffline: boolean | undefined;
 let currentIsUsingImportedState: boolean | undefined;
 let currentSessionAuthToken: string | undefined;
 let currentSessionEmail: string | undefined;
-let currentSessionAccountID: number | undefined;
 let currentCredentialsValidateCode: string | undefined;
 
 Onyx.connectWithoutView({
@@ -39,7 +37,6 @@ Onyx.connectWithoutView({
     callback: (session) => {
         currentSessionAuthToken = session?.authToken;
         currentSessionEmail = session?.email;
-        currentSessionAccountID = session?.accountID;
     },
 });
 
@@ -50,7 +47,7 @@ Onyx.connectWithoutView({
     },
 });
 
-async function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
+function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?: boolean): Promise<void> {
     // Under certain conditions, there are key-values we'd like to keep in storage even when a user is logged out.
     // We pass these into the clear() method in order to avoid having to reset them on a delayed tick and getting
     // flashes of unwanted default state.
@@ -96,12 +93,8 @@ async function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentica
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
 
         // A forced re-auth is involuntary, so an in-progress trip is kept and offered back on return.
-        // Only keep a trip we can record an owner for, so it is never resumed by whoever signs in next.
-        const gpsTrip = await OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS);
-        if (gpsTrip?.isTracking && currentSessionAccountID) {
-            Onyx.merge(ONYXKEYS.GPS_DRAFT_DETAILS, {accountID: currentSessionAccountID});
-            keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
-        }
+        // The trip records who started it, and GPSTripStateChecker drops it unless that user signs back in.
+        keysToPreserve.push(ONYXKEYS.GPS_DRAFT_DETAILS);
     }
 
     return Onyx.clear(keysToPreserve).then(async () => {
