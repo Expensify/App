@@ -136,7 +136,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -220,7 +220,10 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
+            subtitle: translate(
+                'search.searchResults.emptyViolationSnapshotResults.subtitle',
+                DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone, dateFnsLocale),
+            ),
         };
     }
 

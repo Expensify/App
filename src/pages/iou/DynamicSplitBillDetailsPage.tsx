@@ -6,6 +6,7 @@ import MoneyRequestConfirmationList from '@components/MoneyRequestConfirmationLi
 import MoneyRequestHeaderStatusBar from '@components/MoneyRequestHeaderStatusBar';
 import ScreenWrapper from '@components/ScreenWrapper';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -51,7 +52,8 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -85,7 +87,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                 personalDetails,
                 report,
                 policy,
-                translate,
+                {translate, dateFnsLocale},
                 session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                 reportAttributesDerived,
             ),
@@ -111,6 +113,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
     const onConfirm = useCallback(() => {
         setIsConfirmed(true);
         completeSplitBill({
+            getCurrencyDecimals,
             chatReportID: reportID,
             reportAction,
             updatedTransaction: draftTransaction,
@@ -142,6 +145,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
+        getCurrencyDecimals,
     ]);
 
     return (

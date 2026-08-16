@@ -51,6 +51,7 @@ namespace margelo::nitro::utils {
   public:
     // Properties
     double getAppStartTime() override;
+    std::unordered_map<std::string, double> getAppStartupMarkers() override;
 
   public:
     // Methods
