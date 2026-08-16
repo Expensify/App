@@ -5,6 +5,7 @@ import CONST from '@src/CONST';
 import type {GovernmentRateCountry} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy} from '@src/types/onyx';
 import type {CustomUnit, Rate, RateAttributes, Unit} from '@src/types/onyx/Policy';
 import type {OnyxData} from '@src/types/onyx/Request';
 
@@ -251,6 +252,10 @@ function getGovernmentRateCountryPhraseTranslationKey(currency?: string): Transl
     return countryPhraseTranslationKeys[country];
 }
 
+function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {
+    return !!policy?.id && !!policy.commuterExclusions;
+}
+
 export {
     validateRateValue,
     validateTaxClaimableValue,
@@ -262,4 +267,6 @@ export {
     isCurrencySupportedForAutoUpdate,
     getExpectedUnitForCurrency,
     getGovernmentRateCountryPhraseTranslationKey,
+    isCommuterExclusionEnabled,
+    isGovernmentRateUnmodified,
 };

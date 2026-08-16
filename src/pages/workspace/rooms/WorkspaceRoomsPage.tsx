@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -6,7 +6,7 @@ import WorkspaceRoomsTable from '@components/Tables/WorkspaceRoomsTable';
 import type {WorkspaceRoomRowData} from '@components/Tables/WorkspaceRoomsTable';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
@@ -28,6 +28,7 @@ import type {WorkspaceSplitNavigatorParamList} from '@navigation/types';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
@@ -44,7 +45,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const headerIcons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const illustrations = useMemoizedLazyIllustrations(['Hashtag']);
     const policyID = route.params.policyID;
     const policy = usePolicy(policyID);
     const isAdmin = isPolicyAdmin(policy);
@@ -109,7 +109,6 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
             >
                 <HeaderWithBackButton
                     title={translate('workspace.common.rooms')}
-                    icon={illustrations.Hashtag}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
                     onBackButtonPress={Navigation.goBack}
@@ -117,23 +116,25 @@ function WorkspaceRoomsPage({route}: WorkspaceRoomsPageProps) {
                 >
                     {!shouldUseNarrowLayout && !isArchived && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
-                        />
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     )}
                 </HeaderWithBackButton>
 
                 {shouldUseNarrowLayout && !isArchived && (
                     <View style={[styles.ph5, styles.pb3]}>
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => Navigation.navigate(ROUTES.WORKSPACE_ROOM_CREATE.getRoute(policyID))}
-                            icon={headerIcons.Plus}
-                            text={translate('common.create')}
                             style={styles.w100}
-                        />
+                        >
+                            <Button.Icon src={headerIcons.Plus} />
+                            <Button.Text>{translate('common.create')}</Button.Text>
+                        </Button>
                     </View>
                 )}
 

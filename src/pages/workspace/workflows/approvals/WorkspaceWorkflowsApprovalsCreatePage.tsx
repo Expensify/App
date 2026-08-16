@@ -116,10 +116,7 @@ function WorkspaceWorkflowsApprovalsCreatePage({policy, isLoadingReportData = tr
                     )}
                     {!approvalWorkflow && (
                         <View style={[styles.flex1, styles.fullScreenLoading]}>
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                                reasonAttributes={{context: 'WorkspaceWorkflowsApprovalsCreatePage'}}
-                            />
+                            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                         </View>
                     )}
                 </FullPageNotFoundView>

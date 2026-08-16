@@ -1,5 +1,6 @@
-import Button from '@components/Button';
-import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Button from '@components/ButtonComposed';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
+import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import BareUserListItem from '@components/SelectionList/ListItem/BareUserListItem';
@@ -10,7 +11,6 @@ import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
-import useOnboardingStepCounter from '@hooks/useOnboardingStepCounter';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -30,7 +30,6 @@ import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActio
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import type {JoinablePolicy} from '@src/types/onyx/JoinablePolicies';
 
 import {useFocusEffect} from '@react-navigation/native';
@@ -80,7 +79,6 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
     const isEmployerWithSubmit = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.EMPLOYER && canUseSubmit2026;
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const shouldHideBackButton = onboardingValues?.shouldValidate === false && route.params?.backTo === ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute();
-    const onboardingStep = useOnboardingStepCounter(SCREENS.ONBOARDING.WORKSPACES);
 
     const handleJoinWorkspace = (policy: JoinablePolicy) => {
         const isJoiningSubmitPolicy = policy.policyType === CONST.POLICY.TYPE.SUBMIT;
@@ -132,14 +130,15 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             rightElement: (
                 <Button
                     isDisabled={isOffline}
-                    success
-                    medium
-                    text={policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     onPress={() => {
                         handleJoinWorkspace(policyInfo);
                     }}
                     sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.JOIN_WORKSPACE}
-                />
+                >
+                    <Button.Text>{policyInfo.automaticJoiningEnabled ? translate('workspace.workspaceList.joinNow') : translate('workspace.workspaceList.askToJoin')}</Button.Text>
+                </Button>
             ),
             icons: [
                 {
@@ -186,12 +185,9 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
             shouldShowOfflineIndicator={isSmallScreenWidth}
         >
-            <HeaderWithBackButton
+            <OnboardingHeader
                 shouldShowBackButton={!shouldHideBackButton}
-                stepCounter={onboardingStep?.stepCounter}
-                progressBarPercentage={onboardingStep?.progressBarPercentage}
                 onBackButtonPress={() => Navigation.goBack()}
-                shouldDisplayHelpButton={false}
             />
             <SelectionList
                 data={policyIDItems}
@@ -215,32 +211,30 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
                 listFooterContent={
                     hasMoreThanLimit && !showAll ? (
                         <View style={[wrapperPadding, styles.alignItemsStart]}>
-                            <Button
-                                text={translate('common.showMore')}
+                            <LinkButton
                                 onPress={() => setShowAll(true)}
-                                link
-                                shouldUseDefaultHover={false}
-                                medium
-                                shouldShowRightIcon
-                                iconRight={icons.DownArrow}
-                                iconRightFill={theme.link}
-                                iconRightHoverFill={theme.linkHover}
                                 innerStyles={styles.ph0}
-                                textStyles={[styles.fontSizeNormal]}
-                            />
+                            >
+                                <LinkButton.Text style={styles.fontSizeNormal}>{translate('common.showMore')}</LinkButton.Text>
+                                <LinkButton.Icon
+                                    src={icons.DownArrow}
+                                    fill={theme.link}
+                                    hoverFill={theme.linkHover}
+                                />
+                            </LinkButton>
                         </View>
                     ) : null
                 }
                 footerContent={
                     <Button
-                        success={false}
-                        large
-                        text={translate('onboarding.skipForNow')}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         testID="onboardingWorkSpaceSkipButton"
                         onPress={skipJoiningWorkspaces}
                         style={[styles.mt5]}
                         sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
-                    />
+                    >
+                        <Button.Text>{translate('onboarding.skipForNow')}</Button.Text>
+                    </Button>
                 }
             />
         </ScreenWrapper>

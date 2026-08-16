@@ -118,7 +118,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             displayName="DynamicQuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
-            titleAlreadyTranslated={translate('workspace.qbo.exportDescription', {integrationName})}
+            titleAlreadyTranslated={translate('workspace.qbo.exportDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             onBackButtonPress={goBack}
