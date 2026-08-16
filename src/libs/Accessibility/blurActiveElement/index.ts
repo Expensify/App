@@ -2,7 +2,7 @@
  * Drops focus from whatever currently holds it.
  *
  * Pass `container` to limit the blur to focus that lives inside it. A closing modal only wants to drop focus from
- * content that is about to unmount — by then its focus trap may have already returned focus to the launcher that
+ * content that is about to unmount. By then its focus trap may have already returned focus to the launcher that
  * opened it, which sits outside, and blurring that would silently undo the return.
  */
 const blurActiveElement = (container?: unknown) => {

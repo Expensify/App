@@ -144,7 +144,7 @@ function ReanimatedModal({
             transitionHandleRef.current = TransitionTracker.startTransition();
             onModalWillHide();
 
-            // Only drop focus that is inside this modal — its content is about to unmount. By now the focus trap may
+            // Only drop focus that is inside this modal, because its content is about to unmount. By now the focus trap may
             // have already returned focus to the launcher that opened us, which sits outside; blurring that would
             // silently undo the return (visible on Escape, where focus-trap deactivates before we close).
             // The containment test lives in the web implementation: this file also runs on native, where `HTMLElement`

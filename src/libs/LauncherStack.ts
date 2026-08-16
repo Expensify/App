@@ -4,8 +4,10 @@
  */
 import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
-// deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
-type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
+// deactivatedAt is set once every trap holding the launcher has closed; the entry then lives LAUNCHER_CLEAR_DELAY_MS so
+// deferred-nav popovers can still consume it. holders counts those traps: nested traps and a modal opened from a popover
+// all adopt the same element, and the entry must stay active until the last of them lets go.
+type LauncherEntry = {element: HTMLElement; deactivatedAt?: number; holders: number};
 
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
@@ -70,10 +72,8 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     }
     // Reactivation must move the entry to the tail — pickLauncher scans end-first, so leaving a reactivated entry mid-stack lets newer (still-active) entries shadow it.
     const existingIdx = launcherStack.findIndex((e) => e.element === element);
-    if (existingIdx >= 0) {
-        launcherStack.splice(existingIdx, 1);
-    }
-    launcherStack.push({element});
+    const [existing] = existingIdx >= 0 ? launcherStack.splice(existingIdx, 1) : [];
+    launcherStack.push({element, holders: (existing?.holders ?? 0) + 1, deactivatedAt: undefined});
     if (launcherStack.length > LAUNCHER_STACK_MAX) {
         if (!hasWarnedAboutOverflow) {
             hasWarnedAboutOverflow = true;
@@ -85,7 +85,11 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     }
 }
 
-/** Mark a launcher (or top-of-stack) as deactivated. pickLauncher lazy-prunes on LAUNCHER_CLEAR_DELAY_MS. */
+/**
+ * Release one trap's hold on a launcher (or on the top-of-stack entry). The entry is only marked deactivated once the
+ * last holder releases it, so a popover closing underneath a modal it opened cannot age out the launcher that modal
+ * still needs. pickLauncher lazy-prunes deactivated entries on LAUNCHER_CLEAR_DELAY_MS.
+ */
 function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;
@@ -94,8 +98,16 @@ function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (index < 0) {
         return;
     }
+    const entry = launcherStack.at(index);
+    if (!entry) {
+        return;
+    }
+    entry.holders = Math.max(0, entry.holders - 1);
+    if (entry.holders > 0) {
+        return;
+    }
     // Splice-then-push so end-first scan returns the most-recently-deactivated (correct for nested-trap close: outer closes after inner).
-    const [entry] = launcherStack.splice(index, 1);
+    launcherStack.splice(index, 1);
     entry.deactivatedAt = performance.now();
     launcherStack.push(entry);
 }
