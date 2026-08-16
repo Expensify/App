@@ -7,7 +7,7 @@ import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useHRSyncResultsModal from '@hooks/useHRSyncResultsModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMergeHRInitialSyncingModal from '@hooks/useMergeHRInitialSyncingModal';
 import useNetwork from '@hooks/useNetwork';
@@ -48,7 +48,7 @@ function WorkspaceHRPage({
         params: {policyID},
     },
 }: WorkspaceHRPageProps) {
-    const {translate, getLocalDateFromDatetime, localeCompare} = useLocalize();
+    const {translate, getLocalDateFromDatetime, localeCompare, formatPhoneNumber} = useLocalize();
     const isFocused = useIsFocused();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -56,7 +56,6 @@ function WorkspaceHRPage({
     const policy = usePolicy(policyID);
     const [connectionSyncProgress] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CONNECTION_SYNC_PROGRESS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['GustoSquare', 'TriNetSquare']);
-    const illustrations = useMemoizedLazyIllustrations(['NewUser']);
     const [activeHRFlow, setActiveHRFlow] = useState<{setupLink: string; key: number} | undefined>();
     const {showConfirmModal} = useConfirmModal();
 
@@ -76,6 +75,7 @@ function WorkspaceHRPage({
         connectionSyncProgress,
         getLocalDateFromDatetime,
         translate,
+        formatPhoneNumber,
         policyID,
         gustoIcon: icons.GustoSquare,
         trinetIcon: icons.TriNetSquare,
@@ -139,7 +139,6 @@ function WorkspaceHRPage({
                     />
                 )}
                 <HeaderWithBackButton
-                    icon={illustrations.NewUser}
                     title={translate('workspace.hr.title')}
                     shouldShowBackButton={shouldUseNarrowLayout}
                     shouldUseHeadlineHeader
