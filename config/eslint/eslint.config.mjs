@@ -712,6 +712,18 @@ const config = defineConfig([
     },
 
     {
+        // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See scripts/tsconfig.json.
+        files: ['scripts/lint.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         files: ['tests/tooling/**/*.ts'],
         rules: {
             // bun-types declares `expect(...).resolves`/`.rejects` matchers as returning `void` even though Bun's
