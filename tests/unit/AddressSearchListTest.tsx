@@ -18,7 +18,7 @@ import {GooglePlacesAutocomplete} from 'react-native-google-places-autocomplete'
  * - the "no results" empty state shows when a search comes back empty
  * - the list reacts to `predefinedPlaces` (recent destinations) changing after mount
  *
- * These are silent regressions — they produce no crash, type error, or console warning — so
+ * These are silent regressions. They produce no crash, type error, or console warning, so
  * they are only caught by asserting on what the list actually renders.
  */
 
