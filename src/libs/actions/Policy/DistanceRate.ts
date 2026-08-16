@@ -689,7 +689,7 @@ function setWorkspaceDistanceAutoUpdate(
                 name: governmentMileageRate.name,
                 rate: governmentMileageRate.rate,
                 currency: governmentMileageRate.currency,
-                enabled: true,
+                enabled: governmentMileageRate.enabled ?? true,
                 ...(governmentMileageRate.startDate ? {startDate: governmentMileageRate.startDate} : {}),
                 ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
                 attributes: {
