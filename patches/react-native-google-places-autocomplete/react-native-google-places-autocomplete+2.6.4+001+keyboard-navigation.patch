@@ -1,8 +1,8 @@
 diff --git a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-index f733e49..2d1da44 100644
+index 9fedd7e..6f78506 100644
 --- a/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
 +++ b/node_modules/react-native-google-places-autocomplete/GooglePlacesAutocomplete.js
-@@ -719,6 +719,15 @@ export const GooglePlacesAutocomplete = ({ ref, ...rest }) => {
+@@ -907,6 +907,15 @@ export const GooglePlacesAutocomplete = forwardRef((props, ref) => {
            ]}
            onPress={() => _onPress(rowData)}
            onBlur={_onBlur}
