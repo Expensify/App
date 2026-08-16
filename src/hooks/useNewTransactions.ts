@@ -73,6 +73,11 @@ function useNewTransactions(
         setDiffState({reportID, sourceIDs: trackedTransactionIDs, addedIDs});
     }
 
+    // An unloaded report has not settled by definition, so a loaded flag that only catches up after a switch cannot leave the latch set.
+    if (!hasOnceLoadedReportActions && hasSettledAfterInitialLoad) {
+        setHasSettledAfterInitialLoad(false);
+    }
+
     const activeFlagKeys = pendingNewTransactions?.activeFlagKeys;
     const railTransactions = reportID && activeFlagKeys && transactions?.length ? transactions.filter(({transactionID}) => activeFlagKeys[transactionID]) : EMPTY_TRANSACTIONS;
 

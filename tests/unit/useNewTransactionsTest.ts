@@ -1105,6 +1105,25 @@ describe('useNewTransactions rail cleanup lifecycle', () => {
         expect(result.current).toEqual([txD]);
     });
 
+    it('treats the incoming report as unsettled when the loaded flag lags the switch, so its hydration is not an add', () => {
+        const txA = {...baseTx, transactionID: 'A'};
+        const txB = {...baseTx, transactionID: 'B'};
+        const txC = {...baseTx, transactionID: 'C'};
+        const {rerender, result} = renderHook<Transaction[], {hasOnceLoadedReportActions: boolean; reportID: string; transactions: Transaction[]}>(
+            (props) => useNewTransactions(props.hasOnceLoadedReportActions, props.transactions, undefined, props.reportID, true),
+            {initialProps: {hasOnceLoadedReportActions: true, reportID: 'report1', transactions: [txA]}},
+        );
+
+        // The switch render still carries report1's loaded flag and list, so nothing here describes report2.
+        rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txA]});
+        rerender({hasOnceLoadedReportActions: false, reportID: 'report2', transactions: []});
+
+        // report2 then loads and hydrates in the two merges Onyx usually delivers.
+        rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txB]});
+        rerender({hasOnceLoadedReportActions: true, reportID: 'report2', transactions: [txB, txC]});
+        expect(result.current).toEqual([]);
+    });
+
     it('keeps a diff-detected add highlighted when the list re-sorts around it', () => {
         const txA = {...baseTx, transactionID: 'A'};
         const txB = {...baseTx, transactionID: 'B'};
