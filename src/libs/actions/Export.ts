@@ -79,9 +79,11 @@ function clearStaleExportDownloads() {
                 if (!exportDownload) {
                     continue;
                 }
-                // Keep preparing and ready exports: preparing is still in flight, and ready is a finished file the
-                // user may not have seen yet (they closed or reloaded before it surfaced), so the status manager
-                // can re-surface it. Only failed leftovers are cleared here.
+                // Never clear a Concierge hand-off: the worker owns the record and deletes it once delivered.
+                if (exportDownload.shouldSendFromConcierge) {
+                    continue;
+                }
+                // Keep preparing (in flight) and ready (finished but maybe unseen) exports; only clear failed leftovers.
                 if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
