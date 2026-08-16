@@ -153,22 +153,21 @@ describe('LauncherStack', () => {
         it('keeps the entry active until every trap holding it has released', () => {
             // A popover's two traps and the modal it opens all adopt the same launcher, which dedupes to one entry.
             // The popover closing underneath must not deactivate the launcher the modal above it still needs.
-            const fab = appendButton();
-            setActivePopoverLauncher(fab);
-            setActivePopoverLauncher(fab);
-            setActivePopoverLauncher(fab);
-
-            markActivePopoverLauncherDeactivated(fab);
-            markActivePopoverLauncherDeactivated(fab);
-
+            // deactivatedAt is stamped from performance.now(), so the marks have to share the fake clock the
+            // assertions advance, otherwise the entry is timestamped on the real clock and never ages out.
             withFakeTimers(() => {
+                const fab = appendButton();
+                setActivePopoverLauncher(fab);
+                setActivePopoverLauncher(fab);
+                setActivePopoverLauncher(fab);
+
+                markActivePopoverLauncherDeactivated(fab);
+                markActivePopoverLauncherDeactivated(fab);
                 jest.advanceTimersByTime(2000);
                 // Still held by the covering trap, so it must not age out of the window.
                 expect(pickLauncher()).toBe(fab);
-            });
 
-            markActivePopoverLauncherDeactivated(fab);
-            withFakeTimers(() => {
+                markActivePopoverLauncherDeactivated(fab);
                 jest.advanceTimersByTime(2000);
                 expect(pickLauncher()).toBeNull();
             });
