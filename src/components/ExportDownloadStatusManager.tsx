@@ -1,6 +1,6 @@
 import useOnyx from '@hooks/useOnyx';
 
-import {clearExportDownload} from '@libs/actions/Export';
+import {clearExportDownload, markExportDownloadSurfaced} from '@libs/actions/Export';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -19,16 +19,19 @@ import ExportDownloadStatusModal from './ExportDownloadStatusModal';
 function ExportDownloadStatusManager() {
     const [exportDownloads] = useOnyx(ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD);
 
-    // Skip Concierge hand-offs: once the user opts into Concierge delivery, the file (or the error) is delivered
-    // through the Concierge chat, so the modal has nothing left to show. Setting shouldSendFromConcierge is what
-    // closes the modal, and the worker deletes the record once it is done.
-    const activeEntry = Object.entries(exportDownloads ?? {}).find(
-        ([, exportDownload]) =>
-            !exportDownload?.shouldSendFromConcierge &&
-            (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING ||
-                exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.READY ||
-                exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.FAILED),
-    );
+    const activeEntry = Object.entries(exportDownloads ?? {}).find(([, exportDownload]) => {
+        if (!exportDownload) {
+            return false;
+        }
+        if (exportDownload.shouldSendFromConcierge) {
+            return !exportDownload.hasBeenSurfaced;
+        }
+        return (
+            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING ||
+            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY ||
+            exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.FAILED
+        );
+    });
 
     if (!activeEntry) {
         return null;
@@ -38,6 +41,10 @@ function ExportDownloadStatusManager() {
     const exportDownload = activeEntry[1];
 
     const handleClose = () => {
+        if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING && exportDownload?.shouldSendFromConcierge) {
+            markExportDownloadSurfaced(exportID);
+            return;
+        }
         // The modal blocks dismissal while still preparing, so this is belt-and-suspenders.
         if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
             return;

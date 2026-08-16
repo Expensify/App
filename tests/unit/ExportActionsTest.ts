@@ -59,6 +59,19 @@ describe('Export actions', () => {
         );
     });
 
+    test('markExportDownloadSurfaced merges hasBeenSurfaced client-side without touching the rest of the record', async () => {
+        const exportID = 'test-export-surfaced';
+        const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
+        await Onyx.set(onyxKey, {state: 'preparing', shouldSendFromConcierge: true});
+        await waitForBatchedUpdates();
+
+        Export.markExportDownloadSurfaced(exportID);
+        await waitForBatchedUpdates();
+
+        const value = await getOnyxValue(onyxKey);
+        expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true, hasBeenSurfaced: true});
+    });
+
     test('clearExportDownload sets the Onyx key to null', async () => {
         const exportID = 'test-export-789';
         const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
@@ -141,8 +154,8 @@ describe('Export actions', () => {
         Export.clearStaleExportDownloads();
         await waitForBatchedUpdates();
 
-        // Concierge delivery is owned by the worker, so the record is left as-is; the status manager skips it by
-        // checking shouldSendFromConcierge.
+        // Concierge delivery is owned by the worker, which deletes the record when it is done, so the stale
+        // cleanup leaves the record as-is instead of clearing it.
         const value = await getOnyxValue(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}stale-concierge`);
         expect(value).toEqual({state: 'preparing', shouldSendFromConcierge: true});
     });
