@@ -54,6 +54,7 @@ function ExportDownloadStatusManager() {
 
     return (
         <ExportDownloadStatusModal
+            key={exportID}
             exportID={exportID}
             isVisible
             onClose={handleClose}
