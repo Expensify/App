@@ -4537,11 +4537,11 @@ function getReasonAndReportActionThatRequiresAttention(
 
     const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
     const hasAllExpensesHeld = hasOnlyHeldExpenses(transactions);
+    const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
     // An all-held report can't move to its next state, so it isn't a to-do. Keep it only for a report awaiting
     // approval or payment where the current user placed a hold, since they can remove it. An open report stays
     // excluded because only its owner can place a hold there, and that owner is the one who submits.
-    const isExcludedForHeldExpenses =
-        hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(getAllReportActions(iouReportID), transactions, currentUserAccountID));
+    const isExcludedForHeldExpenses = hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
 
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
