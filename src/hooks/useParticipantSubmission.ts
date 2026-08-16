@@ -113,7 +113,6 @@ function useParticipantSubmission({
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
         isGroupPolicy(activePolicy) &&
-        activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
