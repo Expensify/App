@@ -1,11 +1,10 @@
 import * as API from '@libs/API';
-import type {ImportCSVTransactionsParams} from '@libs/API/parameters';
+import type {ImportCSVTransactionsParams, UploadOFXParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {generateCardID} from '@libs/CardUtils';
 import parseCSVDate from '@libs/CSVDateUtils';
 import DateUtils from '@libs/DateUtils';
 import {rand64} from '@libs/NumberUtils';
-import {isOFXStatement} from '@libs/OFXUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -14,6 +13,7 @@ import type ImportedSpreadsheet from '@src/types/onyx/ImportedSpreadsheet';
 import type {ImportFinalModal, ImportTransactionSettings} from '@src/types/onyx/ImportedSpreadsheet';
 import type {SavedCSVColumnLayoutData} from '@src/types/onyx/SavedCSVColumnLayout';
 import type Transaction from '@src/types/onyx/Transaction';
+import type {FileObject} from '@src/types/utils/Attachment';
 
 import type {OnyxUpdate} from 'react-native-onyx';
 
@@ -293,10 +293,7 @@ async function importTransactionsFromCSV(
     previouslySavedLayout?: SavedCSVColumnLayoutData,
     existingCardSettings?: ImportTransactionSettings,
 ): Promise<ImportFinalModal> {
-    // OFX already signs a charge, so the manual flip is dropped for this import without touching the saved preference.
-    const isBankStatement = isOFXStatement(spreadsheet.fileName ?? '');
-    const storedSettings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
-    const settings = isBankStatement ? {...storedSettings, flipAmountSign: false} : storedSettings;
+    const settings = {...spreadsheet.importTransactionSettings, ...existingCardSettings};
     const {cardDisplayName = 'Imported Card', currency = CONST.CURRENCY.USD, isReimbursable = true, flipAmountSign = false} = settings;
 
     // Build transaction list from spreadsheet
@@ -325,9 +322,8 @@ async function importTransactionsFromCSV(
     // Create optimistic transactions
     const optimisticTransactions = buildOptimisticTransactions(transactionList, cardID, currency, isReimbursable);
 
-    // Build full column layout for oldDot compatibility. OFX maps its own columns, so importing one into an
-    // existing card keeps that card's saved CSV layout rather than replacing it with the statement's.
-    const columnLayout = isBankStatement && previouslySavedLayout ? previouslySavedLayout : buildColumnLayout(spreadsheet, cardDisplayName, currency, isReimbursable, flipAmountSign);
+    // Build full column layout for oldDot compatibility
+    const columnLayout = buildColumnLayout(spreadsheet, cardDisplayName, currency, isReimbursable, flipAmountSign);
 
     const params: ImportCSVTransactionsParams = {
         transactionList: JSON.stringify(transactionList),
@@ -423,5 +419,67 @@ async function importTransactionsFromCSV(
     }
 }
 
-export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings};
+/**
+ * Uploads an OFX/QFX statement for the backend to parse, optimistically creating the card it imports into.
+ */
+async function uploadOFXStatement(file: FileObject, settings: ImportTransactionSettings, accountID: number, existingCardID?: number): Promise<ImportFinalModal> {
+    const {cardDisplayName = 'Imported Card', isReimbursable = true} = settings;
+
+    let cardID: number;
+    let optimisticCard: Card | undefined;
+    if (existingCardID) {
+        cardID = existingCardID;
+    } else {
+        const optimisticCardData = buildOptimisticCard(cardDisplayName, accountID, isReimbursable);
+        cardID = optimisticCardData.cardID;
+        optimisticCard = optimisticCardData.card;
+    }
+
+    const params: UploadOFXParams = {
+        file,
+        cardID,
+        cardName: cardDisplayName,
+        reimbursable: isReimbursable,
+    };
+
+    // The statement is parsed and imported by a queued job, so the transactions land after this responds.
+    const importFinalModal: ImportFinalModal = {
+        titleKey: 'spreadsheet.importSuccessfulTitle',
+        promptKey: 'spreadsheet.importCompanyCardTransactionsPendingMessage',
+    };
+    const importFinalModalID = getImportFinalModalID();
+    const importFinalModalResult = waitForImportFinalModal(importFinalModalID);
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST>> = [];
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, importFinalModal)];
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.CARD_LIST | typeof ONYXKEYS.IMPORTED_SPREADSHEET>> = [getImportFinalModalOnyxData(importFinalModalID, getImportFailedFinalModal())];
+
+    if (optimisticCard) {
+        const optimisticCardList: CardList = {[cardID]: optimisticCard};
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: optimisticCardList,
+        });
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.CARD_LIST,
+            value: {[cardID]: null},
+        });
+    }
+
+    try {
+        await API.write(WRITE_COMMANDS.UPLOAD_OFX, params, {
+            optimisticData,
+            successData,
+            failureData,
+        });
+        return await importFinalModalResult.promise;
+    } catch {
+        importFinalModalResult.cancel();
+        return getImportFailedFinalModal();
+    }
+}
+
+export {getColumnIndexes, buildColumnLayout, buildTransactionListFromSpreadsheet, getExistingCardImportSettings, uploadOFXStatement};
 export default importTransactionsFromCSV;
