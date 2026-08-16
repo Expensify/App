@@ -1,112 +1,110 @@
 # `react-native-google-places-autocomplete` patches
 
-### [react-native-google-places-autocomplete+2.6.4+001+fix-tdz-crash.patch](react-native-google-places-autocomplete+2.6.4+001+fix-tdz-crash.patch)
+### [react-native-google-places-autocomplete+2.6.4+001+keyboard-navigation.patch](react-native-google-places-autocomplete+2.6.4+001+keyboard-navigation.patch)
 
 - Reason:
 
     ```
-    Fixes TDZ crashes and reorders forward-referenced declarations in v2.6.4:
-
-    1. `useRef(_request)` on line 161 references `_request` before its `const`
-       declaration on line 466, causing
-       `ReferenceError: Cannot access '_request' before initialization`.
-       Fix: replace the initial value with `null` (safe because
-       `requestRef.current` is reassigned to `_request` every render before
-       it can be invoked).
-
-    2. `_disableRowLoaders` (a `const useCallback`) was declared on line 653
-       but referenced in the `useCallback` dependency arrays of
-       `_requestNearby` (line 450) and `getCurrentLocation` (line 629),
-       causing `ReferenceError: Cannot access '_disableRowLoaders' before
-       initialization`. Fix: move `_disableRowLoaders` above
-       `_requestNearby` so it is defined before first use.
-
-    3. Several functions were declared after their callers, creating forward
-       references. While these only execute lazily (not during render), they
-       are reordered for clarity and consistency:
-       - `_renderDescription`, `hideListView`, `isNewFocusInAutocompleteResultList`,
-         `_onBlur`, `_onFocus` moved before `_onPress` (which calls them).
-       - `debounceData` moved before `_onChangeText` (which calls it).
-
-    4. v2.6.4 added `hideListView(true)` at the start of `_onPress` in the
-       `fetchDetails` branch. This immediately hides the entire FlatList
-       before `_enableRowLoader` can display the per-row loading spinner,
-       causing the loading indicator to be invisible during place detail
-       fetches. Fix: remove `hideListView(true)` from the `fetchDetails`
-       branch of `_onPress`, restoring v2.5.6 behavior where the list
-       stays visible with the row spinner until the detail request completes.
-       The `hideListView(true)` calls in the `isCurrentLocation` and
-       predefined-place branches are left intact since those don't need
-       to show a row-level loading indicator.
-
-    5. v2.6.4 changed the `_getFlatList` visibility condition from
-       `stateText !== ''` (v2.5.6) to `dataSource.length > 0`. This
-       prevents the FlatList from mounting when the user is typing but
-       results haven't arrived yet, so the `ListEmptyComponent` loading
-       spinner is never shown during in-flight requests. Fix: replace
-       `dataSource.length > 0` with the v2.5.6-style condition
-       `(stateText !== '' || predefinedPlaces.length > 0 || currentLocation === true)`
-       so the FlatList renders while results are loading. This matches
-       v2.5.6 production behavior where existing results stay visible
-       while new results load — `_request` does NOT clear `dataSource`
-       before sending the XHR, so previous results remain visible until
-       the new response arrives.
-
-    6. v2.6.4 added `stateText` to the dependency array of the
-       query-change `useEffect` (the effect that reloads search when
-       `props.query` changes). This causes the cleanup function
-       (`_abortRequests`) to fire on every keystroke, aborting in-flight
-       XHRs before results can arrive. When the user types fast, results
-       from previous keystrokes never complete, `dataSource` stays empty,
-       and the `ListEmptyComponent` loading spinner flashes on every key.
-       Fix: remove `stateText` from the dependency array. Per-keystroke
-       requests are already handled by `_onChangeText` → `debounceData`,
-       and `_request` itself calls `_abortRequests()` at the top, so old
-       requests are properly aborted when a new one fires.
-
-    7. In v2.6.4, `requestsRef` is a `useRef` that persists across renders
-       (unlike v2.5.6 where `_requests` was a plain `let` re-initialized
-       every render). This means `_abortRequests()` inside `_request` now
-       actually aborts the previous in-flight XHR. When the user types
-       faster than the API responds, each keystroke aborts the prior XHR
-       before it populates `dataSource`, keeping `dataSource` empty and
-       causing `ListEmptyComponent` to show the loading spinner on every
-       keystroke. Fix: only call `setListLoaderDisplayed(true)` in the
-       `onreadystatechange` handler when `resultsRef.current.length === 0`
-       (i.e., no prior results exist). When prior results already exist
-       they remain visible in the FlatList while the new request is
-       in-flight, matching v2.5.6 production behavior. Applied to both
-       `_request` and `_requestNearby`.
-
-    8. When `resultsRef.current.length === 0` and the loading spinner is
-       enabled, `dataSource` may still contain predefined places (populated
-       by `buildRowsFromResults([])` when the user cleared the input).
-       Since `ListEmptyComponent` only renders when `data` is empty,
-       the loading spinner was invisible even though `listLoaderDisplayed`
-       was true. Fix: call `setDataSource([])` alongside
-       `setListLoaderDisplayed(true)` to clear stale predefined places
-       from the FlatList data, allowing `ListEmptyComponent` to render
-       the loading spinner. Applied to both `_request` and
-       `_requestNearby`.
-
-    9. v2.6.4 replaced `TouchableHighlight` with `Pressable` for suggestion
-       rows AND added `onBlur={_onBlur}` to the Pressable. This causes two
-       problems on iOS:
-       (a) `Pressable` does not participate in the gesture responder system
-       the same way `TouchableHighlight` does. When a parent `ScrollView`
-       uses `keyboardShouldPersistTaps="handled"` (as `FormWrapper` does),
-       `TouchableHighlight` counts as "handling" the tap so the keyboard
-       stays up and `onPress` fires. `Pressable` does not, so the first
-       tap dismisses the keyboard without firing `onPress`, making
-       suggestion selection appear broken.
-       (b) The `onBlur={_onBlur}` on the Pressable fires when the keyboard
-       dismisses, calling `hideListView()` and `inputRef.current.blur()`,
-       which cascades to AddressSearch collapsing the list to zero height.
-       Fix: replace `Pressable` with `TouchableHighlight` (restoring v2.5.6
-       behavior) and remove the `onBlur` handler. `TouchableHighlight` uses
-       `underlayColor` for press feedback instead of function-style styles.
+    This patch adds keyboard accessibility to autocomplete result rows.
+    The row Pressable elements lacked tabIndex, making them unreachable
+    via Tab key navigation. When tabbing from the text input, focus would
+    leave the container, triggering onBlur which hid the list before any
+    selection could occur. Adding tabIndex={0}, accessible,
+    accessibilityRole="button", and a Space onKeyDown handler makes rows
+    keyboard-focusable and selectable. The accessibilityRole="button" is
+    critical: it causes useActiveElementRole to return "button" when a row
+    is focused, which disables the form's pressOnEnter keyboard shortcut
+    (via shouldDisableEnterShortcut in Button) so Enter reaches the row's
+    own onPress handler instead of submitting the form. Space is handled
+    via onKeyDown to also prevent page scroll.
     ```
 
-- Upstream PR/issue: 🛑, library is unmaintained (https://github.com/FaridSafi/react-native-google-places-autocomplete/issues/978)
-- E/App issue: https://github.com/Expensify/App/pull/82233
-- PR introducing patch: https://github.com/Expensify/App/pull/82233
+- E/App issue: https://github.com/Expensify/App/issues/79621
+
+### [react-native-google-places-autocomplete+2.6.4+002+fix-tdz-crash-on-render.patch](react-native-google-places-autocomplete+2.6.4+002+fix-tdz-crash-on-render.patch)
+
+- Reason:
+
+    ```
+    Upstream 2.6.4 crashes on the component's very first render with
+    "ReferenceError: Cannot access '_request' before initialization".
+    The 2.6.x rewrite introduced two temporal dead zone (TDZ) bugs where
+    component-scope `const`s are read during render before they are
+    declared:
+
+    1. `const requestRef = useRef(_request)` reads `_request`, which is
+       declared ~300 lines later. Fixed by initializing the ref to `null`;
+       the component already assigns `requestRef.current = _request` on
+       every render, and the ref is only ever read from inside the
+       debounced callback, which cannot fire before that assignment.
+    2. `_disableRowLoaders` (a `useCallback`) appears in the dependency
+       arrays of two earlier hooks. Dependency arrays are evaluated during
+       render, so both reads hit the TDZ. Fixed by moving the
+       `_disableRowLoaders` declaration above its first use; it only
+       depends on `buildRowsFromResults`, which is declared earlier still,
+       so the move is behavior-preserving.
+
+    Note: Jest cannot reproduce this crash because Babel transpiles
+    `const` to `var` in the test environment, which erases TDZ semantics.
+    It reproduces under Hermes and in browsers, where `const` is native.
+    ```
+
+- Upstream issue: not yet reported at the time of writing (2.6.4 is the latest release).
+
+### [react-native-google-places-autocomplete+2.6.4+003+restore-list-loading-state.patch](react-native-google-places-autocomplete+2.6.4+003+restore-list-loading-state.patch)
+
+- Reason:
+
+    ```
+    Upstream 2.6.4 gates the whole result list on `dataSource.length > 0`, but the
+    loader and the "no results" state are rendered through the FlatList's
+    ListEmptyComponent, which by definition only renders when the list IS empty.
+    Those two conditions are mutually exclusive, so both `listLoaderComponent` and
+    `listEmptyComponent` became unreachable dead props in 2.6.x.
+
+    AddressSearch passes both, so upgrading from 2.5.6 silently dropped the address
+    search spinner and the "no results found" message.
+
+    This patch restores the 2.5.6 behavior by also rendering the list when there is
+    an empty state to show. The `stateText.length > minLength` guard mirrors 2.5.6's
+    `stateText !== ''` gate; it matters because `_request` clears results without
+    resetting `listLoaderDisplayed`, so without it an aborted in-flight request
+    could leave a spinner on screen after the input is cleared.
+
+    Resulting behavior (matches 2.5.6 / production):
+    - loader shows only while searching AND there are no previous results
+    - previous results stay visible, with no loader, while the next search runs
+    - the empty state shows when a search comes back with nothing
+
+    Covered by tests/unit/AddressSearchListTest.tsx.
+    ```
+
+- Upstream issue: not yet reported at the time of writing (2.6.4 is the latest release).
+
+### [react-native-google-places-autocomplete+2.6.4+004+restore-predefined-places-updates.patch](react-native-google-places-autocomplete+2.6.4+004+restore-predefined-places-updates.patch)
+
+- Reason:
+
+    ```
+    In 2.5.6 the effect that rebuilds the list from `predefinedPlaces` depended on
+    `props.predefinedPlaces`, so the list reacted to that prop changing. In 2.6.4 the
+    same effect became mount-only (`}, []`), so predefined places that arrive or are
+    filtered out after mount never reach the list.
+
+    AddressSearch passes `filteredPredefinedPlaces` (recent destinations, filtered by
+    the search text and hidden once the user starts typing), so on 2.6.4 the recent
+    destinations went stale: they never updated, and stale rows kept the list
+    non-empty, which also suppressed the loader added in patch 003.
+
+    Restoring the dependency requires a second change. 2.5.6 held its defaults in one
+    module-scope `defaultProps` object, so the default `predefinedPlaces` array had a
+    stable identity. 2.6.4 moved defaults into destructuring (`= []`), which allocates
+    a new array on every render — with the dependency restored that feeds an infinite
+    render loop (effect -> setDataSource -> render -> new array -> effect). Hoisting
+    the default to a module-level EMPTY_PREDEFINED_PLACES restores the stable identity
+    2.5.6 had.
+
+    Covered by tests/unit/AddressSearchListTest.tsx.
+    ```
+
+- Upstream issue: not yet reported at the time of writing (2.6.4 is the latest release).
