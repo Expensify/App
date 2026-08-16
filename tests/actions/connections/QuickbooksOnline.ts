@@ -1,5 +1,4 @@
 import * as API from '@libs/API';
-import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {isRecord} from '@libs/ObjectUtils';
@@ -13,7 +12,6 @@ import {
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {QBOConnectionConfig} from '@src/types/onyx/Policy';
-import type {AnyOnyxData} from '@src/types/onyx/Request';
 
 import type {NullishDeep, OnyxKey, OnyxUpdate} from 'react-native-onyx';
 
@@ -33,7 +31,7 @@ const MOCK_ONYX_ERROR: Errors = {key: 'error'};
 
 type QuickBooksConfigUpdate = Pick<
     Partial<NullishDeep<QBOConnectionConfig>>,
-    'collectionAccountID' | 'reimbursementAccountID' | 'travelInvoicingPayableAccountID' | 'pendingFields' | 'errorFields'
+    'collectionAccountID' | 'reimbursementAccountID' | 'travelInvoicingPayableAccountID' | 'fxExpenseAccount' | 'pendingFields' | 'errorFields'
 >;
 
 function isQuickBooksConfigUpdate(value: unknown): value is QuickBooksConfigUpdate {
@@ -45,6 +43,7 @@ function isQuickBooksConfigUpdate(value: unknown): value is QuickBooksConfigUpda
         (value.collectionAccountID === undefined || value.collectionAccountID === null || typeof value.collectionAccountID === 'string') &&
         (value.reimbursementAccountID === undefined || value.reimbursementAccountID === null || typeof value.reimbursementAccountID === 'string') &&
         (value.travelInvoicingPayableAccountID === undefined || value.travelInvoicingPayableAccountID === null || typeof value.travelInvoicingPayableAccountID === 'string') &&
+        (value.fxExpenseAccount === undefined || value.fxExpenseAccount === null || typeof value.fxExpenseAccount === 'string') &&
         (value.pendingFields === undefined ||
             value.pendingFields === null ||
             (isRecord(value.pendingFields) &&
@@ -80,15 +79,13 @@ function getRequiredQuickBooksConfig<TKey extends OnyxKey>(update?: OnyxUpdate<T
     return config;
 }
 
-type QuickbooksSettingParams = {policyID: string; settingValue: string; idempotencyKey: string};
-
-function getFirstWriteCall(): {command: WriteCommand; params: QuickbooksSettingParams; onyxData?: AnyOnyxData} {
+function getFirstWriteCall() {
     const call = writeSpy.mock.calls.at(0);
     if (!call) {
         throw new Error('API.write was not called');
     }
     const [command, params, onyxData] = call;
-    return {command, params: params as QuickbooksSettingParams, onyxData};
+    return {command, params, onyxData};
 }
 
 describe('actions/connections/QuickbooksOnline', () => {
@@ -212,9 +209,13 @@ describe('actions/connections/QuickbooksOnline', () => {
             const {command, params} = getFirstWriteCall();
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
 
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-            expect(params.settingValue).toBe(MOCK_ACCOUNT_ID);
-            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT));
+            expect(params).toEqual(
+                expect.objectContaining({
+                    policyID: MOCK_POLICY_ID,
+                    settingValue: MOCK_ACCOUNT_ID,
+                    idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+                }),
+            );
         });
 
         it('updates travelInvoicingPayableAccountID optimistically and reverts to the old value on failure', () => {
@@ -243,11 +244,14 @@ describe('actions/connections/QuickbooksOnline', () => {
             const {command, params} = getFirstWriteCall();
             expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT);
 
-            expect(params.policyID).toBe(MOCK_POLICY_ID);
-
             // Auth parses settingValue as JSON and 400s on anything else, so the ID goes over the wire quoted
-            expect(params.settingValue).toBe(JSON.stringify(MOCK_ACCOUNT_ID));
-            expect(params.idempotencyKey).toBe(String(CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT));
+            expect(params).toEqual(
+                expect.objectContaining({
+                    policyID: MOCK_POLICY_ID,
+                    settingValue: JSON.stringify(MOCK_ACCOUNT_ID),
+                    idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.FX_EXPENSE_ACCOUNT),
+                }),
+            );
         });
 
         it('updates fxExpenseAccount optimistically and reverts to the old value on failure', () => {
