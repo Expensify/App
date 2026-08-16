@@ -138,7 +138,7 @@ describe('EmptySearchView', () => {
                     <Wrapper>
                         <EmptySearchView
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
-                            type={dataType}
+                            type={queryJSON?.type ?? dataType}
                             hasResults={false}
                         />
                     </Wrapper>,
@@ -172,17 +172,17 @@ describe('EmptySearchView', () => {
                     <Wrapper>
                         <EmptySearchView
                             similarSearchHash={queryJSON?.similarSearchHash ?? 1}
-                            type={dataType}
+                            type={queryJSON?.type ?? dataType}
                             hasResults={false}
                         />
                     </Wrapper>,
                 );
                 await waitForBatchedUpdatesWithAct();
 
-                // Then it should fall back to the generic expense empty state
-                expect(screen.getByText(translateLocal('search.searchResults.emptyExpenseResults.title'))).toBeVisible();
+                // Then it should fall back to the generic report empty state
+                expect(screen.getByText(translateLocal('search.searchResults.emptyReportResults.title'))).toBeVisible();
 
-                // And it should show the generic empty-expense actions instead of the submit suggestion CTA
+                // And it should show the generic report actions instead of the submit suggestion CTA
                 expect(screen.getByText(translateLocal('emptySearchView.takeATestDrive'))).toBeVisible();
             });
         });
