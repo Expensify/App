@@ -5,7 +5,6 @@ import type {WorkspaceCompanyCardsTableHandle} from '@components/Tables/Workspac
 import useAssignCard from '@hooks/useAssignCard';
 import useCompanyCards from '@hooks/useCompanyCards';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -37,7 +36,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
     const policyID = route.params.policyID;
     const {translate} = useLocalize();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
-    const memoizedIllustrations = useMemoizedLazyIllustrations(['CompanyCard']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const companyCardsTableRef = useRef<WorkspaceCompanyCardsTableHandle>(null);
@@ -121,7 +119,6 @@ function WorkspaceCompanyCardsPage({route}: WorkspaceCompanyCardsPageProps) {
             policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}
         >
             <WorkspacePageWithSections
-                icon={isSelectionModeEnabled ? undefined : memoizedIllustrations.CompanyCard}
                 headerText={translate(isSelectionModeEnabled ? 'common.selectMultiple' : 'workspace.common.companyCards')}
                 route={route}
                 policyFeature={CONST.POLICY.POLICY_FEATURE.COMPANY_CARDS}

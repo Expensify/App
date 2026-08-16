@@ -112,11 +112,6 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
         canEdit: true,
     },
     {
-        columnName: CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
-        translationKey: 'common.violations',
-        isColumnSortable: false,
-    },
-    {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TAG_GL_CODE,
         translationKey: 'common.tagGLCode',
         sortColumnName: CONST.SEARCH.SORT_BY_COLUMNS.TAG_GL_CODE,
@@ -320,6 +315,14 @@ const getExpenseReportHeaders = (profileIcon?: IconAsset): SearchColumnConfig[] 
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
         translationKey: 'common.internationalReimbursementIDs',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        translationKey: 'common.amountDebited',
+    },
+    {
+        columnName: CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
+        translationKey: 'common.amountReimbursed',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.BASE_62_REPORT_ID,

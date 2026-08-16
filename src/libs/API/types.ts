@@ -196,6 +196,7 @@ const WRITE_COMMANDS = {
     SET_POLICY_TAGS_REQUIRED: 'SetPolicyTagsRequired',
     SET_POLICY_TAG_LISTS_REQUIRED: 'SetPolicyTagListsRequired',
     SET_POLICY_REQUIRES_TAG: 'SetPolicyRequiresTag',
+    SET_POLICY_SHOW_TAG_GL_CODES: 'SetPolicyShowTagGLCodes',
     // cspell:disable-next-line
     RENAME_POLICY_TAG_LIST: 'RenamePolicyTaglist',
     DELETE_POLICY_TAGS: 'DeletePolicyTags',
@@ -841,6 +842,7 @@ type WriteCommandParameters = {
     [WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE]: Parameters.UpdatePolicyCategoryGLCodeParams;
     [WRITE_COMMANDS.DELETE_POLICY_REPORT_FIELD]: Parameters.DeletePolicyReportField;
     [WRITE_COMMANDS.SET_POLICY_REQUIRES_TAG]: Parameters.SetPolicyRequiresTag;
+    [WRITE_COMMANDS.SET_POLICY_SHOW_TAG_GL_CODES]: Parameters.SetPolicyShowTagGLCodesParams;
     [WRITE_COMMANDS.SET_POLICY_TAGS_REQUIRED]: Parameters.SetPolicyTagsRequired;
     [WRITE_COMMANDS.SET_POLICY_TAG_LISTS_REQUIRED]: Parameters.SetPolicyTagListsRequired;
     [WRITE_COMMANDS.RENAME_POLICY_TAG_LIST]: Parameters.RenamePolicyTagListParams;
