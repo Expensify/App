@@ -896,7 +896,7 @@ function setIsAuthenticatingWithShortLivedToken(isAuthenticating: boolean) {
  *
  * @param validateCode - 6 digit code required for login
  */
-function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode?: string) {
+function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode: string | undefined, login: string | undefined, storedValidateCode: string | undefined) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -944,24 +944,24 @@ function signIn(validateCode: string, preferredLocale: Locale | undefined, twoFa
     Device.getDeviceInfoWithID().then((deviceInfo) => {
         const params: SignInUserParams = {
             twoFactorAuthCode,
-            email: credentials.login,
+            email: login,
             preferredLocale: preferredLocale ?? null,
             deviceInfo,
         };
 
         // Conditionally pass a password or validateCode to command since we temporarily allow both flows
         if (validateCode || twoFactorAuthCode) {
-            params.validateCode = validateCode || credentials.validateCode;
+            params.validateCode = validateCode || storedValidateCode;
         }
 
         API.write(WRITE_COMMANDS.SIGN_IN_USER, params, {optimisticData, successData, failureData});
     });
 }
 
-function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '') {
-    // If this is called from the 2fa step, get the validateCode directly from onyx
+function signInWithValidateCode(accountID: number, code: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', storedValidateCode?: string) {
+    // If this is called from the 2fa step, use the validateCode stored in Onyx (passed in as `storedValidateCode`)
     // instead of the one passed from the component state because the state is changing when this method is called.
-    const validateCode = twoFactorAuthCode ? credentials.validateCode : code;
+    const validateCode = twoFactorAuthCode ? storedValidateCode : code;
     const onyxOperationToCleanUpAnonymousUser = buildOnyxDataToCleanUpAnonymousUser();
 
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.ACCOUNT | typeof ONYXKEYS.SESSION>> = [
@@ -1213,7 +1213,7 @@ function authenticatePusher(socketID: string, channelName: string, callback?: Ch
 /**
  * Request a new validation link / validateCode to unlink an unvalidated secondary login from a primary login
  */
-function requestUnlinkValidationLink() {
+function requestUnlinkValidationLink(login: string | undefined) {
     const optimisticData = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -1248,7 +1248,7 @@ function requestUnlinkValidationLink() {
         },
     ];
 
-    const params: RequestUnlinkValidationLinkParams = {email: credentials.login};
+    const params: RequestUnlinkValidationLinkParams = {email: login};
 
     API.write(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK, params, {optimisticData, successData, failureData});
 }
@@ -1498,8 +1498,8 @@ function handleExitToNavigation(exitTo: Route) {
     });
 }
 
-function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, twoFactorAuthCode = '', exitTo?: Route) {
-    signInWithValidateCode(accountID, validateCode, preferredLocale, twoFactorAuthCode);
+function signInWithValidateCodeAndNavigate(accountID: number, validateCode: string, preferredLocale: Locale | undefined, exitTo?: Route) {
+    signInWithValidateCode(accountID, validateCode, preferredLocale);
     if (exitTo) {
         handleExitToNavigation(exitTo);
     } else {

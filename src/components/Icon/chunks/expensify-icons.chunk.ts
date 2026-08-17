@@ -275,6 +275,7 @@ import VolumeLow from '@assets/images/volume-low.svg';
 import Wallet from '@assets/images/wallet.svg';
 import Workflows from '@assets/images/workflows.svg';
 import Workspace from '@assets/images/workspace-default-avatar.svg';
+import Wrench from '@assets/images/wrench.svg';
 import Clear from '@assets/images/x-circle.svg';
 import Zoom from '@assets/images/zoom.svg';
 
@@ -508,6 +509,7 @@ const Expensicons = {
     Wallet,
     Workflows,
     Workspace,
+    Wrench,
     XeroSquare,
     GustoSquare,
     IntacctSquare: SageIntacctSquare,
