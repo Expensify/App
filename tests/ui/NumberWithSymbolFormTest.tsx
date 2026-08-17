@@ -258,7 +258,7 @@ describe('NumberWithSymbolForm', () => {
                 expect(screen.getByDisplayValue('0.')).toBeTruthy();
             });
 
-            it('adds a leading zero to a negative decimal-only value that already has its zero', async () => {
+            it('preserves a negative decimal that already has a leading zero', async () => {
                 const onInputChange = jest.fn();
                 renderForm({displayAsTextInput: true, value: '', decimals: 2, allowNegativeInput: true, onInputChange});
                 await waitForBatchedUpdatesWithAct();
