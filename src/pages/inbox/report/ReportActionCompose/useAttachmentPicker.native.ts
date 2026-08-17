@@ -62,7 +62,7 @@ function useAttachmentPicker(reportID: string) {
             return;
         }
 
-        const filteredItems = dataTransferItems && validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index) ?? ({} as DataTransferItem)) : undefined;
+        const filteredItems = validIndices.length > 0 ? validIndices.map((index) => dataTransferItems.at(index)).filter((item) => item !== undefined) : undefined;
 
         validateFiles(fileObjects, filteredItems, {isValidatingReceipts: false});
     };
