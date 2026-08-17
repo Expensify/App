@@ -49,6 +49,8 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const [quickAction] = useOnyx(ONYXKEYS.NVP_QUICK_ACTION_GLOBAL_CREATE);
     const [policyRecentlyUsedCurrencies] = useOnyx(ONYXKEYS.RECENTLY_USED_CURRENCIES);
     const [isSelfTourViewed = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
@@ -103,6 +105,7 @@ function useBulkDuplicateAction({selectedTransactionsKeys, allTransactions, allR
             policyTagList,
             formatPhoneNumber,
             participantsPolicyTags,
+            conciergeChat,
         });
 
         if (onAfterDuplicate) {
