@@ -117,9 +117,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
     const {currentSearchResults} = useSearchResultsContext();
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
 
-    // Moving a report to another workspace only writes the new policy into the Search snapshot, never the report row
-    // itself, so a snapshot filtered by the old workspace keeps showing a report that no longer belongs to it. Only
-    // the server can decide whether the row still matches the query, so ask it.
+    // The snapshot keeps the report row after a workspace change, and only the server can tell whether it still matches the query.
     const refreshSearch = () => {
         refreshSearchAfterReportAction({
             currentSearchQueryJSON,
