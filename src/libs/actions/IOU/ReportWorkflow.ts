@@ -13,8 +13,9 @@ import type {
     UnapproveExpenseReportParams,
 } from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {flushDeferredWrite, getRegistrationPromiseForReport, hasDeferredWriteForReport} from '@libs/deferredLayoutWrite';
+import {flushDeferredWrite, getRegistrationPromiseForReport, isWritePendingForReport} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
@@ -1296,6 +1297,16 @@ function unapproveExpenseReport(
     });
 }
 
+// Report IDs with a SUBMIT_REPORT dispatch delayed behind a pending deferred-write registration.
+// Guards against the submit button re-enabling mid-wait (it only forces disabled state while the
+// submission animation plays) and firing a second SUBMIT_REPORT for the same report.
+const reportIDsWithPendingDelayedSubmit = new Set<string>();
+
+// Telemetry only - logs if a delayed SUBMIT_REPORT is still waiting on a deferred-write
+// registration after this long. Does not abort or otherwise change behavior: the wait itself has
+// no wall-clock fallback (see the comment at its Promise.all call site).
+const SUBMIT_DELAY_WATCHDOG_MS = 60_000;
+
 function submitReport({
     expenseReport,
     policy,
@@ -1590,17 +1601,33 @@ function submitReport({
     };
 
     // A just-created expense may still be behind a deferred-layout-write channel; flush/await it so it queues before SUBMIT_REPORT, not after (avoids a 407 on the expense).
+    // Uses isWritePendingForReport (not the layout-scoped variant): a write can still be
+    // outstanding after its reservation's safety timeout marks the layout stale, and submit must
+    // keep waiting for it regardless - that is the whole content of the ordering fix this exists for.
     const flushPendingExpenseCreatesForReport = () => {
-        if (hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, expenseReport.reportID)) {
+        if (isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, expenseReport.reportID)) {
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
         }
-        if (hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, expenseReport.reportID)) {
+        if (isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, expenseReport.reportID)) {
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }
     };
-    const pendingRegistration =
-        getRegistrationPromiseForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, expenseReport.reportID) ??
-        getRegistrationPromiseForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, expenseReport.reportID);
+    // Both keys can be pending for the same report at once (e.g. SEARCH's reservation went stale,
+    // then a second flow reserved DISMISS_MODAL) - wait for all of them, not just the first found.
+    const pendingRegistrations = [CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH]
+        .map((key) => getRegistrationPromiseForReport(key, expenseReport.reportID))
+        .filter((promise): promise is Promise<void> => !!promise);
+
+    if (reportIDsWithPendingDelayedSubmit.has(expenseReport.reportID)) {
+        // A previous tap for this report is already waiting on a deferred-write registration
+        // before dispatching SUBMIT_REPORT. The submit button only forces disabled state while the
+        // submission animation plays and can re-enable before that wait resolves, so a second tap
+        // here must not start a second animation/dispatch cycle for the same wait (finding 4:
+        // double SUBMIT_REPORT). Checked before onSubmitted() - that call starts the submit
+        // animation, which onSubmitDispatched() closes out; a second tap here has no dispatch of
+        // its own coming; letting onSubmitted() fire would start an animation nothing ever closes.
+        return;
+    }
 
     onSubmitted?.();
     const dispatchSubmit = () => {
@@ -1611,14 +1638,23 @@ function submitReport({
         });
         onSubmitDispatched?.();
     };
-    if (pendingRegistration) {
-        // Deliberately no wall-clock fallback here: the reservation this promise is waiting on
+
+    if (pendingRegistrations.length > 0) {
+        // Deliberately no wall-clock fallback here: the reservation these promises are waiting on
         // can legitimately take a long time to register (the app going to background is exactly
         // the scenario this PR fixes), so any timeout short enough to matter risks dispatching
         // SUBMIT_REPORT before the create it's supposed to wait for - reproducing the same race.
-        // `cancelDeferredWrite` resolves this promise immediately when the create is genuinely
-        // abandoned, which is the only case where waiting forever would actually be wrong.
-        pendingRegistration.then(() => {
+        // The wait resolves on one of two event-driven terminators, never on elapsed time:
+        // registration (the real write arrives) or abandonment (the create was genuinely dropped -
+        // see abandonDeferredWrite). The watchdog below is telemetry only; it does not resolve this.
+        const {reportID} = expenseReport;
+        reportIDsWithPendingDelayedSubmit.add(reportID);
+        const watchdogTimeoutId = setTimeout(() => {
+            Log.alert(`[ReportWorkflow] SUBMIT_REPORT for report ${reportID} still waiting on a deferred-write registration after ${SUBMIT_DELAY_WATCHDOG_MS}ms`);
+        }, SUBMIT_DELAY_WATCHDOG_MS);
+        Promise.all(pendingRegistrations).then(() => {
+            clearTimeout(watchdogTimeoutId);
+            reportIDsWithPendingDelayedSubmit.delete(reportID);
             flushPendingExpenseCreatesForReport();
             dispatchSubmit();
         });
