@@ -253,7 +253,10 @@ function BaseSelectionListImpl({
         getFocusedOption: () => focusedOption,
         confirmButtonOptions,
         isActive: isFocused,
-        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !confirmButtonOptions?.onConfirm || shouldStopPropagation ? focusedIndex : -1,
+        // Only surrender plain Enter to a footer confirm control (custom `footerContent` or the built-in `showButton` button)
+        // when one is actually rendered and enabled to handle it. Otherwise (e.g. option pickers with `onConfirm` but no
+        // footer button) keep the focused row so plain Enter can still select it.
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasFooter || confirmButtonOptions?.isDisabled || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: !focusedOption,

@@ -200,12 +200,17 @@ function BaseSelectionListWithSectionsImpl({
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
+    // A footer confirm control (custom `footerContent` or the built-in `showButton` button) is what takes over plain Enter.
+    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
+
     useSelectionListShortcuts({
         selectFocusedItem,
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
-        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !confirmButtonOptions?.onConfirm || shouldStopPropagation ? focusedIndex : -1,
+        // Only surrender plain Enter to that footer control when it is actually rendered and enabled to handle it.
+        // Otherwise (e.g. option pickers with `onConfirm` but no footer button) keep the focused row so plain Enter can still select it.
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasFooter || confirmButtonOptions?.isDisabled || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: itemsCount > 0 && !getFocusedItem(),
