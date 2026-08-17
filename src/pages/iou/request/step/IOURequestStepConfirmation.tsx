@@ -680,8 +680,11 @@ function IOURequestStepConfirmation({
         ],
     );
 
+    // Draft promotion only applies to the employer-flow report (never the optimistic P2P case, which never has a
+    // draft to promote). Checking that explicitly - rather than relying solely on the route string matching a
+    // param-free report route - keeps this from silently breaking if the employer-flow route ever gains a query param.
     const preMountDestinationReportRoute = preMountDestinationReportID ? ROUTES.REPORT_WITH_ID.getRoute(preMountDestinationReportID) : undefined;
-    const shouldPromoteDestinationDraft = !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
+    const shouldPromoteDestinationDraft = !optimisticP2PDestinationReportID && !!preMountDestinationReportRoute && preMountDestinationRoute === preMountDestinationReportRoute;
 
     // The zero-workspace "Submit to my employer" flow creates the draft policy expense chat report (with the
     // reportID the real backend commit will eventually use) before this screen mounts - see DraftWorkspaceOpener /

@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 import {act, renderHook} from '@testing-library/react-native';
 
+import * as IOUUtils from '@libs/IOUUtils';
+// eslint-disable-next-line no-restricted-imports -- Namespace import is required to spy on getChatByParticipants without replacing the production module.
+import * as ReportUtils from '@libs/ReportUtils';
+
 import useExpenseSubmission from '@pages/iou/request/step/confirmation/useExpenseSubmission';
 
 import CONST from '@src/CONST';
@@ -215,6 +219,39 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
     });
 
     describe('requestMoney path', () => {
+        it('uses the transaction report ID for a brand-new P2P recipient optimistic chat', async () => {
+            const optimisticP2PReportID = 'reused-p2p-report-1';
+            const transaction = buildTransaction({reportID: optimisticP2PReportID});
+            const getChatByParticipantsSpy = jest.spyOn(ReportUtils, 'getChatByParticipants').mockReturnValue(undefined);
+            const getReusableP2PReportIDSpy = jest.spyOn(IOUUtils, 'getReusableP2PReportID').mockReturnValue(optimisticP2PReportID);
+
+            try {
+                const {result} = renderHook(() =>
+                    useExpenseSubmission(
+                        buildParams({
+                            transaction,
+                            transactions: [transaction],
+                            report: undefined,
+                            reportID: optimisticP2PReportID,
+                        }),
+                    ),
+                );
+                await waitForBatchedUpdatesWithAct();
+
+                await act(async () => {
+                    result.current.createTransaction(false, false);
+                });
+                await waitForBatchedUpdatesWithAct();
+
+                expect(getChatByParticipantsSpy).toHaveBeenCalled();
+                expect(getReusableP2PReportIDSpy).toHaveBeenCalledWith(expect.objectContaining({accountID: 42}), optimisticP2PReportID);
+                expect(mockRequestMoneyAction).toHaveBeenCalledWith(expect.objectContaining({optimisticChatReportID: optimisticP2PReportID}));
+            } finally {
+                getChatByParticipantsSpy.mockRestore();
+                getReusableP2PReportIDSpy.mockRestore();
+            }
+        });
+
         it('calls cleanupAfterExpenseCreate and skips cleanupAndNavigateAfterExpenseCreate when shouldHandleNavigation=false (orchestrator pre-navigated)', async () => {
             const {result} = renderHook(() => useExpenseSubmission(buildParams()));
             await waitForBatchedUpdatesWithAct();

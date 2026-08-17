@@ -1162,9 +1162,9 @@ function handleRHPClosedForBuffer() {
             navigationRef.current?.dispatch(CommonActions.reset({...rootState, routes: fallbackRoutes, index: fallbackRoutes.length - 1}));
             return;
         }
-        const newRoutes = rootState.routes
-            .filter((r) => r.key !== bufferRouteKey)
-            .map((r, i, arr) => (i === arr.findLastIndex((rr) => rr.name === NAVIGATORS.TAB_NAVIGATOR) ? originalTabRoute : r));
+        const withoutBuffer = rootState.routes.filter((r) => r.key !== bufferRouteKey);
+        const lastTabIndex = withoutBuffer.findLastIndex((r) => r.name === NAVIGATORS.TAB_NAVIGATOR);
+        const newRoutes = withoutBuffer.map((r, i) => (i === lastTabIndex ? originalTabRoute : r));
         navigationRef.current?.dispatch(CommonActions.reset({...rootState, routes: newRoutes, index: newRoutes.length - 1}));
         return;
     }

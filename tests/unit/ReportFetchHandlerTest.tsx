@@ -18,11 +18,12 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 const REPORT_ID = '1';
 
 let mockRouteParams: Record<string, unknown> = {reportID: REPORT_ID};
+const mockSetParams = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof ReactNavigationNative>('@react-navigation/native'),
     useRoute: () => ({key: 'report', name: 'Report', params: mockRouteParams}),
-    useNavigation: () => ({setParams: jest.fn(), addListener: jest.fn(() => jest.fn())}),
+    useNavigation: () => ({setParams: mockSetParams, addListener: jest.fn(() => jest.fn())}),
     useIsFocused: () => true,
 }));
 
@@ -52,6 +53,7 @@ function renderHandler() {
 describe('ReportFetchHandler', () => {
     beforeEach(async () => {
         mockOpenReport.mockClear();
+        mockSetParams.mockClear();
         mockRouteParams = {reportID: REPORT_ID};
         await Onyx.clear();
         await Onyx.multiSet({
@@ -79,6 +81,17 @@ describe('ReportFetchHandler', () => {
         await waitForBatchedUpdates();
 
         expect(mockOpenReport).toHaveBeenCalledWith(expect.objectContaining({reportID: REPORT_ID}));
+    });
+
+    it('clears isPendingCreation once the report exists locally', async () => {
+        mockRouteParams = {reportID: REPORT_ID, isPendingCreation: 'true'};
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, {reportID: REPORT_ID});
+        await waitForBatchedUpdates();
+
+        renderHandler();
+        await waitForBatchedUpdates();
+
+        expect(mockSetParams).toHaveBeenCalledWith({isPendingCreation: undefined});
     });
 
     it('does NOT call openReport while the promotion marker is set, even though the report row exists', async () => {
