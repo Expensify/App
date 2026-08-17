@@ -167,7 +167,7 @@ describe('Pusher.subscribe', () => {
     });
 
     it('should drop the resubscribe callbacks on disconnect so a new session registers only one', async () => {
-        const channelName = 'private-user-reinit';
+        const channelName = 'private-user-new-session';
         const onResubscribe = jest.fn();
 
         await initPusher();
