@@ -1,3 +1,8 @@
+// RNTL types `ReactTestInstance.props` as `any`, so `odometerInput(...).props.value` and the
+// `'value' in element.props` filter below are unavoidably unsafe reads, and the jest factories that
+// spread `requireActual` results are untyped at the boundary. The non-null assertion is on the
+// `.find()` that picks the real TextInput out of the label query, which always matches on this screen.
+// These are the only reason for the file-wide disables; nothing here silences a production-code rule.
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */

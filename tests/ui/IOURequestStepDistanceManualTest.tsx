@@ -1,3 +1,8 @@
+// RNTL types `ReactTestInstance.props` as `any`, so reading a queried input's `.props.value` is an
+// unavoidably unsafe access, and the jest factories that spread `requireActual` results are untyped at
+// that boundary. The type assertion builds a route whose `action`/`backTo` params are typed `never`
+// but are read at runtime by the screen under test.
+// These are the only reason for the file-wide disables; nothing here silences a production-code rule.
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
