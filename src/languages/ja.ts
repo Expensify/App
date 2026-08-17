@@ -8957,7 +8957,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張費の一括請求',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
             has: {submittedViolation: '違反を送信しました'},

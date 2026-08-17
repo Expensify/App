@@ -5906,7 +5906,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        travelInvoicingIcon: {
+        travelBillingIcon: {
             backgroundColor: colors.productLight700,
             borderRadius: variables.componentBorderRadiusNormal,
         },

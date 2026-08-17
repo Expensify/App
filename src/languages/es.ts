@@ -8958,7 +8958,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Tarjeta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
             has: {submittedViolation: 'Infracción enviada'},

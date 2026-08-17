@@ -9036,7 +9036,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Cartão Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de Viagens Consolidado',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Faturamento de Viagens Consolidado',
             },
             is: 'É',
             has: {submittedViolation: 'Violação enviada'},

@@ -951,7 +951,7 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    // Travel Billing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
         return translate('search.filters.card.travelInvoicing');
     }
@@ -1467,7 +1467,7 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
 /**
  * The set of valid card program keys used to key nested settings in ExpensifyCardSettings.
  * 'US' and 'GB' are geo-based programs, 'CURRENT' is the legacy pre-2024 US program,
- * and 'TRAVEL_US' is the travel invoicing program. These map directly to the keys
+ * and 'TRAVEL_US' is the travel billing program. These map directly to the keys
  * the backend nests card settings under.
  */
 type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;

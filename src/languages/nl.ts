@@ -9041,7 +9041,7 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Kaart',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Terugbetaling',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Geconsolideerde reisfacturatie',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Geconsolideerde reisfacturatie',
             },
             is: 'Is',
             has: {submittedViolation: 'Ingediende overtreding'},

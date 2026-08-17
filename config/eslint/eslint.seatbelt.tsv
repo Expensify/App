@@ -829,7 +829,7 @@
 "../../src/libs/actions/Transaction.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/TransactionEdit.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/libs/actions/Travel.ts"	"no-restricted-syntax"	1
-"../../src/libs/actions/TravelInvoicing.ts"	"no-restricted-syntax"	3
+"../../src/libs/actions/TravelBilling.ts"	"no-restricted-syntax"	3
 "../../src/libs/actions/UnreportedExpenses.tsx"	"no-restricted-syntax"	1
 "../../src/libs/actions/User.ts"	"@typescript-eslint/no-unsafe-type-assertion"	5
 "../../src/libs/actions/User.ts"	"no-restricted-imports"	1
@@ -1188,7 +1188,7 @@
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesDestinationSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteExportExpensesJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/export/DynamicNetSuiteInvoiceItemPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingJournalPostingPreferenceSelectPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldEdit.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	12
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/NetSuiteImportAddCustomSegmentContent.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/accounting/netsuite/import/NetSuiteImportCustomFieldNew/subPages/ChooseSegmentTypeStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1295,8 +1295,8 @@
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/pages/workspace/tags/WorkspaceTagsPage.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/workspace/taxes/WorkspaceTaxesPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/travel/WorkspaceTravelInvoicingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
-"../../src/pages/workspace/travel/WorkspaceTravelInvoicingSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/workspace/travel/WorkspaceTravelBillingSection.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
+"../../src/pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/upgrade/UpgradeIntro.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/upgrade/WorkspaceUpgradePage.tsx"	"no-restricted-imports"	1
 "../../src/pages/workspace/withPolicy.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3

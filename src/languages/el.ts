@@ -9324,7 +9324,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Κάρτα Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Επιστροφή χρημάτων',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
             },
             is: 'Είναι',
             action: {
