@@ -1,4 +1,5 @@
 import {reconnect} from '@libs/actions/Reconnect';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import Pusher from '@libs/Pusher';
 import PusherUtils from '@libs/PusherUtils';
 
@@ -255,6 +256,38 @@ describe('Pusher.subscribe on web', () => {
         channel?.completeHandshake();
 
         expect(onDraftResubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should fire the resubscribe callback of a caller that registered while the socket was down', async () => {
+        const onDraftResubscribe = jest.fn();
+
+        const typing = Pusher.subscribe(CHANNEL, 'userIsTyping', () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(CHANNEL);
+        channel?.completeHandshake();
+        await typing;
+
+        channel?.dropConnection();
+
+        Pusher.onChannelResubscribe(CHANNEL, onDraftResubscribe);
+        await jest.runAllTimersAsync();
+
+        channel?.completeHandshake();
+
+        expect(onDraftResubscribe).toHaveBeenCalledTimes(1);
+    });
+
+    it('should open no channel when a caller disposes its resubscribe registration during a transition', async () => {
+        const transition = TransitionTracker.startTransition();
+
+        const unregister = Pusher.onChannelResubscribe(CHANNEL, () => {});
+        await Promise.resolve();
+        unregister();
+
+        TransitionTracker.endTransition(transition);
+
+        expect(mockChannels.get(CHANNEL)).toBeUndefined();
     });
 
     it('should trigger one reconnect per drop when the user channel is set up again without a disconnect', async () => {

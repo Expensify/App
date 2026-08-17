@@ -126,26 +126,34 @@ function getChannel(channelName: string): Channel | undefined {
     return socket.channel(channelName);
 }
 
+// Unlike native, this opens the channel, so a caller must not rely on subscribe() to create it.
 function onChannelResubscribe(channelName: string, callback: () => void) {
     let unbind = () => {};
     let disposed = false;
 
     initPromise.then(() => {
-        if (disposed || !socket) {
-            return;
-        }
+        // Deferred like subscribe(), so a caller that disposes inside one transition opens no channel.
+        TransitionTracker.runAfterTransitions({
+            callback: () => {
+                if (disposed || !socket) {
+                    return;
+                }
 
-        const channel = socket.subscribe(channelName);
-        let hasSubscribed = channel.subscribed;
-        const handler = () => {
-            if (hasSubscribed) {
-                callback();
-            }
-            hasSubscribed = true;
-        };
+                const channel = socket.subscribe(channelName);
 
-        channel.bind('pusher:subscription_succeeded', handler);
-        unbind = () => channel.unbind('pusher:subscription_succeeded', handler);
+                // channel.subscribed is false while the socket is down, so bound events stand in for an earlier handshake.
+                let hasSubscribed = channel.subscribed || eventsBoundToChannels.has(channel);
+                const handler = () => {
+                    if (hasSubscribed) {
+                        callback();
+                    }
+                    hasSubscribed = true;
+                };
+
+                channel.bind('pusher:subscription_succeeded', handler);
+                unbind = () => channel.unbind('pusher:subscription_succeeded', handler);
+            },
+        });
     });
 
     return () => {
