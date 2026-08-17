@@ -1,3 +1,4 @@
+import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import TAB_SCREENS from '@libs/Navigation/AppNavigator/Navigators/TAB_SCREENS';
 import buildTabNavigatorNestedState from '@libs/Navigation/helpers/buildTabNavigatorNestedState';
@@ -192,19 +193,42 @@ function getRehydratedTabNavigatorStateAfterPush(rehydratedState: StackNavigatio
  * Returns the focused child route from a navigator `state` (respects `index`).
  * Using `routes.at(-1)` is wrong for TabNavigator: tab order follows TAB_SCREENS, not selection.
  */
-function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
+function getFocusedRouteIndex(navState: NavigationState | PartialState<NavigationState> | undefined): number | undefined {
     if (!navState?.routes?.length) {
         return undefined;
     }
-    const idx =
-        typeof navState.index === 'number' && navState.routes[navState.index] !== undefined
-            ? navState.index
-            : // Partial states from linking should include `index`; fall back to first route.
-              0;
-    return navState.routes[idx] as NavigationPartialRoute;
+
+    // Partial states from linking should include `index`; fall back to the first route.
+    return typeof navState.index === 'number' && navState.routes[navState.index] !== undefined ? navState.index : 0;
 }
 
-function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined, focusedTargetTab: NavigationPartialRoute): TabRouteForReplacement {
+function getFocusedRouteFromNavigatorState(navState: NavigationState | PartialState<NavigationState> | undefined): NavigationPartialRoute | undefined {
+    const focusedRouteIndex = getFocusedRouteIndex(navState);
+    return focusedRouteIndex === undefined ? undefined : (navState?.routes[focusedRouteIndex] as NavigationPartialRoute);
+}
+
+function getKeylessRoute<R extends NavigationPartialRoute>(route: R): R {
+    const routeWithoutKey = {...route};
+    delete (routeWithoutKey as Partial<Pick<typeof routeWithoutKey, 'key'>>).key;
+    return routeWithoutKey;
+}
+
+function areSameReportRoutes(firstRoute: NavigationPartialRoute | undefined, secondRoute: NavigationPartialRoute | undefined): boolean {
+    if (firstRoute?.name !== SCREENS.REPORT || secondRoute?.name !== SCREENS.REPORT) {
+        return false;
+    }
+
+    const firstReportID = (firstRoute.params as {reportID?: unknown} | undefined)?.reportID;
+    const secondReportID = (secondRoute.params as {reportID?: unknown} | undefined)?.reportID;
+
+    return firstReportID !== undefined && firstReportID === secondReportID;
+}
+
+function getTargetTabRoute(
+    existingTabRoute: TabRouteForReplacement | undefined,
+    focusedTargetTab: NavigationPartialRoute,
+    shouldPreserveFocusedReportsStack = false,
+): TabRouteForReplacement {
     // Prepend a back-target route beneath the incoming screen when the incoming state starts with a
     // different screen, so back navigation lands somewhere sensible: the existing sidebar/root route
     // (e.g. Inbox) for most tabs, or WORKSPACES_LIST for the workspace navigator. When the existing tab
@@ -215,7 +239,11 @@ function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined,
     const newNestedRoutes = focusedTargetTab.state?.routes;
     const existingFirstRoute = existingNestedRoutes?.at(0);
     const newFirstRoute = newNestedRoutes?.at(0);
+    const existingNestedState = existingTabRoute?.state as PartialState<NavigationState> | undefined;
+    const focusedExistingRoute = getFocusedRouteFromNavigatorState(existingNestedState);
+    const focusedExistingRouteIndex = getFocusedRouteIndex(existingNestedState);
     const defaultSidebarRouteName = getSidebarRouteName(existingTabRoute?.name ?? focusedTargetTab.name);
+
     // The route prepended beneath the incoming screen so back navigation has a target. For most tabs this is
     // the sidebar/root route; for WORKSPACE_NAVIGATOR it is WORKSPACES_LIST (a list screen, not a sidebar).
     let backTargetRoute: NavigationPartialRoute | undefined;
@@ -231,7 +259,31 @@ function getTargetTabRoute(existingTabRoute: TabRouteForReplacement | undefined,
     } else {
         backTargetRoute = existingFirstRoute ?? (defaultSidebarRouteName ? {name: defaultSidebarRouteName} : undefined);
     }
-    if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
+
+    const shouldPreserveReportsStack =
+        shouldPreserveFocusedReportsStack &&
+        existingTabRoute?.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+        focusedTargetTab.name === NAVIGATORS.REPORTS_SPLIT_NAVIGATOR &&
+        focusedExistingRoute?.name === SCREENS.REPORT &&
+        newFirstRoute?.name === SCREENS.REPORT &&
+        focusedExistingRouteIndex !== undefined &&
+        existingNestedRoutes !== undefined &&
+        newNestedRoutes !== undefined;
+
+    if (shouldPreserveReportsStack) {
+        // Keep only history through the focused report. Anything above it is forward history.
+        // The old focused report becomes non-top, so it must be keyless to avoid the
+        // react-native-screens top-to-non-top flash (#90985).
+        const routesThroughFocusedRoute = existingNestedRoutes.slice(0, focusedExistingRouteIndex + 1).map((route, index) => {
+            return index === focusedExistingRouteIndex ? getKeylessRoute(route) : route;
+        });
+
+        // Preserve and dedupe independently. If the incoming report is already focused,
+        // replace that last route with the incoming one instead of dropping the full stack.
+        const routesBeforeIncoming = areSameReportRoutes(routesThroughFocusedRoute.at(-1), newFirstRoute) ? routesThroughFocusedRoute.slice(0, -1) : routesThroughFocusedRoute;
+        const mergedRoutes = [...routesBeforeIncoming, ...newNestedRoutes];
+        mergedNestedState = {...focusedTargetTab.state, routes: mergedRoutes, index: mergedRoutes.length - 1};
+    } else if (backTargetRoute && newFirstRoute && backTargetRoute.name !== newFirstRoute.name) {
         const prependedRoutes = [backTargetRoute, ...(newNestedRoutes ?? [])];
         mergedNestedState = {...focusedTargetTab.state, routes: prependedRoutes, index: prependedRoutes.length - 1};
     }
@@ -260,11 +312,15 @@ function getTabStateWithExistingFocusedTarget(existingTabState: NavigationState,
         return undefined;
     }
 
+    // C+ requested that this behavior remain narrow-only, since wide/desktop browser
+    // history is not updated for this nested-stack preservation.
+    const shouldPreserveFocusedReportsStack = getIsNarrowLayout() && targetTabIndex === existingTabState.index;
+
     const updatedTabRoutes = existingTabState.routes.map((route, index) => {
         if (index !== targetTabIndex) {
             return route;
         }
-        return getTargetTabRoute(route, focusedTargetTab);
+        return getTargetTabRoute(route, focusedTargetTab, shouldPreserveFocusedReportsStack);
     });
     return {...existingTabState, routes: updatedTabRoutes, index: targetTabIndex};
 }
