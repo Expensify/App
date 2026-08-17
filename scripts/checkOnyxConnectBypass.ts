@@ -20,11 +20,11 @@ import type {Rule} from 'eslint';
  * which every read it can flag has to go through. Extra matches are harmless, since the rules ignore
  * what does not concern them.
  */
-import tsParser from '@typescript-eslint/parser';
 import {ESLint} from 'eslint';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {parser as tsParser} from 'typescript-eslint';
 
 import {BANNED_RULE_ID, RENDER_READ_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
 
@@ -115,13 +115,15 @@ function findCandidateFiles(targets: string[], terms: string[]): string[] {
     }
 }
 
-async function run(): Promise<void> {
-    const targets = process.argv.slice(2);
-
+/**
+ * Checks `targets` for new bypasses of the Onyx lint bans, reporting any to stderr.
+ * Returns `true` if a new bypass was found (i.e. the caller should fail).
+ */
+async function checkOnyxConnectBypass(targets: string[]): Promise<boolean> {
     // A rule with no candidate files cannot fire anywhere, since its grep terms are a superset of the rule.
     const applicableRules = POLICED_RULES.map((rule) => ({rule, candidates: findCandidateFiles(targets, rule.grepTerms)})).filter(({candidates}) => candidates.length > 0);
     if (applicableRules.length === 0) {
-        return;
+        return false;
     }
 
     const candidates = [...new Set(applicableRules.flatMap(({candidates: files}) => files))];
@@ -145,7 +147,7 @@ async function run(): Promise<void> {
     const results = await eslint.lintFiles(candidates);
     const newBypasses = findNewBypasses(collectSuppressedBans(results, projectRoot));
     if (newBypasses.length === 0) {
-        return;
+        return false;
     }
 
     for (const {rule} of applicableRules) {
@@ -159,10 +161,21 @@ async function run(): Promise<void> {
             console.error(`  ${bypass.file}:${bypass.line}`);
         }
     }
-    process.exitCode = 1;
+    return true;
 }
 
-run().catch((error: unknown) => {
-    console.error(error instanceof Error ? error.message : error);
-    process.exitCode = 1;
-});
+if (require.main === module) {
+    checkOnyxConnectBypass(process.argv.slice(2))
+        .then((failed) => {
+            if (!failed) {
+                return;
+            }
+            process.exitCode = 1;
+        })
+        .catch((error: unknown) => {
+            console.error(error instanceof Error ? error.message : error);
+            process.exitCode = 1;
+        });
+}
+
+export default checkOnyxConnectBypass;

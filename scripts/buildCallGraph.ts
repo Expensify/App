@@ -2,7 +2,7 @@
  * Stitches per-file analyses into one call graph.
  *
  * Two things happen here, and both are the reason this is a separate module with its own tests: import
- * specifiers become repo-relative file paths (tsconfig aliases, extensionless imports, index files,
+ * specifiers become repo-relative file paths (tsconfig aliases, imports with no file extension, index files,
  * platform variants), and a `{source, name}` reference becomes the unit id of the function it names,
  * following re-exports when the file it lands in only forwards the name.
  *

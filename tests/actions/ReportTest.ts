@@ -43,7 +43,6 @@ import type {OnyxCollection, OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
 import Onyx from 'react-native-onyx';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {MockFetch} from '../utils/TestHelper';
 
@@ -648,7 +647,7 @@ describe('actions/Report', () => {
 
                 // When the user visits the report
                 currentTime = DateUtils.getDBTime();
-                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+                Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: USER_1_ACCOUNT_ID});
                 Report.readNewestAction(REPORT_ID, true);
                 waitForBatchedUpdates();
                 return waitForBatchedUpdates();
@@ -1215,6 +1214,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -1234,7 +1234,7 @@ describe('actions/Report', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+        Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
         await waitForBatchedUpdates();
 
         const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`);
@@ -1258,6 +1258,7 @@ describe('actions/Report', () => {
             newReportObject: {
                 reportID: REPORT_ID,
             },
+            currentUserAccountID: 1,
         });
         await waitForBatchedUpdates();
 
@@ -1348,6 +1349,7 @@ describe('actions/Report', () => {
             betas: undefined,
             transaction: transaction ?? undefined,
             parentReportID: SELF_DM_ID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
         await waitForBatchedUpdates();
 
@@ -1402,6 +1404,7 @@ describe('actions/Report', () => {
                 newReportObject: {
                     reportID: REPORT_ID,
                 },
+                currentUserAccountID: 1,
             });
         }
 
@@ -2383,6 +2386,7 @@ describe('actions/Report', () => {
                 reportID: '2',
             },
             parentReportActionID: reportActionID,
+            currentUserAccountID: TEST_USER_ACCOUNT_ID,
         });
 
         await waitForBatchedUpdates();
@@ -2395,7 +2399,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = Onyx.get(ONYXKEYS.PERSISTED_REQUESTS);
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
         expect(persistedRequests?.at(1)?.command).toBe(WRITE_COMMANDS.OPEN_REPORT);
         expect(persistedRequests?.at(2)?.command).toBe(WRITE_COMMANDS.DELETE_COMMENT);
@@ -2441,7 +2445,7 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        const persistedRequests = OnyxUtils.get(ONYXKEYS.PERSISTED_REQUESTS);
+        const persistedRequests = Onyx.get(ONYXKEYS.PERSISTED_REQUESTS);
 
         expect(persistedRequests?.at(0)?.command).toBe(WRITE_COMMANDS.ADD_COMMENT);
 
@@ -2626,7 +2630,7 @@ describe('actions/Report', () => {
             [mentionActionID2]: mentionAction2,
         });
 
-        let report = {
+        const report = {
             ...createRandomReport(Number(reportID), undefined),
             lastMentionedTime: mentionAction2.created,
         };
@@ -2641,9 +2645,9 @@ describe('actions/Report', () => {
 
         await waitForBatchedUpdates();
 
-        report = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+        const updatedReport = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 
-        expect(report?.lastMentionedTime).toBeUndefined();
+        expect(updatedReport?.lastMentionedTime).toBeUndefined();
     });
 
     describe('deleteReportComment SEARCH_REPORT navigation', () => {
@@ -2710,7 +2714,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, reportAction, {[reportAction.reportActionID]: reportAction}, 'edited message');
             await waitForBatchedUpdates();
 
-            const drafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts?.['draft-local-action']?.message).toBe('edited message');
         });
 
@@ -2726,9 +2730,9 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(threadReportID, parentReportAction, {}, 'edited thread parent');
             await waitForBatchedUpdates();
 
-            const parentDrafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
+            const parentDrafts = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${parentReportID}`);
             expect(parentDrafts?.['draft-thread-parent-action']?.message).toBe('edited thread parent');
-            const threadDrafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
+            const threadDrafts = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${threadReportID}`);
             expect(threadDrafts?.['draft-thread-parent-action']).toBeUndefined();
         });
 
@@ -2738,7 +2742,7 @@ describe('actions/Report', () => {
             Report.saveReportActionDraft(reportID, null, undefined, 'should not be saved');
             await waitForBatchedUpdates();
 
-            const drafts = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
+            const drafts = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_DRAFTS}${reportID}`);
             expect(drafts).toBeFalsy();
         });
     });
@@ -2762,7 +2766,7 @@ describe('actions/Report', () => {
             toggleEmojiReaction(threadReportID, parentReportAction, {name: 'smile', code: '😄', hexcode: '1F604'}, {}, CONST.EMOJI_DEFAULT_SKIN_TONE, TEST_USER_ACCOUNT_ID, {});
             await waitForBatchedUpdates();
 
-            const reactions = OnyxUtils.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
+            const reactions = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_REACTIONS}${parentReportAction.reportActionID}`);
             expect(reactions?.smile?.users?.[TEST_USER_ACCOUNT_ID]).toBeDefined();
         });
     });
@@ -4363,7 +4367,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace
-            Report.moveIOUReportToPolicy(iouReport, policy, undefined);
+            Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4385,7 +4389,7 @@ describe('actions/Report', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined);
+            const result = Report.moveIOUReportToPolicy(expenseReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
 
@@ -4410,7 +4414,7 @@ describe('actions/Report', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`, {[iouReportAction.reportActionID]: iouReportAction});
             await waitForBatchedUpdates();
 
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, false);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, false);
             expect(result).toBeUndefined();
         });
 
@@ -4447,7 +4451,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // When isFromSettlementButton is true, it should proceed despite hasRequestFromCurrentAccount being true
-            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, true);
+            const result = Report.moveIOUReportToPolicy(iouReport, policy, undefined, TestHelper.getCurrencyDecimalsLocal, true);
             expect(result).toBeDefined();
             expect(result?.policyExpenseChatReportID).toBeDefined();
         });
@@ -4477,7 +4481,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat123', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4509,7 +4513,7 @@ describe('actions/Report', () => {
                 Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policyWithEmptyFieldList);
 
                 // When converting IOU report to expense report
-                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, []);
+                const result = Report.convertIOUReportToExpenseReport(iouReport, policyWithEmptyFieldList, policyID, 'expenseChat124', undefined, TestHelper.getCurrencyDecimalsLocal, []);
 
                 // Then the report name should be set to the default formula result ("New Report")
                 const reportUpdate = result.optimisticData.find((update) => update.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
@@ -4541,7 +4545,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
 
             // When moving iou to a workspace and invite the submitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Then MOVED report action should be added to the expense report
@@ -4607,7 +4611,7 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             // Call moveIOUReportToPolicyAndInviteSubmitter
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             // Simulate network failure
@@ -4665,7 +4669,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with reportTransactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the transaction amounts should be negated optimistically
@@ -4711,7 +4715,7 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, transaction);
 
             // When moving IOU to a workspace with transactions
-            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, [transaction]);
+            Report.moveIOUReportToPolicyAndInviteSubmitter(iouReport, policy, {}, undefined, TEST_USER_ACCOUNT_ID, ownerEmail, true, TestHelper.getCurrencyDecimalsLocal, [transaction]);
             await waitForBatchedUpdates();
 
             // Then the report should be converted to an expense report with the new policyID
@@ -4739,7 +4743,7 @@ describe('actions/Report', () => {
 
         it('should return undefined when iouReport is missing', () => {
             const policy: OnyxTypes.Policy = {...createRandomPolicy(1), role: CONST.POLICY.ROLE.ADMIN};
-            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false);
+            const result = Report.moveIOUReportToPolicyAndInviteSubmitter(undefined, policy, {}, undefined, TEST_USER_ACCOUNT_ID, '', false, TestHelper.getCurrencyDecimalsLocal);
             expect(result).toBeUndefined();
         });
     });
@@ -5114,7 +5118,7 @@ describe('actions/Report', () => {
             await Onyx.set(ONYXKEYS.NVP_INTRO_SELECTED, TEST_INTRO_SELECTED);
             await waitForBatchedUpdates();
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5125,7 +5129,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '2';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: TEST_INTRO_SELECTED, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -5136,7 +5140,7 @@ describe('actions/Report', () => {
 
             const REPORT_ID = '3';
 
-            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined});
+            Report.openReport({hasReportActions: true, reportID: REPORT_ID, introSelected: undefined, betas: undefined, currentUserAccountID: 1});
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -9466,6 +9470,42 @@ describe('actions/Report', () => {
         it('does not set delegateAccountID when delegateAccountIDParam is undefined', () => {
             const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, undefined, {}, false, undefined, undefined);
             expect(result.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('buildOptimisticModifiedExpenseReportAction distance currency', () => {
+        it('keeps the expense currency when a route switch leaves modifiedCurrency unset', () => {
+            const oldTransaction = createMock<OnyxTypes.Transaction>({
+                transactionID: '1',
+                reportID: '2',
+                amount: -1000,
+                currency: 'EUR',
+                merchant: '10.00 km @ €1.00 / km',
+                created: '2026-07-01',
+                comment: {
+                    customUnit: {
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS,
+                        quantity: 10,
+                        routeDistanceMeters: 10000,
+                    },
+                },
+            });
+
+            // A pure route switch recalculates the amount but not the currency, so `modifiedCurrency` stays unset.
+            const updatedTransaction = createMock<OnyxTypes.Transaction>({
+                ...oldTransaction,
+                modifiedAmount: -2000,
+                modifiedMerchant: '20.00 km @ €1.00 / km',
+                comment: {customUnit: {...oldTransaction.comment?.customUnit, quantity: 20}},
+            });
+
+            const result = ReportUtils.buildOptimisticModifiedExpenseReportAction(undefined, oldTransaction, {selectedRouteKey: 'route1'}, true, undefined, undefined, updatedTransaction);
+            const originalMessage = getOriginalMessage(result as OnyxTypes.ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE>);
+
+            expect(originalMessage?.currency).toBe('EUR');
+            expect(originalMessage?.oldCurrency).toBe('EUR');
+            expect(originalMessage?.amount).toBe(2000);
         });
     });
 

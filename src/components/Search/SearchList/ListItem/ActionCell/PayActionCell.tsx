@@ -16,6 +16,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -80,6 +81,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !reportID || !hash || !amount || !chatReport) {
+            Log.info('[SearchPay] Dropping row pay: missing required data', false, {
+                hasPaymentType: !!type,
+                reportID,
+                hasHash: !!hash,
+                hasAmount: !!amount,
+                hasChatReport: !!chatReport,
+            });
             return;
         }
 

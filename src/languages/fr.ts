@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'à',
         genericErrorMessage: 'Oups... une erreur s’est produite et votre requête n’a pas pu être effectuée. Veuillez réessayer plus tard.',
         percentage: 'Pourcentage',
-        progressBarLabel: "Progression de l'intégration",
         converted: 'Converti',
         error: {
             invalidAmount: 'Montant invalide',
@@ -1170,6 +1169,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'Échec du chargement du module de feuille de calcul. Veuillez vérifier votre connexion Internet et réessayer.',
         importSpreadsheet: 'Importer un tableau',
         importWorkflows: 'Importer les workflows',
+        downloadWorkflows: 'Télécharger les workflows',
         downloadCSV: 'Télécharger le CSV',
         importMemberConfirmation: () => ({
             one: `Veuillez confirmer les détails ci-dessous pour un nouveau membre de l’espace de travail qui sera ajouté dans le cadre de ce téléversement. Les membres existants ne recevront aucune mise à jour de rôle ni message d’invitation.`,
@@ -1699,6 +1699,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
         },
         moveExpenses: 'Déplacer vers le rapport',
+        moveExpensesMaxTransactionsError: `Les rapports sont limités à ${CONST.REPORT.MAX_TRANSACTIONS} dépenses. Veuillez en déplacer certaines vers un autre rapport.`,
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
         submitReportTo: {
@@ -1722,6 +1723,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
             bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de vous (son remplaçant de vacances), car vous n’êtes pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Cette note de frais vous a été envoyée au lieu de votre remplaçant pendant les vacances <mention-user>@${delegate}</mention-user>, car il n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de son remplaçant de vacances <mention-user>@${delegate}</mention-user>, car cette personne n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car vous ne pouvez pas approuver vos propres notes de frais`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Cette note de frais vous a été envoyée pour approbation, car votre remplaçant pour congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car son délégué de congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
         },
         chooseWorkspace: 'Choisir un espace de travail',
         routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
@@ -1903,14 +1916,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `compte bancaire en ${requiredDepositCurrency}` : 'compte bancaire';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `En attente que <strong>vous</strong> ajoutiez un compte bancaire.`;
+                        return `En attente que <strong>vous</strong> ajoutiez un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `En attente que <strong>${actor}</strong> ajoute un compte bancaire.`;
+                        return `En attente que <strong>${actor}</strong> ajoute un ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `En attente qu’un administrateur ajoute un compte bancaire.`;
+                        return `En attente qu’un administrateur ajoute un ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2593,6 +2608,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'Veuillez corriger cette connexion',
             fixConnectionIn: (companyCardsRoute: string) => `Veuillez corriger cette connexion dans <a href="${companyCardsRoute}">cartes d’entreprise</a>`,
             askAdminToFixConnection: 'Veuillez demander à un administrateur de corriger cette connexion',
+            reconnectBank: 'Votre connexion bancaire doit être réauthentifiée',
         },
         bankAccountStatus: {
             active: 'Actif',
@@ -2962,7 +2978,7 @@ ${amount} pour ${merchant} - ${date}`,
         editAvatar: "Changer d'avatar",
         defaultAgentName: (displayName: string) => `Agent de ${displayName}`,
         defaultPrompt:
-            'Rejeter les dépenses liées aux jeux d’argent, aux films ou à d’autres motifs manifestement non professionnels.\n\nRappeler à l’utilisateur d’inclure systématiquement une image du reçu où le pourboire est clairement visible.\n\nApprouver le rapport s’il est très similaire aux rapports précédents du même utilisateur.\n\nRejeter les rapports contenant plus de 500 $ de frais de déplacement.',
+            'Catégoriser toutes les dépenses dans des cafés en Repas.\n\nPour chaque trajet en VTC, définir la description sur « Déplacement client ».\n\nTaguer tout ce que j’achète au magasin d’électronique en Équipement.\n\nSignaler toute dépense sans reçu afin que je puisse en ajouter un avant de soumettre.',
         copilotNote: 'Cet agent sera ajouté comme copilote avec un accès complet à votre compte, afin de pouvoir agir en votre nom.',
     },
     editAgentPage: {
@@ -4663,6 +4679,7 @@ ${amount} pour ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
+            noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -5992,6 +6009,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous réglerez le solde de votre Carte Expensify.',
             settlementFrequencyInfo:
                 'Si vous souhaitez passer à un règlement mensuel, vous devrez connecter votre compte bancaire via Plaid et disposer d’un historique de solde positif sur 90 jours.',
+            monthlySettlementDate: (date: string) => `Les règlements des Cartes Expensify auront lieu le ${date} de chaque mois.`,
             applyCashbackToBill: 'Appliquer le cashback à ma facture Expensify',
             applyCashbackToBillDescription: 'Le cashback de la carte Expensify sera utilisé pour le paiement de votre facture Expensify.',
             frequency: {
@@ -6265,7 +6283,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
                 cardFeedAllowDeletingTransaction: 'Autoriser la suppression des transactions',
                 removeCardFeed: 'Supprimer le flux de cartes',
                 removeCardFeedTitle: (feedName: string) => `Supprimer le flux ${feedName}`,
-                removeCardFeedDescription: "Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l'assignation de toutes les cartes.",
+                removeCardFeedDescription: 'Voulez-vous vraiment supprimer ce flux de cartes ? Cela retirera l’assignation de toutes les cartes et supprimera les transactions non soumises.',
                 error: {
                     feedNameRequired: 'Le nom du flux de carte est obligatoire',
                     statementCloseDateRequired: 'Veuillez sélectionner une date de clôture de relevé.',
@@ -6737,6 +6755,8 @@ Le forfait Control commence à 9 $ par Membre actif et par mois.`,
                 chooseLimitType: 'Choisissez un type de limite',
                 smartLimit: 'Limite intelligente',
                 smartLimitDescription: 'Dépenser jusqu’à un certain montant avant de nécessiter une approbation',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>Dépenser jusqu’à un certain montant avant de nécessiter une approbation. <a href="${workspaceWorkflowsLink}">Activez les approbations</a> pour sélectionner cette option.</muted-text-label>`,
                 monthly: 'Mensuel',
                 monthlyDescription: 'Dépenser jusqu’à un certain montant par mois',
                 fixedAmount: 'Montant fixe',
@@ -8865,6 +8885,8 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de facturation copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `paramètres de déplacement copiés depuis <a href="${sourcePolicyURL}">${sourcePolicyName}</a>`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de catégorisation des dépenses`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'activé' : 'Désactivé'} l’exigence de tag des dépenses`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `a modifié les participants de la catégorie « ${categoryName} » en ${newValue ? 'obligatoire' : 'non obligatoire'} (précédemment ${newValue ? 'non obligatoire' : 'obligatoire'})`;
         },
@@ -9071,6 +9093,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 travelInvoicing: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
+            workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',
@@ -9182,7 +9205,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         exportedTo: 'Exporté vers',
         exportAll: {
             selectAllMatchingItems: 'Sélectionnez tous les éléments correspondants',
-            allMatchingItemsSelected: 'Tous les éléments correspondants sont sélectionnés',
             selectAllOnThisPage: 'Tout sélectionner sur cette page',
         },
         errors: {
@@ -9590,7 +9612,16 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `Original : ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} unité(s) de trajet domicile-travail ${unit} supprimée(s)`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `Suppression de ${distance} mile de trajet domicile-travail`,
+                    other: `${distance} miles de trajet domicile-travail supprimés`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance} kilomètre de trajet domicile-travail supprimé`,
+                    other: `${distance} kilomètres de trajet domicile-travail supprimés`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${distance} ${unit} de trajet domicile-travail supprimé(s) en fonction de ${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">paramètres de distance de l’espace de travail</a>` : 'paramètres de distance de l’espace de travail'}.`,
         },
@@ -10429,6 +10460,7 @@ Voici un *reçu test* pour vous montrer comment ça fonctionne :`,
         basicExport: 'Export basique',
         reportLevelExport: 'Toutes les données - niveau note de frais',
         expenseLevelExport: 'Toutes les données - niveau dépense',
+        multipleTaxExport: 'Export canadien à taxes multiples',
         exportInProgress: 'Export en cours',
         conciergeWillSend: 'Concierge vous enverra le fichier sous peu.',
         currentView: 'Vue actuelle',

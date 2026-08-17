@@ -2,6 +2,7 @@ import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isMoneyRequest, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
@@ -43,7 +44,7 @@ import {openReport, saveReportDraftComment} from './Report';
  * and keeps it observing the deletion made at the top of the function.
  */
 
-function replaceOptimisticReportWithActualReport(report: Report, draftReportComment: string | undefined) {
+function replaceOptimisticReportWithActualReport(report: Report, draftReportComment: string | undefined, currentUserAccountID: number) {
     const {reportID, preexistingReportID, parentReportID, parentReportActionID} = report;
 
     if (!reportID || !preexistingReportID) {
@@ -200,7 +201,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         // betas is safe to pass as undefined because introSelected is undefined, so the code path
                         // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                         // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions});
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
                     });
                 } else {
                     callback();
@@ -209,7 +210,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // betas is safe to pass as undefined because introSelected is undefined, so the code path
                     // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                     // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions});
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
                 }
                 return;
             }
@@ -242,7 +243,11 @@ Onyx.connectWithoutView({
                 continue;
             }
 
-            replaceOptimisticReportWithActualReport(report, Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`));
+            replaceOptimisticReportWithActualReport(
+                report,
+                Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT}${report.reportID}`),
+                Onyx.get(ONYXKEYS.SESSION)?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            );
         }
     },
 });

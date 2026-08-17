@@ -64,10 +64,10 @@ import type {PerDiemExpenseInformation} from './PerDiem';
 import type {CreateDistanceRequestInformation} from './Split';
 import type {CreateTrackExpenseParams} from './TrackExpense';
 
-import {getAllReports, getAllTransactions, getPolicyTags} from '.';
+import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {getPerDiemExpensePolicyID, submitPerDiemExpense} from './PerDiem';
+import {submitPerDiemExpense} from './PerDiem';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 
@@ -678,6 +678,7 @@ function createExpenseByType({
     formatPhoneNumber,
     dateFnsLocale,
     participantsPolicyTags,
+    policyTags,
 }: {
     transactionType: string;
     params: RequestMoneyInformation;
@@ -694,6 +695,7 @@ function createExpenseByType({
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     dateFnsLocale: DateFnsLocale | undefined;
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    policyTags: OnyxTypes.PolicyTagLists;
 }) {
     switch (transactionType) {
         case CONST.SEARCH.TRANSACTION_TYPE.DISTANCE: {
@@ -736,9 +738,6 @@ function createExpenseByType({
             return createDistanceRequest(distanceParams);
         }
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
-            const earlyPolicyID = getPerDiemExpensePolicyID(params);
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
-
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
                 dateFnsLocale,
@@ -793,6 +792,7 @@ type DuplicateExpenseTransactionParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateExpenseTransaction({
@@ -825,6 +825,8 @@ function duplicateExpenseTransaction({
     formatPhoneNumber,
     getCurrencyDecimals,
     participantsPolicyTags,
+    conciergeChat,
+    targetPolicyTags,
 }: DuplicateExpenseTransactionParams) {
     if (!transaction) {
         return;
@@ -869,8 +871,7 @@ function duplicateExpenseTransaction({
             transactionID: '1',
         },
         isSelfTourViewed,
-        // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-        conciergeChat: undefined,
+        conciergeChat,
         betas,
         personalDetails,
         shouldDeferAutoSubmit,
@@ -912,8 +913,7 @@ function duplicateExpenseTransaction({
             isDraftPolicy: false,
             currentUser: {accountID: currentUserAccountID, email: currentUserLogin},
             introSelected,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             quickAction,
             recentWaypoints,
             betas,
@@ -947,6 +947,7 @@ function duplicateExpenseTransaction({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        policyTags: targetPolicyTags ?? {},
     });
 }
 
@@ -977,6 +978,7 @@ type DuplicateReportParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function duplicateReport({
@@ -1006,6 +1008,7 @@ function duplicateReport({
     formatPhoneNumber,
     getCurrencyDecimals,
     participantsPolicyTags,
+    conciergeChat,
 }: DuplicateReportParams) {
     if (!targetPolicy || !parentChatReport) {
         return;
@@ -1106,8 +1109,7 @@ function duplicateReport({
                 transactionID: '1',
             },
             isSelfTourViewed,
-            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-            conciergeChat: undefined,
+            conciergeChat,
             betas,
             personalDetails,
             shouldDeferAutoSubmit: !isLastExpense,
@@ -1133,6 +1135,7 @@ function duplicateReport({
             isTrackIntentUser,
             formatPhoneNumber,
             participantsPolicyTags,
+            policyTags: targetPolicyTags ?? {},
         });
 
         if (result?.iouReport) {
@@ -1171,6 +1174,7 @@ type BulkDuplicateExpensesParams = {
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateExpenses({
@@ -1199,6 +1203,7 @@ function bulkDuplicateExpenses({
     formatPhoneNumber,
     getCurrencyDecimals,
     participantsPolicyTags,
+    conciergeChat,
 }: BulkDuplicateExpensesParams) {
     const transactionsToDuplicate = transactionIDs.map((id) => allTransactions[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((t): t is OnyxTypes.Transaction => !!t);
 
@@ -1301,6 +1306,7 @@ function bulkDuplicateExpenses({
             formatPhoneNumber,
             getCurrencyDecimals,
             participantsPolicyTags,
+            conciergeChat,
         });
 
         if (result?.iouReport) {
@@ -1330,6 +1336,7 @@ type BulkDuplicateReportsParams = {
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 function bulkDuplicateReports({
@@ -1347,6 +1354,7 @@ function bulkDuplicateReports({
     delegateAccountID,
     formatPhoneNumber,
     getCurrencyDecimals,
+    conciergeChat,
 }: BulkDuplicateReportsParams) {
     // Every read happens here, in one block, before the loop below writes anything. That ordering is the
     // condition these reads have to satisfy: Onyx.merge applies to the cache on a microtask, so a read taken
@@ -1446,6 +1454,7 @@ function bulkDuplicateReports({
             formatPhoneNumber,
             getCurrencyDecimals,
             participantsPolicyTags,
+            conciergeChat,
         });
     }
 

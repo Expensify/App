@@ -5,9 +5,12 @@ import {bulkDuplicateReports} from '@libs/actions/IOU/Duplicate';
 import {getPolicyExpenseChat} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
 import type {OnyxCollection} from 'react-native-onyx';
+
+import Onyx from 'react-native-onyx';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -33,6 +36,11 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const handleDuplicateReports = () => {
+        // `conciergeChat` arrived on main after this hook was converted, so it is read here at event time rather
+        // than through the two subscriptions it came with. `bulkDuplicateReports` still takes it as a parameter.
+        const conciergeReportID = Onyx.get(ONYXKEYS.CONCIERGE_REPORT_ID);
+        const conciergeChat = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
+
         const activePolicyExpenseChat = getPolicyExpenseChat(currentUserPersonalDetails.accountID, defaultExpensePolicy?.id);
 
         bulkDuplicateReports({
@@ -50,6 +58,7 @@ function useBulkDuplicateReportAction({selectedReports, allReports, searchData}:
             delegateAccountID,
             formatPhoneNumber,
             getCurrencyDecimals,
+            conciergeChat,
         });
 
         clearSelectedTransactions(undefined, true);
