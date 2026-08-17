@@ -1,39 +1,66 @@
 import type {ShiftRangeBatch} from '@libs/shiftRangeSelection';
 
-import {useEffect, useRef, useState} from 'react';
+import {useLayoutEffect, useRef, useState} from 'react';
 
 type Params<TItem> = {
+    /** The rendered rows, in the order they appear on screen */
     items: TItem[];
-    // Keys must be unique within items; a null/undefined key keeps the row out of ranges.
+
+    /** Keys must be unique within `items`. A null key keeps a row out of ranges, since there is no identity to collapse it by later */
     getItemKey: (item: TItem) => string | null | undefined;
+
+    /** Whether a row reads as selected, which is how a cold shift+click finds an anchor */
     isItemSelected: (item: TItem) => boolean;
+
+    /** Rows a range must never deselect. Defaults to `isItemSelected`; pass it where a row can read as selected without having been picked on its own */
+    isItemProtected?: (item: TItem) => boolean;
+
+    /** Headers are never part of a range, and never anchor one */
     isHeaderItem?: (item: TItem) => boolean;
+
+    /** Disabled rows are excluded from ranges, anchors and targets */
     isDisabledItem?: (item: TItem) => boolean;
+
+    /** Called with the rows to select and the rows to give back, once a shift+click resolves */
     onApplyRange?: (batch: ShiftRangeBatch<TItem>) => void;
 };
 
 type Api<TItem> = {
+    /** Applies a range when the click carried Shift, and reports whether it handled the click */
     applyShiftClick: (item: TItem, shiftKey?: boolean) => boolean;
+
+    /** Records a plainly clicked row, so the next shift+click continues from there */
     notifyAnchor: (item: TItem) => void;
-    // No caller in this PR — the Search provider's group toggles consume it in the follow-up.
-    seedRangeFromSelection: (selectedKeys: ReadonlySet<string> | readonly string[]) => void;
+
+    /** Lets a selection made elsewhere, such as a group header, be narrowed by the next shift+click. Pass a test where the rows may still be loading */
+    seedRangeFromSelection: (members: ReadonlySet<string> | readonly string[] | ((key: string) => boolean)) => void;
+
+    /** The same, for Select All */
     seedFullRange: () => void;
-    // No caller in this PR — the Search provider's clear-all consumes it in the follow-up.
+
+    /** Forgets the session, so the next shift+click starts cold */
     clearAnchor: () => void;
 };
 
-// Shift+click always selects — a deselect mode left Shift looking dead. painted: keys the session selected, tracked by key so re-sorts and removals can't misattribute the collapse.
-// Selected rows the session didn't paint are protected from collapse (derived per click, see protectedKeys); a seeded session paints its whole span, so Select All still collapses.
-type SessionState = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
+/**
+ * Shift+click only ever selects, so the session has no mode to get stuck in. `painted` is the set of rows this session
+ * selected, held by key so reordering the list cannot confuse it, and shrinking a range gives back only those rows.
+ */
+type ResolvedSession = {kind: 'idle'} | {kind: 'anchored'; anchor: string} | {kind: 'ranging'; anchor: string; painted: ReadonlySet<string>};
 
-const IDLE: SessionState = {kind: 'idle'};
+/** A seeded block is held as a membership test, not as rows: it resolves at the next shift+click, so rows that had not loaded when it was seeded still join. */
+type SessionState = ResolvedSession | {kind: 'seeded'; isMember: (key: string) => boolean};
+
+const IDLE: ResolvedSession = {kind: 'idle'};
+
+/** Nothing painted. Shared so a session that adopts no block compares against one empty set rather than allocating its own. */
 const NO_KEYS: ReadonlySet<string> = new Set();
 
 /** Shift+click range selection. Consumers notify on plain clicks / select-all so the hook can resolve an anchor for the next shift+click. */
 function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
-    // The api methods are built once but read the latest params through this ref, refreshed after every commit.
+    // The api methods are built once and read the latest params here, refreshed during the commit so a click in the same frame as a re-render sees the current rows.
     const paramsRef = useRef(params);
-    useEffect(() => {
+    useLayoutEffect(() => {
         paramsRef.current = params;
     });
 
@@ -57,21 +84,30 @@ function useShiftRangeSelection<TItem>(params: Params<TItem>): Api<TItem> {
             return true;
         },
         notifyAnchor: (item) => {
-            const key = keyOf(paramsRef.current, item);
-            if (key == null) {
+            const currentParams = paramsRef.current;
+            const key = keyOf(currentParams, item);
+            // Better to keep the last reachable anchor than store one that would send the next shift+click back to the top of the list.
+            if (key == null || !canAnchor(currentParams, key)) {
                 return;
             }
             sessionRef.current = {kind: 'anchored', anchor: key};
         },
-        seedRangeFromSelection: (selectedKeys) => {
-            // Keys are passed in because the caller's selection is optimistic — reading it here would see the pre-toggle set.
-            const currentParams = paramsRef.current;
-            const set = selectedKeys instanceof Set ? selectedKeys : new Set(selectedKeys);
-            sessionRef.current = seedRangeState(currentParams, (key) => set.has(key));
+        seedRangeFromSelection: (members) => {
+            // Recorded, not resolved: the caller's selection is optimistic, and the rows may not even be in the list yet.
+            if (typeof members === 'function') {
+                sessionRef.current = {kind: 'seeded', isMember: members};
+                return;
+            }
+            const set = members instanceof Set ? members : new Set(members);
+            // A block with nothing in it is not a block: the caller selected no rows, so whatever session it would replace is still the truth.
+            if (set.size === 0) {
+                return;
+            }
+            sessionRef.current = {kind: 'seeded', isMember: (key) => set.has(key)};
         },
         seedFullRange: () => {
             // After Select All: seed a full-list range so the next shift+click collapses the selection to the clicked sub-range.
-            sessionRef.current = seedRangeState(paramsRef.current, () => true);
+            sessionRef.current = {kind: 'seeded', isMember: () => true};
         },
         clearAnchor: () => {
             sessionRef.current = IDLE;
@@ -99,8 +135,8 @@ function buildKeyIndex<TItem>(params: Params<TItem>): Map<string, number> {
     return keyToIndex;
 }
 
-/** Builds a `ranging` session anchored at the first selectable item passing `isIncluded` and painting every passing key, or `IDLE` when none qualify. */
-function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): SessionState {
+/** Builds a `ranging` session anchored at the first selectable item passing `isIncluded` and painting every passing key, or `null` when none qualify. */
+function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) => boolean): ResolvedSession | null {
     let anchor: string | null = null;
     const painted = new Set<string>();
     for (const item of params.items) {
@@ -117,15 +153,38 @@ function seedRangeState<TItem>(params: Params<TItem>, isIncluded: (key: string) 
     if (anchor !== null) {
         return {kind: 'ranging', anchor, painted};
     }
-    return IDLE;
+    return null;
+}
+
+/**
+ * A session with no continuity adopts rows that read as selected without having been picked on their own, since those came from a
+ * block selection a range may narrow. Inert unless `isItemProtected` is passed.
+ */
+function adoptUnprotectedBlock<TItem>(params: Params<TItem>): ReadonlySet<string> {
+    const keys = new Set<string>();
+    const isProtected = params.isItemProtected ?? params.isItemSelected;
+    for (const row of params.items) {
+        if (isExcluded(params, row)) {
+            continue;
+        }
+        const key = keyOf(params, row);
+        if (key != null && params.isItemSelected(row) && !isProtected(row)) {
+            keys.add(key);
+        }
+    }
+    return keys;
 }
 
 /** Selected keys the session didn't paint — derived fresh each click so protection tracks the live selection; the session never deselects these. */
 function protectedKeys<TItem>(params: Params<TItem>, painted: ReadonlySet<string>): ReadonlySet<string> {
     const keys = new Set<string>();
+    const isProtected = params.isItemProtected ?? params.isItemSelected;
     for (const row of params.items) {
+        if (isExcluded(params, row)) {
+            continue;
+        }
         const key = keyOf(params, row);
-        if (key != null && !painted.has(key) && params.isItemSelected(row)) {
+        if (key != null && !painted.has(key) && isProtected(row)) {
             keys.add(key);
         }
     }
@@ -140,15 +199,26 @@ function computeShiftRange<TItem>(params: Params<TItem>, state: SessionState, ta
 
     const keyToIndex = buildKeyIndex(params);
 
-    const seed = state.kind === 'idle' ? null : state.anchor;
+    // A seeded block resolves here rather than when it was seeded. With none of it on screen there is nothing to narrow, so the click starts a range where it landed.
+    const resolved: ResolvedSession = state.kind === 'seeded' ? (seedRangeState(params, state.isMember) ?? {kind: 'anchored', anchor: targetKey}) : state;
+
+    const seed = resolved.kind === 'idle' ? null : resolved.anchor;
     const anchor = resolveAnchor(params, keyToIndex, seed);
     if (anchor == null) {
         return null;
     }
     // The session survives only while the same anchor does; a re-resolved or cold anchor starts fresh.
-    const sameAnchor = state.kind !== 'idle' && anchor === state.anchor;
-    const continuing = state.kind === 'ranging' && sameAnchor;
-    const prevPainted: ReadonlySet<string> = continuing ? state.painted : NO_KEYS;
+    const sameAnchor = resolved.kind !== 'idle' && anchor === resolved.anchor;
+    const continuing = resolved.kind === 'ranging' && sameAnchor;
+    let prevPainted: ReadonlySet<string>;
+    if (continuing) {
+        prevPainted = resolved.painted;
+    } else if (sameAnchor) {
+        // The anchor is the row the user just clicked, so there is no earlier block for this session to adopt.
+        prevPainted = NO_KEYS;
+    } else {
+        prevPainted = adoptUnprotectedBlock(params);
+    }
     const preSelected = protectedKeys(params, prevPainted);
 
     const anchorIdx = keyToIndex.get(anchor);
@@ -220,6 +290,11 @@ function keyOf<TItem>(params: Params<TItem>, item: TItem | null | undefined): st
         return null;
     }
     return params.getItemKey(item) ?? null;
+}
+
+/** Whether a key belongs to a row that is currently in the list and free to take part in a range. Matched by key: callers pass clones. */
+function canAnchor<TItem>(params: Params<TItem>, key: string): boolean {
+    return params.items.some((row) => keyOf(params, row) === key && !isExcluded(params, row));
 }
 
 function isExcluded<TItem>(params: Params<TItem>, item: TItem | null | undefined): boolean {

@@ -1,14 +1,14 @@
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import {canEditFieldOfMoneyRequest, canHoldUnholdReportAction, canRejectReportAction, getReimbursableTotal, isMoneyRequestReport, isOneTransactionReport} from '@libs/ReportUtils';
-import {isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
-import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold} from '@libs/TransactionUtils';
+import {isGroupedItemArray, isTransactionListItemType, isTransactionReportGroupListItemType} from '@libs/SearchUIUtils';
+import {getOriginalTransactionWithSplitInfo, hasValidModifiedAmount, isExpenseUnreported, isOnHold, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import type {OutstandingReportsByPolicyIDDerivedValue, Report, ReportNameValuePairs, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
-import type {TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
+import type {SearchListItem, TransactionGroupListItemType, TransactionListItemType, TransactionReportGroupListItemType} from './SearchList/ListItem/types';
 import type {SearchData, SelectedReports, SelectedTransactionInfo, SelectedTransactions} from './types';
 
 type MapTransactionItemToSelectedEntryParams = {
@@ -309,4 +309,149 @@ function deriveSelectedReports(transactionIDs: SelectedTransactions, data: Searc
     return [];
 }
 
-export {mapTransactionItemToSelectedEntry, mapEmptyReportToSelectedEntry, prepareTransactionsList, deriveSelectedReports};
+type GroupSelectionParams = {
+    /** The group's own key, which is where a group selected before its children loaded is stored */
+    groupKey: string | undefined;
+
+    /** The group's loaded rows */
+    children: TransactionListItemType[];
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether clicking a group's checkbox means "deselect": true once any row under it reads as checked, which is what the user is looking at. */
+function isGroupSelected({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    if (groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+        return true;
+    }
+    // A row being deleted is skipped by everything the checkbox reads, so counting it here would make the click mean the opposite of what the box shows.
+    return children
+        .filter((child) => !isTransactionPendingDelete(child))
+        .some((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
+/** Whether a group's checkbox reads as fully checked. A group with no rows of its own answers for itself, since there is nothing else to ask. */
+function isGroupChecked({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): boolean {
+    const selectable = children.filter((child) => !isTransactionPendingDelete(child));
+    if (selectable.length === 0) {
+        return !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
+    }
+    return selectable.every((child) => isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
+}
+
+/** What a group's checkbox shows: fully checked, and whether only some of its rows are. Rows being deleted count for neither. */
+function getGroupCheckboxState({groupKey, children, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: GroupSelectionParams): {
+    isSelectAllChecked: boolean;
+    isIndeterminate: boolean;
+} {
+    let selectableCount = 0;
+    let checkedCount = 0;
+    for (const child of children) {
+        if (isTransactionPendingDelete(child)) {
+            continue;
+        }
+        selectableCount++;
+        if (isRowChecked({rowKey: child.keyForList, parentGroupKey: groupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})) {
+            checkedCount++;
+        }
+    }
+    // A group with no rows of its own answers from its own key, since there is nothing else to ask.
+    if (selectableCount === 0) {
+        return {
+            isSelectAllChecked: !!groupKey && isRowChecked({rowKey: groupKey, parentGroupKey: undefined, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}),
+            isIndeterminate: false,
+        };
+    }
+    return {isSelectAllChecked: checkedCount === selectableCount, isIndeterminate: checkedCount > 0 && checkedCount !== selectableCount};
+}
+
+type RowCheckedParams = {
+    /** The row's own selection key */
+    rowKey: string;
+
+    /** The group the row is rendered under, whose exclusion covers the row as well */
+    parentGroupKey: string | undefined;
+
+    /** The rows with a selection entry of their own */
+    selectedTransactions: SelectedTransactions;
+
+    /** Rows taken back out of a wider selection */
+    excludedTransactions: SelectedTransactions;
+
+    /** Whether every matching item is selected, which checks rows that have no entry of their own */
+    areAllMatchingItemsSelected: boolean;
+};
+
+/** Whether a row's checkbox reads as checked, which is what a click has to toggle and what a range has to give back. */
+function isRowChecked({rowKey, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}: RowCheckedParams): boolean {
+    // An entry of its own wins, since a row picked individually is not covered by anything wider.
+    if (selectedTransactions[rowKey]?.isSelected) {
+        return true;
+    }
+    if (Object.hasOwn(excludedTransactions, rowKey) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey))) {
+        return false;
+    }
+    // Otherwise it is checked by whatever covers it: every matching item, or its group being selected as a whole.
+    return areAllMatchingItemsSelected || !!(parentGroupKey && selectedTransactions[parentGroupKey]?.isSelected);
+}
+
+/** A group's rows as a range may reach them: the rows it carries while it is open, since a closed group still carries the ones it loaded. */
+function resolveGroupChildren(group: TransactionGroupListItemType, openGroupKeys: ReadonlySet<string>): TransactionListItemType[] {
+    return openGroupKeys.has(group.keyForList) ? group.transactions : [];
+}
+
+type ShiftRangeSource = {
+    /** Each group header followed by the rows it carries, in visual order, which is what a range spans */
+    items: SearchListItem[];
+
+    /** Each group's rows as the range sees them */
+    childrenByGroupKey: Map<string, TransactionListItemType[]>;
+
+    /** The group a child row belongs to, so its selection is stored and removed under the right parent */
+    groupKeyByChildKey: Map<string, string>;
+};
+
+/** What a range spans and who owns each row, from one pass so the two cannot disagree. Flattens only in group-by views. */
+function buildShiftRangeSource(sortedData: SearchListItem[], openGroupKeys: ReadonlySet<string>, groupsAreHeaders: boolean): ShiftRangeSource {
+    const childrenByGroupKey = new Map<string, TransactionListItemType[]>();
+    const groupKeyByChildKey = new Map<string, string>();
+    if (!groupsAreHeaders || !isGroupedItemArray(sortedData)) {
+        return {items: sortedData, childrenByGroupKey, groupKeyByChildKey};
+    }
+
+    const items: SearchListItem[] = [];
+    for (const group of sortedData) {
+        items.push(group);
+        if (!group.keyForList) {
+            continue;
+        }
+        const children = resolveGroupChildren(group, openGroupKeys);
+        childrenByGroupKey.set(group.keyForList, children);
+        for (const child of children) {
+            items.push(child);
+            if (child.keyForList) {
+                groupKeyByChildKey.set(child.keyForList, group.keyForList);
+            }
+        }
+    }
+    return {items, childrenByGroupKey, groupKeyByChildKey};
+}
+
+export {
+    mapTransactionItemToSelectedEntry,
+    mapEmptyReportToSelectedEntry,
+    prepareTransactionsList,
+    deriveSelectedReports,
+    buildShiftRangeSource,
+    isGroupSelected,
+    isGroupChecked,
+    getGroupCheckboxState,
+    isRowChecked,
+};

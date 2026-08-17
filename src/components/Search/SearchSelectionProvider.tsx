@@ -1,13 +1,13 @@
 import CONST from '@src/CONST';
 import {getEmptyObject, isEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useEffect, useLayoutEffect, useRef, useState} from 'react';
 
 import type {SearchData, SearchSelectionActionsValue, SearchSelectionContextValue, SelectedReports, SelectedTransactions} from './types';
 
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from './SearchContext';
 import {SearchSelectionActionsContext, SearchSelectionContext} from './SearchContextDefinitions';
-import {deriveSelectedReports} from './selectionBuilders';
+import {deriveSelectedReports, isRowChecked} from './selectionBuilders';
 
 type SearchSelectionProviderProps = {
     children: React.ReactNode;
@@ -45,6 +45,12 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     useEffect(() => {
         currentSearchHashRef.current = currentSearchHash;
     }, [currentSearchHash]);
+
+    // Held as one object, refreshed during the commit, so a handler cannot read two slices of the selection at different freshness.
+    const selectionStateRef = useRef(selectionState);
+    useLayoutEffect(() => {
+        selectionStateRef.current = selectionState;
+    }, [selectionState]);
 
     const setSelectedTransactions: SearchSelectionActionsValue['setSelectedTransactions'] = (transactionIDs, data) => {
         if (transactionIDs instanceof Array) {
@@ -247,6 +253,9 @@ function SearchSelectionProvider({children}: SearchSelectionProviderProps) {
     const selectionActionsValue: SearchSelectionActionsValue = {
         setSelectedTransactions,
         applySelection,
+        getSelectedTransactions: () => selectionStateRef.current.selectedTransactions,
+        getExcludedTransactions: () => selectionStateRef.current.excludedTransactions,
+        getAreAllMatchingItemsSelected: () => selectionStateRef.current.areAllMatchingItemsSelected,
         setSelectedReports,
         setCurrentSelectedTransactionReportID,
         clearSelectedTransactions,
@@ -292,8 +301,7 @@ function useRowSelection(keyForList: string | undefined, parentGroupKey?: string
     if (!keyForList) {
         return {isSelected: false};
     }
-    const isExcluded = Object.hasOwn(excludedTransactions, keyForList) || (!!parentGroupKey && Object.hasOwn(excludedTransactions, parentGroupKey));
-    return {isSelected: (areAllMatchingItemsSelected && !isExcluded) || !!selectedTransactions[keyForList]?.isSelected};
+    return {isSelected: isRowChecked({rowKey: keyForList, parentGroupKey, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected})};
 }
 
 /** Aggregate count of currently-selected transactions, for the selection top bar. */

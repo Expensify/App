@@ -1,4 +1,5 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
+import {isGroupChecked} from '@components/Search/selectionBuilders';
 
 import useAnimatedHighlightStyle from '@hooks/useAnimatedHighlightStyle';
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
@@ -31,17 +32,18 @@ function GroupChildrenContainer({
     onUndelete,
     isLastItem,
     newTransactionID,
-    bankAccountList,
-    cardFeeds,
-    conciergeReportID,
 }: GroupChildrenContainerProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {selectedTransactions} = useSearchSelectionContext();
+    const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
 
-    const isSelected = !!item.isSelected || (item.transactions.length > 0 && item.transactions.every((transaction) => selectedTransactions[transaction.transactionID]?.isSelected));
+    // Asked of the rows this container actually holds, so a group whose children live in a snapshot it cannot see paints nothing rather than guessing.
+    const isSelected =
+        !!item.isSelected ||
+        (item.transactions.length > 0 &&
+            isGroupChecked({groupKey: item.groupKeyForList, children: item.transactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected}));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -83,9 +85,6 @@ function GroupChildrenContainer({
                             nonPersonalAndWorkspaceCards={nonPersonalAndWorkspaceCards}
                             onUndelete={onUndelete}
                             newTransactionID={newTransactionID}
-                            bankAccountList={bankAccountList}
-                            cardFeeds={cardFeeds}
-                            conciergeReportID={conciergeReportID}
                         />
                     </Animated.View>
                 ) : null}

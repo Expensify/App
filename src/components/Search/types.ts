@@ -256,6 +256,12 @@ type SearchSelectionActionsValue = {
             reconciledExcludedTransactions?: SelectedTransactions;
         },
     ) => void;
+    /** Reads the current selection on demand without subscribing, so the shift-range hook can anchor from the live selection. */
+    getSelectedTransactions: () => SelectedTransactions;
+    /** The same for the exclusions, which are rebuilt on every commit and would otherwise re-render every row on each press. */
+    getExcludedTransactions: () => SelectedTransactions;
+    /** And for the all-matching flag, so a handler reads it at the same freshness as the two maps. */
+    getAreAllMatchingItemsSelected: () => boolean;
     setSelectedReports: (reports: SelectedReports[]) => void;
     setCurrentSelectedTransactionReportID: (reportID: string | undefined) => void;
     /** If you want to clear `selectedTransactionIDs`, pass `true` as the first argument */
@@ -277,10 +283,20 @@ type SearchData = TransactionListItemType[] | TransactionGroupListItemType[] | R
  * never re-renders consumers that only need to dispatch.
  */
 type SearchRowSelectionActionsValue = {
-    /** Toggle selection of a single transaction row or a group (report / grouped rows). */
-    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[]) => void;
+    /** Toggle selection of a single transaction row or a group (report / grouped rows). `shiftKey` extends a range. */
+    toggle: (item: SearchListItem, itemTransactions?: TransactionListItemType[], shiftKey?: boolean) => void;
     /** Toggle selection of all currently selectable items. */
     toggleAll: () => void;
+};
+
+/** Lets whoever owns a group's expanded state say whether a shift+click range may reach the rows it renders. */
+type SearchShiftRangeGroupsActions = {
+    /** Let a range reach a group's rows, for as long as it is open. Called by whoever owns the expanded state. */
+    addGroupToRange: (groupKey: string) => void;
+    /** Take a group back out of ranges. */
+    removeGroupFromRange: (groupKey: string) => void;
+    /** Changes when the registry is dropped for a new search. Subscribers key off it, so a group left open across the change reopens. */
+    registryGeneration: number | undefined;
 };
 
 /** Composed value of all three Search state contexts. Kept as a union for callers that need the full bag shape (e.g. test fixtures, action `searchContext` payloads). */
@@ -501,6 +517,7 @@ export type {
     SearchSelectionActionsValue,
     SearchData,
     SearchRowSelectionActionsValue,
+    SearchShiftRangeGroupsActions,
     ASTNode,
     QueryFilter,
     Filter,
