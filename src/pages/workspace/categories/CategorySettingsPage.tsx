@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -39,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isDisablingOrDeletingLastEnabledCategory} from '@libs/OptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
-import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy} from '@libs/PolicyUtils';
+import {arePolicyRulesEnabled, getWorkflowApprovalsUnavailable, hasTags, isAttendeeTrackingEnabled, isControlPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
@@ -83,7 +84,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
     const policyCategoryExpenseLimitType = policyCategory?.expenseLimitType ?? CONST.POLICY.EXPENSE_LIMIT_TYPES.EXPENSE;
     const decodedCategoryName = getDecodedCategoryName(policyCategory?.name ?? '');
-    const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories);
+    const categoryRulesEnabled = arePolicyRulesEnabled(policy, policyCategories, isRulesRevampEnabled);
 
     const contextualRules = useMemo(() => {
         if (!isRulesRevampEnabled || !policyCategory) {
@@ -273,6 +274,15 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
     const workflowApprovalsUnavailable = getWorkflowApprovalsUnavailable(policy);
     const approverDisabled = !policy?.areWorkflowsEnabled || workflowApprovalsUnavailable;
 
+    /** Collect sees this section but every destination is Control-only, so upgrade instead of hitting Not Found. */
+    const navigateToCategoryRule = (dynamicRouteSuffix: string) => {
+        const ruleRoute = createDynamicRoute(dynamicRouteSuffix);
+        if (tryNavigateToControlPolicyUpgrade(policy, CONST.UPGRADE_FEATURE_INTRO_MAPPING.rules.alias, ruleRoute)) {
+            return;
+        }
+        Navigation.navigate(ruleRoute);
+    };
+
     if (!policyCategory) {
         return <NotFoundPage />;
     }
@@ -391,7 +401,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={policyCategory?.commentHint}
                                     description={translate('workspace.rules.categoryRules.descriptionHint')}
                                     onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path));
+                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DESCRIPTION_HINT.path);
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -402,7 +412,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 title={approverText}
                                 description={translate('workspace.rules.categoryRules.approver')}
                                 onPress={() => {
-                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path));
+                                    navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_APPROVER.path);
                                 }}
                                 interactive={canWriteCategories}
                                 shouldShowRightIcon={canWriteCategories}
@@ -419,7 +429,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     title={defaultTaxRateText}
                                     description={translate('workspace.rules.categoryRules.defaultTaxRate')}
                                     onPress={() => {
-                                        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path));
+                                        navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_DEFAULT_TAX_RATE.path);
                                     }}
                                     interactive={canWriteCategories}
                                     shouldShowRightIcon={canWriteCategories}
@@ -428,7 +438,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                         </>
                     )}
                     {canWriteCategories && !isThereAnyAccountingConnection && (
-                        <MenuItem
+                        <MenuItemAction
                             icon={expensifyIcons.Trashcan}
                             title={translate('workspace.categories.deleteCategory')}
                             onPress={async () => {
@@ -561,7 +571,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                         title={rule.summary}
                                         numberOfLinesTitle={3}
                                         shouldShowBasicTitle
-                                        onPress={() => Navigation.navigate(createDynamicRoute(rule.dynamicRoutePath))}
+                                        onPress={() => navigateToCategoryRule(rule.dynamicRoutePath)}
                                         shouldShowRightIcon={!rule.isDisabled}
                                         interactive={!rule.isDisabled}
                                         disabled={rule.isDisabled}
@@ -572,7 +582,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                 <MenuItem
                                     icon={expensifyIcons.Plus}
                                     title={translate('workspace.rules.categoryRules.createNewRule')}
-                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path))}
+                                    onPress={() => navigateToCategoryRule(DYNAMIC_ROUTES.WORKSPACE_CATEGORY_RULES_NEW.path)}
                                 />
                             )}
                         </>
