@@ -6097,6 +6097,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequiresCategoryMessage(translateLocal, action));
         });
@@ -6150,6 +6151,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getRequiresTagMessage(translateLocal, action));
         });
