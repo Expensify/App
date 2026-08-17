@@ -58,8 +58,6 @@ function HeaderWithBackButton({
         vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
     },
     threeDotsMenuItems = [],
-    threeDotsMenuIcon,
-    threeDotsMenuIconFill,
     shouldEnableDetailPageNavigation = false,
     children = null,
     shouldOverlayDots = false,
@@ -89,8 +87,6 @@ function HeaderWithBackButton({
                 )}
             {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
                 <HeaderThreeDotsMenu
-                    icon={threeDotsMenuIcon}
-                    iconFill={threeDotsMenuIconFill}
                     items={threeDotsMenuItems}
                     onIconPress={onThreeDotsButtonPress}
                     shouldOverlay={shouldOverlayDots}
