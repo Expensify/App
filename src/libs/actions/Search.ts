@@ -1041,6 +1041,7 @@ function search({
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
+    shouldSaveRecentSearch = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1050,6 +1051,12 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Only the Search page call site should pass true — programmatic searches (home sections, post-action
+     * refreshes) must not evict the user's real recent searches.
+     */
+    shouldSaveRecentSearch?: boolean;
     /**
      * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
      * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
@@ -1078,6 +1085,7 @@ function search({
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
+                    shouldSaveRecentSearch,
                 });
         }
         return;
@@ -1093,6 +1101,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
+        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
