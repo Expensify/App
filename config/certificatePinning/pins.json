@@ -1,5 +1,5 @@
 {
-    "_comment": "Canonical source of truth for SSL certificate pins (Iteration 1 - NewDot). Regenerate with scripts/generateCertificatePins.sh. Each domain pins the leaf SPKI hash (primary) and its issuing intermediate CA SPKI hash (durable backup that survives leaf rotation). Hashes are base64-encoded SHA-256 of the Subject Public Key Info. Native code (Android network_security_config_enforce.xml, Android OkHttpClientFactory, iOS TrustKit) MUST be kept in sync with this file - the generation script prints the values for each target.",
+    "_comment": "Canonical source of truth for SSL certificate pins (Iteration 1 - NewDot). Regenerate with scripts/generateCertificatePins.sh. Each domain pins the leaf SPKI hash (primary) and its issuing intermediate CA SPKI hash (durable backup that survives leaf rotation). Hashes are base64-encoded SHA-256 of the Subject Public Key Info. Native code (Android network_security_config_enforce.xml, Android OkHttpClientFactory, Android NitroFetch Cronet, iOS TrustKit) MUST be kept in sync with this file - the generation script prints the values for each target.",
     "_lastGenerated": "2026-06-03",
     "enforcePinning": false,
     "domains": {

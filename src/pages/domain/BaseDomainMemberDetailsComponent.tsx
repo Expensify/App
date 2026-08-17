@@ -1,6 +1,6 @@
 import Avatar from '@components/Avatar';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -54,7 +54,7 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
         selector: personalDetailsSelector,
     });
 
-    const displayName = formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate}));
+    const displayName = temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails, translate, formatPhoneNumber});
     const phoneNumber = getPhoneNumber(personalDetails);
     const memberLogin = personalDetails?.login ?? '';
     const isSMSLogin = Str.isSMSLogin(memberLogin);
@@ -73,12 +73,11 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                         <View style={[styles.avatarSectionWrapper, styles.pb0]}>
                             <OfflineWithFeedback pendingAction={personalDetails?.pendingFields?.avatar}>
                                 <Avatar
-                                    containerStyles={[styles.avatarXLarge, styles.mb4, styles.noOutline]}
-                                    imageStyles={[styles.avatarXLarge]}
+                                    containerStyles={[styles.mb4, styles.noOutline]}
                                     source={personalDetails?.avatar}
                                     avatarID={accountID}
                                     type={CONST.ICON_TYPE_AVATAR}
-                                    size={CONST.AVATAR_SIZE.X_LARGE}
+                                    size={CONST.AVATAR_SIZE.XXXX_LARGE}
                                     fallbackIcon={personalDetails?.fallbackIcon}
                                 />
                             </OfflineWithFeedback>
@@ -102,11 +101,10 @@ function BaseDomainMemberDetailsComponent({domainAccountID, accountID, children,
                                 copyable
                             />
                             {children}
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('common.profile')}
                                 icon={icons.Info}
                                 onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.PROFILE.getRoute(accountID)))}
-                                shouldShowRightIcon
                             />
                         </View>
                     </View>

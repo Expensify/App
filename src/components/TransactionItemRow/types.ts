@@ -51,11 +51,15 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
 
     /** Policy to which the transaction belongs */
     policy?: Policy;
+
+    /** ID of the policy the transaction belongs to, provided on search transactions */
+    policyID?: string;
 };
 
 type TransactionItemRowProps = {
     transactionItem: TransactionWithOptionalSearchFields;
     report?: Report;
+    chatReport?: Report;
     policy?: Policy;
     policyCategories?: PolicyCategories;
     policyTagLists?: PolicyTagLists;
@@ -69,7 +73,7 @@ type TransactionItemRowProps = {
     exportedColumnSize?: TableColumnSize;
     amountColumnSize: TableColumnSize;
     taxAmountColumnSize: TableColumnSize;
-    onCheckboxPress?: (transactionID: string) => void;
+    onCheckboxPress?: (transactionID: string, shiftKey?: boolean) => void;
     shouldShowCheckbox?: boolean;
     columns?: SearchColumnType[];
     onButtonPress?: (event?: ModifiedMouseEvent) => void;
@@ -103,6 +107,8 @@ type TransactionItemRowProps = {
     nonPersonalAndWorkspaceCards?: CardList;
     isActionColumnWide?: boolean;
     shouldRemoveTotalColumnFlex?: boolean;
+    /** Enables the full-height hover target layout for the main table row content. */
+    shouldUseFullHeightEditableCellHoverTarget?: boolean;
     /** Callbacks for inline cell editing */
     onEditDate?: (newDate: string) => void;
     onEditMerchant?: (newMerchant: string) => void;

@@ -20,6 +20,7 @@ import Navigation from '@navigation/Navigation';
 import type {PlatformStackRouteProp} from '@navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@navigation/types';
 
+import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 
@@ -33,6 +34,7 @@ import {View} from 'react-native';
 
 function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnectionsProps) {
     const {translate} = useLocalize();
+    const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const styles = useThemeStyles();
     const route = useRoute<PlatformStackRouteProp<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT>>();
     const backTo = route?.params?.backTo;
@@ -116,6 +118,7 @@ function DynamicQuickbooksExportConfigurationPage({policy}: WithPolicyConnection
             displayName="DynamicQuickbooksExportConfigurationPage"
             headerTitle="workspace.accounting.export"
             title="workspace.qbo.exportDescription"
+            titleAlreadyTranslated={translate('workspace.qbo.exportDescription', integrationName)}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN]}
             policyID={policyID}
             onBackButtonPress={goBack}

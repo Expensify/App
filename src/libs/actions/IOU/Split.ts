@@ -2,9 +2,12 @@ import ReceiptGeneric from '@assets/images/receipt-generic.png';
 
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
+import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -84,7 +87,7 @@ import {
     buildOnyxDataForMoneyRequest,
     getMoneyRequestInformation,
     getReceiptError,
-    getReportPreviewAction,
+    getReportPreviewReportAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
@@ -113,11 +116,15 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     validWaypoints?: WaypointCollection;
     splitShares?: SplitShares;
     distance?: number;
+    modifiedDistance?: number;
     receipt?: Receipt;
     odometerStart?: number;
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -146,6 +153,7 @@ type CreateDistanceRequestInformation = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 
     /** Optimistic chat reportID to build the new chat report at, so it matches the ID the confirmation screen already subscribed to (brand-new P2P recipient). */
     optimisticChatReportID?: string;
@@ -175,6 +183,7 @@ type CreateSplitsAndOnyxDataParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type StartSplitBilActionParams = {
@@ -202,6 +211,7 @@ type StartSplitBilActionParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     delegateAccountID: number | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type CompleteSplitBillActionParams = {
@@ -218,6 +228,7 @@ type CompleteSplitBillActionParams = {
     isTrackIntentUser: boolean | undefined;
     sessionEmail?: string;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type SplitBillActionsParams = {
@@ -254,6 +265,7 @@ type SplitBillActionsParams = {
     participantsPolicyTags: OnyxTypes.ParticipantsPolicyTags;
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 /**
@@ -293,6 +305,7 @@ function splitBill({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    getCurrencyDecimals,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -328,6 +341,7 @@ function splitBill({
         delegateAccountID,
         isTrackIntentUser,
         formatPhoneNumber,
+        getCurrencyDecimals,
     });
 
     const parameters: SplitBillParams = {
@@ -409,6 +423,7 @@ function splitBillAndOpenReport({
     isTrackIntentUser,
     formatPhoneNumber,
     participantsPolicyTags,
+    getCurrencyDecimals,
 }: SplitBillActionsParams) {
     const parsedComment = getParsedComment(comment);
     const {splitData, splits, onyxData} = createSplitsAndOnyxData({
@@ -444,6 +459,7 @@ function splitBillAndOpenReport({
         isTrackIntentUser,
         formatPhoneNumber,
         participantsPolicyTags,
+        getCurrencyDecimals,
     });
 
     const parameters: SplitBillParams = {
@@ -518,6 +534,7 @@ function startSplitBill({
     shouldDeferForSearch = false,
     delegateAccountID,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: StartSplitBilActionParams) {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -560,6 +577,7 @@ function startSplitBill({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        getCurrencyDecimals,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -710,6 +728,7 @@ function startSplitBill({
         participantsPolicyTags,
         delegateAccountID,
         formatPhoneNumber,
+        getCurrencyDecimals,
     };
 
     if (existingSplitChatReport) {
@@ -910,6 +929,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    getCurrencyDecimals,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
         return;
@@ -1056,8 +1076,16 @@ function completeSplitBill({
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
                       betas,
+                      getCurrencyDecimals,
                   })
-                : buildOptimisticIOUReport(sessionAccountID, participant.accountID ?? CONST.DEFAULT_NUMBER_ID, splitAmount, oneOnOneChatReport?.reportID, currency ?? '');
+                : buildOptimisticIOUReport(
+                      sessionAccountID,
+                      participant.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                      splitAmount,
+                      oneOnOneChatReport?.reportID,
+                      currency ?? '',
+                      getCurrencyDecimals,
+                  );
         } else if (isPolicyExpenseChat) {
             if (oneOnOneIOUReport) {
                 // Capture previous fresh reimbursable totals before mutating, so the diff applies whether or
@@ -1104,6 +1132,7 @@ function completeSplitBill({
 
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: oneOnOneIOUReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: splitAmount,
@@ -1116,11 +1145,20 @@ function completeSplitBill({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                getCurrencyDecimals,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
         const hasViolations = hasViolationsReportUtils(oneOnOneIOUReport.reportID, transactionViolations, sessionAccountID, sessionEmail ?? '');
 
@@ -1158,6 +1196,7 @@ function completeSplitBill({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         splits.push({
@@ -1282,6 +1321,10 @@ function setDraftSplitTransaction(
     transactionChanges: TransactionChanges = {},
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
+    policies?: OnyxCollection<OnyxTypes.Policy>,
+    // Callers that don't edit amount-related fields don't have the currency context wired up yet, so fall back to the legacy helpers.
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'] = getLegacyCurrencyDecimals,
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = getLegacyCurrencySymbol,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1299,8 +1342,11 @@ function setDraftSplitTransaction(
               isFromExpenseReport: false,
               shouldUpdateReceiptState: false,
               policy,
+              policies,
               isSplitTransaction: true,
               personalPolicyOutputCurrency,
+              getCurrencyDecimals,
+              getCurrencySymbol,
           })
         : null;
 
@@ -1442,6 +1488,7 @@ function createSplitsAndOnyxData({
     delegateAccountID,
     isTrackIntentUser,
     formatPhoneNumber,
+    getCurrencyDecimals,
 }: CreateSplitsAndOnyxDataParams): SplitsAndOnyxData {
     const currentUserEmailForIOUSplit = addSMSDomainIfPhoneNumber(currentUserLogin);
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
@@ -1494,6 +1541,7 @@ function createSplitsAndOnyxData({
         isOwnPolicyExpenseChat,
         iouReportID: splitChatReport.reportID,
         delegateAccountIDParam: delegateAccountID,
+        getCurrencyDecimals,
     });
 
     splitChatReport.lastReadTime = DateUtils.getDBTime();
@@ -1747,8 +1795,9 @@ function createSplitsAndOnyxData({
                       optimisticIOUReportID: optimisticExpenseReportID,
                       reportTransactions,
                       betas,
+                      getCurrencyDecimals,
                   })
-                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency);
+                : buildOptimisticIOUReport(currentUserAccountID, accountID, splitAmount, oneOnOneChatReport.reportID, currency, getCurrencyDecimals);
         } else if (isOwnPolicyExpenseChat) {
             // Because of the Expense reports are stored as negative values, we subtract the total from the amount
             if (oneOnOneIOUReport?.currency === currency) {
@@ -1805,6 +1854,7 @@ function createSplitsAndOnyxData({
         // 5. REPORT_PREVIEW action for the chatReport
         const [oneOnOneCreatedActionForChat, oneOnOneCreatedActionForIOU, oneOnOneIOUAction, optimisticTransactionThread, optimisticCreatedActionForTransactionThread] =
             buildOptimisticMoneyRequestEntities({
+                getCurrencyDecimals,
                 iouReport: oneOnOneIOUReport,
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
                 amount: splitAmount,
@@ -1836,11 +1886,20 @@ function createSplitsAndOnyxData({
             redundantParticipants[accountID] = null;
         }
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
-            oneOnOneReportPreviewAction = buildOptimisticReportPreview(oneOnOneChatReport, oneOnOneIOUReport, '', oneOnOneTransaction, undefined, undefined, delegateAccountID);
+            oneOnOneReportPreviewAction = buildOptimisticReportPreview(
+                oneOnOneChatReport,
+                oneOnOneIOUReport,
+                getCurrencyDecimals,
+                '',
+                oneOnOneTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
         }
 
         const optimisticPolicyRecentlyUsedCategories = isPolicyExpenseChat ? mergePolicyRecentlyUsedCategories(category, policyRecentlyUsedCategories) : [];
@@ -1896,6 +1955,7 @@ function createSplitsAndOnyxData({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
         });
 
         const individualSplit = {
@@ -1979,6 +2039,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         formatPhoneNumber,
         participantsPolicyTags,
         optimisticChatReportID,
+        getCurrencyDecimals,
     } = distanceRequestInformation;
     const {policy, policyCategories, policyTagList, policyRecentlyUsedCategories, policyRecentlyUsedTags} = policyParams;
     const parsedComment = getParsedComment(transactionParams.comment);
@@ -1987,6 +2048,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         amount,
         comment,
         distance,
+        modifiedDistance,
         currency,
         created,
         category,
@@ -1996,6 +2058,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         taxValue,
         merchant,
         modifiedAmount,
+        modifiedMerchant,
         billable,
         reimbursable,
         validWaypoints,
@@ -2008,6 +2071,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
+        selectedRouteDistance,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -2071,6 +2135,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             formatPhoneNumber,
+            getCurrencyDecimals,
         });
         onyxData = splitOnyxData;
 
@@ -2100,6 +2165,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerEnd,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -2135,7 +2201,9 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             },
             transactionParams: {
                 amount,
-                distance,
+                modifiedAmount,
+                modifiedMerchant,
+                distance: modifiedDistance ?? distance,
                 currency,
                 comment,
                 created,
@@ -2166,6 +2234,8 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             delegateAccountID,
             isTrackIntentUser,
             optimisticChatReportID,
+            formatPhoneNumber,
+            getCurrencyDecimals,
         });
 
         onyxData = moneyRequestOnyxData;
@@ -2201,6 +2271,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             reportPreviewReportActionID: reportPreviewAction.reportActionID,
             waypoints: JSON.stringify(sanitizedWaypoints),
             distance: distance !== undefined ? roundToTwoDecimalPlaces(distance) : undefined,
+            modifiedDistance: modifiedDistance !== undefined ? roundToTwoDecimalPlaces(modifiedDistance) : undefined,
             receipt,
             odometerStart,
             odometerEnd,
@@ -2221,6 +2292,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
             shouldDeferAutoSubmit,
         };
     }

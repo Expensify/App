@@ -8,6 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -68,6 +69,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
 function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -79,7 +81,6 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(moneyRequestReport?.chatReportID)}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -120,9 +121,9 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         isTrackIntentUser,
     });
 
-    // Submit via PDF is offered for any draft report the current user submits on a Submit workspace (behind the
-    // SUBMIT_2026 beta). The PDF flow submits the report to the submitter, which is what makes the backend generate it.
-    const canSubmitViaPDF = !!moneyRequestReport && isBetaEnabled(CONST.BETAS.SUBMIT_2026) && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
+    // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
+    // submits the report to the submitter, which is what makes the backend generate it.
+    const canSubmitViaPDF = !!moneyRequestReport && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -156,13 +157,13 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             }
 
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 policy,
                 currentUserAccountIDParam: accountID,
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: nextStep,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 // Open the PDF download modal only once submitReport commits to running (it fires onSubmitted after its
@@ -177,18 +178,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                                 // Stop the "Submitted" animation in lockstep with the retract so the header goes straight
                                 // back to the Submit button instead of finishing the animation on a report that is open again.
                                 stopAnimation();
-                                retractReport(
-                                    moneyRequestReport,
-                                    chatReport,
-                                    policy,
-                                    accountID,
-                                    email ?? '',
-                                    hasViolations,
-                                    isASAPSubmitBetaEnabled,
-                                    nextStep,
-                                    delegateEmail,
-                                    isTrackIntentUser,
-                                );
+                                retractReport(moneyRequestReport, chatReport, policy, accountID, email ?? '', hasViolations, isASAPSubmitBetaEnabled, delegateEmail, isTrackIntentUser);
                             },
                         });
                     }
@@ -257,7 +247,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
     return (
         <AnimatedSubmitButton
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={() => handleSubmit()}

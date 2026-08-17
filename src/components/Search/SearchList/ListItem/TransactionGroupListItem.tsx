@@ -106,7 +106,7 @@ function TransactionGroupListItemImpl({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -131,6 +131,8 @@ function TransactionGroupListItemImpl({
 
     const selectedTransactionIDs = Object.keys(selectedTransactions);
     const selectedTransactionIDsSet = new Set(selectedTransactionIDs);
+    // A group selected before its children were fetched is stored under the group key, since no transaction IDs were known yet
+    const isGroupSelected = !!(item?.keyForList && selectedTransactions[item.keyForList]?.isSelected);
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
 
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
@@ -152,6 +154,7 @@ function TransactionGroupListItemImpl({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const groupKey = groupItem.keyForList;
 
     let transactions: TransactionListItemType[];
     if (isExpenseReportType) {
@@ -160,6 +163,7 @@ function TransactionGroupListItemImpl({
         transactions = [];
     } else {
         const [sectionData] = getSections({
+            dateFnsLocale,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
             currentAccountID: currentUserDetails.accountID,
@@ -175,7 +179,9 @@ function TransactionGroupListItemImpl({
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({
             ...transactionItem,
-            isSelected: selectedTransactionIDsSet.has(transactionItem.transactionID),
+            // The whole group being selected implies every child is, even though only the group key is stored
+            isSelected: isGroupSelected || selectedTransactionIDsSet.has(transactionItem.transactionID),
+            selectionGroupKey: groupKey,
         }));
     }
 
@@ -183,9 +189,10 @@ function TransactionGroupListItemImpl({
 
     const transactionsWithoutPendingDelete = transactions.filter((transaction) => transaction.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
 
-    const isEmpty = transactions.length === 0;
+    // A group whose children are lazily loaded (it has a transactionsQueryJSON) is not empty, it just hasn't been fetched yet
+    const isEmpty = transactions.length === 0 && groupItem.transactions.length === 0 && !groupItem.transactionsQueryJSON;
 
-    const isEmptyReportSelected = isEmpty && item?.keyForList && selectedTransactions[item.keyForList]?.isSelected;
+    const isEmptyReportSelected = transactions.length === 0 && isGroupSelected;
 
     const isSelectAllChecked = isEmptyReportSelected || (selectedItemsLength === transactionsWithoutPendingDelete.length && transactionsWithoutPendingDelete.length > 0);
     const isIndeterminate = selectedItemsLength > 0 && selectedItemsLength !== transactionsWithoutPendingDelete.length;
@@ -227,7 +234,7 @@ function TransactionGroupListItemImpl({
 
     const StyleUtils = useStyleUtils();
     const {isSelected: liveRowSelected} = useRowSelection(item?.keyForList);
-    const isItemSelected = isSelectAllChecked || liveRowSelected;
+    const isItemSelected = isSelectAllChecked || (liveRowSelected && (isExpenseReportType || transactionsWithoutPendingDelete.length === 0));
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
@@ -305,7 +312,8 @@ function TransactionGroupListItemImpl({
     };
 
     const onPress = (event?: ModifiedMouseEvent) => {
-        if (isExpenseReportType || transactions.length === 0) {
+        const isEmptyGroupWithoutTransactionsQuery = transactions.length === 0 && !groupItem.transactionsQueryJSON;
+        if (isExpenseReportType || isEmptyGroupWithoutTransactionsQuery) {
             onSelectRow(item, transactionPreviewData, event);
         }
         if (!isExpenseReportType) {
