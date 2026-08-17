@@ -128,8 +128,6 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
         if (getIsNarrowLayout()) {
             // Reveal the DM under the modal before dismissing so we navigate directly to it in one animation,
             // instead of dismissing to the agents list first and navigating to the DM afterward.
-            // backTo points the DM header's back button at the agents list; without it, dismissing the whole
-            // settings modal stack leaves the list off the back stack, so back would fall through to the LHN.
             Navigation.revealRouteBeforeDismissingModal(ROUTES.REPORT_WITH_ID.getRoute(optimisticReportID, undefined, undefined, ROUTES.SETTINGS_AGENTS));
             return;
         }
