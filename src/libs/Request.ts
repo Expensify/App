@@ -63,16 +63,24 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                     return response;
                 }
 
-                // WRITE responses are staged by queueOnyxUpdates and reach Onyx only once SequentialQueue flushes them
-                // after this promise settles, so the phase has to be closed from the flush rather than awaited here.
-                getCurrentFlushPromise().then(() => {
+                const endApplyPhase = () => {
                     endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
                     // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
                     if (!isStartupNetworkRequest(request.command)) {
                         return;
                     }
                     trackStartupDataRender(request.command, attempt);
-                });
+                };
+
+                // Only WRITE responses are staged by queueOnyxUpdates (see OnyxUpdates.applyHTTPSOnyxUpdates), reaching Onyx once SequentialQueue
+                // flushes them after this promise settles. Everything else already applied inline, and the flush promise is shared, so awaiting it
+                // here would fold an unrelated write's flush into the phase.
+                if (request.data?.apiRequestType !== CONST.API_REQUEST_TYPE.WRITE) {
+                    endApplyPhase();
+                    return response;
+                }
+
+                getCurrentFlushPromise().then(endApplyPhase);
                 return response;
             },
             (error: unknown) => {

@@ -1202,7 +1202,7 @@ function search({
             return startRequest();
         })
         .catch((error: unknown) => {
-            // No-op once the wait resolved and the span already ended; this only covers a rejection before that.
+            // No-op once the wait resolved and the span already ended. This only covers a rejection before that.
             cancelSpan(queueSpanId);
             return handleSearchError(error);
         });
