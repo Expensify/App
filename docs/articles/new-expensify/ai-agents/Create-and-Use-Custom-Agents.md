@@ -238,17 +238,17 @@ Yes. When you create an agent, it's automatically added as a full-access Copilot
 
 ## What can an agent do as a Copilot on my account?
 
-A Copilot agent acts with the same permissions you have. It can view, create, and edit your expenses, submit and manage your reports, and look up your expense data. Every action it takes is recorded as yours, marked "via Copilot", so there is a full audit trail.
+A Copilot agent manages your expenses and reports with the same permissions you have. It can view, create, and edit your expenses, submit and manage your reports, and look up your expense data. Every action it takes is recorded as yours, marked **via Copilot**, so there is a full audit trail. A few account-level actions stay with you as the owner. For example, a Copilot can't add or remove other Copilots.
 
 You don't need to grant the agent any special edit access, and you don't need to add it as an approver for it to manage your own expenses — its full-access Copilot role already covers that. Adding an agent as an approver is only for reviewing reports that other members submit to it through an approval workflow.
 
-A few limits apply to everyone, no matter who is editing:
+Some edit limits apply to everyone, no matter who is editing. Common examples:
 
 - The amount of a company card transaction can't be changed — it comes from the card feed.
 - The amount and date of an expense can't be changed once its report is Approved or Reimbursed.
 - Editing another member's expenses is only possible when you (the account the agent acts for) have admin or approver authority over that member's report.
 
-If an agent says it can't make a specific change, one of these locks is the reason — not a missing permission on the agent.
+These are common examples, not a complete list. Other field-specific rules also apply. For example, you can't edit the amount, currency, or merchant of a per-diem expense. If an agent says it can't make a specific change, it is usually one of these edit locks and not a missing permission on the agent.
 
 ## Why does the Security page look different when I Copilot into an agent?
 
