@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLocalize from '@hooks/useLocalize';
@@ -18,7 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {mergeReports} from '@libs/actions/Report';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation from '@libs/Navigation/Navigation';
-import {getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
+import {canMergeReports, getMoneyRequestSpendBreakdown, getPersonalDetailsForAccountID} from '@libs/ReportUtils';
 
 import StepScreenWrapper from '@pages/iou/request/step/StepScreenWrapper';
 
@@ -56,6 +57,7 @@ function SearchReportsMergeReports() {
     const {translate} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
 
@@ -134,8 +136,10 @@ function SearchReportsMergeReports() {
           }, [] as string[])
         : [];
 
+    const isValidForMerge = !!destinationReportID && !!destinationReport && sourceReportIDs.length > 0 && canMergeReports(reportItems, currentUserPersonalDetails.accountID);
+
     const mergeSelectedReports = () => {
-        if (!destinationReportID || !destinationReport || !sourceReportIDs.length) {
+        if (!destinationReportID || !destinationReport || !isValidForMerge) {
             return;
         }
 
@@ -199,7 +203,7 @@ function SearchReportsMergeReports() {
                     <FormAlertWithSubmitButton
                         buttonText={translate('common.confirm')}
                         onSubmit={mergeSelectedReports}
-                        isDisabled={!destinationReportID || !destinationReport || !sourceReportIDs.length}
+                        isDisabled={!isValidForMerge}
                         enabledWhenOffline
                     />
                 }
