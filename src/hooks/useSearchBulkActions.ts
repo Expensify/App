@@ -1557,6 +1557,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isTrackIntentUser,
             conciergeChat,
             getCurrencyDecimals,
+            formatPhoneNumber,
         ],
     );
 
