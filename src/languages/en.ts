@@ -9625,7 +9625,6 @@ const translations = {
         decline: 'Decline',
     },
     actionableMentionTrackExpense: {
-        submit: 'Submit it to someone',
         submitToFriend: 'Submit to a friend',
         submitToEmployer: 'Submit to my employer',
         categorize: 'Categorize it',

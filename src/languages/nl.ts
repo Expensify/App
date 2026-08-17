@@ -9436,7 +9436,6 @@ er bestedingsregels toe om de kasstroom van het bedrijf te beschermen.`,
         decline: 'Weigeren',
     },
     actionableMentionTrackExpense: {
-        submit: 'Dien het bij iemand in',
         submitToFriend: 'Indienen bij een vriend',
         submitToEmployer: 'Indienen bij mijn werkgever',
         categorize: 'Categoriseer het',
