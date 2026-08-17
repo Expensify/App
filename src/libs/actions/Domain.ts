@@ -391,8 +391,7 @@ function resetCreateDomainForm() {
 
 /**
  * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has
- * access to it (they are an admin/member). In that case requesting admin access is meaningless, so we mirror OldDot and
- * show an inline error instead of navigating to the "request access" page. We also clear the transient domainAccountID
+ * access to it. We also clear the transient domainAccountID
  * returned by the BE so the navigation effect on the add domain page does not re-fire. No server call is performed.
  */
 function setCreateDomainAlreadyHaveAccessError() {
