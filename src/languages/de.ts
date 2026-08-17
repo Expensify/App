@@ -5034,7 +5034,7 @@ ${amount} für ${merchant} – ${date}`,
                 invoiceAccountSelectorDescription: 'Wählen Sie aus, wohin Rechnungzahlungen eingehen sollen, und wir erstellen die Zahlung in Xero.',
                 xeroFxExpenseAccount: 'Xero-Konto für Währungsumrechnungsgebühren',
                 fxExpenseAccountDescription:
-                    'Wenn Ihr Unternehmen die Währungsumrechnungskosten für eine im Ausland getätigte Zahlung übernimmt, buchen wir diese Kosten in Xero als manuelle Journalbuchung auf dieses Konto.',
+                    'Wenn Ihr Unternehmen die Kosten für die Währungsumrechnung bei einer im Ausland getätigten Zahlung übernimmt, buchen wir diese Kosten in Xero auf dieses Konto als „Geldausgabe“-Transaktion.',
             },
             exportDate: {
                 label: 'Rechnungsdatum des Einkaufs',

@@ -4997,7 +4997,7 @@ ${amount} para ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: 'Escolha onde receber os pagamentos de faturas e nós criaremos o pagamento no Xero.',
                 xeroFxExpenseAccount: 'Conta de taxa de conversão de moeda do Xero',
                 fxExpenseAccountDescription:
-                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, vamos lançar esse custo nesta conta no Xero como um lançamento manual em diário.',
+                    'Quando sua empresa cobrir o custo de conversão de moeda em um pagamento feito no exterior, nós lançaremos esse custo nesta conta no Xero como uma transação de saída de dinheiro.',
             },
             exportDate: {
                 label: 'Data da fatura de compra',

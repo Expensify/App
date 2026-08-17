@@ -5043,7 +5043,7 @@ ${amount} pour ${merchant} - ${date}`,
                 invoiceAccountSelectorDescription: 'Choisissez où recevoir les paiements de factures et nous créerons le paiement dans Xero.',
                 xeroFxExpenseAccount: 'Compte de frais de conversion de devise Xero',
                 fxExpenseAccountDescription:
-                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais dans ce compte dans Xero sous forme d’écriture de journal manuelle.',
+                    'Lorsque votre entreprise prend en charge le coût de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ce coût sur ce compte dans Xero en tant qu’opération de décaissement.',
             },
             exportDate: {
                 label: 'Date de facture d’achat',
