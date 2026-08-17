@@ -460,7 +460,9 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(onSelected).not.toHaveBeenCalled();
 
         const onModalClose = mockClose.mock.calls.at(0)?.at(0);
-        act(() => onModalClose?.());
+        act(() => {
+            onModalClose?.();
+        });
         expect(onSelected).toHaveBeenCalledTimes(1);
         expect(order.indexOf('close')).toBeLessThan(order.indexOf('selected'));
     });
@@ -489,7 +491,9 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(onSelected).not.toHaveBeenCalled();
 
         const onModalClose = mockClose.mock.calls.at(0)?.at(0);
-        act(() => onModalClose?.());
+        act(() => {
+            onModalClose?.();
+        });
         expect(onSelected).toHaveBeenCalledTimes(1);
 
         const dismissProps = getLatestMeasuredPopoverProps();
