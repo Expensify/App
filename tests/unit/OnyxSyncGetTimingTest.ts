@@ -42,13 +42,13 @@ describe('A7: reads before Onyx.init has resolved', () => {
 describe('A6: a write made by another browser tab', () => {
     it('reaches the cache in the same statement that notifies subscribers', async () => {
         // On web, `Onyx.init` registers a callback with `storage.keepInstancesSync`. Another tab's
-        // write arrives through a localStorage `storage` event, and the callback then does
-        // `OnyxCache.set(key, value)` followed by `keyChanged(...)`. So the cache is current no later
-        // than the moment `useOnyx` subscribers are told, and an event-time read is never behind a
-        // subscription. That is the whole cross-tab question for this proposal.
+        // write arrives through a localStorage `storage` event as a batch of pairs, and the callback
+        // does `cache.set(key, value)` for every pair before it notifies anyone. So the cache is
+        // current no later than the moment `useOnyx` subscribers are told, and an event-time read is
+        // never behind a subscription. That is the whole cross-tab question for this proposal.
         const registerSync = jest.mocked(Storage.keepInstancesSync);
-        const onStorageKeyChanged = registerSync?.mock.calls.at(0)?.at(0);
-        expect(onStorageKeyChanged).toBeDefined();
+        const onStorageKeysChanged = registerSync?.mock.calls.at(0)?.at(0);
+        expect(onStorageKeysChanged).toBeDefined();
 
         const receivedTotals: Array<number | undefined> = [];
         const connection = Onyx.connectWithoutView({
@@ -59,7 +59,7 @@ describe('A6: a write made by another browser tab', () => {
         });
         await waitForBatchedUpdates();
 
-        onStorageKeyChanged?.(REPORT_A, {reportID: 'A', total: 7});
+        onStorageKeysChanged?.([[REPORT_A, {reportID: 'A', total: 7}]]);
 
         // Same tick as the incoming event, before any awaiting.
         expect(OnyxUtils.get(REPORT_A)?.total).toBe(7);

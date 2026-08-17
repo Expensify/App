@@ -23,8 +23,8 @@
  */
 import type {Rule, Scope} from 'eslint';
 
-import tsParser from '@typescript-eslint/parser';
 import {Linter} from 'eslint';
+import {parser as tsParser} from 'typescript-eslint';
 
 /** Import sources that resolve to the Onyx library. */
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
@@ -397,8 +397,8 @@ function findVariable(scope: Scope.Scope | null, variableName: string): Scope.Va
 }
 
 /**
- * Analyse one file. Calls that cross a file boundary come back as `{kind: 'module'}` for the caller to
- * resolve once every file has been analysed.
+ * Analyze one file. Calls that cross a file boundary come back as `{kind: 'module'}` for the caller to
+ * resolve once every file has been analyzed.
  */
 function analyzeSource(file: string, code: string): FileAnalysis {
     const units = new Map<string, SourceUnit>();

@@ -20,11 +20,11 @@ import type {Rule} from 'eslint';
  * which every read it can flag has to go through. Extra matches are harmless, since the rules ignore
  * what does not concern them.
  */
-import tsParser from '@typescript-eslint/parser';
 import {ESLint} from 'eslint';
 import {execFileSync} from 'node:child_process';
 import {createRequire} from 'node:module';
 import path from 'node:path';
+import {parser as tsParser} from 'typescript-eslint';
 
 import {BANNED_RULE_ID, RENDER_READ_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
 
