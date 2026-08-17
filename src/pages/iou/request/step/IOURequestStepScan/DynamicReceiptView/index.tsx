@@ -30,7 +30,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 
 type DynamicReceiptViewProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW>;
 
-function ReceiptView({route}: DynamicReceiptViewProps) {
+function DynamicReceiptView({route}: DynamicReceiptViewProps) {
     const {translate} = useLocalize();
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -133,4 +133,4 @@ function ReceiptView({route}: DynamicReceiptViewProps) {
     );
 }
 
-export default ReceiptView;
+export default DynamicReceiptView;
