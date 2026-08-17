@@ -12,10 +12,6 @@ function useIsAgentAccount(): boolean | undefined {
     const [personalDetail, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => {
             const detail = accountID ? personalDetails?.[accountID] : undefined;
-            // Return only isCustomAgent, not the whole record: useOnyx compares selector output with deepEqual,
-            // so returning the full entry would recompute on any unrelated field change (avatar, displayName,
-            // status, timezone, pronouns, ...). `undefined` here still means "no entry for this account", which
-            // the guard below relies on to tell a wiped/not-yet-loaded entry apart from a loaded non-agent one.
             return detail === undefined ? undefined : {isCustomAgent: detail?.isCustomAgent};
         },
     });
