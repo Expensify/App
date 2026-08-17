@@ -2148,13 +2148,11 @@ type MoneyRequestNavigatorParamList = {
     };
     [SCREENS.IOU_SEND.ENABLE_PAYMENTS]: undefined;
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: undefined;
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2168,13 +2166,11 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL]: {
         action: IOUAction;
         iouType: IOUType;
         transactionID: string;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         backToReport?: string;
         reportActionID?: string;
     };
@@ -2241,12 +2237,10 @@ type MoneyRequestNavigatorParamList = {
         backToReport?: string;
         reportActionID?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE]: {
         action: IOUAction;
         iouType: ValueOf<typeof CONST.IOU.TYPE>;
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
         reportID: string;
         reportActionID?: string;
     };
@@ -2901,6 +2895,8 @@ type WorkspaceSplitNavigatorParamList = {
     };
     [SCREENS.WORKSPACE.WORKFLOWS]: {
         policyID: string;
+        /** Query param that deep-links straight to a Workflows tab. Falls back to the persisted tab, then Submissions. */
+        tab?: ValueOf<typeof CONST.TAB.WORKFLOWS>;
     };
     [SCREENS.WORKSPACE.WORKFLOWS_APPROVALS_NEW]: {
         policyID: string;
