@@ -347,7 +347,7 @@ function IOURequestStepOdometerImage({
                                     />
                                 </PressableWithFeedback>
                             </View>
-                            <View style={[styles.odometerPhotoInformationContainer]}>
+                            <View style={[styles.odometerPhotoInformationContainer, isInLandscapeMode && styles.w40]}>
                                 <Icon
                                     height={variables.menuIconSize}
                                     width={variables.menuIconSize}
@@ -361,7 +361,7 @@ function IOURequestStepOdometerImage({
                         </>
                     </View>
                 )}
-                <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.pv3, !isInLandscapeMode && styles.flexRow]}>
+                <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.pv3, isInLandscapeMode ? styles.ph3 : styles.flexRow]}>
                     <AttachmentPicker
                         onOpenPicker={() => {
                             setIsAttachmentPickerActive(true);
