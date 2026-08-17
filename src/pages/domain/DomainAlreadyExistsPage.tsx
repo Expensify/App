@@ -26,7 +26,7 @@ import React from 'react';
 type DomainAlreadyExistsPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS>;
 
 function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
-    const {asset: EarthWithControls} = useMemoizedLazyAsset(() => loadIllustration('EarthWithControls'));
+    const {asset: GlobeLock} = useMemoizedLazyAsset(() => loadIllustration('GlobeLock'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const domainAccountID = route.params.domainAccountID;
@@ -50,13 +50,13 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                 onBackButtonPress={goToDomainsList}
             />
             <ConfirmationPage
-                illustration={EarthWithControls}
+                illustration={GlobeLock}
                 heading={translate('domain.domainAlreadyExists.title')}
                 innerContainerStyle={styles.p10}
                 description={translate('domain.domainAlreadyExists.description')}
                 descriptionStyle={styles.textSupporting}
                 shouldShowSecondaryButton
-                secondaryButtonText={translate('domain.domainAlreadyExists.nevermind')}
+                secondaryButtonText={translate('domain.domainAlreadyExists.neverMind')}
                 onSecondaryButtonPress={goToDomainsList}
                 shouldShowButton
                 buttonText={translate('domain.domainAlreadyExists.requestAccess')}

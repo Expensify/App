@@ -69,6 +69,7 @@ import EmptyStateTravel from '@assets/images/product-illustrations/emptystate__t
 import Fireworks from '@assets/images/product-illustrations/fireworks.svg';
 import FolderWithPapersAndWatch from '@assets/images/product-illustrations/folder-with-papers-and-watch.svg';
 import FolderWithPapers from '@assets/images/product-illustrations/folder-with-papers.svg';
+import GlobeLock from '@assets/images/product-illustrations/globe-lock.svg';
 import Hands from '@assets/images/product-illustrations/home-illustration-hands.svg';
 import SortingMachine from '@assets/images/product-illustrations/illustration-sorting-machine.svg';
 import CardReplacementSuccess from '@assets/images/product-illustrations/illustration__card-replacement-success.svg';
@@ -288,6 +289,7 @@ const Illustrations = {
     Fireworks,
     FolderWithPapersAndWatch,
     FolderWithPapers,
+    GlobeLock,
     Hands,
     CardReplacementSuccess,
     Copilots,
