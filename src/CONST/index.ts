@@ -2206,7 +2206,6 @@ const CONST = {
             WAIT: 'SearchData.Wait',
             DOWNLOAD: 'SearchData.Download',
             APPLY: 'SearchData.Apply',
-            RENDER: 'SearchData.Render',
         },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',

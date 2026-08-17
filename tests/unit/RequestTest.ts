@@ -130,9 +130,6 @@ test('Request.processWithMiddleware() measures the request phases for measured c
         expect(measuredPhases.filter((phase) => startedSpanIds.some((spanId) => spanId.startsWith(`${phase}_`)))).toEqual(measuredPhases);
         expect([...endedSpanIds].sort()).toEqual([...startedSpanIds].sort());
 
-        // The render probe reads frame health, so it stays off Search: in a live app it cannot tell this render from any other JS work
-        expect(startedSpanIds.some((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.RENDER}_`))).toBe(false);
-
         // And the server's requestID is stamped on the phases that can see it, so one attempt's spans can be joined in Sentry
         const applySpanId = startedSpanIds.find((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY}_`));
         expect(mockEndSpanWithAttributes).toHaveBeenCalledWith(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: MOCK_REQUEST_ID});
