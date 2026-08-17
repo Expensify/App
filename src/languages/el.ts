@@ -1749,6 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
@@ -4755,6 +4756,7 @@ ${amount} για ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Λογαριασμός πληρωτέων ταξιδιών',
             deleteTravelInvoicingError: 'Η εταιρεία σας έχει ακόμα ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
             vendors: 'Προμηθευτές',
+            noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -6118,6 +6120,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             settlementFrequencyDescription: 'Επιλέξτε πόσο συχνά θα εξοφλείτε το υπόλοιπο της Κάρτας Expensify.',
             settlementFrequencyInfo:
                 'Αν θέλετε να μεταβείτε σε μηνιαίο διακανονισμό, θα πρέπει να συνδέσετε τον τραπεζικό σας λογαριασμό μέσω Plaid και να έχετε θετικό ιστορικό υπολοίπου 90 ημερών.',
+            monthlySettlementDate: (date: string) => `Οι Κάρτες Expensify θα εκκαθαρίζονται στις ${date} κάθε μήνα.`,
             applyCashbackToBill: 'Εφαρμογή επιστροφής μετρητών στον λογαριασμό μου στο Expensify',
             applyCashbackToBillDescription: 'Η επιστροφή μετρητών από την Κάρτα Expensify θα χρησιμοποιηθεί για την πληρωμή του λογαριασμού σας στην Expensify.',
             frequency: {
@@ -9281,6 +9284,7 @@ ${reportName}`,
                 banks: 'Τραπεζικοί λογαριασμοί',
                 closedBankAccounts: 'Κλειστοί τραπεζικοί λογαριασμοί',
             },
+            workspace: {active: 'Ενεργός', archived: 'Αρχειοθετημένο', selectAll: 'Επιλογή όλων'},
             reportField: (name: string, value: string) => `${name} είναι ${value}`,
             current: 'Τρέχον',
             past: 'Παρελθόν',
@@ -9710,7 +9714,6 @@ ${reportName}`,
         decline: 'Απόρριψη',
     },
     actionableMentionTrackExpense: {
-        submit: 'Υποβάλετέ το σε κάποιον',
         categorize: 'Κατηγοριοποιήστε το',
         share: 'Κοινοποιήστε το στον λογιστή μου',
         nothing: 'Τίποτα προς το παρόν',

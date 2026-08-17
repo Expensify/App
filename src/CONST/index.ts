@@ -343,10 +343,6 @@ const CONST = {
         PHOTO_WIDTH: 2880,
         PHOTO_HEIGHT: 2160,
         PHOTO_ASPECT_RATIO: 4 / 3,
-        // Limit how long the shutter handler waits for thumbnail pre-generation before navigating
-        // to the confirmation screen. Past this, we navigate and let the confirm-side hook
-        // generate the thumbnail lazily (brief source swap is acceptable).
-        THUMBNAIL_NAV_TIMEOUT_MS: 150,
     },
 
     API_ATTACHMENT_VALIDATIONS: {
@@ -1006,7 +1002,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
@@ -1284,6 +1279,8 @@ const CONST = {
         EUR: 'EUR',
     },
     DEFAULT_CURRENCY_DECIMALS: 2,
+    // Number of decimals an exchange rate is rounded and padded to for display, matching Expensify Classic.
+    EXCHANGE_RATE_DISPLAY_DECIMALS: 4,
     SCA_CURRENCIES: new Set(['GBP', 'EUR']),
     get DIRECT_REIMBURSEMENT_CURRENCIES() {
         return [this.CURRENCY.USD, this.CURRENCY.AUD, this.CURRENCY.CAD, this.CURRENCY.GBP, this.CURRENCY.EUR];
@@ -1476,6 +1473,9 @@ const CONST = {
         },
         MAX_COUNT_BEFORE_FOCUS_UPDATE: 30,
         MIN_INITIAL_REPORT_ACTION_COUNT: 15,
+        // The backend rejects moving an expense into a report that already holds this many transactions, so the App
+        // blocks the move up front with a warning instead of letting it fail silently.
+        MAX_TRANSACTIONS: 500,
         UNREPORTED_REPORT_ID: '0',
         TRASH_REPORT_ID: '-1',
         SPLIT_REPORT_ID: '-2',
@@ -2192,6 +2192,13 @@ const CONST = {
         SPAN_OPEN_REPORT: 'ManualOpenReport',
         SPAN_APP_STARTUP: 'ManualAppStartup',
         SPAN_APP_STARTUP_NETWORK_REQUEST: 'ManualAppStartupNetworkRequest',
+        /** Phases of the OpenApp/ReconnectApp data load. */
+        SPAN_STARTUP_DATA: {
+            WAIT: 'StartupData.Wait',
+            DOWNLOAD: 'StartupData.Download',
+            APPLY: 'StartupData.Apply',
+            RENDER: 'StartupData.Render',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2209,7 +2216,6 @@ const CONST = {
         SPAN_ENTRY_TO_SCAN_NAVIGATION: 'ManualEntryToScanNavigation',
         SPAN_ENTRY_TO_SCAN_READY: 'ManualEntryToScanReady',
         SPAN_SHUTTER_TO_CONFIRMATION: 'ManualShutterToConfirmation',
-        SPAN_THUMBNAIL_GATE: 'ManualThumbnailGate',
         SPAN_RECEIPT_CAPTURE: 'ManualReceiptCapture',
         SPAN_SCAN_PROCESS_AND_NAVIGATE: 'ManualScanProcessAndNavigate',
         SPAN_CONFIRMATION_MOUNT: 'ManualConfirmationMount',
@@ -2292,6 +2298,10 @@ const CONST = {
         ATTRIBUTE_SUBMIT_FOLLOW_UP_ACTION: 'submit_follow_up_action',
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
+        ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_ATTEMPT: 'attempt',
+        ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
+        ATTRIBUTE_TIMED_OUT: 'timed_out',
         ATTRIBUTE_JSON_CODE: 'json_code',
         ATTRIBUTE_UPDATE_ID_FROM: 'update_id_from',
         ATTRIBUTE_UPDATE_ID_TO: 'update_id_to',
@@ -5448,7 +5458,6 @@ const CONST = {
         GO_TO_WORKSPACE: 'goToWorkspace',
         ERROR: 'error',
         TRACK: {
-            SUBMIT: 'submit',
             SUBMIT_TO_FRIEND: 'submitToFriend',
             SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
@@ -6227,6 +6236,13 @@ const CONST = {
             FLAG_FOR_REVIEW: 'flagForReview',
             AGENTS: 'agents',
         },
+        WORKFLOWS_TAB_TYPE: 'workflowsTabType',
+        WORKFLOWS: {
+            SUBMISSIONS: 'submissions',
+            APPROVALS: 'approvals',
+            PAYMENTS: 'payments',
+            ADVANCED: 'advanced',
+        },
         AGENT_RULE: {
             SUGGESTIONS: 'suggestions',
             WRITE: 'write',
@@ -6844,6 +6860,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',
@@ -8659,6 +8676,7 @@ const CONST = {
             GROUP_SELECT_ALL_CHECKBOX: 'Search-GroupSelectAllCheckbox',
             SORTABLE_HEADER: 'Search-SortableHeader',
             UNREPORTED_EXPENSE_LIST_ITEM: 'UnreportedExpenseListItem',
+            WORKSPACE_SELECTOR_SELECT_ALL: 'Search-WorkspaceSelectorSelectAll',
         },
         EXPENSE_RULES: {
             TABLE_ROW: 'ExpenseRules-TableRow',
