@@ -19,7 +19,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 
-import {clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
+import {clearNewAgentAvatarDraft, clearNewAgentTemplate, setNewAgentTemplate, getAgentTemplates} from '@userActions/Agent';
 
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
@@ -92,15 +92,15 @@ function NewAgentPage({route}: NewAgentPageProps) {
     }, [isOffline]);
 
     const handleBuildCustomAgent = () => {
-        // Start from scratch — drop any previously stashed template
-        clearNewAgentTemplate().then(() => {
+        // Start from scratch — drop any previously stashed template and avatar draft.
+        Promise.all([clearNewAgentTemplate(), clearNewAgentAvatarDraft()]).then(() => {
             Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
         });
     };
 
     const handleAddTemplate = (template: SuggestedAgent, avatarID: AgentAvatarID) => {
-        // Stash the template in Onyx (persists across refresh)
-        setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}).then(() => {
+        // Stash the template in Onyx (persists across refresh) and drop any stale avatar draft.
+        Promise.all([setNewAgentTemplate({name: template.name, prompt: template.prompt, avatarID}), clearNewAgentAvatarDraft()]).then(() => {
             Navigation.navigate(ROUTES.SETTINGS_AGENTS_ADD.getRoute(policyID ? {policyID} : undefined));
         });
     };
@@ -129,10 +129,7 @@ function NewAgentPage({route}: NewAgentPageProps) {
                 {buildCustomAgentButton}
                 {templateSectionLabel}
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                    <ActivityIndicator
-                        size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                        reasonAttributes={{context: 'NewAgentPage'}}
-                    />
+                    <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                 </View>
             </View>
         );

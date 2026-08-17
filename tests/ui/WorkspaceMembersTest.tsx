@@ -25,6 +25,7 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -115,10 +116,12 @@ describe('WorkspaceMembers', () => {
             });
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
-        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue({
-            isSmallScreenWidth: false,
-            shouldUseNarrowLayout: false,
-        } as ResponsiveLayoutResult);
+        jest.spyOn(useResponsiveLayoutModule, 'default').mockReturnValue(
+            createMock<ResponsiveLayoutResult>({
+                isSmallScreenWidth: false,
+                shouldUseNarrowLayout: false,
+            }),
+        );
     });
 
     afterEach(async () => {
@@ -419,6 +422,92 @@ describe('WorkspaceMembers', () => {
             const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
             expect(screen.getByTestId(`PopoverMenuItem-${makeMemberText}`)).toBeOnTheScreen();
 
+            const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide role-change options when the selected member is the Authorized Payer resolved via policy.reimburser', async () => {
+            // Given a workspace whose Authorized Payer is an admin configured through policy.reimburser
+            // (the canonical resolution) rather than achAccount.reimburser. On the buggy code the guard
+            // only read achAccount.reimburser, so it failed to recognize this payer and wrongly offered
+            // the role-change options.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: adminEmail,
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(ADMIN_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Admin');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...and none of the role-change options are offered for the payer
+            const makeMemberText = TestHelper.translateLocal('workspace.people.makeMember', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeMemberText}`)).not.toBeOnTheScreen();
+
+            const makeAuditorText = TestHelper.translateLocal('workspace.people.makeAuditor', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeAuditorText}`)).not.toBeOnTheScreen();
+
+            const makeCardAdminText = TestHelper.translateLocal('workspace.people.makeCardAdmin', {count: 1});
+            expect(screen.queryByTestId(`PopoverMenuItem-${makeCardAdminText}`)).not.toBeOnTheScreen();
+
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        it('should hide the Make workspace admin option when the selected member is a Payments Admin who is the Authorized Payer', async () => {
+            // Given a Payments Admin who is also the Authorized Payer. PAYMENTS_ADMIN is the only non-admin
+            // role with write access to WORKFLOWS_PAYMENTS, so it is the sole role that can hold the payer
+            // role without already being an admin — which makes it the only path that can reach the
+            // "Make workspace admin" option. Every other role-change option is already gated on the payer,
+            // but adminOption was not, so it was wrongly offered for this payer.
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, {
+                    reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES,
+                    reimburser: userEmail,
+                    employeeList: {
+                        [userEmail]: {email: userEmail, role: CONST.POLICY.ROLE.PAYMENTS_ADMIN},
+                    },
+                });
+            });
+
+            const {unmount} = renderPage(SCREENS.WORKSPACE.MEMBERS, {policyID: policy.id});
+            await waitForBatchedUpdatesWithAct();
+
+            await waitFor(() => {
+                expect(screen.getByText(USER_OPTION)).toBeOnTheScreen();
+            });
+
+            // When that payer is bulk-selected and the actions dropdown is opened
+            selectCheckboxByMemberName('Member');
+            fireEvent.press(await screen.findByTestId('WorkspaceMembersPage-header-dropdown-menu-button'));
+            await waitForBatchedUpdatesWithAct();
+
+            // Then the Remove option is still available
+            const removeText = TestHelper.translateLocal('workspace.people.removeMembersTitle', {count: 1});
+            await waitFor(() => {
+                expect(screen.getByTestId(`PopoverMenuItem-${removeText}`)).toBeOnTheScreen();
+            });
+
+            // ...but "Make workspace admin" is hidden for the payer, even though their role is not admin
             const makeAdminText = TestHelper.translateLocal('workspace.people.makeAdmin', {count: 1});
             expect(screen.queryByTestId(`PopoverMenuItem-${makeAdminText}`)).not.toBeOnTheScreen();
 

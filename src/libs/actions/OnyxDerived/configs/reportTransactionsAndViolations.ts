@@ -6,9 +6,9 @@ import type {TransactionViolation} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 let previousViolations: OnyxCollection<TransactionViolation[]> = {};
-const transactionReportIDMapping: Record<string, string> = {};
+let transactionReportIDMapping: Record<string, string> = {};
 
-const transactionToReportIDMap: Record<string, string> = {};
+let transactionToReportIDMap: Record<string, string> = {};
 
 export default createOnyxDerivedValueConfig({
     key: ONYXKEYS.DERIVED.REPORT_TRANSACTIONS_AND_VIOLATIONS,
@@ -111,5 +111,11 @@ export default createOnyxDerivedValueConfig({
         previousViolations = violations;
 
         return reportTransactionsAndViolations;
+    },
+    // On cache clear, drop the cross-compute state so the map is rebuilt from scratch (see the engine's resetForClear).
+    onReset: () => {
+        previousViolations = {};
+        transactionReportIDMapping = {};
+        transactionToReportIDMap = {};
     },
 });

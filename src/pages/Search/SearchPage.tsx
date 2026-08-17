@@ -17,7 +17,7 @@ import useSeedMyExpensesSearch from '@hooks/useSeedMyExpensesSearch';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {searchInServer} from '@libs/actions/Report';
-import {search} from '@libs/actions/Search';
+import {clearFooterConversion, search} from '@libs/actions/Search';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import {isSearchDataLoaded} from '@libs/SearchUIUtils';
@@ -50,7 +50,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    const {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode} = useSearchPageSetup(currentSearchQueryJSON);
+    useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
@@ -98,6 +98,9 @@ function SearchPage({route}: SearchPageProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
+    // Converted footer totals are ephemeral, session-scoped display data, so drop them when leaving Search.
+    useEffect(() => () => clearFooterConversion(), []);
+
     const prevIsLoading = usePrevious(currentSearchResults?.isLoading);
 
     useEffect(() => {
@@ -108,19 +111,13 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                setSearchRequestResponseStatusCode(null);
-                search(value)?.then((jsonCode) => {
-                    setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-                });
-            }
-        },
-        [setSearchRequestResponseStatusCode],
-    );
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -146,8 +143,6 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            setSearchRequestResponseStatusCode={setSearchRequestResponseStatusCode}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
@@ -159,7 +154,6 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageWide
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}

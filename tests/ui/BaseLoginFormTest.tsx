@@ -74,7 +74,7 @@ jest.mock('@userActions/CloseAccount', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const BaseLoginForm = require('@pages/signin/LoginForm/BaseLoginForm').default;
 
-const mockBeginSignIn = beginSignIn as jest.MockedFunction<typeof beginSignIn>;
+const mockBeginSignIn = jest.mocked(beginSignIn);
 const Stack = createStackNavigator();
 
 function renderForm() {

@@ -3,8 +3,8 @@ import {act, renderHook} from '@testing-library/react-native';
 import useHtmlPaste from '@hooks/useHtmlPaste';
 
 import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
 
+import createMock from '../../../utils/createMock';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type UseHtmlPasteReturn = {
@@ -16,23 +16,22 @@ jest.mock('@src/hooks/useHtmlPaste', (): typeof useHtmlPaste => {
 });
 
 describe('useHtmlPaste - handlePastePlainText', () => {
-    let textInputRef: RefObject<(HTMLDivElement & Partial<TextInput>) | null>;
+    let textInputRef: RefObject<HTMLDivElement | null>;
+    let textInputElement: HTMLDivElement;
 
     const createMockClipboardEvent = (text: string, html = ''): ClipboardEvent => {
-        const clipboardData = {
+        const clipboardData = createMock<DataTransfer>({
             getData: (type: string) => {
                 if (type === 'text/html') {
                     return html;
                 }
                 return type === 'text/plain' ? text : '';
             },
-            files: [] as unknown as FileList,
-            items: [] as unknown as DataTransferItemList,
+            files: [],
+            items: [],
             types: html ? ['text/html', 'text/plain'] : ['text/plain'],
-        };
-        const event = new Event('paste', {bubbles: true, cancelable: true}) as ClipboardEvent;
-        Object.defineProperty(event, 'clipboardData', {value: clipboardData});
-        return event;
+        });
+        return Object.assign(new Event('paste', {bubbles: true, cancelable: true}), {clipboardData});
     };
 
     const mockWindowSelection = (selectedText: string, textBeforeSelection = '', textAfterSelection = '') => {
@@ -70,7 +69,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     const renderUseHtmlPaste = (isActive = false, shouldConvertPlainTextEmojiShortcodes = false) =>
         renderHook<UseHtmlPasteReturn | void, void>(() =>
             useHtmlPaste(
-                textInputRef as unknown as RefObject<TextInput | (HTMLTextAreaElement & TextInput)>,
+                // @ts-expect-error -- this web test intentionally passes a contenteditable DOM ref to the shared hybrid hook.
+                textInputRef,
                 undefined,
                 isActive,
                 undefined,
@@ -82,12 +82,12 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        const div = document.createElement('div');
-        div.setAttribute('contenteditable', 'true');
-        div.textContent = '';
-        Object.defineProperty(div, 'isFocused', {value: () => true});
-        document.body.appendChild(div);
-        textInputRef = {current: div} as RefObject<HTMLDivElement & Partial<TextInput>>;
+        textInputElement = document.createElement('div');
+        textInputElement.setAttribute('contenteditable', 'true');
+        textInputElement.textContent = '';
+        Object.defineProperty(textInputElement, 'isFocused', {value: () => true});
+        document.body.appendChild(textInputElement);
+        textInputRef = {current: textInputElement};
 
         if (!Range.prototype.getBoundingClientRect) {
             Range.prototype.getBoundingClientRect = () =>
@@ -106,7 +106,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
     });
 
     afterEach(() => {
-        document.body.removeChild(textInputRef.current as Node);
+        document.body.removeChild(textInputElement);
     });
 
     it('Paste URL with selection → produces Markdown link', async () => {
@@ -127,7 +127,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(markdownLink);
+            expect(textInputElement.textContent).toBe(markdownLink);
         }
     });
 
@@ -146,7 +146,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(url);
+            expect(textInputElement.textContent).toBe(url);
         }
     });
 
@@ -165,7 +165,7 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(plainText);
+            expect(textInputElement.textContent).toBe(plainText);
         }
     });
 
@@ -257,8 +257,8 @@ describe('useHtmlPaste - handlePastePlainText', () => {
 
             act(() => handlePastePlainText?.(event));
 
-            expect(textInputRef.current?.textContent).toBe(textWithTrailingWhitespace);
-            expect(textInputRef.current?.textContent?.endsWith('   ')).toBe(true);
+            expect(textInputElement.textContent).toBe(textWithTrailingWhitespace);
+            expect(textInputElement.textContent?.endsWith('   ')).toBe(true);
         }
     });
 
