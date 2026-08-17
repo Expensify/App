@@ -1266,7 +1266,7 @@ describe('TransactionUtils', () => {
         });
     });
 
-    describe('shouldRenderLocalDistanceEReceipt', () => {
+    describe('isMapBasedDistanceRequest', () => {
         const UPDATE = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
         const PDF_RECEIPT = {source: 'https://www.expensify.com/receipts/w_abc123.pdf', filename: 'w_abc123.pdf'};
 
@@ -1274,49 +1274,20 @@ describe('TransactionUtils', () => {
             return generateTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MAP, receipt: PDF_RECEIPT, ...values});
         }
 
-        it('returns false for a map distance expense whose generated PDF receipt is current', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction())).toBe(false);
+        // New Expensify draws its own distance e-receipt for these, so the generated PDF beside them is never shown.
+        it('is true for a map distance expense whichever receipt it stores', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction())).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
         });
 
-        it('returns true when there is no receipt file yet', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({receipt: undefined}))).toBe(true);
+        it('is true for a GPS distance expense, which also has a route to draw', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(true);
         });
 
-        it('returns true while the server rebuilds the receipt after an edit', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({pendingFields: {waypoints: UPDATE}}))).toBe(true);
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({pendingFields: {merchant: UPDATE}}))).toBe(true);
-        });
-
-        it('returns true when the route failed', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({errorFields: {route: {someError: 'No route found'}}}))).toBe(true);
-        });
-
-        it('returns true for an older expense that stored the bare map image', () => {
-            const imageReceipt = {source: 'https://www.expensify.com/receipts/w_abc123.jpg', filename: 'w_abc123.jpg'};
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({receipt: imageReceipt}))).toBe(true);
-            // That file is still the one the card draws, so it stays downloadable.
-            expect(TransactionUtils.hasUsableStoredDistanceReceipt(generateMapDistanceTransaction({receipt: imageReceipt}))).toBe(true);
-        });
-
-        it('keeps showing the generated receipt when an unrelated error lands on the expense', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({errors: {someError: 'Payment failed'}}))).toBe(false);
-        });
-
-        it('returns false for odometer, manual distance and non-distance expenses', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER, receipt: undefined}))).toBe(
-                false,
-            );
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_MANUAL, receipt: undefined}))).toBe(
-                false,
-            );
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateTransaction({receipt: undefined}))).toBe(false);
-        });
-
-        it('treats a GPS distance expense the same way, because it also gets a generated receipt', () => {
-            expect(TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS}))).toBe(false);
-            expect(
-                TransactionUtils.shouldRenderLocalDistanceEReceipt(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_GPS, pendingFields: {merchant: UPDATE}})),
-            ).toBe(true);
+        it('is false for odometer and non-distance expenses, which keep their own receipt', () => {
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateMapDistanceTransaction({iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE_ODOMETER}))).toBe(false);
+            expect(TransactionUtils.isMapBasedDistanceRequest(generateTransaction({receipt: undefined}))).toBe(false);
         });
     });
 

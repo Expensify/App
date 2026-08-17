@@ -1292,40 +1292,6 @@ function hasDistanceRouteErrors(transaction: OnyxInputOrEntry<Transaction>): boo
 }
 
 /**
- * Whether the receipt file that the server generated for a distance expense can be shown. It cannot when there
- * is no file, when the server is building a new one after an edit, or when the route failed.
- */
-function hasUsableStoredDistanceReceipt(transaction: OnyxEntry<Transaction>): boolean {
-    return hasReceiptSource(transaction) && !hasPendingDistanceReceiptRegeneration(transaction) && !hasDistanceRouteErrors(transaction);
-}
-
-/**
- * Whether a distance expense must render the local `DistanceEReceipt` card instead of the receipt file the
- * server generated.
- *
- * The generated file records the routed trip, therefore its total and its "84.57 mi @ $0.725 / mi" line can
- * differ from what the expense bills. Expensify Classic shows that file on every surface, and New Expensify
- * must do the same. If one surface draws the card and another draws the file, the two contradict each other.
- * The card is only the fallback for a receipt file we cannot show.
- */
-function shouldRenderLocalDistanceEReceipt(transaction: OnyxEntry<Transaction>): boolean {
-    // Only map and GPS distance expenses get a generated map receipt. An odometer expense shows the photos of
-    // the odometer that the user took, and a manual distance expense has no map. Both keep their own handling.
-    if (!isDistanceRequest(transaction) || isOdometerDistanceRequest(transaction) || isManualDistanceRequest(transaction)) {
-        return false;
-    }
-
-    if (!hasUsableStoredDistanceReceipt(transaction)) {
-        return true;
-    }
-
-    // The server generates a distance receipt as a PDF that carries its own total and mileage. An older expense
-    // stored the bare map image instead, therefore the card must supply those two lines around it.
-    const receiptSource = typeof transaction?.receipt?.source === 'string' ? transaction.receipt.source : '';
-    return !Str.isPDF(transaction?.receipt?.filename ?? '') && !Str.isPDF(receiptSource);
-}
-
-/**
  * Return the merchant field from the transaction, return the modifiedMerchant if present.
  */
 function getMerchant(transaction: OnyxInputOrEntry<Transaction>): string {
@@ -3472,8 +3438,6 @@ export {
     hasLocallyKnownDistance,
     hasPendingDistanceReceiptRegeneration,
     hasDistanceRouteErrors,
-    hasUsableStoredDistanceReceipt,
-    shouldRenderLocalDistanceEReceipt,
     isExpensifyCardTransaction,
     isManagedCardTransaction,
     isDuplicate,

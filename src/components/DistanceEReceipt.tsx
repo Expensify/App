@@ -7,7 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {getTransactionDetails} from '@libs/ReportUtils';
-import {getWaypointIndex, hasReceipt, hasUsableStoredDistanceReceipt} from '@libs/TransactionUtils';
+import {getWaypointIndex, hasDistanceRouteErrors, hasPendingDistanceReceiptRegeneration, hasReceipt} from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
 import type {TranslationPaths} from '@src/languages/types';
@@ -41,9 +41,9 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant, created: transactionDate} = getTransactionDetails(transaction) ?? {};
     const formattedTransactionAmount = convertToDisplayString(transactionAmount, transactionCurrency);
     const thumbnailSource = tryResolveUrlFromApiRoot(thumbnail ?? '');
-    // The thumbnail is a page of the stored receipt file, so this card must not show it once the rest of the app
-    // has stopped trusting that file.
-    const canShowStoredReceiptPage = hasUsableStoredDistanceReceipt(transaction);
+    // The thumbnail this card draws is the stored route map. An edit that makes the server rebuild the receipt
+    // invalidates its URL, and a route error means there is no trip to draw, so show the pending map for both.
+    const canShowStoredRouteMap = !hasPendingDistanceReceiptRegeneration(transaction) && !hasDistanceRouteErrors(transaction);
     const waypoints = useMemo(() => transaction?.comment?.waypoints ?? {}, [transaction?.comment?.waypoints]);
     const sortedWaypoints = useMemo<WaypointCollection>(
         () =>
@@ -68,7 +68,7 @@ function DistanceEReceipt({transaction, hoverPreview = false}: DistanceEReceiptP
                     />
 
                     <View style={[styles.moneyRequestViewImage, styles.mh0, styles.mt0, styles.mb5, styles.borderNone]}>
-                        {!canShowStoredReceiptPage || !thumbnailSource ? (
+                        {!canShowStoredRouteMap || !thumbnailSource ? (
                             <PendingMapView />
                         ) : (
                             <ReceiptImage

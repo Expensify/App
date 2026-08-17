@@ -14,12 +14,12 @@ import {getReportIDForExpense} from '@libs/MergeTransactionUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getThumbnailAndImageURIs} from '@libs/ReceiptUtils';
 import {
-    hasDistanceRouteErrors,
     hasEReceipt,
     hasPendingDistanceReceiptRegeneration,
     hasReceiptSource,
     isDistanceRequest,
     isManualDistanceRequest,
+    isMapBasedDistanceRequest,
     isPerDiemRequest,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
@@ -138,9 +138,7 @@ function ReportActionItemImage({
     const icons = useMemoizedLazyExpensifyIcons(['Receipt']);
     const {report: contextReport, transactionThreadReport} = useShowContextMenuState();
     const isMapDistanceRequest = !!transaction && isDistanceRequest(transaction) && !isManualDistanceRequest(transaction);
-    // Any error on the expense keeps the tile on the live route, not the route errors alone, because a tile that
-    // shows a red dot next to a stale receipt reads as though the receipt itself failed.
-    const hasErrors = !isEmptyObject(transaction?.errors) || hasDistanceRouteErrors(transaction);
+    const hasErrors = !isEmptyObject(transaction?.errors) || !isEmptyObject(transaction?.errorFields?.route) || !isEmptyObject(transaction?.errorFields?.waypoints);
     // While the receipt is regenerating its stored URL is stale, so draw the live route from `routes.coordinates`
     // (via `ConfirmedRoute`) instead of loading the now-404'd image.
     const showMapAsImage = isMapDistanceRequest && (hasErrors || hasPendingDistanceReceiptRegeneration(transaction));
@@ -223,9 +221,10 @@ function ReportActionItemImage({
     // A remote PDF is shown as the server's low-resolution JPG thumbnail, which blurs when hover-zoomed.
     // Where zooming is available (web only), render the actual PDF on top of the thumbnail so the magnified
     // view stays sharp. The thumbnail stays underneath as an instant preview and as a fallback if the PDF fails.
-    // A distance receipt is a PDF too, therefore it zooms the same way as any other receipt.
+    // Map/route distance requests are excluded: their hover overlay is a DistanceEReceipt card, not the PDF.
+    // isMapBasedDistanceRequest covers map, GPS, and manual-typed transactions that still carry waypoints.
     const pdfSourceURL = typeof originalImageSource === 'string' && !!originalImageSource ? originalImageSource : undefined;
-    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !!pdfSourceURL;
+    const isRemotePDF = !!isPDF && !effectiveIsLocalFile && !isEReceipt && !isMapBasedDistanceRequest(transaction) && !!pdfSourceURL;
     const shouldOverlayHighResPDF = canZoomReceipt && isRemotePDF && hasHoverSupport();
 
     const renderReceiptContent = (receiptImage: React.ReactNode) =>

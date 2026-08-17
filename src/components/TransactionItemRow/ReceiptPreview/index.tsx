@@ -9,7 +9,7 @@ import useResponsiveLayoutOnWideRHP from '@hooks/useResponsiveLayoutOnWideRHP';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {hasReceiptSource, isPerDiemRequest, shouldRenderLocalDistanceEReceipt} from '@libs/TransactionUtils';
+import {hasReceiptSource, isDistanceRequest, isManualDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -45,9 +45,7 @@ type ReceiptPreviewProps = {
 };
 
 function ReceiptPreview({source, hovered, isEReceipt = false, transactionItem, anchorPosition}: ReceiptPreviewProps) {
-    // A distance expense usually has a generated receipt file, and `source` already points at a page of it, so the
-    // preview shows the file. The card is for the expenses that have no file to show.
-    const isDistanceEReceipt = shouldRenderLocalDistanceEReceipt(transactionItem);
+    const isDistanceEReceipt = isDistanceRequest(transactionItem) && !isManualDistanceRequest(transactionItem);
     const isPerDiemEReceipt = isPerDiemRequest(transactionItem) && !hasReceiptSource(transactionItem) && !!transactionItem.transactionID;
     const styles = useThemeStyles();
     const [eReceiptScaleFactor, setEReceiptScaleFactor] = useState(0);

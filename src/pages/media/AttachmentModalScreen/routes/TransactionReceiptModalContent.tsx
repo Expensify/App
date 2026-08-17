@@ -32,10 +32,8 @@ import {
     hasOdometerImageSource,
     hasReceipt,
     hasReceiptSource,
-    hasUsableStoredDistanceReceipt,
     isOdometerDistanceRequest,
     isReceiptBeingScanned,
-    shouldRenderLocalDistanceEReceipt,
 } from '@libs/TransactionUtils';
 import tryResolveUrlFromApiRoot from '@libs/tryResolveUrlFromApiRoot';
 
@@ -294,9 +292,7 @@ function TransactionReceiptModalContent({navigation, route}: AttachmentModalScre
         draftTransactionID,
     });
 
-    // Withhold Download only when the card on screen is not backed by a stored file. An older distance expense
-    // also shows the card, but around the very image it would download, so that one stays available.
-    const allowDownload = !isEReceipt && (!shouldRenderLocalDistanceEReceipt(transaction) || hasUsableStoredDistanceReceipt(transaction));
+    const allowDownload = !isEReceipt;
 
     const applyDurableReceipt = useCallback(
         (imageUri: string, filename: string, file: File, isSameReceipt?: boolean) => {

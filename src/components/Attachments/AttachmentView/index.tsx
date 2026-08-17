@@ -28,7 +28,7 @@ import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
 import {getFileResolution, isHighResolutionImage} from '@libs/fileDownload/FileUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {hasEReceipt, hasReceiptSource, isPerDiemRequest, shouldRenderLocalDistanceEReceipt} from '@libs/TransactionUtils';
+import {hasEReceipt, hasReceiptSource, isMapBasedDistanceRequest, isPerDiemRequest} from '@libs/TransactionUtils';
 
 import type {ColorValue} from '@styles/utils/types';
 import variables from '@styles/variables';
@@ -255,10 +255,13 @@ function AttachmentView({
         );
     }
 
-    // A distance expense normally shows the receipt file that the server generated, which the PDF branch below
-    // renders. Draw the card only for the cases that file cannot cover, and do it before that branch so the
-    // stale URL of a receipt that the server is rebuilding is never requested.
-    if (transaction && shouldRenderLocalDistanceEReceipt(transaction)) {
+    // New Expensify builds the distance e-receipt from the expense, which is why the server stores only the route
+    // map as the thumbnail for it to draw around. The generated PDF beside it is for Expensify Classic, which
+    // cannot build one in the frontend, and it prints the routed trip rather than what the expense bills. Showing
+    // that PDF here made the enlarged receipt contradict every other surface, so draw the card instead. This runs
+    // before the PDF branch below, which would otherwise return first.
+    // See https://github.com/Expensify/Expensify/issues/545298 and https://github.com/Expensify/App/issues/97013.
+    if (transaction && isMapBasedDistanceRequest(transaction)) {
         return <DistanceEReceipt transaction={transaction} />;
     }
 
