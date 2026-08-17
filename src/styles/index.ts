@@ -2432,7 +2432,9 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                // Tighten the left gap so the text sits closer to the action button
+                paddingLeft: variables.avatarChatSpacing - 8,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2561,8 +2563,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            alignItems: 'center',
+            height: 40,
+            width: 40,
             padding: 6,
             marginHorizontal: 3,
             borderRadius: variables.componentBorderRadiusRounded,
