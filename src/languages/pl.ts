@@ -2145,6 +2145,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Zainstaluj najnowszą wersję Expensify',
         toGetLatestChanges: 'Na urządzeniu mobilnym pobierz i zainstaluj najnowszą wersję. W przeglądarce odśwież stronę.',
         newAppNotAvailable: 'Zaktualizuj teraz, a później nam podziękujesz.',
+        updateAvailable: 'Dostępna aktualizacja',
+        pleaseRefresh: 'Odśwież tę stronę, żeby uzyskać najnowszą wersję Expensify.',
+        refreshPage: 'Odśwież stronę',
     },
     initialSettingsPage: {
         about: 'Informacje',

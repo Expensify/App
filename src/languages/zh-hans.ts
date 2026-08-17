@@ -2077,6 +2077,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
         toGetLatestChanges: '在移动端，请下载并安装最新版本。在网页端，请刷新浏览器。',
         newAppNotAvailable: '现在更新，以后你会感谢我们的。',
+        updateAvailable: '有可用更新',
+        pleaseRefresh: '请刷新此页面以获取最新版本的 Expensify。',
+        refreshPage: '刷新页面',
     },
     initialSettingsPage: {
         about: '关于',

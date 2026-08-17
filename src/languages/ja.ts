@@ -2133,6 +2133,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
         toGetLatestChanges: 'モバイルでは最新バージョンをダウンロードしてインストールしてください。ウェブではブラウザを再読み込みしてください。',
         newAppNotAvailable: '今すぐアップデートすると、きっと後で感謝していただけます。',
+        updateAvailable: 'アップデートがあります',
+        pleaseRefresh: '最新バージョンの Expensify を利用するには、このページを再読み込みしてください。',
+        refreshPage: 'ページを更新',
     },
     initialSettingsPage: {
         about: '概要',
