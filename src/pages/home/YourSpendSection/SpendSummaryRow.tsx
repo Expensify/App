@@ -108,7 +108,7 @@ function SpendSummaryRow({state, testIDPrefix, description, totals, iconSrc, onP
             <MenuItemWithTopDescription
                 description={description}
                 title={totals.total !== undefined ? convertToDisplayString(totals.total, totals.currency) : undefined}
-                titleStyle={styles.textBold}
+                shouldShowBasicTitle
                 onPress={onPress}
                 shouldShowRightIcon
                 leftComponent={

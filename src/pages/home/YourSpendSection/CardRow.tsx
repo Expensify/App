@@ -86,7 +86,7 @@ function CardRow({cardRow, wrapperStyle}: CardRowProps) {
             <MenuItemWithTopDescription
                 description={translate('homePage.yourSpend.recentTransactions', {lastFour: cardRow.lastFour})}
                 title={cardTotal}
-                titleStyle={styles.textBold}
+                shouldShowBasicTitle
                 onPress={() => Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query: cardRow.query}))}
                 shouldShowRightComponent
                 rightComponent={

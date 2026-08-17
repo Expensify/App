@@ -4187,7 +4187,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         widgetItemTitle: {
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            ...FontUtils.fontFamily.platform.EXP_NEUE,
             fontSize: variables.fontSizeNormal,
             lineHeight: variables.fontSizeNormalHeight,
             color: theme.text,
