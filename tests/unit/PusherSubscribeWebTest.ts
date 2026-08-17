@@ -257,6 +257,29 @@ describe('Pusher.subscribe on web', () => {
         expect(onDraftResubscribe).toHaveBeenCalledTimes(1);
     });
 
+    it('should trigger one reconnect per drop when the user channel is set up again without a disconnect', async () => {
+        const accountID = '1';
+        const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(userChannel);
+        channel?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
     it('should trigger one reconnect per drop, however many events subscribe to the private user channel', async () => {
         const accountID = '1';
         const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;

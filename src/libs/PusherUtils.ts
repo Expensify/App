@@ -55,11 +55,16 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
     Pusher.subscribe(pusherChannelName, eventName, onEventPush).catch(onSubscriptionFailed);
 }
 
+let unregisterPrivateUserChannelResubscribe: (() => void) | undefined;
+
 function onPrivateUserChannelResubscribe(accountID: string) {
-    return Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
+    unregisterPrivateUserChannelResubscribe?.();
+    unregisterPrivateUserChannelResubscribe = Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
         Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
         reconnect();
     });
+
+    return unregisterPrivateUserChannelResubscribe;
 }
 
 export default {
