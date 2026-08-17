@@ -4155,6 +4155,113 @@ describe('TransactionUtils', () => {
 
             expect(TransactionUtils.getExchangeRate(transaction, 'EUR')).toBe('');
         });
+
+        describe('shouldFormatRate (display formatting to 4 decimals, matching Expensify Classic)', () => {
+            it('rounds a rate with more than 4 decimals rather than truncating', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 13768.5157822803,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -1376851,
+                });
+
+                // toFixed(4) rounds .51578… up to .5158 (truncation would give .5157).
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('13768.5158 USD/EUR');
+            });
+
+            it('rounds, not truncates, on the values where the two rules differ', () => {
+                const aed = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+                const ron = generateTransaction({
+                    currency: 'RON',
+                    currencyConversionRate: '0.220361392684002',
+                    amount: -100,
+                    convertedAmount: -22,
+                });
+
+                // Classic renders 0.2723 and 0.2204; truncation would give 0.2722 and 0.2203.
+                expect(TransactionUtils.getExchangeRate(aed, 'USD', true)).toBe('0.2723 AED/USD');
+                expect(TransactionUtils.getExchangeRate(ron, 'USD', true)).toBe('0.2204 RON/USD');
+            });
+
+            it('formats an exponential rate to 0.0000 instead of mangling it', () => {
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    groupExchangeRate: 7.27431439586819e-7,
+                    groupCurrency: 'USD',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                // Classic renders 0.0000; the string-split truncation approach returned 7.2743 here.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('formats an exponential rate string to 0.0000', () => {
+                // The reported bug arrived through currencyConversionRate (typed string), so the real input is the
+                // zero-padded exponent string rather than the number the groupExchangeRate case above covers.
+                const transaction = generateTransaction({
+                    currency: 'IRR',
+                    currencyConversionRate: '7.27431439586819e-07',
+                    amount: -100,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 IRR/USD');
+            });
+
+            it('pads a rate with fewer than 4 decimals to exactly 4', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    groupExchangeRate: 1.5,
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -150,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('1.5000 USD/EUR');
+            });
+
+            it('formats the "0.0" string the backend can return to 0.0000', () => {
+                const transaction = generateTransaction({
+                    currency: 'UZS',
+                    currencyConversionRate: '0.0',
+                    amount: -5000,
+                    convertedAmount: -1,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD', true)).toBe('0.0000 UZS/USD');
+            });
+
+            it('renders a non-numeric rate verbatim instead of NaN', () => {
+                const transaction = generateTransaction({
+                    currency: 'USD',
+                    currencyConversionRate: 'invalid',
+                    groupCurrency: 'EUR',
+                    amount: -100,
+                    convertedAmount: -85,
+                });
+
+                // Number('invalid') is NaN, so the finite guard falls back to the raw string.
+                expect(TransactionUtils.getExchangeRate(transaction, undefined, true)).toBe('invalid USD/EUR');
+            });
+
+            it('leaves the rate untouched without the flag, so the sorts and the emptiness predicate are unaffected', () => {
+                const transaction = generateTransaction({
+                    currency: 'AED',
+                    currencyConversionRate: '0.272294077603812',
+                    amount: -100,
+                    convertedAmount: -27,
+                });
+
+                expect(TransactionUtils.getExchangeRate(transaction, 'USD')).toBe('0.272294077603812 AED/USD');
+            });
+        });
     });
 
     describe('mergeProhibitedViolations', () => {
@@ -4591,6 +4698,77 @@ describe('doesMoneyRequestDraftHaveUserInput', () => {
     it('returns true when the user entered a waypoint', () => {
         const transaction = generateTransaction({comment: {waypoints: {waypoint0: {address: '350 5th Ave, New York', lat: 40.7484, lng: -73.9857}, waypoint1: {}}}});
         expect(doesMoneyRequestDraftHaveUserInput(transaction)).toBe(true);
+    });
+});
+
+describe('shouldSplitScanFailedTransactions', () => {
+    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
+    const scanFailedTransaction = generateTransaction({
+        amount: 0,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+    });
+    const scanFailedTransactionWithAmount = generateTransaction({
+        amount: -5000,
+        merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+        iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+        receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+    });
+    const validTransaction = generateTransaction({merchant: 'Valid merchant'});
+
+    it('returns true when a scan-failed expense can be moved out and another expense stays behind', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransaction], report)).toBe(true);
+    });
+
+    it('returns false when every expense in the report is scan-failed', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([scanFailedTransaction], report)).toBe(false);
+    });
+
+    it('returns false when the report has no scan-failed expense', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction], report)).toBe(false);
+    });
+
+    it('returns false for an empty report', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([], report)).toBe(false);
+    });
+
+    it('returns false when the scan-failed expense has an amount, because the backend leaves it in the report', () => {
+        expect(TransactionUtils.shouldSplitScanFailedTransactions([validTransaction, scanFailedTransactionWithAmount], report)).toBe(false);
+    });
+});
+
+describe('isScanFailedTransactionMovedOnPayment', () => {
+    const report = {...createRandomReport(1), type: CONST.REPORT.TYPE.EXPENSE, currency: 'USD'} as Report;
+    const buildScanFailedTransaction = (values: Partial<Transaction>) =>
+        generateTransaction({
+            amount: 0,
+            merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+            iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+            receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            ...values,
+        });
+
+    it('returns true when both the merchant and the amount are unset', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({}), report)).toBe(true);
+    });
+
+    it('returns false when the expense has an amount', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({amount: -5000}), report)).toBe(false);
+    });
+
+    it('returns false when the expense has a modified amount', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedAmount: -5000}), report)).toBe(false);
+    });
+
+    it('returns false when the expense has a merchant', () => {
+        expect(TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({modifiedMerchant: 'Modified merchant'}), report)).toBe(false);
+    });
+
+    it('returns false when the scan did not fail', () => {
+        expect(
+            TransactionUtils.isScanFailedTransactionMovedOnPayment(buildScanFailedTransaction({receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_COMPLETE, source: 'receipt.jpg'}}), report),
+        ).toBe(false);
     });
 });
 

@@ -3,6 +3,7 @@ import expensifyLogo from '@assets/images/expensify-logo-round-transparent.png';
 import ContextMenuItem from '@components/ContextMenuItem';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import QRShareWithDownload from '@components/QRShare/QRShareWithDownload';
 import type {QRShareWithDownloadHandle} from '@components/QRShare/QRShareWithDownload/types';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -218,13 +219,12 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
                         />
                     )}
 
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate(`referralProgram.${CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE}.buttonText`)}
                         icon={icons.Cash}
                         onPress={() => {
                             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REFERRAL_DETAILS.getRoute(CONST.REFERRAL_PROGRAM.CONTENT_TYPES.SHARE_CODE)));
                         }}
-                        shouldShowRightIcon
                     />
                 </View>
             </ScrollView>

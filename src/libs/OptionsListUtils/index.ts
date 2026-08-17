@@ -69,6 +69,8 @@ import {
     getReportActionActorAccountID,
     getReportActionMessageText,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getRoomAvatarUpdatedMessage,
     getRoomChangeLogMessage,
     getSortedReportActions,
@@ -79,6 +81,7 @@ import {
     getUpdatedCardFeedLiabilityMessage,
     getUpdatedCardFeedStatementPeriodMessage,
     getUpdateRoomDescriptionMessage,
+    getWorkspaceCategoryUpdateMessage,
     getWorkspaceFeatureEnabledMessage,
     getWorkspaceTaxUpdateMessage,
     hasPendingDEWApprove,
@@ -88,6 +91,7 @@ import {
     isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
+    isCategoryModificationAction,
     isClosedAction,
     isCreatedAction,
     isCreatedTaskReportAction,
@@ -970,6 +974,12 @@ function getLastMessageTextForReport({
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED)) {
         lastMessageTextFromReport = getRequireCompanyCardsEnabledMessage(translate, lastReportAction);
     }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY)) {
+        lastMessageTextFromReport = getRequiresCategoryMessage(translate, lastReportAction);
+    }
+    if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG)) {
+        lastMessageTextFromReport = getRequiresTagMessage(translate, lastReportAction);
+    }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_HARVESTING)) {
         lastMessageTextFromReport = getUpdatedAutoHarvestingMessage(translate, lastReportAction);
     }
@@ -982,6 +992,9 @@ function getLastMessageTextForReport({
     }
     if (isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_MCC_GROUP_CATEGORY)) {
         lastMessageTextFromReport = getMccGroupCategoryMessage(translate, lastReportAction);
+    }
+    if (lastReportAction?.actionName && isCategoryModificationAction(lastReportAction.actionName)) {
+        lastMessageTextFromReport = getWorkspaceCategoryUpdateMessage(translate, lastReportAction, policy);
     }
     if (
         isActionOfType(lastReportAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_TAX) ||

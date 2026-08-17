@@ -18,6 +18,12 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
     const hasAlternateDirection = !!alternateDirection && !!alternateDirectionCoordinates?.length;
     const isAlternateDirectionSelected = !!alternateDirection?.isSelected;
 
+    const {primary: distanceSymbolCoordinate, alternate: alternateDistanceSymbolCoordinate} = utils.getDistanceSymbolCoordinates(
+        waypoints?.map((waypoint) => waypoint.coordinate) ?? [],
+        utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates),
+        utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates),
+    );
+
     return (
         <>
             {hasAlternateDirection ? (
@@ -31,8 +37,7 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
                         distanceInMeters={alternateDirection.distanceInMeters}
                         distanceUnit={distanceUnit}
                         toggleDistanceUnit={toggleDistanceUnit}
-                        directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(alternateDirectionCoordinates)}
-                        waypoints={waypoints}
+                        distanceSymbolCoordinate={alternateDistanceSymbolCoordinate}
                         isSelected={isAlternateDirectionSelected}
                         selectDirection={() => setIsAlternateDirectionSelected?.(true)}
                     />
@@ -44,8 +49,7 @@ function Directions({directionCoordinates, alternateDirection, setIsAlternateDir
                 distanceInMeters={distanceInMeters}
                 distanceUnit={distanceUnit}
                 toggleDistanceUnit={toggleDistanceUnit}
-                directionCoordinates={utils.convertSegmentedRouteToSingleSegmentRoute(directionCoordinates)}
-                waypoints={waypoints}
+                distanceSymbolCoordinate={distanceSymbolCoordinate}
                 isSelected={!isAlternateDirectionSelected}
                 selectDirection={() => setIsAlternateDirectionSelected?.(false)}
             />
