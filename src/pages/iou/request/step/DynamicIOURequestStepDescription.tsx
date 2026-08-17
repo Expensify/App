@@ -8,6 +8,7 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import {updateMoneyRequestDescription} from '@userActions/IOU/UpdateMoneyRequest
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestDescriptionForm';
@@ -51,18 +53,19 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDescriptionProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DESCRIPTION> & {
+type DynamicIOURequestStepDescriptionProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESCRIPTION> & {
     /** Holds data related to Expense view state, rather than the underlying Expense data. */
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 };
 
-function IOURequestStepDescription({
+function DynamicIOURequestStepDescription({
     route: {
-        params: {action, iouType, reportID, backTo, reportActionID, transactionID},
+        params: {action, iouType, reportID, reportActionID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepDescriptionProps) {
+}: DynamicIOURequestStepDescriptionProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.path);
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -118,7 +121,7 @@ function IOURequestStepDescription({
         [translate],
     );
 
-    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
     const updateDescriptionRef = (value: string) => {
         setCurrentDescription(value);
@@ -192,7 +195,7 @@ function IOURequestStepDescription({
             headerTitle={translate('common.description')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepDescription"
+            testID="DynamicIOURequestStepDescription"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -232,8 +235,8 @@ function IOURequestStepDescription({
     );
 }
 
-const IOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDescription);
+const DynamicIOURequestStepDescriptionWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepDescription);
 
-const IOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDescriptionWithFullTransactionOrNotFound);
+const DynamicIOURequestStepDescriptionWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepDescriptionWithFullTransactionOrNotFound);
 
-export default IOURequestStepDescriptionWithWritableReportOrNotFound;
+export default DynamicIOURequestStepDescriptionWithWritableReportOrNotFound;
