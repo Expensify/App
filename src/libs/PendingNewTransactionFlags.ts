@@ -1,3 +1,8 @@
+/**
+ * Builds, parses and clears the flags that mark newly added transactions for the report table's highlight, keyed per write
+ * so one write can be cleared without touching another for the same transaction.
+ */
+
 const FLAG_KEY_SEPARATOR = ':';
 
 /** Keying flags by instance means clearing one is a plain merge of `null`, and a re-flag lands under a key a late sweep can't reach. */

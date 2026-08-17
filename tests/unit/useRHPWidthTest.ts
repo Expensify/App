@@ -72,6 +72,21 @@ describe('useRHPWidth', () => {
         expect(lastRegisteredWidth()).toBe('super-wide');
     });
 
+    it('releases the floor once the caller reaches it, so a report that loses transactions can shrink', () => {
+        mockGetReportRHPWidthHint.mockReturnValue('super-wide');
+        const {setWidth} = renderHarness('wide');
+        expect(lastRegisteredWidth()).toBe('super-wide');
+        mockGetReportRHPWidthHint.mockReturnValue(undefined);
+
+        // The screen's own data catches up to the hint, which is the last moment the hint has anything to say.
+        setWidth('super-wide');
+        expect(lastRegisteredWidth()).toBe('super-wide');
+
+        // Transactions are deleted until one remains, so the screen asks for the narrower width and gets it.
+        setWidth('wide');
+        expect(lastRegisteredWidth()).toBe('wide');
+    });
+
     it('clears the hint on unmount, bounding one left behind by a navigation that mounted no screen', async () => {
         mockGetReportRHPWidthHint.mockReturnValue(undefined);
         const {unmount} = renderHarness('wide');

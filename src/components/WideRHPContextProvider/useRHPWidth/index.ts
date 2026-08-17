@@ -19,7 +19,7 @@ function getWidthOrder(width: RHPWidth): number {
     return 0;
 }
 
-/** Sets a screen's RHP width. A per-report hint outranks the caller for as long as the screen lives — so a pre-marked report opens at the right width without a loading-state flash. */
+/** Sets a screen's RHP width. A per-report hint outranks the caller until the caller's own width reaches it, so a pre-marked report opens at the right width without a loading-state flash. */
 function useRHPWidth(width: RHPWidth) {
     const route = useRoute();
     const reportID = route.params && 'reportID' in route.params && typeof route.params.reportID === 'string' ? route.params.reportID : '';
@@ -49,6 +49,10 @@ function useRHPWidth(width: RHPWidth) {
             if (reportID && floor) {
                 unmarkReportRHPWidth(reportID, floor);
             }
+        }
+        // Released once the caller's own width reaches it, so a screen whose data later says narrower can still shrink.
+        if (consumedHintRef.current.floor && getWidthOrder(width) >= getWidthOrder(consumedHintRef.current.floor)) {
+            consumedHintRef.current = {reportID, floor: undefined};
         }
         const {floor} = consumedHintRef.current;
         const effectiveWidth: RHPWidth = floor && getWidthOrder(floor) > getWidthOrder(width) ? floor : width;
