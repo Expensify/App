@@ -846,7 +846,11 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
+
+    // The heartbeat is a probe, not a user's write, so it must not be persisted to disk, retried, or hold the
+    // head of the queue while a real write waits behind it. The Logging middleware already logs any failure.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, parameters).catch(() => {});
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
 }
 

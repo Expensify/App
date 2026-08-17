@@ -1,6 +1,6 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import DragAndDropProvider from '@components/DragAndDrop/Provider';
 import FocusTrapContainerElement from '@components/FocusTrap/FocusTrapContainerElement';
-import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -42,9 +42,9 @@ import {View} from 'react-native';
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
 import DynamicIOURequestStepDestination from './step/DynamicIOURequestStepDestination';
+import DynamicIOURequestStepDistance from './step/DynamicIOURequestStepDistance';
 import {IOURequestStepAmountWithTransactionOnly} from './step/IOURequestStepAmount';
 import IOURequestStepConfirmation from './step/IOURequestStepConfirmation';
-import IOURequestStepDistance from './step/IOURequestStepDistance';
 import IOURequestStepHours from './step/IOURequestStepHours';
 import IOURequestStepPerDiemWorkspace from './step/IOURequestStepPerDiemWorkspace';
 import IOURequestStepScan from './step/IOURequestStepScan';
@@ -145,7 +145,11 @@ function IOURequestStartPage({
     // A quick-action deeplink (e.g. iOS home-screen "Scan receipt") bypasses startMoneyRequest
     // and leaves the previous flow's draft in place under OPTIMISTIC_TRANSACTION_ID. Detect it
     // by comparing the draft's reportID to the URL's so we don't inherit its stale iouRequestType.
-    const isStaleTransactionDraft = !!transaction?.reportID && transaction.reportID !== reportID;
+    const [latchedDraftStaleness, setLatchedDraftStaleness] = useState<{reportID: string; isStale: boolean}>();
+    if (!isLoadingTransaction && latchedDraftStaleness?.reportID !== reportID) {
+        setLatchedDraftStaleness({reportID, isStale: !!transaction?.reportID && transaction.reportID !== reportID});
+    }
+    const isStaleTransactionDraft = latchedDraftStaleness?.isStale ?? false;
 
     const transactionRequestType = useMemo(() => {
         if (transaction?.iouRequestType && !isStaleTransactionDraft) {
@@ -238,11 +242,14 @@ function IOURequestStartPage({
         // render (scan loader, reading the receipt blob), and for per diem the confirmation renders per-diem UI
         // (wrong fields, and the "Confirm page shows per diem" bug). Wait for the reset so the manual confirmation
         // mounts once against the rebuilt manual draft.
+        // The header and tab bar remain visible above this loader, so per UI-1 use ActivityIndicator (users can still go back) instead of FullScreenLoadingIndicator.
         manualTabContent = (
-            <FullScreenLoadingIndicator
-                testID="manualTabPendingReset"
-                reasonAttributes={{context: 'IOURequestStartPage.manualTabPendingReset'}}
-            />
+            <View style={[styles.flex1, styles.fullScreenLoading]}>
+                <ActivityIndicator
+                    testID="manualTabPendingReset"
+                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                />
+            </View>
         );
     } else {
         manualTabContent = (
@@ -309,7 +316,7 @@ function IOURequestStartPage({
                                     <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE}>
                                         {() => (
                                             <TabScreenWithFocusTrapWrapper>
-                                                <IOURequestStepDistance
+                                                <DynamicIOURequestStepDistance
                                                     route={route}
                                                     navigation={navigation}
                                                 />

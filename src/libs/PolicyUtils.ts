@@ -88,6 +88,14 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
+ * Whether the policy has been archived. archivedDate is the single source of truth
+ * for the archived state; restoring the policy removes it.
+ */
+function isArchivedPolicy(policy: OnyxInputOrEntry<Policy>): boolean {
+    return !!policy?.archivedDate;
+}
+
+/**
  * Filter out the active policies, which will exclude policies with pending deletion
  * and policies the current user doesn't belong to.
  * These are policies that we can use to create reports with in NewDot.
@@ -95,7 +103,12 @@ function isPolicyFieldListEmpty(policy: OnyxEntry<Policy>): boolean {
 function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
-            !!policy && policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && !!policy.name && !!policy.id && !!getPolicyRole(policy, currentUserLogin),
+            !!policy &&
+            policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE &&
+            !!policy.name &&
+            !!policy.id &&
+            !!getPolicyRole(policy, currentUserLogin) &&
+            !isArchivedPolicy(policy),
     );
 }
 
@@ -113,7 +126,8 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)),
+            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
+            !isArchivedPolicy(policy),
     );
 }
 
@@ -201,6 +215,9 @@ function canMemberRead(policy: OnyxInputOrEntry<Policy>, login: string, feature:
 }
 
 function canMemberWrite(policy: OnyxInputOrEntry<Policy>, login: string, feature: PolicyFeature): boolean {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
     return hasPolicyFeaturePermission(policy, login, feature, CONST.POLICY.POLICY_FEATURE_ACCESS.WRITE);
 }
 
@@ -623,7 +640,10 @@ function getPolicyRole(policy: OnyxInputOrEntry<Policy>, currentUserLogin?: stri
  * Note: Using a local ONYXKEYS.NETWORK subscription will cause a delay in
  * updating the screen. Passing the offline status from the component.
  */
-function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined): boolean {
+function shouldShowPolicy(policy: OnyxEntry<Policy>, shouldShowPendingDeletePolicy: boolean, currentUserLogin: string | undefined, includeArchivedPolicy = false): boolean {
+    if (!includeArchivedPolicy && isArchivedPolicy(policy)) {
+        return false;
+    }
     return (
         !!policy?.isJoinRequestPending ||
         (!!policy &&
@@ -910,13 +930,13 @@ function getExcludedUsers(employeeList?: PolicyEmployeeList): Record<string, boo
  * Used for filtering Guide/AM from contact lists while allowing manual entry.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Object containing extracted emails/logins and exclusions record
  */
 function getGuideAndAccountManagerInfo(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): {
     assignedGuideEmail: string | undefined;
@@ -924,7 +944,7 @@ function getGuideAndAccountManagerInfo(
     exclusions: Record<string, boolean>;
 } {
     const assignedGuideEmail = policy?.assignedGuide?.email?.toLowerCase();
-    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[Number(accountManagerAccountID)]?.login?.toLowerCase() : undefined;
+    const accountManagerLogin = accountManagerAccountID ? personalDetails?.[accountManagerAccountID]?.login?.toLowerCase() : undefined;
 
     const exclusions: Record<string, boolean> = {};
     if (assignedGuideEmail) {
@@ -990,13 +1010,13 @@ function getExpensifyTeamExclusions(personalDetails: OnyxEntry<PersonalDetailsLi
  * but can still be manually entered by the user.
  *
  * @param policy - The policy to get the assigned guide from
- * @param accountManagerAccountID - The account manager's account ID from the account object (string from ONYXKEYS.ACCOUNT)
+ * @param accountManagerAccountID - The account manager's account ID from the account object
  * @param personalDetails - Personal details collection to look up account manager login
  * @returns Record mapping lowercase emails to true for Guide and Account Manager
  */
 function getSoftExclusionsForGuideAndAccountManager(
     policy: OnyxEntry<Policy>,
-    accountManagerAccountID: string | undefined,
+    accountManagerAccountID: number | undefined,
     personalDetails: OnyxEntry<PersonalDetailsList>,
 ): Record<string, boolean> {
     return getGuideAndAccountManagerInfo(policy, accountManagerAccountID, personalDetails).exclusions;
@@ -1256,11 +1276,18 @@ function getTagGLCode(policyTagLists: OnyxEntry<PolicyTagLists>, transactionTag:
 
             const directMatch = levelTags[tagName];
             const matchingTag = matchesTagAtLevel(directMatch) ? directMatch : Object.values(levelTags).find(matchesTagAtLevel);
-            const glCode = matchingTag?.['GL Code'];
-            return glCode != null ? String(glCode).replaceAll('"', '') : '';
+            return getGLCodeFromPolicyTag(matchingTag);
         })
         .filter(Boolean)
         .join(', ');
+}
+
+/**
+ * Resolves the GL code for a single policy tag object, stripping wrapping quotes from the backend.
+ */
+function getGLCodeFromPolicyTag(tag: {['GL Code']?: string | number} | undefined): string {
+    const glCode = tag?.['GL Code'];
+    return glCode != null ? String(glCode).replaceAll('"', '') : '';
 }
 
 /**
@@ -1365,8 +1392,13 @@ const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boole
  *
  * `login` enables the per-employee role fallback in `getPolicyRole`, so partially-loaded/summary
  * policies (where `policy.role` isn't populated yet) don't incorrectly route admins/editors away.
+ *
+ * Archived policies are never editable, regardless of role.
  */
 function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
 }
 
@@ -1446,13 +1478,17 @@ function isCollectPolicy(policy: OnyxEntry<Policy>): boolean {
 /**
  * Collect workspaces can access a limited subset of Rules features. When a Collect admin tries to
  * access a Control-only Rules feature, navigate to the upgrade flow and return true.
+ *
+ * @param shouldReplace - Replace the current screen instead of pushing the upgrade page on top of it. Use this when
+ * the redirect happens from the Control-only page itself, so pressing Back doesn't land back on a page Collect
+ * can't use. Press handlers on a page Collect *can* use should keep the default push.
  */
-function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string): boolean {
+function tryNavigateToControlPolicyUpgrade(policy: OnyxEntry<Policy>, upgradeFeatureAlias: string, backTo?: string, shouldReplace = false): boolean {
     if (!policy?.id || isControlPolicy(policy) || !isCollectPolicy(policy)) {
         return false;
     }
 
-    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)));
+    Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policy.id, upgradeFeatureAlias, backTo ?? ROUTES.WORKSPACE_RULES.getRoute(policy.id)), {forceReplace: shouldReplace});
     return true;
 }
 
@@ -1633,7 +1669,7 @@ function getAllTaxRatesNamesAndValues(policies: OnyxCollection<Policy>): Record<
 /**
  * Whether the tax rate can be deleted and disabled
  */
-function canEditTaxRate(policy: Policy, taxID: string): boolean {
+function canDisableOrDeleteTaxRate(policy: Policy, taxID: string): boolean {
     return policy.taxRates?.defaultExternalID !== taxID && policy.taxRates?.foreignTaxDefault !== taxID;
 }
 
@@ -2396,21 +2432,25 @@ function isXeroActiveMatchingSource(policy: OnyxEntry<Policy>): boolean {
 }
 
 /**
- * Vendor matching feature gate. Returns true when the workspace has the `vendorMatching` beta
- * enabled AND a supported accounting integration is connected with a non-reimbursable export type
- * that scopes the vendor field. Mirrors the per-integration `hasVendorFeature` checks on the PHP
- * side so the App and backend agree on which workspaces see the field.
+ * Vendor matching feature gate. Returns true when a supported accounting integration is connected
+ * with a non-reimbursable export type that scopes the vendor field. Mirrors the per-integration
+ * `hasVendorFeature` checks on the PHP side so the App and backend agree on which workspaces see
+ * the field.
  *
- * Supported integrations:
- *   - QBO with non-reimbursable export = Credit Card or Debit Card (R1)
- *   - Sage Intacct with non-reimbursable export = Credit Card Charge (R2)
- *   - Xero (R4) — no export-destination enum; connection present is sufficient
+ * The `vendorMatching` beta only gates the integrations that haven't reached GA yet, so
+ * `isVendorMatchingBetaEnabled` is consulted on the Intacct and Xero branches but not on QBO:
+ *   - QBO (R1) with non-reimbursable export = Credit Card or Debit Card. GA, so no beta required
+ *   - Sage Intacct (R2) with non-reimbursable export = Credit Card Charge. Beta required
+ *   - Xero (R3) has no export destination enum, so a present connection is enough. Beta required
  */
 function hasVendorFeature(policy: OnyxEntry<Policy>, isVendorMatchingBetaEnabled: boolean): boolean {
-    if (!isVendorMatchingBetaEnabled || !policy) {
+    if (!policy) {
         return false;
     }
-    return isQBOVendorMatchingActive(policy) || isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy);
+    if (isQBOVendorMatchingActive(policy)) {
+        return true;
+    }
+    return isVendorMatchingBetaEnabled && (isIntacctVendorMatchingActive(policy) || isXeroVendorMatchingActive(policy));
 }
 
 /**
@@ -2973,8 +3013,21 @@ function getRulesDocumentSourceURL(rulesDocumentURL: string | undefined, policyI
     );
 }
 
+/**
+ * Determines whether the tax code was explicitly defined by the user.
+ * Returns `true` only when the `previousTaxCode` field contains a value
+ */
+function isTaxCodeCustomized(taxCode: string | undefined, policy: OnyxEntry<Policy>) {
+    if (!taxCode || !policy) {
+        return false;
+    }
+
+    const currentTaxRate = policy?.taxRates?.taxes?.[taxCode];
+    return !!currentTaxRate && !!currentTaxRate.previousTaxCode;
+}
+
 export {
-    canEditTaxRate,
+    canDisableOrDeleteTaxRate,
     canPolicyAccessFeature,
     escapeTagName,
     getActivePolicies,
@@ -3055,6 +3108,7 @@ export {
     arePolicyRulesEnabled,
     isPolicyFeatureEnabled,
     isPolicyFieldListEmpty,
+    isArchivedPolicy,
     getUberConnectionErrorDirectlyFromPolicy,
     isPolicyOwner,
     isPolicyMember,
@@ -3160,6 +3214,7 @@ export {
     hasIndependentTags,
     getLengthOfTag,
     getTagGLCode,
+    getGLCodeFromPolicyTag,
     isPolicyMemberWithoutPendingDelete,
     hasDynamicExternalWorkflow,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -3182,6 +3237,7 @@ export {
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,
     hasAnyPaidPolicy,
+    isTaxCodeCustomized,
     isMergeHRCompleteSetupNeededSelector,
 };
 

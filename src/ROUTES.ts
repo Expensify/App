@@ -114,6 +114,21 @@ const DYNAMIC_ROUTES = {
         // Reachable from anywhere: e.g. DebugTabView renders a persistent debug entry point on every screen.
         entryScreens: ['*'],
     },
+    CONTACT_METHOD_DETAILS: {
+        path: ':contactMethod/details',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+        getRoute: (contactMethod: string, shouldSkipInitialValidation?: boolean) =>
+            getUrlWithParams(`${encodeURIComponent(contactMethod)}/details`, {shouldSkipInitialValidation: shouldSkipInitialValidation ? 'true' : undefined}),
+        queryParams: ['shouldSkipInitialValidation'],
+    },
+    NEW_CONTACT_METHOD: {
+        path: 'new-contact-method',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
+    NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: {
+        path: 'new/confirm-validate-code',
+        entryScreens: [SCREENS.SETTINGS.PROFILE.DYNAMIC_CONTACT_METHODS],
+    },
     TWO_FACTOR_AUTH_VERIFY_ACCOUNT: {
         path: 'two-factor-auth/verify-account',
         entryScreens: ['*'],
@@ -134,12 +149,21 @@ const DYNAMIC_ROUTES = {
         path: 'add-bank-account/verify-account',
         entryScreens: [
             SCREENS.SETTINGS.WALLET.ROOT,
+            SCREENS.HOME,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SEARCH.ROOT,
         ],
+        // Entry points that already know the user is adding a personal deposit account (e.g. a queued reimbursement) pass true so the
+        // bank account purpose screen isn't shown after validation.
+        getRoute: (shouldSkipPurposeSelection?: boolean) => `add-bank-account/verify-account${shouldSkipPurposeSelection ? '?shouldSkipPurposeSelection=true' : ''}` as const,
+        queryParams: ['shouldSkipPurposeSelection'],
+    },
+    BANK_ACCOUNT_VERIFY_ACCOUNT: {
+        path: 'verify-bank-account',
+        entryScreens: [SCREENS.REIMBURSEMENT_ACCOUNT],
     },
     OWNER_SELECTOR: {
         path: 'owner-selector',
@@ -252,12 +276,126 @@ const DYNAMIC_ROUTES = {
         ],
         getRoute: (cardID: string) => `missing-personal-details/${cardID}/confirm-validate-code` as const,
     },
+    MONEY_REQUEST_STEP_DISTANCE: {
+        path: 'expense-distance',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE route');
+            }
+
+            return getUrlWithParams('expense-distance', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
+        path: 'expense-distance-manual',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
+            }
+
+            return getUrlWithParams('expense-distance-manual', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_DISTANCE_RATE: {
+        path: 'expense-distance-rate',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.WORKSPACE.CREATE_DISTANCE_RATE,
+            SCREENS.WORKSPACE.CREATE_DISTANCE_RATE_UPGRADE,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string) => {
+            if (!transactionID || !reportID) {
+                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_RATE route');
+            }
+
+            return getUrlWithParams('expense-distance-rate', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_REPORT: {
+        path: 'expense-report',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+        ],
+        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, reportActionID?: string) =>
+            getUrlWithParams('expense-report', {action, iouType, transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_EDIT_REPORT: {
+        path: 'expense-report-edit',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (action: IOUAction, iouType: IOUType, reportID: string | undefined, shouldTurnOffSelectionMode?: boolean, transactionID?: string) => {
+            if (!reportID) {
+                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
+            }
+            return getUrlWithParams('expense-report-edit', {action, iouType, reportID, shouldTurnOffSelectionMode: shouldTurnOffSelectionMode ? 'true' : undefined, transactionID});
+        },
+        queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
+    },
+    MONEY_REQUEST_STEP_TAG: {
+        path: 'expense-tag',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+        ],
+        // `orderWeight` is stringified explicitly because the first tag list has index 0, which `getUrlWithParams` would drop as falsy.
+        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, reportActionID?: string) =>
+            getUrlWithParams('expense-tag', {action, iouType, orderWeight: String(orderWeight), transactionID, reportID, reportActionID}),
+        queryParams: ['action', 'iouType', 'orderWeight', 'transactionID', 'reportID', 'reportActionID'],
+    },
     MONEY_REQUEST_STEP_DESTINATION: {
         path: 'per-diem-destination',
         entryScreens: [SCREENS.MONEY_REQUEST.CREATE],
     },
     MONEY_REQUEST_STEP_DESTINATION_EDIT: {
         path: 'per-diem-destination-edit',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+    },
+    MONEY_REQUEST_STEP_TIME: {
+        path: 'per-diem-time',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_TIME_EDIT: {
+        path: 'per-diem-time-edit',
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
     },
     PROFILE: {
@@ -1161,11 +1299,11 @@ const DYNAMIC_ROUTES = {
     },
     MONEY_REQUEST_STEP_SEND_FROM: {
         path: 'send-from',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     MONEY_REQUEST_STEP_COMPANY_INFO: {
         path: 'company-info',
-        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
     },
     PRIVATE_NOTES_LIST: {
         path: 'notes',
@@ -1201,6 +1339,10 @@ const DYNAMIC_ROUTES = {
         path: 'flag/:reportID/:reportActionID',
         entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
         getRoute: (reportID: string, reportActionID: string) => `flag/${reportID}/${reportActionID}`,
+    },
+    HOLD_TRANSACTIONS: {
+        path: 'hold',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
     },
     WORKSPACE_REPORT_FIELDS_INITIAL_LIST_VALUE: {
         path: 'initial-list-value',
@@ -1426,6 +1568,8 @@ const DYNAMIC_ROUTES = {
         path: 'taxRate',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -1439,6 +1583,8 @@ const DYNAMIC_ROUTES = {
         path: 'taxAmount',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -1448,10 +1594,36 @@ const DYNAMIC_ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxAmount', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
     },
+    MONEY_REQUEST_STEP_CATEGORY: {
+        path: 'category',
+        entryScreens: [
+            SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            SCREENS.MONEY_REQUEST.CREATE,
+            SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
+            SCREENS.REPORT,
+            SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
+            SCREENS.RIGHT_MODAL.SEARCH_REPORT,
+            SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
+            SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
+            SCREENS.SHARE.SUBMIT_DETAILS,
+        ],
+        getRoute: (params: {action: IOUAction; iouType: IOUType; transactionID: string; reportID: string | undefined; reportActionID?: string}) => {
+            const {action, iouType, transactionID, reportID, reportActionID} = params;
+            return getUrlWithParams('category', {action, iouType, transactionID, reportID, reportActionID});
+        },
+        queryParams: ['action', 'iouType', 'transactionID', 'reportID', 'reportActionID'],
+    },
+    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
+        path: 'add-category',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY],
+    },
     MONEY_REQUEST_ATTENDEE: {
         path: 'attendees',
         entryScreens: [
             SCREENS.MONEY_REQUEST.STEP_CONFIRMATION,
+            // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
+            SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
@@ -1529,14 +1701,6 @@ const ROUTES = {
             return getUrlWithBackToParam(baseRoute, backTo);
         },
     },
-    SEARCH_MONEY_REQUEST_REPORT_HOLD_TRANSACTIONS: {
-        route: 'search/r/:reportID/hold',
-        getRoute: ({reportID, backTo}: {reportID: string; backTo?: string}) => {
-            const baseRoute = `search/r/${reportID}/hold` as const;
-
-            return getUrlWithBackToParam(baseRoute, backTo);
-        },
-    },
     SEARCH_MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS: {
         route: 'search/r/:reportID/reject',
         getRoute: ({reportID}: {reportID: string}) => `search/r/${reportID}/reject` as const,
@@ -1596,11 +1760,6 @@ const ROUTES = {
     SIGN_IN_MODAL: 'sign-in-modal',
 
     BANK_ACCOUNT: 'bank-account',
-    BANK_ACCOUNT_VERIFY_ACCOUNT: {
-        route: `bank-account/${VERIFY_ACCOUNT}`,
-
-        getRoute: (policyID?: string, backTo?: string) => getUrlWithBackToParam(`bank-account/${VERIFY_ACCOUNT}?policyID=${policyID}`, backTo),
-    },
     BANK_ACCOUNT_PERSONAL: {
         route: 'bank-account/personal-info/:subPage?/:action?',
         getRoute: (subPage?: string, action?: 'edit') => {
@@ -1972,6 +2131,10 @@ const ROUTES = {
         route: 'settings/agents/:accountID/edit/avatar',
         getRoute: (accountID: number) => `settings/agents/${accountID}/edit/avatar` as const,
     },
+    AGENT_REPORT: {
+        route: 'settings/agents/r/:reportID',
+        getRoute: (reportID: string) => `settings/agents/r/${reportID}` as const,
+    },
     SETTINGS_RULES: 'settings/rules',
     SETTINGS_RULES_ADD: {
         route: 'settings/rules/new/:field?/:index?',
@@ -2005,28 +2168,6 @@ const ROUTES = {
         route: 'settings/profile/contact-methods',
 
         getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods', backTo),
-    },
-    SETTINGS_CONTACT_METHOD_DETAILS: {
-        route: 'settings/profile/contact-methods/:contactMethod/details',
-        getRoute: (contactMethod: string, backTo?: string, shouldSkipInitialValidation?: boolean) => {
-            const encodedMethod = encodeURIComponent(contactMethod);
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/${encodedMethod}/details${shouldSkipInitialValidation ? `?shouldSkipInitialValidation=true` : ``}`, backTo);
-        },
-    },
-    SETTINGS_NEW_CONTACT_METHOD: {
-        route: 'settings/profile/contact-methods/new',
-
-        getRoute: (backTo?: string) => getUrlWithBackToParam('settings/profile/contact-methods/new', backTo),
-    },
-    SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE: {
-        route: 'settings/profile/contact-methods/new/confirm-validate-code',
-        getRoute: (backTo?: string) => {
-            // TODO this backTo comes from drilling it through settings screens
-            // should be removed once https://github.com/Expensify/App/pull/72219 is resolved
-
-            return getUrlWithBackToParam(`settings/profile/contact-methods/new/confirm-validate-code`, backTo);
-        },
     },
     SETTINGS_CONTACT_METHOD_SET_DEFAULT_CONFIRM: {
         route: 'settings/profile/contact-methods/:contactMethod/set-default/confirm',
@@ -2214,26 +2355,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/amount/${transactionID}/${reportID}/${reportActionID ? `${reportActionID}/` : ''}${pageIndex}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_CATEGORY_CREATE: {
-        route: ':action/:iouType/category/new/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, reportActionID?: string, backTo = '') => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY_CREATE route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/new/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_CATEGORY: {
-        route: ':action/:iouType/category/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_CATEGORY route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/category/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
     MONEY_REQUEST_ACCOUNTANT: {
         route: ':action/:iouType/accountant/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '') => {
@@ -2268,30 +2389,15 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_TIME: {
-        route: ':action/:iouType/time/:transactionID/:reportID/:backToReport?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}`, backTo),
-    },
     MONEY_REQUEST_STEP_SUBRATE: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
     },
-    MONEY_REQUEST_STEP_TIME_EDIT: {
-        route: ':action/:iouType/time/:transactionID/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/time/${transactionID}/${reportID}/edit`, backTo),
-    },
     MONEY_REQUEST_STEP_SUBRATE_EDIT: {
         route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
             getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
-    },
-    MONEY_REQUEST_STEP_REPORT: {
-        route: ':action/:iouType/report/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo),
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
         route: ':action/:iouType/receipt/:transactionID/:reportID',
@@ -2315,18 +2421,6 @@ const ROUTES = {
                 Log.warn('Invalid transactionID is used to build the MONEY_REQUEST_ODOMETER_PREVIEW route');
             }
             return `${action as string}/${iouType as string}/odometer-image-preview/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}?readonly=false&imageType=${imageType}${isEditingConfirmation ? '&isEditingConfirmation=true' : ''}` as const;
-        },
-    },
-    MONEY_REQUEST_EDIT_REPORT: {
-        route: ':action/:iouType/report/:reportID/edit',
-        getRoute: (action: IOUAction, iouType: IOUType, reportID?: string, shouldTurnOffSelectionMode?: boolean, backTo = '', transactionID?: string) => {
-            if (!reportID) {
-                Log.warn('Invalid reportID while building route MONEY_REQUEST_EDIT_REPORT');
-            }
-            const queryParams = [shouldTurnOffSelectionMode ? 'shouldTurnOffSelectionMode=true' : '', transactionID ? `transactionID=${transactionID}` : ''].filter(Boolean).join('&');
-            const queryString = queryParams ? `?${queryParams}` : '';
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/report/${reportID}/edit${queryString}`, backTo);
         },
     },
     SET_DEFAULT_WORKSPACE: {
@@ -2398,26 +2492,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/description/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_STEP_DISTANCE: {
-        route: ':action/:iouType/distance/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
-    MONEY_REQUEST_STEP_DISTANCE_MANUAL: {
-        route: ':action/:iouType/distance-manual/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_MANUAL route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distance-manual/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
-        },
-    },
     MONEY_REQUEST_STEP_DISTANCE_ODOMETER: {
         route: ':action/:iouType/distance-odometer/:transactionID/:reportID',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined) => {
@@ -2426,16 +2500,6 @@ const ROUTES = {
             }
 
             return `${action as string}/${iouType as string}/distance-odometer/${transactionID}/${reportID}` as const;
-        },
-    },
-    MONEY_REQUEST_STEP_DISTANCE_RATE: {
-        route: ':action/:iouType/distanceRate/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string | undefined, reportID: string | undefined, backTo = '', reportActionID?: string) => {
-            if (!transactionID || !reportID) {
-                Log.warn('Invalid transactionID or reportID is used to build the MONEY_REQUEST_STEP_DISTANCE_RATE route');
-            }
-
-            return getUrlWithBackToParam(`${action as string}/${iouType as string}/distanceRate/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
     },
     MONEY_REQUEST_STEP_MERCHANT: {
@@ -2464,14 +2528,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/scan/${transactionID}/${reportID}`, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_TAG: {
-        route: ':action/:iouType/tag/:orderWeight/:transactionID/:reportID/:reportActionID?',
-        getRoute: (action: IOUAction, iouType: IOUType, orderWeight: number, transactionID: string, reportID?: string, backTo = '', reportActionID?: string) =>
-            getUrlWithBackToParam(
-                `${action as string}/${iouType as string}/tag/${orderWeight}/${transactionID}${reportID ? `/${reportID}` : ''}${reportActionID ? `/${reportActionID}` : ''}`,
-                backTo,
-            ),
     },
     MONEY_REQUEST_STEP_WAYPOINT: {
         route: ':action/:iouType/waypoint/:transactionID/:reportID/:pageIndex',
@@ -2665,7 +2721,17 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_SETUP: {
         route: 'workspaces/:policyID/accounting/quickbooks-online/setup',
-        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/quickbooks-online/setup` as const,
+        getRoute: (policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) => {
+            const params = new URLSearchParams();
+            if (isIntuitEnterpriseSuite) {
+                params.set('isIntuitEnterpriseSuite', 'true');
+            }
+            if (isSandbox) {
+                params.set('isSandbox', 'true');
+            }
+            const query = params.toString();
+            return `workspaces/${policyID}/accounting/quickbooks-online/setup${query ? `?${query}` : ''}` as const;
+        },
     },
     POLICY_ACCOUNTING_NETSUITE_TRAVEL_INVOICING_CONFIGURATION: {
         route: 'workspaces/:policyID/accounting/netsuite/export/travel-invoicing',
@@ -2807,11 +2873,13 @@ const ROUTES = {
     },
     WORKSPACE_WORKFLOWS: {
         route: 'workspaces/:policyID/workflows',
-        getRoute: (policyID: string | undefined) => {
+        // The tab is passed as a query param rather than a path segment because `workflows/` already owns static
+        // sub-routes (import, payer, approvals, ...) that a `:tab?` segment would shadow.
+        getRoute: (policyID: string | undefined, tab?: ValueOf<typeof CONST.TAB.WORKFLOWS>) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_WORKFLOWS route');
             }
-            return `workspaces/${policyID}/workflows` as const;
+            return `workspaces/${policyID}/workflows${tab ? `?tab=${tab}` : ''}` as const;
         },
     },
     WORKSPACE_WORKFLOWS_IMPORT: {
@@ -2938,7 +3006,13 @@ const ROUTES = {
     },
     POLICY_ACCOUNTING: {
         route: 'workspaces/:policyID/accounting',
-        getRoute: (policyID: string | undefined, newConnectionName?: ConnectionName, integrationToDisconnect?: ConnectionName, shouldDisconnectIntegrationBeforeConnecting?: boolean) => {
+        getRoute: (
+            policyID: string | undefined,
+            newConnectionName?: ConnectionName,
+            integrationToDisconnect?: ConnectionName,
+            shouldDisconnectIntegrationBeforeConnecting?: boolean,
+            isIntuitEnterpriseSuite?: boolean,
+        ) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the POLICY_ACCOUNTING route');
             }
@@ -2951,6 +3025,9 @@ const ROUTES = {
                 }
                 if (shouldDisconnectIntegrationBeforeConnecting !== undefined) {
                     queryParams += `&shouldDisconnectIntegrationBeforeConnecting=${shouldDisconnectIntegrationBeforeConnecting}`;
+                }
+                if (isIntuitEnterpriseSuite !== undefined) {
+                    queryParams += `&isIntuitEnterpriseSuite=${isIntuitEnterpriseSuite}`;
                 }
             }
             return `workspaces/${policyID}/accounting${queryParams}` as const;
@@ -3323,11 +3400,12 @@ const ROUTES = {
     },
     WORKSPACE_RULES: {
         route: 'workspaces/:policyID/rules',
-        getRoute: (policyID: string | undefined) => {
+        /** @param tab preselects a Rules tab. The page otherwise restores the last one used. */
+        getRoute: (policyID: string | undefined, tab?: string) => {
             if (!policyID) {
                 Log.warn('Invalid policyID is used to build the WORKSPACE_RULES route');
             }
-            return `workspaces/${policyID}/rules` as const;
+            return `workspaces/${policyID}/rules${tab ? `?tab=${tab}` : ''}` as const;
         },
     },
     WORKSPACE_DISTANCE_RATES: {
@@ -3706,6 +3784,10 @@ const ROUTES = {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/tax',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/tax` as const,
     },
+    RULES_MERCHANT_VENDOR: {
+        route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/vendor',
+        getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/vendor` as const,
+    },
     RULES_MERCHANT_DESCRIPTION: {
         route: 'workspaces/:policyID/rules/merchant-rules/:ruleID/description',
         getRoute: (policyID: string, ruleID?: string) => `workspaces/${policyID}/rules/merchant-rules/${ruleID ?? 'new'}/description` as const,
@@ -4028,6 +4110,10 @@ const ROUTES = {
             }
             return `workspaces/${policyID}/accounting/netsuite/token-input/${subPage}` as const;
         },
+    },
+    POLICY_ACCOUNTING_NETSUITE_SETUP: {
+        route: 'workspaces/:policyID/accounting/netsuite/setup/:accountID?',
+        getRoute: (policyID: string, accountID: string) => `workspaces/${policyID}/accounting/netsuite/setup/${accountID}` as const,
     },
     POLICY_ACCOUNTING_NETSUITE_IMPORT: {
         route: 'workspaces/:policyID/accounting/netsuite/import',
@@ -4438,6 +4524,22 @@ const ROUTES = {
     POLICY_ACCOUNTING_RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT: {
         route: 'workspaces/:policyID/accounting/rillet/advanced/travel-invoicing-settlement-account',
         getRoute: (policyID: string) => `workspaces/${policyID}/accounting/rillet/advanced/travel-invoicing-settlement-account` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SETUP: {
+        route: 'workspaces/:policyID/accounting/dualentry/setup',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/setup` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_EXISTING_CONNECTIONS: {
+        route: 'workspaces/:policyID/accounting/dualentry/existing-connections',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/existing-connections` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR: {
+        route: 'workspaces/:policyID/accounting/dualentry/subsidiary-selector',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/subsidiary-selector` as const,
+    },
+    POLICY_ACCOUNTING_DUALENTRY_IMPORT: {
+        route: 'workspaces/:policyID/accounting/dualentry/import',
+        getRoute: (policyID: string) => `workspaces/${policyID}/accounting/dualentry/import` as const,
     },
     ADD_EXISTING_EXPENSE: {
         route: 'search/r/:reportID/add-existing-expense/:backToReport?',

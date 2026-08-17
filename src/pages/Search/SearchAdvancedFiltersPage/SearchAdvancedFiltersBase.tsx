@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import FilterList from '@components/Search/FilterComponents/AdvancedFilters/FilterList';
@@ -39,22 +39,24 @@ function SearchAdvancedFiltersBase() {
                 policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, currentDraftFilters)}
                 onPress={(filterKey) => Navigation.navigate(ROUTES.SEARCH_ADVANCED_FILTERS_CONTENT.getRoute(filterKey))}
             />
-            <View style={[styles.ph5, styles.pb5, isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3]]}>
+            <View style={isInLandscapeMode ? [styles.flexRow, styles.gap2] : [styles.gap3]}>
                 {shouldShowResetFilters && (
                     <Button
-                        style={[isInLandscapeMode ? styles.flex1 : undefined]}
-                        large
-                        text={translate('common.reset')}
+                        style={[styles.ph5, isInLandscapeMode ? styles.flex1 : undefined]}
+                        size={CONST.BUTTON_SIZE.LARGE}
                         onPress={resetFilters}
-                    />
+                    >
+                        <Button.Text>{translate('common.reset')}</Button.Text>
+                    </Button>
                 )}
                 <Button
-                    style={[isInLandscapeMode ? styles.flex1 : undefined]}
-                    success
-                    large
-                    text={translate('search.applyFilters')}
+                    style={[styles.ph5, styles.pb5, isInLandscapeMode ? styles.flex1 : undefined]}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={applyFilters}
-                />
+                >
+                    <Button.Text>{translate('search.applyFilters')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );
