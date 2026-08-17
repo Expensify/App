@@ -136,7 +136,7 @@ function onChannelResubscribe(channelName: string, callback: () => void) {
         }
 
         const channel = socket.subscribe(channelName);
-        let hasSubscribed = false;
+        let hasSubscribed = channel.subscribed;
         const handler = () => {
             if (hasSubscribed) {
                 callback();
@@ -308,16 +308,13 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                             return;
                         }
 
-                        let isBound = false;
-                        channel.bind('pusher:subscription_succeeded', () => {
-                            if (isBound) {
-                                return;
-                            }
-                            isBound = true;
+                        const onSubscriptionSucceeded = () => {
+                            unbindHandshakeHandlers();
                             bindAndResolve();
-                        });
+                        };
 
-                        channel.bind('pusher:subscription_error', (data: PusherSubscriptionErrorData = {}) => {
+                        const onSubscriptionError = (data: PusherSubscriptionErrorData = {}) => {
+                            unbindHandshakeHandlers();
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,
@@ -326,7 +323,15 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                                 error,
                             });
                             reject(error);
-                        });
+                        };
+
+                        function unbindHandshakeHandlers() {
+                            channel.unbind('pusher:subscription_succeeded', onSubscriptionSucceeded);
+                            channel.unbind('pusher:subscription_error', onSubscriptionError);
+                        }
+
+                        channel.bind('pusher:subscription_succeeded', onSubscriptionSucceeded);
+                        channel.bind('pusher:subscription_error', onSubscriptionError);
                     },
                 });
             }),

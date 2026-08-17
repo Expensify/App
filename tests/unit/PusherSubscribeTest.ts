@@ -144,6 +144,52 @@ describe('Pusher.subscribe', () => {
         expect(onResubscribe).toHaveBeenCalledTimes(2);
     });
 
+    it('should keep the other callbacks when one caller unregisters twice', async () => {
+        const channelName = 'private-user-double-unregister';
+        const first = jest.fn();
+        const second = jest.fn();
+
+        await initPusher();
+
+        const unregisterFirst = Pusher.onChannelResubscribe(channelName, first);
+        Pusher.onChannelResubscribe(channelName, second);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        unregisterFirst();
+        unregisterFirst();
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        expect(first).not.toHaveBeenCalled();
+        expect(second).toHaveBeenCalledTimes(1);
+    });
+
+    it('should drop the resubscribe callbacks on disconnect so a new session registers only one', async () => {
+        const channelName = 'private-user-reinit';
+        const onResubscribe = jest.fn();
+
+        await initPusher();
+
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const handle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await handle;
+
+        Pusher.disconnect();
+        await initPusher();
+
+        Pusher.onChannelResubscribe(channelName, onResubscribe);
+        const newHandle = Pusher.subscribe(channelName, 'multipleEvents', () => {});
+        await jest.runAllTimersAsync();
+        await newHandle;
+
+        MockedPusher.getInstance().getChannel(channelName)?.onSubscriptionSucceeded();
+
+        expect(onResubscribe).toHaveBeenCalledTimes(1);
+    });
+
     it('should deliver an event once to a caller that lived through several handshakes', async () => {
         const channelName = 'private-user-rebind';
         const eventCallback = jest.fn();

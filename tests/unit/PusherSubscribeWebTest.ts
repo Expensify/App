@@ -237,6 +237,26 @@ describe('Pusher.subscribe on web', () => {
         expect(onDraftResubscribe).toHaveBeenCalledTimes(1);
     });
 
+    it('should fire the resubscribe callback of a caller that registered on an already subscribed channel', async () => {
+        const onDraftResubscribe = jest.fn();
+
+        const typing = Pusher.subscribe(CHANNEL, 'userIsTyping', () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(CHANNEL);
+        channel?.completeHandshake();
+        await typing;
+
+        Pusher.onChannelResubscribe(CHANNEL, onDraftResubscribe);
+        await jest.runAllTimersAsync();
+
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        expect(onDraftResubscribe).toHaveBeenCalledTimes(1);
+    });
+
     it('should trigger one reconnect per drop, however many events subscribe to the private user channel', async () => {
         const accountID = '1';
         const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;

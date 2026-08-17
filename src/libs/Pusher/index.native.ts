@@ -223,7 +223,11 @@ function onChannelResubscribe(channelName: string, callback: () => void) {
     callbacks.push(callback);
 
     return () => {
-        callbacks.splice(callbacks.indexOf(callback), 1);
+        const index = callbacks.indexOf(callback);
+        if (index === -1) {
+            return;
+        }
+        callbacks.splice(index, 1);
     };
 }
 
@@ -446,6 +450,7 @@ function disconnect() {
     pusherSocketID = '';
     channels = {};
     eventsBoundToChannels.clear();
+    resubscribeCallbacks.clear();
     initPromise = new Promise((resolve) => {
         resolveInitPromise = resolve;
     });
