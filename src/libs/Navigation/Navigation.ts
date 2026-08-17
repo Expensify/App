@@ -558,7 +558,13 @@ function goBack(backToRoute?: Route, options?: GoBackOptions) {
     TransitionTracker.runAfterTransitions({
         callback: () => {
             if (!backToRoute && !shouldPopToSidebar && !navigationRef.current?.canGoBack()) {
-                Log.hmmm('[Navigation] Unable to go back');
+                // This branch used to call `openDrawer()`: with the LHN drawer as the app root, a history-less
+                // `goBack()` still landed the user somewhere. That fallback was dropped along with the drawer and
+                // never replaced, which is why link-entry routes dead-end silently — `/v/` and `/u/` are the only
+                // deep links with no full screen route prepended beneath them (see getAdaptedStateFromPath), so
+                // they are the routes that actually reach this branch. TAB_NAVIGATOR is the modern equivalent of
+                // the drawer root: the tab navigator in AuthScreens, SignInPage in PublicScreens.
+                navigationRef.current?.reset({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
                 return;
             }
 
