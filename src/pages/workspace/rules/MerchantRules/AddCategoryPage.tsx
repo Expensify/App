@@ -45,15 +45,16 @@ function AddCategoryPage({route}: AddCategoryPageProps) {
         <RuleSelectionBase
             titleKey="common.category"
             testID="AddCategoryPage"
-            selectedItem={selectedCategoryItem}
-            items={categoryItems}
-            onSave={onSave}
             onBack={() => Navigation.goBack(backToRoute)}
-            backToRoute={backToRoute}
-        />
+        >
+            <RuleSelectionBase.Picker
+                selectedItem={selectedCategoryItem}
+                items={categoryItems}
+                onSave={onSave}
+                backToRoute={backToRoute}
+            />
+        </RuleSelectionBase>
     );
 }
-
-AddCategoryPage.displayName = 'AddCategoryPage';
 
 export default AddCategoryPage;

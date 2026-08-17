@@ -8,13 +8,14 @@ import useOnyx from '@hooks/useOnyx';
 
 import {clearContactMethodErrors, requestValidateCodeAction, setContactMethodAsDefault} from '@libs/actions/User';
 import {getLatestErrorField} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {expensifyLoginsSelector, getContactMethod} from '@libs/UserUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 
 import React, {useEffect} from 'react';
@@ -43,7 +44,7 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
             return;
         }
 
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
     }, [session?.email, contactMethod, loginData?.pendingFields?.defaultLogin, backTo]);
 
     useEffect(() => {
@@ -58,8 +59,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
                 <FullPageNotFoundView
                     shouldShow
                     linkTranslationKey="contacts.goBackContactMethods"
-                    onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
-                    onLinkPress={() => Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo))}
+                    onBackButtonPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo))}
+                    onLinkPress={() => Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo))}
                 />
             </ScreenWrapper>
         );
@@ -78,7 +79,8 @@ function SetDefaultContactMethodConfirmValidateCodePage({route}: SetDefaultConta
                 clearContactMethodErrors(contactMethod, 'defaultLogin');
             }}
             onClose={() => {
-                Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(contactMethod, backTo));
+                const listPath = createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo);
+                Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(contactMethod), listPath));
             }}
         />
     );
