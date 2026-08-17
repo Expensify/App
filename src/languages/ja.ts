@@ -1676,6 +1676,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
         },
         moveExpenses: 'レポートに移動',
+        moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
             sendExpense: '経費を誰にでも送信できます',
@@ -4609,6 +4610,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
+            noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -5898,6 +5900,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',
+            monthlySettlementDate: (date: string) => `Expensify カードの精算は毎月${date}に行われます。`,
             applyCashbackToBill: 'キャッシュバックを Expensify 請求書に適用する',
             applyCashbackToBillDescription: 'Expensify カードのキャッシュバックは、Expensify 請求書の支払いに使用されます。',
             frequency: {
@@ -8915,6 +8918,7 @@ ${reportName}`,
                 travelInvoicing: '出張費の一括請求',
             },
             bankAccount: {banks: '銀行口座', closedBankAccounts: '解約済み銀行口座'},
+            workspace: {active: 'アクティブ', archived: 'アーカイブ済み', selectAll: 'すべて選択'},
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
             past: '過去',
