@@ -45,7 +45,7 @@ function ExportDownloadStatusManager() {
             markExportDownloadSurfaced(exportID);
             return;
         }
-        // The modal blocks dismissal while still preparing, so this is belt-and-suspenders.
+        // The modal already blocks dismissal while preparing, so this is an extra guard.
         if (exportDownload?.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING) {
             return;
         }

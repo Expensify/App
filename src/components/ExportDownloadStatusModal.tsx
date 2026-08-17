@@ -73,7 +73,7 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
 
     // Build the secure download URL the same way downloadReportPDF does, so the host always follows
     // the app's current environment (instead of the env baked into a backend-built URL) and authenticates
-    // via the encryptedAuthToken — no separate OldDot sign-in needed.
+    // via the encryptedAuthToken, so no separate OldDot sign-in is needed.
     const downloadFile = () => {
         if (!fileName || !currentUserLogin) {
             return;

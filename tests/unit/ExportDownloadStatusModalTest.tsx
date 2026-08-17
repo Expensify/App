@@ -144,7 +144,7 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=csvexport&filename=${encodeURIComponent(CSV_FILE_NAME)}&downloadName=${encodeURIComponent(CSV_FILE_NAME)}`;
-        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file; appendTimestamp (arg 10) is false so the OS-recorded download time isn't duplicated in the name.
+        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file. appendTimestamp (arg 10) is false so the download time recorded by the OS is not duplicated in the name.
         expect(mockFileDownload).toHaveBeenCalledWith(
             expect.anything(),
             expect.stringContaining(expectedURLPart),
@@ -166,7 +166,7 @@ describe('ExportDownloadStatusModal', () => {
         await waitForBatchedUpdatesWithAct();
 
         const expectedURLPart = `secure?secureType=pdfreport&filename=${encodeURIComponent(PDF_FILE_NAME)}&downloadName=${encodeURIComponent(PDF_FILE_NAME)}`;
-        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file; appendTimestamp (arg 10) is false so the OS-recorded download time isn't duplicated in the name.
+        // shouldUnlink (arg 9) is left undefined so the platform default cleans up the temp file. appendTimestamp (arg 10) is false so the download time recorded by the OS is not duplicated in the name.
         expect(mockFileDownload).toHaveBeenCalledWith(
             expect.anything(),
             expect.stringContaining(expectedURLPart),
@@ -205,7 +205,7 @@ describe('ExportDownloadStatusModal', () => {
         expect(screen.getByText('exportDownload.readyTitle')).toBeTruthy();
         expect(screen.getByText('exportDownload.readyBody')).toBeTruthy();
         expect(screen.getByText('exportDownload.downloadFile')).toBeTruthy();
-        // The Close button is removed in the ready state; the modal is dismissible and Download closes it.
+        // The Close button is removed in the ready state. The modal is dismissible and Download closes it.
         expect(screen.queryByText('exportDownload.close')).toBeNull();
     });
 

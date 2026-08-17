@@ -847,7 +847,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     true,
                 );
             }
-            // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+            // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
             selectAllMatchingItems(false);
             clearSelectedTransactions(undefined, true);
         },
@@ -951,7 +951,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     exportColumnLabels: exportParameters.exportColumnLabels,
                     exportName,
                 });
-                // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
                 selectAllMatchingItems(false);
                 clearSelectedTransactions(undefined, true);
                 return;
@@ -2243,7 +2243,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     exportReportsToPDF(selectedReportIDs);
-                    // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
                     selectAllMatchingItems(false);
                     clearSelectedTransactions(undefined, true);
                 },
@@ -2263,7 +2263,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     exportReceiptsToZip({reportIDs: selectedReportIDs});
-                    // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
                     selectAllMatchingItems(false);
                     clearSelectedTransactions(undefined, true);
                 },
@@ -2286,7 +2286,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     exportReceiptsToZip({transactionIDs});
-                    // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                    // Clear the selection now that the export has started. The ExportDownloadStatusManager shows the modal.
                     selectAllMatchingItems(false);
                     clearSelectedTransactions(undefined, true);
                 },

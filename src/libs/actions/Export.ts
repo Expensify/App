@@ -83,7 +83,7 @@ function clearStaleExportDownloads() {
                 if (exportDownload.shouldSendFromConcierge) {
                     continue;
                 }
-                // Keep preparing (in flight) and ready (finished but maybe unseen) exports; only clear failed leftovers.
+                // Keep preparing and ready exports so the manager can re-surface them. Only failed leftovers are cleared here.
                 if (exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.PREPARING || exportDownload.state === CONST.EXPORT_DOWNLOAD.STATE.READY) {
                     continue;
                 }
