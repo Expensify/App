@@ -6024,6 +6024,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
+            showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
@@ -9463,7 +9464,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         decline: 'Rifiuta',
     },
     actionableMentionTrackExpense: {
-        submit: 'Invialo a qualcuno',
         submitToFriend: 'Invia a un amico',
         submitToEmployer: 'Invia al mio datore di lavoro',
         categorize: 'Classificala',

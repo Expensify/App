@@ -6305,14 +6305,14 @@ function getModifiedExpenseOriginalMessage(
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate): string | undefined {
+function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, currentUserAccountID: number | undefined): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
 
     const participantsWithoutCurrentUser = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID);
 
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
@@ -12043,15 +12043,17 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
             );
             return;
         }
@@ -12081,7 +12083,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
         return;
     }
 
@@ -13480,11 +13484,11 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
+function canRejectReportAction(report: Report, currentUserAccountID: number | undefined): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
-    const isCurrentUserManager = report?.managerID === deprecatedCurrentUserAccountID;
+    const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
 
     if (!isCurrentUserManager) {
         return false;
