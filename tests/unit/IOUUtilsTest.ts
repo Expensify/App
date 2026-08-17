@@ -15,7 +15,7 @@ import * as TransactionUtils from '@src/libs/TransactionUtils';
 import {hasAnyTransactionWithoutRTERViolation} from '@src/libs/TransactionUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import type {Policy, Report, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Policy, Report, ReportAction, ReportMetadata, ReportNameValuePairs, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 
 import type {OnyxCollection} from 'react-native-onyx';
@@ -25,6 +25,7 @@ import Onyx from 'react-native-onyx';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import initCurrencyListContext from '../utils/initCurrencyListContext';
 import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
@@ -739,31 +740,31 @@ describe('canApproveIOU', () => {
 
     it('should return true for DEW policy report without pending approval', async () => {
         // Given a submitted expense report on a DEW policy without any pending approval action
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: currentUserAccountID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: currentUserAccountID,
-        } as unknown as Report;
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = {
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.TEAM,
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-        } as unknown as Policy;
+        });
 
         const reportMetadata: ReportMetadata = {};
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             transactionID: '123',
             amount: 10,
             merchant: 'Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         // When checking if approve action is available
         // Then it should return true because DEW approval is not in progress
@@ -772,33 +773,33 @@ describe('canApproveIOU', () => {
 
     it('should return false for DEW policy report with pending approval', async () => {
         // Given a submitted expense report on a DEW policy with a pending approval action
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
             ownerAccountID: currentUserAccountID,
             stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
             statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             managerID: currentUserAccountID,
-        } as unknown as Report;
+        });
         await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
 
-        const policy = {
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.TEAM,
             approver: CURRENT_USER_EMAIL,
             approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
-        } as unknown as Policy;
+        });
 
         const reportMetadata: ReportMetadata = {
             pendingExpenseAction: CONST.EXPENSE_PENDING_ACTION.APPROVE,
         };
 
-        const transaction = {
+        const transaction = createMock<Transaction>({
             reportID: `${REPORT_ID}`,
             transactionID: '123',
             amount: 10,
             merchant: 'Merchant',
             created: '2025-01-01',
-        } as unknown as Transaction;
+        });
 
         // When checking if approve action is available while DEW approval is pending
         // Then it should return false because DEW is already processing an approval
@@ -836,16 +837,16 @@ describe('canApproveIOU', () => {
 
     it('should return false for non-expense report', async () => {
         // Given a non-expense report
-        const report = {
+        const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.CHAT,
             ownerAccountID: currentUserAccountID,
-        } as unknown as Report;
+        });
 
-        const policy = {
+        const policy = createMock<Policy>({
             type: CONST.POLICY.TYPE.TEAM,
             approver: CURRENT_USER_EMAIL,
-        } as unknown as Policy;
+        });
 
         const reportMetadata: ReportMetadata = {};
 
@@ -860,18 +861,18 @@ describe('getExistingTransactionID', () => {
     });
 
     test('should return undefined when reportAction is not a money request action', () => {
-        const nonMoneyRequestAction = {
+        const nonMoneyRequestAction = createMock<ReportAction>({
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
             created: '',
             message: [],
-        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+        });
 
         expect(IOUUtils.getExistingTransactionID(nonMoneyRequestAction)).toBeUndefined();
     });
 
     test('should return IOUTransactionID from a valid money request action', () => {
-        const moneyRequestAction = {
+        const moneyRequestAction = createMock<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU>>({
             reportActionID: 'action1',
             actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
             created: '',
@@ -880,7 +881,7 @@ describe('getExistingTransactionID', () => {
                 IOUTransactionID: 'txn123',
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
             },
-        } as unknown as Parameters<typeof IOUUtils.getExistingTransactionID>[0];
+        });
 
         expect(IOUUtils.getExistingTransactionID(moneyRequestAction)).toBe('txn123');
     });
@@ -902,7 +903,7 @@ describe('getExistingTransactionID', () => {
         });
 
         it('should generate optimistic ID when existing report has no reportID', () => {
-            const emptyReport = {} as Report;
+            const emptyReport = createMock<Report>({});
             const result = IOUUtils.resolveOptimisticChatReportID([1, 2], emptyReport);
 
             expect(result.optimisticChatReportID).toBeDefined();
