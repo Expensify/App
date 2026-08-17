@@ -1,4 +1,5 @@
 import MenuItemContent from '@components/MenuItem/layout/MenuItemContent';
+import MenuItemLeading from '@components/MenuItem/layout/MenuItemLeading';
 import MenuItemRoot from '@components/MenuItem/layout/MenuItemRoot';
 import MenuItemRow from '@components/MenuItem/layout/MenuItemRow';
 import MenuItemTrailing from '@components/MenuItem/layout/MenuItemTrailing';
@@ -42,7 +43,9 @@ function MenuItemNavigation({title, icon, onPress, isDisabled = false, sentryLab
             accessibilityLabel={title}
         >
             <MenuItemRow>
-                <MenuItemIcon src={icon} />
+                <MenuItemLeading>
+                    <MenuItemIcon src={icon} />
+                </MenuItemLeading>
                 <MenuItemContent>
                     <MenuItemTitle>{title}</MenuItemTitle>
                 </MenuItemContent>
