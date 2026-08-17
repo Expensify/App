@@ -104,26 +104,6 @@ type UseYourSpendDataReturn = {
     isPaymentStale: boolean;
 };
 
-function getOutstandingReportsSignature(reports: OnyxCollection<Report> | undefined, paidGroupPolicyIDs: string[], accountID: number): string {
-    if (!reports || paidGroupPolicyIDs.length === 0) {
-        return '';
-    }
-    const policyIDSet = new Set(paidGroupPolicyIDs);
-    const ids: string[] = [];
-    for (const report of Object.values(reports)) {
-        if (
-            report?.policyID &&
-            policyIDSet.has(report.policyID) &&
-            report.ownerAccountID === accountID &&
-            report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED &&
-            report.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED
-        ) {
-            ids.push(report.reportID);
-        }
-    }
-    return ids.sort().join(',');
-}
-
 // Offline queue commands that move each "Your spend" total. Read from the action
 // queue rather than inferred from a report's status, because a report can pass
 // through several states offline (e.g. approve then pay) and only its final status
@@ -143,12 +123,18 @@ const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([
 // Commands that change a report's total without moving it between buckets, so the bucket
 // they affect is the one the report currently sits in. A same-currency edit recomputes the
 // report total client-side without marking `pendingFields.total` (only cross-currency edits
-// do), which is why these must be read from the queue rather than from the report.
+// do), which is why these must be read from the queue rather than from the report. Expense
+// creation is included because on an auto-submit workspace a new expense lands directly in an
+// OUTSTANDING report, growing the "Awaiting approval" total; when it lands in an OPEN report
+// instead, its reportID isn't in the submitted set so the bucketing below is a no-op.
 const YOUR_SPEND_AMOUNT_COMMANDS = new Set<string>([
     WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
     WRITE_COMMANDS.DELETE_MONEY_REQUEST,
     WRITE_COMMANDS.REJECT_MONEY_REQUEST,
     WRITE_COMMANDS.REJECT_MONEY_REQUEST_IN_BULK,
+    WRITE_COMMANDS.REQUEST_MONEY,
+    WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
+    WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST,
 ]);
 
 function isYourSpendCommand(command: string): boolean {
@@ -175,6 +161,10 @@ type YourSpendReportsSignature = {
     // All owned reports — the "Repaid last 30 days" query has no policy filter, so
     // repayments on IOU reports outside any workspace count too.
     paymentScopeReportIDs: string;
+    // Owned OUTSTANDING (state & status SUBMITTED) reports on paid group workspaces. Drives the
+    // search-refire key and gates the cached "Awaiting approval" total; folded into this signature
+    // so the REPORT collection is scanned once per change rather than by a second selector.
+    outstandingReportIDs: string;
     // Status subsets used to bucket queued amount-affecting commands by the total they'd move.
     submittedReportIDs: string;
     reimbursedReportIDs: string;
@@ -184,6 +174,7 @@ type YourSpendReportsSignature = {
 const EMPTY_SPEND_REPORTS_SIGNATURE: YourSpendReportsSignature = {
     approvalScopeReportIDs: '',
     paymentScopeReportIDs: '',
+    outstandingReportIDs: '',
     submittedReportIDs: '',
     reimbursedReportIDs: '',
     amount: {approval: false, payment: false},
@@ -198,6 +189,7 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
     const policyIDSet = new Set(paidGroupPolicyIDs);
     const approvalScope: string[] = [];
     const paymentScope: string[] = [];
+    const outstanding: string[] = [];
     const submitted: string[] = [];
     const reimbursed: string[] = [];
     for (const report of Object.values(reports)) {
@@ -213,6 +205,10 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
         const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
         if (isSubmitted) {
             submitted.push(report.reportID);
+            // OUTSTANDING is the stricter subset (both state & status SUBMITTED) driving the search refire.
+            if (report.stateNum === CONST.REPORT.STATE_NUM.SUBMITTED) {
+                outstanding.push(report.reportID);
+            }
         } else if (isReimbursed) {
             reimbursed.push(report.reportID);
         }
@@ -227,6 +223,7 @@ function getYourSpendReportsSignature(reports: OnyxCollection<Report> | undefine
     }
     signature.approvalScopeReportIDs = approvalScope.sort().join(',');
     signature.paymentScopeReportIDs = paymentScope.sort().join(',');
+    signature.outstandingReportIDs = outstanding.sort().join(',');
     signature.submittedReportIDs = submitted.sort().join(',');
     signature.reimbursedReportIDs = reimbursed.sort().join(',');
     return signature;
@@ -374,24 +371,21 @@ function useYourSpendData(): UseYourSpendDataReturn {
     const [approvalSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${approvalQueryJSON?.hash}`);
     const [paymentSearchResults] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${paymentQueryJSON?.hash}`);
 
-    // Signature of the reports the user owns on a paid group workspace that are currently
-    // OUTSTANDING (awaiting approval). The home query results are cached snapshots that are
-    // not patched when a report's state changes, so without this the "Awaiting approval"
-    // total stays stale after the user approves their last outstanding expense. Folding the
-    // signature into the search effect's key refires the search whenever a report enters or
-    // leaves the OUTSTANDING state.
-    const [outstandingReportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
-        selector: (reports) => getOutstandingReportsSignature(reports, paidGroupPolicyIDs, accountID),
-    });
-
     // Which totals a queued or in-flight change would move. We can't trust the
     // snapshots until those changes are acknowledged, so we grey only the affected
     // total to signal it may be stale rather than showing a value we know might be
     // wrong. This covers the whole offline session and the queue flush after
     // reconnecting — the grey must not clear before the totals actually refresh.
+    //
+    // Also carries the OUTSTANDING (awaiting approval) report IDs: the home query results are
+    // cached snapshots that are not patched when a report's state changes, so without this the
+    // "Awaiting approval" total stays stale after the user approves their last outstanding
+    // expense. Folding it into the search effect's key refires the search whenever a report
+    // enters or leaves the OUTSTANDING state.
     const [reportsSignature] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {
         selector: (reports) => getYourSpendReportsSignature(reports, paidGroupPolicyIDs, accountID),
     });
+    const outstandingReportsSignature = reportsSignature?.outstandingReportIDs ?? '';
     const [queuedSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_REQUESTS, {selector: projectQueuedSpendRequests});
     const [ongoingSpendRequests] = useOnyx(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {selector: projectOngoingSpendRequest});
     const pendingSpendBuckets = useMemo(
@@ -608,7 +602,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Re-fires the search effect when applicability flips, the user joins/leaves a workspace
     // (which changes the policyID filter), or the set of OUTSTANDING reports changes.
-    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature ?? ''].join('|');
+    const applicabilityKey = [isApprovalApplicable ? 1 : 0, isPaymentApplicable ? 1 : 0, paidGroupPolicyIDs.join(','), outstandingReportsSignature].join('|');
 
     const fireSearches = useEffectEvent(() => {
         if (isOffline) {
@@ -676,7 +670,6 @@ function useYourSpendData(): UseYourSpendDataReturn {
 export {
     YOUR_SPEND_CARD_KIND,
     YOUR_SPEND_ROW_STATE,
-    getOutstandingReportsSignature,
     getYourSpendApplicability,
     getYourSpendPendingBuckets,
     getYourSpendReportsSignature,
