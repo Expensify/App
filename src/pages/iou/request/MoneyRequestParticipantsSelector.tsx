@@ -2,7 +2,6 @@ import DisplayContentsView from '@components/DisplayContentsView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import getPlatform from '@libs/getPlatform';
 
@@ -86,7 +85,6 @@ function MoneyRequestParticipantsSelector({
     onCloseParticipantPicker,
     ref,
 }: MoneyRequestParticipantsSelectorProps) {
-    const styles = useThemeStyles();
     const isFocused = useIsFocused();
     const isActivityVisible = useDeferVisibleUntilFocusTransitionEnd(isFocused);
     const platform = getPlatform();
@@ -105,7 +103,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <DisplayContentsView style={styles.flex1}>
+            <DisplayContentsView>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}

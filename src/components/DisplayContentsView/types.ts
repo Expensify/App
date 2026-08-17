@@ -1,9 +1,8 @@
 import type {PropsWithChildren} from 'react';
-import type {ViewStyle} from 'react-native';
 
 type DisplayContentsViewProps = PropsWithChildren<{
-    /** Optional styles applied to the wrapper view */
-    style?: ViewStyle;
+    /** Whether the content is covered, which takes it out of the tab order. Web only, because a native node has no equivalent attribute */
+    inert?: boolean;
 }>;
 
 export default DisplayContentsViewProps;

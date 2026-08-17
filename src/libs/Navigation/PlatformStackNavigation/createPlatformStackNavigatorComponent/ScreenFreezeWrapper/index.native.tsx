@@ -1,7 +1,5 @@
 import DisplayContentsView from '@components/DisplayContentsView';
 
-import useThemeStyles from '@hooks/useThemeStyles';
-
 import {useLayoutEffect, useState} from 'react';
 import {Freeze} from 'react-freeze';
 
@@ -15,7 +13,6 @@ const FREEZE_DELAY_MS = 500;
 
 function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperProps) {
     const [frozen, setFrozen] = useState(false);
-    const styles = useThemeStyles();
 
     // Decouple the Suspense render task so it won't be interrupted by React's concurrent mode
     // and stuck in an infinite loop
@@ -43,7 +40,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: ScreenFreezeWrapperPro
 
     return (
         <Freeze freeze={frozen}>
-            <DisplayContentsView style={styles.flex1}>{children}</DisplayContentsView>
+            <DisplayContentsView>{children}</DisplayContentsView>
         </Freeze>
     );
 }
