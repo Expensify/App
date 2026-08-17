@@ -18,7 +18,7 @@ import type {Icon} from '@src/types/onyx/OnyxCommon';
 
 import type {ReactNode} from 'react';
 
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
 import ListFilterView from './ListFilterViewWrapper';
@@ -68,6 +68,11 @@ function MultiSelect<T extends string>({
 
     const [selectedItems, setSelectedItems] = useState(value);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
+    const selectedValuesKey = value.map((item) => item.value).join(',');
+    useEffect(() => {
+        setSelectedItems(value);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [selectedValuesKey]);
 
     // Snapshot the values selected when the filter first opened so they can be floated to the top of a long list on
     // first render without repinning rows that are toggled afterwards.
