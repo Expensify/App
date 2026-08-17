@@ -139,9 +139,6 @@ function DynamicIOURequestStepSubrate({
             Navigation.goBack(editBackPath);
             return;
         }
-        // The time step is rebuilt from this route's own params instead of the current URL. A URL-derived path can
-        // still carry the `reportID` from before the workspace selector retargeted the report; it would fail to
-        // match the time route on the stack and re-push the time suffix, doubling the URL (#97558).
         Navigation.goBack(
             createDynamicRoute(
                 DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,

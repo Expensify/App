@@ -22,13 +22,6 @@ type PerDiemTimeBasePathParams = {
     hasMoreThanOnePolicyWithPerDiemEnabled: boolean;
 };
 
-/**
- * Rebuilds the path of the per diem time route from the step's own params instead of the current URL. The URL can
- * still carry the `reportID` from before the workspace selector retargeted the transaction's report, so deriving
- * paths from it produces a route whose report is missing from Onyx (#97558). The three bases mirror how the time
- * step was opened: the destination step stacked on the start page (multiple per diem policies), the start page
- * itself (single policy), and the per diem start tab (flow started from a report).
- */
 export default function buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled}: PerDiemTimeBasePathParams) {
     if (!(transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK)) {
         return ROUTES.MONEY_REQUEST_CREATE_TAB_PER_DIEM.getRoute(action, iouType, transactionID, reportID, backToReport);
