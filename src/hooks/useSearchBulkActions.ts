@@ -8,7 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
-import {exportReportsToPDF} from '@libs/actions/Export';
+import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
@@ -2243,6 +2243,49 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     exportReportsToPDF(selectedReportIDs);
+                    // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
+                },
+            });
+        }
+
+        const hasSelectedReportsWithExpenses = selectedReports.some((report) => (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.transactionCount ?? 0) > 0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithExpenses) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    exportReceiptsToZip({reportIDs: selectedReportIDs});
+                    // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
+                    selectAllMatchingItems(false);
+                    clearSelectedTransactions(undefined, true);
+                },
+            });
+        }
+
+        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        // A group selected before its children load is stored under a group_ key, which is not a real
+        // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
+        const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        if (isExpenseSearch && selectedTransactionsKeys.length > 0 && transactionIDs.length > 0) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    exportReceiptsToZip({transactionIDs});
                     // Clear the selection now that the export has started; ExportDownloadStatusManager shows the modal.
                     selectAllMatchingItems(false);
                     clearSelectedTransactions(undefined, true);

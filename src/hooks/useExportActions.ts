@@ -292,7 +292,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                exportReceiptsToZip([moneyRequestReport.reportID]);
+                exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
                 clearSelectedTransactions(true);
             },
         },

@@ -119,7 +119,7 @@ function exportReportsToPDF(reportIDs: string[]): string {
     return exportID;
 }
 
-function exportReceiptsToZip(reportIDs: string[]): string {
+function exportReceiptsToZip({reportIDs, transactionIDs}: {reportIDs?: string[]; transactionIDs?: string[]}): string {
     const exportID = rand64();
     const onyxKey = `${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${exportID}` as const;
 
@@ -139,7 +139,15 @@ function exportReceiptsToZip(reportIDs: string[]): string {
         },
     ];
 
-    write(WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP, {reportIDs: JSON.stringify(reportIDs), exportID}, {optimisticData, failureData});
+    write(
+        WRITE_COMMANDS.EXPORT_RECEIPTS_TO_ZIP,
+        {
+            exportID,
+            reportIDs: reportIDs ? JSON.stringify(reportIDs) : undefined,
+            transactionIDs: transactionIDs ? JSON.stringify(transactionIDs) : undefined,
+        },
+        {optimisticData, failureData},
+    );
 
     return exportID;
 }
