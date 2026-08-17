@@ -8,7 +8,6 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -22,6 +21,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isUserValidatedSelector} from '@src/selectors/Account';
 import {isAdminSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
 import {Str} from 'expensify-common';
@@ -32,7 +32,7 @@ function AddDomainPage() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
@@ -78,8 +78,11 @@ function AddDomainPage() {
         }
 
         const existingDomain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`];
-        const alreadyHasAccess =
-            !!currentUserAccountID && !!existingDomain && (isAdminSelector(currentUserAccountID)(existingDomain) || memberAccountIDsSelector(existingDomain).includes(currentUserAccountID));
+        if (!existingDomain) {
+            return;
+        }
+
+        const alreadyHasAccess = !!currentUserAccountID && (isAdminSelector(currentUserAccountID)(existingDomain) || memberAccountIDsSelector(existingDomain).includes(currentUserAccountID));
 
         if (alreadyHasAccess) {
             setCreateDomainAlreadyHaveAccessError();
