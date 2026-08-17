@@ -80,9 +80,6 @@ function DynamicIOURequestStepSubrate({
     report,
 }: DynamicIOURequestStepSubrateProps) {
     const isEditPage = routeName === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT;
-    // Back removes this step's own dynamic suffix from the current URL. In edit mode (`per-diem-subrate-edit/:pageIndex`)
-    // the suffix sits on the confirmation base, so back returns to the confirmation step. In the wizard flow
-    // (`per-diem-subrate/:pageIndex`) it sits on the time base, so back returns to the time step.
     const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.path);
     const styles = useThemeStyles();
     const iouPolicyID = getIOURequestPolicyID(transaction, report);

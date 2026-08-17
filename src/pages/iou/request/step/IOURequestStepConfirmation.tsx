@@ -727,9 +727,6 @@ function IOURequestStepConfirmation({
                 Navigation.goBack();
                 return;
             }
-            // Subrate is a dynamic route stacked on top of the time step, which itself is stacked on the destination
-            // step. The subrate route is normally already on the stack (the wizard reached confirmation through it), so
-            // this rebuilt path only matters as the fallback shape when confirmation was opened directly.
             Navigation.goBack(
                 createDynamicRoute(
                     DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(),
