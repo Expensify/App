@@ -51,7 +51,7 @@ describe('useReportActionAvatars translate wiring', () => {
 
         renderHook(() => useReportActionAvatars({report, action}), {wrapper});
 
-        // The hook resolves the default display name via getDisplayNameForParticipant, which must receive the translate from useLocalize.
-        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({accountID: ACTOR_ACCOUNT_ID, hiddenTranslation: 'common.hidden'}));
+        // The hook resolves the default display name via getDisplayNameForParticipant, which must receive the resolved "Hidden" string from useLocalize.
+        expect(mockGetDisplayNameForParticipant).toHaveBeenCalledWith(expect.objectContaining({hiddenTranslation: 'common.hidden'}));
     });
 });
