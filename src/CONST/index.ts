@@ -9435,26 +9435,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
