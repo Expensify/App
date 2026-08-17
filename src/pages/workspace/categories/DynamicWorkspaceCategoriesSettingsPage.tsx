@@ -23,7 +23,7 @@ import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnec
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
-import {setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
+import {setPolicyAutoCategorizeNewExpenses, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
@@ -55,6 +55,13 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             setWorkspaceRequiresCategory(policyData, value);
         },
         [policyData],
+    );
+
+    const updateAutoCategorizeNewExpenses = useCallback(
+        (value: boolean) => {
+            setPolicyAutoCategorizeNewExpenses(policyID, value);
+        },
+        [policyID],
     );
 
     const data = useMemo(() => {
@@ -124,6 +131,17 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
                         shouldPlaceSubtitleBelowSwitch
+                    />
+                    <ToggleSettingOptionRow
+                        title={translate('workspace.categories.autoCategorizeNewExpenses')}
+                        switchAccessibilityLabel={translate('workspace.categories.autoCategorizeNewExpenses')}
+                        isActive={policy?.autoCategorizeNewExpenses ?? true}
+                        onToggle={updateAutoCategorizeNewExpenses}
+                        pendingAction={policy?.pendingFields?.autoCategorizeNewExpenses}
+                        disabled={!policy?.areCategoriesEnabled || !hasEnabledCategories}
+                        wrapperStyle={[styles.pv2, styles.mh5]}
+                        errors={policy?.errorFields?.autoCategorizeNewExpenses ?? undefined}
+                        onCloseError={() => clearPolicyErrorField(policy?.id, 'autoCategorizeNewExpenses')}
                     />
                     <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
                     <View style={[styles.containerWithSpaceBetween]}>
