@@ -11,10 +11,13 @@ import {
     saveWaypoint,
     setSelectedRoute,
 } from '@libs/actions/Transaction';
+import * as API from '@libs/API';
+import type {ChangeTransactionsReportParams} from '@libs/API/parameters';
 import DateUtils from '@libs/DateUtils';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
-import type {buildOptimisticNextStep} from '@libs/NextStepUtils';
+import * as NextStepUtils from '@libs/NextStepUtils';
 import {rand64} from '@libs/NumberUtils';
+import {isRecord} from '@libs/ObjectUtils';
 import {getIOUActionForTransactionID} from '@libs/ReportActionsUtils';
 
 import CONST from '@src/CONST';
@@ -33,13 +36,16 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {UpdateMoneyRequestDataKeys} from '../../src/libs/actions/IOU/UpdateMoneyRequest';
 import type {PersonalDetails, Policy, PolicyTagLists, RecentWaypoint, Report, ReportAction, ReportActions, Transaction} from '../../src/types/onyx';
+import type {ReportMergeUpdate} from '../utils/typeGuards';
 
 import * as TransactionUtils from '../../src/libs/TransactionUtils';
 import createRandomPolicy from '../utils/collections/policies';
 import createRandomPolicyCategories from '../utils/collections/policyCategory';
 import {createExpenseReport, createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {isReportMergeUpdate, isReportStateMergeUpdate} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -58,6 +64,16 @@ type CapturedOnyxData = {
 
 function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
     return typeof value === 'object' && value !== null;
+}
+
+function isChangeTransactionsReportParams(value: unknown): value is ChangeTransactionsReportParams {
+    return (
+        isRecord(value) &&
+        typeof value.reportID === 'string' &&
+        typeof value.transactionList === 'string' &&
+        typeof value.transactionIDToReportActionAndThreadData === 'string' &&
+        (value.transactionIDToUpdatedCustomUnitRateID === undefined || typeof value.transactionIDToUpdatedCustomUnitRateID === 'string')
+    );
 }
 
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
@@ -154,13 +170,18 @@ describe('Transaction', () => {
         });
     });
 
-    let mockFetch: TestHelper.MockFetch;
+    const mockFetch = TestHelper.setupGlobalFetchMock();
+    const statefulFetchImplementation = mockFetch.getMockImplementation();
+    if (!statefulFetchImplementation) {
+        throw new Error('Expected the stateful fetch mock implementation');
+    }
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = global.fetch as TestHelper.MockFetch;
+        mockFetch.mockReset();
+        mockFetch.mockImplementation(statefulFetchImplementation);
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
+    /* eslint-disable rulesdir/no-multiple-api-calls -- Each it callback independently spies on API.write once; the rule's ancestor token scan combines otherwise independent tests. */
     describe('changeTransactionsReport', () => {
         let reports: OnyxCollection<Report>;
 
@@ -272,7 +293,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions between reports', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -312,7 +333,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
@@ -323,7 +344,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles reportNextStep parameter when moving transactions to unreported report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -363,7 +384,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`);
 
@@ -518,7 +539,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles undefined reportNextStep parameter', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -550,7 +571,7 @@ describe('Transaction', () => {
             expect(mockAPIWrite).toHaveBeenCalled();
 
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
+            const failureData = apiWriteCall?.[2]?.failureData;
 
             const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
@@ -561,8 +582,8 @@ describe('Transaction', () => {
         });
 
         it('updates the source submitted report next step and reopens it when it becomes empty', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
-            const buildOptimisticNextStepSpy = jest.spyOn(require('@libs/NextStepUtils'), 'buildOptimisticNextStep');
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+            const buildOptimisticNextStepSpy = jest.spyOn(NextStepUtils, 'buildOptimisticNextStep');
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -605,23 +626,23 @@ describe('Transaction', () => {
             await waitForBatchedUpdates();
 
             try {
-                const buildOptimisticNextStepCalls = buildOptimisticNextStepSpy.mock.calls as Array<[Parameters<typeof buildOptimisticNextStep>[0]]>;
-                const sourceNextStepCall = buildOptimisticNextStepCalls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
+                const sourceNextStepCall = buildOptimisticNextStepSpy.mock.calls.find(([params]) => params.report?.reportID === FAKE_OLD_REPORT_ID);
 
                 expect(sourceNextStepCall).toBeDefined();
                 expect(sourceNextStepCall?.[0].predictedNextStatus).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
-                const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-                const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
-                const sourceReportUpdate = optimisticData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
-                const sourceReportStateUpdate = optimisticData?.find(
-                    (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
-                );
+                const [, , onyxData] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+                const reportKey: ReportMergeUpdate['key'] = `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`;
+                const reportUpdates = TestHelper.getRequiredOnyxUpdates(onyxData, 'optimisticData');
+                const sourceReportUpdate = reportUpdates.findLast((update) => isReportMergeUpdate(update, reportKey));
+                const sourceReportStateUpdate = reportUpdates.find((update) => isReportStateMergeUpdate(update, reportKey));
+                if (!sourceReportUpdate || !sourceReportStateUpdate) {
+                    throw new Error('Expected typed source report updates');
+                }
 
-                expect(sourceReportUpdate).toBeDefined();
-                expect(sourceReportUpdate?.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
-                expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
-                expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+                expect(sourceReportUpdate.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
+                expect(sourceReportStateUpdate.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+                expect(sourceReportStateUpdate.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
                 buildOptimisticNextStepSpy.mockRestore();
                 mockAPIWrite.mockRestore();
@@ -629,7 +650,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles ASAP submit beta enabled when moving transactions', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -660,10 +681,10 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const parameters = apiWriteCall?.[1] as {reportID: string; transactionList: string; transactionIDToReportActionAndThreadData: string};
-
-            expect(parameters).toBeDefined();
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            if (!isChangeTransactionsReportParams(parameters)) {
+                throw new Error('Expected changeTransactionsReport API.write parameters');
+            }
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
@@ -671,7 +692,7 @@ describe('Transaction', () => {
         });
 
         it('correctly handles different account IDs and emails when moving transactions', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_OLD_REPORT_ID,
@@ -705,10 +726,10 @@ describe('Transaction', () => {
 
             expect(mockAPIWrite).toHaveBeenCalled();
 
-            const apiWriteCall = mockAPIWrite.mock.calls.at(0);
-            const parameters = apiWriteCall?.[1] as {reportID: string; transactionList: string; transactionIDToReportActionAndThreadData: string};
-
-            expect(parameters).toBeDefined();
+            const [, parameters] = TestHelper.getRequiredWriteCall(mockAPIWrite.mock.calls, 0);
+            if (!isChangeTransactionsReportParams(parameters)) {
+                throw new Error('Expected changeTransactionsReport API.write parameters');
+            }
             expect(parameters.reportID).toBe(FAKE_NEW_REPORT_ID);
             expect(parameters.transactionList).toBe(transaction.transactionID);
 
@@ -1388,7 +1409,7 @@ describe('Transaction', () => {
         });
 
         it('should not call API.write when the transaction is already on the target report', async () => {
-            const mockAPIWrite = jest.spyOn(require('@libs/API'), 'write').mockImplementation(() => Promise.resolve());
+            const mockAPIWrite = jest.spyOn(API, 'write').mockResolvedValue(undefined);
 
             const transaction = generateTransaction({
                 reportID: FAKE_NEW_REPORT_ID,
@@ -2052,6 +2073,7 @@ describe('Transaction', () => {
             expect(updatedTransaction?.comment?.customUnit?.customUnitRateID).toBe(validRateID);
         });
     });
+    /* eslint-enable rulesdir/no-multiple-api-calls */
 
     describe('getAllNonDeletedTransactions', () => {
         it('returns the transaction when it has a pending delete action and is offline', () => {
@@ -2373,8 +2395,7 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Test intentionally passes extra fields not in WaypointCollection to verify they are stripped
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields as any);
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithExtraFields);
 
             // Then only allowed fields should remain
             expect(sanitizedWaypoints.waypoint0).toEqual({
@@ -2402,8 +2423,7 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Test uses a partial waypoint object to verify sanitization handles missing fields
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields as any);
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithPartialFields);
 
             // Then only the address should be present
             expect(sanitizedWaypoints.waypoint0).toEqual({
@@ -2440,8 +2460,8 @@ describe('Transaction', () => {
 
             // When sanitizing the waypoints
             // Null entries can occur at runtime even though WaypointCollection type doesn't include null
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/no-unsafe-argument
-            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls as any);
+            // @ts-expect-error -- rollback data can contain null waypoint entries even though the production collection type excludes null.
+            const sanitizedWaypoints = sanitizeWaypointsForAPI(waypointsWithNulls);
 
             // Then null entries should be dropped and valid entries sanitized
             expect(sanitizedWaypoints).toEqual({
@@ -2929,7 +2949,7 @@ describe('removeTransactionFromDuplicateTransactionViolation', () => {
     function makeTransactionCollection(...ids: string[]) {
         const collection: Record<string, Transaction> = {};
         for (const id of ids) {
-            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = {transactionID: id} as Transaction;
+            collection[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`] = createMock<Transaction>({transactionID: id});
         }
         return collection;
     }

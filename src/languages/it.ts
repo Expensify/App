@@ -2160,6 +2160,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Installa l’ultima versione di Expensify',
         toGetLatestChanges: 'Per mobile, scarica e installa la versione più recente. Per il web, aggiorna il browser.',
         newAppNotAvailable: 'Aggiorna ora e ci ringrazierai più tardi.',
+        updateAvailable: 'Aggiornamento disponibile',
+        pleaseRefresh: 'Aggiorna questa pagina per ottenere la versione più recente di Expensify.',
+        refreshPage: 'Aggiorna pagina',
     },
     initialSettingsPage: {
         about: 'Informazioni',
@@ -4653,6 +4656,7 @@ ${amount} per ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Gestisci i pagamenti del flusso di lavoro.',
             readOnlyActionTitle: 'Non così in fretta...',
             readOnlyActionPrompt: 'Il tuo ruolo nello spazio di lavoro può visualizzare queste impostazioni, ma non può modificarle.',
+            noAccessActionPrompt: 'Il tuo ruolo nello spazio di lavoro non ha accesso a queste impostazioni. Chiedi a un amministratore se ne hai bisogno.',
         },
         createdForClient: {
             title: 'Hai creato uno spazio di lavoro per il tuo cliente!',
@@ -5885,6 +5889,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
+            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -5968,6 +5973,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             settlementFrequencyDescription: 'Scegli con quale frequenza pagherai il saldo della tua Carta Expensify.',
             settlementFrequencyInfo:
                 'Se desideri passare alla liquidazione mensile, dovrai collegare il tuo conto bancario tramite Plaid e avere uno storico del saldo positivo di 90 giorni.',
+            monthlySettlementDate: (date: string) => `Le Carte Expensify verranno saldate il ${date} di ogni mese.`,
             applyCashbackToBill: 'Applica il cashback alla mia fattura Expensify',
             applyCashbackToBillDescription: 'Il cashback della Carta Expensify verrà utilizzato per il pagamento della tua fattura Expensify.',
             frequency: {
@@ -6029,6 +6035,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
+            showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
@@ -9035,6 +9042,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 travelInvoicing: 'Fatturazione viaggio consolidata',
             },
             bankAccount: {banks: 'Conti bancari', closedBankAccounts: 'Conti bancari chiusi'},
+            workspace: {active: 'Attivo', archived: 'Archiviato', selectAll: 'Seleziona tutto'},
             reportField: (name: string, value: string) => `${name} è ${value}`,
             current: 'Attuale',
             past: 'Passato',
@@ -9467,7 +9475,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         decline: 'Rifiuta',
     },
     actionableMentionTrackExpense: {
-        submit: 'Invialo a qualcuno',
         submitToFriend: 'Invia a un amico',
         submitToEmployer: 'Invia al mio datore di lavoro',
         categorize: 'Classificala',

@@ -2256,10 +2256,13 @@ const translations = {
     },
     updateRequiredView: {
         updateRequired: 'Update required',
+        updateAvailable: 'Update available',
         pleaseInstall: 'Please update to the latest version of New Expensify',
         pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
+        pleaseRefresh: 'Please refresh this page to get the latest version of Expensify.',
         toGetLatestChanges: 'For mobile, download and install the latest version. For web, refresh your browser.',
         newAppNotAvailable: "Update now and you'll thank us later.",
+        refreshPage: 'Refresh page',
     },
     initialSettingsPage: {
         about: 'About',
@@ -4692,6 +4695,7 @@ const translations = {
             notAuthorized: `You don't have access to this page. If you're trying to join this workspace, just ask the workspace owner to add you as a member. Something else? Reach out to ${CONST.EMAIL.CONCIERGE}.`,
             readOnlyActionTitle: 'Not so fast...',
             readOnlyActionPrompt: "Your workspace role can view these settings, but can't edit them.",
+            noAccessActionPrompt: "Your workspace role doesn't have access to these settings. Ask an admin if you need it.",
             goToWorkspace: 'Go to workspace',
             duplicateWorkspace: 'Duplicate workspace',
             duplicateWorkspacePrefix: 'Duplicate',
@@ -6004,6 +6008,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
@@ -6090,6 +6095,7 @@ const translations = {
             settlementFrequency: 'Settlement frequency',
             settlementFrequencyDescription: 'Choose how often you’ll pay your Expensify Card balance.',
             settlementFrequencyInfo: 'If you’d like to switch to monthly settlement, you’ll need to connect your bank account via Plaid and have a positive 90-day balance history.',
+            monthlySettlementDate: (date: string) => `Expensify cards will settle on the ${date} of each month.`,
             applyCashbackToBill: 'Apply cash back to my Expensify bill',
             applyCashbackToBillDescription: 'Cash back from the Expensify Card will be used towards payment for your Expensify bill.',
             frequency: {
@@ -6146,6 +6152,7 @@ const translations = {
             deleteFailureMessage: 'An error occurred while deleting the category, please try again',
             categoryName: 'Category name',
             requiresCategory: 'Members must categorize all expenses',
+            showCategoryGLCodes: 'Show GL codes when categorizing expenses',
             needCategoryForExportToIntegration: (connectionName: string) => `All expenses must be categorized in order to export to ${connectionName}.`,
             subtitle: 'Get a better overview of where money is being spent. Use our default categories or add your own.',
             emptyCategories: {
@@ -9201,6 +9208,11 @@ const translations = {
                 banks: 'Bank accounts',
                 closedBankAccounts: 'Closed bank accounts',
             },
+            workspace: {
+                active: 'Active',
+                archived: 'Archived',
+                selectAll: 'Select all',
+            },
             reportField: (name: string, value: string) => `${name} is ${value}`,
             current: 'Current',
             past: 'Past',
@@ -9623,7 +9635,6 @@ const translations = {
         decline: 'Decline',
     },
     actionableMentionTrackExpense: {
-        submit: 'Submit it to someone',
         submitToFriend: 'Submit to a friend',
         submitToEmployer: 'Submit to my employer',
         categorize: 'Categorize it',

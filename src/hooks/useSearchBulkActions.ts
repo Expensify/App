@@ -8,7 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
-import {exportReportsToPDF} from '@libs/actions/Export';
+import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
@@ -65,6 +65,7 @@ import {
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
@@ -129,6 +130,7 @@ import usePermissions from './usePermissions';
 import usePersonalPolicy from './usePersonalPolicy';
 import usePolicyForMovingExpenses from './usePolicyForMovingExpenses';
 import useRestrictedActionPolicyID from './useRestrictedActionPolicyID';
+import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
 import useSelfDMReport from './useSelfDMReport';
 import useSplitEffectivePolicy from './useSplitEffectivePolicy';
 import useTheme from './useTheme';
@@ -424,7 +426,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {selectedTransactions, excludedTransactions = getEmptyObject<SelectedTransactions>(), selectedReports, areAllMatchingItemsSelected} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const {currentSearchKey} = useSearchQueryContext();
+    const {currentSearchKey, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions, selectAllMatchingItems} = useSearchSelectionActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {accountID, email, login: currentUserLogin, localCurrencyCode} = currentUserPersonalDetails;
@@ -673,6 +675,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
     });
 
     const {hash} = queryJSON ?? {};
+    const shouldCalculateTotalsOnRefresh = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
     const isExpenseType = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
     const selectedTransactionsKeys = Object.keys(selectedTransactions ?? {});
     // Use currentSearchResults, not the lastNonEmpty fallback: the export scope must reflect the query on screen now,
@@ -883,16 +886,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
     const getCSVExportParameters = useCallback(
         (isBasicExport: boolean, queryJSONToExport: SearchQueryJSON | undefined, exactMatchFilterKeys?: ReadonlySet<SearchFilterKey>) => {
-            const columnsToExport = getColumnsToShow({
-                currentAccountID: accountID,
-                data: exportSearchData ?? {},
-                visibleColumns,
-                type: exportSearchType,
-                groupBy: getValidGroupBy(queryJSON?.groupBy),
-                shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
-                fallbackPolicyID: policyForMovingExpensesID,
-                sortBy: queryJSON?.sortBy,
-            });
+            const groupBy = getValidGroupBy(queryJSON?.groupBy);
+            let columnsToExport: SearchColumnType[];
+
+            if (groupBy) {
+                const expensePermittedColumns: string[] = Object.values(CONST.SEARCH.TYPE_CUSTOM_COLUMNS.EXPENSE);
+                const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
+
+                columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
+            } else {
+                columnsToExport = getColumnsToShow({
+                    currentAccountID: accountID,
+                    data: exportSearchData ?? {},
+                    visibleColumns,
+                    type: exportSearchType,
+                    groupBy: getValidGroupBy(queryJSON?.groupBy),
+                    shouldUseStrictDefaultExpenseColumns: currentSearchKey === CONST.SEARCH.SEARCH_KEYS.EXPENSES && !!queryJSON && isDefaultExpensesQuery(queryJSON),
+                    fallbackPolicyID: policyForMovingExpensesID,
+                    sortBy: queryJSON?.sortBy,
+                });
+            }
 
             const exportColumnLabels: Partial<Record<SearchColumnType, string>> = {};
             for (const column of columnsToExport) {
@@ -1726,7 +1739,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             const policy = selectedPolicyIDs.length === 1 ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedPolicyIDs.at(0)}`] : undefined;
             // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside
-            // the other default templates. Grouped exports don't have a separate basic export (it's surfaced as "Current view" below), so it's excluded there.
+            // the other default templates. It's excluded on a grouped search, where it carries fewer columns than "Current view" does.
             const {customTemplates, defaultTemplates} = getExportTemplates(
                 integrationsExportTemplates ?? [],
                 csvExportLayouts ?? {},
@@ -1853,16 +1866,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             }
 
             // "Current view" is pinned directly under the accounting actions.
-            // For grouped exports there's no separate basic export - the backend expects isBasicExport to be true, so handleBasicExport
-            // powers the current view here (see https://github.com/Expensify/Expensify/issues/652978).
             exportOptions.push({
                 text: translate('export.currentView'),
                 icon: expensifyIcons.Table,
                 onSelected: () => {
-                    if (isGroupedSearch) {
-                        handleBasicExport();
-                        return;
-                    }
                     handleExportCurrentView();
                 },
                 shouldCloseModalOnSelect: true,
@@ -2153,10 +2160,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         [snapshotReport],
                                         [policyForSubmit],
                                         getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                        getCurrencyDecimals,
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
                                     );
+                                    refreshSearchAfterReportAction({
+                                        currentSearchQueryJSON,
+                                        currentSearchKey,
+                                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                                        isOffline,
+                                        isLoading: !!currentSearchResults?.search?.isLoading,
+                                    });
                                     clearSelectedTransactions();
                                 },
                             });
@@ -2167,9 +2182,19 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
                         }
                     }
+                    // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
+                    // context (which still offers Submit) until the snapshot is refetched, the same way approving and
+                    // paying from Search already do.
+                    refreshSearchAfterReportAction({
+                        currentSearchQueryJSON,
+                        currentSearchKey,
+                        shouldCalculateTotals: shouldCalculateTotalsOnRefresh,
+                        isOffline,
+                        isLoading: !!currentSearchResults?.search?.isLoading,
+                    });
                     clearSelectedTransactions();
                 },
             });
@@ -2220,6 +2245,45 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     const exportID = exportReportsToPDF(selectedReportIDs);
+                    trackExport(exportID);
+                },
+            });
+        }
+
+        const hasSelectedReportsWithExpenses = selectedReports.some((report) => (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.transactionCount ?? 0) > 0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithExpenses) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    const exportID = exportReceiptsToZip({reportIDs: selectedReportIDs});
+                    trackExport(exportID);
+                },
+            });
+        }
+
+        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        // A group selected before its children load is stored under a group_ key, which is not a real
+        // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
+        const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        if (isExpenseSearch && selectedTransactionsKeys.length > 0 && transactionIDs.length > 0) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    const exportID = exportReceiptsToZip({transactionIDs});
                     trackExport(exportID);
                 },
             });
@@ -2569,6 +2633,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         noReportsShouldMarkAsDone,
         queryJSON?.groupBy,
         delegateAccountID,
+        currentSearchQueryJSON,
+        currentSearchResults?.search?.isLoading,
+        shouldCalculateTotalsOnRefresh,
     ]);
 
     const handleOfflineModalClose = useCallback(() => {
