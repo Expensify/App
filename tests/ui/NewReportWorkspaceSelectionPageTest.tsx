@@ -180,7 +180,7 @@ describe('NewReportWorkspaceSelectionPage', () => {
         expect(screen.queryByText('Personal Workspace')).not.toBeOnTheScreen();
     });
 
-    it('hides Submit workspaces in the selector when Submit beta is off', async () => {
+    it('shows Submit workspaces in the selector', async () => {
         await act(async () => {
             await seedBaseOnyx();
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}submit-policy`, {
@@ -199,6 +199,6 @@ describe('NewReportWorkspaceSelectionPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(await screen.findByText(POLICY_NAME)).toBeOnTheScreen();
-        expect(screen.queryByText('Submit Workspace')).not.toBeOnTheScreen();
+        expect(await screen.findByText('Submit Workspace')).toBeOnTheScreen();
     });
 });
