@@ -13,7 +13,7 @@ import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
 import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
-import isMeasuredRequestPhaseCommand, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
@@ -33,11 +33,10 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     let result = makeXHR(request);
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
-    const shouldMeasureResponseApply = isMeasuredRequestPhaseCommand(request.command);
-    const {APPLY: applySpanName} = getRequestPhaseSpanNames(request.command);
-    const attempt = shouldMeasureResponseApply ? getNextRequestPhaseAttempt(applySpanName) : 0;
-    const applySpanId = getRequestPhaseSpanId(applySpanName, attempt);
-    if (shouldMeasureResponseApply) {
+    const phaseSpanNames = getRequestPhaseSpanNames(request.command);
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.APPLY) : 0;
+    const applySpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.APPLY, attempt) : '';
+    if (phaseSpanNames) {
         latestApplyAttemptByRequest.set(request, attempt);
         result = result.then((response) => {
             // The Reauthentication middleware below is about to retry this request, and that attempt measures the apply.
@@ -45,7 +44,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
                 return response;
             }
 
-            startRequestPhaseSpan(applySpanName, attempt, request.command);
+            startRequestPhaseSpan(phaseSpanNames.APPLY, attempt, request.command);
             return response;
         });
     }
@@ -54,7 +53,7 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
         result = middleware(result, request, isFromSequentialQueue);
     }
 
-    if (shouldMeasureResponseApply) {
+    if (phaseSpanNames) {
         result = result.then(
             (response) => {
                 // The reauthentication retry already measured this request, and this attempt only waited for it.

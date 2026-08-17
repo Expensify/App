@@ -22,7 +22,7 @@ import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
 import {cancelSpan, endSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
-import isMeasuredRequestPhaseCommand, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
 import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 
 let shouldFailAllRequests = false;
@@ -102,18 +102,17 @@ function processHTTPRequest<TKey extends OnyxKey>(
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
-    const isMeasuredRequest = isMeasuredRequestPhaseCommand(command);
     const phaseSpanNames = getRequestPhaseSpanNames(command);
-    const attempt = isMeasuredRequest ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
-    const waitSpanId = getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt);
-    const downloadSpanId = getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt);
-    if (isMeasuredRequest && command) {
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
+    const waitSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt) : '';
+    const downloadSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt) : '';
+    if (phaseSpanNames && command) {
         startRequestPhaseSpan(phaseSpanNames.WAIT, attempt, command);
     }
 
     return fetch(url, fetchParams)
         .then((response) => {
-            if (isMeasuredRequest && command) {
+            if (phaseSpanNames && command) {
                 endSpan(waitSpanId);
                 startRequestPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, {
                     [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
@@ -173,7 +172,7 @@ function processHTTPRequest<TKey extends OnyxKey>(
             }
 
             const parsedResponse = response.json() as Promise<Response<TKey>>;
-            if (!isMeasuredRequest) {
+            if (!phaseSpanNames) {
                 return parsedResponse;
             }
             // The server's requestID only exists once the body is parsed, which is exactly when this phase ends. It ties every phase of one attempt together in Sentry.

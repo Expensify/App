@@ -4,17 +4,17 @@ import isStartupNetworkRequest from '@libs/AppStartupNetworkRequest';
 import CONST from '@src/CONST';
 
 /**
- * Commands whose request is broken down into phase spans (server wait, download, Onyx apply).
- * The instrumentation itself is command-agnostic; only the span names differ per command.
+ * Separate names per command so a new one doesn't dilute an existing metric's history in Sentry.
  * Keep this list short: every command here emits several spans per request.
  */
-function isMeasuredRequestPhaseCommand(command?: string): boolean {
-    return isStartupNetworkRequest(command) || command === READ_COMMANDS.SEARCH;
-}
-
-/** Each command reports into its own span names, so a new measured command never dilutes an existing metric's history in Sentry. */
 function getRequestPhaseSpanNames(command?: string) {
-    return isStartupNetworkRequest(command) ? CONST.TELEMETRY.SPAN_STARTUP_DATA : CONST.TELEMETRY.SPAN_SEARCH_DATA;
+    if (isStartupNetworkRequest(command)) {
+        return CONST.TELEMETRY.SPAN_STARTUP_DATA;
+    }
+    if (command === READ_COMMANDS.SEARCH) {
+        return CONST.TELEMETRY.SPAN_SEARCH_DATA;
+    }
+    return undefined;
 }
 
 const attemptsBySpanName = new Map<string, number>();
@@ -26,5 +26,5 @@ function getNextRequestPhaseAttempt(spanName: string) {
     return attempt;
 }
 
-export default isMeasuredRequestPhaseCommand;
-export {getRequestPhaseSpanNames, getNextRequestPhaseAttempt};
+export default getRequestPhaseSpanNames;
+export {getNextRequestPhaseAttempt};
