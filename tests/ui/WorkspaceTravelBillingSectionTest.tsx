@@ -573,7 +573,7 @@ describe('WorkspaceTravelBillingSection', () => {
                 await waitForBatchedUpdatesWithAct();
             });
 
-            renderWorkspaceTravelInvoicingSection();
+            renderWorkspaceTravelBillingSection();
             await waitForBatchedUpdatesWithAct();
 
             // openPolicyTravelPage pulses isLoading on every page focus. That pulse must not flash the lock icon.
