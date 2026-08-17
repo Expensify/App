@@ -12,8 +12,21 @@ import type {OnyxKey} from 'react-native-onyx';
  *
  * Solution: The action registers its write via `registerDeferredWrite(key, cb)`;
  * the target component flushes it from its content onLayout callback via `flushDeferredWrite(key)`.
- * A per-channel safety timeout (default 5s) ensures the write always fires even if
- * the target screen never mounts or the user navigates elsewhere.
+ * A per-record safety timeout (default 5s) marks the record's layout stale if the
+ * target component never lays out, but does not delete it - a record is only removed
+ * when its write executes or it is explicitly abandoned (see `abandonDeferredWrite`).
+ * That is a single source of truth: `channels` and `pendingRegistrations` used to be two
+ * maps with independent lifetimes, which let a reservation's timeout disagree with the
+ * registration side about whether a write was still pending.
+ *
+ * Every reservation exits `reserved` one of three ways: registration (the real write
+ * arrives), abandonment (an owning component unmounts before it could register - see
+ * `abandonDeferredWrite`), or - once registered - execution. App backgrounding does NOT
+ * abandon a reservation: it only pauses whatever is waiting to register (e.g. a throttled
+ * requestAnimationFrame), which still fires on resume, so abandoning there would resolve a
+ * submit-waiter before the write it is waiting for actually lands. A reservation with no
+ * component to hang an unmount cleanup on (e.g. `submitWithDismissFirst.ts`) instead relies
+ * on its `runAfterTransitions` caller guaranteeing registration - see the comment there.
  *
  * Note: The Search component has its own 10s safety timeout (clearOptimisticTracking)
  * for the UI-level optimistic item cache. The two timeouts serve different layers:
@@ -27,9 +40,13 @@ import Log from './Log';
 
 const DEFAULT_SAFETY_TIMEOUT_MS = 5000;
 
-type DeferredChannel = {
-    write: () => void;
-    safetyTimeoutId: ReturnType<typeof setTimeout>;
+type DeferredWriteState = 'reserved' | 'registered';
+
+type DeferredWrite = {
+    state: DeferredWriteState;
+
+    /** The real API write callback. Only set once `state` is 'registered'. */
+    write?: () => void;
 
     /**
      * An Onyx key that the deferred write will create via optimistic data.
@@ -42,44 +59,40 @@ type DeferredChannel = {
      * Report ID of the destination report the deferred write targets, when applicable.
      * Used by consumer components (loading skeletons, empty-state suppression) to scope
      * their "is a write in flight?" check to the report the user is actually viewing,
-     * instead of treating the channel as a global flag.
+     * instead of treating the record as a global flag.
      */
     destinationReportID?: string;
 
-    /** True when the channel was created by reserveDeferredWriteChannel. */
-    isReserved?: boolean;
-
     /**
-     * Set when flushDeferredWrite is called while the channel is still reserved.
+     * Set when flushDeferredWrite is called while the record is still reserved.
      * Signals that the target component already laid out and tried to flush,
      * so registerDeferredWrite should execute the real callback immediately
-     * instead of creating a new deferred channel.
+     * instead of leaving a record that nobody will flush.
      */
-    flushRequested?: boolean;
+    flushRequested: boolean;
+
+    /**
+     * True once the reservation's safety timeout fires without a real registration.
+     * This is what the old design signalled by deleting the channel outright - but
+     * doing that also erased the fact that a real write was still forthcoming, which
+     * is exactly what `isWritePending` needs to keep seeing. `isLayoutPending` goes
+     * false the moment this flips; `isWritePending` does not.
+     */
+    isLayoutStale: boolean;
+
+    safetyTimeoutId: ReturnType<typeof setTimeout>;
+
+    /** Only present while `state === 'reserved'`. Lets a caller await the real registration. */
+    registration?: {promise: Promise<void>; resolve: () => void};
 };
 
-const channels = new Map<string, DeferredChannel>();
+const writes = new Map<string, DeferredWrite>();
 
-// Resolver + destinationReportID for a reservation, keyed independently of `channels` so a
-// reservation's safety timeout can delete the channel (for hasDeferredWrite/flush purposes)
-// without also resolving this or losing the report scoping - the resolver must only fire once
-// the real callback actually registers, and that late registration still needs the original
-// destinationReportID (the timeout wipes it from `channels`) so hasDeferredWriteForReport keeps
-// matching it. Every reserveDeferredWriteChannel call site unconditionally follows up with the
-// real write, so resolving early or dropping the scope on the timeout would let a submit-waiter proceed (or
-// fail to flush) before that write lands, reproducing the exact submit-before-create race this
-// mechanism exists to prevent.
-const pendingRegistrations = new Map<string, {resolve: () => void; destinationReportID?: string; promise: Promise<void>}>();
-
-// Watch keys that outlive their channel. When a reserved channel is flushed
-// immediately (flushRequested path), the channel is deleted but the watch key
+// Watch keys that outlive their record. When a reserved record is flushed
+// immediately (flushRequested path), the record is deleted but the watch key
 // must remain accessible so Search's lazy getOptimisticWatchKey() resolution
 // can still find it.
 const flushedWatchKeys = new Map<string, OnyxKey>();
-
-function clearChannelTimeout(channel: DeferredChannel) {
-    clearTimeout(channel.safetyTimeoutId);
-}
 
 type DeferredWriteOptions = {
     safetyTimeoutMs?: number;
@@ -95,50 +108,44 @@ type DeferredWriteOptions = {
 function registerDeferredWrite(key: string, callback: () => void, options: DeferredWriteOptions = {}) {
     const {safetyTimeoutMs = DEFAULT_SAFETY_TIMEOUT_MS, optimisticWatchKey, destinationReportID: callerDestinationReportID} = options;
 
-    // Preserve the destination report ID across the reservation -> registration handoff so
-    // scoped consumers (`hasDeferredWriteForReport`) keep matching after the real callback
-    // replaces the reserved channel. Falls back to `pendingRegistrations` because the
-    // reservation's safety timeout may have already deleted `channels`' copy.
-    let destinationReportID: string | undefined = pendingRegistrations.get(key)?.destinationReportID;
-
-    const existing = channels.get(key);
+    const existing = writes.get(key);
 
     // Guards against a write for one report silently consuming another report's still-unresolved
     // reservation on the same global key (SEARCH/DISMISS_MODAL are not per-report). Only compares
     // when both sides actually supply a destinationReportID - fails open (allows the consume) when
     // either side is unscoped, since a false mismatch would leave the rightful reservation's
-    // pendingRegistrations entry unresolved forever (no safety net resolves it once this bypasses
-    // the normal handoff). When a real mismatch is detected, run the caller's write immediately and
-    // leave the existing reservation/pendingRegistrations entry untouched for its rightful owner.
-    let reservedReportID: string | undefined;
-    if (existing?.isReserved) {
-        reservedReportID = existing.destinationReportID;
-    } else if (!existing) {
-        reservedReportID = pendingRegistrations.get(key)?.destinationReportID;
-    }
+    // registration unresolved forever (no safety net resolves it once this bypasses the normal
+    // handoff). When a real mismatch is detected, run the caller's write immediately and leave the
+    // existing reservation untouched for its rightful owner.
+    const reservedReportID = existing?.state === 'reserved' ? existing.destinationReportID : undefined;
     if (reservedReportID && callerDestinationReportID && reservedReportID !== callerDestinationReportID) {
         callback();
         return;
     }
 
-    if (existing) {
-        if (existing.isReserved) {
-            destinationReportID = existing.destinationReportID;
-            clearChannelTimeout(existing);
-            const shouldFlushImmediately = existing.flushRequested;
-            channels.delete(key);
+    // Preserve the destination report ID across the reservation -> registration handoff so
+    // scoped consumers (`isLayoutPendingForReport` / `isWritePendingForReport`) keep matching
+    // after the real callback replaces the reservation.
+    const destinationReportID = reservedReportID;
+    let registration = existing?.registration;
 
-            if (shouldFlushImmediately) {
+    if (existing) {
+        if (existing.state === 'reserved') {
+            clearTimeout(existing.safetyTimeoutId);
+
+            if (existing.flushRequested) {
                 if (optimisticWatchKey) {
                     flushedWatchKeys.set(key, optimisticWatchKey);
                 }
+                writes.delete(key);
                 callback();
-                resolvePendingRegistration(key);
+                registration?.resolve();
                 return;
             }
         } else {
             Log.warn(`[DeferredLayoutWrite] Overwriting unflushed deferred write for key "${key}" - flushing the pending one first`);
             flushDeferredWrite(key);
+            registration = undefined;
         }
     }
 
@@ -147,79 +154,99 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
         flushDeferredWrite(key);
     }, safetyTimeoutMs);
 
-    channels.set(key, {write: callback, safetyTimeoutId, optimisticWatchKey, destinationReportID});
-    resolvePendingRegistration(key);
-}
-
-function resolvePendingRegistration(key: string) {
-    const pending = pendingRegistrations.get(key);
-    if (!pending) {
-        return;
-    }
-    pendingRegistrations.delete(key);
-    pending.resolve();
+    writes.set(key, {
+        state: 'registered',
+        write: callback,
+        safetyTimeoutId,
+        optimisticWatchKey,
+        destinationReportID,
+        flushRequested: false,
+        isLayoutStale: false,
+        registration,
+    });
+    registration?.resolve();
 }
 
 /**
  * Execute and clear the pending deferred write for the given key.
  * Called by the target component when actual content (not skeleton) lays out.
  *
- * If the channel is still reserved (real callback not yet registered), the
- * flush is deferred: the channel is marked `flushRequested` so that
+ * If the record is still reserved (real callback not yet registered), the
+ * flush is deferred: the record is marked `flushRequested` so that
  * registerDeferredWrite will execute the real callback immediately when it
- * arrives, instead of creating a new channel that nobody would flush.
+ * arrives, instead of creating a record that nobody would flush.
  */
 function flushDeferredWrite(key: string) {
-    const channel = channels.get(key);
-    if (!channel) {
+    const record = writes.get(key);
+    if (!record) {
         return;
     }
 
-    if (channel.isReserved) {
-        channel.flushRequested = true;
+    if (record.state === 'reserved') {
+        record.flushRequested = true;
         return;
     }
 
-    clearChannelTimeout(channel);
-    channels.delete(key);
-    channel.write();
+    clearTimeout(record.safetyTimeoutId);
+    writes.delete(key);
+    record.write?.();
 }
 
 /**
- * Cancel a pending deferred write without executing the callback.
- * Clears the safety timeout. No-op if no channel is registered for the key.
+ * Abandon a reservation without executing anything, resolving its registration promise
+ * so a submit-waiter does not hang forever. Only meaningful for a still-`reserved` record -
+ * a `registered` write has a real callback to run, not to drop, so it is left untouched.
+ *
+ * Resolves unconditionally whenever a reserved record exists, with no extra existence gate
+ * beyond that lookup: the old two-map design could have a reservation's safety timeout
+ * delete the channel out from under a caller trying to cancel it, silently turning cancel
+ * into a no-op. A record here is never deleted by its own timeout (only marked stale), so
+ * this always reaches the resolve.
  */
-function cancelDeferredWrite(key: string) {
-    const channel = channels.get(key);
-    if (!channel) {
+function abandonDeferredWrite(key: string) {
+    const record = writes.get(key);
+    if (record?.state !== 'reserved') {
         return;
     }
-    clearChannelTimeout(channel);
-    channels.delete(key);
-
-    // A cancelled write will never register, so a submit-waiter (e.g. submitReport) has nothing
-    // left to wait for - resolve it now instead of leaving it to time out later.
-    resolvePendingRegistration(key);
+    clearTimeout(record.safetyTimeoutId);
+    writes.delete(key);
+    record.registration?.resolve();
 }
 
 /**
- * Pre-create a channel so that hasDeferredWrite(key) returns true immediately.
+ * Pre-create a record so that isLayoutPending(key) returns true immediately.
  * The real callback will be registered later via registerDeferredWrite, which
- * silently replaces the reservation. A safety timeout is still set in case
- * the real registration never arrives.
+ * replaces the reservation. A safety timeout marks the reservation's layout
+ * stale if the real registration never arrives - it does not delete the
+ * record, since a write may still be forthcoming.
  *
  * Pass `destinationReportID` to pair the reservation with the report the
  * deferred write will land in, so consumers can scope their "is a write in
- * flight for THIS report?" check via `hasDeferredWriteForReport`.
+ * flight for THIS report?" check via `isLayoutPendingForReport` / `isWritePendingForReport`.
  */
 function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}) {
-    // Also guards on pendingRegistrations, not just channels: the reservation's own safety
-    // timeout can delete the channel while the real write is still forthcoming, possibly delayed
-    // by the app going to background. Without this, a second reservation on the same key in that
-    // window would overwrite the first one's entry here, orphaning its resolver (that submit-waiter
-    // then hangs forever) and attributing the first reservation's late registration to the second
-    // one's destinationReportID/promise instead.
-    if (channels.has(key) || pendingRegistrations.has(key)) {
+    const existing = writes.get(key);
+
+    if (existing) {
+        if (existing.state === 'registered') {
+            // A real write is already pending on this key; do not clobber it with a reservation.
+            return;
+        }
+
+        if (existing.isLayoutStale) {
+            // The previous reservation's safety timeout already fired with nothing registered.
+            // Re-arm rather than no-op: a second flow reserving the same key after that point
+            // still deserves layout-pending visibility and its own fresh safety window.
+            existing.isLayoutStale = false;
+            clearTimeout(existing.safetyTimeoutId);
+            existing.safetyTimeoutId = setTimeout(() => {
+                Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
+                const record = writes.get(key);
+                if (record) {
+                    record.isLayoutStale = true;
+                }
+            }, DEFAULT_SAFETY_TIMEOUT_MS);
+        }
         return;
     }
 
@@ -229,85 +256,113 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
     const registrationPromise = new Promise<void>((resolve) => {
         resolveRegistration = resolve;
     });
-    pendingRegistrations.set(key, {resolve: resolveRegistration, destinationReportID: options.destinationReportID, promise: registrationPromise});
 
-    // Deletes the channel (so hasDeferredWrite/flush stop treating it as pending) but does NOT
-    // touch `pendingRegistrations` - every call site always follows up with the real write, so a
-    // submit-waiter must keep waiting for that (and the real registration still needs the
-    // destinationReportID here), not be released/unscoped early just because this cleanup
-    // timeout raced ahead of the real registration, possibly delayed by the app going to background.
     const safetyTimeoutId = setTimeout(() => {
         Log.warn(`[DeferredLayoutWrite] Safety timeout fired for reserved channel "${key}" - the real write was never registered`);
-        channels.delete(key);
+        const record = writes.get(key);
+        if (record) {
+            record.isLayoutStale = true;
+        }
     }, DEFAULT_SAFETY_TIMEOUT_MS);
 
-    channels.set(key, {write: () => {}, safetyTimeoutId, isReserved: true, destinationReportID: options.destinationReportID});
-}
-
-function hasDeferredWrite(key: string): boolean {
-    return channels.has(key);
+    writes.set(key, {
+        state: 'reserved',
+        destinationReportID: options.destinationReportID,
+        flushRequested: false,
+        isLayoutStale: false,
+        safetyTimeoutId,
+        registration: {promise: registrationPromise, resolve: resolveRegistration},
+    });
 }
 
 /**
- * Scoped variant of `hasDeferredWrite`. Returns true when an active channel exists for `key`
- * (either reserved via `reserveDeferredWriteChannel` or fully registered via
- * `registerDeferredWrite`) AND its `destinationReportID` matches `reportID`. Channels stored
- * without a destination (e.g. SEARCH-flow writes, or DISMISS_MODAL reservations made before
- * the destination is known) never match - callers should fall back to `hasDeferredWrite` if
- * they need the global flag.
+ * True when a record exists for `key` and its layout has not gone stale. Drives skeleton /
+ * empty-state suppression - what "delete the channel" used to signal for those consumers.
  */
-function hasDeferredWriteForReport(key: string, reportID: string | undefined): boolean {
+function isLayoutPending(key: string): boolean {
+    const record = writes.get(key);
+    return !!record && !record.isLayoutStale;
+}
+
+/**
+ * Scoped variant of `isLayoutPending`. Records stored without a destination (e.g. SEARCH-flow
+ * writes, or DISMISS_MODAL reservations made before the destination is known) never match -
+ * callers should fall back to `isLayoutPending` if they need the global flag.
+ */
+function isLayoutPendingForReport(key: string, reportID: string | undefined): boolean {
     if (!reportID) {
         return false;
     }
-    return channels.get(key)?.destinationReportID === reportID;
+    const record = writes.get(key);
+    return !!record && !record.isLayoutStale && record.destinationReportID === reportID;
+}
+
+/**
+ * True when a record exists for `key`, regardless of layout staleness. Used for
+ * `deferOrExecuteWrite` gating and reservation dedupe, where what matters is whether a write
+ * (real or still-reserved) is outstanding, not whether its target has laid out yet.
+ */
+function isWritePending(key: string): boolean {
+    return writes.has(key);
+}
+
+/** Scoped variant of `isWritePending`, ignoring layout staleness. Used by submit-side flush checks. */
+function isWritePendingForReport(key: string, reportID: string | undefined): boolean {
+    if (!reportID) {
+        return false;
+    }
+    return writes.get(key)?.destinationReportID === reportID;
 }
 
 /**
  * Returns a promise that resolves once the reservation for `key` targeting `reportID` gets its
  * real callback registered. Returns undefined when there is no matching reservation, so callers
  * can distinguish "nothing to wait for" from "already resolved". Used by callers that cannot
- * register on the channel themselves (e.g. submitReport) but must not race ahead of a pending
+ * register on the record themselves (e.g. submitReport) but must not race ahead of a pending
  * create still waiting on the reservation.
- *
- * Reads from `pendingRegistrations`, not `channels` - the reservation's safety timeout may have
- * already deleted the channel while the real write is still forthcoming, and a caller invoked in
- * that exact window must still get a promise to wait on, not `undefined` (which it would read as
- * "nothing pending" and submit right away).
  */
 function getRegistrationPromiseForReport(key: string, reportID: string | undefined): Promise<void> | undefined {
     if (!reportID) {
         return undefined;
     }
-    const pending = pendingRegistrations.get(key);
-    if (pending?.destinationReportID !== reportID) {
+    const record = writes.get(key);
+    if (record?.state !== 'reserved' || record.destinationReportID !== reportID) {
         return undefined;
     }
-    return pending.promise;
+    return record.registration?.promise;
 }
 
 /**
- * Returns the Onyx key that the deferred write for the given channel will
- * create via optimistic data. Returns undefined when no channel is registered
- * or the channel was registered without a watch key.
+ * Returns the Onyx key that the deferred write for the given record will
+ * create via optimistic data. Returns undefined when no record is registered
+ * or the record was registered without a watch key.
  */
 function getOptimisticWatchKey(key: string): OnyxKey | undefined {
-    const channelKey = channels.get(key)?.optimisticWatchKey;
-    if (channelKey) {
-        return channelKey;
+    const recordKey = writes.get(key)?.optimisticWatchKey;
+    if (recordKey) {
+        return recordKey;
     }
     return flushedWatchKeys.get(key);
 }
 
-// Flush every pending deferred write when the app moves to background so
-// that API.write() calls are persisted to the SequentialQueue before the OS
-// can kill the process.
+// Flush every pending deferred write when the app moves to background so that API.write() calls
+// are persisted to the SequentialQueue before the OS can kill the process.
+//
+// A still-`reserved` record is deliberately NOT abandoned here, even with no `flushRequested`:
+// backgrounding pauses (does not cancel) whatever is waiting to register the real write - a
+// throttled requestAnimationFrame resumes and still fires once the app comes back to the
+// foreground. Abandoning would resolve a submit-waiter's registration promise while that write is
+// still genuinely forthcoming, so it would land its API.write() *after* SUBMIT_REPORT once the
+// rAF finally runs - reproducing the exact create-after-submit race this module exists to prevent.
+// If the process is killed instead of resumed, the module's in-memory state (and the abandoned rAF
+// itself) dies with it - no leak, and no submit is dispatched either, which is the better failure
+// mode (see the "app kill vs background" caveat in the PR description).
 AppState.addEventListener('change', (nextState) => {
-    if (nextState === 'active' || channels.size === 0) {
+    if (nextState === 'active' || writes.size === 0) {
         return;
     }
-    Log.info(`[DeferredLayoutWrite] App going to "${nextState}" - flushing ${channels.size} pending deferred write(s)`);
-    for (const key of [...channels.keys()]) {
+    Log.info(`[DeferredLayoutWrite] App going to "${nextState}" - flushing ${writes.size} pending deferred write(s)`);
+    for (const key of [...writes.keys()]) {
         flushDeferredWrite(key);
     }
 });
@@ -318,22 +373,12 @@ AppState.addEventListener('change', (nextState) => {
  *
  * Priority order (first match wins):
  *   1. SEARCH channel  - checked via the caller-provided `shouldDeferForSearch` flag
- *   2. DISMISS_MODAL   - checked automatically via `hasDeferredWrite`
- *   3. Immediate exec  - no active channel, run now
+ *   2. DISMISS_MODAL   - checked automatically via `isWritePending`
+ *   3. Immediate exec  - no active record, run now
  *
  * Callers pre-compute `shouldDeferForSearch` using their own eligibility logic.
- * The dismiss-modal channel is detected automatically via `hasDeferredWrite`.
+ * The dismiss-modal record is detected automatically via `isWritePending`.
  */
-// `hasDeferredWrite` alone misses a channel whose safety timeout already deleted it while
-// `pendingRegistrations` still has an unresolved entry (the real write is still forthcoming,
-// possibly delayed by the app going to background). Gating deferOrExecuteWrite on
-// `hasDeferredWrite` alone would run apiWrite() immediately instead of calling
-// registerDeferredWrite, orphaning that pendingRegistrations entry forever (its resolver never
-// fires, so a submit-waiter hangs and the key stays blocked for future reservations).
-function hasDeferredWriteOrPendingRegistration(key: string): boolean {
-    return hasDeferredWrite(key) || pendingRegistrations.has(key);
-}
-
 function deferOrExecuteWrite(
     apiWrite: () => void,
     options: {shouldDeferForSearch: boolean; isRetry?: boolean; optimisticWatchKey?: OnyxKey; onDeferred?: () => void; destinationReportID?: string},
@@ -349,7 +394,7 @@ function deferOrExecuteWrite(
     // Retries skip deferral to avoid infinite loops (retry -> defer -> flush -> retry).
     // The trade-off is that a retry's optimistic data may be applied mid-animation,
     // but this is acceptable: retries are rare and the alternative is a stuck write.
-    if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
+    if (!isRetry && isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, apiWrite, {optimisticWatchKey, destinationReportID});
         return;
@@ -357,7 +402,7 @@ function deferOrExecuteWrite(
 
     // Fallback: a reserved SEARCH channel (created by handleSearchDismiss before
     // createTransaction) that wasn't matched by the explicit shouldDeferForSearch flag.
-    if (!isRetry && hasDeferredWriteOrPendingRegistration(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+    if (!isRetry && isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
         onDeferred?.();
         registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, apiWrite, {optimisticWatchKey, destinationReportID});
         return;
@@ -367,30 +412,32 @@ function deferOrExecuteWrite(
 }
 
 /**
- * Clear all channels and flushed watch keys. Only for use in tests.
- * Exported from production code (rather than a test helper) so jest.mock
- * can auto-resolve it alongside the other exports. Gated behind __DEV__
- * so the function is a no-op in production (bundler dead-code eliminates the branch).
+ * Clear all records and flushed watch keys, resolving any outstanding registration promises
+ * first. Only for use in tests. Exported from production code (rather than a test helper) so
+ * jest.mock can auto-resolve it alongside the other exports. Gated behind __DEV__ so the
+ * function is a no-op in production (bundler dead-code eliminates the branch).
  */
 function resetForTesting() {
     if (!__DEV__) {
         return;
     }
-    for (const channel of channels.values()) {
-        clearChannelTimeout(channel);
+    for (const record of writes.values()) {
+        clearTimeout(record.safetyTimeoutId);
+        record.registration?.resolve();
     }
-    channels.clear();
+    writes.clear();
     flushedWatchKeys.clear();
-    pendingRegistrations.clear();
 }
 
 export {
     registerDeferredWrite,
     reserveDeferredWriteChannel,
     flushDeferredWrite,
-    cancelDeferredWrite,
-    hasDeferredWrite,
-    hasDeferredWriteForReport,
+    abandonDeferredWrite,
+    isLayoutPending,
+    isLayoutPendingForReport,
+    isWritePending,
+    isWritePendingForReport,
     getRegistrationPromiseForReport,
     getOptimisticWatchKey,
     deferOrExecuteWrite,
