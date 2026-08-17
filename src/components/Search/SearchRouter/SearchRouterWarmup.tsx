@@ -12,6 +12,7 @@ import {useEffect, useState} from 'react';
 import {getIsSearchRouterOpenOrOpening} from './SearchRouterContext';
 
 type OptionsWarmerProps = {
+    /** Called once the option list is cached (or the warm is no longer needed), so this component can unmount the warmer. */
     onDone: () => void;
 };
 

@@ -18,7 +18,7 @@ type SearchRouterOptionsWarmerProps = {
     onDone: () => void;
 };
 
-// Stop waiting for quiet after this many idle windows; a chatty account never fully stops writing.
+// Stop waiting for quiet after this many idle windows. A chatty account never fully stops writing.
 const MAX_QUIET_WAIT_ATTEMPTS = 5;
 
 /**

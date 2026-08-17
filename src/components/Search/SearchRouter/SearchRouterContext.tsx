@@ -35,7 +35,11 @@ function getIsSearchRouterOpenOrOpening() {
     return isSearchRouterOpenOrOpening;
 }
 
-export {getIsSearchRouterOpenOrOpening};
+function setIsSearchRouterOpenOrOpening(isOpenOrOpening: boolean) {
+    isSearchRouterOpenOrOpening = isOpenOrOpening;
+}
+
+export {getIsSearchRouterOpenOrOpening, setIsSearchRouterOpenOrOpening};
 
 type SearchRouterStateContextType = {
     isSearchRouterDisplayed: boolean;
