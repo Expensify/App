@@ -4682,6 +4682,7 @@ ${amount} pour ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
+            noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -6011,6 +6012,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous réglerez le solde de votre Carte Expensify.',
             settlementFrequencyInfo:
                 'Si vous souhaitez passer à un règlement mensuel, vous devrez connecter votre compte bancaire via Plaid et disposer d’un historique de solde positif sur 90 jours.',
+            monthlySettlementDate: (date: string) => `Les règlements des Cartes Expensify auront lieu le ${date} de chaque mois.`,
             applyCashbackToBill: 'Appliquer le cashback à ma facture Expensify',
             applyCashbackToBillDescription: 'Le cashback de la carte Expensify sera utilisé pour le paiement de votre facture Expensify.',
             frequency: {
@@ -9094,6 +9096,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 travelInvoicing: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
+            workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',

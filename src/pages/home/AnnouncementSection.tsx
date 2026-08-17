@@ -2,6 +2,7 @@ import DateIcon from '@components/DateIcon';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import WidgetContainer from '@components/WidgetContainer';
 
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -25,6 +26,7 @@ function AnnouncementSection() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
+    const icons = useMemoizedLazyExpensifyIcons(['NewWindow']);
     return (
         <WidgetContainer
             title={translate('homePage.announcements')}
@@ -38,6 +40,7 @@ function AnnouncementSection() {
                     titleStyle={styles.textBold}
                     onPress={() => Linking.openURL(announcement.url)}
                     shouldShowRightIcon
+                    iconRight={icons.NewWindow}
                     leftComponent={<DateIcon date={announcement.publishedDate} />}
                     wrapperStyle={[styles.alignItemsCenter, shouldUseNarrowLayout ? styles.ph5 : styles.ph8]}
                     hasSubMenuItems
