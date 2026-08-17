@@ -2153,6 +2153,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Installa l’ultima versione di Expensify',
         toGetLatestChanges: 'Per mobile, scarica e installa la versione più recente. Per il web, aggiorna il browser.',
         newAppNotAvailable: 'Aggiorna ora e ci ringrazierai più tardi.',
+        updateAvailable: 'Aggiornamento disponibile',
+        pleaseRefresh: 'Aggiorna questa pagina per ottenere la versione più recente di Expensify.',
+        refreshPage: 'Aggiorna pagina',
     },
     initialSettingsPage: {
         about: 'Informazioni',
@@ -5879,6 +5882,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             directFeed: 'Flusso diretto',
             whoNeedsCardAssigned: 'Chi ha bisogno di una carta assegnata?',
             chooseTheCardholder: 'Scegli il titolare della carta',
+            pleaseSelectACardholder: 'Seleziona un titolare della carta per continuare',
             chooseCard: 'Scegli una carta',
             chooseCardFor: (assignee: string) =>
                 `Scegli una carta per <strong>${assignee}</strong>. Non riesci a trovare la carta che stai cercando? <concierge-link>Facci sapere.</concierge-link>`,
@@ -6024,6 +6028,7 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             deleteFailureMessage: 'Si è verificato un errore durante l’eliminazione della categoria, riprova per favore',
             categoryName: 'Nome categoria',
             requiresCategory: 'I membri devono categorizzare tutte le spese',
+            showCategoryGLCodes: 'Mostra i codici CO.GE. quando classifichi le spese',
             needCategoryForExportToIntegration: (connectionName: string) => `Tutte le spese devono essere categorizzate per poterle esportare su ${connectionName}.`,
             subtitle: 'Ottieni una panoramica migliore di dove viene speso il denaro. Usa le nostre categorie predefinite oppure aggiungi le tue.',
             emptyCategories: {
@@ -7240,6 +7245,31 @@ Se vuoi assumere la fatturazione per l'intero abbonamento, chiedi loro di aggiun
 
 ${reportName}`,
             confirmText: 'Sì, esporta di nuovo',
+            cancelText: 'Annulla',
+        },
+        exportDifferentCompaniesModal: {
+            title: 'Attenzione!',
+            description: (connectionName: ConnectionName) =>
+                `I report selezionati sono collegati ad aziende ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diverse, quindi non possono essere esportati insieme. Seleziona i report collegati alla stessa azienda e riprova.`,
+            confirmText: 'Ho capito',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Esportare ${exportableCount}/${selectedCount} report in ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Verranno esportati solo i report collegati a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Verranno esportati solo i report idonei all’esportazione.`);
+                }
+                return `${reasons.join('\n\n')}\n\nVerranno esportati i seguenti report:`;
+            },
+            confirmText: () => ({
+                one: `Esporta 1 report`,
+                other: (count: number) => `Esporta ${count} report`,
+            }),
             cancelText: 'Annulla',
         },
         upgrade: {
@@ -9065,7 +9095,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Rimborso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Fatturazione viaggio consolidata',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Fatturazione viaggio consolidata',
             },
             is: 'È',
             has: {submittedViolation: 'Violazione inviata'},
@@ -9463,7 +9493,6 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         decline: 'Rifiuta',
     },
     actionableMentionTrackExpense: {
-        submit: 'Invialo a qualcuno',
         submitToFriend: 'Invia a un amico',
         submitToEmployer: 'Invia al mio datore di lavoro',
         categorize: 'Classificala',

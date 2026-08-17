@@ -22,6 +22,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
@@ -30,6 +31,7 @@ import {buildReportNameFromParticipantNames, computeReportName as computeReportN
 import type {OptionData} from '@libs/ReportUtils';
 import {
     areAllRequestsBeingSmartScanned,
+    buildEditedCommentWithAttachment,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -155,6 +157,7 @@ import {
     getWhisperDisplayNames,
     getWorkspaceNameUpdatedMessage,
     hasActionWithErrorsForTransaction,
+    hasReportBeenForwardedSinceLastSubmit,
     hasEmptyReportsForPolicy,
     hasExportError,
     hasNonReimbursableTransactions,
@@ -5750,6 +5753,100 @@ describe('ReportUtils', () => {
             expect(canEditRequest).toEqual(false);
         });
 
+        it('should use the passed reportActions to determine whether the report was forwarded since the last submit', async () => {
+            const reportID = '89015';
+            const transactionID = '89015-transaction';
+            const policyID = '89015-policy';
+            const submitsToAccountID = 2;
+
+            const reportPolicy: Policy = {
+                id: policyID,
+                name: 'Advanced approval policy',
+                role: CONST.POLICY.ROLE.USER,
+                type: CONST.POLICY.TYPE.CORPORATE,
+                owner: '',
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: false,
+                employeeList: {
+                    'lagertha2@vikings.net': {
+                        email: 'lagertha2@vikings.net',
+                        role: CONST.POLICY.ROLE.USER,
+                        submitsTo: 'floki@vikings.net',
+                    },
+                },
+            };
+            const expenseReport: Report = {
+                ...createExpenseReport(Number(reportID)),
+                reportID,
+                policyID,
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: currentUserAccountID,
+                managerID: submitsToAccountID,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            };
+            const transaction = {
+                ...createRandomTransaction(89015),
+                transactionID,
+                reportID,
+            };
+            const moneyRequestAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.IOU> = {
+                ...createRandomReportAction(89015),
+                reportID,
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                actorAccountID: currentUserAccountID,
+                message: [{type: CONST.REPORT.MESSAGE.TYPE.TEXT, text: ''}],
+                previousMessage: undefined,
+                originalMessage: {
+                    IOUTransactionID: transactionID,
+                    amount: 5000,
+                    currency: CONST.CURRENCY.USD,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                },
+            };
+            const submittedAction = {
+                ...createRandomReportAction(89016),
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                created: '2026-04-21 17:00:00',
+            };
+            const forwardedAction = {
+                ...createRandomReportAction(89017),
+                actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+                created: '2026-04-21 17:10:00',
+            };
+
+            const policyCollectionDataSet: CollectionDataSet<typeof ONYXKEYS.COLLECTION.POLICY> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}${policyID}`]: reportPolicy,
+            };
+            const reportCollectionDataSet: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]: expenseReport,
+            };
+            const transactionCollectionDataSet: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction,
+            };
+
+            // The report actions are deliberately NOT stored in Onyx: the function must rely on the reportActions it is given
+            await Onyx.multiSet({
+                [ONYXKEYS.PERSONAL_DETAILS_LIST]: participantsPersonalDetails,
+                [ONYXKEYS.SESSION]: {email: currentUserEmail, accountID: currentUserAccountID},
+                ...policyCollectionDataSet,
+                ...reportCollectionDataSet,
+                ...transactionCollectionDataSet,
+            });
+            await waitForBatchedUpdates();
+
+            // When the passed reportActions show no forward since the last submit, the submitter can still edit
+            expect(canEditMoneyRequest(moneyRequestAction, transaction, false, expenseReport, reportPolicy, {[submittedAction.reportActionID]: submittedAction})).toBe(true);
+
+            // When the passed reportActions show the report was forwarded after the last submit, the submitter can no longer edit
+            expect(
+                canEditMoneyRequest(moneyRequestAction, transaction, false, expenseReport, reportPolicy, {
+                    [submittedAction.reportActionID]: submittedAction,
+                    [forwardedAction.reportActionID]: forwardedAction,
+                }),
+            ).toBe(false);
+        });
+
         it('it should return true for pay iou action with IOUDetails which is linked to send money flow', async () => {
             const expenseReport: Report = {
                 reportID: '1',
@@ -6468,6 +6565,42 @@ describe('ReportUtils', () => {
 
         it('returns nothing to re-append once the attachment has synced', () => {
             expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
+        });
+
+        describe('buildEditedCommentWithAttachment', () => {
+            const attachmentTag = '<video src="blob:local" data-optimistic-src="blob:local">clip.mp4</video>';
+
+            it('separates the attachment from the text that was kept', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', attachmentTag)).toBe(`Hello edited<br /><br />${attachmentTag}`);
+            });
+
+            it('leaves no separator when the edit removed all of the text', () => {
+                expect(buildEditedCommentWithAttachment('', attachmentTag)).toBe(attachmentTag);
+            });
+
+            it('returns the comment untouched when nothing is uploading', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', undefined)).toBe('Hello edited');
+            });
+        });
+
+        describe('video attachments', () => {
+            const videoSource = 'blob:https://dev.new.expensify.com:8082/uuid-video';
+            const uploadingVideoHtml = `Hello<br /><br /><video src="${videoSource}" data-optimistic-src="${videoSource}" data-expensify-source="${videoSource}" data-name="clip.mp4">clip.mp4</video>`;
+
+            it('re-appends the whole video element, not just its opening tag', () => {
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingVideoHtml);
+
+                expect(tag).toContain('</video>');
+                expect(tag).toContain('>clip.mp4<');
+            });
+
+            it('survives a second edit, because the stored element still parses back to a reference', () => {
+                const storedAfterFirstEdit = `Hello edited<br /><br />${getUploadingAttachmentHtmlFromComment(uploadingVideoHtml)}`;
+                const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
+
+                expect(secondEditDraft).toContain(videoSource);
+                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+            });
         });
 
         it('does not swap in an attachment owned by a different report action', () => {
@@ -14388,17 +14521,29 @@ describe('ReportUtils', () => {
     });
 
     describe('canRejectReportAction', () => {
-        it('should return false if the user is not the report manager', async () => {
-            const approver = 'approver@gmail.com';
-            const expenseReport: Report = {
-                ...createRandomReport(0, undefined),
-                type: CONST.REPORT.TYPE.EXPENSE,
-                managerID: 1,
-            };
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                accountID: 2,
-            });
-            expect(canRejectReportAction(approver, expenseReport)).toBe(false);
+        const managerAccountID = 1;
+        const buildReportToReject = (): Report => ({
+            ...createRandomReport(0, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        });
+
+        it('should return false if the user is not the report manager', () => {
+            expect(canRejectReportAction(buildReportToReject(), 2)).toBe(false);
+        });
+
+        it('should return false when no account ID is passed', () => {
+            expect(canRejectReportAction(buildReportToReject(), undefined)).toBe(false);
+        });
+
+        it('should return true if the passed user is the manager of a report being processed', () => {
+            expect(canRejectReportAction(buildReportToReject(), managerAccountID)).toBe(true);
+        });
+
+        it('should return false for IOU reports even when the passed user is the manager', () => {
+            expect(canRejectReportAction({...buildReportToReject(), type: CONST.REPORT.TYPE.IOU}, managerAccountID)).toBe(false);
         });
     });
 
@@ -17096,7 +17241,40 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenPayeeMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
 
             // The nameless payee resolves to the marker, proving getDisplayNameForParticipant received the injected translate
-            expect(getPayeeName(report, translateWithMarker)).toBe('HiddenPayeeMarker');
+            expect(getPayeeName(report, translateWithMarker, currentUserAccountID)).toBe('HiddenPayeeMarker');
+        });
+
+        it('excludes the passed current user from the payee candidates', async () => {
+            // Other suites in this file mutate the shared personal details, so this test owns the accounts it asserts on
+            const payerAccountID = 665545;
+            const payeeAccountID = 665546;
+            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+                [payerAccountID]: {accountID: payerAccountID, login: 'payer@vikings.net', displayName: 'Payer', firstName: 'Payer'},
+                [payeeAccountID]: {accountID: payeeAccountID, login: 'payee@vikings.net', displayName: 'Payee', firstName: 'Payee'},
+            });
+            await waitForBatchedUpdates();
+
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'payee-current-user-report',
+                participants: buildParticipantsFromAccountIDs([payerAccountID, payeeAccountID]),
+            };
+
+            // With the payer treated as the current user, the remaining participant is the payee
+            expect(getPayeeName(report, translateLocal, payerAccountID)).toBe('Payee');
+
+            // Swapping which account is the current user swaps the resolved payee
+            expect(getPayeeName(report, translateLocal, payeeAccountID)).toBe('Payer');
+        });
+
+        it('returns undefined when the only participant is the passed current user', () => {
+            const report: Report = {
+                ...LHNTestUtils.getFakeReport(),
+                reportID: 'payee-only-current-user-report',
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
+            };
+
+            expect(getPayeeName(report, translateLocal, currentUserAccountID)).toBeUndefined();
         });
     });
 
@@ -18449,15 +18627,17 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because no policies were found to categorize with
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -18503,15 +18683,17 @@ describe('ReportUtils', () => {
 
                 // Then it should navigate to the upgrade page because it's ambiguous which policy to use
                 expect(Navigation.navigate).toHaveBeenCalledWith(
-                    ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                        action: CONST.IOU.ACTION.CATEGORIZE,
-                        iouType: CONST.IOU.TYPE.SUBMIT,
-                        transactionID: transaction.transactionID,
-                        reportID: '1',
-                        backTo: '',
-                        upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
-                        shouldSubmitExpense: true,
-                    }),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                            action: CONST.IOU.ACTION.CATEGORIZE,
+                            iouType: CONST.IOU.TYPE.SUBMIT,
+                            transactionID: transaction.transactionID,
+                            reportID: '1',
+                            upgradePath: CONST.UPGRADE_PATHS.CATEGORIES,
+                            shouldSubmitExpense: true,
+                        }),
+                        ROUTES.REPORT_WITH_ID.getRoute('1'),
+                    ),
                 );
             });
 
@@ -19522,6 +19704,96 @@ describe('ReportUtils', () => {
                 billableTotal: 125,
                 taxTotal: 12,
             });
+        });
+    });
+
+    describe('hasReportBeenForwardedSinceLastSubmit', () => {
+        const report = createMock<Report>({reportID: 'forwarded-since-last-submit'});
+        const submittedAction = createMock<ReportAction>({
+            reportActionID: '1',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-02 10:00:00.000',
+        });
+        const forwardedBeforeSubmitAction = createMock<ReportAction>({
+            reportActionID: '2',
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-01 10:00:00.000',
+        });
+        const forwardedAfterSubmitAction = createMock<ReportAction>({
+            reportActionID: '3',
+            actionName: CONST.REPORT.ACTIONS.TYPE.FORWARDED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-03 10:00:00.000',
+        });
+        const resubmittedAction = createMock<ReportAction>({
+            reportActionID: '4',
+            actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-04 10:00:00.000',
+        });
+
+        it('should return false when the report is undefined', () => {
+            expect(hasReportBeenForwardedSinceLastSubmit(undefined, {[submittedAction.reportActionID]: submittedAction})).toBe(false);
+        });
+
+        it('should return false when reportActions is not passed', () => {
+            expect(hasReportBeenForwardedSinceLastSubmit(report)).toBe(false);
+        });
+
+        it('should return true when a forwarded action was created after the last submit', () => {
+            const reportActions = {[submittedAction.reportActionID]: submittedAction, [forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction};
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(true);
+        });
+
+        it('should return false when the only forwarded action was created before the last submit', () => {
+            const reportActions = {[submittedAction.reportActionID]: submittedAction, [forwardedBeforeSubmitAction.reportActionID]: forwardedBeforeSubmitAction};
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
+        });
+
+        it('should return false when the report was resubmitted after being forwarded', () => {
+            const reportActions = {
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction,
+                [resubmittedAction.reportActionID]: resubmittedAction,
+            };
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
+        });
+
+        it('should return true when a forwarded action exists and the report was never submitted', () => {
+            expect(hasReportBeenForwardedSinceLastSubmit(report, {[forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction})).toBe(true);
+        });
+
+        it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {
+            // The Onyx-stored actions say the report was forwarded after the last submit...
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction,
+            });
+            await waitForBatchedUpdates();
+
+            // ...but the passed reportActions only contain the submit, and they must win
+            expect(hasReportBeenForwardedSinceLastSubmit(report, {[submittedAction.reportActionID]: submittedAction})).toBe(false);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
+            await waitForBatchedUpdates();
+        });
+
+        it('should fall back to the report actions stored in Onyx when reportActions is not passed', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, {
+                [submittedAction.reportActionID]: submittedAction,
+                [forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction,
+            });
+            await waitForBatchedUpdates();
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report)).toBe(true);
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
+            await waitForBatchedUpdates();
         });
     });
 

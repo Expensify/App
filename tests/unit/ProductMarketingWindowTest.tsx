@@ -34,6 +34,7 @@ import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Connections} from '@src/types/onyx/Policy';
 
+import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -60,6 +61,10 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     goBack: jest.fn(),
     isNavigationReady: jest.fn(() => Promise.resolve()),
 }));
+
+// The manager derives whether the 2FA setup flow is focused from the root navigation state, which the bare
+// NavigationContainer below never populates. These tests cover the other visibility conditions, so the flag stays false.
+jest.mock('@hooks/useRootNavigationState', () => jest.fn(() => false));
 
 // Keep setNameValuePair's optimistic Onyx merge (so persistence behavior is exercised end-to-end) while
 // dropping its API call and letting tests assert that the previous value is supplied for failure rollback.
@@ -124,13 +129,15 @@ function buildVendorEnabledAdminPolicy(policyID = POLICY_ID): Policy {
 
 const renderManager = (topmostRouteName?: string, theme: ThemePreferenceWithoutSystem = CONST.THEME.LIGHT) =>
     render(
-        <ThemeProvider theme={theme}>
-            <ThemeStylesProvider>
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
-                    <ProductMarketingWindowManager topmostRouteName={topmostRouteName} />
-                </ComposeProviders>
-            </ThemeStylesProvider>
-        </ThemeProvider>,
+        <NavigationContainer>
+            <ThemeProvider theme={theme}>
+                <ThemeStylesProvider>
+                    <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentUserPersonalDetailsProvider]}>
+                        <ProductMarketingWindowManager topmostRouteName={topmostRouteName} />
+                    </ComposeProviders>
+                </ThemeStylesProvider>
+            </ThemeProvider>
+        </NavigationContainer>,
     );
 
 async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID, initializeBetas = true}: {isAdmin: boolean; activePolicyID?: string; initializeBetas?: boolean}) {
@@ -822,5 +829,26 @@ describe('ProductMarketingWindowManager', () => {
             width: '100%',
             aspectRatio: variables.productMarketingWindowVisualAspectRatio,
         });
+    });
+
+    it('renders nothing while the Require 2FA page is showing', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {needsTwoFactorAuthSetup: true, requiresTwoFactorAuth: false});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.queryByText(adminHeading)).toBeNull();
+
+        // Once 2FA is set up the requirement page goes away, so the window is free to show again.
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {needsTwoFactorAuthSetup: false, requiresTwoFactorAuth: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByText(adminHeading)).toBeTruthy();
     });
 });
