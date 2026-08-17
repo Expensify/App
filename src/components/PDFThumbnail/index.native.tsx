@@ -2,8 +2,6 @@ import LoadingIndicator from '@components/LoadingIndicator';
 
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import React, {useState} from 'react';
 import {View} from 'react-native';
 import Pdf from 'react-native-pdf';
@@ -11,8 +9,6 @@ import Pdf from 'react-native-pdf';
 import type PDFThumbnailProps from './types';
 
 import PDFThumbnailError from './PDFThumbnailError';
-
-const PDF_THUMBNAIL_REASON_ATTRIBUTES: SkeletonSpanReasonAttributes = {context: 'PDFThumbnail'};
 
 function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, onPassword, onLoadError, onLoadSuccess}: PDFThumbnailProps) {
     const styles = useThemeStyles();
@@ -26,7 +22,7 @@ function PDFThumbnail({previewSourceURL, style, enabled = true, fitPolicy = 0, o
                     <Pdf
                         fitPolicy={fitPolicy}
                         trustAllCerts={false}
-                        renderActivityIndicator={() => <LoadingIndicator reasonAttributes={PDF_THUMBNAIL_REASON_ATTRIBUTES} />}
+                        renderActivityIndicator={() => <LoadingIndicator />}
                         singlePage
                         source={{uri: previewSourceURL}}
                         style={sizeStyles}

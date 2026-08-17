@@ -27,6 +27,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
     })),
 }));
 
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount', () =>
+    jest.fn(() => ({
+        shouldShowAddBankAccount: false,
+    })),
+);
+
 jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard', () =>
     jest.fn(() => ({
         shouldShowAddPaymentCard: false,
@@ -70,6 +76,7 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
     });
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: false,
         });

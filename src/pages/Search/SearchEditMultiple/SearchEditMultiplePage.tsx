@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -47,7 +47,7 @@ import {
 
 function SearchEditMultiplePage() {
     const {translate} = useLocalize();
-    const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
+    const {convertToDisplayStringWithoutCurrency, getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {currentSearchHash} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -207,6 +207,8 @@ function SearchEditMultiplePage() {
                 delegateAccountID,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 personalDetailsList,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             // Bulk edit can start from report (ID-based selection) or search (map-based selection),
             // so clear both stores to keep deselection behavior consistent.
@@ -346,14 +348,15 @@ function SearchEditMultiplePage() {
                     ))}
                 </ScrollView>
                 <Button
-                    success
-                    large
-                    text={translate('common.save')}
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={CONST.BUTTON_SIZE.LARGE}
                     onPress={save}
                     isLoading={isSaving}
                     isDisabled={isSaving}
                     style={[styles.m5]}
-                />
+                >
+                    <Button.Text>{translate('common.save')}</Button.Text>
+                </Button>
             </View>
         </ScreenWrapper>
     );
