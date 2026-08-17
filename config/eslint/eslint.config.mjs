@@ -338,6 +338,12 @@ const config = defineConfig([
             'rulesdir/no-useOnyx-dependencies-arg': 'error',
             // Ships as a warning while the synchronous read is still being introduced; promoted to an error once the first wave of conversions lands.
             'rulesdir/no-onyx-get-in-render': 'warn',
+            // Companion to the rule above, which deliberately allows module scope. A module body is not a render body, but it is not
+            // an event-time position either: it runs at import time, before Onyx.init() has hydrated the cache. Same warn-first staging.
+            'rulesdir/no-onyx-read-at-module-scope': 'warn',
+            // Position is what the two rules above police. This one polices order: a synchronous read after an un-awaited write in the
+            // same body returns the pre-write value, because Onyx.merge() and Onyx.update() apply in a later microtask. Same staging.
+            'rulesdir/no-onyx-read-after-write': 'warn',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
