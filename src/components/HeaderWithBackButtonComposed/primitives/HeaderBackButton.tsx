@@ -1,11 +1,6 @@
-import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Tooltip from '@components/Tooltip';
-
 import useInitialFocusRef from '@hooks/useInitialFocusRef';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -13,6 +8,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 
 import {Keyboard} from 'react-native';
+
+import HeaderTooltipIconButton from './HeaderTooltipIconButton';
 
 type HeaderBackButtonProps = {
     /** Method to trigger when pressing the back button of the header. Defaults to `Navigation.goBack()`. */
@@ -26,35 +23,28 @@ type HeaderBackButtonProps = {
 };
 
 function HeaderBackButton({onPress = () => Navigation.goBack(), iconFill, shouldSkipFocusAfterTransition = false}: HeaderBackButtonProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['BackArrow']);
     const setBackButtonRef = useInitialFocusRef({shouldSkip: shouldSkipFocusAfterTransition});
 
     return (
-        <Tooltip text={translate('common.back')}>
-            <PressableWithoutFeedback
-                ref={setBackButtonRef}
-                onPress={() => {
-                    if (Keyboard.isVisible()) {
-                        Keyboard.dismiss();
-                    }
-                    onPress();
-                }}
-                // Header makes the space for this button with the padding, so we need to add negative margin to fill the space
-                style={[styles.touchableButtonImage, styles.mln3]}
-                role={CONST.ROLE.BUTTON}
-                accessibilityLabel={translate('common.back')}
-                id={CONST.BACK_BUTTON_NATIVE_ID}
-                sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
-            >
-                <Icon
-                    src={icons.BackArrow}
-                    fill={iconFill ?? theme.icon}
-                />
-            </PressableWithoutFeedback>
-        </Tooltip>
+        <HeaderTooltipIconButton
+            ref={setBackButtonRef}
+            text={translate('common.back')}
+            onPress={() => {
+                if (Keyboard.isVisible()) {
+                    Keyboard.dismiss();
+                }
+                onPress();
+            }}
+            iconSrc={icons.BackArrow}
+            iconFill={iconFill}
+            // Header makes the space for this button with the padding, so we need to add negative margin to fill the space
+            style={styles.mln3}
+            id={CONST.BACK_BUTTON_NATIVE_ID}
+            sentryLabel={CONST.SENTRY_LABEL.HEADER.BACK_BUTTON}
+        />
     );
 }
 

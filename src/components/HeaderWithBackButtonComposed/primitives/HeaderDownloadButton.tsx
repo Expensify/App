@@ -1,7 +1,4 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Icon from '@components/Icon';
-import PressableWithoutFeedback from '@components/Pressable/PressableWithoutFeedback';
-import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -12,6 +9,8 @@ import useThrottledButtonState from '@hooks/useThrottledButtonState';
 import getButtonState from '@libs/getButtonState';
 
 import CONST from '@src/CONST';
+
+import HeaderTooltipIconButton from './HeaderTooltipIconButton';
 
 type HeaderDownloadButtonProps = {
     /** Method to trigger when pressing the download button. */
@@ -36,31 +35,24 @@ function HeaderDownloadButton({onPress, isLoading = false, iconFill}: HeaderDown
     }
 
     return (
-        <Tooltip text={translate('common.download')}>
-            <PressableWithoutFeedback
-                onPress={(event) => {
-                    // Blur to avoid overlapping a Growl notification with the Tooltip (#15271)
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- web-only DOM interop to blur the pressable
-                    (event?.currentTarget as HTMLElement)?.blur();
+        <HeaderTooltipIconButton
+            text={translate('common.download')}
+            onPress={(event) => {
+                // Blur to avoid overlapping a Growl notification with the Tooltip (#15271)
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- web-only DOM interop to blur the pressable
+                (event?.currentTarget as HTMLElement)?.blur();
 
-                    if (!isDownloadButtonActive) {
-                        return;
-                    }
+                if (!isDownloadButtonActive) {
+                    return;
+                }
 
-                    onPress();
-                    temporarilyDisableDownloadButton();
-                }}
-                style={[styles.touchableButtonImage]}
-                role="button"
-                accessibilityLabel={translate('common.download')}
-                sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
-            >
-                <Icon
-                    src={icons.Download}
-                    fill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
-                />
-            </PressableWithoutFeedback>
-        </Tooltip>
+                onPress();
+                temporarilyDisableDownloadButton();
+            }}
+            iconSrc={icons.Download}
+            iconFill={iconFill ?? StyleUtils.getIconFillColor(getButtonState(false, false, !isDownloadButtonActive))}
+            sentryLabel={CONST.SENTRY_LABEL.HEADER.DOWNLOAD_BUTTON}
+        />
     );
 }
 
