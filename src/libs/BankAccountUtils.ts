@@ -80,7 +80,7 @@ function getIncompleteBankAccountStatus(): BankAccountConnectionStatus {
  * being set up. So for those, PENDING means the setup is incomplete rather than waiting on the user to confirm test
  * transactions.
  *
- * This keys off currency rather than country because currency is what selects the flow everywhere else — see
+ * This keys off currency rather than country because currency is what selects the flow everywhere else. See
  * ReimbursementAccountPage, which routes a PENDING account to the validation (test transaction) step only when the
  * currency is USD. An absent currency is treated as USD, matching BankAccount.getCurrency().
  */
