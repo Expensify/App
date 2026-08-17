@@ -832,12 +832,15 @@ describe('NumberWithSymbolForm', () => {
                 await waitForBatchedUpdatesWithAct();
 
                 fireEvent(getTextInput(), 'keyPress', {nativeEvent: {key: 'Delete', ctrlKey: false}});
+                fireEvent.changeText(getTextInput(), '124');
+                await waitForBatchedUpdatesWithAct();
+
                 fireEvent.press(screen.getByTestId('button_<'));
                 await waitForBatchedUpdatesWithAct();
 
-                expect(screen.getByDisplayValue('134')).toBeTruthy();
+                expect(screen.getByDisplayValue('14')).toBeTruthy();
                 expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
-                expect(onInputChange).toHaveBeenLastCalledWith('134');
+                expect(onInputChange).toHaveBeenLastCalledWith('14');
             });
         });
     });
