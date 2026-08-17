@@ -337,6 +337,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.deleteRates', {count: selectedDistanceRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                 icon: icons.Trashcan,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (!canDisableOrDeleteSelectedRates) {
                         showWarningModal();
@@ -362,6 +363,7 @@ function PolicyDistanceRatesPage({
                 text: translate('workspace.distanceRates.disableRates', {count: enabledRates.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
                 icon: icons.Close,
+                shouldSkipFocusRestore: !canDisableOrDeleteSelectedRates,
                 onSelected: () => (canDisableOrDeleteSelectedRates ? disableRates() : showWarningModal()),
             });
         }

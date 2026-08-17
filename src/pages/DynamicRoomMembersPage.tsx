@@ -293,6 +293,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
                 }),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
+                shouldSkipFocusRestore: true,
                 onSelected: showRemoveMembersModal,
             },
         ];

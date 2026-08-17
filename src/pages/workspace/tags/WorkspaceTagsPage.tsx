@@ -604,6 +604,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTag' : 'workspace.tags.deleteTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
                         showConfirmModal({
@@ -654,6 +655,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Close,
                 text: translate(enabledTagCount === 1 ? 'workspace.tags.disableTag' : 'workspace.tags.disableTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject),
                 onSelected: () => {
                     if (isDisablingOrDeletingLastEnabledTag(policyTagLists.at(0), selectedTagsObject)) {
                         showConfirmModal({
@@ -705,6 +707,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 icon: expensifyIcons.Close,
                 text: translate('workspace.tags.notRequireTags'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.REQUIRE,
+                shouldSkipFocusRestore: isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists),
                 onSelected: () => {
                     if (isMakingLastRequiredTagListOptional(policy, policyTags, selectedTagLists)) {
                         showConfirmModal({

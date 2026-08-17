@@ -234,6 +234,7 @@ function WorkspaceTaxesPage({
                 icon: icons.Trashcan,
                 text: isMultiple ? translate('workspace.taxes.actions.deleteMultiple') : translate('workspace.taxes.actions.delete'),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.taxes.actions.delete'),

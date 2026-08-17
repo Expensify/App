@@ -4,6 +4,7 @@ import Table, {composeTableHeaderComponent} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
+import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 import type Navigation from '@libs/Navigation/Navigation';
 
 import CONST from '@src/CONST';
@@ -41,6 +42,7 @@ const mockFlashListScrollToOffset = jest.fn();
 const mockFlashListMount = jest.fn();
 const mockFlashListUnmount = jest.fn();
 const mockTextInputFocus = jest.fn();
+const mockTextInputBlur = jest.fn();
 const mockTextInputMount = jest.fn();
 const mockTextInputUnmount = jest.fn();
 const mockTextInputNativeFocus = jest.fn();
@@ -359,8 +361,9 @@ jest.mock('@components/TextInput', () => {
         onClearInput?: () => void;
         onFocus?: () => void;
         onBlur?: () => void;
+        editable?: boolean;
     };
-    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; isFocused: () => boolean}>) => {
+    const MockTextInput = ReactLocal.forwardRef((props: MockTextInputProps, ref: React.Ref<{focus: () => void; blur: () => void; isFocused: () => boolean}>) => {
         const isFocusedRef = ReactLocal.useRef(false);
         const [nativeID] = ReactLocal.useState(() => `mock-search-input-${++mockNextTextInputInstanceID}`);
         ReactLocal.useEffect(() => {
@@ -377,6 +380,10 @@ jest.mock('@components/TextInput', () => {
                 isFocusedRef.current = true;
                 mockTextInputFocus();
             },
+            blur: () => {
+                isFocusedRef.current = false;
+                mockTextInputBlur();
+            },
             isFocused: () => isFocusedRef.current,
         }));
 
@@ -386,6 +393,7 @@ jest.mock('@components/TextInput', () => {
                     testID="search-input"
                     nativeID={nativeID}
                     accessibilityLabel={props.accessibilityLabel}
+                    editable={props.editable}
                     value={props.value}
                     onChangeText={props.onChangeText}
                     onFocus={() => {
@@ -1053,6 +1061,46 @@ describe('Table', () => {
             expect(mockTextInputMount).toHaveBeenCalledTimes(1);
             expect(mockTextInputUnmount).not.toHaveBeenCalled();
             expect(mockTextInputNativeBlur).not.toHaveBeenCalled();
+        });
+
+        it('keeps table search suppressed until every modal owner releases and then blurs without refocusing', () => {
+            const props = createDefaultProps();
+            render(
+                <Table<TestItem, TestColumnKey>
+                    data={props.data}
+                    columns={props.columns}
+                    renderItem={props.renderItem}
+                    keyExtractor={props.keyExtractor}
+                    isItemInSearch={props.isItemInSearch}
+                    headerComponent={<Table.FilterBar label="Search" />}
+                >
+                    <Table.Body />
+                </Table>,
+            );
+
+            const searchInput = screen.getByTestId('search-input');
+            fireEvent(searchInput, 'focus');
+            fireEvent.changeText(searchInput, 'apple');
+
+            let releaseFirstOwner = () => {};
+            let releaseSecondOwner = () => {};
+            act(() => {
+                releaseFirstOwner = acquireBackgroundInputFocusSuppression();
+                releaseSecondOwner = acquireBackgroundInputFocusSuppression();
+            });
+
+            expect(screen.getByTestId('search-input').props.editable).toBe(false);
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+            expect(mockTextInputBlur).not.toHaveBeenCalled();
+
+            act(() => releaseFirstOwner());
+            expect(screen.getByTestId('search-input').props.editable).toBe(false);
+            expect(mockTextInputBlur).not.toHaveBeenCalled();
+
+            act(() => releaseSecondOwner());
+            expect(screen.getByTestId('search-input').props.editable).toBe(true);
+            expect(mockTextInputFocus).not.toHaveBeenCalled();
+            expect(mockTextInputBlur).toHaveBeenCalledTimes(1);
         });
 
         it('should preserve a composed search slot when an earlier optional header slot toggles', () => {

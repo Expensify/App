@@ -496,8 +496,10 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         onNavigationCallBack: () => Navigation.goBack(),
     });
 
+    const hasSelectedRuleBot = selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy));
+
     const changeUserRole = (role: ValueOf<typeof CONST.POLICY.ROLE>) => {
-        if (role !== CONST.POLICY.ROLE.ADMIN && selectedEmployees.some((email) => isRuleBotEnforcingRules(policyMemberEmailsToAccountIDs[email], policy))) {
+        if (role !== CONST.POLICY.ROLE.ADMIN && hasSelectedRuleBot) {
             showRuleBotGuardModal('changeRole', policyID);
             return;
         }
@@ -523,6 +525,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 text: translate('workspace.people.removeMembersTitle', {count: selectedEmployees.length}),
                 value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.REMOVE,
                 icon: icons.RemoveMembers,
+                shouldSkipFocusRestore: true,
                 onSelected: askForConfirmationToRemove,
             });
         }
@@ -535,6 +538,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             text: translate('workspace.people.makeMember', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_MEMBER,
             icon: icons.User,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.USER),
         };
         const adminOption = {
@@ -548,24 +552,28 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
             text: translate('workspace.people.makeAuditor', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_AUDITOR,
             icon: icons.UserEye,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.AUDITOR),
         };
         const cardAdminOption = {
             text: translate('workspace.people.makeCardAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_CARD_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.CARD_ADMIN),
         };
         const peopleAdminOption = {
             text: translate('workspace.people.makePeopleAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PEOPLE_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PEOPLE_ADMIN),
         };
         const paymentsAdminOption = {
             text: translate('workspace.people.makePaymentsAdmin', {count: selectedEmployees.length}),
             value: CONST.POLICY.MEMBERS_BULK_ACTION_TYPES.MAKE_PAYMENTS_ADMIN,
             icon: icons.MakeAdmin,
+            shouldSkipFocusRestore: hasSelectedRuleBot,
             onSelected: () => changeUserRole(CONST.POLICY.ROLE.PAYMENTS_ADMIN),
         };
 

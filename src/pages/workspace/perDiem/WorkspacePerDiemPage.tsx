@@ -273,6 +273,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 icon: expensifyIcons.Trashcan,
                 text: translate('workspace.perDiem.deleteRates', {count: selectedSubRateKeys.length}),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.perDiem.deletePerDiemRate'),

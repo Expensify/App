@@ -198,6 +198,7 @@ function AgentsPage() {
             text: translate('agentsPage.deleteAgentsTitle', {count: selectedAgentKeys.length}),
             value: CONST.AGENTS.BULK_ACTION_TYPES.DELETE,
             icon: icons.Trashcan,
+            shouldSkipFocusRestore: true,
             onSelected: askForConfirmationToDelete,
         },
     ];

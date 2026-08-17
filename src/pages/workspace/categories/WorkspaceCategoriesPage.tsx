@@ -436,6 +436,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Trashcan,
                     text: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategory' : 'workspace.categories.deleteCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                    shouldSkipFocusRestore: true,
                     onSelected: async () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             showCannotDeleteOrDisableLastCategoryModal();
@@ -471,6 +472,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                     icon: icons.Close,
                     text: translate(enabledCategories.length === 1 ? 'workspace.categories.disableCategory' : 'workspace.categories.disableCategories'),
                     value: CONST.POLICY.BULK_ACTION_TYPES.DISABLE,
+                    shouldSkipFocusRestore: isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject),
                     onSelected: () => {
                         if (isDisablingOrDeletingLastEnabledCategory(policy, policyCategories, selectedCategoriesObject)) {
                             showCannotDeleteOrDisableLastCategoryModal();

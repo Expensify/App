@@ -193,6 +193,7 @@ function PolicyRulesPageRevamp({route}: PolicyRulesPageRevampProps) {
                     count: selectedRuleKeys.length,
                 }),
                 value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
+                shouldSkipFocusRestore: true,
                 onSelected: async () => {
                     const {action} = await showConfirmModal({
                         title: translate('workspace.rules.merchantRules.deleteRule'),

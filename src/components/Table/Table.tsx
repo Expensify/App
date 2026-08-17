@@ -9,13 +9,15 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import getPlatform from '@libs/getPlatform';
+import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import CONST from '@src/CONST';
 
 import type {FlashListRef} from '@shopify/flash-list';
 import type {ReactElement} from 'react';
 
-import React, {useImperativeHandle, useRef} from 'react';
+import React, {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 
 import type {TableContextValue} from './TableContext';
 import type {TableHeaderProps} from './TableHeader';
@@ -271,6 +273,10 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const processedData = highlightMiddleware(selectionData);
 
     const listRef = useRef<FlashListRef<DataType>>(null);
+    const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
+    const mobileSelectionModalRowKeyRef = useRef(mobileSelectionModalRowKey);
+    const [shouldSubmitMobileSelection, setShouldSubmitMobileSelection] = useState(false);
+    const [shouldSkipMobileSelectionFocusRestore, setShouldSkipMobileSelectionFocusRestore] = useState(false);
     // Keeps the table search input visible above the keyboard when it is focused inside the
     // scrolling list (native only; the web variant of the hook is a no-op).
     const {isKeyboardShown} = useKeyboardState();
@@ -322,13 +328,40 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     useImperativeHandle(ref, () => createTableHandle(tableMethods, listRef, () => processedData, tableListMetadata.listDataRowOffset));
 
     const handleMobileSelectionPress = () => {
-        turnOnMobileSelectionMode();
-
-        if (mobileSelectionModalRowKey) {
-            tableMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
-            tableMethods.setMobileSelectionModalRowKey(null);
+        if (!mobileSelectionModalRowKey) {
+            return;
         }
+
+        const shouldSuppressFocusRestore = getPlatform() === CONST.PLATFORM.IOS;
+        if (shouldSuppressFocusRestore && !releaseBackgroundInputFocusSuppressionRef.current) {
+            releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
+        }
+        setShouldSkipMobileSelectionFocusRestore(shouldSuppressFocusRestore);
+        setShouldSubmitMobileSelection(true);
     };
+
+    useLayoutEffect(() => {
+        mobileSelectionModalRowKeyRef.current = mobileSelectionModalRowKey;
+    }, [mobileSelectionModalRowKey]);
+
+    useLayoutEffect(() => {
+        if (!shouldSubmitMobileSelection || !mobileSelectionModalRowKey) {
+            return;
+        }
+
+        setShouldSubmitMobileSelection(false);
+        turnOnMobileSelectionMode();
+        selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
+        selectionMethods.setMobileSelectionModalRowKey(null);
+    }, [mobileSelectionModalRowKey, selectionMethods, shouldSkipMobileSelectionFocusRestore, shouldSubmitMobileSelection]);
+
+    useEffect(
+        () => () => {
+            releaseBackgroundInputFocusSuppressionRef.current?.();
+            releaseBackgroundInputFocusSuppressionRef.current = null;
+        },
+        [],
+    );
 
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
@@ -389,7 +422,16 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 shouldPreventScrollOnFocus
                 isVisible={!!mobileSelectionModalRowKey}
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
+                restoreFocusType={shouldSkipMobileSelectionFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : undefined}
                 onClose={() => tableMethods.setMobileSelectionModalRowKey(null)}
+                onModalHide={() => {
+                    if (mobileSelectionModalRowKeyRef.current) {
+                        return;
+                    }
+                    releaseBackgroundInputFocusSuppressionRef.current?.();
+                    releaseBackgroundInputFocusSuppressionRef.current = null;
+                    setShouldSkipMobileSelectionFocusRestore(false);
+                }}
             >
                 <MenuItem
                     icon={icons.CheckSquare}

@@ -118,6 +118,7 @@ function ExpenseRulesPage() {
             icon: icons.Trashcan,
             text: translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSingle' : 'expenseRulesPage.deleteRule.deleteMultiple'),
             value: CONST.EXPENSE_RULES.BULK_ACTION_TYPES.DELETE,
+            shouldSkipFocusRestore: true,
             onSelected: () => setDeleteConfirmModalVisible(true),
         },
     ];
