@@ -4998,6 +4998,9 @@ ${amount} voor ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Xero-incasso rekening voor facturen',
                 xeroBillPaymentAccountDescription: 'Kies vanwaar je rekeningen wilt betalen en wij maken de betaling aan in Xero.',
                 invoiceAccountSelectorDescription: 'Kies waar je factuurbetalingen wilt ontvangen en wij maken de betaling aan in Xero.',
+                xeroFxExpenseAccount: 'Xero-rekening voor kosten valutaconversie',
+                fxExpenseAccountDescription:
+                    'Wanneer je bedrijf de kosten voor valutaomrekening van een betaling in het buitenland voor zijn rekening neemt, boeken we die kosten in Xero op deze rekening als een handmatige journaalpost.',
             },
             exportDate: {
                 label: 'Aankoopfactuurdatum',

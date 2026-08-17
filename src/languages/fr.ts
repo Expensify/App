@@ -5041,6 +5041,9 @@ ${amount} pour ${merchant} - ${date}`,
                 xeroInvoiceCollectionAccount: 'Compte d’encaissement des factures Xero',
                 xeroBillPaymentAccountDescription: 'Choisissez d’où payer les factures et nous créerons le paiement dans Xero.',
                 invoiceAccountSelectorDescription: 'Choisissez où recevoir les paiements de factures et nous créerons le paiement dans Xero.',
+                xeroFxExpenseAccount: 'Compte de frais de conversion de devise Xero',
+                fxExpenseAccountDescription:
+                    'Lorsque votre entreprise prend en charge les frais de conversion de devise sur un paiement effectué à l’étranger, nous comptabiliserons ces frais dans ce compte dans Xero sous forme d’écriture de journal manuelle.',
             },
             exportDate: {
                 label: 'Date de facture d’achat',
