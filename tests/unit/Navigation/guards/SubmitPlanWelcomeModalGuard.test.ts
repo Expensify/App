@@ -35,7 +35,6 @@ const submitPlanWelcomeRoute = createDynamicRoute(DYNAMIC_ROUTES.SUBMIT_PLAN_WEL
 /** Enables all trigger conditions so the guard would redirect. */
 async function setUpEligibleUser() {
     mockGetGroupPoliciesWhereReportCanBeCreated.mockReturnValue([]);
-    await Onyx.merge(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
     await Onyx.merge(ONYXKEYS.NVP_INTRO_SELECTED, {choice: CONST.ONBOARDING_CHOICES.EMPLOYER});
     await Onyx.merge(ONYXKEYS.NVP_ONBOARDING, {hasCompletedGuidedSetupFlow: true});
     // HAS_LOADED_APP flips to true only after OpenApp finishes loading this session's account data (incl. the
@@ -97,15 +96,6 @@ describe('SubmitPlanWelcomeModalGuard', () => {
         if (result.type === 'REDIRECT') {
             expect(result.route).toBe(submitPlanWelcomeRoute);
         }
-    });
-
-    it('should allow when the SUBMIT_2026 beta is not enabled', async () => {
-        await setUpEligibleUser();
-        await Onyx.merge(ONYXKEYS.BETAS, []);
-        await waitForBatchedUpdates();
-
-        const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
-        expect(result.type).toBe('ALLOW');
     });
 
     it('should allow when the user did not select the EMPLOYER intent', async () => {
