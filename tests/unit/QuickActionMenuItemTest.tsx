@@ -114,14 +114,14 @@ describe('QuickActionMenuItem', () => {
         expect(mockTranslate).toHaveBeenCalledWith('quickAction.paySomeone', 'SPY_NAME');
     });
 
-    it('shows the workspace fallback quick action for a group policy even if the policy flag is absent', async () => {
+    it('shows the workspace fallback quick action for a group policy even if the policy expense chat flag is absent', async () => {
         const props = await renderWithActivePolicy(CONST.POLICY.TYPE.TEAM);
 
         expect(mockFABFocusableMenuItem).toHaveBeenCalled();
         expect(props).toEqual(expect.objectContaining({isVisible: true}));
     });
 
-    it('hides the workspace fallback quick action for a personal policy even if the policy flag is absent', async () => {
+    it('hides the workspace fallback quick action for a personal policy even if the policy expense chat flag is absent', async () => {
         const props = await renderWithActivePolicy(CONST.POLICY.TYPE.PERSONAL);
 
         expect(mockFABFocusableMenuItem).toHaveBeenCalled();
