@@ -1401,6 +1401,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
                 const isItemInvoice = isInvoiceReport(item.reportID);
                 let chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
+                let isFallbackChatReport = false;
                 if (!chatReport) {
                     // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
                     // built from the known IDs and let the server fill in the chat data.
@@ -1415,6 +1416,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         continue;
                     }
                     chatReport = {reportID: fallbackChatReportID, policyID: item.policyID ?? iouReport.policyID};
+                    isFallbackChatReport = true;
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
@@ -1512,6 +1514,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    isFallbackChatReport,
                 });
                 paidReportCount += 1;
             }

@@ -149,7 +149,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
         // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
         // built from the known IDs and let the server fill in the chat data.
-        const fallbackChatReport = iouReport?.chatReportID ? {reportID: iouReport.chatReportID, policyID: iouReport.policyID ?? policyID} : undefined;
+        const fallbackChatReportID = iouReport?.chatReportID ?? iouReport?.parentReportID;
+        const fallbackChatReport = fallbackChatReportID ? {reportID: fallbackChatReportID, policyID: iouReport?.policyID ?? policyID} : undefined;
         const chatReportForPayment = chatReport ?? fallbackChatReport;
         if (!chatReportForPayment) {
             Log.info('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID});
@@ -160,6 +161,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
+            isFallbackChatReport: !chatReport,
             iouReport,
             introSelected,
             currentUserAccountID,

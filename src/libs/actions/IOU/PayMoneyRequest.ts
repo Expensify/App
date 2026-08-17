@@ -126,6 +126,7 @@ type PayMoneyRequestFunctionParams = {
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isFallbackChatReport?: boolean;
 };
 
 function mergeAdditionalPayOnyxData<
@@ -172,6 +173,7 @@ function getPayMoneyRequestParams({
     chatReportActions,
     isTrackIntentUser,
     getCurrencyDecimals,
+    isFallbackChatReport,
 }: {
     initialChatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -197,6 +199,7 @@ function getPayMoneyRequestParams({
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    isFallbackChatReport?: boolean;
 }): PayMoneyRequestData {
     // TODO: https://github.com/Expensify/App/issues/66512
     // eslint-disable-next-line @typescript-eslint/no-deprecated
@@ -421,11 +424,19 @@ function getPayMoneyRequestParams({
                 ...iouReport,
             },
         },
-        {
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-            value: chatReport,
-        },
+        isFallbackChatReport
+            ? {
+                  // The fallback chat report didn't exist in Onyx before the optimistic update — restore that state,
+                  // since re-merging the fallback object can't undo the optimistic paid-state fields.
+                  onyxMethod: Onyx.METHOD.SET,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                  value: null,
+              }
+            : {
+                  onyxMethod: Onyx.METHOD.MERGE,
+                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+                  value: chatReport,
+              },
     );
 
     // In case the report preview action is loaded locally, let's update it.
@@ -803,6 +814,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isFallbackChatReport,
     } = params;
     const policyForBillingRestriction = chatReportPolicy ?? (policy?.id === chatReport.policyID ? policy : undefined);
     if (
@@ -839,6 +851,7 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         chatReportActions,
         isTrackIntentUser,
         getCurrencyDecimals,
+        isFallbackChatReport,
     });
 
     // For now, we need to call the PayMoneyRequestWithWallet API since PayMoneyRequest was not updated to work with
