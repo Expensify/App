@@ -582,6 +582,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -1002,7 +1003,6 @@ const CONST = {
         SUGGESTED_FOLLOWUPS: 'suggestedFollowups',
         BULK_EDIT: 'bulkEdit',
         NEW_MANUAL_EXPENSE_FLOW: 'newManualExpenseFlow',
-        SUBMIT_2026: 'submit2026',
         WALLET_CONNECTION_STATUS: 'walletConnectionStatus',
         BULK_SUBMIT_APPROVE_PAY: 'bulkSubmitApprovePay',
         VENDOR_MATCHING: 'vendorMatching',
@@ -2200,6 +2200,13 @@ const CONST = {
             APPLY: 'StartupData.Apply',
             RENDER: 'StartupData.Render',
         },
+        /** Phases of the Search data load. Deliberately separate span names from SPAN_STARTUP_DATA so each metric keeps its own history in Sentry. */
+        SPAN_SEARCH_DATA: {
+            QUEUE: 'SearchData.Queue',
+            WAIT: 'SearchData.Wait',
+            DOWNLOAD: 'SearchData.Download',
+            APPLY: 'SearchData.Apply',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2300,6 +2307,7 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_REQUEST_ID: 'request_id',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -5459,7 +5467,6 @@ const CONST = {
         GO_TO_WORKSPACE: 'goToWorkspace',
         ERROR: 'error',
         TRACK: {
-            SUBMIT: 'submit',
             SUBMIT_TO_FRIEND: 'submitToFriend',
             SUBMIT_TO_EMPLOYER: 'submitToEmployer',
             CATEGORIZE: 'categorize',
@@ -6862,6 +6869,7 @@ const CONST = {
             EDIT: 'edit',
             EXPORT: 'export',
             DOWNLOAD_PDF: 'downloadPDF',
+            DOWNLOAD_RECEIPTS: 'downloadReceipts',
             DOWNLOAD_STATEMENT_PDF: 'downloadStatementPDF',
             APPROVE: 'approve',
             CHANGE_APPROVER: 'changeApprover',

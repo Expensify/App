@@ -2051,15 +2051,15 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
 }
 
-function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>): boolean {
+function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
     if (!report?.reportID) {
         return false;
     }
 
-    const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
-    const lastSubmittedAt = reportActions.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
+    const reportActionsArray = Object.values(reportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
+    const lastSubmittedAt = reportActionsArray.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
 
-    return reportActions.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
+    return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
@@ -4999,6 +4999,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
+    reportActions?: OnyxEntry<ReportActions>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -5078,7 +5079,7 @@ function canEditMoneyRequest(
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded =
             getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, allPersonalDetails)) !== moneyRequestReport.managerID ||
-            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
+            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport, reportActions);
         return !isForwarded;
     }
 
@@ -6304,14 +6305,14 @@ function getModifiedExpenseOriginalMessage(
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate): string | undefined {
+function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, currentUserAccountID: number | undefined): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
 
     const participantsWithoutCurrentUser = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID);
 
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
@@ -12042,15 +12043,17 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
             );
             return;
         }
@@ -12080,7 +12083,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
         return;
     }
 
@@ -13479,11 +13484,11 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
+function canRejectReportAction(report: Report, currentUserAccountID: number | undefined): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
-    const isCurrentUserManager = report?.managerID === deprecatedCurrentUserAccountID;
+    const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
 
     if (!isCurrentUserManager) {
         return false;
@@ -13532,6 +13537,20 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
+function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction {
+    return (
+        isExportIntegrationAction(action) ||
+        isIntegrationMessageAction(action) ||
+        isDynamicExternalWorkflowSubmitFailedAction(action) ||
+        isDynamicExternalWorkflowApproveFailedAction(action) ||
+        isSubmittedAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
+    );
+}
+
 function selectFilteredReportActions(
     reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
 ): Record<string, ReportAction[]> | undefined {
@@ -13540,20 +13559,19 @@ function selectFilteredReportActions(
     }
 
     return Object.fromEntries(
-        Object.entries(reportActions).map(([reportID, actionsGroup]) => {
-            const actions = Object.values(actionsGroup ?? {});
-            const filteredActions = actions.filter(
-                (action): action is ReportAction =>
-                    isExportIntegrationAction(action) ||
-                    isIntegrationMessageAction(action) ||
-                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
-                    isDynamicExternalWorkflowApproveFailedAction(action) ||
-                    isSubmittedAction(action) ||
-                    isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED),
-            );
-            return [reportID, filteredActions];
-        }),
+        Object.entries(reportActions).map(([reportActionsKey, actionsGroup]) => [reportActionsKey, Object.values(actionsGroup ?? {}).filter(isSearchRelevantReportAction)]),
     );
+}
+
+function selectFilteredReportActionsForReports(
+    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
+    reportActionsKeys: string[],
+): Record<string, ReportAction[]> {
+    const result: Record<string, ReportAction[]> = {};
+    for (const reportActionsKey of reportActionsKeys) {
+        result[reportActionsKey] = Object.values(reportActions?.[reportActionsKey] ?? {}).filter(isSearchRelevantReportAction);
+    }
+    return result;
 }
 
 /**
@@ -14250,6 +14268,7 @@ export {
     getPolicyIDsWithEmptyReportsForAccount,
     getActionErrorsByTransaction,
     hasActionWithErrorsForTransaction,
+    hasReportBeenForwardedSinceLastSubmit,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,
     hasHeldExpenses,
@@ -14354,6 +14373,7 @@ export {
     parseReportRouteParams,
     requiresAttentionFromCurrentUser,
     selectFilteredReportActions,
+    selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,

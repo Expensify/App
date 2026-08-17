@@ -8,7 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionAction
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
-import {exportReportsToPDF} from '@libs/actions/Export';
+import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {approveMoneyRequest} from '@libs/actions/IOU/ReportWorkflow';
@@ -2160,6 +2160,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         [snapshotReport],
                                         [policyForSubmit],
                                         getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                        getCurrencyDecimals,
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
@@ -2181,7 +2182,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
                         }
                     }
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
@@ -2244,6 +2245,45 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         return;
                     }
                     const exportID = exportReportsToPDF(selectedReportIDs);
+                    trackExport(exportID);
+                },
+            });
+        }
+
+        const hasSelectedReportsWithExpenses = selectedReports.some((report) => (currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`]?.transactionCount ?? 0) > 0);
+        if (isExpenseReportSearch && selectedReportIDs.length > 0 && hasSelectedReportsWithExpenses) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    const exportID = exportReceiptsToZip({reportIDs: selectedReportIDs});
+                    trackExport(exportID);
+                },
+            });
+        }
+
+        const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
+        // A group selected before its children load is stored under a group_ key, which is not a real
+        // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
+        const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
+        if (isExpenseSearch && selectedTransactionsKeys.length > 0 && transactionIDs.length > 0) {
+            options.push({
+                icon: expensifyIcons.Download,
+                text: translate('common.downloadReceipts'),
+                value: CONST.SEARCH.BULK_ACTION_TYPES.DOWNLOAD_RECEIPTS,
+                shouldCloseModalOnSelect: true,
+                onSelected: () => {
+                    if (isOffline) {
+                        setIsOfflineModalVisible(true);
+                        return;
+                    }
+                    const exportID = exportReceiptsToZip({transactionIDs});
                     trackExport(exportID);
                 },
             });

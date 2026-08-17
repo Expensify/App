@@ -2077,6 +2077,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
         toGetLatestChanges: '在移动端，请下载并安装最新版本。在网页端，请刷新浏览器。',
         newAppNotAvailable: '现在更新，以后你会感谢我们的。',
+        updateAvailable: '有可用更新',
+        pleaseRefresh: '请刷新此页面以获取最新版本的 Expensify。',
+        refreshPage: '刷新页面',
     },
     initialSettingsPage: {
         about: '关于',
@@ -5686,6 +5689,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             directFeed: '直接连接',
             whoNeedsCardAssigned: '谁需要分配一张卡？',
             chooseTheCardholder: '选择持卡人',
+            pleaseSelectACardholder: '请选择持卡人以继续',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息源中没有活动卡片',
@@ -5826,6 +5830,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
             emptyCategories: {
@@ -9099,7 +9104,6 @@ ${reportName}`,
         decline: '拒绝',
     },
     actionableMentionTrackExpense: {
-        submit: '提交给某人',
         submitToFriend: '提交给朋友',
         submitToEmployer: '提交给我的雇主',
         categorize: '对其分类',
