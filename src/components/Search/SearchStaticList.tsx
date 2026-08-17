@@ -12,7 +12,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {isLayoutPending} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
@@ -87,7 +87,7 @@ function SearchStaticList({
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const [showPendingExpensePlaceholder, setShowPendingExpensePlaceholder] = useState(
-        () => hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
+        () => isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH) || Navigation.getIsFullscreenPreInsertedUnderRHP(),
     );
 
     const {type, sortBy, sortOrder, groupBy} = queryJSON;
@@ -122,7 +122,7 @@ function SearchStaticList({
     // the destination is visible (focus signal for the dual-gate span ending).
     useFocusEffect(
         useCallback(() => {
-            const hasPendingWrite = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            const hasPendingWrite = isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
             if (!showPendingExpensePlaceholder && hasPendingWrite) {
                 setShowPendingExpensePlaceholder(true);
             } else if (showPendingExpensePlaceholder && !hasPendingWrite && sortedData.length > 0) {

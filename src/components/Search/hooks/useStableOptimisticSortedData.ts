@@ -1,6 +1,6 @@
 import type {SearchListItem, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import {getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {getOptimisticWatchKey, isLayoutPending} from '@libs/deferredLayoutWrite';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -103,7 +103,7 @@ function useStableOptimisticSortedData(sortedData: SearchListItem[], searchResul
 
         if (!tracking.optimisticWatchKey) {
             const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
-            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            if (!cleanup && !isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
                 clearOptimisticTracking();
             }
             return cleanup;

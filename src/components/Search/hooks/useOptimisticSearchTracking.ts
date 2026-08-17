@@ -1,6 +1,6 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
-import {flushDeferredWrite, getOptimisticWatchKey, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {flushDeferredWrite, getOptimisticWatchKey, isLayoutPending} from '@libs/deferredLayoutWrite';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {isSearchDataLoaded, isTransactionSearchType} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
@@ -42,7 +42,7 @@ type UseOptimisticSearchTrackingParams = {
 function useOptimisticSearchTracking({searchResults, queryJSON, transactions, reportActions}: UseOptimisticSearchTrackingParams) {
     const {type} = queryJSON;
 
-    const hasPendingWriteOnMount = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+    const hasPendingWriteOnMount = isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
     const initialWatchKey = getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
 
     const mutableRef = useRef<TrackingMutableState>({
@@ -110,7 +110,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
         // Step 1: resolve watch key if not yet available.
         if (!optimisticWatchKey) {
             const cleanup = resolveWatchKey(tracking, setOptimisticWatchKey);
-            if (!cleanup && !hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
+            if (!cleanup && !isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)) {
                 clearOptimisticTracking();
             }
             return cleanup;
@@ -186,7 +186,7 @@ function useOptimisticSearchTracking({searchResults, queryJSON, transactions, re
 
     /**
      * Re-arms optimistic tracking for subsequent expense creations while Search
-     * stays mounted. Called from useFocusEffect when hasDeferredWrite is detected
+     * stays mounted. Called from useFocusEffect when isLayoutPending is detected
      * on re-focus.
      *
      * Safe to call setState here: useFocusEffect only fires while the component

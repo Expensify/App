@@ -1,4 +1,4 @@
-import {flushDeferredWrite, hasDeferredWrite} from '@libs/deferredLayoutWrite';
+import {flushDeferredWrite, isLayoutPending} from '@libs/deferredLayoutWrite';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import type CONST from '@src/CONST';
@@ -22,7 +22,7 @@ type DeferredLayoutWriteKey = ValueOf<typeof CONST.DEFERRED_LAYOUT_WRITE_KEYS>;
 function useFlushDeferredWriteOnFocus(key: DeferredLayoutWriteKey) {
     useFocusEffect(
         useCallback(() => {
-            if (!hasDeferredWrite(key)) {
+            if (!isLayoutPending(key)) {
                 return;
             }
             const handle = TransitionTracker.runAfterTransitions({
