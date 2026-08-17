@@ -188,12 +188,12 @@ function MultifactorAuthenticationRevokePage() {
                             {/* The isCurrentDeviceRegistered guard guarantees localCredentialID is
                                truthy here. Do not remove this guard without updating the non-null assertion on localCredentialID below. */}
                             {isCurrentDeviceRegistered && (
-                                <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.thisDevice')}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
+                                <MenuItem.Root>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('multifactorAuthentication.revoke.thisDevice')}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
                                             <Button
                                                 variant={CONST.BUTTON_VARIANT.DANGER}
                                                 size={CONST.BUTTON_SIZE.SMALL}
@@ -207,17 +207,17 @@ function MultifactorAuthenticationRevokePage() {
                                             >
                                                 <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
                                             </Button>
-                                        </View>
-                                    }
-                                />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             )}
                             {otherDeviceCount > 0 && (
-                                <MenuItem
-                                    title={translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}
-                                    interactive={false}
-                                    shouldShowRightComponent
-                                    rightComponent={
-                                        <View style={styles.justifyContentCenter}>
+                                <MenuItem.Root>
+                                    <MenuItem.Row>
+                                        <MenuItem.Content>
+                                            <MenuItem.Title>{translate('multifactorAuthentication.revoke.otherDevices', otherDeviceCount)}</MenuItem.Title>
+                                        </MenuItem.Content>
+                                        <MenuItem.Trailing>
                                             <Button
                                                 variant={CONST.BUTTON_VARIANT.DANGER}
                                                 size={CONST.BUTTON_SIZE.SMALL}
@@ -228,9 +228,9 @@ function MultifactorAuthenticationRevokePage() {
                                             >
                                                 <Button.Text>{translate('multifactorAuthentication.revoke.revoke')}</Button.Text>
                                             </Button>
-                                        </View>
-                                    }
-                                />
+                                        </MenuItem.Trailing>
+                                    </MenuItem.Row>
+                                </MenuItem.Root>
                             )}
                         </View>
                     )}

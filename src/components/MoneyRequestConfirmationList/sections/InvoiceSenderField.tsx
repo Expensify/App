@@ -1,3 +1,4 @@
+import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import MenuItem from '@components/MenuItem';
 
 import useLocalize from '@hooks/useLocalize';
@@ -18,6 +19,7 @@ import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {emailSelector} from '@selectors/Session';
 import React from 'react';
+import {View} from 'react-native';
 
 type InvoiceSenderFieldProps = {
     /** The selected participants */
@@ -58,29 +60,47 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
         selector: createCanUpdateSenderWorkspaceSelector(isInvoiceRoomParticipant, currentUserLogin, isFromGlobalCreate),
     });
 
+    const isInteractive = !isReadOnly && !!canUpdateSenderWorkspace;
+
     return (
-        <MenuItem
-            avatarID={senderWorkspace?.id}
-            shouldShowRightIcon={!isReadOnly && !!canUpdateSenderWorkspace}
-            title={senderWorkspace?.name}
-            icon={senderWorkspace?.avatarURL}
-            iconType={CONST.ICON_TYPE_WORKSPACE}
-            description={translate('workspace.common.workspace')}
-            label={translate('workspace.invoices.sendFrom')}
-            isLabelHoverable={false}
-            interactive={!isReadOnly && !!canUpdateSenderWorkspace}
-            onPress={() => {
-                if (!transaction?.transactionID) {
-                    return;
+        <>
+            <View style={[styles.ph5, styles.mt2]}>
+                <MenuItem.Label>{translate('workspace.invoices.sendFrom')}</MenuItem.Label>
+            </View>
+            <MenuItem.Root
+                onPress={
+                    isInteractive
+                        ? () => {
+                              if (!transaction?.transactionID) {
+                                  return;
+                              }
+                              Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
+                          }
+                        : undefined
                 }
-                Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SEND_FROM.path));
-            }}
-            style={styles.moneyRequestMenuItem}
-            labelStyle={styles.mt2}
-            titleStyle={styles.flex1}
-            disabled={didConfirm}
-            sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
-        />
+                isDisabled={didConfirm}
+                sentryLabel={CONST.SENTRY_LABEL.REQUEST_CONFIRMATION_LIST.SEND_FROM_FIELD}
+            >
+                <MenuItem.Row>
+                    <MenuItem.Leading>
+                        <WorkspaceAvatar
+                            source={senderWorkspace?.avatarURL}
+                            name={senderWorkspace?.name ?? ''}
+                            avatarID={senderWorkspace?.id ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    </MenuItem.Leading>
+                    <MenuItem.Content>
+                        <MenuItem.Title>{senderWorkspace?.name ?? ''}</MenuItem.Title>
+                        <MenuItem.Description>{translate('workspace.common.workspace')}</MenuItem.Description>
+                    </MenuItem.Content>
+                    {isInteractive && (
+                        <MenuItem.Trailing>
+                            <MenuItem.Chevron />
+                        </MenuItem.Trailing>
+                    )}
+                </MenuItem.Row>
+            </MenuItem.Root>
+        </>
     );
 }
 

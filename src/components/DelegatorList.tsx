@@ -6,7 +6,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import CONST from '@src/CONST';
 
 import React from 'react';
+import {View} from 'react-native';
 
+import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
 import Text from './Text';
 
@@ -33,17 +35,25 @@ function DelegatorList({delegators, message}: DelegatorListProps) {
                 const displayLogin = formattedLogin || delegatorEmail;
 
                 return (
-                    <MenuItem
+                    <View
                         key={delegatorEmail}
-                        title={delegatorDetails?.displayName ?? displayLogin}
-                        description={displayLogin}
-                        avatarID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                        icon={delegatorDetails?.avatar ?? icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        numberOfLinesDescription={1}
-                        containerStyle={[styles.pr2, styles.mt1]}
-                        interactive={false}
-                    />
+                        style={styles.mt1}
+                    >
+                        <MenuItem.Root>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <UserAvatar
+                                        source={delegatorDetails?.avatar ?? icons.FallbackAvatar}
+                                        accountID={delegatorDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                                    />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{delegatorDetails?.displayName ?? displayLogin}</MenuItem.Title>
+                                    <MenuItem.Description numberOfLines={1}>{displayLogin}</MenuItem.Description>
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
                 );
             })}
         </>

@@ -9,6 +9,7 @@ import type {BaseVacationDelegate} from '@src/types/onyx/VacationDelegate';
 
 import React from 'react';
 
+import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
@@ -46,7 +47,45 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     const formattedDelegateLogin = formatPhoneNumber(vacationDelegatePersonalDetails?.login ?? '');
     const fallbackVacationDelegateLogin = formattedDelegateLogin === '' ? vacationDelegate?.delegate : formattedDelegateLogin;
 
-    return hasVacationDelegate ? (
+    // With a delegate set, the row shows their name with their login underneath. Without one, the field's
+    // own label takes the description slot as a placeholder, so it renders at the standalone size instead.
+    const description = hasVacationDelegate ? fallbackVacationDelegateLogin : translate('common.vacationDelegate');
+
+    const delegateRow = (
+        <MenuItem.Root onPress={onPress}>
+            <MenuItem.Row>
+                {hasVacationDelegate && (
+                    <MenuItem.Leading>
+                        <UserAvatar
+                            source={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
+                            accountID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
+                        />
+                    </MenuItem.Leading>
+                )}
+                <MenuItem.Content>
+                    {hasVacationDelegate && <MenuItem.Title>{vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin ?? ''}</MenuItem.Title>}
+                    {!!description && (
+                        <MenuItem.Description
+                            variant={hasVacationDelegate ? 'supporting' : 'standalone'}
+                            numberOfLines={hasVacationDelegate ? 1 : 2}
+                        >
+                            {description}
+                        </MenuItem.Description>
+                    )}
+                </MenuItem.Content>
+                <MenuItem.Trailing>
+                    <MenuItem.Chevron />
+                </MenuItem.Trailing>
+            </MenuItem.Row>
+        </MenuItem.Root>
+    );
+
+    // The section heading and the offline/error feedback only exist once a delegate is set.
+    if (!hasVacationDelegate) {
+        return delegateRow;
+    }
+
+    return (
         <>
             <Text style={[styles.mh5, styles.mt5, styles.mutedTextLabel]}>{translate('common.vacationDelegate')}</Text>
             <OfflineWithFeedback
@@ -55,24 +94,9 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                 errorRowStyles={styles.mh5}
                 onClose={onCloseError}
             >
-                <MenuItem
-                    title={vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin}
-                    description={fallbackVacationDelegateLogin}
-                    avatarID={vacationDelegatePersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    icon={vacationDelegatePersonalDetails?.avatar ?? icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
-                    numberOfLinesDescription={1}
-                    shouldShowRightIcon
-                    onPress={onPress}
-                />
+                {delegateRow}
             </OfflineWithFeedback>
         </>
-    ) : (
-        <MenuItem
-            description={translate('common.vacationDelegate')}
-            shouldShowRightIcon
-            onPress={onPress}
-        />
     );
 }
 

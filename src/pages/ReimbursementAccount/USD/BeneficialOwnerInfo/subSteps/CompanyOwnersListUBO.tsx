@@ -1,6 +1,8 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import Button from '@components/ButtonComposed';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import MenuItem from '@components/MenuItem';
+import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
@@ -63,21 +65,14 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
             const beneficialOwnerData = getValuesForBeneficialOwner(ownerKey, reimbursementAccountDraft);
 
             return (
-                <MenuItem
+                <MenuItemEntity
                     key={ownerKey}
                     title={`${beneficialOwnerData.firstName} ${beneficialOwnerData.lastName}`}
                     description={`${beneficialOwnerData.street}, ${beneficialOwnerData.city}, ${beneficialOwnerData.state} ${beneficialOwnerData.zipCode}`}
-                    wrapperStyle={[styles.ph5]}
-                    icon={icons.FallbackAvatar}
-                    iconType={CONST.ICON_TYPE_AVATAR}
+                    accountID={CONST.DEFAULT_NUMBER_ID}
                     onPress={() => {
                         handleUBOEdit(ownerKey);
                     }}
-                    iconWidth={40}
-                    iconHeight={40}
-                    interactive
-                    shouldShowRightIcon
-                    displayInDefaultIconColor
                 />
             );
         });
@@ -92,18 +87,20 @@ function CompanyOwnersListUBO({isAnyoneElseUBO, isUserUBO, handleUBOsConfirmatio
             <View>
                 <Text style={[styles.textSupporting, styles.pv1, styles.ph5]}>{`${translate('beneficialOwnerInfoStep.owners')}:`}</Text>
                 {isUserUBO && (
-                    <MenuItem
-                        title={`${requestorData.firstName} ${requestorData.lastName}`}
-                        description={`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}
-                        wrapperStyle={[styles.ph5]}
-                        icon={icons.FallbackAvatar}
-                        iconType={CONST.ICON_TYPE_AVATAR}
-                        iconWidth={40}
-                        iconHeight={40}
-                        interactive={false}
-                        shouldShowRightIcon={false}
-                        displayInDefaultIconColor
-                    />
+                    <MenuItem.Root>
+                        <MenuItem.Row>
+                            <MenuItem.Leading>
+                                <UserAvatar
+                                    source={icons.FallbackAvatar}
+                                    accountID={CONST.DEFAULT_NUMBER_ID}
+                                />
+                            </MenuItem.Leading>
+                            <MenuItem.Content>
+                                <MenuItem.Title>{`${requestorData.firstName} ${requestorData.lastName}`}</MenuItem.Title>
+                                <MenuItem.Description>{`${requestorData.requestorAddressStreet}, ${requestorData.requestorAddressCity}, ${requestorData.requestorAddressState} ${requestorData.requestorAddressZipCode}`}</MenuItem.Description>
+                            </MenuItem.Content>
+                        </MenuItem.Row>
+                    </MenuItem.Root>
                 )}
                 {extraBeneficialOwners}
             </View>

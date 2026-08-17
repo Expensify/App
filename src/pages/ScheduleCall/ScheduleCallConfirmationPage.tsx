@@ -5,6 +5,7 @@ import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -31,6 +32,7 @@ import type {PersonalDetails} from '@src/types/onyx';
 import {useRoute} from '@react-navigation/native';
 import {addMinutes} from 'date-fns';
 import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function ScheduleCallConfirmationPage() {
     const styles = useThemeStyles();
@@ -109,14 +111,25 @@ function ScheduleCallConfirmationPage() {
             <FullPageOfflineBlockingView>
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
                     <Text style={[styles.mb5, styles.ph5, styles.colorMuted]}>{translate('scheduledCall.confirmation.description')}</Text>
-                    <MenuItem
-                        style={styles.mb3}
-                        title={guideDetails?.displayName}
-                        description={guideDetails?.login}
-                        label={translate('scheduledCall.confirmation.setupSpecialist')}
-                        interactive={false}
-                        iconAccountID={guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID}
-                    />
+                    <View style={styles.mb3}>
+                        <MenuItem.Root>
+                            <View style={styles.mb2}>
+                                <MenuItem.Label>{translate('scheduledCall.confirmation.setupSpecialist')}</MenuItem.Label>
+                            </View>
+                            <MenuItem.Row>
+                                <MenuItem.Leading>
+                                    <ReportActionAvatars
+                                        singleAvatarContainerStyle={[styles.actionAvatar]}
+                                        accountIDs={[guideDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID]}
+                                    />
+                                </MenuItem.Leading>
+                                <MenuItem.Content>
+                                    <MenuItem.Title>{guideDetails?.displayName ?? ''}</MenuItem.Title>
+                                    {!!guideDetails?.login && <MenuItem.Description>{guideDetails.login}</MenuItem.Description>}
+                                </MenuItem.Content>
+                            </MenuItem.Row>
+                        </MenuItem.Root>
+                    </View>
                     <MenuItemWithTopDescription
                         title={dateTimeString}
                         description={translate('scheduledCall.confirmation.dateTime')}
