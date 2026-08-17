@@ -118,12 +118,12 @@ function useReportActionsNewActionLiveTail({
 
                 const index = renderedVisibleReportActions.findIndex((item) => item.reportActionID === action?.reportActionID);
                 if (action?.actionName === CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW) {
-                    if (index > 0) {
+                    setIsFloatingMessageCounterVisible(false);
+                    if (index >= 0 && index < renderedVisibleReportActions.length - 1) {
                         setTimeout(() => {
                             reportScrollManager.scrollToIndex(index);
                         }, 100);
                     } else {
-                        setIsFloatingMessageCounterVisible(false);
                         reportScrollManager.scrollToBottom();
                     }
                     if (action?.reportActionID) {

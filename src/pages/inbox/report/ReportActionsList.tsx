@@ -2,6 +2,7 @@ import {renderScrollComponent as renderActionSheetAwareScrollView} from '@compon
 import type {ActionListRef} from '@components/FlashList/types';
 import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
 
+import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useEnvironment from '@hooks/useEnvironment';
 import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
 import useLocalize from '@hooks/useLocalize';
@@ -86,12 +87,12 @@ type ReportActionsListProps = ReportActionsListContentProps;
 const PAGINATION_THRESHOLD = 0.75;
 
 /**
- * Create a unique key for each action in the FlatList.
+ * Create a unique key for each action in the list.
  * We use the reportActionID that is a string representation of a random 64-bit int, which should be
  * random enough to avoid collisions
  */
 function keyExtractor(item: OnyxTypes.ReportAction): string {
-    // A report has exactly one CREATED action. Using a stable key lets FlashList recycle the same cell
+    // A report has exactly one CREATED action. Using a stable key lets the list recycle the same cell
     // when the optimistic CREATED is swapped for the server one, avoiding a remount-induced scroll jump.
     if (item.actionName === CONST.REPORT.ACTIONS.TYPE.CREATED) {
         return CONST.REPORT.ACTIONS.TYPE.CREATED;
@@ -115,6 +116,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         hasOnceLoadedReportActions,
         hasOlderActions,
         hasNewerActions,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
         oldestReportActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
@@ -138,11 +141,19 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     const didLayout = useRef(false);
     const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
+    const emitComposerScrollEvents = useEmitComposerScrollEvents({enabled: true});
 
     useEffect(() => {
         didLayout.current = false;
         lastRequestedOldestActionIDRef.current = undefined;
     }, [reportID]);
+
+    useEffect(() => {
+        if (isLoadingOlderReportActions && !hasLoadingOlderReportActionsError) {
+            return;
+        }
+        lastRequestedOldestActionIDRef.current = undefined;
+    }, [isLoadingOlderReportActions, hasLoadingOlderReportActionsError]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
 
@@ -297,7 +308,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         shouldBeAlignedToTop,
         initialScrollIndex,
         initialScrollIndexParams,
-        maintainVisibleContentPosition,
+        shouldMaintainVisibleContentPosition,
         onLoad,
     } = useReportActionsScroll({
         reportID,
@@ -350,6 +361,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
         trackVerticalScrolling(bottomRelativeEvent);
         setHasScrolledOverThreshold(distanceFromBottom >= CONST.REPORT.ACTIONS.ACTION_VISIBLE_THRESHOLD);
+        emitComposerScrollEvents();
     };
 
     const loadNewerChatsAfterTransitions = () => {
@@ -406,7 +418,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         const reportActionIndex = renderedVisibleReportActions.length - index - 1;
 
         return (
-            <ReportActionIndexContext.Provider value={index}>
+            <ReportActionIndexContext.Provider value={{index, isNewest: index === listData.length - 1}}>
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -516,8 +528,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     drawDistance={1500}
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
-                    onStartReached={loadOlderChatsOnStartReached}
-                    onStartReachedThreshold={PAGINATION_THRESHOLD}
                     onEndReached={loadNewerChatsAfterTransitions}
                     onEndReachedThreshold={PAGINATION_THRESHOLD}
                     ListHeaderComponent={listFooterComponent}
@@ -536,8 +546,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}
-                    maintainScrollAtEnd={{animated: false, on: {layout: true}}}
-                    maintainVisibleContentPosition={maintainVisibleContentPosition.disabled ? false : {data: true}}
+                    maintainScrollAtEnd={{animated: false}}
+                    // Keyboard avoidance can shrink the viewport by almost a full screen before LegendList evaluates end proximity.
+                    maintainScrollAtEndThreshold={1}
+                    maintainVisibleContentPosition={shouldMaintainVisibleContentPosition ? {data: true} : false}
                     onLoad={onLoad}
                     onContentSizeChange={() => {
                         trackVerticalScrolling(undefined);

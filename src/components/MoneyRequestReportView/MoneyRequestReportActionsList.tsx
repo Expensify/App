@@ -634,7 +634,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
             const shouldDisableContextMenuForConciergeDraft = isDraftPendingCompletion && draftReportActionID === reportAction.reportActionID;
 
             return (
-                <ReportActionIndexContext.Provider value={indexWithinReportActions}>
+                <ReportActionIndexContext.Provider value={{index: indexWithinReportActions, isNewest: indexWithinReportActions === visibleReportActions.length - 1}}>
                     <ReportActionsListItemRenderer
                         reportAction={reportAction}
                         parentReportAction={parentReportAction}
