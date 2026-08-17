@@ -57,7 +57,7 @@ function RulesRequireFieldsPage({
     const isCategoryFeatureDisabled = !policy?.areCategoriesEnabled;
     const isCategoryToggleDisabled = isCategoryFeatureDisabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags)));
+    const hasEnabledTags = hasEnabledOptions(Object.values(policyTags ?? {}).flatMap(({tags}) => Object.values(tags ?? {})));
     const isTagFeatureDisabled = !policy?.areTagsEnabled;
     // A connection owns the tag lists, not whether an expense must carry one, so unlike Categories it doesn't lock this.
     const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags;
@@ -107,16 +107,21 @@ function RulesRequireFieldsPage({
             return;
         }
 
-        if (categoryRequired !== initialCategoryRequired) {
-            setWorkspaceRequiresCategory(policyData, categoryRequired);
+        const hasCategoryChange = categoryRequired !== initialCategoryRequired;
+        const hasTagLevelChanges = hasPerLevelTagRequired && changedTagLevels.length > 0;
+        const hasSingleTagChange = !hasPerLevelTagRequired && tagRequired !== initialTagRequired;
+        const categoryUpdateForTagRecompute = hasCategoryChange ? {requiresCategory: categoryRequired} : {};
+
+        if (hasCategoryChange) {
+            // With a tag change in the same save, the tag action owns the one violation recompute and carries requiresCategory into it.
+            setWorkspaceRequiresCategory(policyData, categoryRequired, !hasTagLevelChanges && !hasSingleTagChange);
         }
 
-        if (hasPerLevelTagRequired) {
-            // All changed levels go in one call so violations are recomputed once from the combined end state. Every changed
-            // level has a pending value by definition, and it can only be the opposite of the saved one.
-            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])));
-        } else if (tagRequired !== initialTagRequired) {
-            setPolicyRequiresTag(policyData, tagRequired);
+        if (hasTagLevelChanges) {
+            // One call for every changed level, so violations are recomputed once from the combined end state.
+            setPolicyTagLevelsRequired(policyData, Object.fromEntries(changedTagLevels.map((tagList) => [tagList.orderWeight, !tagList.required])), categoryUpdateForTagRecompute);
+        } else if (hasSingleTagChange) {
+            setPolicyRequiresTag(policyData, tagRequired, categoryUpdateForTagRecompute);
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);

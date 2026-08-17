@@ -1209,7 +1209,8 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
 }
 
-function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean) {
+/** Pass shouldRecomputeViolations = false when tag Required changes in the same save: each recompute SETs violations from the pre-save snapshot, so two overwrite each other. */
+function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, shouldRecomputeViolations = true) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
@@ -1258,7 +1259,9 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    if (shouldRecomputeViolations) {
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    }
 
     const parameters = {
         policyID,

@@ -2012,14 +2012,15 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    // An empty tag list arrives without the `tags` key, despite the type.
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).length > 0);
 }
 
 /**

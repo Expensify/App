@@ -1058,10 +1058,12 @@ function renamePolicyTagList(policyID: string, policyTagListName: {oldName: stri
     API.write(WRITE_COMMANDS.RENAME_POLICY_TAG_LIST, parameters, onyxData);
 }
 
-function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean) {
+/** extraPolicyUpdate folds a caller's same-save requiresCategory change into this action's single violation recompute. */
+function setPolicyRequiresTag(policyData: PolicyData, requiresTag: boolean, extraPolicyUpdate: Partial<Policy> = {}) {
     const policyID = policyData.policy?.id;
 
     const policyOptimisticData: Partial<Policy> = {
+        ...extraPolicyUpdate,
         requiresTag,
         // A manual toggle is explicit, so any pending switch-level restore intent is no longer needed.
         pendingRequiresTagRestore: null,
@@ -1266,7 +1268,7 @@ function setPolicyTagsRequired(policyData: PolicyData, requiresTag: boolean, tag
  * key, the last request would overwrite the others — e.g. requiring Region while clearing Department would drop the
  * Missing Region violation the first half just added.
  */
-function setPolicyTagLevelsRequired(policyData: PolicyData, requiredByOrderWeight: Record<number, boolean>) {
+function setPolicyTagLevelsRequired(policyData: PolicyData, requiredByOrderWeight: Record<number, boolean>, extraPolicyUpdate: Partial<Policy> = {}) {
     const policyID = policyData.policy?.id;
     if (!policyID || !policyData.tags) {
         return;
@@ -1281,6 +1283,11 @@ function setPolicyTagLevelsRequired(policyData: PolicyData, requiredByOrderWeigh
     for (const tagList of changedTagLists) {
         combinedTagsUpdate[tagList.name] = {required: requiredByOrderWeight[tagList.orderWeight]};
     }
+
+    // ViolationsUtils gates every tag violation behind policy.requiresTag, so mirror what the backend derives from the
+    // levels instead of waiting for the next policy refresh.
+    const requiresTag = Object.values(policyData.tags).some((tagList) => requiredByOrderWeight[tagList.orderWeight] ?? !!tagList.required);
+    const policyUpdate: Partial<Policy> = {...extraPolicyUpdate, requiresTag};
 
     const buildOnyxData = (tagLists: Array<PolicyTagLists[string]>, isRequired: boolean, shouldRecomputeViolations: boolean) => {
         const optimisticValue: Record<string, Partial<PolicyTagLists[string]>> = {};
@@ -1301,14 +1308,21 @@ function setPolicyTagLevelsRequired(policyData: PolicyData, requiredByOrderWeigh
             };
         }
 
-        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
+        const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY | typeof ONYXKEYS.COLLECTION.POLICY_TAGS> = {
             optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: optimisticValue}],
             successData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: successValue}],
             failureData: [{onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`, value: failureValue}],
         };
 
+        // Only the request that owns the recompute writes the derived policy flags, so the other can't revert them.
         if (shouldRecomputeViolations) {
-            pushTransactionViolationsOnyxData(onyxData, policyData, {}, {}, combinedTagsUpdate);
+            onyxData.optimisticData?.push({onyxMethod: Onyx.METHOD.MERGE, key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`, value: policyUpdate});
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {requiresTag: policyData.policy?.requiresTag ?? false},
+            });
+            pushTransactionViolationsOnyxData(onyxData, policyData, policyUpdate, {}, combinedTagsUpdate);
         }
 
         return onyxData;
