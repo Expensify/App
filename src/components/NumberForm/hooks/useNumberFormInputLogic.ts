@@ -93,22 +93,20 @@ function useNumberFormInputLogic({
             return;
         }
 
-        const strippedNumber = stripCommaFromAmount(numberWithLeadingZero);
-
         willSelectionBeUpdatedManually.current = true;
-        numberRef.current = strippedNumber;
+        numberRef.current = numberWithLeadingZero;
 
         // The selection is derived from the previous value inside the updater so two calls in the same tick can't read a stale length.
         let hasSelectionBeenSet = false;
-        setValue(strippedNumber, {
+        setValue(numberWithLeadingZero, {
             onPreviousValue: (previousNumber) => {
                 if (hasSelectionBeenSet) {
                     return;
                 }
                 hasSelectionBeenSet = true;
 
-                const isForwardDelete = previousNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
-                setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? strippedNumber.length : previousNumber.length, strippedNumber.length));
+                const isForwardDelete = previousNumber.length > numberWithLeadingZero.length && forwardDeletePressedRef.current;
+                setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? numberWithLeadingZero.length : previousNumber.length, numberWithLeadingZero.length));
                 willSelectionBeUpdatedManually.current = false;
             },
         });
