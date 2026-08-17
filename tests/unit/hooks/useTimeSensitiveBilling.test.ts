@@ -15,8 +15,8 @@ jest.mock('@libs/SubscriptionUtils', () => ({
     hasInsufficientFundsError: jest.fn(() => false),
 }));
 
-const mockedHasCardExpiredError = hasCardExpiredError as jest.Mock;
-const mockedHasInsufficientFundsError = hasInsufficientFundsError as jest.Mock;
+const mockedHasCardExpiredError = jest.mocked(hasCardExpiredError);
+const mockedHasInsufficientFundsError = jest.mocked(hasInsufficientFundsError);
 
 describe('useTimeSensitiveBilling', () => {
     beforeAll(() => {

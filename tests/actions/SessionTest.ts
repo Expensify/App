@@ -14,20 +14,21 @@ import getPlatform from '@libs/getPlatform';
 import HttpUtils from '@libs/HttpUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import PushNotification from '@libs/Notification/PushNotification';
+import {isRecord} from '@libs/ObjectUtils';
 import reauthenticate from '@libs/Reauthentication';
 
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
-import * as SessionUtil from '@src/libs/actions/Session';
 // This lib needs to be imported, but it has nothing to export since all it contains is an Onyx connection
 import '@libs/Notification/PushNotification/subscribeToPushNotifications';
 
+import * as SessionUtil from '@src/libs/actions/Session';
 import {KEYS_TO_PRESERVE_SUPPORTAL, signOutAndRedirectToSignIn} from '@src/libs/actions/Session';
 import * as API from '@src/libs/API';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Credentials, Session} from '@src/types/onyx';
+import type {Account, Credentials, Session} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxEntry, OnyxUpdate} from 'react-native-onyx';
 
 import {CONST as COMMON_CONST} from 'expensify-common';
 import {openAuthSessionAsync} from 'expo-web-browser';
@@ -61,6 +62,23 @@ jest.mock('@libs/actions/Link', () => {
 jest.mock('@libs/getPlatform', () => jest.fn());
 
 const mockedGetPlatform = jest.mocked(getPlatform);
+
+type AccountMergeUpdate = Extract<OnyxUpdate<typeof ONYXKEYS.ACCOUNT>, {onyxMethod: typeof Onyx.METHOD.MERGE}>;
+type AccountMergeValue = Pick<NonNullable<AccountMergeUpdate['value']>, 'isLoading' | 'errors' | 'twoFactorAuthSecretKey'>;
+type AccountMergeObjectUpdate = Omit<AccountMergeUpdate, 'value'> & {value: AccountMergeValue};
+
+function isAccountMergeUpdate(value: unknown): value is AccountMergeObjectUpdate {
+    if (!isRecord(value) || value.key !== ONYXKEYS.ACCOUNT || value.onyxMethod !== Onyx.METHOD.MERGE || !isRecord(value.value)) {
+        return false;
+    }
+
+    const {isLoading, errors, twoFactorAuthSecretKey} = value.value;
+    return (
+        (isLoading === undefined || isLoading === null || typeof isLoading === 'boolean') &&
+        (errors === undefined || errors === null || (isRecord(errors) && Object.values(errors).every((error) => error === null || typeof error === 'string'))) &&
+        (twoFactorAuthSecretKey === undefined || twoFactorAuthSecretKey === null || typeof twoFactorAuthSecretKey === 'string')
+    );
+}
 
 Onyx.init({
     keys: ONYXKEYS,
@@ -168,8 +186,9 @@ describe('Session', () => {
 
     test('reauthenticate proceeds even when a legacy session.isAuthenticatingWithShortLivedToken=true is persisted (recovers stuck users)', async () => {
         // Given a session in Onyx that still carries the legacy stuck flag from before the RAM-only migration.
-        // The Session type no longer declares the field, so cast to write the legacy shape.
-        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true} as unknown as Session);
+        // The Session type no longer declares the field, so write the legacy shape to exercise persisted-data compatibility.
+        // @ts-expect-error -- legacy persisted sessions can contain this field even though current Session does not.
+        await Onyx.merge(ONYXKEYS.SESSION, {isAuthenticatingWithShortLivedToken: true});
         await waitForBatchedUpdates();
 
         const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
@@ -282,7 +301,7 @@ describe('Session', () => {
         // to Re-Authenticate with the stored credentials. Our next call will be to Authenticate
         // so we will mock that response with a new authToken and then verify that Onyx has our
         // data.
-        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+        jest.mocked(HttpUtils.xhr)
 
             // This will make the call to OpenApp below return with an expired session code
             .mockImplementationOnce(() =>
@@ -432,7 +451,7 @@ describe('Session', () => {
         setHasRadio(false);
         await waitForBatchedUpdates();
 
-        (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+        jest.mocked(HttpUtils.xhr)
             // This will make the call to OpenApp below return with an expired session code
             .mockImplementationOnce(() =>
                 Promise.resolve({
@@ -492,7 +511,7 @@ describe('Session', () => {
             setHasRadio(false);
             await waitForBatchedUpdates();
 
-            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            jest.mocked(HttpUtils.xhr)
                 // This will make the call to OpenApp below return with an expired session code
                 .mockImplementationOnce(() =>
                     Promise.resolve({
@@ -517,7 +536,7 @@ describe('Session', () => {
             setHasRadio(false);
             await waitForBatchedUpdates();
 
-            (HttpUtils.xhr as jest.MockedFunction<typeof HttpUtils.xhr>)
+            jest.mocked(HttpUtils.xhr)
                 // This will make the call to OpenApp below return with an expired session code
                 .mockImplementationOnce(() =>
                     Promise.resolve({
@@ -540,8 +559,8 @@ describe('Session', () => {
             jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
-            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
-            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const onyxClearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
 
             const testStashedCredentials = {login: 'stashed@expensify.com', autoGeneratedLogin: 'stashedAutoLogin', autoGeneratedPassword: 'stashedAutoPassword'};
             const testStashedSession = {authToken: 'stashedAuthToken', email: 'stashed@expensify.com', accountID: 123, creationDate: new Date().getTime()};
@@ -551,9 +570,6 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.SUPPORT});
 
             await waitForBatchedUpdates();
-
-            const onyxClearSpy = Onyx.clear as jest.Mock;
-            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
 
             signOutAndRedirectToSignIn(false, false, true, true);
 
@@ -576,8 +592,8 @@ describe('Session', () => {
             jest.spyOn(SessionUtil, 'isSupportAuthToken').mockReturnValue(false);
             jest.spyOn(SessionUtil, 'hasStashedSession').mockReturnValue(true);
             jest.spyOn(SessionUtil, 'signOut').mockResolvedValue(undefined);
-            jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
-            jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
+            const onyxClearSpy = jest.spyOn(Onyx, 'clear').mockResolvedValue(undefined);
+            const onyxMultiSetSpy = jest.spyOn(Onyx, 'multiSet').mockResolvedValue(undefined);
 
             const testStashedCredentials = {login: 'delegate@expensify.com', autoGeneratedLogin: 'delegateAutoLogin', autoGeneratedPassword: 'delegateAutoPassword'};
             const testStashedSession = {authToken: 'delegateAuthToken', email: 'delegate@expensify.com', accountID: 456, creationDate: new Date().getTime()};
@@ -587,8 +603,6 @@ describe('Session', () => {
 
             await waitForBatchedUpdates();
 
-            const onyxClearSpy = Onyx.clear as jest.Mock;
-            const onyxMultiSetSpy = Onyx.multiSet as jest.Mock;
             const redirectToSignInSpy = jest.spyOn(SignInRedirect, 'default').mockImplementation(() => Promise.resolve());
 
             signOutAndRedirectToSignIn(true, false, true, true);
@@ -743,9 +757,12 @@ describe('Session', () => {
 
             SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
 
-            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {optimisticData: Array<{key: string; value: unknown}>};
-            const accountOptimistic = onyxData.optimisticData.find((d) => d.key === ONYXKEYS.ACCOUNT);
-            expect(accountOptimistic?.value).toStrictEqual({isLoading: true, errors: null});
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const accountOptimistic = TestHelper.getRequiredOnyxUpdate(onyxData, 'optimisticData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountOptimistic)) {
+                throw new Error('Expected a typed account optimistic update');
+            }
+            expect(accountOptimistic.value).toStrictEqual({isLoading: true, errors: null});
 
             writeSpy.mockRestore();
         });
@@ -755,9 +772,12 @@ describe('Session', () => {
 
             SessionUtil.replaceTwoFactorDevice('verify_old', '123456');
 
-            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
-            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
-            expect(accountSuccess?.value).not.toHaveProperty('twoFactorAuthSecretKey');
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value).not.toHaveProperty('twoFactorAuthSecretKey');
 
             writeSpy.mockRestore();
         });
@@ -767,9 +787,12 @@ describe('Session', () => {
 
             SessionUtil.replaceTwoFactorDevice('verify_new', '654321');
 
-            const onyxData = writeSpy.mock.calls.at(0)?.at(2) as {successData: Array<{key: string; value: Record<string, unknown>}>};
-            const accountSuccess = onyxData.successData.find((d) => d.key === ONYXKEYS.ACCOUNT);
-            expect(accountSuccess?.value.twoFactorAuthSecretKey).toBeNull();
+            const [, , onyxData] = TestHelper.getRequiredWriteCall(writeSpy.mock.calls, 0);
+            const accountSuccess = TestHelper.getRequiredOnyxUpdate(onyxData, 'successData', ONYXKEYS.ACCOUNT, Onyx.METHOD.MERGE, true);
+            if (!isAccountMergeUpdate(accountSuccess)) {
+                throw new Error('Expected a typed account success update');
+            }
+            expect(accountSuccess.value.twoFactorAuthSecretKey).toBeNull();
 
             writeSpy.mockRestore();
         });
@@ -780,12 +803,10 @@ describe('Session', () => {
             await Onyx.merge(ONYXKEYS.ACCOUNT, {twoFactorAuthSecretKey: 'SOMESECRETKEY123'});
             await waitForBatchedUpdates();
 
-            let account: Record<string, unknown> | null | undefined;
+            let account: OnyxEntry<Account>;
             Onyx.connect({
                 key: ONYXKEYS.ACCOUNT,
-                callback: (val) => {
-                    account = val as Record<string, unknown> | null | undefined;
-                },
+                callback: (val) => (account = val),
             });
             await waitForBatchedUpdates();
             expect(account?.twoFactorAuthSecretKey).toBe('SOMESECRETKEY123');
@@ -1026,6 +1047,77 @@ describe('Session', () => {
 
         test('returns false when session is undefined', () => {
             expect(SessionUtil.isSupportAuthToken(undefined)).toBe(false);
+        });
+    });
+
+    describe('signIn', () => {
+        test('sends the login and validate code arguments to the API, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so correct values here prove they come from the params, not the module cache.
+            SessionUtil.signIn('112233', undefined, undefined, 'user@expensify.com', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_IN_USER);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'user@expensify.com', validateCode: '112233'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('falls back to the stored validate code when no code is entered during the 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // Empty entered validateCode + a 2FA code present → should use the stored validate code passed in.
+            SessionUtil.signIn('', undefined, '654321', 'user@expensify.com', 'stored-code');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('requestUnlinkValidationLink', () => {
+        test('sends the login argument as the email param, independent of the CREDENTIALS Onyx cache', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // CREDENTIALS is empty (cleared in beforeEach), so a correct email here proves the value comes from the param, not the module cache.
+            SessionUtil.requestUnlinkValidationLink('secondary@expensify.com');
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.REQUEST_UNLINK_VALIDATION_LINK);
+            expect(call?.at(1)).toEqual(expect.objectContaining({email: 'secondary@expensify.com'}));
+
+            writeSpy.mockRestore();
+        });
+    });
+
+    describe('signInWithValidateCode', () => {
+        test('sends the entered code as the validate code when it is not a 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            SessionUtil.signInWithValidateCode(123, '112233', undefined);
+            await waitForBatchedUpdates();
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.at(0)).toBe(WRITE_COMMANDS.SIGN_IN_USER_WITH_LINK);
+            expect(call?.at(1)).toEqual(expect.objectContaining({accountID: 123, validateCode: '112233'}));
+
+            writeSpy.mockRestore();
+        });
+
+        test('uses the stored validate code instead of the entered code during a 2FA step', async () => {
+            const writeSpy = jest.spyOn(API, 'write').mockResolvedValue(undefined);
+
+            // twoFactorAuthCode present → should use storedValidateCode, ignoring the entered `code`.
+            SessionUtil.signInWithValidateCode(123, 'ignored-code', undefined, '654321', 'stored-code');
+            await waitForBatchedUpdates();
+
+            expect(writeSpy.mock.calls.at(0)?.at(1)).toEqual(expect.objectContaining({validateCode: 'stored-code', twoFactorAuthCode: '654321'}));
+
+            writeSpy.mockRestore();
         });
     });
 });
