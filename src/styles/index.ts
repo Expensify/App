@@ -6573,7 +6573,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
