@@ -61,6 +61,7 @@ function DomainsListPage() {
             const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
             const isDomainMember = !!currentUserAccountID && memberAccountIDsSelector(domain).includes(currentUserAccountID);
 
+            // we don't want to show domains that the user has no access to, so we skip them in the list
             if (!isDomainAdmin && !isDomainMember) {
                 continue;
             }
