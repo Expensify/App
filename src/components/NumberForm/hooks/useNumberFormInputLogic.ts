@@ -30,12 +30,6 @@ type NumberSelection = {
     end: number;
 };
 
-type SetNumberOptions = {
-    addLeadingZero?: boolean;
-    /** TextInputWithSymbol converts locale digits before calling onChangeAmount. */
-    localeDigitsAlreadyNormalized?: boolean;
-};
-
 const getNewSelection = (oldSelection: NumberSelection, previousLength: number, newLength: number): NumberSelection => {
     const cursorPosition = oldSelection.end + (newLength - previousLength);
     return {start: cursorPosition, end: cursorPosition};
@@ -83,19 +77,23 @@ function useNumberFormInputLogic({
         setSelection((currentSelection) => ({start: currentSelection.end, end: currentSelection.end}));
     };
 
-    const setNumber = (inputValue: string, options: SetNumberOptions = {}) => {
+    /**
+     * Normalizes and validates raw input, then commits it. This is the single normalization point for every input path:
+     * callers pass the text exactly as the user typed it and never pre-convert locale digits or pad leading zeros.
+     */
+    const setNumber = (inputValue: string) => {
         const inputWithoutSpaces = stripSpacesFromAmount(inputValue);
-        const newNumberWithoutSpaces = options.localeDigitsAlreadyNormalized ? inputWithoutSpaces : replaceAllDigits(inputWithoutSpaces, fromLocaleDigit);
+        const newNumberWithoutSpaces = replaceAllDigits(inputWithoutSpaces, fromLocaleDigit);
         const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
         const finalNumber = shouldAllowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, shouldFlipNegative, toggleNegative);
-        const numberWithOptionalLeadingZero = options.addLeadingZero ? addLeadingZero(finalNumber, shouldAllowNegativeInput) : finalNumber;
+        const numberWithLeadingZero = addLeadingZero(finalNumber, shouldAllowNegativeInput);
 
-        if (!validateAmount(numberWithOptionalLeadingZero, decimals, maxLength, shouldAllowNegativeInput)) {
+        if (!validateAmount(numberWithLeadingZero, decimals, maxLength, shouldAllowNegativeInput)) {
             setSelection((currentSelection) => ({...currentSelection}));
             return;
         }
 
-        const strippedNumber = stripCommaFromAmount(numberWithOptionalLeadingZero);
+        const strippedNumber = stripCommaFromAmount(numberWithLeadingZero);
 
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = strippedNumber;
@@ -212,4 +210,4 @@ function useNumberFormInputLogic({
 }
 
 export default useNumberFormInputLogic;
-export type {NumberSelection, SetNumberOptions};
+export type {NumberSelection};

@@ -44,7 +44,7 @@ function NumberFormSymbolInput(props: NumberFormSymbolInputProps) {
                 keyboardType={keyboardType}
                 negativeSymbolStyle={negativeSymbolStyle}
                 onBlur={handleBlur}
-                onChangeAmount={(text) => setNumber(text, {localeDigitsAlreadyNormalized: true})}
+                onChangeAmount={setNumber}
                 onFocus={rest.onFocus}
                 onKeyPress={handleKeyPress}
                 onPress={rest.onPress}
@@ -54,6 +54,7 @@ function NumberFormSymbolInput(props: NumberFormSymbolInputProps) {
                 ref={handleInputRef}
                 selection={selectionForRender}
                 shouldAllowFocusInLandscapeMode={rest.shouldAllowFocusInLandscapeMode}
+                shouldNormalizeAmountOnChange={false}
                 style={style}
                 symbol={symbol}
                 symbolPosition={inputPosition}

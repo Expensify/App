@@ -32,7 +32,7 @@ function NumberFormTextInput(props: NumberFormTextInputProps) {
             keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
             label={label}
             onBlur={handleBlur}
-            onChangeText={(text) => setNumber(text, {addLeadingZero: true})}
+            onChangeText={setNumber}
             onFocus={rest.onFocus}
             onKeyPress={handleKeyPress}
             onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
