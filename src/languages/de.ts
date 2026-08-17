@@ -918,8 +918,8 @@ const translations: TranslationDeepObject<typeof en> = {
     supportalSwitcher: {
         title: 'Supportal in ein anderes Konto',
         emailLabel: 'E-Mail-Adresse',
-        reasonLabel: 'Grund für die Support-Anmeldung',
-        reasonHint: 'Keine aktuellen Tickets für dieses Konto gefunden.',
+        reasonLabel: 'Grund für Support-Login',
+        reasonHint: 'Für dieses Konto wurden keine aktuellen Tickets gefunden.',
         login: 'Anmelden',
     },
     sidebarScreen: {

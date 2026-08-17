@@ -887,13 +887,7 @@ const translations: TranslationDeepObject<typeof en> = {
             admins: '仅限管理员',
         },
     },
-    supportalSwitcher: {
-        title: 'Supportal 登录到其他账户',
-        emailLabel: '邮箱地址',
-        reasonLabel: '支持登录原因',
-        reasonHint: '未找到该账户的最近工单。',
-        login: '登录',
-    },
+    supportalSwitcher: {title: '切换 Supportal 到其他账户', emailLabel: '电子邮箱地址', reasonLabel: '支持登录原因', reasonHint: '未找到此账户的近期工单。', login: '登录'},
     sidebarScreen: {
         buttonFind: '查找内容…',
         buttonMySettings: '我的设置',

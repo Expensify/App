@@ -917,7 +917,7 @@ const translations: TranslationDeepObject<typeof en> = {
     supportalSwitcher: {
         title: 'Supportal naar een ander account',
         emailLabel: 'E-mailadres',
-        reasonLabel: 'Reden voor supportlogin',
+        reasonLabel: 'Reden voor ondersteuning-login',
         reasonHint: 'Geen recente tickets gevonden voor dit account.',
         login: 'Inloggen',
     },

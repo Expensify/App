@@ -919,9 +919,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal vers un autre compte',
+        title: 'Portail d’assistance vers un autre compte',
         emailLabel: 'Adresse e-mail',
-        reasonLabel: 'Motif de la connexion support',
+        reasonLabel: 'Raison de connexion à l’assistance',
         reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
         login: 'Se connecter',
     },

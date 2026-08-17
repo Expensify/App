@@ -919,7 +919,7 @@ const translations: TranslationDeepObject<typeof en> = {
     supportalSwitcher: {
         title: 'Supportal in un altro account',
         emailLabel: 'Indirizzo email',
-        reasonLabel: "Motivo dell'accesso di supporto",
+        reasonLabel: 'Motivo accesso assistenza',
         reasonHint: 'Nessun ticket recente trovato per questo account.',
         login: 'Accedi',
     },

@@ -893,11 +893,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal a otra cuenta',
+        title: 'Supportal en otra cuenta',
         emailLabel: 'Dirección de correo electrónico',
-        reasonLabel: 'Motivo del inicio de sesión de soporte',
+        reasonLabel: 'Motivo de inicio de sesión en soporte',
         reasonHint: 'No se han encontrado tickets recientes para esta cuenta.',
-        login: 'Conectarse',
+        login: 'Inicia sesión',
     },
     sidebarScreen: {
         buttonFind: 'Encuentre algo...',
