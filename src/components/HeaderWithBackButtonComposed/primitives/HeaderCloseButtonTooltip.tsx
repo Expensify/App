@@ -13,7 +13,7 @@ type HeaderCloseButtonTooltipProps = {
 };
 
 /**
- * Close button. Renders what the legacy `shouldShowCloseButton` branch rendered — a tooltip-wrapped close icon button.
+ * Close button. Renders what the legacy `shouldShowCloseButton` branch rendered: a tooltip-wrapped close icon button.
  */
 function HeaderCloseButtonTooltip({onPress, iconFill}: HeaderCloseButtonTooltipProps) {
     const {translate} = useLocalize();

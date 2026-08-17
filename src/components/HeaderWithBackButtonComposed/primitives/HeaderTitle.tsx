@@ -29,6 +29,7 @@ type HeaderTitleProps = {
     /** Whether to skip focus of the first interactive element after the RHP transition (screen reader). */
     shouldSkipFocusAfterTransition?: boolean;
 
+    /** Whether to use the taller headline style bar with the larger title font. */
     shouldUseHeadlineHeader: boolean;
 };
 

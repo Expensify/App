@@ -7,6 +7,11 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import React from 'react';
 
+const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
+
 type HeaderThreeDotsMenuProps = {
     /** Menu items. Config-array seam (wraps the v1 `ThreeDotsMenu`) until it migrates to `PopoverMenu/v2`. */
     items: PopoverMenuItem[];
@@ -40,10 +45,7 @@ function HeaderThreeDotsMenu({
     disabled = false,
     onIconPress = () => {},
     shouldOverlay = false,
-    anchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
+    anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     shouldSetModalVisibility = true,
 }: HeaderThreeDotsMenuProps) {
     return (
@@ -63,3 +65,4 @@ function HeaderThreeDotsMenu({
 }
 
 export default HeaderThreeDotsMenu;
+export {DEFAULT_ANCHOR_ALIGNMENT};

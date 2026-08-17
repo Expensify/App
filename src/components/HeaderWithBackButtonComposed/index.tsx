@@ -21,16 +21,16 @@ import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
-import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
+import HeaderThreeDotsMenu, {DEFAULT_ANCHOR_ALIGNMENT} from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
-import useHeaderStyles from './styles';
+import useHeaderStyles from './styles/useHeaderStyles';
 import HeaderActions from './zones/HeaderActions';
 import HeaderRight from './zones/HeaderRight';
 
 /**
  * Temporary shape wired to the legacy `HeaderWithBackButton` prop API, assembled from the primitives
  * in `./primitives` and `./zones`. Its purpose is to make it visible, block by block, which composed
- * piece replaces which part of the legacy render and to prove each one does so correctly — and, in
+ * piece replaces which part of the legacy render and to prove each one does so correctly, and in
  * doing so, to pressure-test the primitives' own APIs so they compose with as little wrapper overhead
  * as possible.
  *
@@ -49,6 +49,7 @@ function HeaderWithBackButton({
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
+    policyAvatarSize = CONST.AVATAR_SIZE.DEFAULT,
     shouldShowReportAvatarWithDisplay = false,
     shouldDisplayStatus,
     shouldShowBackButton = true,
@@ -63,10 +64,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
-    threeDotsAnchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
+    threeDotsAnchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     threeDotsMenuItems = [],
     shouldEnableDetailPageNavigation = false,
     children = null,
@@ -92,7 +90,7 @@ function HeaderWithBackButton({
             {shouldShowThreeDotsButton &&
                 threeDotsMenuItems.length === 1 &&
                 shouldMinimizeMenuButton && (
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- length === 1 guarantees .at(0) is defined; the fallback only satisfies the type checker.
                     <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
                 )}
             {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
@@ -137,11 +135,12 @@ function HeaderWithBackButton({
                 )}
                 {!!policyAvatar && (
                     <Avatar
-                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(policyAvatarSize)), styles.mr3]}
                         source={policyAvatar.source}
                         name={policyAvatar.name}
                         avatarID={policyAvatar.id}
                         type={policyAvatar.type}
+                        size={policyAvatarSize}
                     />
                 )}
                 {shouldShowReportAvatarWithDisplay ? (

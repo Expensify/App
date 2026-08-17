@@ -12,7 +12,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import type {GestureResponderEvent, StyleProp, ViewStyle} from 'react-native';
 
 type HeaderTooltipIconButtonProps = {
-    /** Tooltip text — also used as the accessibility label. */
+    /** Tooltip text, also used as the accessibility label. */
     text: string;
 
     /** Method to trigger when pressing the button. */
@@ -30,13 +30,14 @@ type HeaderTooltipIconButtonProps = {
     /** Additional styles for the pressable, applied after the default `touchableButtonImage`. */
     style?: StyleProp<ViewStyle>;
 
-    /** Native id — e.g. for the back button's platform-specific wiring. */
+    /** Native id, e.g. for the back button's platform-specific wiring. */
     id?: string;
 
+    /** Ref forwarded to the underlying `PressableWithoutFeedback`. */
     ref?: PressableRef;
 };
 
-/** Shared shape for the header's icon buttons — Tooltip + Pressable + Icon. Callers own their own onPress wrapping, loading states, and fill logic; this only renders the common skeleton. */
+/** Shared shape for the header's icon buttons: Tooltip + Pressable + Icon. Callers own their own onPress wrapping, loading states, and fill logic; this only renders the common skeleton. */
 function HeaderTooltipIconButton({text, onPress, iconSrc, iconFill, sentryLabel, style, id, ref}: HeaderTooltipIconButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
