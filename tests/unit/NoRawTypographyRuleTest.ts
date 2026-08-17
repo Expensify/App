@@ -1,5 +1,6 @@
 import type {Rule} from 'eslint';
 
+import * as tsParser from '@typescript-eslint/parser';
 import {RuleTester} from 'eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
@@ -28,6 +29,19 @@ const ruleTester = new RuleTester({
     languageOptions: {
         ecmaVersion: 2022,
         sourceType: 'module',
+        parserOptions: {
+            ecmaFeatures: {
+                jsx: true,
+            },
+        },
+    },
+});
+
+const tsRuleTester = new RuleTester({
+    languageOptions: {
+        ecmaVersion: 2022,
+        sourceType: 'module',
+        parser: tsParser,
         parserOptions: {
             ecmaFeatures: {
                 jsx: true,
@@ -77,6 +91,28 @@ describe('no-raw-typography', () => {
             },
             {
                 code: 'const jsx = <CustomText lineHeight={20}>hi</CustomText>;',
+                errors: [{messageId: 'rawTypography'}],
+            },
+        ],
+    });
+
+    tsRuleTester.run(`${ruleModule.name} (TS assertions)`, ruleModule, {
+        valid: ['const style = {fontSize: variables.fontSizeNormal as number};'],
+        invalid: [
+            {
+                code: 'const style = {fontSize: 17 as const};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const style = {lineHeight: 20 satisfies number};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const style = {fontSize: -17 as const};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const jsx = <Text lineHeight={20 as const}>hi</Text>;',
                 errors: [{messageId: 'rawTypography'}],
             },
         ],

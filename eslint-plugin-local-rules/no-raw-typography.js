@@ -32,7 +32,12 @@ function getPropertyName(key) {
  * @param {import('estree').Node} node
  * @returns {boolean}
  */
+const TS_WRAPPER_TYPES = new Set(['TSAsExpression', 'TSSatisfiesExpression', 'TSNonNullExpression', 'TSTypeAssertion']);
+
 function isNumericLiteral(node) {
+    if (TS_WRAPPER_TYPES.has(node.type)) {
+        return isNumericLiteral(node.expression);
+    }
     if (node.type === 'Literal' && typeof node.value === 'number') {
         return true;
     }
