@@ -23,10 +23,9 @@ To create an expense using GPS tracking based on the distance traveled:
 4. Tap **Start** and drive to your destination — tracking runs in the background.
 5. Tap **Stop** when you arrive.
 6. (Optional) To continue the trip from a new location, tap **Resume**. Each resumed section appears as a separate segment on the map. Tap **Stop** again when you're done.
-7. (Optional) To trim the trip to an earlier stop point, tap the pencil **Edit** icon next to the distance counter. On the **Edit stop** screen, drag the slider to move the end point back along your route — the map and **Total distance** update as you drag — then tap **Save**. Dragging the slider all the way to the right restores the full trip.
-8. To discard the trip, tap the trash icon next to the distance counter and confirm.
-9. To save the trip, review the route summary showing your start and end addresses, then tap **Save**.
-10. Review the expense details, then tap **Create expense**.
+7. To discard the trip, tap the trash icon next to the distance counter and confirm.
+8. To save the trip, review the route summary showing your start and end addresses, then tap **Save**.
+9. Review the expense details, then tap **Create expense**.
 
 **Note:** GPS tracking is available on iOS and Android only. On Web, you'll see a prompt to download the mobile app when selecting the GPS option.
 
@@ -173,7 +172,7 @@ No. GPS tracking runs in the background on your mobile device. A notification co
 
 The GPS receipt shows a map of your actual route driven, along with the total distance and calculated reimbursement amount. It looks similar to a map-based distance receipt, but reflects the path you actually took rather than a suggested route. If you paused and resumed during the trip, the receipt shows each segment separately with its own start and stop waypoints.
 
-## Can I shorten a GPS trip after I stop tracking?
+## Can I edit a GPS trip after I stop tracking?
 
 Yes. After you tap **Stop**, tap the pencil **Edit** icon next to the distance counter to open the **Edit stop** screen. Drag the slider to move the end point back to an earlier stop along your recorded route — the map route and the **Total distance** value update live as you drag — then tap **Save**. The GPS screen then shows the trimmed distance and updated end address. To restore the full trip, open **Edit stop** again and drag the slider all the way to the right. Tapping **Resume** and **Stop** also resets any trim and shows the full trip again.
 
