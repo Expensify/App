@@ -10,8 +10,8 @@ jest.mock('@libs/Browser', () => ({
     isMobile: jest.fn(),
 }));
 
-const mockGetBrowser = getBrowser as jest.Mock;
-const mockIsMobile = isMobile as jest.Mock;
+const mockGetBrowser = jest.mocked(getBrowser);
+const mockIsMobile = jest.mocked(isMobile);
 
 const item: ListItem = {text: 'Concierge', alternateText: 'concierge@expensify.com', keyForList: 'concierge'};
 

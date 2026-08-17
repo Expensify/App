@@ -7,13 +7,15 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import variables from '@styles/variables';
+
 const animatedHighlightStyleMock = {backgroundColor: 'animated-highlight'};
 jest.mock('@hooks/useAnimatedHighlightStyle', () => jest.fn(() => animatedHighlightStyleMock));
 
 let mockIsLargeScreenWidth = false;
 jest.mock('@hooks/useResponsiveLayout', () => () => ({isLargeScreenWidth: mockIsLargeScreenWidth}));
 
-const mockUseAnimatedHighlightStyle = useAnimatedHighlightStyle as jest.Mock;
+const mockUseAnimatedHighlightStyle = jest.mocked(useAnimatedHighlightStyle);
 
 type HookParams = Parameters<typeof useListItemHighlight>[0];
 
@@ -100,7 +102,7 @@ describe('useListItemHighlight', () => {
             mockIsLargeScreenWidth = true;
             const {StyleUtils, highlight} = renderHighlightHook({variant: 'searchTable', isSelected: true, isLastItem: true});
 
-            expect(highlight.pressableStyle).toContainEqual(StyleUtils.getSearchTableRowPressableStyle(true, true, {vertical: expect.any(Number) as number}));
+            expect(highlight.pressableStyle).toContainEqual(StyleUtils.getSearchTableRowPressableStyle(true, true, {vertical: variables.tableRowPaddingVertical}));
         });
 
         it('rounds and clips the last row on wide screens', () => {
