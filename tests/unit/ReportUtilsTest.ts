@@ -158,6 +158,7 @@ import {
     hasReportBeenForwardedSinceLastSubmit,
     hasEmptyReportsForPolicy,
     hasExportError,
+    isExportInProgress,
     hasNonReimbursableTransactions,
     hasReceiptError,
     hasSmartscanError,
@@ -21848,6 +21849,55 @@ describe('ReportUtils', () => {
                 },
             ]);
             expect(hasExportError(reportActions, report)).toBe(false);
+        });
+    });
+
+    describe('isExportInProgress', () => {
+        it('returns true when an EXPORTED_TO_INTEGRATION action has pendingAction ADD', () => {
+            const reportActions = createMock<ReportAction[]>([
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                    reportActionID: '1',
+                    created: '2024-01-01',
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                },
+            ]);
+            expect(isExportInProgress(reportActions, undefined)).toBe(true);
+        });
+
+        it('returns false when the EXPORTED_TO_INTEGRATION action is completed (no pendingAction)', () => {
+            const reportActions = createMock<ReportAction[]>([
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                    reportActionID: '1',
+                    created: '2024-01-01',
+                },
+            ]);
+            expect(isExportInProgress(reportActions, undefined)).toBe(false);
+        });
+
+        it('returns true when report.pendingFields.export is ADD (manual export)', () => {
+            const report = createMock<Report>({
+                pendingFields: {export: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD},
+            });
+            expect(isExportInProgress([], report)).toBe(true);
+        });
+
+        it('returns false when there is no export action and no pending export field', () => {
+            const report = createMock<Report>({});
+            expect(isExportInProgress([], report)).toBe(false);
+        });
+
+        it('returns false (retry available) once the pending action is cleared after failure', () => {
+            const reportActions = createMock<ReportAction[]>([
+                {
+                    actionName: CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION,
+                    reportActionID: '1',
+                    created: '2024-01-01',
+                    // pendingAction cleared by backend push on failure
+                },
+            ]);
+            expect(isExportInProgress(reportActions, undefined)).toBe(false);
         });
     });
 

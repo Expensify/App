@@ -7,7 +7,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getValidConnectedIntegration} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
-import {isExported as isExportedUtils} from '@libs/ReportUtils';
+import {isExported as isExportedUtils, isExportInProgress as isExportInProgressUtils} from '@libs/ReportUtils';
 
 import {exportToIntegration} from '@userActions/Report';
 
@@ -30,12 +30,17 @@ function ExportPrimaryAction({reportID, onExportModalOpen}: ExportPrimaryActionP
     const {reportActions: unfilteredReportActions} = usePaginatedReportActions(moneyRequestReport?.reportID);
     const reportActions = getFilteredReportActionsForReportView(unfilteredReportActions);
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
+    const isExportInProgress = isExportInProgressUtils(reportActions, moneyRequestReport);
 
     return (
         <Button
             variant={CONST.BUTTON_VARIANT.SUCCESS}
+            isLoading={isExportInProgress}
             onPress={() => {
                 if (!connectedIntegration || !moneyRequestReport) {
+                    return;
+                }
+                if (isExportInProgress) {
                     return;
                 }
                 if (isExported) {

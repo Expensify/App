@@ -13195,7 +13195,26 @@ function isExported(reportActions: OnyxEntry<ReportActions> | ReportAction[], re
     return lastSuccessfulExportCreated > lastResetCreated;
 }
 
-function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>) {
+/**
+ * Returns true while an export to an integration is currently in flight for the report.
+ * The signal is an optimistic `EXPORTED_TO_INTEGRATION` report action whose `pendingAction` is ADD
+ * (the same state that renders the "started exporting this report to <integration>…" message),
+ * or the report-level optimistic field set by manual exports.
+ *
+ * NOTE: this is intentionally *not* the same as `isExported` (a completed export) and must not depend on
+ * any failure-rollback logic — on export failure the backend clears the pending action via push, so this
+ * flips back to false and the existing retry path (#72292/#87654) remains intact.
+ */
+function isExportInProgress(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
+    if (report?.pendingFields?.export === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD) {
+        return true;
+    }
+
+    const reportActionList = Array.isArray(reportActions) ? reportActions : Object.values(reportActions ?? {});
+    return reportActionList.some((action) => isExportIntegrationAction(action) && action.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
+}
+
+function hasExportError(reportActions: OnyxEntry<ReportActions> | ReportAction[], report?: OnyxEntry<Report>): boolean {
     if (report?.hasExportError) {
         return true;
     }
@@ -14392,6 +14411,7 @@ export {
     getIntegrationIcon,
     canBeExported,
     isExported,
+    isExportInProgress,
     hasExportError,
     hasOnlyNonReimbursableTransactions,
     getReportLastMessage,
