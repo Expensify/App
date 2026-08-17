@@ -9,7 +9,6 @@ import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getDefaultCompanyWebsite} from '@libs/BankAccountUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getFieldRequiredErrors, isValidWebsite} from '@libs/ValidationUtils';
 
 import {addBusinessWebsiteForDraft} from '@userActions/BankAccounts';
@@ -60,16 +59,9 @@ function WebsiteBusiness({onNext, onMove, isEditing}: SubPageProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'WebsiteBusiness',
-            isLoadingReimbursementAccount,
-        };
         return (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
