@@ -157,9 +157,9 @@ function HeaderWithBackButton({
                         )}
                     </View>
                     {threeDotMenuTooltipsSection}
+                    {shouldDisplaySearchRouter && <SearchButton />}
+                    {shouldDisplayHelpButton && <SidePanelButton />}
                 </View>
-                {shouldDisplaySearchRouter && <SearchButton />}
-                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
     );
