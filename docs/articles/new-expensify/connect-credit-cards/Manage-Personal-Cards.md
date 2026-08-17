@@ -25,6 +25,7 @@ Anyone with a personal credit card connected to their Expensify account can mana
 2. Under **Cards**:
    - Personal cards will appear in the **Personal** section. 
    - You'll see the card name, bank icon, and last 4 digits.
+   - Each card shows a connection status of **Active** or **Inactive**, along with when it last synced.
 
 If you have both company and personal cards, you'll see them separated into **Company cards** and **Personal cards** sections.
 
@@ -76,18 +77,25 @@ When a connection breaks, Expensify can no longer import new transactions from t
 
 ---
 
+## What the personal card connection statuses mean
+
+In the **Cards** section of your **Wallet**, each personal card shows a connection status:
+
+- **Active** — The card is connected and importing transactions.
+- **Inactive** — The connection is broken and Expensify can no longer import transactions. 
+
+---
+
 ## How to know when a personal card connection is broken 
 
 When a personal card connection breaks, you'll see:
 
+- The card marked **Inactive** with the message **Please fix this connection** in the **Cards** section of your **Wallet**.
 - A notification in the **Time Sensitive** section on **Home**.
 - A red dot indicator on **Wallet** in the navigation tabs. 
 - A red dot indicator on the card in **Wallet** leading to the error.
 
-<!-- SCREENSHOT:
-Suggestion: Show broken personal card connection with indicators on Wallet and on the card. 
-Design request: https://github.com/Expensify/Expensify/issues/620248
--->
+![Broken personal card connection with indicators on Wallet and on the card.]({{site.url}}/assets/images/ExpensifyHelp-FixPersonalCards-2){:width="100%"}
 
 
 ## How to fix a broken personal card connection 
@@ -137,3 +145,7 @@ The broken connection error is automatically removed when any of the following o
 - Logging into your bank successfully re-authenticates the connection.
 - Tapping Update card successfully refreshes the card.
 - Expensify's daily automatic card refresh succeeds.
+
+## Why does a company card show as Inactive in my Wallet?
+
+Company cards also appear in the **Cards** section of your **Wallet**. If a company card connection is broken, it shows as **Inactive**. If you're a workspace admin, you'll see **Please fix this connection in company cards**, which links to the company cards settings where you can fix the feed. If you're not an admin, you'll see **Please ask an admin to fix this connection** — reach out to your workspace admin to restore it.
