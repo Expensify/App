@@ -1,5 +1,3 @@
-import Log from '@libs/Log';
-
 import getWorkspaceMenuItems from '@pages/workspace/getWorkspaceMenuItems';
 
 import CONST from '@src/CONST';
@@ -51,7 +49,7 @@ function buildPolicy(role: Policy['role']): Policy {
 
 describe('getWorkspaceMenuItems', () => {
     it('does not build routes until a menu item is selected', () => {
-        const warnSpy = jest.spyOn(Log, 'warn').mockImplementation(() => undefined);
+        const getRouteSpy = jest.spyOn(ROUTES.WORKSPACE_OVERVIEW, 'getRoute');
 
         const items = getWorkspaceMenuItems({
             policy: undefined,
@@ -61,11 +59,11 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items).toHaveLength(3);
-        expect(warnSpy).not.toHaveBeenCalled();
+        expect(getRouteSpy).not.toHaveBeenCalled();
 
         items.at(0)?.getRoute();
-        expect(warnSpy).toHaveBeenCalledTimes(1);
-        warnSpy.mockRestore();
+        expect(getRouteSpy).toHaveBeenCalledTimes(1);
+        getRouteSpy.mockRestore();
     });
 
     it('returns only the always-visible rows for a member without protected feature access', () => {
