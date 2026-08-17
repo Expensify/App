@@ -1211,6 +1211,10 @@ function createOption({
     let reportName;
     result.participantsList = personalDetailList;
 
+    // Resolve display-name translations once per option, then pass the strings to getDisplayNameForParticipant.
+    const hiddenText = translateFn('common.hidden');
+    const youText = translateFn('common.you').toLowerCase();
+
     if (report) {
         result.private_isArchived = privateIsArchived;
         result.keyForList = String(report.reportID);
@@ -1271,12 +1275,13 @@ function createOption({
                       shouldAddCurrentUserPostfix: true,
                       personalDetailsData: personalDetails ?? undefined,
                       formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                      translate: translateFn,
+                      hiddenTranslation: hiddenText,
+                      youTranslation: youText,
                   })
                 : '');
 
         reportName = showPersonalDetails
-            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, translate: translateFn}) ||
+            ? getDisplayNameForParticipant({accountID: accountIDs.at(0), formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: hiddenText}) ||
               formatPhoneNumberPhoneUtils(personalDetail?.login ?? '')
             : computedReportName;
     } else {
@@ -1285,7 +1290,7 @@ function createOption({
                 accountID: accountIDs.at(0),
                 personalDetailsData: personalDetails ?? undefined,
                 formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate: translateFn,
+                hiddenTranslation: hiddenText,
             }) || formatPhoneNumberPhoneUtils(personalDetail?.login ?? '');
         result.keyForList = String(accountIDs.at(0));
 

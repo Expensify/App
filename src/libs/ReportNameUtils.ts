@@ -236,7 +236,7 @@ const buildReportNameFromParticipantNames = ({
                 shouldUseShortForm: true,
                 personalDetailsData,
                 formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                translate,
+                hiddenTranslation: translate('common.hidden'),
             }),
         }))
         .filter((participant) => participant.name)
@@ -247,7 +247,7 @@ const buildReportNameFromParticipantNames = ({
                     accountID,
                     personalDetailsData,
                     formatPhoneNumber: formatPhoneNumberPhoneUtils,
-                    translate,
+                    hiddenTranslation: translate('common.hidden'),
                 });
             }
             return formattedNames ? `${formattedNames}, ${name}` : name;
@@ -293,10 +293,12 @@ function getGroupChatName(
     const isMultipleParticipantReport = participantAccountIDs.length > 1;
 
     if (isMultipleParticipantReport) {
+        // Resolve the translation once, not per participant.
+        const hiddenText = translate('common.hidden');
         return participantAccountIDs
             .map(
                 (participantAccountID, index) =>
-                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, translate}) ||
+                    getDisplayNameForParticipant({accountID: participantAccountID, shouldUseShortForm: isMultipleParticipantReport, formatPhoneNumber, hiddenTranslation: hiddenText}) ||
                     formatPhoneNumber(participants?.[index]?.login ?? ''),
             )
             .sort((first, second) => customCollator.compare(first ?? '', second ?? ''))
@@ -305,7 +307,7 @@ function getGroupChatName(
             .slice(0, CONST.REPORT_NAME_LIMIT)
             .concat(shouldAddEllipsis ? '...' : '');
     }
-    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, translate}));
+    return translate('groupChat.defaultReportName', getDisplayNameForParticipant({accountID: participantAccountIDs.at(0), formatPhoneNumber, hiddenTranslation: translate('common.hidden')}));
 }
 
 /**
@@ -324,7 +326,9 @@ function getPolicyExpenseChatName({
     const personalDetails = ownerAccountID ? personalDetailsList?.[ownerAccountID] : undefined;
     const login = personalDetails ? personalDetails.login : null;
 
-    const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
+    const reportOwnerDisplayName =
+        getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ||
+        login;
 
     if (reportOwnerDisplayName) {
         return translate('workspace.common.policyExpenseChatName', reportOwnerDisplayName);
@@ -453,7 +457,8 @@ function getMoneyRequestReportName({
         const invoiceReceiverPersonalDetail = getInvoiceReceiverPersonalDetail(chatReport, personalDetailsList);
         payerOrApproverName = getInvoicePayerName(chatReport, translate, invoiceReceiverPersonalDetail, invoiceReceiverPolicy);
     } else {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+        payerOrApproverName =
+            getDisplayNameForParticipant({accountID: report?.managerID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '';
     }
     const payerPaidAmountMessage = translate('iou.payerPaidAmount', formattedAmount, payerOrApproverName);
 
@@ -466,7 +471,8 @@ function getMoneyRequestReportName({
     }
 
     if (!isSettled(report?.reportID) && hasNonReimbursableTransactions(linkedTransactions)) {
-        payerOrApproverName = getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+        payerOrApproverName =
+            getDisplayNameForParticipant({accountID: report?.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, hiddenTranslation: translate('common.hidden')}) ?? '';
         return translate('iou.payerSpentAmount', formattedAmount, payerOrApproverName);
     }
 
@@ -1185,7 +1191,8 @@ function computeReportName({
             shouldAddCurrentUserPostfix: true,
             personalDetailsData: personalDetailsList,
             formatPhoneNumber: formatPhoneNumberPhoneUtils,
-            translate,
+            hiddenTranslation: translate('common.hidden'),
+            youTranslation: translate('common.you').toLowerCase(),
         });
     }
 

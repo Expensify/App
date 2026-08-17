@@ -116,17 +116,19 @@ function temporaryGetDisplayNameOrDefault({
     youAfterTranslation,
     translate,
     formatPhoneNumber,
+    hiddenTranslation: hiddenTranslationOverride,
 }: {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
     youAfterTranslation?: string;
-    translate: LocalizedTranslate;
+    translate?: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    hiddenTranslation?: string;
 }): string {
-    const temporaryHiddenTranslation = translate('common.hidden');
-    const temporaryYouTranslation = translate('common.you').toLowerCase();
+    const temporaryHiddenTranslation = hiddenTranslationOverride ?? translate?.('common.hidden') ?? hiddenTranslation;
+    const temporaryYouTranslation = translate?.('common.you').toLowerCase() ?? youTranslation;
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     const login = passedPersonalDetails?.login ?? '';

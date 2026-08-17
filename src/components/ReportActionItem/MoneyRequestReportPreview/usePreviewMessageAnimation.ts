@@ -128,7 +128,7 @@ function usePreviewMessageAnimation({
                 accountID: managerID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
-                translate,
+                hiddenTranslation: translate('common.hidden'),
             });
         }
 
@@ -144,7 +144,7 @@ function usePreviewMessageAnimation({
                 accountID: chatReport?.ownerAccountID,
                 shouldUseShortForm: true,
                 formatPhoneNumber,
-                translate,
+                hiddenTranslation: translate('common.hidden'),
             });
         }
         return translate(paymentVerb, payerOrApproverName);
