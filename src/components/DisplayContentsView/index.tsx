@@ -35,7 +35,8 @@ function pinDisplayToContents(element: HTMLDivElement) {
  * style. Native does the same through a view config (see index.native.tsx), so wrapper nodes don't hide the
  * navigation underlay during swipe-back or Activity visibility toggles.
  *
- * It is a plain div because react-native-web's View neither accepts `display: contents` nor declares `inert`.
+ * It is a plain div because react-native-web's View neither accepts `display: contents` nor declares `inert`. The
+ * attribute goes on that same div, so `inert` needs no extra node here, unlike on native.
  */
 function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
     const pinnedElementRef = useRef<HTMLDivElement | null>(null);

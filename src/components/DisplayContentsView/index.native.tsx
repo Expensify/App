@@ -1,7 +1,9 @@
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {PropsWithChildren} from 'react';
 import type {ViewStyle} from 'react-native';
 
-import {NativeComponentRegistry} from 'react-native';
+import {NativeComponentRegistry, View} from 'react-native';
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
 import type DisplayContentsViewProps from './types';
@@ -41,11 +43,28 @@ const NativeDisplayContentsView = NativeComponentRegistry.get<NativeDisplayConte
  * Native implementation that renders with `display: 'contents'` so wrapper nodes don't hide the navigation
  * underlay during swipe-back or Activity visibility toggles. Web pins the same value on a div (see index.tsx).
  *
- * The `inert` prop has no native counterpart, so callers that need it take the content out of accessibility and
- * touch handling on a node of their own.
+ * A `display: contents` node has no box to hit test and nothing to expose to the accessibility tree, so `inert`
+ * needs a node of its own. That node is the one that fills the screen, and it only exists for callers that pass
+ * the prop. The flags have to be part of the rendered output, because a hidden Activity runs no effects.
  */
-function DisplayContentsView({children}: DisplayContentsViewProps) {
-    return <NativeDisplayContentsView style={DISPLAY_CONTENTS}>{children}</NativeDisplayContentsView>;
+function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
+    const styles = useThemeStyles();
+
+    return (
+        <NativeDisplayContentsView style={DISPLAY_CONTENTS}>
+            {inert === undefined ? (
+                children
+            ) : (
+                <View
+                    aria-hidden={inert}
+                    style={[styles.flex1, {pointerEvents: inert ? 'none' : 'box-none'}]}
+                    collapsable={false}
+                >
+                    {children}
+                </View>
+            )}
+        </NativeDisplayContentsView>
+    );
 }
 
 export {getDisplayContentsViewConfig};

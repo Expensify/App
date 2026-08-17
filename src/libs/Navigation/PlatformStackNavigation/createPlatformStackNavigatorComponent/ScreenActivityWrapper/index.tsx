@@ -1,4 +1,5 @@
-import CustomViewWrapper from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/CustomViewWrapper';
+import DisplayContentsView from '@components/DisplayContentsView';
+
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 
 import React, {Activity} from 'react';
@@ -9,8 +10,9 @@ import useScreenActivityState from './useScreenActivityState';
 /**
  * Deprioritizes rendering of a covered screen with React <Activity>. Unlike react-freeze, a hidden Activity keeps
  * processing updates at background priority and runs effect cleanups, so a modal that is still dismissing when the
- * screen gets covered always finishes its close chain. CustomViewWrapper keeps the hidden content painted, so a
- * covered screen that is still shown (for example dimmed under the RHP overlay) does not disappear.
+ * screen gets covered always finishes its close chain. DisplayContentsView keeps the hidden content painted, so a
+ * covered screen that is still shown (for example dimmed under the RHP overlay) does not disappear, and it takes
+ * that content out of accessibility and touch handling while it is covered.
  *
  * StrictMode is the qualification gate for screens that opt into Activity. Its double effect mount in dev exercises
  * the same cleanup and re-run lifecycle as a hide and reveal cycle, so an effect that would misbehave under a cover
@@ -22,9 +24,9 @@ function ScreenActivityWrapper({isScreenBlurred, children}: NonTopScreenWrapperP
 
     return (
         <Activity mode={mode}>
-            <CustomViewWrapper inert={isScreenCovered}>
+            <DisplayContentsView inert={isScreenCovered}>
                 <StrictModeMountGate>{children}</StrictModeMountGate>
-            </CustomViewWrapper>
+            </DisplayContentsView>
         </Activity>
     );
 }

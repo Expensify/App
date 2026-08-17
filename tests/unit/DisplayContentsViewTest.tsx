@@ -1,12 +1,20 @@
-import {getDisplayContentsViewConfig} from '@components/DisplayContentsView/index.native';
+import type {RenderAPI} from '@testing-library/react-native';
+import {render as renderNative} from '@testing-library/react-native';
+
+import DisplayContentsViewNative, {getDisplayContentsViewConfig} from '@components/DisplayContentsView/index.native';
 
 import type {ActivityProps, ComponentType, PropsWithChildren, ReactNode} from 'react';
 import type {Root} from 'react-dom/client';
 
 import {act, Activity} from 'react';
 import {createRoot} from 'react-dom/client';
+import {StyleSheet, View} from 'react-native';
 
 /* eslint-disable testing-library/no-unnecessary-act -- this test drives a react-dom root directly, so its renders and cleanup must be wrapped in React act. */
+
+jest.mock('@hooks/useThemeStyles', () => () => ({
+    flex1: {flex: 1},
+}));
 
 type WebDisplayContentsViewProps = PropsWithChildren<{inert?: boolean}>;
 
@@ -50,6 +58,20 @@ function mountWebRoot() {
             container.remove();
         },
     };
+}
+
+function getNativeNodes(toJSON: RenderAPI['toJSON']) {
+    const host = toJSON();
+    if (!host || Array.isArray(host)) {
+        throw new Error('DisplayContentsView did not render a native host node');
+    }
+
+    const child = host.children?.[0];
+    if (!child || typeof child === 'string') {
+        throw new Error('DisplayContentsView did not render a child node');
+    }
+
+    return {child, host};
 }
 
 describe('DisplayContentsView', () => {
@@ -120,5 +142,46 @@ describe('DisplayContentsView', () => {
         expect(element.hasAttribute('inert')).toBe(false);
 
         unmount();
+    });
+
+    it('keeps the native host layout-neutral and takes its content out of touch handling while it is covered', () => {
+        const {host, child} = getNativeNodes(
+            renderNative(
+                <DisplayContentsViewNative inert>
+                    <View testID="content" />
+                </DisplayContentsViewNative>,
+            ).toJSON,
+        );
+
+        expect(StyleSheet.flatten(host.props.style)).toEqual({display: 'contents'});
+        expect(child.props['aria-hidden']).toBe(true);
+        expect(child.props.collapsable).toBe(false);
+        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'none'});
+    });
+
+    it('lets touches pass through around the native content while it is not covered', () => {
+        const {child} = getNativeNodes(
+            renderNative(
+                <DisplayContentsViewNative inert={false}>
+                    <View testID="content" />
+                </DisplayContentsViewNative>,
+            ).toJSON,
+        );
+
+        expect(child.props['aria-hidden']).toBe(false);
+        expect(child.props.collapsable).toBe(false);
+        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
+    });
+
+    it('renders no node for inert on native when a caller leaves the prop out', () => {
+        const {child} = getNativeNodes(
+            renderNative(
+                <DisplayContentsViewNative>
+                    <View testID="content" />
+                </DisplayContentsViewNative>,
+            ).toJSON,
+        );
+
+        expect(child.props.testID).toBe('content');
     });
 });
