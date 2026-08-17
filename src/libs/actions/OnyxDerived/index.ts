@@ -21,7 +21,6 @@ import type {OnyxCollection} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 import OnyxCache, {TASK} from 'react-native-onyx/dist/OnyxCache';
 import OnyxKeys from 'react-native-onyx/dist/OnyxKeys';
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 import type {DerivedValueContext} from './types';
 
@@ -43,10 +42,22 @@ function init() {
         // We cast its type to match the tuple expected by config.compute.
         const dependencyValues = new Array(totalConnections) as Parameters<typeof compute>[0];
 
-        let derivedValue = OnyxUtils.get(key);
-        if (derivedValue) {
-            Log.info(`Derived value for ${key} restored from cache`);
-        }
+        // Restored at the first compute, not here: hydration is async and `src/setup/index.ts` calls this in the
+        // same tick as `Onyx.init()`, so a read here always misses. One shot, so that a later compute can't undo
+        // `resetForClear`.
+        let derivedValue: ReturnType<typeof compute> | undefined;
+        let hasRestoredPersistedValue = false;
+        const restorePersistedValue = () => {
+            if (hasRestoredPersistedValue) {
+                return;
+            }
+            hasRestoredPersistedValue = true;
+
+            derivedValue = Onyx.get(key);
+            if (derivedValue) {
+                Log.info(`Derived value for ${key} restored from cache`);
+            }
+        };
 
         const setDependencyValue = <Index extends number>(i: Index, value: Parameters<typeof compute>[0][Index]) => {
             dependencyValues[i] = value;
@@ -97,6 +108,9 @@ function init() {
         };
 
         const runCompute = (sourceValues: Record<string, unknown> | undefined, triggeredKeys: Set<OnyxKey>) => {
+            // In the compute, not at its call site: nothing else reads the restored value, and a compute can't
+            // run before every dependency delivered, which can't happen before hydration.
+            restorePersistedValue();
             context.currentValue = derivedValue;
             context.sourceValues = sourceValues as typeof context.sourceValues;
             context.triggeredKeys = triggeredKeys;
