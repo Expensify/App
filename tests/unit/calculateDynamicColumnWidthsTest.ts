@@ -1,9 +1,17 @@
 import type {DynamicColumnConstraints} from '@components/Table/calculateDynamicColumnWidths';
 import calculateDynamicColumnWidths from '@components/Table/calculateDynamicColumnWidths';
 
-// Columns are uncapped by default, matching what the hook passes when a column doesn't set its own `maxWidth`.
-function buildConstraints(contentWidth: number, maxWidth = Number.POSITIVE_INFINITY): DynamicColumnConstraints {
-    return {contentWidth, maxWidth};
+/**
+ * A free-text column: squeezable down to `minWidth`, and uncapped, which is what the hook passes when a column doesn't
+ * set a `maxWidth` of its own.
+ */
+function buildConstraints(contentWidth: number, minWidth = Math.min(contentWidth, 180), maxWidth = Number.POSITIVE_INFINITY): DynamicColumnConstraints {
+    return {contentWidth, minWidth, maxWidth};
+}
+
+/** A column whose values come from a known, short set, so it is never squeezed below its content. */
+function buildFitContentConstraints(contentWidth: number): DynamicColumnConstraints {
+    return {contentWidth, minWidth: contentWidth, maxWidth: Number.POSITIVE_INFINITY};
 }
 
 function sumOf(values: number[]): number {
@@ -32,7 +40,7 @@ describe('calculateDynamicColumnWidths', () => {
         it('sizes the columns explicitly when a maximum is narrower than an equal share', () => {
             // Both columns' content fits in an equal share (450px), but equal tracks would stretch the capped column to
             // 450px, past its 200px maximum.
-            const result = calculateDynamicColumnWidths([buildConstraints(100, 200), buildConstraints(100)], 900);
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 100, 200), buildConstraints(100)], 900);
 
             expect(result.widths.at(0)).toBe(200);
             expect(sumOf(result.widths)).toBe(900);
@@ -60,7 +68,7 @@ describe('calculateDynamicColumnWidths', () => {
         });
 
         it('does not let a column grow past its maximum width', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(800, 500), buildConstraints(100), buildConstraints(80)], 900);
+            const result = calculateDynamicColumnWidths([buildConstraints(800, 180, 500), buildConstraints(100), buildConstraints(80)], 900);
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(sumOf(result.widths)).toBe(900);
@@ -70,24 +78,31 @@ describe('calculateDynamicColumnWidths', () => {
 
         it('leaves space unclaimed when every column has reached its maximum', () => {
             // A maximum outranks filling the row, so the columns stop at 200px each rather than absorbing the leftover.
-            const result = calculateDynamicColumnWidths([buildConstraints(100, 200), buildConstraints(100, 200)], 900);
+            const result = calculateDynamicColumnWidths([buildConstraints(100, 100, 200), buildConstraints(100, 100, 200)], 900);
 
             expect(result.widths).toEqual([200, 200]);
             expect(result.shouldScrollHorizontally).toBe(false);
         });
     });
 
-    describe('behavior 3: the content does not fit', () => {
-        it('scrolls at the width the content needs instead of truncating it', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(900), buildConstraints(300)], 700);
+    describe('behavior 3: the content does not fit, so the columns are squeezed', () => {
+        it('squeezes every column in proportion to how much room it has to give', () => {
+            // 1200px of content in a 700px row, with 200px of that already committed to minimum widths, so the 500px of
+            // squeezable room is shared out at 50%.
+            const result = calculateDynamicColumnWidths([buildConstraints(900, 100), buildConstraints(300, 100)], 700);
 
-            expect(result).toEqual({widths: [900, 300], shouldScrollHorizontally: true});
+            expect(result.shouldScrollHorizontally).toBe(false);
+            expect(sumOf(result.widths)).toBe(700);
+            expect(result.widths).toEqual([500, 200]);
         });
 
-        it('scrolls as soon as the content is one pixel too wide', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(600), buildConstraints(301)], 900);
+        it('does not squeeze a column that has to fit its content, and takes the room from the others instead', () => {
+            // The second column's minimum is its content, so it keeps all 300px and the first column absorbs the squeeze.
+            const result = calculateDynamicColumnWidths([buildConstraints(900, 100), buildFitContentConstraints(300)], 700);
 
-            expect(result).toEqual({widths: [600, 301], shouldScrollHorizontally: true});
+            expect(result.shouldScrollHorizontally).toBe(false);
+            expect(result.widths).toEqual([400, 300]);
+            expect(sumOf(result.widths)).toBe(700);
         });
 
         it('does not scroll when the content adds up to exactly the available width', () => {
@@ -97,18 +112,39 @@ describe('calculateDynamicColumnWidths', () => {
             expect(result.widths).toEqual([600, 300]);
         });
 
-        it('truncates instead of scrolling further for a column that set a maximum', () => {
-            // Capping the first column at 400px brings the total to 700px, which fits, so the table doesn't scroll and
-            // that column truncates instead. This is the only way a caller chooses truncation over a wider scroll.
-            const result = calculateDynamicColumnWidths([buildConstraints(2000, 400), buildConstraints(300)], 900);
+        it('truncates rather than squeezing further for a column that set a maximum', () => {
+            // Capping the first column at 400px brings the total to 700px, which fits inside 900px, so nothing is
+            // squeezed and that column truncates instead.
+            const result = calculateDynamicColumnWidths([buildConstraints(2000, 180, 400), buildConstraints(300)], 900);
 
             expect(result.shouldScrollHorizontally).toBe(false);
             expect(result.widths.at(0)).toBe(400);
             expect(sumOf(result.widths)).toBe(900);
         });
+    });
 
-        it('rounds up so a column is never a fraction of a pixel short of its content', () => {
-            const result = calculateDynamicColumnWidths([buildConstraints(900.2), buildConstraints(300.7)], 700);
+    describe('behavior 4: not even the minimum widths fit', () => {
+        it('stops at the minimum widths and scrolls', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(900, 400), buildConstraints(300, 300)], 600);
+
+            expect(result).toEqual({widths: [400, 300], shouldScrollHorizontally: true});
+        });
+
+        it('does not scroll when the minimum widths add up to exactly the available width', () => {
+            const result = calculateDynamicColumnWidths([buildConstraints(900, 400), buildConstraints(300, 200)], 600);
+
+            expect(result).toEqual({widths: [400, 200], shouldScrollHorizontally: false});
+        });
+
+        it('scrolls wide enough for a column that has to fit its content', () => {
+            // Two columns that must show their content in full, in a row too narrow for both.
+            const result = calculateDynamicColumnWidths([buildFitContentConstraints(500), buildFitContentConstraints(400)], 600);
+
+            expect(result).toEqual({widths: [500, 400], shouldScrollHorizontally: true});
+        });
+
+        it('rounds up so a column is never a fraction of a pixel short of its minimum', () => {
+            const result = calculateDynamicColumnWidths([buildFitContentConstraints(900.2), buildFitContentConstraints(300.7)], 700);
 
             expect(result).toEqual({widths: [901, 301], shouldScrollHorizontally: true});
         });

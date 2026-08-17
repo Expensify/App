@@ -64,6 +64,12 @@ type TableColumnDynamicSizing<DataType extends TableData = TableData> = {
     /** Width of the cell's non-text content, e.g. an avatar plus its gap. */
     extraWidth?: number;
 
+    /** Whether this column's values come from a fixed set (a role, a status), so it always fits them in full and never truncates. */
+    shouldFitContent?: boolean;
+
+    /** Smallest width this column may be squeezed to. Defaults to a readable width, or the column's content width when that is narrower. */
+    minWidth?: number;
+
     /**
      * Largest width this column may claim. Uncapped by default, so content that doesn't fit scrolls the table rather
      * than truncating. Set this on a column that should truncate instead of widening the table any further.

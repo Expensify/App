@@ -125,6 +125,8 @@ export default function WorkspaceMembersTable({
             sortable: true,
             dynamicSizing: {
                 getContentToMeasure: (item) => [{text: translate('workspace.common.roleName', item.role), fontSize: variables.fontSizeNormal}],
+                // A role is one of a short, known set of labels, so the column always shows them in full.
+                shouldFitContent: true,
             },
         },
         {

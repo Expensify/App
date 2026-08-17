@@ -4,6 +4,8 @@ import measureTextWidth from '@libs/measureTextWidth';
 
 import variables from '@styles/variables';
 
+import CONST from '@src/CONST';
+
 import {useMemo} from 'react';
 
 import type {DynamicColumnConstraints} from './calculateDynamicColumnWidths';
@@ -11,11 +13,7 @@ import type {TableColumn, TableData} from './types';
 
 import calculateDynamicColumnWidths from './calculateDynamicColumnWidths';
 
-/**
- * How many of the longest candidate strings are measured per column. Character count is a good but imperfect proxy for
- * rendered width in a proportional font, so the longest few are all measured and the widest of them wins.
- */
-const MEASURED_CANDIDATES_PER_COLUMN = 5;
+const {MEASURED_CANDIDATES_PER_COLUMN, MIN_FREE_TEXT_COLUMN_WIDTH} = CONST.TABLES.DYNAMIC_COLUMNS;
 
 type UseDynamicColumnWidthsParams<DataType extends TableData, ColumnKey extends string> = {
     /** Column configuration for the table. */
@@ -171,10 +169,18 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
                 return noDynamicWidths;
             }
 
+            // A column has to fit its header label as well as its cells, so the label is part of what its content needs
+            // rather than a separate floor.
+            const columnContentWidth = Math.max(contentWidth, headerLabelWidth);
+
+            // A column holding a known, short set of values is never squeezed below its content, so it never truncates.
+            // A free-text column is squeezed no further than a readable width, or its content when that is narrower.
+            const readableWidth = MIN_FREE_TEXT_COLUMN_WIDTH + (column.dynamicSizing?.extraWidth ?? 0);
+            const defaultMinWidth = column.dynamicSizing?.shouldFitContent ? columnContentWidth : Math.min(columnContentWidth, readableWidth);
+
             constraints.push({
-                // A column has to fit its header label as well as its cells, so the label is part of what its content
-                // needs rather than a separate floor.
-                contentWidth: Math.max(contentWidth, headerLabelWidth),
+                contentWidth: columnContentWidth,
+                minWidth: column.dynamicSizing?.minWidth ?? defaultMinWidth,
                 // Uncapped by default, so the table scrolls rather than truncating. A cap also can't be derived from the
                 // available width without breaking the sizing: a column capped at its equal share looks like it fits in
                 // one, so the columns would be left equal and the long column would stay truncated. Columns that should
