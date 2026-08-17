@@ -10,6 +10,7 @@ import useDefaultExpensePolicy from '@hooks/useDefaultExpensePolicy';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useFetchRoute from '@hooks/useFetchRoute';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -37,6 +38,7 @@ import {getLatestErrorField} from '@libs/ErrorUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {shouldUseTransactionDraft} from '@libs/IOUUtils';
 import {getWaypointsHasUnsavedChanges} from '@libs/MoneyRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import OnyxTabNavigator, {TabScreenWithFocusTrapWrapper, TopTab} from '@libs/Navigation/OnyxTabNavigator';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -47,8 +49,8 @@ import {getDistanceInMeters, getRateID, getRequestType, getSelectedRouteKey, has
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {WaypointCollection} from '@src/types/onyx/Transaction';
@@ -78,21 +80,25 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
-    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
+type DynamicIOURequestStepDistanceProps = WithCurrentUserPersonalDetailsProps &
+    WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE | typeof SCREENS.MONEY_REQUEST.CREATE> & {
         /** The transaction object being modified in Onyx */
         transaction: OnyxEntry<Transaction>;
     };
 
-function IOURequestStepDistance({
+function DynamicIOURequestStepDistance({
     report,
     route: {
-        params: {action, iouType, reportID, transactionID, backTo, backToReport, reportActionID},
+        params: {action, iouType, reportID, transactionID, backToReport, reportActionID},
+        name,
     },
     transaction,
     currentUserPersonalDetails,
-}: IOURequestStepDistanceProps) {
+}: DynamicIOURequestStepDistanceProps) {
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.path);
+    // The page is also mounted on the static create screen, where there is nothing to go back to within the flow.
+    const backTo = name === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE ? backPath : undefined;
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
@@ -165,7 +171,7 @@ function IOURequestStepDistance({
     const currentUserEmailParam = currentUserPersonalDetails.login ?? '';
     const delegateAccountID = useDelegateAccountID();
     const {nonEmptyWaypointsCount, isWaypointsNullIslandError, duplicateWaypointsError, atLeastTwoDifferentWaypointsError} = useWaypointValidation({waypoints, validatedWaypoints});
-    const isCreatingNewRequest = !(backTo || isEditing);
+    const isCreatingNewRequest = !backTo && !isEditing;
     const [recentWaypoints, {status: recentWaypointsStatus}] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const iouRequestType = getRequestType(currentTransaction);
     const customUnitRateID = getRateID(currentTransaction);
@@ -407,9 +413,10 @@ function IOURequestStepDistance({
             // — Navigation.goBack() then REPLACEs instead of POPs and crashes. Build the backTo URL
             // explicitly there. The create flow has no tab navigator, so the production getActiveRoute()
             // path is correct (GH #90037).
-            const waypointBackTo = isEditing
-                ? ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID, backTo)
-                : Navigation.getActiveRoute();
+            const waypointBackTo =
+                isEditing && backTo
+                    ? createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(action, iouType, transactionID, report?.reportID ?? reportID), backTo)
+                    : Navigation.getActiveRoute();
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(action, iouWaypointType, transactionID, report?.reportID ?? reportID, index.toString(), waypointBackTo));
         },
         [action, iouType, transactionID, report?.reportID, reportID, backTo, isEditingSplit, isEditing],
@@ -702,7 +709,7 @@ function IOURequestStepDistance({
             waypoints,
             ...(isRouteSelectionOnlyChange ? {} : {distance: distanceAsFloat}),
             ...(hasRouteChanged ? {routes: transaction?.routes} : {}),
-            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overriden with the primary one
+            // We need to pass selectedRouteKey to ensure that updating manual distance won't cause alternate route to be overridden with the primary one
             ...(wasOriginallyMapDistance ? {selectedRouteKey} : {}),
             transactionBackup,
             policy,
@@ -859,7 +866,7 @@ function IOURequestStepDistance({
             <StepScreenWrapper
                 headerTitle={translate('common.distance')}
                 onBackButtonPress={navigateBackFromEditFlow}
-                testID="IOURequestStepDistance"
+                testID="DynamicIOURequestStepDistance"
                 shouldShowNotFoundPage={!currentTransaction?.comment?.waypoints || shouldShowNotFoundPage}
                 shouldShowWrapper
             >
@@ -879,7 +886,7 @@ function IOURequestStepDistance({
         <StepScreenWrapper
             headerTitle={translate('common.distance')}
             onBackButtonPress={navigateBack}
-            testID="IOURequestStepDistance"
+            testID="DynamicIOURequestStepDistance"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
             shouldShowWrapper={!isCreatingNewRequest}
         >
@@ -903,10 +910,10 @@ function IOURequestStepDistance({
     );
 }
 
-const IOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(IOURequestStepDistance);
+const DynamicIOURequestStepDistanceWithCurrentUserPersonalDetails = withCurrentUserPersonalDetails(DynamicIOURequestStepDistance);
 
-const IOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDistanceWithCurrentUserPersonalDetails, true);
+const DynamicIOURequestStepDistanceWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepDistanceWithCurrentUserPersonalDetails, true);
 
-const IOURequestStepDistanceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDistanceWithWritableReportOrNotFound);
+const DynamicIOURequestStepDistanceWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepDistanceWithWritableReportOrNotFound);
 
-export default IOURequestStepDistanceWithFullTransactionOrNotFound;
+export default DynamicIOURequestStepDistanceWithFullTransactionOrNotFound;
