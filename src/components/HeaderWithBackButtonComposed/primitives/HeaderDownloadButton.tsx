@@ -15,7 +15,7 @@ import CONST from '@src/CONST';
 
 type HeaderDownloadButtonProps = {
     /** Method to trigger when pressing the download button. */
-    onPress?: () => void;
+    onPress: () => void;
 
     /** Whether we should show a loading indicator replacing the download button. */
     isLoading?: boolean;
@@ -24,7 +24,7 @@ type HeaderDownloadButtonProps = {
     iconFill?: string;
 };
 
-function HeaderDownloadButton({onPress = () => {}, isLoading = false, iconFill}: HeaderDownloadButtonProps) {
+function HeaderDownloadButton({onPress, isLoading = false, iconFill}: HeaderDownloadButtonProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();

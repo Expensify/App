@@ -1,5 +1,8 @@
+import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import SearchButton from '@components/Search/SearchRouter/SearchButton';
+import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
@@ -14,13 +17,10 @@ import {Keyboard, View} from 'react-native';
 import HeaderBackButton from './primitives/HeaderBackButton';
 import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
-import HeaderHelpButton from './primitives/HeaderHelpButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
 import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
-import HeaderReportAvatar from './primitives/HeaderReportAvatar';
 import HeaderRotateButton from './primitives/HeaderRotateButton';
-import HeaderSearchRouter from './primitives/HeaderSearchRouter';
 import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles';
@@ -131,7 +131,7 @@ function HeaderWithBackButton({
                 )}
                 {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
                 {shouldShowReportAvatarWithDisplay ? (
-                    <HeaderReportAvatar
+                    <AvatarWithDisplayName
                         report={report}
                         shouldDisplayStatus={shouldDisplayStatus}
                         shouldEnableDetailPageNavigation={shouldEnableDetailPageNavigation}
@@ -163,13 +163,14 @@ function HeaderWithBackButton({
                             <HeaderRotateButton
                                 onPress={onRotateButtonPress}
                                 isLoading={isRotating}
+                                iconFill={iconFill}
                             />
                         )}
                     </View>
                     {threeDotMenuTooltipsSection}
                 </View>
-                {shouldDisplaySearchRouter && <HeaderSearchRouter />}
-                {shouldDisplayHelpButton && <HeaderHelpButton />}
+                {shouldDisplaySearchRouter && <SearchButton />}
+                {shouldDisplayHelpButton && <SidePanelButton />}
             </View>
         </View>
     );
