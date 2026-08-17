@@ -1,6 +1,6 @@
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import Text from '@components/Text';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -121,7 +121,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                             />
                         )}
                     </View>
-                    {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+                    {!!item.rightElement && <ListItemContext.Provider value={{isFocused, showTooltip}}>{item.rightElement}</ListItemContext.Provider>}
                 </View>
             )}
         </ListItemWrapper>

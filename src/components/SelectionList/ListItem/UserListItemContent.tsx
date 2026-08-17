@@ -1,7 +1,7 @@
 import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import Icon from '@components/Icon';
 import ReportActionAvatars from '@components/ReportActionAvatars';
-import {ListItemFocusContext} from '@components/SelectionList/ListItemFocusContext';
+import {ListItemContext} from '@components/SelectionList/ListItemContext';
 import getAccessibilityLabel from '@components/SelectionList/utils/getAccessibilityLabel';
 import TextWithTooltip from '@components/TextWithTooltip';
 
@@ -126,7 +126,7 @@ function UserListItemContent<TItem extends ListItem>({
                     />
                 )}
             </View>
-            {!!item.rightElement && <ListItemFocusContext.Provider value={{isFocused}}>{item.rightElement}</ListItemFocusContext.Provider>}
+            {!!item.rightElement && <ListItemContext.Provider value={{isFocused, showTooltip}}>{item.rightElement}</ListItemContext.Provider>}
             {!!item.shouldShowRightCaret && (
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon
