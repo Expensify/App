@@ -86,7 +86,9 @@ const mockUseConciergeSessionState = useConciergeSessionState as jest.MockedFunc
 const mockUseConciergeSessionActions = useConciergeSessionActions as jest.MockedFunction<typeof useConciergeSessionActions>;
 
 function getMockReportLoadingState(selector: unknown, hasOnceLoadedReportActions = true) {
-    return selector === reportActionsListLoadingStateSelector ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false} : undefined;
+    return selector === reportActionsListLoadingStateSelector
+        ? {hasOnceLoadedReportActions, isLoadingInitialReportActions: false, isLoadingOlderReportActions: false, hasLoadingOlderReportActionsError: false}
+        : undefined;
 }
 
 const defaultPaginatedReportActionsResult: ReturnType<typeof usePaginatedReportActions> = {
@@ -144,12 +146,9 @@ jest.mock('@hooks/useReportActionsScroll', () =>
         scrollToActionBadgeTarget: jest.fn(),
         flushPendingScrollToBottom: jest.fn(),
         shouldBeAlignedToTop: false,
-        shouldFocusToTopOnMount: false,
-        initialScrollKey: undefined,
         initialScrollIndex: undefined,
         initialScrollIndexParams: undefined,
-        maintainVisibleContentPosition: {disabled: true},
-        shouldAutoscrollToBottom: false,
+        shouldMaintainVisibleContentPosition: false,
         onLoad: jest.fn(),
     })),
 );
@@ -164,7 +163,8 @@ jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => nul
 type MockLegendListProps = {
     data?: OnyxTypes.ReportAction[];
     extraData?: unknown;
-    maintainScrollAtEnd?: {animated: boolean; on: {layout: boolean}};
+    maintainScrollAtEnd?: {animated: boolean};
+    maintainScrollAtEndThreshold?: number;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
     onScroll?: (event: {
@@ -360,7 +360,8 @@ describe('ReportActionsList (body)', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
         renderReportActionsList();
 
-        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {layout: true}});
+        expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
+        expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(1);
     });
 
     it('continues loading older pages from scroll events when LegendList does not report reaching the start', () => {
