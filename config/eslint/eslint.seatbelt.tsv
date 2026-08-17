@@ -1067,8 +1067,8 @@
 "../../src/pages/iou/request/step/IOURequestStepDistanceGPS/GPSButtons/index.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	3
 "../../src/pages/iou/request/step/IOURequestStepDistanceMap.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepOdometerImage/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/iou/request/step/IOURequestStepScan/ReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
+"../../src/pages/iou/request/step/IOURequestStepScan/DynamicReceiptView/index.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
+"../../src/pages/iou/request/step/IOURequestStepScan/DynamicReceiptView/index.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/WebCamera.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/components/ScanEditReceipt.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/iou/request/step/IOURequestStepScan/hooks/useScanRouteParams.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2

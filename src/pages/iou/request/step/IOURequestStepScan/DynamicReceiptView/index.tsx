@@ -8,6 +8,7 @@ import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,25 +16,21 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useTransactionDraftReceipts from '@hooks/useTransactionDraftReceipts';
 
 import Navigation from '@libs/Navigation/Navigation';
+import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import {removeDraftTransaction, removeTransactionReceipt, replaceDefaultDraftTransaction} from '@userActions/TransactionEdit';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Route} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
+import type SCREENS from '@src/SCREENS';
 
 import React, {useCallback, useEffect, useState} from 'react';
 
-type ReceiptViewProps = {
-    route: {
-        params: {
-            transactionID: string;
-            backTo: Route;
-        };
-    };
-};
+type DynamicReceiptViewProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW>;
 
-function ReceiptView({route}: ReceiptViewProps) {
+function ReceiptView({route}: DynamicReceiptViewProps) {
     const {translate} = useLocalize();
     const {setAttachmentError} = useAttachmentErrors();
     const {shouldShowArrows, setShouldShowArrows, autoHideArrows, cancelAutoHideArrows} = useCarouselArrows();
@@ -41,6 +38,7 @@ function ReceiptView({route}: ReceiptViewProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Trashcan']);
     const [page, setPage] = useState<number>(-1);
     const {showConfirmModal} = useConfirmModal();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_RECEIPT_VIEW.path);
 
     const receipts = useTransactionDraftReceipts();
 
@@ -82,8 +80,8 @@ function ReceiptView({route}: ReceiptViewProps) {
     };
 
     const handleGoBack = useCallback(() => {
-        Navigation.goBack(route.params.backTo);
-    }, [route.params.backTo]);
+        Navigation.goBack(backPath);
+    }, [backPath]);
 
     const handleDeleteReceiptPress = useCallback(async () => {
         const result = await showConfirmModal({

@@ -5552,8 +5552,7 @@ const changeMoneyRequestHoldStatus = (
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
     } else {
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
     }
 };
 

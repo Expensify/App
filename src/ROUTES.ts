@@ -366,6 +366,18 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
     },
+    MONEY_REQUEST_HOLD_REASON: {
+        path: 'hold-reason',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (transactionID: string, reportID: string | undefined) => getUrlWithParams('hold-reason', {transactionID, reportID}),
+        queryParams: ['transactionID', 'reportID'],
+    },
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        path: 'receipt-view',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.STEP_SCAN],
+        getRoute: (transactionID: string) => getUrlWithParams('receipt-view', {transactionID}),
+        queryParams: ['transactionID'],
+    },
     MONEY_REQUEST_STEP_TAG: {
         path: 'expense-tag',
         entryScreens: [
@@ -2311,14 +2323,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            const searchPart = searchHash ? `/${searchHash}` : '';
-            const reportPart = reportID ? `&reportID=${reportID}` : '';
-            return `${type as string}/edit/reason/${transactionID}${searchPart}/?backTo=${backTo}${reportPart}` as const;
-        },
-    },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) => {
@@ -2562,12 +2566,6 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/time` as const,
     },
-
-    MONEY_REQUEST_RECEIPT_VIEW: {
-        route: 'receipt-view/:transactionID',
-
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
-    } as const,
 
     MONEY_REQUEST_STEP_TIME_RATE: {
         route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
