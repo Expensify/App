@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
-    canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -3432,27 +3431,6 @@ describe('PolicyUtils', () => {
 
         it('returns false when report owner account ID is undefined', () => {
             expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
-        });
-    });
-
-    describe('canAccessSubmitWorkspaceFeatures', () => {
-        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
-        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
-
-        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
-        });
-
-        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
-        });
-
-        it('returns false when policy is not Submit even if beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
         });
     });
 

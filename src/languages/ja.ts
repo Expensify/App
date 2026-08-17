@@ -9340,7 +9340,6 @@ ${reportName}`,
         decline: '却下',
     },
     actionableMentionTrackExpense: {
-        submit: '誰かに送信する',
         submitToFriend: '友達に送信する',
         submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',

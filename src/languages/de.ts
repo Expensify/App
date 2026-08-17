@@ -9491,7 +9491,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         decline: 'Ablehnen',
     },
     actionableMentionTrackExpense: {
-        submit: 'An jemanden senden',
         submitToFriend: 'An einen Freund senden',
         submitToEmployer: 'An meinen Arbeitgeber senden',
         categorize: 'Kategorisieren',
