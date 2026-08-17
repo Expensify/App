@@ -10737,6 +10737,45 @@ describe('SearchUIUtils', () => {
             expect(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)).toBeLessThan(columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT));
         });
 
+        test('Should keep Violations in custom column layouts when the user selected it', () => {
+            const baseTransaction = searchResults.data[`transactions_${transactionID}`];
+            const tx = {
+                ...baseTransaction,
+                transactionID: 'custom-columns-selected-violations',
+                merchant: 'Test Merchant',
+                modifiedMerchant: '',
+                reportID,
+            };
+            const customVisibleColumns = [
+                CONST.SEARCH.TABLE_COLUMNS.RECEIPT,
+                CONST.SEARCH.TABLE_COLUMNS.DATE,
+                CONST.SEARCH.TABLE_COLUMNS.MERCHANT,
+                CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS,
+                CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT,
+            ];
+
+            // @ts-expect-error minimal dataset for getColumnsToShow
+            const data: OnyxTypes.SearchResults['data'] = {
+                [`report_${reportID}`]: searchResults.data[`report_${reportID}`],
+                [`transactions_${tx.transactionID}`]: tx,
+                [`reportActions_${reportID}`]: {
+                    '1': {
+                        reportActionID: '1',
+                        actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                        created: '2025-01-01 00:00:00',
+                        originalMessage: {
+                            amount: 1000,
+                            currency: CONST.CURRENCY.USD,
+                        },
+                    },
+                },
+                personalDetailsList: searchResults.data.personalDetailsList,
+            };
+
+            const columns = SearchUIUtils.getColumnsToShow({currentAccountID: submitterAccountID, data, visibleColumns: customVisibleColumns});
+            expect(columns).toContain(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        });
+
         test('Should only show Category GL Code when that column is selected', () => {
             const baseTransaction = searchResults.data[`transactions_${transactionID}`];
             const transactionWithCategoryGLCode = {

@@ -14,6 +14,21 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React from 'react';
 
+/** Inserts `columnId` immediately before the total-amount column, or appends it if that column is missing. */
+function insertColumnBeforeTotalAmount(columns: SearchCustomColumnIds[], columnId: SearchCustomColumnIds) {
+    if (columns.includes(columnId)) {
+        return;
+    }
+
+    const totalAmountIndex = columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+    if (totalAmountIndex === -1) {
+        columns.push(columnId);
+        return;
+    }
+
+    columns.splice(totalAmountIndex, 0, columnId);
+}
+
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
 
@@ -23,9 +38,10 @@ function SearchColumnsPage() {
     const allTypeCustomColumns = getCustomColumns(queryType);
     const allGroupCustomColumns = getCustomColumns(groupBy);
     const defaultGroupCustomColumns = getCustomColumnDefault(groupBy);
-    const defaultTypeCustomColumns = getCustomColumnDefault(queryType);
+    const defaultTypeCustomColumns = [...getCustomColumnDefault(queryType)];
+    const shouldRequireViolationsColumn = !!searchAdvancedFiltersForm?.has?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
 
-    const currentColumns = searchAdvancedFiltersForm?.columns ?? [];
+    const currentColumns = [...(searchAdvancedFiltersForm?.columns ?? [])];
 
     // We need at least one element with flex1 in the table to ensure the table looks good in the UI, so we don't allow removing the total columns
     // since it makes sense for them to show up in an expense management App and it fixes the layout issues.
@@ -43,6 +59,14 @@ function SearchColumnsPage() {
         CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
         CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
     ]);
+
+    if (shouldRequireViolationsColumn) {
+        requiredColumns.add(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        insertColumnBeforeTotalAmount(defaultTypeCustomColumns, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        if (currentColumns.length > 0) {
+            insertColumnBeforeTotalAmount(currentColumns, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+        }
+    }
 
     const applyChanges = (selectedColumnIds: SearchCustomColumnIds[]) => {
         const updatedAdvancedFilters: Partial<SearchAdvancedFiltersForm> = {
