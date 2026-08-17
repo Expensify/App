@@ -3298,6 +3298,7 @@ const translations = {
         accounting: {
             title: 'Do you use any accounting software?',
             none: 'None',
+            otherAccountingSoftware: 'Your accounting software',
         },
         interestedFeatures: {
             title: 'What features are you interested in?',

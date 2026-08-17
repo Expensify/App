@@ -3264,6 +3264,7 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             none: 'Κανένα',
+            otherAccountingSoftware: 'Το λογιστικό σας λογισμικό',
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
