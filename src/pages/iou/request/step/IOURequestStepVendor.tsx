@@ -86,7 +86,7 @@ function IOURequestStepVendor({
             searchText: vendor.name,
         }));
 
-    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed-from-QBO) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
+    // When a vendor is currently set, offer a "None" row so the user can clear a stale (e.g. removed from the accounting integration) vendor without picking a replacement, which resolves an inactiveVendor violation. Hidden during search to keep results clean.
     const shouldShowNoneRow = !!currentVendorID && !trimmedSearch;
     const data: VendorListItem[] = shouldShowNoneRow
         ? [
