@@ -6,7 +6,7 @@ import type {Beta, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
-import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -71,6 +71,7 @@ const baseParams = {
     personalDetails: {},
     delegateAccountID: undefined,
     isTrackIntentUser: false,
+    formatPhoneNumber,
 } as const;
 
 describe('getMoneyRequestInformation', () => {

@@ -1,4 +1,5 @@
 import Button from '@components/ButtonComposed';
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
@@ -26,6 +27,7 @@ import useTransactionThreadData from './useTransactionThreadData';
 function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionProps) {
     const {translate} = useLocalize();
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
 
     const {moneyRequestReport, transactionThreadReportID} = useTransactionThreadData(reportID, chatReportID);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
@@ -67,10 +69,9 @@ function ReviewDuplicatesPrimaryAction({reportID, chatReportID}: SimpleActionPro
                                   iouReportAction: duplicateIOUAction,
                                   transaction: duplicateTransaction,
                               },
-                              {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID},
+                              {introSelected, betas, currentUserEmail: email, currentUserAccountID: accountID, personalDetails},
                           )
                         : undefined);
-
                 if (threadID) {
                     // Navigate on the microtask queue so the optimistic transaction thread is committed to Onyx before we navigate.
                     Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.TRANSACTION_DUPLICATE_REVIEW.getRoute(threadID))));
