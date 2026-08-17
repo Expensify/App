@@ -67,11 +67,11 @@ describe('NumberForm', () => {
     });
 
     describe('NumberFormContext', () => {
-        it('provides default state: empty value and inValue negative mode', () => {
+        it('provides default state: empty value and none negative mode', () => {
             renderNumberForm();
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
-            expect(screen.getByTestId('ctx-negativeMode')).toHaveTextContent('inValue');
+            expect(screen.getByTestId('ctx-negativeMode')).toHaveTextContent('none');
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('');
             expect(screen.getByTestId('ctx-hasOnBlur')).toHaveTextContent('false');
         });

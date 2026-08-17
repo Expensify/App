@@ -19,7 +19,7 @@ type NumberFormInputKeyPressEvent = {
     };
 };
 
-type NumberFormInputCommonProps = {
+type NumberFormInputBaseProps = {
     /** Symbol displayed next to the number. */
     symbol?: string;
 
@@ -35,12 +35,6 @@ type NumberFormInputCommonProps = {
     /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
 
-    /** Whether the symbol can be pressed. Prefer NumberForm.CurrencyButton for new compositions. */
-    isSymbolPressable?: boolean;
-
-    /** Called when the inline symbol is pressed. Prefer NumberForm.CurrencyButton for new compositions. */
-    onSymbolButtonPress?: () => void;
-
     /** Whether the value is negative when the sign is managed outside the value. */
     isNegative?: boolean;
 
@@ -53,69 +47,59 @@ type NumberFormInputCommonProps = {
     /** Style applied to the number input. */
     style?: StyleProp<TextStyle>;
 
-    /** Style applied to the input container. */
-    containerStyle?: StyleProp<ViewStyle>;
-
-    /** Style applied to the symbol. */
-    symbolTextStyle?: StyleProp<TextStyle>;
-
-    /** Style applied to the negative symbol. */
-    negativeSymbolStyle?: StyleProp<TextStyle>;
-
     /** Reference to the underlying text input. */
     ref?: ForwardedRef<BaseTextInputRef>;
-} & {
+
     /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumberFormInputKeyPressEvent) => void;
 } & Omit<
-        Pick<
-            BaseTextInputProps,
-            | 'accessibilityLabel'
-            | 'autoFocus'
-            | 'autoGrow'
-            | 'autoGrowExtraSpace'
-            | 'autoGrowMarginSide'
-            | 'contentWidth'
-            | 'disabled'
-            | 'disableKeyboard'
-            | 'hideFocusedState'
-            | 'inputMode'
-            | 'keyboardType'
-            | 'label'
-            | 'onBlur'
-            | 'onFocus'
-            | 'onPress'
-            | 'prefixCharacter'
-            | 'prefixContainerStyle'
-            | 'prefixStyle'
-            | 'shouldAllowFocusInLandscapeMode'
-            | 'shouldApplyPaddingToContainer'
-            | 'shouldUseDefaultLineHeightForPrefix'
-            | 'submitBehavior'
-            | 'suffixStyle'
-            | 'testID'
-            | 'touchableInputWrapperStyle'
-        >,
-        'onKeyPress'
-    >;
+    Pick<
+        BaseTextInputProps,
+        | 'accessibilityLabel'
+        | 'autoFocus'
+        | 'autoGrowExtraSpace'
+        | 'autoGrowMarginSide'
+        | 'contentWidth'
+        | 'disabled'
+        | 'disableKeyboard'
+        | 'keyboardType'
+        | 'onBlur'
+        | 'onFocus'
+        | 'prefixContainerStyle'
+        | 'shouldApplyPaddingToContainer'
+        | 'shouldUseDefaultLineHeightForPrefix'
+        | 'submitBehavior'
+        | 'testID'
+        | 'touchableInputWrapperStyle'
+    >,
+    'onKeyPress'
+>;
 
-/**
- * TODO: Decide whether keyboard submit handling should be supported by both input paths.
- * The current discriminated union preserves NumberWithSymbolForm's legacy behavior by allowing onSubmitEditing only for the standard TextInput path.
- */
-type NumberFormInputProps = NumberFormInputCommonProps &
-    (
-        | {
-              /** The standard input supports keyboard submit handling. */
-              displayAsTextInput: true;
-              onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
-          }
-        | {
-              /** The symbol-input path preserves the legacy behavior and does not handle keyboard submit events. */
-              displayAsTextInput?: false;
-              onSubmitEditing?: never;
-          }
-    );
+type NumberFormSymbolInputProps = NumberFormInputBaseProps &
+    Pick<BaseTextInputProps, 'onPress' | 'shouldAllowFocusInLandscapeMode'> & {
+        /** Whether the symbol can be pressed. Prefer NumberForm.CurrencyButton for new compositions. */
+        isSymbolPressable?: boolean;
+
+        /** Called when the inline symbol is pressed. Prefer NumberForm.CurrencyButton for new compositions. */
+        onSymbolButtonPress?: () => void;
+
+        /** Whether the input grows with its content. */
+        autoGrow?: boolean;
+
+        /** Hide the focused appearance of the symbol input. */
+        hideFocusedState?: boolean;
+
+        /** Style applied to the input container. */
+        containerStyle?: StyleProp<ViewStyle>;
+
+        /** Style applied to the symbol. */
+        symbolTextStyle?: StyleProp<TextStyle>;
+
+        /** Style applied to the negative symbol. */
+        negativeSymbolStyle?: StyleProp<TextStyle>;
+    };
+
+type NumberFormTextInputProps = NumberFormInputBaseProps & Pick<BaseTextInputProps, 'inputMode' | 'label' | 'onSubmitEditing' | 'prefixStyle' | 'suffixStyle'>;
 
 type NumberFormProps = {
     /** The canonical number value shared by composed primitives. */
@@ -145,4 +129,13 @@ type NumberFormProps = {
     children: ReactNode;
 };
 
-export type {NumberFormInputKeyPressEvent, NumberFormInputPosition, NumberFormInputProps, NumberFormNegativeMode, NumberFormProps, NumberFormRef};
+export type {
+    NumberFormInputBaseProps,
+    NumberFormInputKeyPressEvent,
+    NumberFormInputPosition,
+    NumberFormNegativeMode,
+    NumberFormProps,
+    NumberFormRef,
+    NumberFormSymbolInputProps,
+    NumberFormTextInputProps,
+};

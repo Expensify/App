@@ -1,9 +1,6 @@
-import FormHelpMessage from '@components/FormHelpMessage';
 import {useNumberFormContext} from '@components/NumberForm/context';
-import type {NumberFormInputKeyPressEvent, NumberFormInputProps} from '@components/NumberForm/types';
-import TextInput from '@components/TextInput';
-import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
-import TextInputWithSymbol from '@components/TextInputWithSymbol';
+import type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent} from '@components/NumberForm/types';
+import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -24,7 +21,7 @@ import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectio
 import CONST from '@src/CONST';
 
 import type {ForwardedRef} from 'react';
-import type {BlurEvent, TextInputSelectionChangeEvent} from 'react-native';
+import type {BlurEvent} from 'react-native';
 
 import {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
@@ -56,33 +53,17 @@ function setRef<T>(ref: ForwardedRef<T> | undefined, value: T | null) {
     }
 }
 
-function NumberFormInput({
-    symbol = '',
-    position = 'prefix',
+function useNumberFormInputLogic({
     decimals = 0,
     maxLength,
-    hideSymbol = false,
-    isSymbolPressable = false,
-    onSymbolButtonPress,
-    displayAsTextInput = false,
+    position = 'prefix',
     isNegative = false,
     toggleNegative,
     clearNegative,
-    style,
-    containerStyle,
-    symbolTextStyle,
-    negativeSymbolStyle,
     ref,
-    autoGrow = true,
-    disableKeyboard,
-    hideFocusedState = true,
-    keyboardType,
     onBlur: inputOnBlur,
-    onFocus,
     onKeyPress,
-    onSubmitEditing: inputOnSubmitEditing,
-    ...rest
-}: NumberFormInputProps) {
+}: NumberFormInputBaseProps) {
     const {fromLocaleDigit, numberFormat, toLocaleDigit} = useLocalize();
     const {errorText, inputRef, negativeMode, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
 
@@ -91,11 +72,10 @@ function NumberFormInput({
     const forwardDeletePressedRef = useRef(false);
     const willSelectionBeUpdatedManually = useRef(false);
     const previousDecimals = useRef<number | undefined>(undefined);
-    const [selection, setSelection] = useState<NumberSelection>(() => ({start: value.length, end: value.length}));
+    const [selection, setSelection] = useState<NumberSelection>({start: value.length, end: value.length});
 
     const shouldAllowNegativeInput = negativeMode === 'inValue';
     const shouldFlipNegative = negativeMode === 'external';
-    const shouldDisableKeyboard = disableKeyboard ?? !displayAsTextInput;
     const formattedNumber = replaceAllDigits(value, toLocaleDigit);
     const inputPosition = position === 'suffix' ? CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX : CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX;
 
@@ -176,11 +156,6 @@ function NumberFormInput({
         onBlur?.(event);
     };
 
-    const handleSubmitEditing = (event: Parameters<NonNullable<BaseTextInputProps['onSubmitEditing']>>[0]) => {
-        inputOnSubmitEditing?.(event);
-        onSubmitEditing?.(event);
-    };
-
     const handleKeyPress = (event: NumberFormInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
@@ -195,9 +170,8 @@ function NumberFormInput({
         }
 
         const operatingSystem = getOperatingSystem();
-        const allowedOperatingSystems = [CONST.OS.MAC_OS, CONST.OS.IOS];
-        forwardDeletePressedRef.current =
-            key === 'delete' || (allowedOperatingSystems.some((allowedOperatingSystem) => allowedOperatingSystem === operatingSystem) && !!event.nativeEvent.ctrlKey && key === 'd');
+        const isMacOrIOS = operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS;
+        forwardDeletePressedRef.current = key === 'delete' || (isMacOrIOS && !!event.nativeEvent.ctrlKey && key === 'd');
         onKeyPress?.(event);
     };
 
@@ -206,83 +180,23 @@ function NumberFormInput({
         end: Math.min(selection.end, formattedNumber.length),
     };
 
-    if (displayAsTextInput) {
-        return (
-            <TextInput
-                {...rest}
-                accessibilityLabel={rest.accessibilityLabel}
-                autoCapitalize="words"
-                autoFocus={rest.autoFocus}
-                autoGrowExtraSpace={rest.autoGrowExtraSpace}
-                autoGrowMarginSide={rest.autoGrowMarginSide}
-                disabled={rest.disabled}
-                disableKeyboard={shouldDisableKeyboard}
-                errorText={errorText}
-                inputMode={rest.inputMode ?? (!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined)}
-                inputStyle={style}
-                keyboardType={keyboardType ?? CONST.KEYBOARD_TYPE.DECIMAL_PAD}
-                label={rest.label}
-                onBlur={handleBlur}
-                onChangeText={(text) => setNumber(text, {addLeadingZero: true})}
-                onFocus={onFocus}
-                onKeyPress={handleKeyPress}
-                onSelectionChange={(event: TextInputSelectionChangeEvent) => handleSelectionChange(event.nativeEvent.selection.start, event.nativeEvent.selection.end)}
-                onSubmitEditing={handleSubmitEditing}
-                prefixCharacter={hideSymbol || inputPosition !== CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX ? '' : symbol}
-                prefixStyle={rest.prefixStyle}
-                ref={handleInputRef}
-                selection={selectionForRender}
-                suffixCharacter={hideSymbol || inputPosition !== CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX ? '' : symbol}
-                suffixStyle={rest.suffixStyle}
-                value={formattedNumber}
-            />
-        );
-    }
-
-    const symbolInput = (
-        <TextInputWithSymbol
-            {...rest}
-            accessibilityLabel={rest.accessibilityLabel}
-            autoFocus={rest.autoFocus}
-            autoGrow={autoGrow}
-            autoGrowExtraSpace={rest.autoGrowExtraSpace}
-            autoGrowMarginSide={rest.autoGrowMarginSide}
-            containerStyle={containerStyle}
-            disableKeyboard={shouldDisableKeyboard}
-            formattedAmount={formattedNumber}
-            hideFocusedState={hideFocusedState}
-            hideSymbol={hideSymbol}
-            isNegative={negativeMode === 'external' && isNegative}
-            isSymbolPressable={isSymbolPressable}
-            keyboardType={keyboardType}
-            negativeSymbolStyle={negativeSymbolStyle}
-            onBlur={handleBlur}
-            onChangeAmount={(text) => setNumber(text, {localeDigitsAlreadyNormalized: true})}
-            onFocus={onFocus}
-            onKeyPress={handleKeyPress}
-            onPress={rest.onPress}
-            onSelectionChange={handleSelectionChange}
-            onSymbolButtonPress={onSymbolButtonPress}
-            placeholder={numberFormat(0)}
-            ref={handleInputRef}
-            selection={selectionForRender}
-            shouldAllowFocusInLandscapeMode={rest.shouldAllowFocusInLandscapeMode}
-            style={style}
-            symbol={symbol}
-            symbolPosition={inputPosition}
-            symbolTextStyle={symbolTextStyle}
-            toggleNegative={toggleNegative}
-        />
-    );
-
-    // TODO: Unify both input paths around a shared NumberForm.Error primitive so error rendering is no longer conditional.
-    return (
-        <>
-            {symbolInput}
-            {!!errorText && <FormHelpMessage message={errorText} />}
-        </>
-    );
+    return {
+        errorText,
+        formattedNumber,
+        handleBlur,
+        handleInputRef,
+        handleKeyPress,
+        handleSelectionChange,
+        inputPosition,
+        negativeMode,
+        numberFormat,
+        onSubmitEditing,
+        selectionForRender,
+        setNumber,
+        shouldAllowNegativeInput,
+        shouldFlipNegative,
+    };
 }
 
-export default NumberFormInput;
-export type {NumberFormInputProps};
+export default useNumberFormInputLogic;
+export type {NumberSelection, SetNumberOptions};

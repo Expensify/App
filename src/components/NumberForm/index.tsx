@@ -1,8 +1,21 @@
 import NumberFormComponent from './NumberForm';
-import NumberFormInput from './primitives/NumberFormInput';
+import NumberFormSymbolInput from './primitives/NumberFormSymbolInput';
+import NumberFormTextInput from './primitives/NumberFormTextInput';
 
-const NumberForm = Object.assign(NumberFormComponent, {Input: NumberFormInput});
+const NumberForm = Object.assign(NumberFormComponent, {
+    SymbolInput: NumberFormSymbolInput,
+    TextInput: NumberFormTextInput,
+});
 
 export default NumberForm;
 export {useNumberFormContext} from './context';
-export type {NumberFormInputKeyPressEvent, NumberFormInputPosition, NumberFormInputProps, NumberFormNegativeMode, NumberFormProps, NumberFormRef} from './types';
+export type {
+    NumberFormInputBaseProps,
+    NumberFormInputKeyPressEvent,
+    NumberFormInputPosition,
+    NumberFormNegativeMode,
+    NumberFormProps,
+    NumberFormRef,
+    NumberFormSymbolInputProps,
+    NumberFormTextInputProps,
+} from './types';
