@@ -33,7 +33,7 @@ function ValidateLoginPage({
                 }
                 Navigation.goBack();
             } else {
-                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, '', exitTo);
+                signInWithValidateCodeAndNavigate(Number(accountID), validateCode, preferredLocale, exitTo);
             }
         });
         // eslint-disable-next-line react-hooks/exhaustive-deps
