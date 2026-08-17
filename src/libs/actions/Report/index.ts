@@ -161,6 +161,7 @@ import {
     isInvoiceReport,
     isIOUReportUsingReport,
     isMoneyRequestReport,
+    isOneOnOneChat,
     isOpenExpenseReport,
     isOptimisticPersonalDetail,
     isProcessingReport,
@@ -1690,11 +1691,28 @@ function openReport(params: OpenReportActionParams) {
         return;
     }
 
-    const participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
+    let participantLoginList = participants.map((p) => p.login).filter((login) => !!login);
     // TODO: allPersonalDetails fallback should be removed in follow-up PRs https://github.com/Expensify/App/issues/73656
-    const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
-    const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
+    let participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
+    const existingReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+    const existingReportName = existingReport?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
+
+    // When opening a cached 1:1 DM without explicit participants, include them so the server can
+    // resolve a stale/optimistic reportID to the real chat (returned as preexistingReportID)
+    // instead of failing with "Report not found".
+    if (
+        !isCreatingNewReport &&
+        participantLoginList.length === 0 &&
+        participantAccountIDList.length === 0 &&
+        !!currentUserAccountID &&
+        isOneOnOneChat(existingReport, currentUserAccountID)
+    ) {
+        participantAccountIDList = Object.keys(existingReport?.participants ?? {})
+            .map(Number)
+            .filter((accountID) => accountID !== currentUserAccountID);
+        participantLoginList = PersonalDetailsUtils.getLoginsByAccountIDs(participantAccountIDList, personalDetails ?? allPersonalDetails);
+    }
     const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
