@@ -161,3 +161,16 @@ test('[MoneyRequestReportActionsList] should render the unified list with 500 re
     await waitForBatchedUpdates();
     await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
 });
+
+test('[MoneyRequestReportActionsList] should re-render the unified list when a new report action arrives', async () => {
+    const scenario = async () => {
+        await screen.findByTestId('money-request-report-actions-list');
+        const newAction = ReportTestUtils.getFakeReportAction(501, {actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT, created: '2023-09-13 00:00:00.000'});
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${REPORT_ID}`, {[newAction.reportActionID]: newAction});
+            await waitForBatchedUpdates();
+        });
+    };
+    await waitForBatchedUpdates();
+    await measureRenders(<MoneyRequestReportActionsListWrapper />, {scenario});
+});
