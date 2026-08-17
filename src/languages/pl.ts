@@ -7151,6 +7151,7 @@ Plan Control zaczyna się od 9 USD za aktywnego członka miesięcznie.`,
             changeBankAccount: 'Zmień konto bankowe',
             updateCurrencyForExpensifyCard:
                 'Karta Expensify działa z kontami bankowymi w USD, GBP i EUR. Zmień walutę tego workspace’a na obsługiwaną albo użyj innego workspace’a, żeby się zarejestrować.',
+            updateCurrencyForExpensifyCardTitle: 'Zdobądź Kartę Expensify',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Przenieś właściciela',

@@ -6933,6 +6933,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
             updateCurrencyForExpensifyCard: 'Expensify 卡支持美元、英镑和欧元银行账户。请将此工作区更新为支持的货币，或使用其他工作区进行注册。',
+            updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
         },
         changeOwner: {
             changeOwnerPageTitle: '转移所有者',

@@ -7103,6 +7103,7 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
             changeBankAccount: '銀行口座を変更',
             updateCurrencyForExpensifyCard:
                 'Expensify カードは、USD・GBP・EUR の銀行口座でご利用いただけます。このワークスペースを対応通貨に更新するか、別のワークスペースで登録してください。',
+            updateCurrencyForExpensifyCardTitle: 'Expensify カードを取得する',
         },
         changeOwner: {
             changeOwnerPageTitle: '所有者を変更',

@@ -7479,6 +7479,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             changeBankAccount: 'Αλλαγή τραπεζικού λογαριασμού',
             updateCurrencyForExpensifyCard:
                 'Η κάρτα Expensify λειτουργεί με τραπεζικούς λογαριασμούς σε USD, GBP και EUR. Ενημερώστε αυτόν τον χώρο εργασίας σε υποστηριζόμενο νόμισμα ή χρησιμοποιήστε έναν διαφορετικό χώρο εργασίας για να εγγραφείτε.',
+            updateCurrencyForExpensifyCardTitle: 'Αποκτήστε την κάρτα Expensify',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Μεταφορά ιδιοκτήτη',

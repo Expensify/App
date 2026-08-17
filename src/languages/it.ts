@@ -7186,6 +7186,7 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
             changeBankAccount: 'Cambia conto bancario',
             updateCurrencyForExpensifyCard:
                 'La Carta Expensify funziona con conti bancari in USD, GBP ed EUR. Aggiorna questo spazio di lavoro a una valuta supportata oppure usa un altro spazio di lavoro per iscriverti.',
+            updateCurrencyForExpensifyCardTitle: 'Ottieni la Carta Expensify',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Trasferisci proprietario',

@@ -7173,6 +7173,7 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             changeBankAccount: 'Bankrekening wijzigen',
             updateCurrencyForExpensifyCard:
                 'Expensify Kaart werkt met bankrekeningen in USD, GBP en EUR. Werk deze workspace bij naar een ondersteunde valuta, of gebruik een andere workspace om je aan te melden.',
+            updateCurrencyForExpensifyCardTitle: 'Ontvang de Expensify Kaart',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',

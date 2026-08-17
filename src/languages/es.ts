@@ -7183,6 +7183,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             changeBankAccount: 'Cambiar cuenta bancaria',
             updateCurrencyForExpensifyCard:
                 'La Tarjeta Expensify funciona con cuentas bancarias en USD, GBP y EUR. Actualiza este espacio de trabajo a una divisa compatible o usa otro espacio de trabajo para inscribirte.',
+            updateCurrencyForExpensifyCardTitle: 'Consigue la Tarjeta Expensify',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Transferir la propiedad',
