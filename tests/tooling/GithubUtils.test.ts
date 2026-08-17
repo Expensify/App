@@ -10,6 +10,7 @@ import * as core from '@actions/core';
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
+import materializeOctokitScopes from '../utils/materializeOctokitScopes';
 
 type OctokitCompareCommits = InternalOctokit['rest']['repos']['compareCommits'];
 type OctokitCompareCommitsResponse = Awaited<ReturnType<OctokitCompareCommits>>;
@@ -24,6 +25,7 @@ beforeAll(() => {
     }
 
     internalOctokit = initializedOctokit;
+    materializeOctokitScopes(internalOctokit.rest);
 });
 
 describe('GithubUtils', () => {

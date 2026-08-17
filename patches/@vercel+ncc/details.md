@@ -31,3 +31,21 @@
 - Upstream PR/issue: N/A
 - E/App issue: N/A
 - PR introducing patch: N/A
+
+### [@vercel+ncc+0.38.1+003+esm-only-package-exports.patch](@vercel+ncc+0.38.1+003+esm-only-package-exports.patch)
+
+- Reason:
+
+    ```
+    ncc emits a CommonJS bundle, so webpack resolves package `exports` maps
+    with the `require` condition only. `@actions/core` v3 and `@actions/github`
+    v9 are ESM-only and publish an `import` condition and nothing else, so
+    every action failed to build with "Package path . is not exported from
+    package @actions/core". This patch appends `import` to webpack's CommonJS
+    condition list so those packages resolve. `require` stays first, so
+    dual-published packages are unaffected.
+    ```
+
+- Upstream PR/issue: N/A
+- E/App issue: N/A
+- PR introducing patch: N/A

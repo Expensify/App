@@ -10,6 +10,7 @@ import {context} from '@actions/github';
 import * as GitHubEnvironment from '@actions/github/lib/utils';
 
 import createMock from '../utils/createMock';
+import materializeOctokitScopes from '../utils/materializeOctokitScopes';
 
 const mockGetInput = jest.fn<typeof core.getInput>();
 const createCommentMock = jest.spyOn(GithubUtils, 'createComment');
@@ -60,7 +61,9 @@ const commentsFetchResponse = createMock<Response>({
     status: 200,
     url: 'https://api.github.com/repos/Expensify/App/issues/12/comments',
     headers: commentsResponseHeaders,
-    json: () => Promise.resolve(previousCommentsResponse.data),
+    // @octokit/request reads a JSON body with `text()` and parses it itself, so that it can decode integers
+    // too large for a JS number as BigInt.
+    text: () => Promise.resolve(JSON.stringify(previousCommentsResponse.data)),
 });
 const fetchComments: typeof globalThis.fetch = Object.assign(() => Promise.resolve(commentsFetchResponse), {preconnect: () => {}});
 
@@ -89,6 +92,7 @@ beforeAll(() => {
     }
 
     internalOctokit = initializedOctokit;
+    materializeOctokitScopes(internalOctokit.rest);
     listCommentsSpy = jest.spyOn(internalOctokit.rest.issues.listComments, 'endpoint');
     jest.spyOn(internalOctokit, 'paginate');
     graphqlSpy = jest.spyOn(internalOctokit, 'graphql');

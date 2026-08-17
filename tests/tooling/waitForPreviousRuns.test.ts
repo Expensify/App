@@ -7,6 +7,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import * as core from '@actions/core';
 
 import createMock from '../utils/createMock';
+import materializeOctokitScopes from '../utils/materializeOctokitScopes';
 
 const CURRENT_RUN_ID = 1000;
 const WORKFLOW_ID = 'testBuildOnPush.yml';
@@ -73,6 +74,8 @@ beforeAll(() => {
     });
 
     GithubUtils.initOctokitWithToken('fake_token');
+    materializeOctokitScopes(GithubUtils.octokit);
+
     // Octokit endpoint methods carry `defaults`/`endpoint` statics that a bare mock doesn't, so the real ones are
     // copied onto the stub rather than asserted away.
     const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;

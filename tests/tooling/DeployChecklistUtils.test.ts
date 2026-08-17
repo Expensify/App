@@ -10,6 +10,7 @@ import GithubUtils from '@github/libs/GithubUtils';
 import {RequestError} from '@octokit/request-error';
 
 import createMock from '../utils/createMock';
+import materializeOctokitScopes from '../utils/materializeOctokitScopes';
 
 type ListForRepoResponse = Awaited<ReturnType<ListForRepoMethod>>;
 type PullRequest = Exclude<Awaited<ReturnType<typeof GithubUtils.fetchAllPullRequests>>, void>[number];
@@ -70,6 +71,7 @@ beforeAll(() => {
     }
 
     internalOctokit = initializedOctokit;
+    materializeOctokitScopes(internalOctokit.rest);
     listForRepoSpy = jest.spyOn(internalOctokit.rest.issues, 'listForRepo');
 });
 

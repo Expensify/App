@@ -8,6 +8,8 @@ import GithubUtils from '@github/libs/GithubUtils';
 /* eslint-disable @typescript-eslint/naming-convention */
 import * as core from '@actions/core';
 
+import materializeOctokitScopes from '../utils/materializeOctokitScopes';
+
 type Workflow = {
     workflow_id: string;
     branch: string;
@@ -66,9 +68,11 @@ beforeAll(() => {
     // reassigned directly (unlike Jest's Babel-transpiled CJS interop); spy on it instead.
     jest.spyOn(core, 'getInput').mockImplementation(mockGetInput);
 
+    GithubUtils.initOctokitWithToken('fake_token');
+    materializeOctokitScopes(GithubUtils.octokit);
+
     // Octokit endpoint methods carry `defaults`/`endpoint` statics that a bare mock doesn't, so the real ones are
     // copied onto the stub rather than asserted away.
-    GithubUtils.initOctokitWithToken('fake_token');
     const {endpoint, defaults} = GithubUtils.octokit.actions.listWorkflowRuns;
     jest.spyOn(GithubUtils.octokit.actions, 'listWorkflowRuns').mockImplementation(Object.assign(mockListWorkflowRuns, {endpoint, defaults}));
 });
