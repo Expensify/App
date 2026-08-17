@@ -5,20 +5,20 @@ import type {Rule} from 'eslint';
 /**
  * Fails the lint run when a new inline `eslint-disable` bypasses one of the Onyx lint bans.
  *
- * The bans are normal lint rules (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify,
- * and `rulesdir/no-onyx-get-in-render`, in this repo's `eslint-plugin-local-rules/`), so an inline
- * disable can silence either one. The ESLint CLI neither surfaces nor fails on such suppressed
- * violations, so this runner re-elevates them: it lints with only those rules enabled, reads the
- * suppressed violations off the results, and exits non-zero on any that are not grandfathered.
+ * The bans are normal lint rules (`rulesdir/no-onyx-connect`, shipped by eslint-config-expensify, plus
+ * the three read rules in this repo's `eslint-plugin-local-rules/`), so an inline disable can silence
+ * any of them. The ESLint CLI neither surfaces nor fails on such suppressed violations, so this runner
+ * re-elevates them: it lints with only those rules enabled, reads the suppressed violations off the
+ * results, and exits non-zero on any that are not grandfathered.
  * Because it works from ESLint's suppressed-message data, no disable directive can reach it.
  *
  * A real bypass requires a file to contain both an `eslint-disable` directive and the text the rule
  * needs in order to fire, so we first narrow the targets to files matching both (via git grep) and
  * only run ESLint on those — keeping the check fast even on a whole-repo lint. Each rule's grep terms
  * are deliberately a superset of its AST rule: `Onyx.connect` omits the `(` so whitespace or a
- * comment before the paren still matches, and the render-read rule greps for the library import,
- * which every read it can flag has to go through. Extra matches are harmless, since the rules ignore
- * what does not concern them.
+ * comment before the paren still matches, and the three read rules grep for the library import, which
+ * every read they can flag has to go through. Extra matches are harmless, since the rules ignore what
+ * does not concern them.
  */
 import {ESLint} from 'eslint';
 import {execFileSync} from 'node:child_process';
@@ -26,7 +26,7 @@ import {createRequire} from 'node:module';
 import path from 'node:path';
 import {parser as tsParser} from 'typescript-eslint';
 
-import {BANNED_RULE_ID, RENDER_READ_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
+import {BANNED_RULE_ID, MODULE_SCOPE_READ_RULE_ID, READ_AFTER_WRITE_RULE_ID, RENDER_READ_RULE_ID, collectSuppressedBans, findNewBypasses} from './onyxConnectBypass';
 
 const projectRoot = path.resolve(__dirname, '..');
 
@@ -93,6 +93,20 @@ const POLICED_RULES: PolicedRule[] = [
         load: loadLocalRule('no-onyx-get-in-render'),
         grepTerms: ['react-native-onyx', 'eslint-disable'],
         advice: 'Reading Onyx during render is banned and the ban cannot be bypassed with eslint-disable. Use useOnyx() for anything the component renders, and keep the synchronous read in code that runs on an event.',
+    },
+    {
+        id: MODULE_SCOPE_READ_RULE_ID,
+        name: 'no-onyx-read-at-module-scope',
+        load: loadLocalRule('no-onyx-read-at-module-scope'),
+        grepTerms: ['react-native-onyx', 'eslint-disable'],
+        advice: 'Reading Onyx at module scope is banned and the ban cannot be bypassed with eslint-disable. A module body runs at import time, before Onyx.init() has hydrated the cache, so the read returns undefined for anything held only on disk. Move it into the function that needs it.',
+    },
+    {
+        id: READ_AFTER_WRITE_RULE_ID,
+        name: 'no-onyx-read-after-write',
+        load: loadLocalRule('no-onyx-read-after-write'),
+        grepTerms: ['react-native-onyx', 'eslint-disable'],
+        advice: 'Reading Onyx after writing it in the same tick is banned and the ban cannot be bypassed with eslint-disable. Onyx.merge() and Onyx.update() apply in a later microtask, so the read returns the pre-write value. Do all of the reads before the first write, or await the write.',
     },
 ];
 
