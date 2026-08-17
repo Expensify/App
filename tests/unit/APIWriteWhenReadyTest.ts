@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {WriteReadyBarrier} from '@libs/API';
+import type {WriteReadyBarrier, WriteWhenReadyOptions} from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -32,9 +32,21 @@ function deferWrite(barrier?: WriteReadyBarrier, safetyTimeoutMs?: number, onyxD
     return API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, barrier, safetyTimeoutMs);
 }
 
+// Same as deferWrite, but for the onRelease/onWriteStarted describe block, which needs the options-object
+// overload rather than a bare safetyTimeoutMs number. Routed through one helper (rather than each test
+// calling API.writeWhenReady directly) to keep the no-multiple-api-calls token count down across this describe block.
+function deferWriteWithOptions(barrier: WriteReadyBarrier, options: WriteWhenReadyOptions, onyxData: DeferWriteOnyxData = {}) {
+    return API.writeWhenReady(WRITE_COMMANDS.UPDATE_PREFERRED_LOCALE, {value: CONST.LOCALES.EN}, onyxData, barrier, options);
+}
+
 // Built at module scope: the no-multiple-api-calls lint rule counts `API` tokens per function body, and the
 // describe block already has one.
 const navigationBarrier = API.createTransitionBarrier('navigation');
+
+// Wrapper rather than direct calls in the armTransitionBarrier tests, for the same no-multiple-api-calls reason.
+function armBarrier(waitFor?: true | 'navigation') {
+    return API.armTransitionBarrier(waitFor);
+}
 
 // A barrier that never settles - forces the write to sit pending until a timeout/background flush.
 function neverSettlingBarrier(): WriteReadyBarrier {
@@ -473,5 +485,284 @@ describe('API.writeWhenReady', () => {
 
     it('keeps the safety timeout above the default barrier worst case (guards constant drift)', () => {
         expect(SAFETY_TIMEOUT_MS).toBeGreaterThan(CONST.MAX_TRANSITION_START_WAIT_MS + CONST.MAX_TRANSITION_DURATION_MS);
+    });
+
+    describe('onRelease/onWriteStarted options', () => {
+        it('calls onRelease with "success" before write() executes, and onWriteStarted after', async () => {
+            const calls: string[] = [];
+            const onRelease = jest.fn(() => calls.push('release'));
+            const onWriteStarted = jest.fn(() => calls.push('started'));
+            mockPush.mockImplementationOnce(() => {
+                calls.push('pushed');
+                return Promise.resolve();
+            });
+
+            await deferWriteWithOptions(() => Promise.resolve(), {onRelease, onWriteStarted});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledWith('success');
+            expect(onWriteStarted).toHaveBeenCalledTimes(1);
+            expect(calls).toEqual(['release', 'pushed', 'started']);
+        });
+
+        it('calls onRelease with the release reason on the safety-timeout and app-background paths', async () => {
+            jest.useFakeTimers();
+            try {
+                const onRelease = jest.fn();
+                deferWriteWithOptions(neverSettlingBarrier(), {onRelease});
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
+                await flushMicrotasks(pushHappened);
+
+                expect(onRelease).toHaveBeenCalledTimes(1);
+                expect(onRelease).toHaveBeenCalledWith('safetyTimeout');
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('calls onRelease with "appBackground" when already backgrounded at call time', async () => {
+            emitAppState('background');
+            const onRelease = jest.fn();
+
+            deferWriteWithOptions(neverSettlingBarrier(), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledTimes(1);
+            expect(onRelease).toHaveBeenCalledWith('appBackground');
+        });
+
+        it('calls onRelease with "rejected" when the barrier rejects', async () => {
+            const onRelease = jest.fn();
+
+            deferWriteWithOptions(() => Promise.reject(new Error('barrier failed')), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(onRelease).toHaveBeenCalledTimes(1);
+            expect(onRelease).toHaveBeenCalledWith('rejected');
+        });
+
+        it('fires onRelease exactly once even if the safety timeout also elapses after a normal release', async () => {
+            jest.useFakeTimers();
+            try {
+                let releaseBarrier: () => void = () => {};
+                const barrier: WriteReadyBarrier = () =>
+                    new Promise<void>((resolve) => {
+                        releaseBarrier = resolve;
+                    });
+                const onRelease = jest.fn();
+
+                deferWriteWithOptions(barrier, {onRelease});
+                await flushMicrotasks();
+                releaseBarrier();
+                await flushMicrotasks(pushHappened);
+
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS * 2);
+
+                expect(onRelease).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('lets write() execute even when onRelease throws, and logs instead of propagating', async () => {
+            const onRelease = jest.fn(() => {
+                throw new Error('onRelease boom');
+            });
+
+            const promise = deferWriteWithOptions(() => Promise.resolve(), {onRelease});
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            await expect(promise).resolves.toBeUndefined();
+        });
+
+        it("does not change the write's outcome when onWriteStarted throws, and does not surface as an unhandled rejection", async () => {
+            const onWriteStarted = jest.fn(() => {
+                throw new Error('onWriteStarted boom');
+            });
+
+            const promise = deferWriteWithOptions(() => Promise.resolve(), {onWriteStarted});
+            await flushMicrotasks(pushHappened);
+
+            expect(onWriteStarted).toHaveBeenCalledTimes(1);
+            await expect(promise).resolves.toBeUndefined();
+        });
+
+        it('does not call onWriteStarted when write() throws synchronously', async () => {
+            const updateSpy = jest.spyOn(Onyx, 'update').mockImplementationOnce(() => {
+                throw new Error('write boom');
+            });
+            try {
+                const onWriteStarted = jest.fn();
+                const onyxData: DeferWriteOnyxData = {
+                    optimisticData: [{onyxMethod: Onyx.METHOD.MERGE, key: ONYXKEYS.NVP_PREFERRED_LOCALE, value: CONST.LOCALES.EN}],
+                };
+
+                const outcome = deferWriteWithOptions(() => Promise.resolve(), {onWriteStarted}, onyxData).then(
+                    () => 'resolved',
+                    () => 'rejected',
+                );
+                await flushMicrotasks(() => updateSpy.mock.calls.length > 0);
+
+                await expect(outcome).resolves.toBe('rejected');
+                expect(onWriteStarted).not.toHaveBeenCalled();
+            } finally {
+                updateSpy.mockRestore();
+            }
+        });
+
+        it('still accepts a bare number as the fifth parameter for backward compatibility', async () => {
+            jest.useFakeTimers();
+            try {
+                const customTimeoutMs = 100;
+                deferWrite(neverSettlingBarrier(), customTimeoutMs);
+                await flushMicrotasks();
+
+                await jest.advanceTimersByTimeAsync(customTimeoutMs);
+                await flushMicrotasks(pushHappened);
+
+                expect(mockPush).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+    });
+
+    describe('armTransitionBarrier', () => {
+        // Captures the callback TransitionTracker was registered with, plus the cancel spy for that
+        // registration, so a test can decide when the transition "finishes" and assert on cleanup.
+        function mockTransitionRegistration() {
+            const cancel = jest.fn();
+            let transitionCallback: () => void = () => {};
+            mockRunAfterTransitions.mockImplementation(({callback}) => {
+                transitionCallback = callback as () => void;
+                return {cancel};
+            });
+            return {cancel, finishTransition: () => transitionCallback()};
+        }
+
+        it('registers with TransitionTracker at arm time, before any write exists', () => {
+            mockTransitionRegistration();
+
+            armBarrier();
+
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+            expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
+            expect(mockPush).not.toHaveBeenCalled();
+        });
+
+        it('writes immediately when the transition already finished before the barrier is used', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            // The transition the write was meant to wait out completes first - this is the case a
+            // freshly created default barrier would miss, waiting for an unrelated future transition.
+            finishTransition();
+
+            deferWrite(armed.barrier);
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+            // No second registration: the armed barrier is reused, not rebuilt at write time.
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        });
+
+        it('still gates the write when the transition is in flight at write time', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            deferWrite(armed.barrier);
+            await flushMicrotasks();
+            expect(mockPush).not.toHaveBeenCalled();
+
+            finishTransition();
+            await flushMicrotasks(pushHappened);
+
+            expect(mockPush).toHaveBeenCalledTimes(1);
+        });
+
+        it('releases several writes from one armed barrier at the same point', async () => {
+            const {finishTransition} = mockTransitionRegistration();
+            const armed = armBarrier();
+
+            // One interaction, several writes (e.g. a split with one write per receipt).
+            deferWrite(armed.barrier);
+            deferWrite(armed.barrier);
+            await flushMicrotasks();
+            expect(mockPush).not.toHaveBeenCalled();
+
+            finishTransition();
+            await flushMicrotasks(() => mockPush.mock.calls.length >= 2);
+
+            expect(mockPush).toHaveBeenCalledTimes(2);
+            expect(mockRunAfterTransitions).toHaveBeenCalledTimes(1);
+        });
+
+        it('keeps the barrier alive for the remaining writes when one of them times out', async () => {
+            jest.useFakeTimers();
+            try {
+                const {cancel, finishTransition} = mockTransitionRegistration();
+                const armed = armBarrier();
+
+                const shortTimeoutMs = 100;
+                deferWrite(armed.barrier, shortTimeoutMs);
+                deferWrite(armed.barrier);
+                await flushMicrotasks();
+
+                // The first write gives up early. The registration must survive, otherwise the second write
+                // would be stranded until its own safety timeout instead of releasing with the transition.
+                await jest.advanceTimersByTimeAsync(shortTimeoutMs);
+                await flushMicrotasks(pushHappened);
+                expect(mockPush).toHaveBeenCalledTimes(1);
+                expect(cancel).not.toHaveBeenCalled();
+
+                finishTransition();
+                await flushMicrotasks(() => mockPush.mock.calls.length >= 2);
+
+                expect(mockPush).toHaveBeenCalledTimes(2);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it("forwards the write's early release to the armed TransitionTracker registration", async () => {
+            jest.useFakeTimers();
+            try {
+                const {cancel} = mockTransitionRegistration();
+                const armed = armBarrier();
+
+                deferWrite(armed.barrier);
+                await flushMicrotasks();
+                expect(cancel).not.toHaveBeenCalled();
+
+                // The transition never completes, so the safety timeout releases the write. The
+                // registration made at arm time has to be dropped even though it was not created by
+                // writeWhenReady itself.
+                await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
+                await flushMicrotasks(pushHappened);
+
+                expect(mockPush).toHaveBeenCalledTimes(1);
+                expect(cancel).toHaveBeenCalledTimes(1);
+            } finally {
+                jest.useRealTimers();
+            }
+        });
+
+        it('drops the registration on cancel() when the write never happens', () => {
+            const {cancel} = mockTransitionRegistration();
+
+            armBarrier().cancel();
+
+            expect(cancel).toHaveBeenCalledTimes(1);
+            expect(mockPush).not.toHaveBeenCalled();
+        });
+
+        it('passes waitFor through to the underlying transition barrier', () => {
+            mockTransitionRegistration();
+
+            armBarrier('navigation');
+
+            expect(mockRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: 'navigation'}));
+        });
     });
 });
