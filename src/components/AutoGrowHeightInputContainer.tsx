@@ -1,3 +1,6 @@
+/**
+ * Measures the vertical space available to a right-hand-panel text input and reports it to the child so the input can auto-grow while keeping submit controls visible.
+ */
 import useKeyboardState from '@hooks/useKeyboardState';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -10,14 +13,19 @@ import variables from '@styles/variables';
 import type {ReactNode} from 'react';
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useLayoutEffect, useRef, useState} from 'react';
 import {Platform, View} from 'react-native';
 
 import ScrollView from './ScrollView';
 
 type AutoGrowHeightInputContainerProps = {
+    /** Render prop that receives the measured maximum height available to the auto-growing input. */
     children: (maxAutoGrowHeight: number) => ReactNode;
+
+    /** Overrides how the inner content height is measured. */
     measureContent?: (content: View | null, callback: (contentHeight: number) => void) => void;
+
+    /** Style applied to the outer scroll container. */
     style?: StyleProp<ViewStyle>;
 };
 
@@ -38,7 +46,7 @@ function defaultMeasureContent(content: View | null, callback: (contentHeight: n
 function AutoGrowHeightInputContainer({children, measureContent = defaultMeasureContent, style}: AutoGrowHeightInputContainerProps) {
     const styles = useThemeStyles();
     const {windowHeight} = useWindowDimensions();
-    const {isKeyboardActive, isKeyboardShown, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
+    const {isKeyboardActive, isKeyboardShown, isKeyboardAnimatingRef, keyboardActiveHeight, keyboardHeight} = useKeyboardState();
     const {bottom} = useSafeAreaInsets();
     const isNativePlatform = Platform.OS !== 'web';
     const nativeKeyboardHeight =
@@ -59,7 +67,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
     const [measurementRequestVersion, setMeasurementRequestVersion] = useState(0);
     const [maxAutoGrowHeight, setMaxAutoGrowHeight] = useState<number>(variables.textInputAutoGrowMaxHeight);
 
-    const startMeasurement = useCallback((phase: Exclude<MeasurementPhase, 'normal'>, nextMaxAutoGrowHeight: number, shouldReplaceActiveMeasurement = false) => {
+    const startMeasurement = (phase: Exclude<MeasurementPhase, 'normal'>, nextMaxAutoGrowHeight: number, shouldReplaceActiveMeasurement = false) => {
         if (!shouldReplaceActiveMeasurement && measurementPhaseRef.current === phase && maxAutoGrowHeightRef.current === nextMaxAutoGrowHeight) {
             return;
         }
@@ -70,7 +78,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
         setMeasurementPhase(phase);
         setMeasurementRequestVersion((currentVersion) => currentVersion + 1);
         setMaxAutoGrowHeight(nextMaxAutoGrowHeight);
-    }, []);
+    };
 
     useLayoutEffect(() => {
         const previousViewportHeight = viewportHeightRef.current;
@@ -149,6 +157,7 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
                 const availableHeight = Math.max(height, variables.componentSizeLarge);
                 const didWidthChange = width !== containerWidthRef.current;
                 const previousAvailableHeight = availableHeightRef.current;
+                const isKeyboardTransitioning = isKeyboardAnimatingRef.current;
                 containerWidthRef.current = width;
 
                 if (isNativePlatform) {
@@ -182,9 +191,13 @@ function AutoGrowHeightInputContainer({children, measureContent = defaultMeasure
                         }
                         pendingNativeLayoutRef.current.layoutHeight = availableHeight;
                         lastExactContainerHeightRef.current = availableHeight;
+                    } else if (!isKeyboardTransitioning && !areHeightsEqual(availableHeight, lastExactContainerHeight)) {
+                        // A settled layout change is the new exact baseline, but it must not be treated as a pending keyboard transition.
+                        lastExactContainerHeightRef.current = availableHeight;
                     } else if (
-                        !areHeightsEqual(availableHeight, lastExactContainerHeight) ||
-                        (nativeKeyboardFallbackRef.current && !areHeightsEqual(availableHeight, previousAvailableHeight))
+                        // Only associate a layout delta with the pending keyboard reconciliation while the native keyboard is animating. Settled layout changes such as rotation or an optional approver section must not become a future keyboard baseline.
+                        isKeyboardTransitioning &&
+                        (!areHeightsEqual(availableHeight, lastExactContainerHeight) || (nativeKeyboardFallbackRef.current && !areHeightsEqual(availableHeight, previousAvailableHeight)))
                     ) {
                         pendingNativeLayoutRef.current = {
                             baseHeight: previousAvailableHeight,

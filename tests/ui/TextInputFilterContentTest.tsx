@@ -1,6 +1,6 @@
 import {act, render} from '@testing-library/react-native';
 
-import TextInputFilterContent from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
+import TextInputFilterContent, {TextInputFilterContentFillHeight} from '@components/Search/FilterComponents/AdvancedFilters/TextInputFilterContent';
 
 import variables from '@styles/variables';
 
@@ -106,11 +106,10 @@ describe('TextInputFilterContent', () => {
 
     it('passes the measured height to a populated Search RHP text input', () => {
         render(
-            <TextInputFilterContent
+            <TextInputFilterContentFillHeight
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value="long value"
                 isNegated={false}
-                shouldFillAvailableHeight
                 onChange={jest.fn()}
             />,
         );
@@ -126,11 +125,10 @@ describe('TextInputFilterContent', () => {
 
     it('uses a compact fallback without replacing the auto-growing input while it is empty', () => {
         render(
-            <TextInputFilterContent
+            <TextInputFilterContentFillHeight
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value={undefined}
                 isNegated={false}
-                shouldFillAvailableHeight
                 onChange={jest.fn()}
             />,
         );
@@ -146,11 +144,10 @@ describe('TextInputFilterContent', () => {
 
     it('preserves negation controls in the fill-height Search RHP layout', () => {
         render(
-            <TextInputFilterContent
+            <TextInputFilterContentFillHeight
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value="Coffee"
                 isNegated
-                shouldFillAvailableHeight
                 onChange={jest.fn()}
             />,
         );
@@ -162,11 +159,10 @@ describe('TextInputFilterContent', () => {
     it('preserves Enter-to-confirm for the multiline Search RHP input', () => {
         const onChange = jest.fn<void, [string | undefined, boolean]>();
         render(
-            <TextInputFilterContent
+            <TextInputFilterContentFillHeight
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT}
                 value="Coffee"
                 isNegated
-                shouldFillAvailableHeight
                 onChange={onChange}
             />,
         );
@@ -191,11 +187,10 @@ describe('TextInputFilterContent', () => {
         const onChange = jest.fn<void, [string | undefined, boolean]>();
 
         render(
-            <TextInputFilterContent
+            <TextInputFilterContentFillHeight
                 baseFilterKey={CONST.SEARCH.SYNTAX_FILTER_KEYS.KEYWORD}
                 value="near-cap value"
                 isNegated={false}
-                shouldFillAvailableHeight
                 onChange={onChange}
             />,
         );

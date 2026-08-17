@@ -28,16 +28,25 @@ type TextInputFilterContentProps = {
     isNegated: boolean;
     size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     autoFocus?: boolean;
-    shouldFillAvailableHeight?: boolean;
     style?: StyleProp<ViewStyle>;
     onChange: (value: string | undefined, isNegated: boolean) => void;
+};
+
+type TextInputFilterStateProps = Pick<TextInputFilterContentProps, 'baseFilterKey' | 'value' | 'isNegated' | 'autoFocus' | 'onChange'>;
+
+type TextInputFilterInputOptions = {
+    autoGrowHeight?: boolean;
+    maxAutoGrowHeight?: number;
+    onSubmitEditing?: () => void;
+    submitBehavior?: 'submit';
+    textInputContainerStyles?: StyleProp<ViewStyle>;
 };
 
 function isTextInput(element: BaseTextInputRef | RNTextInput | null): element is RNTextInput {
     return !!element && 'isFocused' in element;
 }
 
-function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, shouldFillAvailableHeight, style, onChange}: TextInputFilterContentProps) {
+function useTextInputFilterState({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, onChange}: TextInputFilterStateProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const [value, setValue] = useState(initialValue);
@@ -54,7 +63,7 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
         onChange(value, isNegated);
     };
 
-    const renderTextInput = (maxAutoGrowHeight?: number) => (
+    const renderTextInput = ({autoGrowHeight, maxAutoGrowHeight, onSubmitEditing, submitBehavior, textInputContainerStyles}: TextInputFilterInputOptions = {}) => (
         <TextInput
             ref={(ref) => {
                 if (!autoFocus || !isTextInput(ref)) {
@@ -70,23 +79,34 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
             accessibilityLabel={label}
             role={CONST.ROLE.PRESENTATION}
             containerStyles={[styles.ph5]}
-            textInputContainerStyles={shouldFillAvailableHeight ? [styles.pt3] : undefined}
-            autoGrowHeight={shouldFillAvailableHeight}
-            maxAutoGrowHeight={!value && shouldFillAvailableHeight ? variables.componentSizeLarge : maxAutoGrowHeight}
-            submitBehavior={shouldFillAvailableHeight ? 'submit' : undefined}
-            onSubmitEditing={shouldFillAvailableHeight ? submit : undefined}
+            textInputContainerStyles={textInputContainerStyles}
+            autoGrowHeight={autoGrowHeight}
+            maxAutoGrowHeight={maxAutoGrowHeight}
+            submitBehavior={submitBehavior}
+            onSubmitEditing={onSubmitEditing}
         />
     );
+
+    return {error, isNegated, label, renderTextInput, setIsNegated, setValue, styles, submit, translate, value};
+}
+
+function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
+    const {isNegated, renderTextInput, setIsNegated, styles, submit, translate} = useTextInputFilterState({
+        baseFilterKey,
+        value: initialValue,
+        isNegated: initialIsNegated,
+        autoFocus,
+        onChange,
+    });
 
     return (
         <View style={[styles.flex1, styles.justifyContentBetween, style]}>
             <NegatableFilter
                 baseFilterKey={baseFilterKey}
                 isNegated={isNegated}
-                style={shouldFillAvailableHeight ? styles.flex1 : undefined}
                 onNegationChange={setIsNegated}
             >
-                {shouldFillAvailableHeight ? <AutoGrowHeightInputContainer>{renderTextInput}</AutoGrowHeightInputContainer> : renderTextInput()}
+                {renderTextInput()}
             </NegatableFilter>
             <Button
                 style={[styles.ph5, styles.pb5]}
@@ -94,7 +114,48 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
                 size={size}
                 onPress={submit}
             >
-                {!shouldFillAvailableHeight && <Button.KeyboardShortcut />}
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
+        </View>
+    );
+}
+
+function TextInputFilterContentFillHeight({baseFilterKey, value: initialValue, isNegated: initialIsNegated, autoFocus, size, style, onChange}: TextInputFilterContentProps) {
+    const {isNegated, renderTextInput, setIsNegated, styles, submit, translate, value} = useTextInputFilterState({
+        baseFilterKey,
+        value: initialValue,
+        isNegated: initialIsNegated,
+        autoFocus,
+        onChange,
+    });
+
+    return (
+        <View style={[styles.flex1, styles.justifyContentBetween, style]}>
+            <NegatableFilter
+                baseFilterKey={baseFilterKey}
+                isNegated={isNegated}
+                style={styles.flex1}
+                onNegationChange={setIsNegated}
+            >
+                <AutoGrowHeightInputContainer>
+                    {(maxAutoGrowHeight) =>
+                        renderTextInput({
+                            autoGrowHeight: true,
+                            maxAutoGrowHeight: !value ? variables.componentSizeLarge : maxAutoGrowHeight,
+                            onSubmitEditing: submit,
+                            submitBehavior: 'submit',
+                            textInputContainerStyles: [styles.pt3],
+                        })
+                    }
+                </AutoGrowHeightInputContainer>
+            </NegatableFilter>
+            <Button
+                style={[styles.ph5, styles.pb5]}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={size}
+                onPress={submit}
+            >
                 <Button.Text>{translate('common.confirm')}</Button.Text>
             </Button>
         </View>
@@ -102,4 +163,5 @@ function TextInputFilterContent({baseFilterKey, value: initialValue, isNegated: 
 }
 
 export default TextInputFilterContent;
+export {TextInputFilterContentFillHeight};
 export type {TextInputFilterContentProps};

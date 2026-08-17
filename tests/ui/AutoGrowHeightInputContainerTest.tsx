@@ -386,6 +386,118 @@ describe('AutoGrowHeightInputContainer', () => {
         expect(screen.getByTestId('stale-native-layout-height').props.accessibilityLabel).toBe('476');
     });
 
+    it('does not reuse an unrelated settled layout for a coincident keyboard delta', async () => {
+        platformReplaceProperty.restore();
+        platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
+
+        let isKeyboardActive = false;
+        let keyboardActiveHeight = 0;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
+        mockUseKeyboardState.mockImplementation(() => ({
+            isKeyboardShown: isKeyboardActive,
+            isKeyboardActive,
+            keyboardHeight: isKeyboardActive ? 300 : 0,
+            keyboardActiveHeight,
+            isKeyboardAnimatingRef: {current: false},
+        }));
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
+        });
+
+        const renderInput = () => (
+            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+                {(maxAutoGrowHeight) => {
+                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
+                    return (
+                        <View
+                            testID="unrelated-layout-height"
+                            accessibilityLabel={String(maxAutoGrowHeight)}
+                        />
+                    );
+                }}
+            </AutoGrowHeightInputContainer>
+        );
+
+        const {rerender} = render(renderInput());
+        const container = screen.UNSAFE_getByType(ScrollView);
+        fireEvent(container, 'layout', {
+            nativeEvent: {layout: {height: 800, width: 300}},
+        });
+        await waitFor(() => expect(screen.getByTestId('unrelated-layout-height').props.accessibilityLabel).toBe('776'));
+
+        // A settled layout change unrelated to the keyboard must not become a future keyboard-transition baseline.
+        fireEvent(container, 'layout', {
+            nativeEvent: {layout: {height: 500, width: 300}},
+        });
+        await waitFor(() => expect(screen.getByTestId('unrelated-layout-height').props.accessibilityLabel).toBe('476'));
+
+        // No second reduced layout arrives. The later 300px keyboard delta must still shrink the 500px slot.
+        isKeyboardActive = true;
+        keyboardActiveHeight = 300;
+        rerender(renderInput());
+        await waitFor(() => expect(screen.getByTestId('unrelated-layout-height').props.accessibilityLabel).toBe('176'));
+    });
+
+    it('updates the exact baseline before recording a coincident keyboard layout', async () => {
+        platformReplaceProperty.restore();
+        platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
+
+        let isKeyboardActive = false;
+        let keyboardActiveHeight = 0;
+        let renderedMaxAutoGrowHeight: number = variables.textInputAutoGrowMaxHeight;
+        const isKeyboardAnimatingRef = {current: false};
+        mockUseKeyboardState.mockImplementation(() => ({
+            isKeyboardShown: isKeyboardActive,
+            isKeyboardActive,
+            keyboardHeight: isKeyboardActive ? 300 : 0,
+            keyboardActiveHeight,
+            isKeyboardAnimatingRef,
+        }));
+        mockMeasureContent.mockImplementation((_content, callback) => {
+            callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
+        });
+
+        const renderInput = () => (
+            <AutoGrowHeightInputContainer measureContent={mockMeasureContent}>
+                {(maxAutoGrowHeight) => {
+                    renderedMaxAutoGrowHeight = maxAutoGrowHeight;
+                    return (
+                        <View
+                            testID="coincident-keyboard-layout-height"
+                            accessibilityLabel={String(maxAutoGrowHeight)}
+                        />
+                    );
+                }}
+            </AutoGrowHeightInputContainer>
+        );
+
+        const {rerender} = render(renderInput());
+        const container = screen.UNSAFE_getByType(ScrollView);
+        fireEvent(container, 'layout', {
+            nativeEvent: {layout: {height: 500, width: 300}},
+        });
+        await waitFor(() => expect(screen.getByTestId('coincident-keyboard-layout-height').props.accessibilityLabel).toBe('476'));
+
+        // A settled non-keyboard resize establishes 800 as the current exact allocation.
+        fireEvent(container, 'layout', {
+            nativeEvent: {layout: {height: 800, width: 300}},
+        });
+        await waitFor(() => expect(screen.getByTestId('coincident-keyboard-layout-height').props.accessibilityLabel).toBe('776'));
+
+        // The next keyboard layout returns to 500, which coincides with the old allocation.
+        isKeyboardAnimatingRef.current = true;
+        fireEvent(container, 'layout', {
+            nativeEvent: {layout: {height: 500, width: 300}},
+        });
+        await waitFor(() => expect(screen.getByTestId('coincident-keyboard-layout-height').props.accessibilityLabel).toBe('476'));
+
+        // No second reduced layout arrives; the exact keyboard layout must remain authoritative.
+        isKeyboardActive = true;
+        keyboardActiveHeight = 300;
+        rerender(renderInput());
+        await waitFor(() => expect(screen.getByTestId('coincident-keyboard-layout-height').props.accessibilityLabel).toBe('476'));
+    });
+
     it('keeps an exact contracted native layout authoritative when the keyboard state arrives afterward', async () => {
         platformReplaceProperty.restore();
         platformReplaceProperty = jest.replaceProperty(Platform, 'OS', 'ios');
@@ -400,7 +512,7 @@ describe('AutoGrowHeightInputContainer', () => {
             isKeyboardActive,
             keyboardHeight,
             keyboardActiveHeight,
-            isKeyboardAnimatingRef: {current: false},
+            isKeyboardAnimatingRef: {current: true},
         }));
         mockMeasureContent.mockImplementation((_content, callback) => {
             callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
@@ -458,7 +570,7 @@ describe('AutoGrowHeightInputContainer', () => {
             isKeyboardActive,
             keyboardHeight,
             keyboardActiveHeight,
-            isKeyboardAnimatingRef: {current: false},
+            isKeyboardAnimatingRef: {current: true},
         }));
         mockMeasureContent.mockImplementation((_content, callback) => {
             callback(renderedMaxAutoGrowHeight === variables.componentSizeLarge ? 76 : renderedMaxAutoGrowHeight + 24);
