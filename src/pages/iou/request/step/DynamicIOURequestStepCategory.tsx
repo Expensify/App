@@ -205,6 +205,7 @@ function DynamicIOURequestStepCategory({
                     reportPolicyTags,
                     isTrackIntentUser,
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 saveAndNavigateBack();
                 return;

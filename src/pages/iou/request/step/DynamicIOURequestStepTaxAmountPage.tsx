@@ -147,6 +147,8 @@ function DynamicIOURequestStepTaxAmountPage({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             saveAndNavigateBack();
             return;

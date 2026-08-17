@@ -177,6 +177,7 @@ function DynamicIOURequestStepCategoryCreate({
                 reportPolicyTags,
                 isTrackIntentUser,
                 getCurrencyDecimals,
+                getCurrencySymbol,
             });
         } else {
             setMoneyRequestCategory(transactionID, categoryName, policy, getCurrencyDecimals);

@@ -186,6 +186,8 @@ function DynamicIOURequestStepTag({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             saveAndNavigateBack();
             return;

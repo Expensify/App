@@ -160,6 +160,8 @@ function DynamicIOURequestStepMerchant({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
         } else if (!newMerchant) {
             clearMoneyRequestMerchant(transactionID);

@@ -119,6 +119,8 @@ function DynamicIOURequestStepTaxRatePage({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         };
 
         if (shouldClearTax && isEditing) {
