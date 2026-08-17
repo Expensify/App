@@ -1405,7 +1405,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!chatReport) {
                     // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
                     // built from the known IDs and let the server fill in the chat data.
-                    // Invoices are the exception — they genuinely need the invoice room data (receiver type, pay-as-business).
+                    // Invoices are the exception. They genuinely need the invoice room data such as receiver type and pay-as-business.
                     const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
                     if (isItemInvoice || !fallbackChatReportID) {
                         Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {

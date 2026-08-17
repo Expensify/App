@@ -426,8 +426,8 @@ function getPayMoneyRequestParams({
         },
         isFallbackChatReport
             ? {
-                  // The fallback chat report didn't exist in Onyx before the optimistic update — restore that state,
-                  // since re-merging the fallback object can't undo the optimistic paid-state fields.
+                  // The fallback chat report didn't exist in Onyx before the optimistic update, so restore that state.
+                  // Re-merging the fallback object can't undo the optimistic paid-state fields.
                   onyxMethod: Onyx.METHOD.SET,
                   key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
                   value: null,
