@@ -124,20 +124,15 @@ test('Request.processWithMiddleware() passes real Error rejections through untou
 test('Request.processWithMiddleware() measures the request phases for measured commands only', () => {
     // Given a Search request, which is in MEASURED_REQUEST_PHASE_COMMANDS
     return Request.processWithMiddleware({command: READ_COMMANDS.SEARCH, data: {authToken: 'testToken'}}).then(() => {
-        // Then every phase is opened under the SearchData names, including the render phase that only startup used to get
+        // Then every phase around the network call and the Onyx apply is opened under the SearchData names, and each one is closed again
         const startedSpanIds = mockStartSpan.mock.calls.map(([spanId]) => spanId);
         const endedSpanIds = [...mockEndSpan.mock.calls, ...mockEndSpanWithAttributes.mock.calls].map(([spanId]) => spanId);
-        const measuredPhases = [
-            CONST.TELEMETRY.SPAN_SEARCH_DATA.WAIT,
-            CONST.TELEMETRY.SPAN_SEARCH_DATA.DOWNLOAD,
-            CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY,
-            CONST.TELEMETRY.SPAN_SEARCH_DATA.RENDER,
-        ];
+        const measuredPhases = [CONST.TELEMETRY.SPAN_SEARCH_DATA.WAIT, CONST.TELEMETRY.SPAN_SEARCH_DATA.DOWNLOAD, CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY];
         expect(measuredPhases.filter((phase) => startedSpanIds.some((spanId) => spanId.startsWith(`${phase}_`)))).toEqual(measuredPhases);
+        expect([...endedSpanIds].sort()).toEqual([...startedSpanIds].sort());
 
-        // Render ends off a frame callback, so only the synchronous phases are closed by the time this assertion runs
-        const synchronousSpanIds = startedSpanIds.filter((spanId) => !spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.RENDER}_`));
-        expect([...endedSpanIds].sort()).toEqual([...synchronousSpanIds].sort());
+        // The render probe reads frame health, so it stays off Search: in a live app it cannot tell this render from any other JS work
+        expect(startedSpanIds.some((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.RENDER}_`))).toBe(false);
 
         // And the server's requestID is stamped on the phases that can see it, so one attempt's spans can be joined in Sentry
         const applySpanId = startedSpanIds.find((spanId) => spanId.startsWith(`${CONST.TELEMETRY.SPAN_SEARCH_DATA.APPLY}_`));

@@ -6,6 +6,7 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
 
+import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
@@ -51,9 +52,10 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
         result = result.then(
             (response) => {
                 endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
-                // ManualNavigateToReportsContentLoad only covers the Reports tab tap, so it cannot stand in for this on the
-                // paths that re-run the whole list render without a tab navigation: pagination, in-page re-search, view switches.
-                trackRequestPhaseRender(renderSpanName, request.command, attempt, response?.requestID);
+                // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
+                if (APP_STARTUP_NETWORK_REQUEST.has(request.command)) {
+                    trackRequestPhaseRender(renderSpanName, request.command, attempt, response?.requestID);
+                }
                 return response;
             },
             (error: unknown) => {
