@@ -10663,12 +10663,13 @@ const translations = {
             subtitle: 'Enter the name of the private domain you want to access (e.g. expensify.com).',
             domainName: 'Domain name',
             newDomain: 'New domain',
+            alreadyHaveAccessError: 'This domain already exists in your account.',
         },
         domainAlreadyExists: {
             headerTitle: 'Domain exists',
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
-            nevermind: 'Nevermind',
+            neverMind: 'Nevermind',
             requestAccess: 'Ask for admin access',
         },
         domainAdded: {
