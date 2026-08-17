@@ -98,8 +98,8 @@ You can use the following operators to filter reports:
 - `withdrawal-type:` – reimbursement, expensify-card, or central-travel-invoicing
 - `paid-status:` – how the report was paid: `markedAsPaid`, `withdrawing`, or `confirmed`. Combine multiple values with commas, e.g. `paid-status:markedAsPaid,confirmed`
 - `action:` – blocking report action, e.g. `action:approve`
-- `submitter-user-id:` – Custom field 1 value on the report
-- `submitter-payroll-id:` – Custom field 2 value on the report
+- `submitter-user-id:` – Custom field 1 value set for the report submitter
+- `submitter-payroll-id:` – Custom field 2 value set for the report submitter
 - `order-deal-numbers:` – International reimbursement IDs on the report
 
 **Example query:**
