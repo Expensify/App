@@ -126,8 +126,6 @@ function Popover(props: PopoverProps) {
                 animationIn={animationIn}
                 animationOut={animationOut}
                 enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
-                // The anchor is the launcher fallback for triggers that blur themselves before opening.
-                launcherRef={props.anchorRef}
             />,
             document.body,
         );
@@ -159,8 +157,6 @@ function Popover(props: PopoverProps) {
             animationIn={animationIn}
             animationOut={animationOut}
             enableEdgeToEdgeBottomSafeAreaPadding={enableEdgeToEdgeBottomSafeAreaPadding}
-            // The anchor is the launcher fallback for triggers that blur themselves before opening.
-            launcherRef={props.anchorRef}
         />
     );
 }
