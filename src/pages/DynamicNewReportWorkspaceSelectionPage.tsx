@@ -78,7 +78,6 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     const isRHPOnReportInSearch = isRHPOnSearchMoneyRequestReportPage();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [hasDismissedEmptyReportsConfirmation] = useOnyx(ONYXKEYS.NVP_EMPTY_REPORTS_CONFIRMATION_DISMISSED);
@@ -232,7 +231,7 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
     if (policies && !isEmptyObject(policies)) {
         const result = [];
         let index = 0;
-        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, currentUserPersonalDetails?.login);
+        const eligiblePolicies = getGroupPoliciesWhereReportCanBeCreated(policies, currentUserPersonalDetails?.login);
         for (const policy of eligiblePolicies) {
             if (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy)) {
                 continue;

@@ -33,7 +33,7 @@ const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
 // Returns up to 2 matching policies — we only ever check length > 0, length === 1, and length > 1.
 const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) =>
-    getGroupPoliciesWhereReportCanBeCreated(policies, true, currentUserLogin).slice(0, 2);
+    getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin).slice(0, 2);
 
 function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
