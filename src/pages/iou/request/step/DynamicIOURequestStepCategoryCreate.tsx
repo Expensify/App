@@ -55,7 +55,7 @@ function DynamicIOURequestStepCategoryCreate({
     },
     transaction,
 }: DynamicIOURequestStepCategoryCreateProps) {
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const {translate} = useLocalize();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -157,7 +157,7 @@ function DynamicIOURequestStepCategoryCreate({
         };
 
         if (isEditingSplit && transaction) {
-            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, policy, undefined, undefined, getCurrencyDecimals);
+            setDraftSplitTransaction(transaction.transactionID, splitDraftTransaction, {category: categoryName}, getCurrencyDecimals, getCurrencySymbol, policy);
         } else if (isEditing && report) {
             updateMoneyRequestCategory({
                 transactionID: transaction?.transactionID ?? transactionID,
