@@ -125,8 +125,12 @@ function registerDeferredWrite(key: string, callback: () => void, options: Defer
 
     // Preserve the destination report ID across the reservation -> registration handoff so
     // scoped consumers (`isLayoutPendingForReport` / `isWritePendingForReport`) keep matching
-    // after the real callback replaces the reservation.
-    const destinationReportID = reservedReportID;
+    // after the real callback replaces the reservation. Falls back to the caller's own
+    // destinationReportID when there was no reservation to inherit from (e.g. deferOrExecuteWrite's
+    // unconditional SEARCH registration) - without this, a freshly-registered write is unscoped and
+    // ReportWorkflow's isWritePendingForReport flush check can't find it, so submit dispatches
+    // without flushing it first, reproducing the create-after-submit race this module exists to fix.
+    const destinationReportID = reservedReportID ?? callerDestinationReportID;
     let registration = existing?.registration;
 
     if (existing) {
