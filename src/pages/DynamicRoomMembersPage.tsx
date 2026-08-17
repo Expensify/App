@@ -283,7 +283,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
 
     const selectedKeys = selectedMembers.map(String);
 
-    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report?.policyID, policy]);
+    const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtils(report.policyID, policy), [report.policyID, policy]);
 
     const bulkActionsButtonOptions = useMemo(() => {
         const options: Array<DropdownOption<RoomMemberBulkActionType>> = [
