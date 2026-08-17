@@ -32,8 +32,8 @@ import React from 'react';
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
 // Returns up to 2 matching policies — we only ever check length > 0, length === 1, and length > 1.
-const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, isSubmit2026BetaEnabled: boolean, currentUserLogin: string | undefined) =>
-    getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, currentUserLogin).slice(0, 2);
+const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) =>
+    getGroupPoliciesWhereReportCanBeCreated(policies, true, currentUserLogin).slice(0, 2);
 
 function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
@@ -48,10 +48,9 @@ function CreateReportMenuItem() {
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, isSubmit2026BetaEnabled, session?.email),
+        selector: (policies: Parameters<typeof chatEnabledPaidGroupPoliciesSelector>[0]) => chatEnabledPaidGroupPoliciesSelector(policies, session?.email),
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
 

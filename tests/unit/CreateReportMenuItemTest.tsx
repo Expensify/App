@@ -69,14 +69,12 @@ jest.mock('@libs/PolicyUtils', () => {
 
     return {
         getDefaultChatEnabledPolicy: jest.fn((policies: Policy[]) => policies.at(0)),
-        getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined, isSubmit2026BetaEnabled: boolean) =>
+        getGroupPoliciesWhereReportCanBeCreated: jest.fn((policies: Record<string, Policy> | undefined) =>
             Object.values(policies ?? {}).filter(
                 (policy): policy is Policy =>
                     !!policy &&
                     !policy.isJoinRequestPending &&
-                    (policy.type === CONSTANTS.POLICY.TYPE.TEAM ||
-                        policy.type === CONSTANTS.POLICY.TYPE.CORPORATE ||
-                        (policy.type === CONSTANTS.POLICY.TYPE.SUBMIT && isSubmit2026BetaEnabled)),
+                    (policy.type === CONSTANTS.POLICY.TYPE.TEAM || policy.type === CONSTANTS.POLICY.TYPE.CORPORATE || policy.type === CONSTANTS.POLICY.TYPE.SUBMIT),
             ),
         ),
     };
@@ -137,11 +135,14 @@ describe('CreateReportMenuItem', () => {
         setupUseOnyx();
     });
 
-    it('passes only paid group workspaces to useCreateReport when Submit beta is off', () => {
+    it('passes only report-creation workspaces to useCreateReport', () => {
         render(<CreateReportMenuItem />);
 
         const params = mockUseCreateReport.mock.calls.at(0)?.at(0);
-        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(1);
-        expect(params?.groupPoliciesWithChatEnabled).toEqual([expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM})]);
+        expect(params?.groupPoliciesWithChatEnabled).toHaveLength(2);
+        expect(params?.groupPoliciesWithChatEnabled).toEqual([
+            expect.objectContaining({id: 'team-1', type: CONST.POLICY.TYPE.TEAM}),
+            expect.objectContaining({id: 'submit-1', type: CONST.POLICY.TYPE.SUBMIT}),
+        ]);
     });
 });
