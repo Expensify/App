@@ -968,8 +968,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            // This is to match production build after ButtonComposed migration.
+            ...spacing.ph6,
         },
 
         buttonSuccessText: {
