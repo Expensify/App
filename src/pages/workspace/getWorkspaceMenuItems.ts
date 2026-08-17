@@ -84,17 +84,29 @@ type WorkspaceMenuItem = WithSentryLabel & {
 
 /** Inputs used to build the Workspace menu while preserving its visibility and indicator rules. */
 type GetWorkspaceMenuItemsParams = {
+    /** Workspace policy used to determine menu visibility and indicators. */
     policy: OnyxTypes.Policy | undefined;
+    /** Workspace policy ID used to build destination routes. */
     policyID: string | undefined;
+    /** Login used to determine the member's feature access. */
     currentUserLogin?: string;
+    /** Lazily loaded icons used by the menu items. */
     icons: WorkspaceMenuIconMap;
+    /** Whether an accounting connection is currently syncing. */
     connectionInProgress?: boolean;
+    /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
+    /** Previous pending fields used to identify the most recently enabled feature. */
     previousPendingFields?: OnyxTypes.Policy['pendingFields'];
+    /** Whether receipt partner credentials require attention. */
     shouldShowEnterCredentialsError?: boolean;
+    /** Whether the company cards row should show an error indicator. */
     shouldShowRBR?: boolean;
+    /** Whether the Rules revamp beta is enabled. */
     isRulesRevampBetaEnabled?: boolean;
+    /** Whether the vendor matching beta is enabled. */
     isVendorMatchingBetaEnabled?: boolean;
+    /** Formats the invoice account balance for its menu badge. */
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
