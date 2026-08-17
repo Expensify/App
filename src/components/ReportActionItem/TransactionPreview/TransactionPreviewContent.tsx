@@ -90,8 +90,9 @@ function TransactionPreviewContent({
     );
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    // The hold is appended to the RBR message on its own, so it must not also be picked as the violation to describe.
-    const filteredViolations = filterReceiptViolations(violations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD);
+    // Only when the expense is actually held: the hold is appended to the RBR message on its own, so it must not also be picked
+    // as the violation to describe. Left alone otherwise, so duplicates and settled expenses keep their existing message.
+    const filteredViolations = filterReceiptViolations(violations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD || !transaction?.comment?.hold);
     const firstViolation = filteredViolations.at(0);
     const cardID = firstViolation?.data?.cardID;
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
