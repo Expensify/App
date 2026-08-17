@@ -2160,6 +2160,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                                         [snapshotReport],
                                         [policyForSubmit],
                                         getLoginByAccountID(snapshotReport.ownerAccountID, personalDetails),
+                                        getCurrencyDecimals,
                                         currentSearchKey,
                                         managerEmail,
                                         managerAccountID,
@@ -2181,7 +2182,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     for (const item of itemList) {
                         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${item.policyID}`];
                         if (policy) {
-                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails));
+                            submitMoneyRequestOnSearch(hash, [item as Report], [policy], getLoginByAccountID(item.ownerAccountID, personalDetails), getCurrencyDecimals);
                         }
                     }
                     // Submitting only changes the report, so the rows keep serving the snapshot's pre-submit report
