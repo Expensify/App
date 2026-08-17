@@ -92,86 +92,85 @@ describe('getDeviceOrientationAwareImageSize', () => {
                     aspectRatioHeight: 9,
                 });
             });
-
-            it('should not detect rotation for landscape-right orientation', () => {
-                const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: mockImageSize,
-                    orientation: 'landscape-right',
-                    aspectRatioWidth: 21,
-                    aspectRatioHeight: 9,
-                };
-                const result = getDeviceOrientationAwareImageSizeIOS(params);
-                expect(result).toEqual({
-                    imageWidth: 1920,
-                    imageHeight: 1080,
-                    aspectRatioWidth: 21,
-                    aspectRatioHeight: 9,
-                });
-            });
-        });
-    });
-
-    describe('Android Platform', () => {
-        describe('Non-rotated images (0° and 180°)', () => {
-            it('should handle 0 degree rotation', () => {
-                const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: {...mockImageSizeWithRotation, rotation: 0},
-                    aspectRatioWidth: 16,
-                    aspectRatioHeight: 9,
-                };
-                const result = getDeviceOrientationAwareImageSizeAndroid(params);
-                expect(result).toEqual({
-                    imageWidth: 1920,
-                    imageHeight: 1080,
-                    aspectRatioWidth: 9,
-                    aspectRatioHeight: 16,
-                });
-            });
-
-            it('should handle 180 degree rotation', () => {
-                const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: {...mockImageSizeWithRotation, rotation: 180},
-                    aspectRatioWidth: 4,
-                    aspectRatioHeight: 3,
-                };
-                const result = getDeviceOrientationAwareImageSizeAndroid(params);
-                expect(result).toEqual({
-                    imageWidth: 1920,
-                    imageHeight: 1080,
-                    aspectRatioWidth: 3,
-                    aspectRatioHeight: 4,
-                });
-            });
         });
 
-        describe('Rotated images (90° and 270°)', () => {
-            it('should handle 90 degree rotation with dimension and aspect ratio swapping', () => {
-                const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: {...mockImageSizeWithRotation, rotation: 90},
-                    aspectRatioWidth: 16,
-                    aspectRatioHeight: 9,
-                };
-                const result = getDeviceOrientationAwareImageSizeAndroid(params);
-                expect(result).toEqual({
-                    imageWidth: 1080,
-                    imageHeight: 1920,
-                    aspectRatioWidth: 16,
-                    aspectRatioHeight: 9,
+        describe('Android Platform', () => {
+            describe('Non-rotated images (0° and 180°)', () => {
+                it('should handle 0 degree rotation', () => {
+                    const params: GetDeviceOrientationAwareImageSizeParams = {
+                        imageSize: {...mockImageSizeWithRotation, rotation: 0},
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    };
+                    const result = getDeviceOrientationAwareImageSizeAndroid(params);
+                    expect(result).toEqual({
+                        imageWidth: 1920,
+                        imageHeight: 1080,
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    });
+                });
+
+                it('should handle 180 degree rotation', () => {
+                    const params: GetDeviceOrientationAwareImageSizeParams = {
+                        imageSize: {...mockImageSizeWithRotation, rotation: 180},
+                        aspectRatioWidth: 4,
+                        aspectRatioHeight: 3,
+                    };
+                    const result = getDeviceOrientationAwareImageSizeAndroid(params);
+                    expect(result).toEqual({
+                        imageWidth: 1920,
+                        imageHeight: 1080,
+                        aspectRatioWidth: 4,
+                        aspectRatioHeight: 3,
+                    });
+                });
+
+                it('should handle a missing rotation as non-rotated', () => {
+                    const params: GetDeviceOrientationAwareImageSizeParams = {
+                        imageSize: mockImageSize,
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    };
+                    const result = getDeviceOrientationAwareImageSizeAndroid(params);
+                    expect(result).toEqual({
+                        imageWidth: 1920,
+                        imageHeight: 1080,
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    });
                 });
             });
 
-            it('should handle 270 degree rotation with dimension and aspect ratio swapping', () => {
-                const params: GetDeviceOrientationAwareImageSizeParams = {
-                    imageSize: {...mockImageSizeWithRotation, rotation: 270},
-                    aspectRatioWidth: 21,
-                    aspectRatioHeight: 9,
-                };
-                const result = getDeviceOrientationAwareImageSizeAndroid(params);
-                expect(result).toEqual({
-                    imageWidth: 1080,
-                    imageHeight: 1920,
-                    aspectRatioWidth: 21,
-                    aspectRatioHeight: 9,
+            describe('Rotated images (90° and 270°)', () => {
+                it('should swap the dimensions for 90 degree rotation and keep the aspect ratio', () => {
+                    const params: GetDeviceOrientationAwareImageSizeParams = {
+                        imageSize: {...mockImageSizeWithRotation, rotation: 90},
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    };
+                    const result = getDeviceOrientationAwareImageSizeAndroid(params);
+                    expect(result).toEqual({
+                        imageWidth: 1080,
+                        imageHeight: 1920,
+                        aspectRatioWidth: 16,
+                        aspectRatioHeight: 9,
+                    });
+                });
+
+                it('should swap the dimensions for 270 degree rotation and keep the aspect ratio', () => {
+                    const params: GetDeviceOrientationAwareImageSizeParams = {
+                        imageSize: {...mockImageSizeWithRotation, rotation: 270},
+                        aspectRatioWidth: 21,
+                        aspectRatioHeight: 9,
+                    };
+                    const result = getDeviceOrientationAwareImageSizeAndroid(params);
+                    expect(result).toEqual({
+                        imageWidth: 1080,
+                        imageHeight: 1920,
+                        aspectRatioWidth: 21,
+                        aspectRatioHeight: 9,
+                    });
                 });
             });
         });

@@ -6,10 +6,10 @@ import type {GetDeviceOrientationAwareImageSize} from './types';
  */
 const getDeviceOrientationAwareImageSize: GetDeviceOrientationAwareImageSize = ({imageSize, aspectRatioWidth, aspectRatioHeight}) => {
     const {width, height, rotation} = imageSize;
-    const isRotated = rotation === 0 || rotation === 180;
+    const isRotated = rotation === 90 || rotation === 270;
     return {
-        imageWidth: isRotated ? width : height,
-        imageHeight: isRotated ? height : width,
+        imageWidth: isRotated ? height : width,
+        imageHeight: isRotated ? width : height,
         aspectRatioWidth,
         aspectRatioHeight,
     };
