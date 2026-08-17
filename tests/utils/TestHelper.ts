@@ -282,7 +282,7 @@ function signInWithTestUser(accountID = 1, login = 'test@user.com', password = '
                 // Return a Promise that resolves with the mocked response
                 return Promise.resolve(mockedResponse);
             });
-            Session.signIn(password, undefined);
+            Session.signIn(password, undefined, undefined, login, undefined);
             return waitForBatchedUpdates();
         })
         .then(() => {
@@ -521,7 +521,7 @@ function localeCompare(a: string, b: string): number {
     return customCollator.compare(a, b);
 }
 
-export type {MockFetch, FormData};
+export type {MockFetch};
 export {
     anyArray,
     anyObject,

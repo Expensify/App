@@ -1,6 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
 
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
+import useOnyx from '@hooks/useOnyx';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -12,12 +13,9 @@ const otherPolicyID = 'policy_other';
 const currentUserAccountID = 1001;
 const orphanDomainFundID = 5555;
 
-const mockUseOnyx = jest.fn();
+jest.mock('@hooks/useOnyx', () => jest.fn());
 
-jest.mock('@hooks/useOnyx', () => ({
-    __esModule: true,
-    default: (...args: unknown[]): [unknown, {status?: string}] => mockUseOnyx(...args) as [unknown, {status?: string}],
-}));
+const mockUseOnyx = jest.mocked(useOnyx);
 
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
@@ -54,7 +52,7 @@ function configuredCardSettings(overrides: Record<string, unknown> = {}) {
 describe('useExpensifyCardFeedsForFeedSelector', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [{}, {status: 'loaded'}];
             }
@@ -64,7 +62,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
     });
 
@@ -89,7 +87,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('ignores preferredPolicy: visible feeds with no linkedPolicyIDs are never primary', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -111,7 +109,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{...domainWithAdmin(111, currentUserAccountID), ...domainWithAdmin(222, currentUserAccountID)}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -123,7 +121,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('partitions by linkedPolicyIDs for feeds that define them (per feed, not global)', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -147,7 +145,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{...domainWithAdmin(10, currentUserAccountID), ...domainWithAdmin(20, currentUserAccountID)}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -160,7 +158,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('resolves linkedPolicyIDs nested under US (not only on settings root)', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -182,7 +180,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [domainWithAdmin(77, currentUserAccountID), {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -195,7 +193,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     it('resolves linkedPolicyIDs (API spelling) and matches policyID case-insensitively', () => {
         const policyIdUpper = 'BF0EEF42D8D1036B';
         const policyIdLower = policyIdUpper.toLowerCase();
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -217,7 +215,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [domainWithAdmin(88, currentUserAccountID), {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(policyIdLower));
@@ -228,7 +226,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('includes feeds visible via linkedPolicyIDs when preferredPolicy is a different workspace', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -247,7 +245,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [domainWithAdmin(7, currentUserAccountID), {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -259,7 +257,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('excludes feeds that are not visible to admin (single-key settings)', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -271,7 +269,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.POLICY) {
                 return [adminPolicy(currentPolicyID), {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -282,7 +280,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('includes orphan feeds in otherFeeds when user is domain admin', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -303,7 +301,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.CARD_LIST) {
                 return [{card1: {bank: CONST.EXPENSIFY_CARD.BANK, fundID: orphanDomainFundID.toString()}}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -316,7 +314,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
 
     it('includes orphan feeds in otherFeeds when fundID matches current workspaceAccountID', () => {
         const workspaceAccountID = 9001;
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -345,7 +343,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.CARD_LIST) {
                 return [{card1: {bank: CONST.EXPENSIFY_CARD.BANK, fundID: workspaceAccountID.toString()}}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
@@ -357,7 +355,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
     });
 
     it('excludes orphan feeds when user is not domain admin and not workspace admin for fundID', () => {
-        mockUseOnyx.mockImplementation((key: string) => {
+        mockUseOnyx.mockImplementation((key) => {
             if (key === ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS) {
                 return [
                     {
@@ -375,7 +373,7 @@ describe('useExpensifyCardFeedsForFeedSelector', () => {
             if (key === ONYXKEYS.COLLECTION.DOMAIN) {
                 return [{}, {status: 'loaded'}];
             }
-            return [undefined, {}];
+            return [undefined, {status: 'loaded'}];
         });
 
         const {result} = renderHook(() => useExpensifyCardFeedsForFeedSelector(currentPolicyID));
