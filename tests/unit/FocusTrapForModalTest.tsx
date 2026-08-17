@@ -46,8 +46,8 @@ function withActiveElement<T>(element: HTMLElement, fn: () => T): T {
 describe('FocusTrapForModal — launcher capture', () => {
     beforeEach(() => {
         capturedOptions = null;
-        (setActivePopoverLauncher as jest.Mock).mockClear();
-        (markActivePopoverLauncherDeactivated as jest.Mock).mockClear();
+        jest.mocked(setActivePopoverLauncher).mockClear();
+        jest.mocked(markActivePopoverLauncherDeactivated).mockClear();
         mockRestoreFocusWithModality.mockReset();
         document.body.innerHTML = '';
     });
