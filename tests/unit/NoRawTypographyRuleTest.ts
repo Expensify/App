@@ -1,7 +1,7 @@
 import type {Rule} from 'eslint';
 
-import * as tsParser from '@typescript-eslint/parser';
 import {RuleTester} from 'eslint';
+import {parser as tsParser} from 'typescript-eslint';
 
 type LocalRuleModule = Rule.RuleModule & {
     name: string;
