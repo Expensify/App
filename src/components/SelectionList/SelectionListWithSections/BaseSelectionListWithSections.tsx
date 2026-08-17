@@ -200,17 +200,21 @@ function BaseSelectionListWithSectionsImpl({
 
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
-    // A footer confirm control (custom `footerContent` or the built-in `showButton` button) is what takes over plain Enter.
-    const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
+    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
+    // built-in `showButton` confirm button, or a custom `footerContent` whose owner has declared an enabled confirm via
+    // `confirmButtonOptions.isDisabled === false`. A bare `footerContent` node is opaque (it may hold no Enter handler,
+    // e.g. a referral CTA), so its presence alone must NOT be treated as taking over Enter.
+    const hasEnabledEnterConfirm =
+        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && confirmButtonOptions?.isDisabled === false);
 
     useSelectionListShortcuts({
         selectFocusedItem,
         getFocusedOption: getFocusedItem,
         confirmButtonOptions,
         isActive: isScreenFocused,
-        // Only surrender plain Enter to that footer control when it is actually rendered and enabled to handle it.
-        // Otherwise (e.g. option pickers with `onConfirm` but no footer button) keep the focused row so plain Enter can still select it.
-        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasFooter || confirmButtonOptions?.isDisabled || shouldStopPropagation ? focusedIndex : -1,
+        // Keep the focused row's index (so plain Enter selects it) unless an enabled Enter-capable confirm control will
+        // take Enter instead; only then pass `-1` to disable the list's Enter shortcut and let the keypress reach it.
+        focusedIndex: isKeyboardNavigating || !!syncedSearchValue?.trim() || !hasEnabledEnterConfirm || shouldStopPropagation ? focusedIndex : -1,
         disableKeyboardShortcuts,
         shouldStopPropagation,
         shouldBubble: itemsCount > 0 && !getFocusedItem(),
