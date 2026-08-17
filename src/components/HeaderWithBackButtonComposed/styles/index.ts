@@ -20,13 +20,10 @@ function useHeaderStyles({shouldUseHeadlineHeader = false, shouldShowBorderBotto
     /** Outer header bar. */
     const containerStyle: StyleProp<ViewStyle> = [styles.headerBar, shouldUseHeadlineHeader && styles.headerBarHeight, shouldShowBorderBottom && styles.borderBottom, style];
 
-    /** Inner flex row that lays out the three zones. */
+    /** Inner flex row that lays out the zones. */
     const innerRowStyle: StyleProp<ViewStyle> = [styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3];
 
-    /** Right-hand actions container. */
-    const rightZoneStyle: StyleProp<ViewStyle> = [styles.reportOptions, styles.flexRow, styles.alignItemsCenter];
-
-    return {containerStyle, innerRowStyle, rightZoneStyle};
+    return {containerStyle, innerRowStyle};
 }
 
 export default useHeaderStyles;

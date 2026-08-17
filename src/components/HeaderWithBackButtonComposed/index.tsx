@@ -6,7 +6,6 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -23,6 +22,8 @@ import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
 import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles';
+import HeaderActions from './zones/HeaderActions';
+import HeaderRight from './zones/HeaderRight';
 
 function HeaderWithBackButton({
     icon,
@@ -71,9 +72,8 @@ function HeaderWithBackButton({
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
-    const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {containerStyle, innerRowStyle, rightZoneStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
+    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
 
     const threeDotMenuTooltipsSection = (
         <>
@@ -145,8 +145,8 @@ function HeaderWithBackButton({
                         {title}
                     </HeaderTitle>
                 )}
-                <View style={rightZoneStyle}>
-                    <View style={[styles.pr2, styles.flexRow, styles.alignItemsCenter]}>
+                <HeaderRight>
+                    <HeaderActions>
                         {children}
                         {shouldShowDownloadButton && (
                             <HeaderDownloadButton
@@ -155,11 +155,11 @@ function HeaderWithBackButton({
                                 iconFill={iconFill}
                             />
                         )}
-                    </View>
+                    </HeaderActions>
                     {threeDotMenuTooltipsSection}
                     {shouldDisplaySearchRouter && <SearchButton />}
                     {shouldDisplayHelpButton && <SidePanelButton />}
-                </View>
+                </HeaderRight>
             </View>
         </View>
     );
