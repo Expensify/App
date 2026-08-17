@@ -1,3 +1,4 @@
+import Avatar from '@components/Avatar';
 import AvatarWithDisplayName from '@components/AvatarWithDisplayName';
 import type HeaderWithBackButtonProps from '@components/HeaderWithBackButton/types';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
@@ -6,6 +7,8 @@ import SidePanelButton from '@components/SidePanel/SidePanelButton';
 
 import useDialogLabelRegistration from '@hooks/useDialogLabelRegistration';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useStyleUtils from '@hooks/useStyleUtils';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
 
@@ -18,7 +21,6 @@ import HeaderCloseButtonTooltip from './primitives/HeaderCloseButtonTooltip';
 import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
-import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
 import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles';
@@ -72,6 +74,8 @@ function HeaderWithBackButton({
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
+    const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
 
@@ -125,7 +129,15 @@ function HeaderWithBackButton({
                         iconFill={iconFill}
                     />
                 )}
-                {!!policyAvatar && <HeaderPolicyAvatar policyAvatar={policyAvatar} />}
+                {!!policyAvatar && (
+                    <Avatar
+                        containerStyles={[StyleUtils.getWidthAndHeightStyle(StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.DEFAULT)), styles.mr3]}
+                        source={policyAvatar.source}
+                        name={policyAvatar.name}
+                        avatarID={policyAvatar.id}
+                        type={policyAvatar.type}
+                    />
+                )}
                 {shouldShowReportAvatarWithDisplay ? (
                     <AvatarWithDisplayName
                         report={report}
