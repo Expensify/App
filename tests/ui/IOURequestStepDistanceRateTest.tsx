@@ -4,7 +4,7 @@ import {CurrencyListContextProvider} from '@components/CurrencyListContextProvid
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
-import IOURequestStepDistanceRate from '@pages/iou/request/step/IOURequestStepDistanceRate';
+import DynamicIOURequestStepDistanceRate from '@pages/iou/request/step/DynamicIOURequestStepDistanceRate';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +38,9 @@ jest.mock('@react-navigation/native', () => ({
 
 // The page is gated by report/transaction "not found" HOCs; short-circuit that gate for the test.
 jest.mock('@hooks/useShowNotFoundPageInIOUStep', () => () => false);
+
+// The dynamic step derives its back path from the root navigation state, which isn't set up in this test.
+jest.mock('@hooks/useDynamicBackPath', () => jest.fn(() => ''));
 
 // Render FlashList as a plain ScrollView that mounts every row, so the test can assert the full data
 // order instead of only the virtualized window (the real list scrolls to the focused rate on mount).
@@ -171,26 +174,25 @@ const transactionDraft = {
 } as unknown as Transaction;
 
 function renderPage() {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only route stub; the page only reads route.params
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- test-only route stub. The page only reads route.params
     const props = {
         route: {
-            key: 'IOURequestStepDistanceRate',
-            name: SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE,
+            key: 'DynamicIOURequestStepDistanceRate',
+            name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE,
             params: {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 reportID: REPORT_ID,
                 transactionID: TRANSACTION_ID,
                 action: CONST.IOU.ACTION.CREATE,
                 reportActionID: '1',
-                backTo: '',
             },
         },
-    } as React.ComponentProps<typeof IOURequestStepDistanceRate>;
+    } as React.ComponentProps<typeof DynamicIOURequestStepDistanceRate>;
     return render(
         <OnyxListItemProvider>
             <LocaleContextProvider>
                 <CurrencyListContextProvider>
-                    <IOURequestStepDistanceRate {...props} />
+                    <DynamicIOURequestStepDistanceRate {...props} />
                 </CurrencyListContextProvider>
             </LocaleContextProvider>
         </OnyxListItemProvider>,
