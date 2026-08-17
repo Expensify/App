@@ -323,12 +323,20 @@ function getPayMoneyRequestParams({
         };
     }
 
-    onyxData.optimisticData?.push(
-        {
+    if (!isFallbackChatReport) {
+        onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
             value: optimisticChatReport,
-        },
+        });
+        onyxData.failureData?.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
+            value: chatReport,
+        });
+    }
+
+    onyxData.optimisticData?.push(
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport?.reportID}`,
@@ -424,19 +432,6 @@ function getPayMoneyRequestParams({
                 ...iouReport,
             },
         },
-        isFallbackChatReport
-            ? {
-                  // The fallback chat report didn't exist in Onyx before the optimistic update, so restore that state.
-                  // Re-merging the fallback object can't undo the optimistic paid-state fields.
-                  onyxMethod: Onyx.METHOD.SET,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                  value: null,
-              }
-            : {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`,
-                  value: chatReport,
-              },
     );
 
     // In case the report preview action is loaded locally, let's update it.
