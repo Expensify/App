@@ -71,7 +71,7 @@ function SearchReportsMergeReports() {
             key.startsWith(ONYXKEYS.COLLECTION.TRANSACTION) && typeof value === 'object' && value !== null && 'transactionID' in value;
         const result: Record<string, Transaction[]> = {};
         for (const transaction of Object.values(allTransactions ?? {})) {
-            if (!transaction?.reportID || !selectedReportIDSet.has(transaction.reportID)) {
+            if (!transaction?.reportID || transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || !selectedReportIDSet.has(transaction.reportID)) {
                 continue;
             }
             addedTransactionIDSet.add(transaction.transactionID);
@@ -86,7 +86,12 @@ function SearchReportsMergeReports() {
                 continue;
             }
             const transaction = value;
-            if (!transaction.reportID || !selectedReportIDSet.has(transaction.reportID) || addedTransactionIDSet.has(transaction.transactionID)) {
+            if (
+                !transaction.reportID ||
+                transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE ||
+                !selectedReportIDSet.has(transaction.reportID) ||
+                addedTransactionIDSet.has(transaction.transactionID)
+            ) {
                 continue;
             }
             if (!result[transaction.reportID]) {
@@ -104,7 +109,7 @@ function SearchReportsMergeReports() {
         return selectedReports
             .map(({reportID}) => {
                 const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                if (!report || !reportID) {
+                if (!reportID || !report?.reportID || report?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
                     return undefined;
                 }
                 const {totalDisplaySpend, nonReimbursableSpend, reimbursableSpend} = getMoneyRequestSpendBreakdown(report);
@@ -127,9 +132,9 @@ function SearchReportsMergeReports() {
 
     const destinationReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${destinationReportID}`];
     const sourceReportIDs = destinationReport
-        ? selectedReports.reduce((acc, report) => {
+        ? reportItems.reduce((acc, report) => {
               const reportID = report.reportID;
-              if (!!reportID && reportID !== destinationReportID && !!allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportID) {
+              if (reportID !== destinationReportID) {
                   acc.push(reportID);
               }
               return acc;

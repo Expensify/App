@@ -2223,7 +2223,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
         const selectedMergeReports = areAllMatchingItemsSelected
             ? []
-            : selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report?.reportID);
+            : selectedReports
+                  .map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`])
+                  .filter((report) => !!report?.reportID && report.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE);
         if (
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
