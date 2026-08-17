@@ -295,6 +295,8 @@ function DynamicIOURequestStepDistanceRate({
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={initiallyFocusedOption}
+                shouldScrollToFocusedIndexOnMount={false}
+                shouldUpdateFocusedIndex
             />
         </StepScreenWrapper>
     );
