@@ -8,8 +8,8 @@ const getDeviceOrientationAwareImageSize: GetDeviceOrientationAwareImageSize = (
     const {width, height, rotation} = imageSize;
     const isRotated = rotation === 0 || rotation === 180;
     return {
-        imageWidth: !isRotated ? height : width,
-        imageHeight: !isRotated ? width : height,
+        imageWidth: isRotated ? width : height,
+        imageHeight: isRotated ? height : width,
         aspectRatioWidth,
         aspectRatioHeight,
     };
