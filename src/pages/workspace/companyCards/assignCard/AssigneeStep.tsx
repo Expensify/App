@@ -4,6 +4,7 @@ import UserListItem from '@components/SelectionList/ListItem/UserListItem';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import useInitialSelection from '@hooks/useInitialSelection';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
@@ -22,6 +23,7 @@ import {getSearchValueForPhoneOrEmail, sortAlphabetically} from '@libs/OptionsLi
 import {getHeaderMessage} from '@libs/PersonalDetailOptionsListUtils';
 import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
 import {canMemberWrite, filterGuideAndAccountManager, getGuideAndAccountManagerInfo, getIneligibleInvitees, isDeletedPolicyEmployee} from '@libs/PolicyUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import Navigation from '@navigation/Navigation';
@@ -41,6 +43,10 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {Keyboard} from 'react-native';
 
 type AssigneeStepProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DYNAMIC_COMPANY_CARDS_ASSIGN_CARD_ASSIGNEE>;
+
+type AssigneeListItem = ListItem & {
+    value: string;
+};
 
 function AssigneeStep({route}: AssigneeStepProps) {
     const policyID = route.params.policyID;
@@ -82,14 +88,18 @@ function AssigneeStep({route}: AssigneeStepProps) {
     });
 
     const isEditing = assignCard?.isEditing;
+    // Freeze the assignee selected when the list opened so it can be pinned to the top of long member lists.
+    const initialAssigneeEmail = useInitialSelection(assignCard?.cardToAssign?.email, {resetOnFocus: true});
 
     const submit = (assignee: ListItem) => {
         const personalDetail = getPersonalDetailByEmail(assignee?.login ?? '');
         const memberName = personalDetail?.firstName ? personalDetail.firstName : Str.removeSMSDomain(personalDetail?.login ?? '');
         const defaultCardName = getDefaultCardName(memberName);
+        // Keep the name the user manually typed in CardNameStep. Otherwise always recompute it from the currently selected assignee.
+        const customCardName = assignCard?.cardToAssign?.isCustomCardNameEdited ? (assignCard?.cardToAssign?.customCardName ?? defaultCardName) : defaultCardName;
         const cardToAssign: Partial<AssignCardData> = {
             email: assignee?.login ?? '',
-            ...(!assignCard?.cardToAssign?.customCardName ? {customCardName: defaultCardName} : {}),
+            customCardName,
         };
 
         Keyboard.dismiss();
@@ -100,7 +110,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
             if (assignCard?.cardToAssign?.encryptedCardNumber) {
                 cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
                 cardToAssign.cardName = assignCard.cardToAssign.cardName;
-                cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
                 cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
                 cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
                 setAssignCardStepAndData({
@@ -136,7 +145,6 @@ function AssigneeStep({route}: AssigneeStepProps) {
         if (assignCard?.cardToAssign?.encryptedCardNumber) {
             cardToAssign.encryptedCardNumber = assignCard.cardToAssign.encryptedCardNumber;
             cardToAssign.cardName = assignCard.cardToAssign.cardName;
-            cardToAssign.customCardName = assignCard.cardToAssign.customCardName ?? defaultCardName;
             cardToAssign.startDate = getCardAssignmentStartDate(isEditing, assignCard?.cardToAssign?.startDate);
             cardToAssign.dateOption = getCardAssignmentDateOption(isEditing, assignCard?.cardToAssign?.dateOption);
             setAssignCardStepAndData({
@@ -162,7 +170,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
         Navigation.goBack();
     };
 
-    const membersDetails: ListItem[] = [];
+    const membersDetails: AssigneeListItem[] = [];
     if (policy?.employeeList) {
         for (const [email, policyEmployee] of Object.entries(policy.employeeList ?? {})) {
             if (isDeletedPolicyEmployee(policyEmployee, isOffline)) {
@@ -175,6 +183,7 @@ function AssigneeStep({route}: AssigneeStepProps) {
                 text: personalDetail?.displayName,
                 alternateText: email,
                 login: email,
+                value: email,
                 accountID: personalDetail?.accountID,
                 isSelected: assignCard?.cardToAssign?.email === email,
                 icons: [
@@ -191,10 +200,14 @@ function AssigneeStep({route}: AssigneeStepProps) {
         sortAlphabetically(membersDetails, 'text', localeCompare);
     }
 
-    let assignees = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+    // Pin the currently-assigned member to the top of the full member list, then reuse the pinned list for both
+    // the base list and the search source below so it stays pinned while searching (when it still matches).
+    // moveInitialSelectionToTop no-ops for lists under the search-box threshold.
+    const orderedMembersDetails = moveInitialSelectionToTop(membersDetails, initialAssigneeEmail ? [initialAssigneeEmail] : []);
+    let assignees: ListItem[] = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
     if (debouncedSearchTerm && areOptionsInitialized) {
         const searchValueForOptions = getSearchValueForPhoneOrEmail(debouncedSearchTerm, countryCode).toLowerCase();
-        const filteredMembers = filterGuideAndAccountManager(membersDetails, assignedGuideEmail, accountManagerLogin);
+        const filteredMembers = filterGuideAndAccountManager(orderedMembersDetails, assignedGuideEmail, accountManagerLogin);
         const filteredOptions = tokenizedSearch(filteredMembers, searchValueForOptions, (option) => [option.text ?? '', option.alternateText ?? '']);
 
         const options = canInviteMembers
@@ -257,11 +270,15 @@ function AssigneeStep({route}: AssigneeStepProps) {
             >
                 <Text style={[styles.textHeadlineLineHeightXXL, styles.ph5, styles.mv3]}>{translate('workspace.companyCards.chooseTheCardholder')}</Text>
                 <SelectionList
+                    // Reset the list instance when the frozen selection changes on re-entry, so returning via the back
+                    // button remounts the list scrolled to the top with the selected assignee pinned and visible.
+                    key={initialAssigneeEmail ?? ''}
                     data={assignees}
                     onSelectRow={submit}
                     ListItem={UserListItem}
                     textInputOptions={textInputOptions}
-                    initiallyFocusedItemKey={assignCard?.cardToAssign?.email}
+                    initiallyFocusedItemKey={initialAssigneeEmail}
+                    shouldScrollToFocusedIndexOnMount={false}
                     shouldShowLoadingPlaceholder={!areOptionsInitialized}
                     isLoadingNewOptions={canInviteMembers && !!isSearchingForReports}
                     disableMaintainingScrollPosition

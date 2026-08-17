@@ -199,7 +199,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: 'σε',
         genericErrorMessage: 'Ουπς... κάτι πήγε στραβά και το αίτημά σας δεν μπόρεσε να ολοκληρωθεί. Παρακαλούμε δοκιμάστε ξανά αργότερα.',
         percentage: 'Ποσοστό',
-        progressBarLabel: 'Πρόοδος αρχικής ρύθμισης',
         converted: 'Μετατράπηκε',
         off: 'Ανενεργό',
         error: {
@@ -1750,6 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
@@ -1762,6 +1762,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά σας εστάλη αντί για τον αναπληρωτή διακοπών σας <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για τον/την αναπληρωτή/τρια αδείας τους <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος του κανονισμού αυτής της αναφοράς`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή δεν μπορείτε να εγκρίνετε τις δικές σας αναφορές`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Αυτή η αναφορά σας στάλθηκε για έγκριση, επειδή ο εκπρόσωπός σας για άδεια, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του αναφορές`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στη <mention-user>@${originalManager}</mention-user> για έγκριση, καθώς ο/η αναπληρωτής/-τριάς του/της, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             actions: {
                 addApprover: 'Προσθήκη εγκρίνων',
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
@@ -1950,14 +1962,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `τραπεζικό λογαριασμό σε ${requiredDepositCurrency}` : 'τραπεζικό λογαριασμό';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμένουμε από <strong>εσάς</strong> να προσθέσετε έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ο/η <strong>${actor}</strong> έναν ${account}.`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν τραπεζικό λογαριασμό.`;
+                        return `Αναμονή για να προσθέσει ένας διαχειριστής έναν ${account}.`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -3000,7 +3014,7 @@ ${amount} για ${merchant} - ${date}`,
         editAvatar: 'Επεξεργασία avatar',
         defaultAgentName: (displayName: string) => `Εκπρόσωπος του/της ${displayName}`,
         defaultPrompt:
-            'Απορρίπτετε δαπάνες που αφορούν τζόγο, ταινίες ή άλλες προφανώς μη επαγγελματικές αιτίες.\n\nΥπενθυμίζετε στον χρήστη να περιλαμβάνει πάντα μια εικόνα απόδειξης όπου το φιλοδώρημα φαίνεται ξεκάθαρα.\n\nΕγκρίνετε την αναφορά εάν είναι πολύ παρόμοια με προηγούμενες αναφορές από τον ίδιο χρήστη.\n\nΑπορρίπτετε αναφορές με πάνω από $500 σε δαπάνες ταξιδιού.',
+            'Καταχωρίστε όλες τις δαπάνες από καφετέριες ως Γεύματα.\n\nΓια κάθε διαδρομή μεταφοράς μέσω εφαρμογής, ορίστε την περιγραφή σε «Ταξίδι πελάτη».\n\nΕτικετάρετε οτιδήποτε αγοράζω από το κατάστημα ηλεκτρονικών ως Εξοπλισμός.\n\nΣημειώστε οποιαδήποτε δαπάνη δεν έχει απόδειξη, ώστε να μπορώ να προσθέσω μία πριν την αποστολή.',
         copilotNote: 'Αυτός ο πράκτορας θα προστεθεί ως πλήρης βοηθός του λογαριασμού σας, ώστε να μπορεί να ενεργεί εκ μέρους σας.',
     },
     editAgentPage: {
@@ -4742,6 +4756,7 @@ ${amount} για ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Λογαριασμός πληρωτέων ταξιδιών',
             deleteTravelInvoicingError: 'Η εταιρεία σας έχει ακόμα ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
             vendors: 'Προμηθευτές',
+            noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -6105,6 +6120,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             settlementFrequencyDescription: 'Επιλέξτε πόσο συχνά θα εξοφλείτε το υπόλοιπο της Κάρτας Expensify.',
             settlementFrequencyInfo:
                 'Αν θέλετε να μεταβείτε σε μηνιαίο διακανονισμό, θα πρέπει να συνδέσετε τον τραπεζικό σας λογαριασμό μέσω Plaid και να έχετε θετικό ιστορικό υπολοίπου 90 ημερών.',
+            monthlySettlementDate: (date: string) => `Οι Κάρτες Expensify θα εκκαθαρίζονται στις ${date} κάθε μήνα.`,
             applyCashbackToBill: 'Εφαρμογή επιστροφής μετρητών στον λογαριασμό μου στο Expensify',
             applyCashbackToBillDescription: 'Η επιστροφή μετρητών από την Κάρτα Expensify θα χρησιμοποιηθεί για την πληρωμή του λογαριασμού σας στην Expensify.',
             frequency: {
@@ -8886,6 +8902,8 @@ ${reportName}`,
         },
         updatedAttendeeTracking: ({enabled}: {enabled: boolean}) => `παρακολούθηση συμμετεχόντων ${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εγκεκριμένες αναφορές αυτόματης πληρωμής`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ορίστε το όριο για αυτόματη πληρωμή των εγκεκριμένων αναφορών σε «${newLimit}»`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -9266,6 +9284,7 @@ ${reportName}`,
                 banks: 'Τραπεζικοί λογαριασμοί',
                 closedBankAccounts: 'Κλειστοί τραπεζικοί λογαριασμοί',
             },
+            workspace: {active: 'Ενεργός', archived: 'Αρχειοθετημένο', selectAll: 'Επιλογή όλων'},
             reportField: (name: string, value: string) => `${name} είναι ${value}`,
             current: 'Τρέχον',
             past: 'Παρελθόν',
@@ -9695,7 +9714,6 @@ ${reportName}`,
         decline: 'Απόρριψη',
     },
     actionableMentionTrackExpense: {
-        submit: 'Υποβάλετέ το σε κάποιον',
         categorize: 'Κατηγοριοποιήστε το',
         share: 'Κοινοποιήστε το στον λογιστή μου',
         nothing: 'Τίποτα προς το παρόν',

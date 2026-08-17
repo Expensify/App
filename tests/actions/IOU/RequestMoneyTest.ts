@@ -3148,6 +3148,7 @@ describe('actions/IOU', () => {
             return {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
+                conciergeChat: undefined,
                 iouType,
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
