@@ -52,7 +52,7 @@ function UpdateRequiredView() {
                         source={LottieAnimations.Update}
                         // For small screens it looks better to have the arms from the animation come in from the edges of the screen.
                         style={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
-                        webStyle={shouldUseNarrowLayout ? styles.w100 : styles.updateAnimation}
+                        webStyle={shouldUseNarrowLayout ? styles.updateAnimationNarrowWeb : styles.updateAnimation}
                         autoPlay
                         loop
                     />
