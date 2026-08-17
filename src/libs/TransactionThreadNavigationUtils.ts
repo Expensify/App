@@ -129,6 +129,7 @@ function getOrCreateTransactionThreadReportID(
         iouReport,
         iouReportAction,
         transaction,
+        personalDetails: context.personalDetails,
     });
     return transactionThreadReport?.reportID;
 }
