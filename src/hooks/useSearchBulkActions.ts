@@ -1399,13 +1399,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
+                const isItemInvoice = isInvoiceReport(item.reportID);
+                let chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
                 if (!chatReport) {
-                    Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
-                        reportID: item.reportID,
-                        chatReportID: item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID,
-                    });
-                    continue;
+                    // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
+                    // built from the known IDs and let the server fill in the chat data.
+                    // Invoices are the exception — they genuinely need the invoice room data (receiver type, pay-as-business).
+                    const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
+                    if (isItemInvoice || !fallbackChatReportID) {
+                        Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
+                            reportID: item.reportID,
+                            chatReportID: fallbackChatReportID,
+                            isItemInvoice,
+                        });
+                        continue;
+                    }
+                    chatReport = {reportID: fallbackChatReportID, policyID: item.policyID ?? iouReport.policyID};
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
@@ -1436,7 +1445,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const chatReportPolicy = getPolicyFromSearchSnapshot(chatReport.policyID, searchData, policies);
                 const reportPolicy = workspacePayPolicy ?? getPolicyFromSearchSnapshot(item.policyID, searchData, policies);
                 const additionalOnyxData = getSearchPayOnyxData(hash, item.reportID, currentSearchKey);
-                const isItemInvoice = isInvoiceReport(item.reportID);
 
                 if (isItemInvoice) {
                     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;

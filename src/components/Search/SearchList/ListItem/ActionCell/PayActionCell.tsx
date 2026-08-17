@@ -83,13 +83,12 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const {currency} = iouReport ?? {};
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
-        if (!type || !reportID || !hash || !amount || !chatReport) {
+        if (!type || !reportID || !hash || !amount) {
             Log.info('[SearchPay] Dropping row pay: missing required data', false, {
                 hasPaymentType: !!type,
                 reportID,
                 hasHash: !!hash,
                 hasAmount: !!amount,
-                hasChatReport: !!chatReport,
             });
             return;
         }
@@ -102,6 +101,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         const additionalOnyxData = getSearchPayOnyxData(hash, reportID);
 
         if (isInvoiceReport(iouReport)) {
+            // Invoice payments rely on the invoice room data, so they can't proceed without the chat report.
+            if (!chatReport) {
+                Log.info('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID});
+                return;
+            }
             const existingB2BInvoiceReport = getParticipantsInvoiceReport(
                 allReports,
                 reportNameValuePairs,
@@ -143,10 +147,19 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             return;
         }
 
+        // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
+        // built from the known IDs and let the server fill in the chat data.
+        const fallbackChatReport = iouReport?.chatReportID ? {reportID: iouReport.chatReportID, policyID: iouReport.policyID ?? policyID} : undefined;
+        const chatReportForPayment = chatReport ?? fallbackChatReport;
+        if (!chatReportForPayment) {
+            Log.info('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID});
+            return;
+        }
+
         payMoneyRequest({
             getCurrencyDecimals,
             paymentType: type,
-            chatReport,
+            chatReport: chatReportForPayment,
             iouReport,
             introSelected,
             currentUserAccountID,
