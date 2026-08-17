@@ -118,7 +118,7 @@ export default {
     receiptPreviewWidth: 380,
     widgetHeaderTitleLineHeight: 20,
     homePageLeftColumnMaxWidth: 680,
-    homePageRightColumnMaxWidth: 488,
+    centeredContentMaxWidth: 1200,
     minScanTooltipWidth: 320,
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
@@ -327,6 +327,7 @@ export default {
     hoverDimValue: 1,
     pressDimValue: 0.8,
     dimAnimationDuration: 50,
+    instantAnimationDuration: 0,
     qrShareHorizontalPadding: 32,
     menuIconSize: 48,
 

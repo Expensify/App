@@ -20,9 +20,10 @@ import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
-import {cancelSpan, endSpan, endSpanWithAttributes, startSpan} from './telemetry/activeSpans';
+import {cancelSpan, endSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
-import MEASURED_REQUEST_PHASE_COMMANDS, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
+import isMeasuredRequestPhaseCommand, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -69,19 +70,6 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
-function startRequestNetworkPhaseSpan(spanName: string, attempt: number, command: string, contentLength?: string) {
-    startSpan(`${spanName}_${attempt}`, {
-        name: spanName,
-        op: spanName,
-        forceTransaction: true,
-        attributes: {
-            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: command,
-            [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt,
-            [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: contentLength,
-        },
-    });
-}
-
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -114,20 +102,22 @@ function processHTTPRequest<TKey extends OnyxKey>(
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
     // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
-    const isMeasuredRequest = !!command && MEASURED_REQUEST_PHASE_COMMANDS.has(command);
-    const phaseSpanNames = getRequestPhaseSpanNames(command ?? '');
+    const isMeasuredRequest = isMeasuredRequestPhaseCommand(command);
+    const phaseSpanNames = getRequestPhaseSpanNames(command);
     const attempt = isMeasuredRequest ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
-    const waitSpanId = `${phaseSpanNames.WAIT}_${attempt}`;
-    const downloadSpanId = `${phaseSpanNames.DOWNLOAD}_${attempt}`;
+    const waitSpanId = getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt);
+    const downloadSpanId = getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt);
     if (isMeasuredRequest && command) {
-        startRequestNetworkPhaseSpan(phaseSpanNames.WAIT, attempt, command);
+        startRequestPhaseSpan(phaseSpanNames.WAIT, attempt, command);
     }
 
     return fetch(url, fetchParams)
         .then((response) => {
             if (isMeasuredRequest && command) {
                 endSpan(waitSpanId);
-                startRequestNetworkPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, response.headers?.get('content-length') ?? undefined);
+                startRequestPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, {
+                    [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
+                });
             }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));

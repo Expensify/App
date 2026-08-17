@@ -6,16 +6,21 @@ import type {OnyxKey} from 'react-native-onyx';
 
 import type Middleware from './Middleware/types';
 
-import APP_STARTUP_NETWORK_REQUEST from './AppStartupNetworkRequest';
+import {getCurrentFlushPromise} from './actions/QueuedOnyxUpdates';
+import isStartupNetworkRequest from './AppStartupNetworkRequest';
 import HttpUtils from './HttpUtils';
 import Log from './Log';
 import enhanceParameters from './Network/enhanceParameters';
 import {hasReadRequiredDataFromStorage} from './Network/NetworkStore';
-import {cancelSpan, endSpanWithAttributes, startSpan} from './telemetry/activeSpans';
-import MEASURED_REQUEST_PHASE_COMMANDS, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
-import trackRequestPhaseRender from './telemetry/trackRequestPhaseRender';
+import {cancelSpan, endSpanWithAttributes} from './telemetry/activeSpans';
+import isMeasuredRequestPhaseCommand, {getNextRequestPhaseAttempt, getRequestPhaseSpanNames} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
+import trackStartupDataRender from './telemetry/trackStartupDataRender';
 
 let middlewares: Middleware[] = [];
+
+/** Reauthentication retries the same request object from inside the still-pending original call, so only its newest attempt may record the phase. */
+const latestApplyAttemptByRequest = new WeakMap<WeakKey, number>();
 
 function makeXHR<TKey extends OnyxKey>(request: Request<TKey>): Promise<Response<TKey> | void> {
     const finalParameters = enhanceParameters(request.command, request?.data ?? {});
@@ -28,18 +33,19 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     let result = makeXHR(request);
 
     // The splash-based startup spans measure nothing for flows that never show a splash (magic code, copilot, supportal), and nothing at all for Search.
-    const shouldMeasureResponseApply = MEASURED_REQUEST_PHASE_COMMANDS.has(request.command);
-    const {APPLY: applySpanName, RENDER: renderSpanName} = getRequestPhaseSpanNames(request.command);
+    const shouldMeasureResponseApply = isMeasuredRequestPhaseCommand(request.command);
+    const {APPLY: applySpanName} = getRequestPhaseSpanNames(request.command);
     const attempt = shouldMeasureResponseApply ? getNextRequestPhaseAttempt(applySpanName) : 0;
-    const applySpanId = `${applySpanName}_${attempt}`;
+    const applySpanId = getRequestPhaseSpanId(applySpanName, attempt);
     if (shouldMeasureResponseApply) {
+        latestApplyAttemptByRequest.set(request, attempt);
         result = result.then((response) => {
-            startSpan(applySpanId, {
-                name: applySpanName,
-                op: applySpanName,
-                forceTransaction: true,
-                attributes: {[CONST.TELEMETRY.ATTRIBUTE_COMMAND]: request.command, [CONST.TELEMETRY.ATTRIBUTE_ATTEMPT]: attempt},
-            });
+            // The Reauthentication middleware below is about to retry this request, and that attempt measures the apply.
+            if (response?.jsonCode === CONST.JSON_CODE.NOT_AUTHENTICATED) {
+                return response;
+            }
+
+            startRequestPhaseSpan(applySpanName, attempt, request.command);
             return response;
         });
     }
@@ -51,11 +57,22 @@ function processWithMiddleware<TKey extends OnyxKey>(request: Request<TKey>, isF
     if (shouldMeasureResponseApply) {
         result = result.then(
             (response) => {
-                endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
-                // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
-                if (APP_STARTUP_NETWORK_REQUEST.has(request.command)) {
-                    trackRequestPhaseRender(renderSpanName, request.command, attempt, response?.requestID);
+                // The reauthentication retry already measured this request, and this attempt only waited for it.
+                if (latestApplyAttemptByRequest.get(request) !== attempt) {
+                    cancelSpan(applySpanId);
+                    return response;
                 }
+
+                // WRITE responses are staged by queueOnyxUpdates and reach Onyx only once SequentialQueue flushes them
+                // after this promise settles, so the phase has to be closed from the flush rather than awaited here.
+                getCurrentFlushPromise().then(() => {
+                    endSpanWithAttributes(applySpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: response?.requestID});
+                    // Startup only: the probe ends on frame health, which attributes the busy window to this response only while nothing else runs on the thread.
+                    if (!isStartupNetworkRequest(request.command)) {
+                        return;
+                    }
+                    trackStartupDataRender(request.command, attempt);
+                });
                 return response;
             },
             (error: unknown) => {
