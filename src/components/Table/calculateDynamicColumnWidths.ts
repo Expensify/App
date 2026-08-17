@@ -35,7 +35,7 @@ function sum(values: number[]): number {
 /**
  * Rounds widths down to whole px and hands the rounding remainder to the widest column that can still take it without
  * exceeding its maximum, so the columns add up to exactly `availableWidth` and no sub-pixel gap is left at the end of
- * the row. When every column is already at its maximum the remainder is left unclaimed, since a column's maximum
+ * the row. When every column is already at its maximum, the remainder is left unclaimed, since a column's maximum
  * outranks filling the row.
  */
 function roundWidths(widths: number[], availableWidth: number, maxWidths: number[]): number[] {

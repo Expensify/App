@@ -134,14 +134,22 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
             return noDynamicWidths;
         }
 
-        // A column with a percentage or other non-numeric width can't be subtracted from the budget, so the whole table
-        // keeps its static tracks rather than being laid out from a wrong budget.
-        if (columns.some((column) => column.width !== undefined && typeof column.width !== 'number')) {
-            return noDynamicWidths;
-        }
+        const dynamicColumns: Array<TableColumn<ColumnKey, DataType>> = [];
+        let fixedColumnsWidth = 0;
 
-        const fixedColumns = columns.filter((column): column is TableColumn<ColumnKey, DataType> & {width: number} => typeof column.width === 'number');
-        const dynamicColumns = columns.filter((column) => typeof column.width !== 'number');
+        for (const column of columns) {
+            // A column with a percentage or other non-numeric width can't be subtracted from the budget, so the whole
+            // table keeps its static tracks rather than being laid out from a wrong budget.
+            if (column.width !== undefined && typeof column.width !== 'number') {
+                return noDynamicWidths;
+            }
+
+            if (typeof column.width === 'number') {
+                fixedColumnsWidth += column.width;
+            } else {
+                dynamicColumns.push(column);
+            }
+        }
 
         if (dynamicColumns.length === 0) {
             return noDynamicWidths;
@@ -150,7 +158,6 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
         const selectionColumnWidth = hasSelectionColumn ? variables.tableCheckboxColumnWidth : 0;
         const totalColumnCount = columns.length + (hasSelectionColumn ? 1 : 0);
         const totalGapWidth = Math.max(totalColumnCount - 1, 0) * styles.gap3.gap;
-        const fixedColumnsWidth = fixedColumns.reduce((total, column) => total + column.width, 0);
         const rowChromeWidth = (styles.mh5.marginHorizontal + styles.ph3.paddingHorizontal) * 2;
         const availableWidth = tableWidth - rowChromeWidth - totalGapWidth - fixedColumnsWidth - selectionColumnWidth;
 
