@@ -499,6 +499,7 @@ function mergeTransactionRequest({
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
     const isUnreportedSourceTransaction = sourceTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const selfDMReportID = selfDMReport?.reportID;
+    const isSelfDMDestinationWithoutReport = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID && !selfDMReportID;
     const optimisticDestinationReportID = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID ? (selfDMReportID ?? mergeTransaction.reportID) : mergeTransaction.reportID;
 
     const sourceTransactionOptimisticData: Array<
@@ -719,7 +720,7 @@ function mergeTransactionRequest({
         const targetIOUActionOnOriginalReport = getIOUActionForReportID(targetTransaction.reportID, targetTransaction.transactionID);
         const targetTransactionThreadReportID = targetIOUActionOnOriginalReport?.childReportID ?? targetTransactionThreadReport?.reportID;
 
-        if (targetTransactionThreadReportID) {
+        if (targetTransactionThreadReportID && !isSelfDMDestinationWithoutReport) {
             // Reattach the transaction thread to the new IOU action on the destination report.
             newIOUAction.childReportID = targetTransactionThreadReportID;
             optimisticData.push({
@@ -751,29 +752,31 @@ function mergeTransactionRequest({
         const isSelfDMDestination = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const destinationReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`;
 
-        optimisticData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: destinationReportActionsKey,
-            value: {
-                [newIOUAction.reportActionID]: newIOUAction,
-            },
-        });
+        if (!isSelfDMDestinationWithoutReport) {
+            optimisticData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: destinationReportActionsKey,
+                value: {
+                    [newIOUAction.reportActionID]: newIOUAction,
+                },
+            });
 
-        successData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: destinationReportActionsKey,
-            value: {
-                [newIOUAction.reportActionID]: isSelfDMDestination ? null : {pendingAction: null},
-            },
-        });
+            successData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: destinationReportActionsKey,
+                value: {
+                    [newIOUAction.reportActionID]: isSelfDMDestination ? null : {pendingAction: null},
+                },
+            });
 
-        failureData.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: destinationReportActionsKey,
-            value: {
-                [newIOUAction.reportActionID]: null,
-            },
-        });
+            failureData.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: destinationReportActionsKey,
+                value: {
+                    [newIOUAction.reportActionID]: null,
+                },
+            });
+        }
 
         // Remove the surviving expense's IOU action from its original report so it does not
         // appear in both reports during offline/optimistic state.
