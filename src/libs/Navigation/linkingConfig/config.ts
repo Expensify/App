@@ -1362,6 +1362,9 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.WORKSPACE.RULES_MERCHANT_TAX]: {
                             path: ROUTES.RULES_MERCHANT_TAX.route,
                         },
+                        [SCREENS.WORKSPACE.RULES_MERCHANT_VENDOR]: {
+                            path: ROUTES.RULES_MERCHANT_VENDOR.route,
+                        },
                         [SCREENS.WORKSPACE.RULES_MERCHANT_DESCRIPTION]: {
                             path: ROUTES.RULES_MERCHANT_DESCRIPTION.route,
                         },
@@ -1768,16 +1771,24 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path,
                         [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_COMPANY_INFO.path,
                         [SCREENS.MONEY_REQUEST.STEP_AMOUNT]: ROUTES.MONEY_REQUEST_STEP_AMOUNT.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY]: ROUTES.MONEY_REQUEST_STEP_CATEGORY.route,
-                        [SCREENS.MONEY_REQUEST.STEP_CATEGORY_CREATE]: ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.path,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_CATEGORY_CREATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY_CREATE.path,
                         [SCREENS.MONEY_REQUEST.STEP_VENDOR]: ROUTES.MONEY_REQUEST_STEP_VENDOR.route,
                         [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION]: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.route,
                         [SCREENS.MONEY_REQUEST.STEP_DATE]: ROUTES.MONEY_REQUEST_STEP_DATE.route,
                         [SCREENS.MONEY_REQUEST.STEP_DESCRIPTION]: ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.route,
-                        [SCREENS.MONEY_REQUEST.STEP_DISTANCE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE.route,
-                        [SCREENS.MONEY_REQUEST.STEP_DISTANCE_MANUAL]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE]: {
+                            path: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.path,
+                            screens: {
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-map': {path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MAP.route},
+                                // eslint-disable-next-line @typescript-eslint/naming-convention
+                                'distance-manual': {path: ROUTES.DISTANCE_REQUEST_CREATE_TAB_MANUAL.route},
+                            },
+                        },
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.path,
                         [SCREENS.MONEY_REQUEST.STEP_DISTANCE_ODOMETER]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_ODOMETER.route,
-                        [SCREENS.MONEY_REQUEST.STEP_DISTANCE_RATE]: ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.route,
+                        [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_RATE]: DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.path,
                         [SCREENS.MONEY_REQUEST.ODOMETER_IMAGE]: ROUTES.ODOMETER_IMAGE.route,
                         [SCREENS.MONEY_REQUEST.GPS_TRIP_EDIT]: ROUTES.GPS_TRIP_EDIT.route,
                         [SCREENS.MONEY_REQUEST.HOLD]: ROUTES.MONEY_REQUEST_HOLD_REASON.route,

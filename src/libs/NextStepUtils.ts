@@ -86,7 +86,12 @@ function buildNextStepMessage(
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
+    const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
+    const message =
+        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
+            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
+            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    return `<next-step>${message}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {
