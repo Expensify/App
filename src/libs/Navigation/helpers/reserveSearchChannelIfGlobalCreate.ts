@@ -16,12 +16,16 @@ import isReportTopmostSplitNavigator from './isReportTopmostSplitNavigator';
  * so no submit for it is even possible. The remaining risk is a *leaked* reservation poisoning the
  * shared key for later flows, which is handled separately by the unmount/background abandonment
  * wiring in SubmitExpenseOrchestrator, not by scoping.
+ *
+ * Returns whether this call actually created the reservation (see `reserveDeferredWriteChannel`) -
+ * callers that abandon this key later on unmount must check this first, or they risk deleting a
+ * different, still-live caller's reservation instead of their own.
  */
-function reserveSearchChannelIfGlobalCreate(isFromGlobalCreate: boolean, destinationReportID?: string) {
+function reserveSearchChannelIfGlobalCreate(isFromGlobalCreate: boolean, destinationReportID?: string): boolean {
     if (!isFromGlobalCreate || isReportTopmostSplitNavigator()) {
-        return;
+        return false;
     }
-    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
+    return reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
 }
 
 export default reserveSearchChannelIfGlobalCreate;

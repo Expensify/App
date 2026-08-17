@@ -164,6 +164,12 @@ function SubmitExpenseOrchestrator({
     // setIsConfirming(true)/(false) calls, so React batches them - no extra render.
     const [pendingDefaultSubmitRafId, setPendingDefaultSubmitRafId] = useState<number | undefined>(undefined);
 
+    // Whether THIS handleDefaultSubmit call actually created the SEARCH reservation (as opposed to
+    // a no-op because another flow already held it). reserveDeferredWriteChannel is keyed globally,
+    // not per-caller, so abandoning without checking this would delete a different, still-live
+    // caller's reservation if two flows happened to overlap (e.g. during a navigation transition).
+    const [ownsUnregisteredSearchReservation, setOwnsUnregisteredSearchReservation] = useState(false);
+
     useEffect(() => {
         if (!isConfirming) {
             clearTimeout(confirmingSafetyTimeout.current);
@@ -178,13 +184,14 @@ function SubmitExpenseOrchestrator({
 
     useEffect(() => {
         return () => {
-            if (pendingDefaultSubmitRafId === undefined) {
-                return;
+            if (pendingDefaultSubmitRafId !== undefined) {
+                cancelAnimationFrame(pendingDefaultSubmitRafId);
             }
-            cancelAnimationFrame(pendingDefaultSubmitRafId);
-            abandonDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            if (ownsUnregisteredSearchReservation) {
+                abandonDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+            }
         };
-    }, [pendingDefaultSubmitRafId]);
+    }, [pendingDefaultSubmitRafId, ownsUnregisteredSearchReservation]);
 
     // Unified from both prop (isFromGlobalCreate) and transaction flags because
     // the transaction flags are the source of truth — the prop is derived from
@@ -387,9 +394,11 @@ function SubmitExpenseOrchestrator({
 
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation, destinationReportID);
+        const didReserveSearch = reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation, destinationReportID);
+        setOwnsUnregisteredSearchReservation(didReserveSearch);
         const rafId = requestAnimationFrame(() => {
             setPendingDefaultSubmitRafId(undefined);
+            setOwnsUnregisteredSearchReservation(false);
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {
                 setIsConfirming(false);

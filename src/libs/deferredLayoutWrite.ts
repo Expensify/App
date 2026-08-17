@@ -227,20 +227,28 @@ function abandonDeferredWrite(key: string) {
  * Pass `destinationReportID` to pair the reservation with the report the
  * deferred write will land in, so consumers can scope their "is a write in
  * flight for THIS report?" check via `isLayoutPendingForReport` / `isWritePendingForReport`.
+ *
+ * Returns whether this call actually created (or re-armed) the reservation, as opposed to
+ * no-opping because one already existed. Callers that plan to `abandonDeferredWrite` this key
+ * later (e.g. on unmount) MUST check this first - `abandonDeferredWrite` operates on the key, not
+ * on a per-caller handle, so abandoning after a no-op reservation would delete a DIFFERENT
+ * caller's still-live reservation instead of your own.
  */
-function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}) {
+function reserveDeferredWriteChannel(key: string, options: {destinationReportID?: string} = {}): boolean {
     const existing = writes.get(key);
 
     if (existing) {
         if (existing.state === 'registered') {
             // A real write is already pending on this key; do not clobber it with a reservation.
-            return;
+            return false;
         }
 
         if (existing.isLayoutStale) {
             // The previous reservation's safety timeout already fired with nothing registered.
             // Re-arm rather than no-op: a second flow reserving the same key after that point
-            // still deserves layout-pending visibility and its own fresh safety window.
+            // still deserves layout-pending visibility and its own fresh safety window. Still not
+            // "ours" for abandonment purposes though - it keeps the original destinationReportID,
+            // not this caller's, so this caller must not treat it as its own to abandon later.
             existing.isLayoutStale = false;
             clearTimeout(existing.safetyTimeoutId);
             existing.safetyTimeoutId = setTimeout(() => {
@@ -251,7 +259,7 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
                 }
             }, DEFAULT_SAFETY_TIMEOUT_MS);
         }
-        return;
+        return false;
     }
 
     flushedWatchKeys.delete(key);
@@ -277,6 +285,7 @@ function reserveDeferredWriteChannel(key: string, options: {destinationReportID?
         safetyTimeoutId,
         registration: {promise: registrationPromise, resolve: resolveRegistration},
     });
+    return true;
 }
 
 /**
