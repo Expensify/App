@@ -22,7 +22,7 @@ const REPORT_ID = '1';
 function getStoredStatus(): Promise<ReportCancelReimbursementStatus | undefined> {
     return new Promise((resolve) => {
         const connection = Onyx.connect({
-            key: `${ONYXKEYS.COLLECTION.REPORT_CANCEL_REIMBURSEMENT_STATUS}${REPORT_ID}`,
+            key: `${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${REPORT_ID}`,
             callback: (value) => {
                 Onyx.disconnect(connection);
                 resolve(value ?? undefined);

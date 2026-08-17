@@ -20,7 +20,7 @@ import useOnyx from './useOnyx';
 export default function useReportCancelReimbursementStatus(report: OnyxEntry<Report>): OnyxEntry<ReportCancelReimbursementStatus> {
     const reportID = report?.reportID;
     const isReimbursedExpenseReport = isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const [reportCancelReimbursementStatus] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_CANCEL_REIMBURSEMENT_STATUS}${getNonEmptyStringOnyxID(reportID)}`);
+    const [reportCancelReimbursementStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${getNonEmptyStringOnyxID(reportID)}`);
 
     useEffect(() => {
         if (!reportID || !isReimbursedExpenseReport) {

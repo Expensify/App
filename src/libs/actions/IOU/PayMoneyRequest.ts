@@ -723,7 +723,7 @@ function getReportCancelReimbursementStatus(reportID: string | undefined) {
         if (!status) {
             return;
         }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_CANCEL_REIMBURSEMENT_STATUS}${reportID}`, {
+        Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${reportID}`, {
             canCancel: !!status.canCancel,
             isWaitingForCreditToPost: !!status.isWaitingForCreditToPost,
         });

@@ -53,7 +53,7 @@ describe('useReportCancelReimbursementStatus', () => {
     });
 
     it('fetches and returns the status for a reimbursed expense report', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_CANCEL_REIMBURSEMENT_STATUS}${REPORT_ID}`, {canCancel: false, isWaitingForCreditToPost: false});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${REPORT_ID}`, {canCancel: false, isWaitingForCreditToPost: false});
         await waitForBatchedUpdates();
 
         const {result} = renderHook(() => useReportCancelReimbursementStatus(reimbursedReport), {wrapper});
