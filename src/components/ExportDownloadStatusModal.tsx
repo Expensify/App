@@ -7,6 +7,7 @@ import usePreviousDefined from '@hooks/usePreviousDefined';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {isClientTheLeader} from '@libs/ActiveClientManager';
 import addEncryptedAuthTokenToURL from '@libs/addEncryptedAuthTokenToURL';
 import {isMobileSafari} from '@libs/Browser';
 import {getOldDotURLFromEnvironment} from '@libs/Environment/Environment';
@@ -85,7 +86,8 @@ function ExportDownloadStatusModal({exportID, isVisible, onClose, failedBody}: E
     };
 
     useEffect(() => {
-        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts) {
+        // Only the leader tab auto-downloads, so a ready export isn't downloaded once per open tab.
+        if (!isReady || !fileName || shouldSendFromConcierge || isEmptyReceipts || !isClientTheLeader()) {
             return;
         }
         downloadFile();

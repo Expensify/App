@@ -54,6 +54,12 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
     __esModule: true,
     default: () => ({accountID: 123, login: 'test@example.com'}),
 }));
+const mockIsClientTheLeader = jest.fn(() => true);
+jest.mock('@libs/ActiveClientManager', () => ({
+    init: jest.fn(),
+    isReady: jest.fn(() => Promise.resolve()),
+    isClientTheLeader: () => mockIsClientTheLeader(),
+}));
 
 const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
 const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
@@ -82,6 +88,7 @@ describe('ExportDownloadStatusModal', () => {
 
     beforeEach(async () => {
         jest.clearAllMocks();
+        mockIsClientTheLeader.mockReturnValue(true);
         await Onyx.clear();
     });
 
@@ -172,6 +179,21 @@ describe('ExportDownloadStatusModal', () => {
             undefined,
             false,
         );
+    });
+
+    it('does not auto-download on a non-leader tab, but the manual Download button still works', async () => {
+        mockIsClientTheLeader.mockReturnValue(false);
+        await Onyx.set(`${ONYXKEYS.COLLECTION.EXPORT_DOWNLOAD}${EXPORT_ID}`, {state: 'ready', fileName: CSV_FILE_NAME});
+
+        renderModal();
+        await waitForBatchedUpdatesWithAct();
+
+        // Only the leader tab auto-downloads, so a non-leader tab must not trigger a duplicate download.
+        expect(mockFileDownload).not.toHaveBeenCalled();
+
+        // The manual Download button is not leader-gated, so a deliberate click still downloads.
+        fireEvent.press(screen.getByText('exportDownload.downloadFile'));
+        expect(mockFileDownload).toHaveBeenCalled();
     });
 
     it('shows ready state with a Download button and no Close button', async () => {
