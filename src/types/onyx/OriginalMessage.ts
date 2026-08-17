@@ -1660,6 +1660,20 @@ type OriginalMessageReassignApprover = {
 };
 
 /**
+ * Model of Delegate Submit action original message (posted when a report is auto-forwarded to a vacation delegate)
+ */
+type OriginalMessageDelegateSubmit = {
+    /** Email of the manager the report would normally have been sent to */
+    originalManager: string;
+
+    /** Email of the vacation delegate the report was sent to (or would have been sent to) */
+    delegate: string;
+
+    /** Whether the delegate is a member of the report's policy. Defaults to true when absent. */
+    isOnPolicy?: boolean;
+};
+
+/**
  * Minimal transaction data needed to render the MFA authorize transaction preview.
  */
 type OriginalMessageActionableCard3DSTransactionApproval = TransactionPending3DSReview;
@@ -1825,6 +1839,7 @@ type OriginalMessageMap = {
     [CONST.REPORT.ACTIONS.TYPE.RECEIPT_SCAN_FAILED]: OriginalMessageSmartScanFailed;
     [CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER]: OriginalMessageReassignApprover;
     [CONST.REPORT.ACTIONS.TYPE.REROUTE]: OriginalMessageTakeControl;
+    [CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT]: OriginalMessageDelegateSubmit;
     [CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DIRECTOR_INFORMATION_REQUIRED]: OriginalMessageReimbursementDirectorInformationRequired;
     [CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED]: OriginalMessageSettlementAccountLocked;
 } & Omit<OldDotOriginalMessageMap, typeof CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL> &

@@ -197,7 +197,6 @@ const translations: TranslationDeepObject<typeof en> = {
         conjunctionTo: '宛先',
         genericErrorMessage: 'おっと…問題が発生したため、リクエストを完了できませんでした。時間をおいてもう一度お試しください。',
         percentage: 'パーセンテージ',
-        progressBarLabel: 'オンボーディング進捗',
         converted: '変換済み',
         error: {
             invalidAmount: '金額が無効です',
@@ -1151,6 +1150,7 @@ const translations: TranslationDeepObject<typeof en> = {
         importSpreadsheetLibraryError: 'スプレッドシートモジュールの読み込みに失敗しました。インターネット接続を確認して、もう一度お試しください。',
         importSpreadsheet: 'スプレッドシートをインポート',
         importWorkflows: 'ワークフローをインポート',
+        downloadWorkflows: 'ワークフローをダウンロード',
         downloadCSV: 'CSV をダウンロード',
         importMemberConfirmation: () => ({
             one: `このアップロードの一部として追加される新しいワークスペースメンバーの詳細を、以下で確認してください。既存のメンバーにはロールの更新や招待メッセージは送信されません。`,
@@ -1676,6 +1676,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'レポートを拒否できませんでした。もう一度お試しください。',
         },
         moveExpenses: 'レポートに移動',
+        moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
             sendExpense: '経費を誰にでも送信できます',
@@ -1698,6 +1699,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: '残りの承認ワークフローに回す前に、これらのレポートの追加承認者を選択してください。',
             },
             bulkSubtitle: 'これらのレポートの承認者を変更する方法を選択してください。',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `このレポートは、あなた（休暇代理人）ではなく、あなたが所属していないこのレポートのポリシーのメンバーであるため、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> がこのレポートのポリシーのメンバーではないため、代わりにあなたに送信されました`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `このレポートは、このレポートのポリシーのメンバーではないため、休暇代理人の <mention-user>@${delegate}</mention-user> ではなく、<mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `このレポートは、ご自身のレポートをご自身で承認することはできないため、承認のために <mention-user>@${originalManager}</mention-user> に送信されました`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `このレポートは、休暇代理人の <mention-user>@${delegate}</mention-user> さんが自分のレポートを承認できないため、承認のためにあなたに送信されました`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `このレポートは、休暇代理人である <mention-user>@${delegate}</mention-user> は自分のレポートを承認できないため、承認のために <mention-user>@${originalManager}</mention-user> に送信されました`,
         },
         chooseWorkspace: 'ワークスペースを選択',
         routedDueToDEW: (to: string, reason?: string) => `レポートは ${to}${reason ? ` ${reason} のため` : ''} に回覧されました`,
@@ -1877,14 +1890,16 @@ const translations: TranslationDeepObject<typeof en> = {
                 actorType: ValueOf<typeof CONST.NEXT_STEP.ACTOR_TYPE>,
                 _eta?: string,
                 _etaType?: ValueOf<typeof CONST.NEXT_STEP.ETA_TYPE>,
+                requiredDepositCurrency?: string,
             ) => {
+                const account = requiredDepositCurrency ? `${requiredDepositCurrency} 銀行口座` : '銀行口座';
                 switch (actorType) {
                     case CONST.NEXT_STEP.ACTOR_TYPE.CURRENT_USER:
-                        return `銀行口座の追加を<strong>お待ちしています</strong>。`;
+                        return `${account}の追加を<strong>お待ちしています</strong>。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.OTHER_USER:
-                        return `<strong>${actor}</strong> が銀行口座を追加するのを待っています。`;
+                        return `<strong>${actor}</strong> が${account}を追加するのを待っています。`;
                     case CONST.NEXT_STEP.ACTOR_TYPE.UNSPECIFIED_ADMIN:
-                        return `管理者が銀行口座を追加するのを待っています。`;
+                        return `管理者が${account}を追加するのを待っています。`;
                 }
             },
             [CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT]: (
@@ -2119,6 +2134,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
         toGetLatestChanges: 'モバイルでは最新バージョンをダウンロードしてインストールしてください。ウェブではブラウザを再読み込みしてください。',
         newAppNotAvailable: '今すぐアップデートすると、きっと後で感謝していただけます。',
+        updateAvailable: 'アップデートがあります',
+        pleaseRefresh: '最新バージョンの Expensify を利用するには、このページを再読み込みしてください。',
+        refreshPage: 'ページを更新',
     },
     initialSettingsPage: {
         about: '概要',
@@ -2559,6 +2577,7 @@ const translations: TranslationDeepObject<typeof en> = {
             fixConnection: 'この接続を修正してください',
             fixConnectionIn: (companyCardsRoute: string) => `この接続を<a href="${companyCardsRoute}">会社カード</a>で修正してください`,
             askAdminToFixConnection: '管理者にこの接続の修正を依頼してください',
+            reconnectBank: '銀行連携の再認証が必要です',
         },
         bankAccountStatus: {
             active: 'アクティブ',
@@ -2920,7 +2939,7 @@ ${date} の ${merchant} への ${amount}`,
         editAvatar: 'アバターを切り替え',
         defaultAgentName: (displayName: string) => `${displayName} さんの代理人`,
         defaultPrompt:
-            'ギャンブル、映画、またはその他明らかにビジネス目的ではない理由による経費は却下します。\n\nチップの金額が明確にわかるレシート画像を必ず添付するよう、ユーザーにリマインドします。\n\n同じユーザーの過去のレポートと非常によく似ている場合は、そのレポートを承認します。\n\n出張費が500ドルを超えるレポートは却下します。',
+            'コーヒーショップでのすべての経費を「食事」に分類します。\n\nすべてのライドシェアの移動について、説明を「顧客訪問」に設定します。\n\n家電量販店での購入はすべて「備品」としてタグ付けします。\n\n領収書がない経費にはフラグを付けて、提出前に追加できるようにします。',
         copilotNote: 'このエージェントは、アカウントへのフルアクセス権を持つCopilotとして追加され、あなたの代わりに操作できるようになります。',
     },
     editAgentPage: {
@@ -4594,6 +4613,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
+            noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -5801,6 +5821,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
+            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -5883,6 +5904,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',
+            monthlySettlementDate: (date: string) => `Expensify カードの精算は毎月${date}に行われます。`,
             applyCashbackToBill: 'キャッシュバックを Expensify 請求書に適用する',
             applyCashbackToBillDescription: 'Expensify カードのキャッシュバックは、Expensify 請求書の支払いに使用されます。',
             frequency: {
@@ -5943,6 +5965,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
             emptyCategories: {
@@ -6138,7 +6161,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
                 cardFeedAllowDeletingTransaction: '取引の削除を許可',
                 removeCardFeed: 'カードフィードを削除',
                 removeCardFeedTitle: (feedName: string) => `${feedName}フィードを削除`,
-                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除されます。',
+                removeCardFeedDescription: 'このカードフィードを削除してもよろしいですか？すべてのカードの割り当てが解除され、未提出の取引が削除されます。',
                 error: {
                     feedNameRequired: 'カードフィード名は必須です',
                     statementCloseDateRequired: '明細書の締め日を選択してください。',
@@ -6604,6 +6627,8 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
                 chooseLimitType: '上限の種類を選択',
                 smartLimit: 'スマート制限',
                 smartLimitDescription: '承認が必要になる前に、一定額まで支出できる',
+                smartLimitDisabledDescription: (workspaceWorkflowsLink: string) =>
+                    `<muted-text-label>承認が必要になる前に、一定額まで支出できます。このオプションを選択するには<a href="${workspaceWorkflowsLink}">承認を有効化</a>してください。</muted-text-label>`,
                 monthly: '毎月',
                 monthlyDescription: '毎月、一定額まで利用する',
                 fixedAmount: '固定額',
@@ -7571,6 +7596,8 @@ ${reportName}`,
                 expenseDefaultsSubtitle: '申請者が何も操作しなくてもフィールドを更新する',
                 ifAnyExpenseMatches: 'いずれかの経費が次の条件に一致する場合：',
                 thenApplyFollowingDefaults: '次に、以下のデフォルトを適用します。',
+                vendorUnavailable: 'ベンダーを利用できません',
+                supplierUnavailable: 'サプライヤーを利用できません',
             },
             categoryRules: {
                 title: 'カテゴリルール',
@@ -8688,6 +8715,8 @@ ${reportName}`,
             invoices: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から請求書の設定をコピーしました`,
             travel: (sourcePolicyName: string, sourcePolicyURL: string) => `<a href="${sourcePolicyURL}">${sourcePolicyName}</a> から出張設定をコピーしました`,
         },
+        updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
+        updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
@@ -8894,6 +8923,7 @@ ${reportName}`,
                 travelInvoicing: '出張費の一括請求',
             },
             bankAccount: {banks: '銀行口座', closedBankAccounts: '解約済み銀行口座'},
+            workspace: {active: 'アクティブ', archived: 'アーカイブ済み', selectAll: 'すべて選択'},
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
             past: '過去',
@@ -8997,7 +9027,7 @@ ${reportName}`,
             description: 'おっと、アイテムがたくさんありますね！まとめて整理して、間もなくConciergeからファイルをお送りします。',
         },
         exportedTo: 'エクスポート先',
-        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', allMatchingItemsSelected: '一致する項目をすべて選択済み', selectAllOnThisPage: 'このページのすべてを選択'},
+        exportAll: {selectAllMatchingItems: '一致する項目をすべて選択', selectAllOnThisPage: 'このページのすべてを選択'},
         errors: {
             pleaseSelectDatesForBothFromAndTo: '開始日と終了日の両方を選択してください',
         },
@@ -9317,7 +9347,6 @@ ${reportName}`,
         decline: '却下',
     },
     actionableMentionTrackExpense: {
-        submit: '誰かに送信する',
         submitToFriend: '友達に送信する',
         submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',
@@ -9401,7 +9430,16 @@ ${reportName}`,
         },
         commuterExclusion: {
             original: ({formattedDistance}: {formattedDistance: string}) => `元の距離: ${formattedDistance}`,
-            removedCommuterDistance: ({distance, unit}: {distance: string; unit: string}) => `${distance} の通勤${unit}を削除しました`,
+            removedCommuterDistance: {
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES]: ({distance}: {distance: string}) => ({
+                    one: `${distance}マイルの通勤距離を削除しました`,
+                    other: `${distance}マイルの通勤距離を削除しました`,
+                }),
+                [CONST.CUSTOM_UNITS.DISTANCE_UNIT_KILOMETERS]: ({distance}: {distance: string}) => ({
+                    one: `${distance}キロメートルの通勤距離を削除しました`,
+                    other: `${distance}キロメートルの通勤距離を削除しました`,
+                }),
+            },
             systemMessage: ({distance, unit, workspaceDistanceSettingsLink}: {distance: string; unit: string; workspaceDistanceSettingsLink: string}) =>
                 `${workspaceDistanceSettingsLink ? `<a href="${workspaceDistanceSettingsLink}">ワークスペースの距離設定</a>` : 'ワークスペース距離設定'} に基づき、通勤距離 ${distance} ${unit} を削除しました。`,
         },
@@ -10276,6 +10314,7 @@ ${reportName}`,
         basicExport: '基本エクスポート',
         reportLevelExport: 'すべてのデータ - レポートレベル',
         expenseLevelExport: 'すべてのデータ - 経費レベル',
+        multipleTaxExport: 'カナダの複数税エクスポート',
         exportInProgress: 'エクスポート処理中',
         conciergeWillSend: 'Conciergeがまもなくファイルを送信します。',
         currentView: '現在のビュー',

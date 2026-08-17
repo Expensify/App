@@ -596,6 +596,29 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual('type:expense total>1 total<1000');
         });
 
+        test('conversion amount filter values', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1',
+                amountDebitedLessThan: '1000',
+                amountReimbursedEqualTo: '500',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense-report amountDebited>1 amountDebited<1000 amountReimbursed:500');
+        });
+
+        test('conversion amount filters are dropped on an expense search, since a payment pays a whole report', () => {
+            const filterValues: Partial<SearchAdvancedFiltersForm> = {
+                type: 'expense',
+                amountDebitedEqualTo: '1694',
+                amountReimbursedGreaterThan: '1000',
+            };
+            const result = buildQueryStringFromFilterFormValues(filterValues);
+
+            expect(result).toEqual('type:expense');
+        });
+
         test('equal to filter values', () => {
             const filterValues: Partial<SearchAdvancedFiltersForm> = {
                 type: 'expense',
@@ -991,9 +1014,9 @@ describe('SearchQueryUtils', () => {
 
             const queryJSON = buildSearchQueryJSON(canonicalQueryString, queryString);
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createMock<OnyxTypes.Policy>({
                     name: 'Team Space',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             if (!queryJSON) {
@@ -1187,6 +1210,22 @@ describe('SearchQueryUtils', () => {
             expect(result).toEqual({
                 type: 'expense',
                 action: undefined,
+            });
+        });
+
+        test('conversion amount filters parse from either spelling of the key', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense-report amount-debited>1000 amountReimbursed<2000');
+
+            if (!queryJSON) {
+                throw new Error('Failed to parse query string');
+            }
+
+            const result = buildFilterFormValuesFromQuery(queryJSON, {}, {}, {}, {}, {}, {}, {});
+
+            expect(result).toMatchObject({
+                type: 'expense-report',
+                amountDebitedGreaterThan: '1000',
+                amountReimbursedLessThan: '2000',
             });
         });
 
@@ -1567,7 +1606,7 @@ describe('SearchQueryUtils', () => {
             const queryJSON = buildSearchQueryJSON(queryString);
 
             const policyCategories = {};
-            const policyTags = {
+            const policyTags = createMock<OnyxCollection<OnyxTypes.PolicyTagLists>>({
                 [`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`]: {
                     Department: {
                         name: 'Department',
@@ -1578,7 +1617,7 @@ describe('SearchQueryUtils', () => {
                         },
                     },
                 },
-            } as unknown as OnyxCollection<OnyxTypes.PolicyTagLists>;
+            });
             const currencyList = {};
             const personalDetails = {};
             const cardList = {};
@@ -1601,7 +1640,7 @@ describe('SearchQueryUtils', () => {
 
             const policyCategories = {};
             const policyTags = {};
-            const currencyList = {USD: {}, EUR: {}, GBP: {}} as unknown as OnyxTypes.CurrencyList;
+            const currencyList = createMock<OnyxTypes.CurrencyList>({USD: {}, EUR: {}, GBP: {}});
             const personalDetails = {};
             const cardList = {};
             const reports = {};
@@ -2807,11 +2846,46 @@ describe('SearchQueryUtils', () => {
             expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
         });
 
+        it('should display the label the backend records for the Canadian multiple tax export template', () => {
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+        });
+
+        it('should return a custom export template name as-is', () => {
+            const customTemplateName = 'Custom Export Layout';
+            const result = getFilterDisplayValue({
+                filterName: CONST.SEARCH.SYNTAX_FILTER_KEYS.EXPORTED_TO,
+                filterValue: customTemplateName,
+                personalDetails: {},
+                reports: {},
+                cardList: mockCardList,
+                cardFeeds: mockCardFeeds,
+                policies: mockPolicies,
+                currentUserAccountID,
+                translate: translateLocal,
+                formatPhoneNumber,
+            });
+
+            expect(result).toBe(customTemplateName);
+        });
+
         it('should handle policyID filter by looking up policy name', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
-                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: {
+                [`${ONYXKEYS.COLLECTION.POLICY}abc123`]: createMock<OnyxTypes.Policy>({
                     name: 'My Workspace',
-                } as OnyxTypes.Policy,
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -2849,13 +2923,13 @@ describe('SearchQueryUtils', () => {
 
         it('should format bankAccount filter as "<bank> xx<last4>" using bankAccountList', () => {
             const bankAccountList: OnyxTypes.BankAccountList = {
-                42: {
+                42: createMock<OnyxTypes.BankAccountList[string]>({
                     accountData: {
                         bankAccountID: 42,
                         accountNumber: '123456789012',
                         additionalData: {bankName: CONST.BANK_NAMES.CHASE},
                     },
-                } as OnyxTypes.BankAccountList[string],
+                }),
             };
 
             const result = getFilterDisplayValue({
@@ -3071,11 +3145,11 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a regular Expensify Card feed filter to its label', () => {
             const cardList: OnyxTypes.CardList = {
-                '111': {
+                '111': createMock<OnyxTypes.Card>({
                     cardID: 111,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}`}];
@@ -3100,12 +3174,12 @@ describe('SearchQueryUtils', () => {
 
         it('should resolve a Travel Invoicing feed filter (3-segment key) to the translated label', () => {
             const cardList: OnyxTypes.CardList = {
-                '222': {
+                '222': createMock<OnyxTypes.Card>({
                     cardID: 222,
                     bank: CONST.EXPENSIFY_CARD.BANK,
                     fundID: '12345',
                     nameValuePairs: {feedCountry: CONST.TRAVEL.PROGRAM_TRAVEL_US},
-                } as OnyxTypes.Card,
+                }),
             };
 
             const queryFilter = [{operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, value: `12345_${CONST.EXPENSIFY_CARD.BANK}_${CONST.TRAVEL.PROGRAM_TRAVEL_US}`}];

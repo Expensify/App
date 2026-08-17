@@ -344,6 +344,9 @@ const expenseReportColumnNamesToSortingProperty: ExpenseReportSorting = {
     [CONST.SEARCH.TABLE_COLUMNS.FROM]: 'formattedFrom' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TO]: 'formattedTo' as const,
     [CONST.SEARCH.TABLE_COLUMNS.TOTAL]: 'total' as const,
+    // Sorted as stored, so amounts in different currencies are ranked without conversion.
+    [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED]: 'debitedAmount' as const,
+    [CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED]: 'creditedAmount' as const,
     [CONST.SEARCH.TABLE_COLUMNS.ACTION]: 'action' as const,
 };
 
@@ -1270,7 +1273,7 @@ function getTransactionItemCommonFormattedProperties(
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     report: OnyxTypes.Report | undefined,
     translate: LocalizedTranslate,
-): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'submitted' | 'approved' | 'posted'> {
+): Pick<TransactionListItemType, 'formattedFrom' | 'formattedTo' | 'formattedTotal' | 'formattedMerchant' | 'date' | 'posted'> {
     const isExpenseReport = report?.type === CONST.REPORT.TYPE.EXPENSE;
 
     const formattedFrom = temporaryGetDisplayNameOrDefault({passedPersonalDetails: from, translate, formatPhoneNumber});
@@ -1287,8 +1290,6 @@ function getTransactionItemCommonFormattedProperties(
     const date = transactionItem?.modifiedCreated ? transactionItem.modifiedCreated : transactionItem?.created;
     const merchant = getTransactionMerchant(transactionItem);
     const formattedMerchant = isInvalidMerchantValue(merchant) ? '' : merchant;
-    const submitted = report?.submitted;
-    const approved = report?.approved;
 
     const posted = getFormattedPostedDate(transactionItem?.posted);
 
@@ -1296,8 +1297,6 @@ function getTransactionItemCommonFormattedProperties(
         formattedFrom,
         formattedTo,
         date,
-        submitted,
-        approved,
         posted,
         formattedTotal,
         formattedMerchant,
@@ -2200,6 +2199,18 @@ function canOptimisticExpenseMatchStatusFilter(currentQueryJSON: SearchQueryJSON
 
 /**
  * @private
+ * Returns the report's actions from the live filtered collection when available, falling back to the snapshot's.
+ */
+function getLiveOrSnapshotReportActions(
+    reportActions: Record<string, OnyxTypes.ReportAction[]>,
+    data: OnyxTypes.SearchResults['data'],
+    reportID: string | undefined,
+): OnyxTypes.ReportAction[] {
+    return reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`] ?? {});
+}
+
+/**
+ * @private
  * Organizes data into List Sections for display, for the TransactionListItemType of Search Results.
  *
  * Do not use directly, use only via `getSections()` facade.
@@ -2283,7 +2294,7 @@ function getTransactionsSections({
             const to = getToFieldValueForTransaction(transactionItem, report, data.personalDetailsList, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
 
-            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, submitted, approved, posted} = getTransactionItemCommonFormattedProperties(
+            const {formattedFrom, formattedTo, formattedTotal, formattedMerchant, date, posted} = getTransactionItemCommonFormattedProperties(
                 transactionItem,
                 from,
                 to,
@@ -2292,9 +2303,9 @@ function getTransactionsSections({
                 report,
                 translate,
             );
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ??
-                Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
+            const submitted = report ? getSubmittedDate(report, actions) : undefined;
+            const approved = report ? getApprovedDate(report, actions) : undefined;
             const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${transactionItem.reportID}`] ?? {};
             const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions);
             const transactionPendingAction = getTransactionPendingAction(transactionItem);
@@ -2962,6 +2973,71 @@ function getReportActionsSections(
 }
 
 /**
+ * Scans `actions` for the earliest/latest action of the given types, seeded with an optional starting candidate.
+ * Live actions can hold an action the snapshot lacks: snapshot merges only keep fields already present in the
+ * snapshot shape, so a new optimistic action (e.g. approving a report offline) never reaches it.
+ */
+function findActionByCreated(
+    actions: OnyxTypes.ReportAction[],
+    actionNames: Array<OnyxTypes.ReportAction['actionName']>,
+    sortBy: 'earliest' | 'latest',
+    seed?: OnyxTypes.ReportAction,
+): OnyxTypes.ReportAction | undefined {
+    let result = seed;
+    for (const action of actions) {
+        if (!actionNames.includes(action.actionName)) {
+            continue;
+        }
+        const comparison = result ? new Date(action.created).getTime() - new Date(result.created).getTime() : 0;
+        if (!result || (sortBy === 'earliest' ? comparison < 0 : comparison > 0)) {
+            result = action;
+        }
+    }
+    return result;
+}
+
+/**
+ * Returns the earliest APPROVED/FORWARDED action between the snapshot-derived one and the given report actions,
+ * ignoring approvals that precede the latest unapprove/retract/reopen — those belong to a reversed approval cycle.
+ */
+function getFirstApprovedAction(snapshotApprovedAction: OnyxTypes.ReportAction | undefined, actions: OnyxTypes.ReportAction[]): OnyxTypes.ReportAction | undefined {
+    const latestReversal = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.UNAPPROVED, CONST.REPORT.ACTIONS.TYPE.RETRACTED, CONST.REPORT.ACTIONS.TYPE.REOPENED], 'latest');
+    const seed = snapshotApprovedAction && (!latestReversal || snapshotApprovedAction.created > latestReversal.created) ? snapshotApprovedAction : undefined;
+    const candidates = latestReversal ? actions.filter((action) => action.created > latestReversal.created) : actions;
+    return findActionByCreated(candidates, [CONST.REPORT.ACTIONS.TYPE.APPROVED, CONST.REPORT.ACTIONS.TYPE.FORWARDED], 'earliest', seed);
+}
+
+/**
+ * Returns the report's approved date or the latest APPROVED action's created time, whichever is newer — an offline
+ * re-approve leaves a stale `approved` on the report. A report back to Draft/Outstanding is not approved anymore
+ * even when its `approved` date is still set, so those statuses return blank.
+ */
+function getApprovedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN || reportItem.statusNum === CONST.REPORT.STATUS_NUM.SUBMITTED) {
+        return '';
+    }
+    const reportApproved = reportItem.approved ?? '';
+    // Only a fully approved report can take a date from its actions, so an intermediate approval in a multi-level
+    // workflow (report still Processing) doesn't get a premature date.
+    const actionApproved = reportItem.statusNum === CONST.REPORT.STATUS_NUM.APPROVED ? (findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.APPROVED], 'latest')?.created ?? '') : '';
+    return reportApproved >= actionApproved ? reportApproved : actionApproved;
+}
+
+/**
+ * Returns the report's submitted date or the latest SUBMITTED action's created time, whichever is newer — an
+ * offline retract + resubmit leaves a stale `submitted` on the report. The OPEN check comes before trusting
+ * `reportItem.submitted` because the backend can stamp `submitted` on never-submitted reports.
+ */
+function getSubmittedDate(reportItem: OnyxTypes.Report, actions: OnyxTypes.ReportAction[]): string {
+    if (reportItem.statusNum === CONST.REPORT.STATUS_NUM.OPEN) {
+        return '';
+    }
+    const reportSubmitted = reportItem.submitted ?? '';
+    const actionSubmitted = findActionByCreated(actions, [CONST.REPORT.ACTIONS.TYPE.SUBMITTED], 'latest')?.created ?? '';
+    return reportSubmitted >= actionSubmitted ? reportSubmitted : actionSubmitted;
+}
+
+/**
  * Merges the global personal details list with the search snapshot's one (snapshot entries win).
  * Memoized by input references: both lists are referentially stable across the getSections recomputes
  * of a single user action (e.g. PAY), so the expensive spread of two large objects runs once per
@@ -3030,8 +3106,7 @@ function getReportSections({
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${reportItem.reportID}`;
             const transactions = reportIDToTransactions[reportKey]?.transactions ?? [];
             const isIOUReport = reportItem.type === CONST.REPORT.TYPE.IOU;
-            const actions =
-                reportActions[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, reportItem.reportID);
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
             const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
@@ -3054,7 +3129,7 @@ function getReportSections({
                 const toDetails = !shouldShowBlankTo && reportItem.managerID ? mergedPersonalDetails?.[reportItem.managerID] : emptyPersonalDetails;
 
                 // First approver/approved come from the earliest APPROVED/FORWARDED report action; blank when the report has no approval.
-                const firstApprovedAction = firstApprovedActionByReportID.get(reportItem.reportID);
+                const firstApprovedAction = getFirstApprovedAction(firstApprovedActionByReportID.get(reportItem.reportID), actions);
                 const firstApproverAccountID = firstApprovedAction?.actorAccountID;
                 const firstApproverDetails = firstApproverAccountID ? mergedPersonalDetails?.[firstApproverAccountID] : undefined;
                 const firstApproved = firstApprovedAction?.created ?? '';
@@ -3102,6 +3177,8 @@ function getReportSections({
                     from: (fromDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     to: (toDetails ?? emptyPersonalDetails) as OnyxTypes.PersonalDetails,
                     exported: lastExportedActionByReportID.get(reportItem.reportID)?.created ?? '',
+                    submitted: getSubmittedDate(reportItem, actions),
+                    approved: getApprovedDate(reportItem, actions),
                     exportedTo: getExportedToSortValue(exportedToNamesByReportID, reportItem.reportID),
                     firstApproved,
                     firstApproverAvatar: firstApproverDetails?.avatar,
@@ -3151,7 +3228,7 @@ function getReportSections({
                 getLoginByAccountID(report?.ownerAccountID, data.personalDetailsList),
                 policy,
             );
-            const actions = Object.values(data[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionItem.reportID}`] ?? {});
+            const actions = getLiveOrSnapshotReportActions(reportActions, data, transactionItem.reportID);
             const from = reportAction?.actorAccountID ? (mergedPersonalDetails?.[reportAction.actorAccountID] ?? emptyPersonalDetails) : emptyPersonalDetails;
             const to = getToFieldValueForTransaction(transactionItem, report, mergedPersonalDetails, reportAction);
             const isIOUReport = report?.type === CONST.REPORT.TYPE.IOU;
@@ -3186,6 +3263,8 @@ function getReportSections({
                 formattedTotal,
                 formattedMerchant,
                 date,
+                submitted: report ? getSubmittedDate(report, actions) : undefined,
+                approved: report ? getApprovedDate(report, actions) : undefined,
                 exported: transactionItem.reportID ? (lastExportedActionByReportID.get(transactionItem.reportID)?.created ?? '') : '',
                 exportedTo: getExportedToSortValue(exportedToNamesByReportID, transactionItem.reportID),
                 shouldShowMerchant,
@@ -4642,6 +4721,10 @@ function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
             return 'workspace.common.customField2';
         case CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS:
             return 'common.internationalReimbursementIDs';
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED:
+            return 'common.amountDebited';
+        case CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED:
+            return 'common.amountReimbursed';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWAL_ID:
             return 'common.withdrawalID';
         case CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH:
@@ -5383,6 +5466,14 @@ const FILTER_TO_SYNTAX_KEY = {
     [FILTER_KEYS.PURCHASE_AMOUNT_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
     [FILTER_KEYS.PURCHASE_AMOUNT_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT,
+
+    [FILTER_KEYS.AMOUNT_DEBITED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+    [FILTER_KEYS.AMOUNT_DEBITED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED,
+
+    [FILTER_KEYS.AMOUNT_REIMBURSED_EQUAL_TO]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_LESS_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
+    [FILTER_KEYS.AMOUNT_REIMBURSED_GREATER_THAN]: CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED,
 };
 
 function isGroupedFilterKey(key: SearchAdvancedFiltersKey): key is keyof typeof FILTER_TO_SYNTAX_KEY {
@@ -5541,6 +5632,14 @@ const FILTER_VIEW_MAP = {
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT]: {
         labelKey: 'common.purchaseAmount',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED]: {
+        labelKey: 'common.amountDebited',
+        icon: 'Coins',
+    },
+    [CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED]: {
+        labelKey: 'common.amountReimbursed',
         icon: 'Coins',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL]: {
@@ -6132,9 +6231,20 @@ function getColumnsToShow({
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_USER_ID,
         CONST.SEARCH.TABLE_COLUMNS.SUBMITTER_PAYROLL_ID,
         CONST.SEARCH.TABLE_COLUMNS.ORDER_DEAL_NUMBERS,
+        CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED,
+        CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED,
     ]);
 
-    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => !!getReportCustomColumnValue(column, reportToCheck);
+    const hasReportCustomColumnValue = (column: SearchColumnType, reportToCheck: OnyxEntry<OnyxTypes.Report>): boolean => {
+        // The cell needs both the amount and the currency it moved in, so treat either one alone as no value.
+        if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED) {
+            return !!reportToCheck?.debitedAmount && !!reportToCheck?.debitedCurrency;
+        }
+        if (column === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED) {
+            return !!reportToCheck?.creditedAmount && !!reportToCheck?.creditedCurrency;
+        }
+        return !!getReportCustomColumnValue(column, reportToCheck);
+    };
 
     if (type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
         const defaultReportColumns: SearchColumnType[] = [
@@ -6177,6 +6287,11 @@ function getColumnsToShow({
 
         return result.filter((column) => {
             if (!reportCustomColumns.has(column)) {
+                return true;
+            }
+
+            // Keep the sorted column even when empty, otherwise the sort can't be changed.
+            if (column === sortBy) {
                 return true;
             }
 
