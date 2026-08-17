@@ -1898,9 +1898,7 @@ function createPreprocessingContext(): PreprocessingContext {
 function processReportActionEntry(ctx: PreprocessingContext, key: string, actions: Record<string, OnyxTypes.ReportAction>, data: OnyxTypes.SearchResults['data']): void {
     const reportID = key.replace(ONYXKEYS.COLLECTION.REPORT_ACTIONS, '');
     const report = data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-    const reportOwnerAccountID = report?.ownerAccountID;
 
-    // Only paid reports carry a determining payment action, matching the backend status gate
     const isReportPaid = report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
 
     let latestExportTime = -Infinity;
@@ -1910,11 +1908,9 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
     let firstApprovalTime = Infinity;
     let firstApprovalAction: OnyxTypes.ReportAction | undefined;
 
-    // The paid-by user is the actor on the latest payment action. Payment actions are collected first because
-    // whether the owner's ones count depends on a receipt confirmation that may appear later in the scan.
-    const paymentActions: OnyxTypes.ReportAction[] = [];
-    let lastOwnerReceiptConfirmedTime = -Infinity;
-    let lastPaymentCanceledTime = -Infinity;
+    // The paid-by user is the actor on the latest payment action.
+    let lastReimbursedTime = -Infinity;
+    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
 
     for (const action of Object.values(actions)) {
         if (action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_CSV || action.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
@@ -1941,25 +1937,16 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         }
 
         if (
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION
+            isReportPaid &&
+            (action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REIMBURSED ||
+                action.actionName === CONST.REPORT.ACTIONS.TYPE.MARK_REIMBURSED_FROM_INTEGRATION)
         ) {
-            if (isReportPaid) {
-                paymentActions.push(action);
+            const currentTime = new Date(action.created).getTime();
+            if (currentTime > lastReimbursedTime) {
+                lastReimbursedTime = currentTime;
+                lastReimbursedAction = action;
             }
-        }
-
-        if (action.actionName === CONST.REPORT.ACTIONS.TYPE.MARKED_REDEEMED && action.actorAccountID === reportOwnerAccountID) {
-            lastOwnerReceiptConfirmedTime = Math.max(lastOwnerReceiptConfirmedTime, new Date(action.created).getTime());
-        }
-
-        if (
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED ||
-            action.actionName === CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_BOUNCE
-        ) {
-            lastPaymentCanceledTime = Math.max(lastPaymentCanceledTime, new Date(action.created).getTime());
         }
 
         if (isMoneyRequestAction(action)) {
@@ -1985,29 +1972,7 @@ function processReportActionEntry(ctx: PreprocessingContext, key: string, action
         ctx.firstApprovedActionByReportID.set(reportID, firstApprovalAction);
     }
 
-    // An owner payment action followed by the owner's receipt confirmation (MARKEDREDEEMED) is itself a
-    // receipt confirmation, not a payment. A confirmation older than the payment does not discard it, so a
-    // genuine self-payment after a canceled-and-confirmed one still counts, matching the backend
-    let lastReimbursedTime = -Infinity;
-    let lastReimbursedAction: OnyxTypes.ReportAction | undefined;
-    for (const action of paymentActions) {
-        const currentTime = new Date(action.created).getTime();
-        if (action.actorAccountID === reportOwnerAccountID && lastOwnerReceiptConfirmedTime >= currentTime) {
-            continue;
-        }
-        // Ties on created are broken by the higher reportActionID (numeric-string compare), matching the backend ORDER BY
-        const previousActionID = lastReimbursedAction?.reportActionID;
-        const currentActionID = action.reportActionID;
-        const hasHigherActionID =
-            !!previousActionID && (currentActionID.length === previousActionID.length ? currentActionID > previousActionID : currentActionID.length > previousActionID.length);
-        if (currentTime > lastReimbursedTime || (currentTime === lastReimbursedTime && hasHigherActionID)) {
-            lastReimbursedTime = currentTime;
-            lastReimbursedAction = action;
-        }
-    }
-
-    // A payment sharing the same timestamp as a cancellation counts as canceled, matching the backend
-    if (lastReimbursedAction && lastReimbursedTime > lastPaymentCanceledTime) {
+    if (lastReimbursedAction) {
         ctx.lastReimbursedActionByReportID.set(reportID, lastReimbursedAction);
     }
 }
