@@ -27,6 +27,16 @@ import useHeaderStyles from './styles';
 import HeaderActions from './zones/HeaderActions';
 import HeaderRight from './zones/HeaderRight';
 
+/**
+ * Temporary shape wired to the legacy `HeaderWithBackButton` prop API, assembled from the primitives
+ * in `./primitives` and `./zones`. Its purpose is to make it visible, block by block, which composed
+ * piece replaces which part of the legacy render and to prove each one does so correctly — and, in
+ * doing so, to pressure-test the primitives' own APIs so they compose with as little wrapper overhead
+ * as possible.
+ *
+ * Not the target shape: the next PR migrates callers away from this prop list to composing `<Header>`
+ * directly from `Header.Left`/`Header.Right` and block children.
+ */
 function HeaderWithBackButton({
     icon,
     iconFill,
