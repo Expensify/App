@@ -20,7 +20,7 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {isUserValidatedSelector} from '@src/selectors/Account';
-import {isAdminSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
+import {hasDomainAccessSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
@@ -82,9 +82,7 @@ function AddDomainPage() {
             return;
         }
 
-        const alreadyHasAccess = !!currentUserAccountID && (isAdminSelector(currentUserAccountID)(existingDomain) || memberAccountIDsSelector(existingDomain).includes(currentUserAccountID));
-
-        if (alreadyHasAccess) {
+        if (!!currentUserAccountID && hasDomainAccessSelector(currentUserAccountID)(existingDomain)) {
             setCreateDomainAlreadyHaveAccessError();
             return;
         }

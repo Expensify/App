@@ -18,6 +18,7 @@ import {
     resetCreateDomainForm,
     resetDomain,
     resetDomainMemberTwoFactorAuth,
+    setCreateDomainAlreadyHaveAccessError,
     setDefaultSecurityGroup,
     setDomainMembersSelectedForMove,
     setDomainVacationDelegate,
@@ -87,6 +88,22 @@ describe('actions/Domain', () => {
             callback: (form) => {
                 expect(form?.hasCreationSucceeded).toBeFalsy();
                 expect(form?.errors).toBeFalsy();
+            },
+        });
+    });
+
+    it('setCreateDomainAlreadyHaveAccessError - sets an inline error and clears domainAccountID', async () => {
+        await Onyx.set(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+            domainAccountID: 123,
+        });
+
+        setCreateDomainAlreadyHaveAccessError();
+
+        await TestHelper.getOnyxData({
+            key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
+            callback: (form) => {
+                expect(form?.domainAccountID).toBeFalsy();
+                expect(form?.errors).toBeTruthy();
             },
         });
     });

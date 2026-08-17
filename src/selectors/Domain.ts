@@ -213,6 +213,20 @@ function isAdminSelector(accountID: number) {
     };
 }
 
+/**
+ * Creates a selector that checks if a given account ID has any access to the domain,
+ * either as an admin or as a member of one of its security groups.
+ */
+function hasDomainAccessSelector(accountID: number) {
+    return (domain: OnyxEntry<Domain>): boolean => {
+        if (!domain || !accountID) {
+            return false;
+        }
+
+        return isAdminSelector(accountID)(domain) || memberAccountIDsSelector(domain).includes(accountID);
+    };
+}
+
 /** Creates a selector that extracts the pending action for a security group's setting */
 function domainSecurityGroupSettingPendingActionSelector(settingName: keyof DomainSecurityGroupPendingActions, groupID?: string) {
     return (domainPendingActions: OnyxEntry<DomainPendingActions>) => {
@@ -255,6 +269,7 @@ export {
     vacationDelegateSelector,
     accountLockSelector,
     isAdminSelector,
+    hasDomainAccessSelector,
     selectGroupByID,
     domainSecurityGroupSettingPendingActionSelector,
     domainSecurityGroupSettingErrorsSelector,

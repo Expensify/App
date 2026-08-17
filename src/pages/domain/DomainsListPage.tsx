@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isAdminSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
+import {hasDomainAccessSelector, isAdminSelector} from '@src/selectors/Domain';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
@@ -59,10 +59,9 @@ function DomainsListPage() {
 
             const currentUserAccountID = currentUserPersonalDetails?.accountID;
             const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
-            const isDomainMember = !!currentUserAccountID && memberAccountIDsSelector(domain).includes(currentUserAccountID);
 
             // we don't want to show domains that the user has no access to, so we skip them in the list
-            if (!isDomainAdmin && !isDomainMember) {
+            if (!currentUserAccountID || !hasDomainAccessSelector(currentUserAccountID)(domain)) {
                 continue;
             }
 

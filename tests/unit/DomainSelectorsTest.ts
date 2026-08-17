@@ -14,6 +14,7 @@ import {
     domainSecurityGroupSettingPendingActionSelector,
     domainSettingsPrimaryContactSelector,
     groupsSelector,
+    hasDomainAccessSelector,
     isAdminSelector,
     isSecurityGroupEntry,
     isSecurityGroupPendingDeleteSelector,
@@ -840,6 +841,56 @@ describe('domainSelectors', () => {
         it('Should return false for empty domain object', () => {
             const domain = createDomainFixture({empty: true});
             expect(isAdminSelector(userID1)(domain)).toBe(false);
+        });
+    });
+
+    describe('hasDomainAccessSelector', () => {
+        it('Should return false if domain is undefined', () => {
+            expect(hasDomainAccessSelector(userID1)(undefined)).toBe(false);
+        });
+
+        it('Should return false if accountID is 0', () => {
+            const domain = createDomainFixture({admins: [['123456', userID1]]});
+            expect(hasDomainAccessSelector(0)(domain)).toBe(false);
+        });
+
+        it('Should return true if the accountID is an admin', () => {
+            const domain = createDomainFixture({admins: [['123456', userID1]]});
+            expect(hasDomainAccessSelector(userID1)(domain)).toBe(true);
+        });
+
+        it('Should return true if the accountID is a member of a security group', () => {
+            const domain = createDomainFixture({
+                boundaryEntries: {
+                    [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                        shared: {
+                            [userID1]: 'value',
+                        },
+                    },
+                },
+            });
+
+            expect(hasDomainAccessSelector(userID1)(domain)).toBe(true);
+        });
+
+        it('Should return false if the accountID is neither an admin nor a member', () => {
+            const domain = createDomainFixture({
+                admins: [['123456', userID2]],
+                boundaryEntries: {
+                    [`${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1`]: {
+                        shared: {
+                            [userID2]: 'value',
+                        },
+                    },
+                },
+            });
+
+            expect(hasDomainAccessSelector(userID1)(domain)).toBe(false);
+        });
+
+        it('Should return false for empty domain object', () => {
+            const domain = createDomainFixture({empty: true});
+            expect(hasDomainAccessSelector(userID1)(domain)).toBe(false);
         });
     });
 
