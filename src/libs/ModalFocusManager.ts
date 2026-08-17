@@ -5,7 +5,9 @@ const listeners = new Set<Listener>();
 const suppressionOwners = new Set<symbol>();
 
 function notifyListeners() {
-    listeners.forEach((listener) => listener());
+    for (const listener of listeners) {
+        listener();
+    }
 }
 
 function acquireBackgroundInputFocusSuppression(): Release {

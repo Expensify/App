@@ -349,7 +349,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
             return;
         }
 
-        setShouldSubmitMobileSelection(false);
         turnOnMobileSelectionMode();
         selectionMethods.handleSingleRowSelection(mobileSelectionModalRowKey);
         selectionMethods.setMobileSelectionModalRowKey(null);
@@ -430,6 +429,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                     }
                     releaseBackgroundInputFocusSuppressionRef.current?.();
                     releaseBackgroundInputFocusSuppressionRef.current = null;
+                    setShouldSubmitMobileSelection(false);
                     setShouldSkipMobileSelectionFocusRestore(false);
                 }}
             >

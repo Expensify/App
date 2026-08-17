@@ -217,7 +217,7 @@ type PendingClose = {
 };
 
 function hasFocusRestoreSuppressionOption(items: PopoverMenuItem[]): boolean {
-    return items.some((item) => item.shouldSkipFocusRestore || (item.subMenuItems ? hasFocusRestoreSuppressionOption(item.subMenuItems) : false));
+    return items.some((item) => item.shouldSkipFocusRestore ?? (item.subMenuItems ? hasFocusRestoreSuppressionOption(item.subMenuItems) : false));
 }
 
 type PopoverMenuContentProps = {
@@ -380,7 +380,7 @@ function BasePopoverMenu({
     const [pendingClose, setPendingClose] = useState<PendingClose | null>(null);
     const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
     const isVisibleRef = useRef(isVisible);
-    const shouldUseNewFocusManagement = shouldEnableNewFocusManagement || (platform === CONST.PLATFORM.IOS && hasFocusRestoreSuppressionOption(menuItems));
+    const shouldUseNewFocusManagement = shouldEnableNewFocusManagement ? true : platform === CONST.PLATFORM.IOS && hasFocusRestoreSuppressionOption(menuItems);
     const effectiveRestoreFocusType = restoreFocusTypeOverride ?? restoreFocusType;
 
     const getPreviousSubMenu = () => {
@@ -474,7 +474,6 @@ function BasePopoverMenu({
             return;
         }
 
-        setPendingClose(null);
         close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
     }, [pendingClose]);
 

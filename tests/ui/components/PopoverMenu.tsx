@@ -421,9 +421,10 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         const onSelected = jest.fn(() => order.push('selected'));
         const onItemSelected = jest.fn(() => order.push('visibility-change'));
         mockPopoverWithMeasuredContent.mockImplementation((props) => {
-            if (props.restoreFocusType === CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
-                order.push('delete-policy');
+            if (props.restoreFocusType !== CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE) {
+                return;
             }
+            order.push('delete-policy');
         });
         mockClose.mockImplementation((callback, isNavigating, shouldCloseAllModals) => {
             order.push('close');
@@ -458,7 +459,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(getLatestMeasuredPopoverProps().shouldEnableNewFocusManagement).toBe(true);
         expect(onSelected).not.toHaveBeenCalled();
 
-        const onModalClose = mockClose.mock.calls[0]?.[0];
+        const onModalClose = mockClose.mock.calls.at(0)?.at(0);
         act(() => onModalClose?.());
         expect(onSelected).toHaveBeenCalledTimes(1);
         expect(order.indexOf('close')).toBeLessThan(order.indexOf('selected'));
@@ -487,7 +488,7 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(mockClose).toHaveBeenCalledTimes(1);
         expect(onSelected).not.toHaveBeenCalled();
 
-        const onModalClose = mockClose.mock.calls[0]?.[0];
+        const onModalClose = mockClose.mock.calls.at(0)?.at(0);
         act(() => onModalClose?.());
         expect(onSelected).toHaveBeenCalledTimes(1);
 
