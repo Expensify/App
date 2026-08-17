@@ -5,10 +5,12 @@ import {isRecord} from '@libs/ObjectUtils';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {Policy, PolicyTagLists, RecentlyUsedTags, Report, Transaction} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
+import createRandomPolicy from '../../utils/collections/policies';
+import {getCurrencyDecimalsLocal, getCurrencySymbolLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@src/libs/Navigation/Navigation', () => ({
@@ -128,6 +130,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then no recently used tags entry should be added
@@ -165,6 +169,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then the tag should appear in the recently used tags for the correct policy and tag list
@@ -207,6 +213,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then the new tag should be first and the old tag should still be present
@@ -250,6 +258,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then tag1 should appear exactly once and be at the front
@@ -282,6 +292,8 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // When updating the tag with policyTagList: {} (empty)
@@ -300,11 +312,151 @@ describe('getUpdateMoneyRequestParams — policyTagList', () => {
             currentUserEmailParam: RORY_EMAIL,
             isASAPSubmitBetaEnabled: false,
             isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         // Then both should produce the same optimistic data (an undefined policy tag list is treated the same as an empty one)
         const entryWithUndefined = withUndefined.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         const entryWithEmpty = withEmpty.optimisticData?.find((entry) => entry.key === `${ONYXKEYS.COLLECTION.POLICY_RECENTLY_USED_TAGS}${POLICY_ID}`);
         expect(entryWithUndefined?.value).toEqual(entryWithEmpty?.value);
+    });
+});
+
+describe('getUpdateMoneyRequestParams — distance rate change with pending waypoints', () => {
+    const distancePolicy: Policy = {
+        ...createRandomPolicy(0, CONST.POLICY.TYPE.TEAM),
+        id: POLICY_ID,
+        customUnits: {
+            distance: {
+                name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                customUnitID: 'distance',
+                rates: {
+                    rate1: {customUnitRateID: 'rate1', currency: CONST.CURRENCY.USD, rate: 1},
+                    rate2: {customUnitRateID: 'rate2', currency: CONST.CURRENCY.USD, rate: 2},
+                },
+                attributes: {unit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES},
+            },
+        },
+    };
+
+    function buildDistanceTransaction(overrides: Partial<Transaction>): Transaction {
+        return {
+            transactionID: TRANSACTION_ID,
+            reportID: IOU_REPORT_ID,
+            amount: 1000,
+            currency: CONST.CURRENCY.USD,
+            created: '2024-01-01',
+            merchant: '10.00 mi @ $1.00 / mi',
+            iouRequestType: CONST.IOU.REQUEST_TYPE.DISTANCE,
+            comment: {
+                type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                customUnit: {
+                    name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                    customUnitRateID: 'rate1',
+                    distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                },
+            },
+            pendingFields: {waypoints: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE},
+            ...overrides,
+        } as Transaction;
+    }
+
+    function getParamsForRateChange() {
+        return getUpdateMoneyRequestParams({
+            iouReportOwnerLogin: undefined,
+            transactionID: TRANSACTION_ID,
+            transactionThreadReport,
+            iouReport,
+            delegateAccountID: undefined,
+            transactionChanges: {customUnitRateID: 'rate2'},
+            policy: distancePolicy,
+            policyTagList: undefined,
+            reportPolicyTags: undefined,
+            policyCategories: undefined,
+            currentUserAccountIDParam: RORY_ACCOUNT_ID,
+            currentUserEmailParam: RORY_EMAIL,
+            isASAPSubmitBetaEnabled: false,
+            isTrackIntentUser: false,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
+        });
+    }
+
+    it('should build an optimistic MODIFIED_EXPENSE when the route distance is already known locally', async () => {
+        // Given a distance expense whose waypoints are pending on the server but whose route distance is known locally
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+            buildDistanceTransaction({
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+            }),
+        );
+        await waitForBatchedUpdates();
+
+        // When changing the distance rate
+        const {params} = getParamsForRateChange();
+
+        // Then the report action is created optimistically instead of being deferred to the server
+        expect(params.reportActionID).toBeDefined();
+    });
+
+    it('should NOT build an optimistic MODIFIED_EXPENSE when no route distance is known locally', async () => {
+        // Given a distance expense with pending waypoints and no locally known distance (no quantity, no routes)
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, buildDistanceTransaction({}));
+        await waitForBatchedUpdates();
+
+        // When changing the distance rate
+        const {params} = getParamsForRateChange();
+
+        // Then the report action is left to the server, which owns the MapBox route response
+        expect(params.reportActionID).toBeUndefined();
+    });
+
+    it('should NOT build an optimistic MODIFIED_EXPENSE when the pending waypoint edit zeroed the amount, leaving a stale distance', async () => {
+        // Given a distance expense whose waypoints were just edited: the amount was zeroed while the server
+        // recomputes the route, so the leftover quantity/routes from the pre-edit route are stale
+        await Onyx.merge(
+            `${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`,
+            buildDistanceTransaction({
+                amount: 0,
+                modifiedAmount: 0,
+                comment: {
+                    type: CONST.TRANSACTION.TYPE.CUSTOM_UNIT,
+                    customUnit: {
+                        name: CONST.CUSTOM_UNITS.NAME_DISTANCE,
+                        customUnitRateID: 'rate1',
+                        distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,
+                        quantity: 10,
+                    },
+                },
+                routes: {
+                    route0: {
+                        distance: 16093,
+                        geometry: {
+                            coordinates: [
+                                [0, 0],
+                                [1, 1],
+                            ],
+                            type: 'LineString',
+                        },
+                    },
+                },
+            }),
+        );
+        await waitForBatchedUpdates();
+
+        // When changing the distance rate
+        const {params} = getParamsForRateChange();
+
+        // Then the stale distance is not used to build an optimistic report action
+        expect(params.reportActionID).toBeUndefined();
     });
 });

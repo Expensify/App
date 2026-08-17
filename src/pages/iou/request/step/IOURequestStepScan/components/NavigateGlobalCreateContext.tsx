@@ -11,6 +11,7 @@ import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
 import {endSpan} from '@libs/telemetry/activeSpans';
 
+import endScanProcessAndStartConfirmationMountSpan from '@pages/iou/request/step/IOURequestStepScan/utils/endScanProcessAndStartConfirmationMountSpan';
 import startScanProcessSpan from '@pages/iou/request/step/IOURequestStepScan/utils/startScanProcessSpan';
 
 import {setMoneyRequestParticipants, setMoneyRequestParticipantsFromReport} from '@userActions/IOU/MoneyRequest';
@@ -107,7 +108,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
                 const setParticipantsPromises = transactionIDs.map((tid) => setMoneyRequestParticipants(tid, transaction.participants));
                 Promise.all(setParticipantsPromises).then(() => {
                     if (isTrackExpense) {
-                        endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+                        endScanProcessAndStartConfirmationMountSpan();
                         Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.TRACK, transactionID, selfDMReport?.reportID));
                     } else {
                         navigateToConfirmationPage(iouType, transactionID, reportID, backToReport, iouType === CONST.IOU.TYPE.CREATE, transaction.reportID);
@@ -121,7 +122,7 @@ function NavigateGlobalCreateSubscriber({fnRef, iouType, reportID, transactionID
                 return setMoneyRequestParticipantsFromReport(tid, targetReport, currentUserPersonalDetails.accountID);
             });
             Promise.all(setParticipantsPromises).then(() => {
-                endSpan(CONST.TELEMETRY.SPAN_SCAN_PROCESS_AND_NAVIGATE);
+                endScanProcessAndStartConfirmationMountSpan();
                 Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, iouTypeTrackOrSubmit, transactionID, targetReport?.reportID));
             });
         } else {

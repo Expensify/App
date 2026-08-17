@@ -3,6 +3,7 @@ import {ReportSubmitToPopoverAnchor, useOpenReportSubmitToPopover} from '@compon
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -45,6 +46,7 @@ function SubmitActionButton() {
 
 function SubmitActionButtonContent() {
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserDetails.accountID;
@@ -94,6 +96,7 @@ function SubmitActionButtonContent() {
             }
 
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: iouReport,
                 policy,
                 currentUserAccountIDParam: currentUserAccountID,
@@ -119,7 +122,7 @@ function SubmitActionButtonContent() {
 
     return (
         <AnimatedSubmitButton
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={handleSubmit}

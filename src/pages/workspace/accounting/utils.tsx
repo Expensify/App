@@ -173,8 +173,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR,
-                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
                         ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
                         : []),
@@ -197,7 +197,7 @@ function getAccountingIntegrationData(
                 ...(shouldUseIntuitEnterpriseSuite
                     ? {
                           workspaceUpgradeNavigationDetails: {
-                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.accounting.alias,
+                              integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.intuitEnterpriseSuite.alias,
                               backToAfterWorkspaceUpgradeRoute: ROUTES.POLICY_ACCOUNTING.getRoute(
                                   policyID,
                                   connectionName,
@@ -232,7 +232,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.EXPORTER,
                     CONST.XERO_CONFIG.BILL_DATE,
                     CONST.XERO_CONFIG.BILL_STATUS,
-                    CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
                     CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
                     CONST.XERO_CONFIG.DEFAULT_VENDOR,
                 ],
@@ -476,7 +476,7 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.EXPORTER,
                     CONST.RILLET_CONFIG.EXPORT_DATE,
                     CONST.RILLET_CONFIG.REIMBURSABLE,
-                    CONST.RILLET_CONFIG.COMPANY_CARD,
+                    CONST.RILLET_CONFIG.NON_REIMBURSABLE,
                     CONST.RILLET_CONFIG.DEFAULT_VENDORID,
                     CONST.RILLET_CONFIG.CREDIT_CARD_ACCOUNTCODE,
                     CONST.RILLET_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
@@ -500,8 +500,8 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
                     CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
-                    CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
-                    CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
@@ -521,7 +521,7 @@ function getAccountingIntegrationData(
                         key={key}
                     />
                 ),
-                onImportPagePress: () => null,
+                onImportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_IMPORT.getRoute(policyID)),
                 subscribedImportSettings: [
                     CONST.DUALENTRY_CONFIG.ENABLE_NEW_CATEGORIES,
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
@@ -556,8 +556,8 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
-                    CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
-                    CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualEntry.alias,
