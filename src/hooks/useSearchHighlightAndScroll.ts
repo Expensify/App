@@ -383,11 +383,15 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
 }
 
 /**
- * Whether a transaction that the current search results already display has changed.
+ * Whether a transaction change invalidates what the current search results show.
  *
  * Onyx keeps one value object per collection member and only replaces the ones it writes, so an identity check is
  * enough to spot an edit. A refetch triggered from here can't feed itself, because a Search response only writes
  * snapshot keys and never touches the transaction collection.
+ *
+ * Two shapes of change count. An edit to a transaction the results already display, and a transaction moving into or
+ * out of a report the results display. The move matters even when the transaction itself was never on screen: the
+ * report row still owes its expense count and total to the snapshot, and the server computes both.
  */
 function hasChangedTransactionInSearchResults(
     transactions: OnyxCollection<Transaction>,
@@ -399,10 +403,16 @@ function hasChangedTransactionInSearchResults(
         return false;
     }
 
+    const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
     const changedTransactionIDs: string[] = [];
     for (const [key, transaction] of Object.entries(transactions ?? {})) {
-        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransactions?.[key] === transaction) {
+        const previousTransaction = previousTransactions?.[key];
+        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
             continue;
+        }
+        if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
+            return true;
         }
         changedTransactionIDs.push(transaction.transactionID);
     }

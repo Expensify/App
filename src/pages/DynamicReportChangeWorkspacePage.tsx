@@ -2,6 +2,7 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {useSession} from '@components/OnyxListItemProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
+import {useSearchQueryContext, useSearchResultsContext} from '@components/Search/SearchContext';
 import SelectionList from '@components/SelectionList';
 import type {WorkspaceListItemType} from '@components/SelectionList/ListItem/types';
 import UserListItem from '@components/SelectionList/ListItem/UserListItem';
@@ -19,6 +20,7 @@ import useParentReportAction from '@hooks/useParentReportAction';
 import usePermissions from '@hooks/usePermissions';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportTransactions from '@hooks/useReportTransactions';
+import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useShouldSuppressPromotionalUI from '@hooks/useShouldSuppressPromotionalUI';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWorkspaceList from '@hooks/useWorkspaceList';
@@ -38,6 +40,7 @@ import {
     isSettled,
     isWorkspaceEligibleForReportChange,
 } from '@libs/ReportUtils';
+import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {hasAppliedCommuterExclusion, isManualDistanceRequest, isOdometerDistanceRequest} from '@libs/TransactionUtils';
 
@@ -110,6 +113,22 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
         isOdometerDistanceRequest: hasOdometerDistanceRequest,
     });
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
+    const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, currentSearchQueryJSON?.hash, true);
+
+    // Moving a report to another workspace only writes the new policy into the Search snapshot, never the report row
+    // itself, so a snapshot filtered by the old workspace keeps showing a report that no longer belongs to it. Only
+    // the server can decide whether the row still matches the query, so ask it.
+    const refreshSearch = () => {
+        refreshSearchAfterReportAction({
+            currentSearchQueryJSON,
+            currentSearchKey,
+            shouldCalculateTotals,
+            isOffline,
+            isLoading: !!currentSearchResults?.search?.isLoading,
+        });
+    };
 
     const selectPolicy = (policyID?: string) => {
         const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
@@ -140,6 +159,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             if (!invite?.policyExpenseChatReportID) {
                 moveIOUReportToPolicy(report, policy, reportPreviewAction, getCurrencyDecimals, false, reportTransactions);
             }
+            refreshSearch();
             return;
             // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
         }
@@ -169,6 +189,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 isTrackIntentUser,
                 reportTransactions,
             });
+            refreshSearch();
             return;
         }
 
@@ -189,6 +210,7 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             isTrackIntentUser,
             reportTransactions,
         });
+        refreshSearch();
     };
 
     const {data, shouldShowNoResultsFoundMessage, shouldShowSearchInput} = useWorkspaceList({
