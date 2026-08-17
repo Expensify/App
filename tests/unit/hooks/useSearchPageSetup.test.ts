@@ -32,7 +32,7 @@ jest.mock('@libs/actions/Search', () => ({
 }));
 
 jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
+    isLayoutPending: jest.fn(() => false),
 }));
 
 jest.mock('@react-navigation/native', () => ({

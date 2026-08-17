@@ -67,7 +67,7 @@ jest.mock('@libs/Navigation/navigationRef', () => ({
     },
 }));
 jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
+    isLayoutPending: jest.fn(() => false),
 }));
 jest.mock('@components/TransactionItemRow', () => jest.fn(() => null));
 jest.mock('@components/Skeletons/SearchRowSkeleton', () => jest.fn(() => null));

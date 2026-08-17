@@ -75,8 +75,9 @@ jest.mock('@libs/actions/IOU/PendingNewTransactions', () => ({
 jest.mock('@libs/deferredLayoutWrite', () => ({
     registerDeferredWrite: (_key: string, callback: () => void) => callback(),
     flushDeferredWrite: jest.fn(),
-    cancelDeferredWrite: jest.fn(),
-    hasDeferredWrite: () => false,
+    abandonDeferredWrite: jest.fn(),
+    isLayoutPending: () => false,
+    isWritePending: () => false,
     getOptimisticWatchKey: () => undefined,
     deferOrExecuteWrite: (apiWrite: () => void) => apiWrite(),
     reserveDeferredWriteChannel: jest.fn(),
