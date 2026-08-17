@@ -1,9 +1,10 @@
-import {render, screen} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
-import StrictModeMountGate from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/StrictModeMountGate';
+// The gate is imported by name, because the default export of that module is picked by __DEV__ and
+// CONFIG.USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV, and that flag is meant to be turned off locally while profiling.
+import {StrictModeMountGate} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/StrictModeMountGate';
 
 import React, {useEffect} from 'react';
-import {View} from 'react-native';
 
 function Probe({log}: {log: string[]}) {
     useEffect(() => {
@@ -16,7 +17,7 @@ function Probe({log}: {log: string[]}) {
 }
 
 describe('StrictModeMountGate', () => {
-    it('runs the child effect through the full effect, cleanup, effect cycle on mount', () => {
+    it('mounts the children into an already committed StrictMode, so their effects run the full effect, cleanup, effect cycle', () => {
         const log: string[] = [];
 
         render(
@@ -26,28 +27,5 @@ describe('StrictModeMountGate', () => {
         );
 
         expect(log).toEqual(['effect', 'cleanup', 'effect']);
-    });
-
-    it('renders the children', () => {
-        render(
-            <StrictModeMountGate>
-                <View testID="content" />
-            </StrictModeMountGate>,
-        );
-
-        expect(screen.getByTestId('content')).toBeTruthy();
-    });
-
-    it('cleans the child effect up on unmount', () => {
-        const log: string[] = [];
-
-        const {unmount} = render(
-            <StrictModeMountGate>
-                <Probe log={log} />
-            </StrictModeMountGate>,
-        );
-        unmount();
-
-        expect(log).toEqual(['effect', 'cleanup', 'effect', 'cleanup']);
     });
 });

@@ -51,39 +51,41 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         expect(result[TOP_KEY]).toBe(descriptors[TOP_KEY]);
     });
 
-    it('leaves a persistent screen untouched even when it picked a behavior', () => {
+    it('leaves a persistent screen untouched and still wraps the others', () => {
         const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'activity'), [TOP_KEY]: buildDescriptor('Top', 'activity')};
 
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState(), ['Covered']);
 
         expect(result[COVERED_KEY]).toBe(descriptors[COVERED_KEY]);
-        expect(result[TOP_KEY]).not.toBe(descriptors[TOP_KEY]);
+        expect(renderWrapped(result[TOP_KEY]).type).toBe(ScreenActivityWrapper);
     });
 
-    it('wraps a screen that picked activity in ScreenActivityWrapper around its original content', () => {
+    it.each([
+        ['activity', ScreenActivityWrapper],
+        ['freeze', ScreenFreezeWrapper],
+    ] as const)('wraps a screen that picked %s around its original content and marks only the non-top one as blurred', (behavior, Wrapper) => {
+        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', behavior), [TOP_KEY]: buildDescriptor('Top', behavior)};
+
+        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
+
+        const covered = renderWrapped(result[COVERED_KEY]);
+        expect(covered.type).toBe(Wrapper);
+        expect(covered.props.children).toEqual(<Text>Covered</Text>);
+        expect(covered.props.isScreenBlurred).toBe(true);
+
+        const top = renderWrapped(result[TOP_KEY]);
+        expect(top.type).toBe(Wrapper);
+        expect(top.props.children).toEqual(<Text>Top</Text>);
+        expect(top.props.isScreenBlurred).toBe(false);
+    });
+
+    it('replaces only the render function of a wrapped descriptor', () => {
         const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'activity'), [TOP_KEY]: buildDescriptor('Top', 'activity')};
 
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
-        const element = renderWrapped(result[COVERED_KEY]);
 
-        expect(element.type).toBe(ScreenActivityWrapper);
-        expect(element.props.children).toEqual(<Text>Covered</Text>);
-    });
-
-    it('wraps a screen that picked freeze in ScreenFreezeWrapper', () => {
-        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'freeze'), [TOP_KEY]: buildDescriptor('Top', 'freeze')};
-
-        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
-
-        expect(renderWrapped(result[COVERED_KEY]).type).toBe(ScreenFreezeWrapper);
-    });
-
-    it('marks only the non-top screen as blurred', () => {
-        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'activity'), [TOP_KEY]: buildDescriptor('Top', 'activity')};
-
-        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
-
-        expect(renderWrapped(result[COVERED_KEY]).props.isScreenBlurred).toBe(true);
-        expect(renderWrapped(result[TOP_KEY]).props.isScreenBlurred).toBe(false);
+        expect(result[COVERED_KEY].route).toBe(descriptors[COVERED_KEY].route);
+        expect(result[COVERED_KEY].options).toBe(descriptors[COVERED_KEY].options);
+        expect(result[COVERED_KEY].render).not.toBe(descriptors[COVERED_KEY].render);
     });
 });

@@ -48,6 +48,7 @@ describe('CustomViewWrapper', () => {
 
         const {inner} = getWrappers(toJSON);
         expect(inner.props['aria-hidden']).toBeUndefined();
+        expect(inner.props.collapsable).toBe(false);
         expect(StyleSheet.flatten(inner.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
     });
 });

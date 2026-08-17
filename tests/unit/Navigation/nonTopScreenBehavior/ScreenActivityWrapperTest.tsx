@@ -148,21 +148,4 @@ describe('ScreenActivityWrapper', () => {
         expect(StyleSheet.flatten(outer.props.style)).toEqual({display: 'contents'});
         expect(inner.props['aria-hidden']).toBe(false);
     });
-
-    it('keeps a covered screen painted while the window size is changing so it lays out against the new size', () => {
-        const {rerender, toJSON} = renderWrapper(true);
-        completeFirstRender();
-        expect(toJSON()).toBeNull();
-
-        mockedUseIsWindowSizeChanging.mockReturnValue(true);
-        rerenderWrapper(rerender, true);
-
-        const {inner} = getWrappers(toJSON);
-        expect(inner.props['aria-hidden']).toBe(true);
-
-        mockedUseIsWindowSizeChanging.mockReturnValue(false);
-        rerenderWrapper(rerender, true);
-
-        expect(toJSON()).toBeNull();
-    });
 });

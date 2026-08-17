@@ -39,9 +39,6 @@ function firePendingCallbacks() {
     });
 }
 
-// Modern fake timers fire a faked `requestAnimationFrame` on a fixed 16ms cadence.
-const FAKE_TIMER_FRAME_MS = 16;
-
 // The hook keeps a freshly mounted screen visible until a frame was painted, so tests flush that first-render
 // window before asserting the steady state.
 function completeFirstRender() {
@@ -75,27 +72,38 @@ describe('useScreenActivityState', () => {
         expect(result.current.isScreenCovered).toBe(false);
     });
 
-    it('hides a covered screen after one animation frame, before the fallback delay', () => {
-        const {result} = renderHook(() => useScreenActivityState(true));
-        expect(result.current.mode).toBe('visible');
+    it('renders the first frame of a covered screen visible, then hides it on the painted frame', () => {
+        let paintFrame: FrameRequestCallback | undefined;
+        const rafSpy = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((callback) => {
+            paintFrame = callback;
+            return 0;
+        });
 
+        const {result} = renderHook(() => useScreenActivityState(true));
+
+        expect(result.current.mode).toBe('visible');
+        expect(result.current.isScreenCovered).toBe(true);
+
+        if (!paintFrame) {
+            throw new Error('The hook did not request an animation frame');
+        }
+        const requestedFrame = paintFrame;
         act(() => {
-            jest.advanceTimersByTime(FAKE_TIMER_FRAME_MS);
+            requestedFrame(0);
         });
 
         expect(result.current.mode).toBe('hidden');
+
+        rafSpy.mockRestore();
     });
 
-    it('falls back to the timeout when animation frames never fire', () => {
-        // The advances below follow the constant wherever it goes, so this pins the value itself.
-        expect(FIRST_RENDER_FALLBACK_DELAY_MS).toBe(100);
-
+    it('falls back to the 100ms timeout when animation frames never fire', () => {
         const rafSpy = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(() => 0);
 
         const {result} = renderHook(() => useScreenActivityState(true));
 
         act(() => {
-            jest.advanceTimersByTime(FIRST_RENDER_FALLBACK_DELAY_MS - 1);
+            jest.advanceTimersByTime(99);
         });
         expect(result.current.mode).toBe('visible');
 
@@ -105,17 +113,6 @@ describe('useScreenActivityState', () => {
         expect(result.current.mode).toBe('hidden');
 
         rafSpy.mockRestore();
-    });
-
-    it('renders the first frame of a covered screen visible, then hides it', () => {
-        const {result} = renderHook(() => useScreenActivityState(true));
-
-        expect(result.current.mode).toBe('visible');
-        expect(result.current.isScreenCovered).toBe(true);
-
-        completeFirstRender();
-
-        expect(result.current.mode).toBe('hidden');
     });
 
     it('treats a screen of an unfocused navigator as covered', () => {

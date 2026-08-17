@@ -53,10 +53,12 @@ function mountWebRoot() {
 }
 
 describe('DisplayContentsView', () => {
-    it('processes the display value used by native Activity hiding as contents', () => {
-        const viewConfig = getDisplayContentsViewConfig();
+    it('rewrites every display value to contents and leaves the other styles alone', () => {
+        const {validAttributes} = getDisplayContentsViewConfig();
 
-        expect(createAttributePayload({style: {display: 'none'}}, viewConfig.validAttributes)).toEqual({display: 'contents'});
+        expect(createAttributePayload({style: {display: 'none'}}, validAttributes)).toEqual({display: 'contents'});
+        expect(createAttributePayload({style: {display: 'flex'}}, validAttributes)).toEqual({display: 'contents'});
+        expect(createAttributePayload({style: {opacity: 0.5, flex: 1}}, validAttributes)).toEqual({opacity: 0.5, flex: 1});
     });
 
     it('stays layout-neutral through React DOM Activity hide and reveal paths', () => {
@@ -74,6 +76,28 @@ describe('DisplayContentsView', () => {
         render(<ActivityProbe mode="visible" />);
         expect(element.style.display).toBe('contents');
         expect(element.style.getPropertyPriority('display')).toBe('important');
+
+        unmount();
+    });
+
+    it('refuses both display write paths React uses and forwards every other style write', () => {
+        const {render, getHostElement, unmount} = mountWebRoot();
+
+        render(
+            <DisplayContentsViewWeb>
+                <span data-testid="content" />
+            </DisplayContentsViewWeb>,
+        );
+        const element = getHostElement();
+
+        element.style.setProperty('display', 'none', 'important');
+        expect(element.style.display).toBe('contents');
+
+        element.style.display = 'block';
+        expect(element.style.display).toBe('contents');
+
+        element.style.setProperty('opacity', '0.5');
+        expect(element.style.opacity).toBe('0.5');
 
         unmount();
     });

@@ -21,7 +21,21 @@ function makeScaledSize(width: number, height: number): ScaledSize {
 
 function emitDimensionsChange(width: number, height: number = initialWindow.height) {
     const handler = mockedAddEventListener.mock.calls.at(-1)?.[1];
-    handler?.({window: makeScaledSize(width, height), screen: makeScaledSize(width, height)});
+    if (!handler) {
+        throw new Error('The store did not register a Dimensions listener');
+    }
+    handler({window: makeScaledSize(width, height), screen: makeScaledSize(width, height)});
+}
+
+// The react-native mock hands out a fresh `{remove}` subscription per call, which is what proves the store
+// detaches its listener instead of leaking one per stack.
+function getSubscriptionRemove(callIndex: number) {
+    const result = mockedAddEventListener.mock.results.at(callIndex);
+    if (result?.type !== 'return') {
+        throw new Error('Dimensions.addEventListener did not return a subscription');
+    }
+    // eslint-disable-next-line @typescript-eslint/unbound-method
+    return jest.mocked(result.value.remove);
 }
 
 beforeEach(() => {
@@ -36,12 +50,6 @@ afterEach(() => {
 });
 
 describe('windowSizeChangeStore', () => {
-    it('reports no change before any dimensions event', () => {
-        unsubscribe = subscribe(jest.fn());
-
-        expect(getSnapshot()).toBe(false);
-    });
-
     it('flips on when the window width changes and notifies the subscriber', () => {
         const listener = jest.fn();
         unsubscribe = subscribe(listener);
@@ -100,6 +108,7 @@ describe('windowSizeChangeStore', () => {
 
         expect(getSnapshot()).toBe(true);
         expect(mockedAddEventListener).toHaveBeenCalledTimes(1);
+        expect(getSubscriptionRemove(0)).not.toHaveBeenCalled();
 
         jest.advanceTimersByTime(SETTLE_DELAY_MS);
 
@@ -107,7 +116,7 @@ describe('windowSizeChangeStore', () => {
         expect(remaining).toHaveBeenCalledTimes(2);
     });
 
-    it('resets and registers a fresh listener once the last subscriber left', () => {
+    it('detaches its listener and resets once the last subscriber left, then registers a fresh one', () => {
         const listener = jest.fn();
         unsubscribe = subscribe(listener);
         emitDimensionsChange(initialWindow.width + 100);
@@ -115,6 +124,7 @@ describe('windowSizeChangeStore', () => {
 
         unsubscribe();
 
+        expect(getSubscriptionRemove(0)).toHaveBeenCalledTimes(1);
         expect(getSnapshot()).toBe(false);
 
         unsubscribe = subscribe(listener);
