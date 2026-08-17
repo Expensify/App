@@ -1631,6 +1631,16 @@ function submitReport({
 
     onSubmitted?.();
     const dispatchSubmit = () => {
+        // Known gap: optimisticData/parameters are built above from the pre-wait `expenseReport`
+        // snapshot. If a pending create (the thing pendingRegistrations below waits for) flushes its
+        // own optimistic total/transactionCount bump *during* that wait, this MERGE spreads the
+        // stale `...expenseReport` back over it, temporarily reverting those fields until the
+        // create's or this write's server response reconciles - longer than a flash if offline.
+        // Not data loss (the transaction record itself is untouched, only the report's cached
+        // aggregate fields), and strictly better than the race this wait exists to fix (a lost
+        // expense from a 407). A real fix needs `deferredLayoutWrite`'s registered `write` callback
+        // to expose when its Onyx merge actually lands (it's `() => void` today, no such signal),
+        // so this dispatch could rebuild the merge from live state - out of scope for this PR.
         API.write(WRITE_COMMANDS.SUBMIT_REPORT, parameters, {
             optimisticData,
             successData,
