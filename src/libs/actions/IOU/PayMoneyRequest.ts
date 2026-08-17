@@ -28,6 +28,7 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
@@ -51,7 +52,7 @@ import Onyx from 'react-native-onyx';
 
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData} from './Hold';
-import {getReportPreviewAction} from './MoneyRequestBuilder';
+import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
     paymentMethodType: PaymentMethodType;
@@ -274,6 +275,8 @@ function getPayMoneyRequestParams({
         total = unheldReimbursableTotal;
     }
 
+    const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(reportTransactions, iouReport);
+
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -293,7 +296,7 @@ function getPayMoneyRequestParams({
     // In some instances, the report preview action might not be available to the payer (only whispered to the requestor)
     // hence we need to make the updates to the action safely.
     let optimisticReportPreviewAction = null;
-    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport?.reportID, chatReportActions);
+    const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport?.reportID, chatReportActions);
     if (reportPreviewAction) {
         optimisticReportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, true);
     }
@@ -492,8 +495,18 @@ function getPayMoneyRequestParams({
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
-    if (!full) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, delegateAccountID, getCurrencyDecimals});
+    if (!full || shouldMoveScanFailedTransactions) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
+            chatReport,
+            iouReport,
+            recipient,
+            policy: reportPolicy,
+            betas,
+            delegateAccountID,
+            getCurrencyDecimals,
+            shouldMoveHeldTransactions: !full,
+            shouldMoveScanFailedTransactions,
+        });
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
@@ -880,7 +893,7 @@ function markReportPaymentReceived(
     const receivedPaymentMessage = getElsewherePaymentReportActionMessage(translateLocal, optimisticIOUReportAction.originalMessage);
     optimisticIOUReportAction.message = [{html: receivedPaymentMessage, text: receivedPaymentMessage, isEdited: false, type: CONST.REPORT.MESSAGE.TYPE.COMMENT}];
 
-    const reportPreviewAction = getReportPreviewAction(chatReport.reportID, iouReport.reportID, chatReportActions);
+    const reportPreviewAction = getReportPreviewReportAction(chatReport.reportID, iouReport.reportID, chatReportActions);
     const optimisticReportPreviewAction = reportPreviewAction ? updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, true) : null;
     const optimisticNextStep = buildOptimisticNextStep({report: iouReport, predictedNextStatus: CONST.REPORT.STATUS_NUM.REIMBURSED, isTrackIntentUser});
 

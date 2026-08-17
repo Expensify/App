@@ -8,6 +8,7 @@ import type {CardFeedWithNumber} from '@src/types/onyx/CardFeeds';
 /* eslint-disable @typescript-eslint/naming-convention */
 import type {OnyxCollection} from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -22,8 +23,8 @@ function createTestCard(overrides: Partial<Card> & Pick<Card, 'cardID' | 'bank'>
     };
 }
 
-function createCardNameValuePairs(nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>>): Card['nameValuePairs'] {
-    return nameValuePairs as Card['nameValuePairs'];
+function createCardNameValuePairs(nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>>): NonNullable<Card['nameValuePairs']> {
+    return createMock<NonNullable<Card['nameValuePairs']>>(nameValuePairs);
 }
 
 function createTestPolicy(overrides: Partial<Policy> & Pick<Policy, 'id'>): Policy {
