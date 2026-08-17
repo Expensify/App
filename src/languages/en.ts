@@ -7407,7 +7407,8 @@ const translations = {
             workspaceCurrency: 'Workspace currency',
             updateCurrencyPrompt: 'It looks like your workspace is currently set to a different currency than USD. Please click the button below to update your currency to USD now.',
             updateCurrencyForExpensifyCard:
-                'Expensify Card works with USD, GBP, and EUR bank accounts. Update this workspace to a supported currency, or use a different workspace to enroll.',
+                'The Expensify Card is available to issue in USD, GBP, and EUR. Please update this workspace to a supported currency or use a different workspace',
+            updateCurrencyForExpensifyCardTitle: 'Get the Expensify Card',
             updateToUSD: 'Update to USD',
             updateWorkspaceCurrency: 'Update workspace currency',
             workspaceCurrencyNotSupported: 'Workspace currency not supported',
