@@ -89,11 +89,15 @@ describe('A4: reads of derived keys', () => {
 
         await Onyx.merge(TRANSACTION_A, transaction);
 
-        // The interesting result: awaiting the source merge is enough. The derived recompute and its
-        // own write land inside the source merge's promise chain, so there is no extra revision lag.
-        // This holds because `OnyxUtils.get` is synchronous here; on an unpatched build the derived
-        // compute waits on storage reads, which is what made `visibleReportActions` arrive ~890 ms
-        // late in the production trace. Re-check this case if Onyx changes how it schedules derivations.
+        // Awaiting the source merge is enough. The derived recompute and its own write land inside the
+        // source merge's promise chain, so there is no extra revision lag.
+        //
+        // This comment used to add that it holds *because* the read is synchronous, and that an unpatched
+        // build would lag here. Both halves were checked against unpatched Onyx on 2026-08-17 and neither
+        // is true: with the read awaited, the unpatched build is current at this point too. So this case
+        // pins Onyx's own scheduling rather than anything the patch does, and the ~890 ms
+        // `visibleReportActions` figure from the production trace has no unit-level support.
+        // Re-check this case if Onyx changes how it schedules derivations.
         expect(OnyxUtils.get(TRANSACTION_A)?.amount).toBe(100);
         expect(derivedAmount()).toBe(100);
     });
