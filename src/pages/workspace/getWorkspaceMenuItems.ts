@@ -40,7 +40,9 @@ import type WithSentryLabel from '@src/types/utils/SentryLabel';
 
 import type {ValueOf} from 'type-fest';
 
-// Icons are injected instead of imported from Expensicons so the page keeps lazy-loading them and this helper remains unit-testable.
+/**
+ * Icons used by Workspace menu items. They are injected instead of imported from Expensicons so the page keeps lazy-loading them and this helper remains unit-testable.
+ */
 type WorkspaceMenuIconMap = Record<
     | 'Building'
     | 'Users'
@@ -66,8 +68,10 @@ type WorkspaceMenuIconMap = Record<
     IconAsset
 >;
 
+/** Workspace screens that can be opened from the top-level Workspace menu. */
 type WorkspaceTopLevelScreens = keyof typeof WORKSPACE_TO_RHP;
 
+/** Data needed to render and navigate from a Workspace menu item. */
 type WorkspaceMenuItem = WithSentryLabel & {
     translationKey: TranslationPaths;
     icon: IconAsset;
@@ -78,6 +82,7 @@ type WorkspaceMenuItem = WithSentryLabel & {
     highlighted?: boolean;
 };
 
+/** Inputs used to build the Workspace menu while preserving its visibility and indicator rules. */
 type GetWorkspaceMenuItemsParams = {
     policy: OnyxTypes.Policy | undefined;
     policyID: string | undefined;
