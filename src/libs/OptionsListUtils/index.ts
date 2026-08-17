@@ -1778,12 +1778,24 @@ function clearFilteredOptionListCache() {
 registerSessionCleanupCallback(() => filteredOptionListCache.clear());
 
 type CreateFilteredOptionListOptions = {
+    /** Account ID of the user viewing the option list. */
     currentUserAccountID: number;
+
+    /** Date-fns locale used when report previews include localized dates. */
     dateFnsLocale: DateFnsLocale | undefined;
+
+    /** Concierge report ID used to identify and format Concierge chats. */
     conciergeReportID: string | undefined;
+
+    /** Maximum number of recent reports to build before the user starts searching. */
     maxRecentReports?: number;
+
+    /** Whether P2P reports should be included in the option list. */
     includeP2P?: boolean;
+
+    /** Whether the option list is being built for an active search query. */
     isSearching?: boolean;
+
     /**
      * When true, personal details (contacts) are only built while searching (`isSearching`).
      * For screens whose idle/empty state shows no standalone contacts (e.g. the SearchRouter),
@@ -1791,7 +1803,11 @@ type CreateFilteredOptionListOptions = {
      * empty state (contact pickers) must leave this false.
      */
     deferContactsUntilSearch?: boolean;
+
+    /** Locale used to sort report options consistently for the viewer. */
     locale?: Locale;
+
+    /** Locale-aware formatter used for phone number display names in report and contact options. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 

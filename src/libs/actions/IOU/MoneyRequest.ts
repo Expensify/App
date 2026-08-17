@@ -268,6 +268,40 @@ function createTransaction({
     }
 }
 
+type GetMoneyRequestParticipantOptionsParams = {
+    /** Account ID of the user creating or editing the money request. */
+    currentUserAccountID: number;
+
+    /** Report used to determine the selected money request participants. */
+    report: OnyxEntry<Report>;
+
+    /** Policy used to build workspace-aware participant report options. */
+    policy: OnyxEntry<Policy>;
+
+    /** Personal details used to build participant display names and logins. */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /** Concierge report ID used when building report options that need concierge metadata. */
+    conciergeReportID: string | undefined;
+
+    /** Whether the attached report is archived, used to render archived report options correctly. */
+    privateIsArchived: boolean | undefined;
+
+    /** Derived report attributes used to resolve display names for report participants. */
+    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
+
+    /** Draft report data used as a fallback while the report has not been persisted yet. */
+    reportDraft: OnyxEntry<Report> | undefined;
+
+    /** Translation function used for participant and report option labels. */
+    translate: LocalizedTranslate;
+
+    /** Locale-aware formatter used for participant phone number display names. */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+
+    /** Date-fns locale used when report option subtitles include localized dates. */
+    dateFnsLocale: DateFnsLocale | undefined;
+};
 function getMoneyRequestParticipantOptions({
     currentUserAccountID,
     report,
@@ -280,19 +314,7 @@ function getMoneyRequestParticipantOptions({
     translate,
     formatPhoneNumber,
     dateFnsLocale,
-}: {
-    currentUserAccountID: number;
-    report: OnyxEntry<Report>;
-    policy: OnyxEntry<Policy>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    conciergeReportID: string | undefined;
-    privateIsArchived: boolean | undefined;
-    reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined;
-    reportDraft: OnyxEntry<Report> | undefined;
-    translate: LocalizedTranslate;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    dateFnsLocale: DateFnsLocale | undefined;
-}): Array<Participant | OptionData> {
+}: GetMoneyRequestParticipantOptionsParams): Array<Participant | OptionData> {
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
