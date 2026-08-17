@@ -6697,7 +6697,6 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
         return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
     }
 
-    // Video and anchor attachments carry their label between the tags, so both need matching as whole elements.
     const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
     const syncedAttachmentTag = attachmentTags.find((tag) => {
         const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
@@ -6719,13 +6718,19 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
     });
 }
 
+/** Empty parts are dropped so deleting all the text does not leave a separator above the attachment. */
+function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachmentHtml: string | undefined): string {
+    if (!uploadingAttachmentHtml) {
+        return commentHtml;
+    }
+    return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
+}
+
 /** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
 function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
     if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
         return undefined;
     }
-    // A video keeps its label between the tags, so matching only the opening one stores a truncated element that
-    // parses back to nothing, and the next edit then reads the attachment as deleted.
     const attachmentTagRegex = new RegExp(
         `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
             `|<video\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</video>` +
@@ -14479,6 +14484,7 @@ export {
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
     getUploadingAttachmentHtmlFromComment,
+    buildEditedCommentWithAttachment,
 };
 
 export type {

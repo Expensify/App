@@ -31,6 +31,7 @@ import {buildReportNameFromParticipantNames, computeReportName as computeReportN
 import type {OptionData} from '@libs/ReportUtils';
 import {
     areAllRequestsBeingSmartScanned,
+    buildEditedCommentWithAttachment,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -6471,6 +6472,22 @@ describe('ReportUtils', () => {
             expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
         });
 
+        describe('buildEditedCommentWithAttachment', () => {
+            const attachmentTag = '<video src="blob:local" data-optimistic-src="blob:local">clip.mp4</video>';
+
+            it('separates the attachment from the text that was kept', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', attachmentTag)).toBe(`Hello edited<br /><br />${attachmentTag}`);
+            });
+
+            it('leaves no separator when the edit removed all of the text', () => {
+                expect(buildEditedCommentWithAttachment('', attachmentTag)).toBe(attachmentTag);
+            });
+
+            it('returns the comment untouched when nothing is uploading', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', undefined)).toBe('Hello edited');
+            });
+        });
+
         describe('video attachments', () => {
             const videoSource = 'blob:https://dev.new.expensify.com:8082/uuid-video';
             const uploadingVideoHtml = `Hello<br /><br /><video src="${videoSource}" data-optimistic-src="${videoSource}" data-expensify-source="${videoSource}" data-name="clip.mp4">clip.mp4</video>`;
@@ -6483,8 +6500,6 @@ describe('ReportUtils', () => {
             });
 
             it('survives a second edit, because the stored element still parses back to a reference', () => {
-                // Editing twice while offline used to drop the video: the truncated element parsed to nothing,
-                // so the next draft looked like the user had deleted the attachment.
                 const storedAfterFirstEdit = `Hello edited<br /><br />${getUploadingAttachmentHtmlFromComment(uploadingVideoHtml)}`;
                 const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
 
