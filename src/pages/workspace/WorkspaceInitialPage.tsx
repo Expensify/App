@@ -261,10 +261,12 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
 
     // The Vendors row gate below reads policy.connections (via hasVendorFeature and
     // isMatchingVendorListLoaded), which is empty on a non-active workspace until a page
-    // requiring connections is opened. Prefetch it here, gated on read-access + beta so this
-    // doesn't fire an accounting-page read on every workspace visit.
+    // requiring connections is opened. Prefetch it here, gated on read-access. It can't be
+    // narrowed to vendor-capable workspaces because that answer lives in the very data being
+    // fetched. The hook already skips the fetch when the app is offline, when the workspace has
+    // no accounting connection, and when the data has already been fetched.
     const canReadVendors = canReadPolicyFeature(CONST.POLICY.POLICY_FEATURE.VENDORS);
-    usePolicyConnectionsPrefetch(policy, canReadVendors && isBetaEnabled(CONST.BETAS.VENDOR_MATCHING));
+    usePolicyConnectionsPrefetch(policy, canReadVendors);
 
     const workspaceMenuItems: WorkspaceMenuItem[] = [
         {
@@ -547,8 +549,11 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
             >
                 <HeaderWithBackButton
                     title={policyName}
+                    shouldUseHeadlineHeader
+                    titleStyles={styles.noWrap}
                     onBackButtonPress={() => Navigation.goBack(route.params?.backTo ?? ROUTES.WORKSPACES_LIST.route)}
                     policyAvatar={policyAvatar}
+                    policyAvatarSize={CONST.AVATAR_SIZE.SMALL}
                     shouldDisplayHelpButton={shouldUseNarrowLayout}
                 />
 

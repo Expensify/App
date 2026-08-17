@@ -43,7 +43,7 @@ import {canAnonymousUserAccessRoute, isAnonymousUser, signOutAndRedirectToSignIn
 import {setOnboardingErrorMessage} from './Welcome';
 
 let currentUserEmail = '';
-let currentUserAccountID = -1;
+let currentUserAccountID: number = CONST.DEFAULT_NUMBER_ID;
 // Use connectWithoutView since this is to open an external link and doesn't affect any UI
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -466,6 +466,7 @@ function openReportFromDeepLink(
     introSelected: OnyxEntry<IntroSelected>,
     isSelfTourViewed: boolean | undefined,
     betas: OnyxEntry<Beta[]>,
+    callerAccountID: number,
 ) {
     const reportID = getReportIDFromLink(url);
 
@@ -477,8 +478,7 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        // Call the OpenReport command to check in the server if it's a public room. If so, we'll open it as an anonymous user
-        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false});
+        openReport({reportID, introSelected, parentReportActionID: '0', isFromDeepLink: true, betas, hasReportActions: false, currentUserAccountID: callerAccountID});
 
         // Show the sign-in page if the app is offline
         if (getIsOffline()) {
