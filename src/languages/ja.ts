@@ -5960,6 +5960,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
             emptyCategories: {
@@ -9340,7 +9341,6 @@ ${reportName}`,
         decline: '却下',
     },
     actionableMentionTrackExpense: {
-        submit: '誰かに送信する',
         submitToFriend: '友達に送信する',
         submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',

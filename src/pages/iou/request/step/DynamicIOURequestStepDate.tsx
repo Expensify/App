@@ -8,6 +8,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDistanceRateOriginalPolicy from '@hooks/useDistanceRateOriginalPolicy';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -32,6 +33,7 @@ import {updateMoneyRequestDate} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestDateForm';
@@ -49,7 +51,7 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_DATE> & {
+type DynamicIOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE> & {
     /** Holds data related to Money Request view state, rather than the underlying Money Request data. */
     transaction: OnyxEntry<Transaction>;
 
@@ -57,13 +59,14 @@ type IOURequestStepDateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.
     report: OnyxEntry<Report>;
 };
 
-function IOURequestStepDate({
+function DynamicIOURequestStepDate({
     route: {
-        params: {action, iouType, reportID, backTo, reportActionID, transactionID},
+        params: {action, iouType, reportID, reportActionID, transactionID},
     },
     transaction,
     report,
-}: IOURequestStepDateProps) {
+}: DynamicIOURequestStepDateProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DATE.path);
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
@@ -102,11 +105,11 @@ function IOURequestStepDate({
     const shouldShowNotFound = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, transaction);
 
     const navigateBack = () => {
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const saveAndNavigateBack = () => {
-        Navigation.goBack(backTo, {shouldSkipFocusRestore: true});
+        Navigation.goBack(backPath, {shouldSkipFocusRestore: true});
     };
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_DATE_FORM>) => {
@@ -191,7 +194,7 @@ function IOURequestStepDate({
             onBackButtonPress={navigateBack}
             shouldShowNotFoundPage={shouldShowNotFound}
             shouldShowWrapper
-            testID="IOURequestStepDate"
+            testID="DynamicIOURequestStepDate"
             includeSafeAreaPaddingBottom
         >
             <FormProvider
@@ -216,8 +219,8 @@ function IOURequestStepDate({
     );
 }
 
-const IOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(IOURequestStepDate);
+const DynamicIOURequestStepDateWithFullTransactionOrNotFound = withFullTransactionOrNotFound(DynamicIOURequestStepDate);
 
-const IOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(IOURequestStepDateWithFullTransactionOrNotFound);
+const DynamicIOURequestStepDateWithWritableReportOrNotFound = withWritableReportOrNotFound(DynamicIOURequestStepDateWithFullTransactionOrNotFound);
 
-export default IOURequestStepDateWithWritableReportOrNotFound;
+export default DynamicIOURequestStepDateWithWritableReportOrNotFound;
