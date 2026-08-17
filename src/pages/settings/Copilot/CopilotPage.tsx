@@ -58,7 +58,7 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
 
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
-    const illustrations = useMemoizedLazyIllustrations(['Copilots', 'Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Copilots']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -413,7 +413,6 @@ function CopilotPage() {
                         title={translate('delegate.copilot')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Members}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                         shouldDisplayHelpButton

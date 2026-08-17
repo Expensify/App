@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useChangeTransactionsReportReports from '@hooks/useChangeTransactionsReportReports';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useOnyx from '@hooks/useOnyx';
@@ -20,7 +21,7 @@ import setNavigationActionToMicrotaskQueue from '@libs/Navigation/helpers/setNav
 import Navigation from '@libs/Navigation/Navigation';
 import {generateReportID, getPersonalDetailsForAccountID, getReportOrDraftReport, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
+import {isManualDistanceRequest as isManualDistanceRequestUtil, isOdometerDistanceRequest as isOdometerDistanceRequestUtil, isUnreportedManagedCardTransaction} from '@libs/TransactionUtils';
 
 import IOURequestEditReportCommon from '@pages/iou/request/step/IOURequestEditReportCommon';
 
@@ -39,6 +40,7 @@ type TransactionGroupListItem = ListItem & {
 
 function SearchTransactionsChangeReport() {
     const {selectedTransactions} = useSearchSelectionContext();
+    const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
     const selectedTransactionsKeys = useMemo(() => Object.keys(selectedTransactions), [selectedTransactions]);
@@ -148,6 +150,7 @@ function SearchTransactionsChangeReport() {
                 isTrackIntentUser,
                 personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                 selfDMReportActions,
+                delegateAccountID,
                 getCurrencyDecimals,
             });
             clearSelectedTransactions();
@@ -234,6 +237,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         Navigation.goBack(undefined, {afterTransition: clearSelectedTransactions});
@@ -257,6 +261,7 @@ function SearchTransactionsChangeReport() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
         clearSelectedTransactions();
@@ -267,6 +272,8 @@ function SearchTransactionsChangeReport() {
         <IOURequestEditReportCommon
             backTo={undefined}
             transactionIDs={selectedTransactionsKeys}
+            isManualDistanceRequest={transactions.some(isManualDistanceRequestUtil)}
+            isOdometerDistanceRequest={transactions.some(isOdometerDistanceRequestUtil)}
             selectedReportID={selectedReportID}
             selectReport={selectReport}
             removeFromReport={removeFromReport}
