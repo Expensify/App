@@ -1,10 +1,13 @@
 import {
-    cancelDeferredWrite,
+    abandonDeferredWrite,
     deferOrExecuteWrite,
     flushDeferredWrite,
     getOptimisticWatchKey,
-    hasDeferredWrite,
-    hasDeferredWriteForReport,
+    getRegistrationPromiseForReport,
+    isLayoutPending,
+    isLayoutPendingForReport,
+    isWritePending,
+    isWritePendingForReport,
     registerDeferredWrite,
     reserveDeferredWriteChannel,
     resetForTesting,
@@ -29,13 +32,13 @@ describe('deferredLayoutWrite', () => {
         const callback = jest.fn();
         registerDeferredWrite('test', callback);
 
-        expect(hasDeferredWrite('test')).toBe(true);
+        expect(isLayoutPending('test')).toBe(true);
         expect(callback).not.toHaveBeenCalled();
 
         flushDeferredWrite('test');
 
         expect(callback).toHaveBeenCalledTimes(1);
-        expect(hasDeferredWrite('test')).toBe(false);
+        expect(isLayoutPending('test')).toBe(false);
     });
 
     it('fires the safety timeout when not flushed', () => {
@@ -47,7 +50,7 @@ describe('deferredLayoutWrite', () => {
         jest.advanceTimersByTime(3000);
 
         expect(callback).toHaveBeenCalledTimes(1);
-        expect(hasDeferredWrite('test')).toBe(false);
+        expect(isLayoutPending('test')).toBe(false);
     });
 
     it('does not double-fire after flush + timeout', () => {
@@ -74,17 +77,27 @@ describe('deferredLayoutWrite', () => {
         expect(second).toHaveBeenCalledTimes(1);
     });
 
-    it('cancels a deferred write without executing it', () => {
+    it('abandons a reserved write without executing it', () => {
+        reserveDeferredWriteChannel('test');
+
+        abandonDeferredWrite('test');
+
+        expect(isWritePending('test')).toBe(false);
+
+        jest.advanceTimersByTime(5000);
+    });
+
+    it('does not abandon an already-registered write', () => {
         const callback = jest.fn();
         registerDeferredWrite('test', callback, {safetyTimeoutMs: 3000});
 
-        cancelDeferredWrite('test');
+        abandonDeferredWrite('test');
 
         expect(callback).not.toHaveBeenCalled();
-        expect(hasDeferredWrite('test')).toBe(false);
+        expect(isWritePending('test')).toBe(true);
 
         jest.advanceTimersByTime(3000);
-        expect(callback).not.toHaveBeenCalled();
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('returns the optimisticWatchKey when registered', () => {
@@ -96,14 +109,15 @@ describe('deferredLayoutWrite', () => {
         expect(getOptimisticWatchKey('test')).toBeUndefined();
     });
 
-    it('returns undefined for hasDeferredWrite and getOptimisticWatchKey on unknown keys', () => {
-        expect(hasDeferredWrite('unknown')).toBe(false);
+    it('returns undefined/false for unknown keys', () => {
+        expect(isLayoutPending('unknown')).toBe(false);
+        expect(isWritePending('unknown')).toBe(false);
         expect(getOptimisticWatchKey('unknown')).toBeUndefined();
     });
 
-    it('is a no-op when flushing or cancelling an unknown key', () => {
+    it('is a no-op when flushing or abandoning an unknown key', () => {
         expect(() => flushDeferredWrite('unknown')).not.toThrow();
-        expect(() => cancelDeferredWrite('unknown')).not.toThrow();
+        expect(() => abandonDeferredWrite('unknown')).not.toThrow();
     });
 
     it('flushes all pending writes when the app goes to background', () => {
@@ -120,8 +134,38 @@ describe('deferredLayoutWrite', () => {
 
         expect(callbackA).toHaveBeenCalledTimes(1);
         expect(callbackB).toHaveBeenCalledTimes(1);
-        expect(hasDeferredWrite('a')).toBe(false);
-        expect(hasDeferredWrite('b')).toBe(false);
+        expect(isWritePending('a')).toBe(false);
+        expect(isWritePending('b')).toBe(false);
+    });
+
+    it('does not abandon a still-reserved write when the app goes to background: the wait must survive a resumed rAF', async () => {
+        reserveDeferredWriteChannel('test', {destinationReportID: 'report-A'});
+        const promise = getRegistrationPromiseForReport('test', 'report-A');
+
+        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+
+        // Still reserved and still unresolved - backgrounding only pauses whatever is waiting to
+        // register (e.g. a throttled rAF), which still fires on resume. Abandoning here would
+        // resolve a submit-waiter before that write actually lands.
+        expect(isWritePending('test')).toBe(true);
+        let resolved = false;
+        void promise?.then(() => {
+            resolved = true;
+        });
+        await Promise.resolve();
+        expect(resolved).toBe(false);
+    });
+
+    it('marks flushRequested (not abandon) for a reserved write when the app goes to background', () => {
+        reserveDeferredWriteChannel('test');
+
+        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+
+        expect(isWritePending('test')).toBe(true);
+
+        const callback = jest.fn();
+        registerDeferredWrite('test', callback);
+        expect(callback).toHaveBeenCalledTimes(1);
     });
 
     it('does not flush writes when the app returns to active state', () => {
@@ -131,18 +175,18 @@ describe('deferredLayoutWrite', () => {
         (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('active');
 
         expect(callback).not.toHaveBeenCalled();
-        expect(hasDeferredWrite('test')).toBe(true);
+        expect(isLayoutPending('test')).toBe(true);
 
         flushDeferredWrite('test');
     });
 
     it('marks a reserved channel as flushRequested instead of consuming it', () => {
         reserveDeferredWriteChannel('test');
-        expect(hasDeferredWrite('test')).toBe(true);
+        expect(isLayoutPending('test')).toBe(true);
 
         flushDeferredWrite('test');
 
-        expect(hasDeferredWrite('test')).toBe(true);
+        expect(isWritePending('test')).toBe(true);
     });
 
     it('executes the real callback immediately when registering on a flush-requested reservation', () => {
@@ -153,7 +197,7 @@ describe('deferredLayoutWrite', () => {
         registerDeferredWrite('test', callback);
 
         expect(callback).toHaveBeenCalledTimes(1);
-        expect(hasDeferredWrite('test')).toBe(false);
+        expect(isWritePending('test')).toBe(false);
     });
 
     it('preserves optimisticWatchKey when flush-requested reservation is consumed', () => {
@@ -164,7 +208,7 @@ describe('deferredLayoutWrite', () => {
         registerDeferredWrite('test', callback, {optimisticWatchKey: 'transactions_123'});
 
         expect(callback).toHaveBeenCalledTimes(1);
-        expect(hasDeferredWrite('test')).toBe(false);
+        expect(isWritePending('test')).toBe(false);
         expect(getOptimisticWatchKey('test')).toBe('transactions_123');
     });
 
@@ -175,10 +219,117 @@ describe('deferredLayoutWrite', () => {
         registerDeferredWrite('test', callback);
 
         expect(callback).not.toHaveBeenCalled();
-        expect(hasDeferredWrite('test')).toBe(true);
+        expect(isLayoutPending('test')).toBe(true);
 
         flushDeferredWrite('test');
         expect(callback).toHaveBeenCalledTimes(1);
+    });
+
+    describe('single-record state machine (reserve -> stale -> register/abandon)', () => {
+        it('1. reserve, timeout, late register: still scoped, promise resolves, write queued', async () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+            const promise = getRegistrationPromiseForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A');
+            expect(promise).toBeDefined();
+
+            jest.advanceTimersByTime(5000);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+
+            const callback = jest.fn();
+            registerDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, callback, {destinationReportID: 'report-A'});
+
+            await expect(promise).resolves.toBeUndefined();
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(callback).not.toHaveBeenCalled();
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('2. reserve(A) goes stale, then reserve(B) on the same key re-arms rather than no-ops', () => {
+            reserveDeferredWriteChannel('test', {destinationReportID: 'report-A'});
+            const promiseA = getRegistrationPromiseForReport('test', 'report-A');
+            jest.advanceTimersByTime(5000);
+            expect(isLayoutPending('test')).toBe(false);
+
+            reserveDeferredWriteChannel('test', {destinationReportID: 'report-B'});
+            // Re-arm keeps the original (A's) reservation record and its registration promise -
+            // it does not silently reassign ownership to B.
+            expect(isLayoutPendingForReport('test', 'report-A')).toBe(true);
+            expect(isLayoutPendingForReport('test', 'report-B')).toBe(false);
+            expect(getRegistrationPromiseForReport('test', 'report-A')).toBe(promiseA);
+
+            // The re-armed safety timeout is a fresh 5s window, not already-expired.
+            jest.advanceTimersByTime(4999);
+            expect(isLayoutPending('test')).toBe(true);
+            jest.advanceTimersByTime(1);
+            expect(isLayoutPending('test')).toBe(false);
+        });
+
+        it('3. reserve(A), timeout, register scoped to B: B runs immediately, A untouched and still pending', () => {
+            reserveDeferredWriteChannel('test', {destinationReportID: 'report-A'});
+            jest.advanceTimersByTime(5000);
+
+            const callbackB = jest.fn();
+            registerDeferredWrite('test', callbackB, {destinationReportID: 'report-B'});
+
+            expect(callbackB).toHaveBeenCalledTimes(1);
+            expect(isWritePendingForReport('test', 'report-A')).toBe(true);
+            expect(isWritePendingForReport('test', 'report-B')).toBe(false);
+        });
+
+        it('4. reserve, timeout, deferOrExecuteWrite still routes through registerDeferredWrite', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            jest.advanceTimersByTime(5000);
+
+            const apiWrite = jest.fn();
+            deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
+
+            expect(apiWrite).not.toHaveBeenCalled();
+            flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            expect(apiWrite).toHaveBeenCalledTimes(1);
+        });
+
+        it('5. abandon after the safety timeout already ran still resolves the registration promise', async () => {
+            reserveDeferredWriteChannel('test', {destinationReportID: 'report-A'});
+            const promise = getRegistrationPromiseForReport('test', 'report-A');
+            jest.advanceTimersByTime(5000);
+
+            abandonDeferredWrite('test');
+
+            await expect(promise).resolves.toBeUndefined();
+            expect(isWritePending('test')).toBe(false);
+        });
+
+        it('6. isLayoutPending goes false after the timeout while isWritePending stays true', () => {
+            reserveDeferredWriteChannel('test');
+            jest.advanceTimersByTime(5000);
+
+            expect(isLayoutPending('test')).toBe(false);
+            expect(isWritePending('test')).toBe(true);
+        });
+
+        it('7. stale + flushRequested: late register executes immediately (span-safe latency fix)', () => {
+            reserveDeferredWriteChannel('test');
+            jest.advanceTimersByTime(5000);
+            flushDeferredWrite('test');
+
+            const callback = jest.fn();
+            registerDeferredWrite('test', callback);
+
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
+
+        it('8. stale without flushRequested: late register still defers (must NOT run immediately)', () => {
+            reserveDeferredWriteChannel('test');
+            jest.advanceTimersByTime(5000);
+
+            const callback = jest.fn();
+            registerDeferredWrite('test', callback);
+
+            expect(callback).not.toHaveBeenCalled();
+            flushDeferredWrite('test');
+            expect(callback).toHaveBeenCalledTimes(1);
+        });
     });
 
     describe('deferOrExecuteWrite', () => {
@@ -187,7 +338,7 @@ describe('deferredLayoutWrite', () => {
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: true, optimisticWatchKey: 'transactions_123'});
 
             expect(apiWrite).not.toHaveBeenCalled();
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
+            expect(isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
             expect(getOptimisticWatchKey(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe('transactions_123');
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
@@ -201,7 +352,7 @@ describe('deferredLayoutWrite', () => {
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false, optimisticWatchKey: 'transactions_456'});
 
             expect(apiWrite).not.toHaveBeenCalled();
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
+            expect(isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
             expect(apiWrite).toHaveBeenCalledTimes(1);
@@ -220,7 +371,7 @@ describe('deferredLayoutWrite', () => {
             const apiWrite = jest.fn();
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: true});
 
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
+            expect(isLayoutPending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH)).toBe(true);
             expect(apiWrite).not.toHaveBeenCalled();
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
@@ -243,7 +394,7 @@ describe('deferredLayoutWrite', () => {
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
 
             expect(apiWrite).not.toHaveBeenCalled();
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
+            expect(isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(true);
         });
     });
 
@@ -256,7 +407,7 @@ describe('deferredLayoutWrite', () => {
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
 
             expect(apiWrite).toHaveBeenCalledTimes(1);
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
+            expect(isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
         });
 
         it('reserve -> register -> flush executes on flush', () => {
@@ -271,6 +422,9 @@ describe('deferredLayoutWrite', () => {
         });
 
         it('safety timeout fires if channel is never flushed', () => {
+            // deferOrExecuteWrite immediately registers on top of the reservation here, so this
+            // exercises the registered record's own fresh safety timeout, not the reservation's -
+            // see the "stale reservation" cases above for that one.
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
 
             const apiWrite = jest.fn();
@@ -278,7 +432,7 @@ describe('deferredLayoutWrite', () => {
 
             jest.advanceTimersByTime(5000);
             expect(apiWrite).toHaveBeenCalledTimes(1);
-            expect(hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
+            expect(isWritePending(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL)).toBe(false);
         });
 
         it('second flush is a no-op after the channel was already consumed', () => {
@@ -295,39 +449,50 @@ describe('deferredLayoutWrite', () => {
         });
     });
 
-    describe('hasDeferredWriteForReport', () => {
-        it('returns false when no channel is registered', () => {
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+    describe('isLayoutPendingForReport / isWritePendingForReport', () => {
+        it('return false when no record exists', () => {
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
         });
 
-        it('returns false when reservation has no destination', () => {
+        it('return false when the reservation has no destination', () => {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-1')).toBe(false);
         });
 
-        it('returns true only when destination matches the queried report', () => {
+        it('return true only when destination matches the queried report', () => {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
 
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
         });
 
-        it('returns false when reportID arg is undefined', () => {
+        it('return false when reportID arg is undefined', () => {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, undefined)).toBe(false);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, undefined)).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, undefined)).toBe(false);
         });
 
-        it('preserves the destination across reserve -> register handoff', () => {
+        it('preserve the destination across reserve -> register handoff', () => {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
 
             const apiWrite = jest.fn();
             deferOrExecuteWrite(apiWrite, {shouldDeferForSearch: false});
 
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-B')).toBe(false);
 
             flushDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
-            expect(hasDeferredWriteForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+        });
+
+        it('isWritePendingForReport stays true after the layout goes stale', () => {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID: 'report-A'});
+            jest.advanceTimersByTime(5000);
+
+            expect(isLayoutPendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(false);
+            expect(isWritePendingForReport(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, 'report-A')).toBe(true);
         });
     });
 });
