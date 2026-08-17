@@ -19,6 +19,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import usePolicy from '@hooks/usePolicy';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -28,8 +29,8 @@ import {getBankAccountConnectionStatus, isBankAccountPartiallySetup} from '@libs
 import {getLatestErrorField} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
-import {getPersonalDetailByEmail, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {canAccessSubmitWorkspaceFeatures, isPolicyAdmin} from '@libs/PolicyUtils';
+import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
+import {isPolicyAdmin, isSubmitPolicy} from '@libs/PolicyUtils';
 import {hasInProgressVBBA} from '@libs/ReimbursementAccountUtils';
 import {getEligibleExistingBusinessBankAccounts} from '@libs/WorkflowUtils';
 
@@ -44,7 +45,7 @@ import ROUTES from '@src/ROUTES';
 import type {TupleToUnion} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback} from 'react';
 import {View} from 'react-native';
 
 import WorkflowsSectionCard from './WorkflowsSectionCard';
@@ -63,7 +64,6 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {showConfirmModal} = useConfirmModal();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const isGlobalReimbursementsBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS);
     const isGlobalReimbursementFXBetaEnabled = isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX);
     const isWalletConnectionStatusBetaEnabled = isBetaEnabled(CONST.BETAS.WALLET_CONNECTION_STATUS);
@@ -89,20 +89,18 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const {isAccountLocked} = useLockedAccountState();
     const {showLockedAccountModal} = useLockedAccountActions();
 
-    const canAccessSubmit2026Features = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
-    const canAccessWalletConnectionStatusFeatures = canAccessSubmitWorkspaceFeatures(policy, isWalletConnectionStatusBetaEnabled);
+    const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
+    const canAccessWalletConnectionStatusFeatures = isSubmitPolicyWorkspace && isWalletConnectionStatusBetaEnabled;
     const hasValidExistingAccounts = getEligibleExistingBusinessBankAccounts(bankAccountList, policy?.outputCurrency, true).length > 0;
 
     const policyReimburserEmail = policy?.achAccount?.reimburser ?? policy?.owner;
-    const displayNameForAuthorizedPayer = useMemo(
-        () =>
-            temporaryGetDisplayNameOrDefault({
-                passedPersonalDetails: getPersonalDetailByEmail(policyReimburserEmail ?? ''),
-                defaultValue: policyReimburserEmail,
-                translate,
-                formatPhoneNumber,
-            }),
-        [policyReimburserEmail, translate, formatPhoneNumber],
+    const displayNameForAuthorizedPayer = usePersonalDetailByLogin(policyReimburserEmail, (details) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: details,
+            defaultValue: policyReimburserEmail,
+            translate,
+            formatPhoneNumber,
+        }),
     );
 
     const isNonUSDWorkspace = policy?.outputCurrency !== CONST.CURRENCY.USD;
@@ -260,7 +258,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                     showReadOnlyModal();
                     return;
                 }
-                if (isEnabled && canAccessSubmit2026Features) {
+                if (isEnabled && isSubmitPolicyWorkspace) {
                     Navigation.navigate(ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.payments.alias, workflowsBackTo));
                     return;
                 }

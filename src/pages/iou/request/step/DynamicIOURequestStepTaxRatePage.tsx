@@ -13,7 +13,7 @@ import useRestartOnReceiptFailure from '@hooks/useRestartOnReceiptFailure';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {isMovingTransactionFromTrackExpense, pickReportForPolicy} from '@libs/IOUUtils';
+import {getSelectedWorkspacePolicyID, isMovingTransactionFromTrackExpense, pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {TaxRatesOption} from '@libs/TaxOptionsListUtils';
 import {calculateTaxAmount, getAmount, getCurrency, getTaxRateTitle, getTaxValue} from '@libs/TransactionUtils';
@@ -60,12 +60,12 @@ function DynamicIOURequestStepTaxRatePage({
     report,
 }: DynamicIOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
-    // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
-    const {policy} = usePolicyForTransaction({transaction, reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)), action, iouType});
+    const reportPolicyID = getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport));
+    const {policy} = usePolicyForTransaction({transaction, reportPolicyID, action, iouType});
 
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy?.id}`);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policy?.id}`);
@@ -119,6 +119,8 @@ function DynamicIOURequestStepTaxRatePage({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         };
 
         if (shouldClearTax && isEditing) {
@@ -135,11 +137,17 @@ function DynamicIOURequestStepTaxRatePage({
         const taxValue = getTaxValue(policy, currentTransaction, taxes.code) ?? '';
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-                taxCode: taxes.code,
-                taxValue,
-            });
+            setDraftSplitTransaction(
+                currentTransaction.transactionID,
+                splitDraftTransaction,
+                {
+                    taxAmount: convertToBackendAmount(taxAmount ?? 0),
+                    taxCode: taxes.code,
+                    taxValue,
+                },
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             saveAndNavigateBack();
             return;
         }

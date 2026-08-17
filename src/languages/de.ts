@@ -2156,6 +2156,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
         toGetLatestChanges: 'Für Mobilgeräte lade die neueste Version herunter und installiere sie. Für das Web aktualisiere deinen Browser.',
         newAppNotAvailable: 'Jetzt aktualisieren, und Sie werden es uns später danken.',
+        updateAvailable: 'Aktualisierung verfügbar',
+        pleaseRefresh: 'Bitte aktualisieren Sie diese Seite, um die neueste Version von Expensify zu erhalten.',
+        refreshPage: 'Seite aktualisieren',
     },
     initialSettingsPage: {
         about: 'Info',
@@ -5912,6 +5915,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             directFeed: 'Direktfeed',
             whoNeedsCardAssigned: 'Wer braucht eine zugewiesene Karte?',
             chooseTheCardholder: 'Wähle den Karteninhaber',
+            pleaseSelectACardholder: 'Bitte wähle einen Karteninhaber aus, um fortzufahren',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',
@@ -5996,6 +6000,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settlementFrequencyDescription: 'Wählen Sie, wie oft Sie den Saldo Ihrer Expensify Karte begleichen.',
             settlementFrequencyInfo:
                 'Wenn du zur monatlichen Abrechnung wechseln möchtest, musst du dein Bankkonto über Plaid verbinden und eine positive Kontohistorie der letzten 90 Tage haben.',
+            monthlySettlementDate: (date: string) => `Expensify Karten werden am ${date} jedes Monats abgerechnet.`,
             applyCashbackToBill: 'Cashback auf meine Expensify-Rechnung anwenden',
             applyCashbackToBillDescription: 'Das Cashback von der Expensify-Karte wird zur Begleichung deiner Expensify-Rechnung verwendet.',
             frequency: {
@@ -6057,6 +6062,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             deleteFailureMessage: 'Beim Löschen der Kategorie ist ein Fehler aufgetreten, bitte versuche es erneut.',
             categoryName: 'Kategoriename',
             requiresCategory: 'Mitglieder müssen alle Ausgaben kategorisieren',
+            showCategoryGLCodes: 'Sachkonten beim Kategorisieren von Ausgaben anzeigen',
             needCategoryForExportToIntegration: (connectionName: string) => `Alle Ausgaben müssen kategorisiert werden, um nach ${connectionName} exportiert zu werden.`,
             subtitle: 'Verschaffe dir einen besseren Überblick darüber, wofür Geld ausgegeben wird. Verwende unsere Standardkategorien oder füge eigene hinzu.',
             emptyCategories: {
@@ -7271,6 +7277,31 @@ Wenn du die Abrechnung für das gesamte Abonnement übernehmen willst, bitte sie
 
 ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
+            cancelText: 'Abbrechen',
+        },
+        exportDifferentCompaniesModal: {
+            title: 'Vorsicht!',
+            description: (connectionName: ConnectionName) =>
+                `Die ausgewählten Berichte sind mit verschiedenen ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden und können daher nicht zusammen exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
+            confirmText: 'Verstanden',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
+            },
+            confirmText: () => ({
+                one: `1 Bericht exportieren`,
+                other: (count: number) => `${count} Berichte exportieren`,
+            }),
             cancelText: 'Abbrechen',
         },
         upgrade: {
@@ -9092,7 +9123,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Konsolidierte Reiseabrechnung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
             has: {submittedViolation: 'Eingereichter Verstoß'},
@@ -9490,7 +9521,6 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         decline: 'Ablehnen',
     },
     actionableMentionTrackExpense: {
-        submit: 'An jemanden senden',
         submitToFriend: 'An einen Freund senden',
         submitToEmployer: 'An meinen Arbeitgeber senden',
         categorize: 'Kategorisieren',
