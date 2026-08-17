@@ -109,6 +109,7 @@ describe('DistanceRequestController', () => {
                 transactionID: 'txn1',
                 transaction,
                 policy: undefined,
+                isPolicyExpenseChat: false,
                 customUnitRateID: '',
                 routeDistanceMeters: DistanceRequestUtils.convertToDistanceInMeters(4, CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES),
                 distanceUnit: CONST.CUSTOM_UNITS.DISTANCE_UNIT_MILES,

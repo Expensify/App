@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -12,6 +12,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx/DerivedValues';
 import type {PaymentMethodType} from '@src/types/onyx/OriginalMessage';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import type {Locale as DateFnsLocale} from 'date-fns';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
@@ -50,9 +51,20 @@ import {getLoginByAccountID} from './PersonalDetailsUtils';
 import {isTaxTrackingEnabled} from './PolicyUtils';
 import {getPolicyExpenseChat, getTransactionDetails, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM, shouldEnableNegative} from './ReportUtils';
 import shouldUseDefaultExpensePolicy from './shouldUseDefaultExpensePolicy';
-import {calculateTaxAmount, getAmount, getCurrency, getDefaultTaxCode, getIsFromGlobalCreate, getTaxValue, hasReceipt, isExpenseUnreported} from './TransactionUtils';
+import {
+    calculateTaxAmount,
+    getAmount,
+    getCurrency,
+    getDefaultTaxCode,
+    getIsFromGlobalCreate,
+    getTaxValue,
+    hasReceipt,
+    isExpenseUnreported,
+    isFailedScanAmountPlaceholder,
+} from './TransactionUtils';
 
 type SubmitAmountArgs = {
+    dateFnsLocale: DateFnsLocale | undefined;
     report: OnyxEntry<OnyxTypes.Report>;
     transaction: OnyxEntry<OnyxTypes.Transaction>;
     splitDraftTransaction: OnyxEntry<OnyxTypes.Transaction>;
@@ -80,6 +92,7 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -106,6 +119,7 @@ type SubmitAmountArgs = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 /**
@@ -238,7 +252,7 @@ function buildSubmitAmountContext(args: SubmitAmountArgs): SubmitAmountContext {
 }
 
 function buildReportParticipants(args: SubmitAmountArgs) {
-    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate} = args;
+    const {report, policy, currentUserPersonalDetails, reportAttributesDerivedValue, allReportDrafts, allReportNVPs, allPersonalDetails, conciergeReportID, translate, dateFnsLocale} = args;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserPersonalDetails.accountID);
     const reportAttributesReports = reportAttributesDerivedValue?.reports;
     const reportIDToCheck = isMoneyRequestReport(report) ? report?.chatReportID : report?.reportID;
@@ -248,17 +262,10 @@ function buildReportParticipants(args: SubmitAmountArgs) {
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
             ? getParticipantsOption(participant, allPersonalDetails, translate)
-            : getReportOption(
-                  participant,
-                  privateIsArchived,
-                  policy,
-                  allPersonalDetails,
-                  conciergeReportID,
-                  reportAttributesReports,
-                  reportDraft,
-                  currentUserPersonalDetails.accountID,
+            : getReportOption(participant, privateIsArchived, policy, allPersonalDetails, conciergeReportID, reportAttributesReports, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
-              );
+                  dateFnsLocale,
+              });
     });
 }
 
@@ -325,9 +332,11 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         storedTransaction,
         policyRecentlyUsedCurrencies,
         allPersonalDetails,
+        conciergeChat,
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
@@ -364,8 +373,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -408,13 +416,13 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 existingTransaction: storedTransaction,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }
@@ -602,7 +610,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
 
     // If the value hasn't changed, don't request to save changes on the server and just close the modal
     const transactionCurrency = getCurrency(currentTransaction);
-    if (newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
+    const hasFailedScanAmountPlaceholder = isFailedScanAmountPlaceholder(currentTransaction);
+    if (!hasFailedScanAmountPlaceholder && newAmount === getAmount(currentTransaction, false, false, allowNegative, disableOppositeConversion) && selectedCurrency === transactionCurrency) {
         navigateBack();
         return;
     }

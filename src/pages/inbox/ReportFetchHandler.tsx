@@ -1,3 +1,5 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsAnonymousUser from '@hooks/useIsAnonymousUser';
 import useIsInSidePanel from '@hooks/useIsInSidePanel';
@@ -9,6 +11,7 @@ import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePrevious from '@hooks/usePrevious';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useStallLogger from '@hooks/useStallLogger';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getAllNonDeletedTransactions} from '@libs/MoneyRequestReportUtils';
@@ -96,6 +99,7 @@ function ReportFetchHandler() {
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isInSidePanel = useIsInSidePanel();
     const {accountID: currentUserAccountID, email: currentUserEmail} = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const isAnonymousUser = useIsAnonymousUser();
     const prevIsAnonymousUser = useRef(false);
     const hasCreatedLegacyThreadRef = useRef(false);
@@ -212,6 +216,7 @@ function ReportFetchHandler() {
             iouReport: report,
             iouReportAction: iouAction,
             transaction: currentReportTransactions.at(0),
+            personalDetails,
         });
     });
 
@@ -364,6 +369,22 @@ function ReportFetchHandler() {
         updateLoadingInitialReportAction(reportIDFromRoute, true);
     }, [reportIDFromRoute, reportLoadingState.hasOnceLoadedReportActions]);
 
+    // isLoadingInitialReportActions only clears via OpenReport's success/failure Onyx update (no client timeout), so
+    // a reconciliation stall that pauses the queue before that response arrives leaves the skeleton stuck with
+    // nothing else to log it. See Expensify#667674.
+    // Excluded while offline: OpenReport is legitimately queued and waiting for connectivity, not stuck.
+    // Excluded for draft-only reports (see the fetchReport bail above): openReport is never called for these by
+    // design, and nothing else sets hasOnceLoadedReportActions for them either, so they'd otherwise always false-positive.
+    // Keyed by reportIDFromRoute (not just a boolean) because this screen can be re-parameterized to a different
+    // report without unmounting (e.g. picking another report in the LHN while this one is still loading), and a
+    // plain boolean can't tell "still waiting on report A" apart from "now waiting on report B".
+    const isDraftOnlyReport = !reportOnyx?.reportID && !!reportDraftOnyx?.reportID;
+    useStallLogger(
+        isFocused && !isOffline && !isDraftOnlyReport && !!reportLoadingState.isLoadingInitialReportActions && !reportLoadingState.hasOnceLoadedReportActions ? reportIDFromRoute : false,
+        '[OpenReportStall] isLoadingInitialReportActions never cleared while the report screen was focused',
+        {reportID: reportIDFromRoute},
+    );
+
     useEffect(() => {
         // Both `Navigation.setParams` and `forceReplace` below act on the currently focused route, but this effect
         // can fire late (after a slow `OpenReport`) while this SearchReport RHP has been blurred but is still mounted.
@@ -491,12 +512,14 @@ function ReportFetchHandler() {
             betas,
             iouReport: report,
             transaction,
+            personalDetails,
         });
     }, [
         introSelected,
         currentUserEmail,
         currentUserAccountID,
         betas,
+        personalDetails,
         report,
         visibleTransactions,
         transactionThreadReport,

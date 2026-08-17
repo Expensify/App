@@ -268,12 +268,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
                     if (isManualDistance) {
                         Navigation.navigate(
-                            ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
-                                CONST.IOU.ACTION.EDIT,
-                                CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                reportID,
-                                Navigation.getActiveRoute(),
+                            createDynamicRoute(
+                                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_MANUAL.getRoute(
+                                    CONST.IOU.ACTION.EDIT,
+                                    CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                    CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                    reportID,
+                                ),
                             ),
                         );
                         return;
@@ -281,12 +282,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
 
                     initDraftSplitExpenseDataForEdit(originalTransactionDraft, splitExpenseTransactionID, reportID, CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID);
                     Navigation.navigate(
-                        ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
-                            CONST.IOU.ACTION.EDIT,
-                            CONST.IOU.TYPE.SPLIT_EXPENSE,
-                            CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
-                            reportID,
-                            Navigation.getActiveRoute(),
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(
+                                CONST.IOU.ACTION.EDIT,
+                                CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                CONST.IOU.OPTIMISTIC_DISTANCE_SPLIT_TRANSACTION_ID,
+                                reportID,
+                            ),
                         ),
                     );
                 }}
@@ -301,12 +303,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                 errorText={getErrorForField('customUnitRateID')}
                 style={[styles.moneyRequestMenuItem]}
                 onPress={() => {
-                    const rateRoute = ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(
-                        CONST.IOU.ACTION.EDIT,
-                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                        reportID,
-                        Navigation.getActiveRoute(),
+                    const rateRoute = createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE_RATE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SPLIT_EXPENSE, CONST.IOU.OPTIMISTIC_TRANSACTION_ID, reportID),
                     );
 
                     // SelfDM split whose source workspace is gone and user has no other paid workspace:
@@ -382,12 +380,13 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 numberOfLinesTitle={2}
                                 rightLabel={isCategoryRequired ? translate('common.required') : ''}
                                 onPress={() => {
-                                    const categoryRoute = ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(
-                                        CONST.IOU.ACTION.EDIT,
-                                        CONST.IOU.TYPE.SPLIT_EXPENSE,
-                                        CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
-                                        reportID,
-                                        Navigation.getActiveRoute(),
+                                    const categoryRoute = createDynamicRoute(
+                                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({
+                                            action: CONST.IOU.ACTION.EDIT,
+                                            iouType: CONST.IOU.TYPE.SPLIT_EXPENSE,
+                                            transactionID: CONST.IOU.OPTIMISTIC_TRANSACTION_ID,
+                                            reportID,
+                                        }),
                                     );
                                     if (shouldNavigateToUpgradePath) {
                                         Navigation.navigate(

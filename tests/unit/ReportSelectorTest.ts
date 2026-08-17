@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {policyChatRoomsSelector} from '@src/selectors/Report';
+import {createMoveExpenseReportNVPSelector, policyChatRoomsSelector} from '@src/selectors/Report';
 import type {Report} from '@src/types/onyx';
 
 describe('policyChatRoomsSelector', () => {
@@ -95,5 +95,35 @@ describe('policyChatRoomsSelector', () => {
         };
         const result = policyChatRoomsSelector(policyID, emptyReportNameValuePairs)(reports);
         expect(result).toEqual([policyAdmins]);
+    });
+});
+
+describe('createMoveExpenseReportNVPSelector', () => {
+    const currentReport = {reportID: '1'} as Report;
+    const outstandingReport = {reportID: '2'} as Report;
+    const nonArchivedOutstandingReport = {reportID: '3'} as Report;
+    const archivedAt = '2024-01-01';
+    const outstandingReportsByPolicyID = {
+        policy1: {
+            [`${ONYXKEYS.COLLECTION.REPORT}${outstandingReport.reportID}`]: outstandingReport,
+            [`${ONYXKEYS.COLLECTION.REPORT}${nonArchivedOutstandingReport.reportID}`]: nonArchivedOutstandingReport,
+        },
+    };
+
+    it('selects archived NVPs for current and outstanding reports only', () => {
+        const currentReportNVPKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${currentReport.reportID}`;
+        const outstandingReportNVPKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${outstandingReport.reportID}`;
+        const unrelatedReportNVPKey = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}4`;
+        const reportNameValuePairs = {
+            [currentReportNVPKey]: {private_isArchived: archivedAt},
+            [outstandingReportNVPKey]: {private_isArchived: archivedAt},
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${nonArchivedOutstandingReport.reportID}`]: {},
+            [unrelatedReportNVPKey]: {private_isArchived: archivedAt},
+        };
+
+        expect(createMoveExpenseReportNVPSelector(outstandingReportsByPolicyID, currentReport.reportID)(reportNameValuePairs)).toEqual({
+            [currentReportNVPKey]: {private_isArchived: archivedAt},
+            [outstandingReportNVPKey]: {private_isArchived: archivedAt},
+        });
     });
 });
