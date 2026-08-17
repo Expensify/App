@@ -25,7 +25,7 @@ Anyone with a personal credit card connected to their Expensify account can mana
 2. Under **Cards**:
    - Personal cards will appear in the **Personal** section. 
    - You'll see the card name, bank icon, and last 4 digits.
-   - Each card also shows a connection status of **Active** or **Inactive**, along with when it last synced (for example, **Synced 2 hours ago**, or **Never synced** if no transactions have imported yet).
+   - Each card shows a connection status of **Active** or **Inactive**, along with when it last synced.
 
 If you have both company and personal cards, you'll see them separated into **Company cards** and **Personal cards** sections.
 
@@ -81,8 +81,8 @@ When a connection breaks, Expensify can no longer import new transactions from t
 
 In the **Cards** section of your **Wallet**, each personal card shows a connection status:
 
-- **Active** — The card is connected and importing transactions. It also shows when it last synced, such as **Synced 2 hours ago**, or **Never synced** if no transactions have imported yet.
-- **Inactive** — The connection is broken and Expensify can no longer import transactions. The card shows **Please fix this connection** along with a **Fix** button you can use to reconnect it.
+- **Active** — The card is connected and importing transactions.
+- **Inactive** — The connection is broken and Expensify can no longer import transactions. 
 
 ---
 
