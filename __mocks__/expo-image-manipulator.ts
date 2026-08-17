@@ -10,4 +10,5 @@ const ImageManipulator = {
     manipulate: jest.fn(() => ({resize: jest.fn(() => mockRenderer)})),
 };
 
+// eslint-disable-next-line import/prefer-default-export -- the real package exports `ImageManipulator` by name
 export {ImageManipulator};
