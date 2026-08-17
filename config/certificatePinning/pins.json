@@ -74,24 +74,15 @@
             "notes": "Cloudflare-fronted (Group B). Live CA: Google Trust Services. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
         },
         "integrations.expensify.com": {
-            "hashes": [
-                "7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=",
-                "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="
-            ],
+            "hashes": ["7D0dEgdEKEMYRTgVwvnhJv19B4apk0QM/GPnRAKRGUs=", "AlSQhgtJirc8ahLyekmtX+Iw+v46yPYRLJt9Cq1GlB0="],
             "notes": "leaf CN=integrations.expensify.com + Let's Encrypt R13 intermediate"
         },
         "travel.expensify.com": {
-            "hashes": [
-                "Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="
-            ],
+            "hashes": ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="],
             "notes": "leaf + Google Trust Services WE1 intermediate"
         },
         "d2k5nsl2zxldvw.cloudfront.net": {
-            "hashes": [
-                "P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=",
-                "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="
-            ],
+            "hashes": ["P9HBoLji8YncXSnb0AnAm72fJO/vpmxZrsl4fvUBkxc=", "DxH4tt40L+eduF6szpY6TONlxhZhBd+pJ9wbHlQ2fuw="],
             "notes": "leaf *.cloudfront.net + Amazon RSA 2048 M01 intermediate"
         },
         "staging.expensify.com": {
@@ -140,10 +131,7 @@
             "notes": "Cloudflare-fronted (Group B). Live CA: Google Trust Services. Multi-CA root+intermediate pinning - see _cloudflareExpensifyNote."
         },
         "staging.travel.expensify.com": {
-            "hashes": [
-                "Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=",
-                "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="
-            ],
+            "hashes": ["Qb3qmTdRt/xHEN5PVtn+YhKoGqF/lhRX88cSFuSCJqM=", "kIdp6NNEd8wsugYyyIYFsi1ylMCED3hZbSR8ZFsa/A4="],
             "notes": "leaf CN=staging.travel.expensify.com + Google Trust Services WE1 intermediate"
         }
     }
