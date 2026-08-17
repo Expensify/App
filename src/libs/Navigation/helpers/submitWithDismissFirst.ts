@@ -58,6 +58,12 @@ function submitWithDismissFirst({executeWrite, destinationReportID, telemetryCon
     const shouldStayOnSearch = isSearchTopmostFullScreenRoute();
 
     if (shouldStayOnSearch) {
+        // Registration is guaranteed here without an explicit unmount/abandon path: `dismissModal`'s
+        // `afterTransition` is backed by TransitionTracker.runAfterTransitions({waitForUpcomingTransition:
+        // true}), which always fires the callback (worst case MAX_TRANSITION_START_WAIT_MS +
+        // MAX_TRANSITION_DURATION_MS, currently a 2s bound) unless something explicitly calls
+        // `.cancel()` on the transition - `dismissModal` never does. If that ever changes, this
+        // reservation needs the same kind of unmount cleanup as SubmitExpenseOrchestrator's rAF-based one.
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
         startDismissFirstTracking(telemetryContext, CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
         Navigation.dismissModal({

@@ -4,7 +4,7 @@ import useOnyx from '@hooks/useOnyx';
 import type {AfterTransition} from '@hooks/usePreMountDestination';
 
 import DateUtils from '@libs/DateUtils';
-import {cancelDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
+import {abandonDeferredWrite, flushDeferredWrite, reserveDeferredWriteChannel} from '@libs/deferredLayoutWrite';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Log from '@libs/Log';
 import isReportOpenInRHP from '@libs/Navigation/helpers/isReportOpenInRHP';
@@ -149,6 +149,21 @@ function SubmitExpenseOrchestrator({
     const [startLocationPermissionFlow, setStartLocationPermissionFlow] = useState(false);
     const confirmingSafetyTimeout = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
+    // ID of the requestAnimationFrame that handleDefaultSubmit schedules to register its SEARCH
+    // reservation's real write. Unlike this component's other handlers - which reserve immediately
+    // before a TransitionTracker-backed afterTransition guaranteed to fire within a bounded time -
+    // an rAF does not fire if the component unmounts first (React does not cancel it for you), so
+    // this is the one reservation site that can otherwise leak a permanently-reserved record AND
+    // still call createTransaction after the component (and the flow it belongs to) is gone.
+    // Cancelling the frame on unmount, not just abandoning the reservation, closes both problems.
+    //
+    // useState rather than a ref: React Compiler flags any ref mutation reached from a handler in
+    // this component (verified - even a no-op self-assignment on the pre-existing safety-timeout
+    // ref, called directly from onConfirm, trips the same "Cannot access refs during render"
+    // check). The setter calls below land in the same event tick as the existing
+    // setIsConfirming(true)/(false) calls, so React batches them - no extra render.
+    const [pendingDefaultSubmitRafId, setPendingDefaultSubmitRafId] = useState<number | undefined>(undefined);
+
     useEffect(() => {
         if (!isConfirming) {
             clearTimeout(confirmingSafetyTimeout.current);
@@ -160,6 +175,16 @@ function SubmitExpenseOrchestrator({
         confirmingSafetyTimeout.current = setTimeout(() => setIsConfirming(false), CONST.MAX_TRANSITION_DURATION_MS * 5);
         return () => clearTimeout(confirmingSafetyTimeout.current);
     }, [isConfirming]);
+
+    useEffect(() => {
+        return () => {
+            if (pendingDefaultSubmitRafId === undefined) {
+                return;
+            }
+            cancelAnimationFrame(pendingDefaultSubmitRafId);
+            abandonDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        };
+    }, [pendingDefaultSubmitRafId]);
 
     // Unified from both prop (isFromGlobalCreate) and transaction flags because
     // the transaction flags are the source of truth — the prop is derived from
@@ -216,6 +241,9 @@ function SubmitExpenseOrchestrator({
     const handleSearchPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.SEARCH_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH);
+        // Registration is guaranteed: revealPreMountDestination's afterTransition runs through the
+        // same TransitionTracker-backed, always-fires callback as dismissModal (see the fuller
+        // comment in submitWithDismissFirst.ts). No unmount cleanup needed for this reservation.
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
         revealPreMountDestination(() => {
             // shouldHandleNavigation defaults to true here (other fast paths pass false). The Search screen was
@@ -229,6 +257,8 @@ function SubmitExpenseOrchestrator({
     const handleReportPreInsert = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.REPORT_PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.PRE_INSERT, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         setPendingSubmitFollowUpAction(CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_AND_OPEN_REPORT, destinationReportID);
+        // Registration is guaranteed via revealPreMountDestination's TransitionTracker-backed
+        // afterTransition (see the fuller comment in submitWithDismissFirst.ts). No unmount cleanup needed.
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const afterTransition = () => {
@@ -245,6 +275,9 @@ function SubmitExpenseOrchestrator({
     const handleDismissModalFastPath = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DISMISS_MODAL, CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DISMISS_FIRST);
         const shouldPreserveSearchWithPlaceholder = (iouType === CONST.IOU.TYPE.SPLIT || iouType === CONST.IOU.TYPE.TRACK) && isSearchTopmostFullScreenRoute();
+        // Registration is guaranteed via dismissOnly/executeDismissModalStrategy's dismissModal
+        // afterTransition (TransitionTracker-backed - see the fuller comment in submitWithDismissFirst.ts).
+        // No unmount cleanup needed.
         reserveDeferredWriteChannel(shouldPreserveSearchWithPlaceholder ? CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH : CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL, {destinationReportID});
 
         const runAfterDismiss = () => {
@@ -276,6 +309,9 @@ function SubmitExpenseOrchestrator({
         const isSearchVisible = isSearchTopmostFullScreenRoute();
         const shouldNavigateToSearch = !isSameType || !isSearchVisible;
         setPendingSubmitFollowUpAction(shouldNavigateToSearch ? CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.NAVIGATE_TO_SEARCH : CONST.TELEMETRY.SUBMIT_FOLLOW_UP_ACTION.DISMISS_MODAL_ONLY);
+        // Registration is guaranteed via dismissWideToNewSearchType/Navigation.dismissModal's
+        // TransitionTracker-backed afterTransition (see the fuller comment in submitWithDismissFirst.ts).
+        // No unmount cleanup needed.
         reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH, {destinationReportID});
 
         const runAfterDismiss = () => {
@@ -352,12 +388,14 @@ function SubmitExpenseOrchestrator({
     const handleDefaultSubmit = (locationPermissionGranted = false) => {
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
         reserveSearchChannelIfGlobalCreate(isFromGlobalCreateForNavigation, destinationReportID);
-        requestAnimationFrame(() => {
+        const rafId = requestAnimationFrame(() => {
+            setPendingDefaultSubmitRafId(undefined);
             createTransaction(locationPermissionGranted);
             requestAnimationFrame(() => {
                 setIsConfirming(false);
             });
         });
+        setPendingDefaultSubmitRafId(rafId);
     };
 
     // The createTransaction call runs inside runAfterDismiss (after the transition completes).
@@ -398,7 +436,7 @@ function SubmitExpenseOrchestrator({
 
         Log.warn('[SubmitExpenseOrchestrator] handleReportInRHPDismiss reached without destinationReportID - falling back to default submit');
         if (isDestinationEmpty) {
-            cancelDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
+            abandonDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.DISMISS_MODAL);
         }
         handleDefaultSubmit(locationPermissionGranted);
     };
