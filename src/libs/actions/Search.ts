@@ -56,6 +56,7 @@ import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBacke
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -1181,7 +1182,30 @@ function search({
         return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
+    // A search can sit behind the whole write queue here. That wait happens before the request is dispatched, so none of the
+    // SearchData spans around the fetch can see it. The dedupe above guarantees one in-flight search per key, so the key is a safe span id.
+    const queueSpanId = `${CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE}_${dedupeKey}`;
+    startSpan(queueSpanId, {
+        name: CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE,
+        op: CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE,
+        forceTransaction: true,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: READ_COMMANDS.SEARCH,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_TYPE]: queryJSON.type,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_VIEW]: queryJSON.view,
+        },
+    });
+
+    return waitForWrites(READ_COMMANDS.SEARCH)
+        .then(() => {
+            endSpan(queueSpanId);
+            return startRequest();
+        })
+        .catch((error: unknown) => {
+            // No-op once the wait resolved and the span already ended. This only covers a rejection before that.
+            cancelSpan(queueSpanId);
+            return handleSearchError(error);
+        });
 }
 
 /**
