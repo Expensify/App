@@ -20,4 +20,10 @@ type MeasurableFont = {
  */
 type MeasureTextWidth = (text: string, font?: MeasurableFont) => number | null;
 
-export type {MeasurableFont, MeasureTextWidth};
+/**
+ * Whether this platform can measure text at all. Lets a caller skip the work of gathering text to measure on platforms
+ * where every measurement would come back `null` anyway.
+ */
+type CanMeasureText = () => boolean;
+
+export type {MeasurableFont, MeasureTextWidth, CanMeasureText};

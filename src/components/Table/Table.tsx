@@ -7,6 +7,7 @@ import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
 import {turnOnMobileSelectionMode} from '@libs/actions/MobileSelectionMode';
+import {canMeasureText} from '@libs/measureTextWidth';
 
 import CONST from '@src/CONST';
 
@@ -247,14 +248,17 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
         setTableWidth(event.nativeEvent.layout.width);
     };
 
+    // Narrow and medium layouts render as cards with no columns to size, and native can't measure text, so both keep the
+    // static tracks and never measure the table.
+    const isDynamicSizingEnabled = shouldUseDynamicColumns && !shouldUseNarrowTableLayout && canMeasureText();
+
     // Columns are sized from the full data set rather than the processed one, so the widths stay put while the user
-    // searches or filters instead of reflowing on every keystroke. Narrow layouts render as cards with no columns to
-    // size, and the measurement itself is unavailable on native, so both keep the static tracks.
+    // searches or filters instead of reflowing on every keystroke.
     const {gridTemplateColumns: dynamicGridTemplateColumns, scrollWidth: dynamicScrollWidth} = useDynamicColumnWidths<DataType, ColumnKey>({
         columns,
         data,
         tableWidth,
-        isEnabled: shouldUseDynamicColumns && !shouldUseNarrowTableLayout,
+        isEnabled: isDynamicSizingEnabled,
         // In the wide layout the checkbox column is rendered whenever selection is enabled.
         hasSelectionColumn: !!selectionEnabled,
     });
@@ -330,7 +334,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
                 columnCount={semanticColumnCount}
                 rendersBodyWhenEmpty={rendersBodyWhenEmpty}
                 scrollWidth={dynamicScrollWidth}
-                onLayout={shouldUseDynamicColumns ? handleTableLayout : undefined}
+                onLayout={isDynamicSizingEnabled ? handleTableLayout : undefined}
             >
                 {children}
             </TableSemanticContainer>

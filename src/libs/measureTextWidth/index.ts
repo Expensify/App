@@ -1,7 +1,7 @@
 import FontUtils from '@styles/utils/FontUtils';
 import variables from '@styles/variables';
 
-import type {MeasurableFont, MeasureTextWidth} from './types';
+import type {CanMeasureText, MeasurableFont, MeasureTextWidth} from './types';
 
 /**
  * Upper bound on cached measurements. Text measurement is only used to size layouts, so a coarse cap is enough to keep
@@ -78,4 +78,7 @@ const measureTextWidth: MeasureTextWidth = (text, font = {}) => {
     return width;
 };
 
+const canMeasureText: CanMeasureText = () => getMeasurementContext() !== null;
+
 export default measureTextWidth;
+export {canMeasureText};

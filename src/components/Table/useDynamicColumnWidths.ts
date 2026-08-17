@@ -1,6 +1,6 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import measureTextWidth from '@libs/measureTextWidth';
+import measureTextWidth, {canMeasureText} from '@libs/measureTextWidth';
 
 import variables from '@styles/variables';
 
@@ -130,7 +130,8 @@ function useDynamicColumnWidths<DataType extends TableData, ColumnKey extends st
     return useMemo(() => {
         const noDynamicWidths = {gridTemplateColumns: undefined, scrollWidth: undefined};
 
-        if (!isEnabled || tableWidth <= 0) {
+        // Checked before anything else, so native never walks the data to gather text that it can't measure anyway.
+        if (!isEnabled || tableWidth <= 0 || !canMeasureText()) {
             return noDynamicWidths;
         }
 
