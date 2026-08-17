@@ -144,8 +144,8 @@ describe('deferredLayoutWrite', () => {
 
         AppState.emitCurrentTestState('background');
 
-        // Still reserved and still unresolved - backgrounding only pauses whatever is waiting to
-        // register (e.g. a throttled rAF), which still fires on resume. Abandoning here would
+        // Still reserved and still unresolved - the app being backgrounded only pauses whatever is
+        // waiting to register (e.g. a throttled rAF), which still fires on resume. Abandoning here would
         // resolve a submit-waiter before that write actually lands.
         expect(isWritePending('test')).toBe(true);
         let resolved = false;

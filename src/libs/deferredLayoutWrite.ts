@@ -21,7 +21,7 @@ import type {OnyxKey} from 'react-native-onyx';
  *
  * Every reservation exits `reserved` one of three ways: registration (the real write
  * arrives), abandonment (an owning component unmounts before it could register - see
- * `abandonDeferredWrite`), or - once registered - execution. App backgrounding does NOT
+ * `abandonDeferredWrite`), or - once registered - execution. The app being backgrounded does NOT
  * abandon a reservation: it only pauses whatever is waiting to register (e.g. a throttled
  * requestAnimationFrame), which still fires on resume, so abandoning there would resolve a
  * submit-waiter before the write it is waiting for actually lands. A reservation with no
@@ -228,8 +228,8 @@ function abandonDeferredWrite(key: string) {
  * deferred write will land in, so consumers can scope their "is a write in
  * flight for THIS report?" check via `isLayoutPendingForReport` / `isWritePendingForReport`.
  *
- * Returns whether this call actually created (or re-armed) the reservation, as opposed to
- * no-opping because one already existed. Callers that plan to `abandonDeferredWrite` this key
+ * Returns whether this call actually created (or re-armed) the reservation, as opposed to being
+ * a no-op because one already existed. Callers that plan to `abandonDeferredWrite` this key
  * later (e.g. on unmount) MUST check this first - `abandonDeferredWrite` operates on the key, not
  * on a per-caller handle, so abandoning after a no-op reservation would delete a DIFFERENT
  * caller's still-live reservation instead of your own.
@@ -362,7 +362,7 @@ function getOptimisticWatchKey(key: string): OnyxKey | undefined {
 // are persisted to the SequentialQueue before the OS can kill the process.
 //
 // A still-`reserved` record is deliberately NOT abandoned here, even with no `flushRequested`:
-// backgrounding pauses (does not cancel) whatever is waiting to register the real write - a
+// the app being backgrounded pauses (does not cancel) whatever is waiting to register the real write - a
 // throttled requestAnimationFrame resumes and still fires once the app comes back to the
 // foreground. Abandoning would resolve a submit-waiter's registration promise while that write is
 // still genuinely forthcoming, so it would land its API.write() *after* SUBMIT_REPORT once the
