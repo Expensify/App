@@ -2,6 +2,7 @@ import SidePanelActions from '@libs/actions/SidePanel';
 import {setOnboardingRHPVariant} from '@libs/actions/Welcome';
 import {navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
 import Navigation from '@libs/Navigation/Navigation';
+import {clearPendingConciergeDeepLink, setPendingConciergeDeepLink} from '@libs/PendingConciergeDeepLink';
 import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
@@ -34,6 +35,7 @@ const navigationMock = jest.mocked(Navigation);
 describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        clearPendingConciergeDeepLink();
     });
 
     it('navigates to HOME without opening the side panel when policyID is missing', () => {
@@ -66,5 +68,17 @@ describe('navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue', () => {
         expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         expect(setOnboardingRHPVariant).toHaveBeenCalledWith(CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
         expect(SidePanelActions.openSidePanel).toHaveBeenCalledWith(false);
+    });
+
+    it('navigates to Concierge when Submit onboarding started from a pending Concierge deep link', () => {
+        setPendingConciergeDeepLink();
+
+        navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue('test-policy-id', false, 'concierge-report-id');
+
+        expect(navigationMock.dismissModal).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledTimes(1);
+        expect(navigationMock.navigate).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute('concierge-report-id'));
+        expect(setOnboardingRHPVariant).not.toHaveBeenCalled();
+        expect(SidePanelActions.openSidePanel).not.toHaveBeenCalled();
     });
 });

@@ -104,7 +104,7 @@ function BaseOnboardingWorkspaces({route, shouldUseNativeStyles}: BaseOnboarding
         setOnboardingPolicyID(policy.policyID);
 
         if (shouldUseSubmitFlow) {
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policy.policyID, shouldUseNarrowLayout, conciergeReportID);
             return;
         }
 

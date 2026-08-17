@@ -126,7 +126,7 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID);
         },
         [
             currentUserEmail,
@@ -148,6 +148,7 @@ function useAutoCreateSubmitWorkspace() {
             hasActiveAdminPolicies,
             shouldUseNarrowLayout,
             conciergeChat,
+            conciergeReportID,
         ],
     );
 

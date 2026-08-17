@@ -153,8 +153,14 @@ function navigateAfterOnboardingWithMicrotaskQueue(
  * After creating or joining a Submit workspace during onboarding, navigate to Spend > Expenses
  * with the side panel open so the #admins room is visible in Concierge Anywhere.
  */
-function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
     setDisableDismissOnEscape(false);
+
+    if (consumePendingConciergeDeepLink()) {
+        const pendingConciergeRoute: Route = conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : ROUTES.CONCIERGE;
+        Navigation.navigate(pendingConciergeRoute);
+        return;
+    }
 
     if (!policyID) {
         Navigation.navigate(ROUTES.HOME);
@@ -166,10 +172,10 @@ function navigateToSubmitWorkspaceAfterOnboarding(policyID?: string, shouldUseNa
     SidePanelActions.openSidePanel(!shouldUseNarrowLayout);
 }
 
-function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false) {
+function navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyID?: string, shouldUseNarrowLayout = false, conciergeReportID?: string) {
     dismissOnboardingModalBeforeExit();
     Navigation.setNavigationActionToMicrotaskQueue(() => {
-        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout);
+        navigateToSubmitWorkspaceAfterOnboarding(policyID, shouldUseNarrowLayout, conciergeReportID);
     });
 }
 
