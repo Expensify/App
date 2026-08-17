@@ -3,6 +3,7 @@ import {handleRHPVariantNavigation, shouldOpenRHPVariant} from '@components/Side
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
 import type {OnboardingRHPVariant, ReportNameValuePairs} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -83,7 +84,8 @@ function navigateAfterOnboarding(
     // A pending /concierge signup deep link should win before onboarding variants or workspace/admin fallbacks choose their standard destinations.
     if (consumePendingConciergeDeepLink()) {
         setDisableDismissOnEscape(false);
-        Navigation.navigate(conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : (ROUTES.CONCIERGE as Route), navigationOptions);
+        const pendingConciergeRoute: Route = conciergeReportID ? ROUTES.REPORT_WITH_ID.getRoute(conciergeReportID) : ROUTES.CONCIERGE;
+        Navigation.navigate(pendingConciergeRoute, navigationOptions);
         return;
     }
 
