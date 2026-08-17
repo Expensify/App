@@ -201,11 +201,15 @@ function BaseSelectionListWithSectionsImpl({
     const syncedSearchValue = searchValueForFocusSync ?? textInputOptions?.value;
 
     // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
-    // built-in `showButton` confirm button, or a custom `footerContent` whose owner has declared an enabled confirm via
-    // `confirmButtonOptions.isDisabled === false`. A bare `footerContent` node is opaque (it may hold no Enter handler,
-    // e.g. a referral CTA), so its presence alone must NOT be treated as taking over Enter.
+    // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
+    // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
+    // we treat its confirm as enabled only when the owner explicitly marks it (`isDisabled === false`) or, when the owner
+    // declares no disabled state, when at least one item is selected — the condition under which these footer confirm
+    // buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant selectors, ...).
+    const hasSelectedItems = selectedItems.length > 0;
+    const isCustomFooterConfirmEnabled = confirmButtonOptions?.isDisabled === undefined ? hasSelectedItems : !confirmButtonOptions?.isDisabled;
     const hasEnabledEnterConfirm =
-        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && confirmButtonOptions?.isDisabled === false);
+        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 
     useSelectionListShortcuts({
         selectFocusedItem,

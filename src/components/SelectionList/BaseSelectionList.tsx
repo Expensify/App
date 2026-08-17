@@ -129,13 +129,6 @@ function BaseSelectionListImpl({
 
     const hasFooter = !!footerContent || confirmButtonOptions?.showButton;
 
-    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
-    // built-in `showButton` confirm button, or a custom `footerContent` whose owner has declared an enabled confirm via
-    // `confirmButtonOptions.isDisabled === false`. A bare `footerContent` node is opaque (it may hold no Enter handler,
-    // e.g. a referral CTA), so its presence alone must NOT be treated as taking over Enter.
-    const hasEnabledEnterConfirm =
-        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && confirmButtonOptions?.isDisabled === false);
-
     const dataDetails = useMemo<DataDetailsType<ListItem>>(() => {
         const {disabledIndexes, disabledArrowKeyIndexes, selectedOptions, disabledSelectedIndexes} = data.reduce(
             (acc: {disabledIndexes: number[]; disabledArrowKeyIndexes: number[]; selectedOptions: ListItem[]; disabledSelectedIndexes: number[]}, item: ListItem, index: number) => {
@@ -174,6 +167,17 @@ function BaseSelectionListImpl({
 
         return {data, allSelected, someSelected, selectedOptions, disabledIndexes, disabledArrowKeyIndexes};
     }, [canSelectMultiple, data, isDisabled, isItemSelected]);
+
+    // Whether an actually Enter-capable, enabled confirm control will take plain Enter instead of the list: either the
+    // built-in `showButton` confirm button (enabled unless `isDisabled`), or a custom `footerContent` that declares a
+    // confirm via `onConfirm`. A `footerContent` node is opaque (it may hold no Enter handler, e.g. a referral CTA), so
+    // we treat its confirm as enabled only when the owner explicitly marks it (`isDisabled === false`) or, when the owner
+    // declares no disabled state, when at least one item is selected — the condition under which these footer confirm
+    // buttons render/enable across the invite pickers (NewChatPage, WorkspaceInvite, attendee/participant selectors, ...).
+    const hasSelectedItems = dataDetails.selectedOptions.length > 0;
+    const isCustomFooterConfirmEnabled = confirmButtonOptions?.isDisabled === undefined ? hasSelectedItems : !confirmButtonOptions?.isDisabled;
+    const hasEnabledEnterConfirm =
+        (!!confirmButtonOptions?.showButton && !confirmButtonOptions?.isDisabled) || (!!footerContent && !!confirmButtonOptions?.onConfirm && isCustomFooterConfirmEnabled);
 
     const {focusedIndex, setFocusedIndex, isKeyboardNavigating, setHasKeyBeenPressed} = useSelectionListKeyboardFocus({
         initialFocusedIndex,
