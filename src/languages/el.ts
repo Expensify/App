@@ -6038,6 +6038,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             directFeed: 'Άμεση ροή',
             whoNeedsCardAssigned: 'Ποιος χρειάζεται να του ανατεθεί κάρτα;',
             chooseTheCardholder: 'Επιλέξτε τον κατόχο κάρτας',
+            pleaseSelectACardholder: 'Παρακαλώ επιλέξτε έναν κάτοχο κάρτας για να συνεχίσετε',
             chooseCard: 'Επιλέξτε μια κάρτα',
             chooseCardFor: (assignee: string) =>
                 `Επιλέξτε μια κάρτα για τον/την <strong>${assignee}</strong>. Δεν μπορείτε να βρείτε την κάρτα που αναζητάτε; <concierge-link>Ενημερώστε μας.</concierge-link>`,
