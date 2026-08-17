@@ -11,6 +11,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import type {OnboardingModalNavigatorParamList} from '@navigation/types';
 
@@ -257,7 +258,7 @@ describe('OnboardingPersonalDetails Page', () => {
         });
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         });
 
         unmount();
