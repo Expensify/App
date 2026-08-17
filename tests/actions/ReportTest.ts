@@ -7945,7 +7945,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with a participant that doesn't have an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -7991,7 +7999,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with the participant that has an existing chat
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was NOT called since the chat already exists
@@ -8029,7 +8045,17 @@ describe('actions/Report', () => {
 
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, false, true);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+                shouldRevalidateExistingChat: true,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -8056,7 +8082,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN, isInviteOnboardingComplete: false};
 
             // When navigateToAndOpenReport is called with introSelected
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called (new chat created)
@@ -8086,7 +8120,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, undefined, false);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+            });
             await waitForBatchedUpdates();
 
             // Then verify navigation was called
@@ -8112,7 +8155,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, true, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -8141,7 +8192,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=undefined
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, undefined, undefined, undefined);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: undefined,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -8170,7 +8229,16 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
 
             // When navigateToAndOpenReport is called with isSelfTourViewed=true and shouldDismissModal=false
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, true, undefined, undefined, false);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: true,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: undefined,
+                shouldDismissModal: false,
+            });
             await waitForBatchedUpdates();
 
             // Then verify OpenReport API was called
@@ -8199,7 +8267,15 @@ describe('actions/Report', () => {
             const testIntroSelected: OnyxTypes.IntroSelected = {choice: CONST.ONBOARDING_CHOICES.ADMIN};
             const testBetas = [CONST.BETAS.ALL];
 
-            Report.navigateToAndOpenReport([PARTICIPANT_LOGIN], {}, TEST_USER_ACCOUNT_ID, testIntroSelected, false, undefined, testBetas);
+            Report.navigateToAndOpenReport({
+                userLogins: [PARTICIPANT_LOGIN],
+                personalDetails: {},
+                currentUserAccountID: TEST_USER_ACCOUNT_ID,
+                introSelected: testIntroSelected,
+                isSelfTourViewed: false,
+                hasCompletedGuidedSetupFlow: undefined,
+                betas: testBetas,
+            });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
@@ -9658,6 +9734,9 @@ describe('actions/Report', () => {
             },
         });
 
+        const sourceReport1Actions = {someAction: createRandomReportAction(203)};
+        const sourceReport2Actions = {someAction: createRandomReportAction(204)};
+
         const transaction1 = createMock<OnyxTypes.Transaction>({
             ...createRandomTransaction(0),
             transactionID: TRANSACTION_1_ID,
@@ -9691,12 +9770,8 @@ describe('actions/Report', () => {
                 [REPORT_PREVIEW_ACTION_1_ID]: reportPreviewAction1,
                 [REPORT_PREVIEW_ACTION_2_ID]: reportPreviewAction2,
             });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`, {
-                someAction: createRandomReportAction(203),
-            });
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`, {
-                someAction: createRandomReportAction(204),
-            });
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_1_ID}`, sourceReport1Actions);
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SOURCE_REPORT_2_ID}`, sourceReport2Actions);
             await waitForBatchedUpdates();
 
             mockFetch = TestHelper.createGlobalFetchMock();
@@ -9725,6 +9800,14 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+                },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
                 },
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
@@ -9795,6 +9878,14 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
                 },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
+                },
                 bankAccountList: undefined,
                 isTrackIntentUser: false,
                 personalPolicyOutputCurrency: undefined,
@@ -9852,6 +9943,14 @@ describe('actions/Report', () => {
                     [`${ONYXKEYS.COLLECTION.REPORT}${DESTINATION_REPORT_ID}`]: destinationReport,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_1_ID}`]: sourceReport1,
                     [`${ONYXKEYS.COLLECTION.REPORT}${SOURCE_REPORT_2_ID}`]: sourceReport2,
+                },
+                sourceReportActions: {
+                    [SOURCE_REPORT_1_ID]: sourceReport1Actions,
+                    [SOURCE_REPORT_2_ID]: sourceReport2Actions,
+                },
+                sourceParentReportActions: {
+                    [SOURCE_REPORT_1_ID]: reportPreviewAction1,
+                    [SOURCE_REPORT_2_ID]: reportPreviewAction2,
                 },
                 hash: SNAPSHOT_HASH,
                 bankAccountList: undefined,
