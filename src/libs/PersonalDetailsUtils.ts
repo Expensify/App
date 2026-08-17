@@ -15,7 +15,6 @@ import {Str} from 'expensify-common';
 import Onyx from 'react-native-onyx';
 
 import {getCountryCode} from './CountryUtils';
-import {translateLocal} from './Localize';
 import {areEmailsFromSamePrivateDomain} from './LoginUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from './PhoneNumber';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -44,69 +43,7 @@ Onyx.connect({
     },
 });
 
-let hiddenTranslation = '';
-let youTranslation = '';
-
-Onyx.connect({
-    key: ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
-    callback: (value) => {
-        if (value ?? true) {
-            return;
-        }
-        hiddenTranslation = translateLocal('common.hidden');
-        youTranslation = translateLocal('common.you').toLowerCase();
-    },
-});
-
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
-
-function getDisplayNameOrDefault(
-    passedPersonalDetails?: Partial<PersonalDetails> | null,
-    defaultValue = '',
-    shouldFallbackToHidden = true,
-    shouldAddCurrentUserPostfix = false,
-    youAfterTranslation = youTranslation,
-): string {
-    let displayName = passedPersonalDetails?.displayName ?? '';
-
-    let login = passedPersonalDetails?.login ?? '';
-
-    // If the displayName starts with the merged account prefix, remove it.
-    if (regexMergedAccount.test(displayName)) {
-        // Remove the merged account prefix from the displayName.
-        displayName = displayName.replaceAll(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
-    }
-
-    // If the displayName is not set by the user, the backend sets the displayName same as the login so
-    // we need to remove the sms domain from the displayName if it is an sms login.
-    if (Str.isSMSLogin(login)) {
-        if (displayName === login) {
-            displayName = Str.removeSMSDomain(displayName);
-        }
-        login = Str.removeSMSDomain(login);
-    }
-
-    if (shouldAddCurrentUserPostfix && !!displayName) {
-        displayName = `${displayName} (${youAfterTranslation})`;
-    }
-
-    if (passedPersonalDetails?.accountID === CONST.ACCOUNT_ID.CONCIERGE) {
-        displayName = CONST.CONCIERGE_DISPLAY_NAME;
-    }
-
-    if (displayName) {
-        return displayName;
-    }
-
-    if (defaultValue) {
-        return defaultValue;
-    }
-
-    if (login) {
-        return login;
-    }
-    return shouldFallbackToHidden ? hiddenTranslation : '';
-}
 
 function temporaryGetDisplayNameOrDefault({
     passedPersonalDetails,
@@ -114,21 +51,21 @@ function temporaryGetDisplayNameOrDefault({
     shouldFallbackToHidden = true,
     shouldAddCurrentUserPostfix = false,
     youAfterTranslation,
+    hiddenAfterTranslation,
     translate,
     formatPhoneNumber,
-    hiddenTranslation: hiddenTranslationOverride,
 }: {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
     shouldFallbackToHidden?: boolean;
     shouldAddCurrentUserPostfix?: boolean;
     youAfterTranslation?: string;
+    hiddenAfterTranslation?: string;
     translate?: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    hiddenTranslation?: string;
 }): string {
-    const temporaryHiddenTranslation = hiddenTranslationOverride ?? translate?.('common.hidden') ?? hiddenTranslation;
-    const temporaryYouTranslation = translate?.('common.you').toLowerCase() ?? youTranslation;
+    const temporaryHiddenTranslation = hiddenAfterTranslation ?? translate?.('common.hidden') ?? '';
+    const temporaryYouTranslation = translate?.('common.you').toLowerCase();
     let displayName = passedPersonalDetails?.displayName ?? '';
 
     const login = passedPersonalDetails?.login ?? '';
@@ -579,7 +516,6 @@ function areTravelPersonalDetailsMissing(privatePersonalDetails: OnyxEntry<Priva
 }
 
 export {
-    getDisplayNameOrDefault,
     getPersonalDetailsByID,
     getPersonalDetailsByIDs,
     getParticipantsPersonalDetails,

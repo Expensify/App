@@ -3622,7 +3622,7 @@ function getDisplayNameForParticipant({
         shouldFallbackToHidden,
         shouldAddCurrentUserPostfix: shouldAddPostfix,
         youAfterTranslation: youTranslation,
-        hiddenTranslation: resolvedHiddenTranslation,
+        hiddenAfterTranslation: resolvedHiddenTranslation,
         formatPhoneNumber,
     });
 
