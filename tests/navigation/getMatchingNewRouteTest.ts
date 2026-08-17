@@ -552,4 +552,27 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/123/duplicates/review/merchant')).toBe('/r/123/merchant/123');
         expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
     });
+
+    it('redirects the legacy money request distance steps to the new dynamic routes (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/distance/123/456')).toBe('/r/456/expense-distance?action=edit&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/distance-manual/123/456')).toBe('/r/456/expense-distance-manual?action=edit&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/distanceRate/123/456')).toBe('/r/456/expense-distance-rate?action=edit&iouType=submit&transactionID=123&reportID=456');
+    });
+
+    it('preserves the optional reportActionID segment and the legacy query in the distance redirects (#83851)', () => {
+        expect(getMatchingNewRoute('/edit/submit/distance/123/456/789')).toBe('/r/456/expense-distance?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789');
+        expect(getMatchingNewRoute('/edit/submit/distance-manual/123/456/789')).toBe(
+            '/r/456/expense-distance-manual?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789',
+        );
+        expect(getMatchingNewRoute('/edit/submit/distanceRate/123/456/789')).toBe(
+            '/r/456/expense-distance-rate?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789',
+        );
+        expect(getMatchingNewRoute('/edit/submit/distance/123/456')).toBe('/r/456/expense-distance?action=edit&iouType=submit&transactionID=123&reportID=456');
+    });
+
+    it('does not redirect the already-migrated money request distance dynamic routes (#83851)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-distance?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-distance-manual?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-distance-rate?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+    });
 });
