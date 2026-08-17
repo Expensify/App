@@ -8,6 +8,7 @@ import {isReportActionEntry} from '@libs/SearchUIUtils';
 import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActions, SearchResults, Transaction} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';

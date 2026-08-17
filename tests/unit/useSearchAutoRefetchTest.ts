@@ -315,7 +315,7 @@ describe('useSearchAutoRefetch', () => {
 
     it('should trigger search when a transaction moves into a report the results display', () => {
         const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
-        const initialProps = createMock<UseSearchHighlightAndScroll>({
+        const initialProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
             searchResults: {
                 ...baseProps.searchResults,
@@ -327,11 +327,11 @@ describe('useSearchAutoRefetch', () => {
             previousTransactions: {transactions_99: movedTransaction},
         });
 
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
             initialProps,
         });
 
-        const updatedProps = createMock<UseSearchHighlightAndScroll>({
+        const updatedProps = createMock<UseSearchAutoRefetch>({
             ...initialProps,
             transactions: {transactions_99: {transactionID: '99', reportID: '2'}},
         });
@@ -342,7 +342,7 @@ describe('useSearchAutoRefetch', () => {
 
     it('should not trigger search when a transaction moves between reports the results do not display', () => {
         const movedTransaction = createMock<Transaction>({transactionID: '99', reportID: '5'});
-        const initialProps = createMock<UseSearchHighlightAndScroll>({
+        const initialProps = createMock<UseSearchAutoRefetch>({
             ...baseProps,
             searchResults: {
                 ...baseProps.searchResults,
@@ -354,11 +354,11 @@ describe('useSearchAutoRefetch', () => {
             previousTransactions: {transactions_99: movedTransaction},
         });
 
-        const {rerender} = renderHook((props: UseSearchHighlightAndScroll) => useSearchHighlightAndScroll(props), {
+        const {rerender} = renderHook((props: UseSearchAutoRefetch) => useSearchAutoRefetch(props), {
             initialProps,
         });
 
-        const updatedProps = createMock<UseSearchHighlightAndScroll>({
+        const updatedProps = createMock<UseSearchAutoRefetch>({
             ...initialProps,
             transactions: {transactions_99: {transactionID: '99', reportID: '7'}},
         });
