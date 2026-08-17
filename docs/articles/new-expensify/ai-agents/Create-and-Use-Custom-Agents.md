@@ -1,7 +1,7 @@
 ---
 title: Create and Use Agents
 description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, new expensify]
+keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, agent copilot permissions, agent edit expenses, agent edit access, new expensify]
 internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
 ---
 
@@ -235,6 +235,20 @@ On Collect plans, workspaces support a single approver. An agent can be used as 
 ## Is an agent added as a Copilot on my own account?
 
 Yes. When you create an agent, it's automatically added as a full-access Copilot on your own account, giving it delegated access to your personal context so it can manage your expenses and reports on your behalf. You don't need to add it by hand. You can review or remove this access at any time in the **Copilot: Delegated Access** section under **Account > Security**. [Learn how to manage Copilot access](/articles/new-expensify/settings/Manage-Copilot-Access).
+
+## What can an agent do as a Copilot on my account?
+
+A Copilot agent acts with the same permissions you have. It can view, create, and edit your expenses, submit and manage your reports, and look up your expense data. Every action it takes is recorded as yours, marked "via Copilot", so there is a full audit trail.
+
+You don't need to grant the agent any special edit access, and you don't need to add it as an approver for it to manage your own expenses — its full-access Copilot role already covers that. Adding an agent as an approver is only for reviewing reports that other members submit to it through an approval workflow.
+
+A few limits apply to everyone, no matter who is editing:
+
+- The amount of a company card transaction can't be changed — it comes from the card feed.
+- The amount and date of an expense can't be changed once its report is Approved or Reimbursed.
+- Editing another member's expenses is only possible when you (the account the agent acts for) have admin or approver authority over that member's report.
+
+If an agent says it can't make a specific change, one of these locks is the reason — not a missing permission on the agent.
 
 ## Why does the Security page look different when I Copilot into an agent?
 
