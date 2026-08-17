@@ -23,7 +23,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
 import useExpensifyCardFeeds from '@hooks/useExpensifyCardFeeds';
 import useHasReusablePoliciesConnectedTo from '@hooks/useHasReusablePoliciesConnectedTo';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -55,7 +55,6 @@ import {
     settingsPendingAction,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import Navigation from '@navigation/Navigation';
 
@@ -123,7 +122,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
     const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'DualEntrySquare']);
-    const illustrations = useMemoizedLazyIllustrations(['Accounting']);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
@@ -442,7 +440,7 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                           brickRoadIndicator: policy?.connections?.dualEntry?.config.errorFields?.subsidiaryID ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
                           onPress:
                               policyID && canWriteAccounting && dualEntryCompanyList && dualEntryCompanyList.length > 1
-                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_COMPANY_SELECTOR.getRoute(policyID))
+                                  ? () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_SUBSIDIARY_SELECTOR.getRoute(policyID))
                                   : undefined,
                       };
 
@@ -642,18 +640,9 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
               ]
             : [];
 
-        const syncActivityReasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'PolicyAccountingPage.connectionsMenuItems',
-            isSyncInProgress,
-        };
         let rightComponent;
         if (isSyncInProgress) {
-            rightComponent = (
-                <ActivityIndicator
-                    style={[styles.popoverMenuIcon]}
-                    reasonAttributes={syncActivityReasonAttributes}
-                />
-            );
+            rightComponent = <ActivityIndicator style={[styles.popoverMenuIcon]} />;
         } else if (canWriteAccounting) {
             rightComponent = (
                 <ThreeDotsMenu
@@ -866,7 +855,6 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
                 <HeaderWithBackButton
                     title={translate('workspace.common.accounting')}
                     shouldShowBackButton={shouldUseNarrowLayout}
-                    icon={illustrations.Accounting}
                     shouldUseHeadlineHeader
                     shouldDisplayHelpButton
                     onBackButtonPress={Navigation.goBack}

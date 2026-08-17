@@ -56,8 +56,8 @@ function SearchRouterContextProvider({children}: ChildrenProps) {
     const searchRouterDisplayedRef = useRef(false);
 
     // Registers a browser-history entry when the SearchRouter is open, so browser Back closes it
-    // and browser Forward (after Back) reopens it. Uses the same sentinel mechanism as other modals
-    // rather than direct window.history calls, avoiding misalignment with other sentinel-tracked overlays.
+    // and browser Forward (after Back) reopens it. Uses the same back-guard mechanism as other modals
+    // rather than direct window.history calls, avoiding misalignment with other guard-tracked overlays.
     useSyncModalWithHistory({
         isVisible: isSearchRouterDisplayed,
         shouldHandleNavigationBack: true,

@@ -17,7 +17,6 @@ import {validTransactionDraftIDsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 import {Keyboard} from 'react-native';
 
-import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDefaultParticipants from './useDefaultParticipants';
 import useOdometerDraftHydrator from './useOdometerDraftHydrator';
 import useOnyx from './useOnyx';
@@ -84,7 +83,6 @@ function useResetIOUType({
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
 
     const personalPolicy = usePersonalPolicy();
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     const hydrateOdometerOnLanding = useOdometerDraftHydrator({
         transaction,
@@ -135,7 +133,6 @@ function useResetIOUType({
             parentReport,
             currentDate,
             lastSelectedDistanceRates,
-            currentUserPersonalDetails,
             hasOnlyPersonalPolicies: hasOnlyPersonalPolicies ?? true,
             draftTransactionIDs,
             defaultParticipants: isSelfDMDefault ? undefined : defaultParticipants,
