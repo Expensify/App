@@ -15,6 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import OpenWorkspacePlanPage from '@libs/actions/Policy/Plan';
+import DateUtils from '@libs/DateUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {isSubmitPolicy} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -29,7 +30,6 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import type {ValueOf} from 'type-fest';
 
-import {format} from 'date-fns';
 import React, {useEffect, useState} from 'react';
 import {View} from 'react-native';
 
@@ -48,7 +48,7 @@ type WorkspacePlanTypeItem = {
 function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const [currentPlan, setCurrentPlan] = useState(policy?.type);
     const policyID = policy?.id;
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
     const privateSubscription = usePrivateSubscription();
@@ -90,7 +90,9 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
 
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
-    const autoRenewalDate = privateSubscription?.endDate ? format(privateSubscription.endDate, CONST.DATE.MONTH_DAY_YEAR_ORDINAL_FORMAT) : CardSectionUtils.getNextBillingDate();
+    const autoRenewalDate = privateSubscription?.endDate
+        ? DateUtils.formatIntl(preferredLocale, 'LONG_DATE', new Date(privateSubscription.endDate))
+        : CardSectionUtils.getNextBillingDate(preferredLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */
     const isPlanTypeLocked = isControl && isAnnual && !policy.canDowngrade;
@@ -144,10 +146,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
                 <HeaderWithBackButton title={translate('workspace.common.planType')} />
                 {policy?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'WorkspaceOverviewPlanTypePage'}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <>

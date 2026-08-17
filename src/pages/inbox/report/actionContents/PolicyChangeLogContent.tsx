@@ -43,6 +43,8 @@ import {
     getRemovedConnectionMessage,
     getRenamedCardFeedMessage,
     getRequireCompanyCardsEnabledMessage,
+    getRequiresCategoryMessage,
+    getRequiresTagMessage,
     getSetAutoJoinMessage,
     getSubmitsToUpdateMessage,
     getTagListNameUpdatedMessage,
@@ -95,6 +97,7 @@ import ReportActionItemBasicMessage from '@pages/inbox/report/ReportActionItemBa
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
@@ -107,6 +110,7 @@ type ResolverFn = (
     action: OnyxTypes.ReportAction,
     policy: OnyxEntry<OnyxTypes.Policy>,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
+    preferredLocale: Locale,
 ) => PolicyChangeLogMessageResult;
 
 // Reusable resolvers for action types that share the same handler
@@ -147,18 +151,23 @@ const POLICY_CHANGE_LOG_RESOLVERS: Record<string, ResolverFn> = {
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FOREIGN_CURRENCY_DEFAULT_TAX]: (translate, action) => getForeignCurrencyDefaultTaxUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT]: (translate, action) => getWorkspaceCustomUnitUpdatedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.IMPORT_CUSTOM_UNIT_RATES]: (translate, action) => getWorkspaceCustomUnitRateImportedMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateAddedMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateUpdatedMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_CUSTOM_UNIT_RATE]: (translate, action, _policy, _convertToDisplayString, preferredLocale) =>
+        getWorkspaceCustomUnitRateAddedMessage(translate, preferredLocale, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_RATE]: (translate, action, _policy, _convertToDisplayString, preferredLocale) =>
+        getWorkspaceCustomUnitRateUpdatedMessage(translate, preferredLocale, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_RATE]: (translate, action) => getWorkspaceCustomUnitRateDeletedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CUSTOM_UNIT_SUB_RATE]: (translate, action) => getWorkspaceCustomUnitSubRateUpdatedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_CUSTOM_UNIT_SUB_RATE]: (translate, action) => getWorkspaceCustomUnitSubRateDeletedMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_REPORT_FIELD]: (translate, action) => getWorkspaceReportFieldAddMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REPORT_FIELD]: (translate, action) => getWorkspaceReportFieldUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_REPORT_FIELD]: (translate, action) => getWorkspaceReportFieldDeleteMessage(translate, action),
-    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD]: (translate, action) => getWorkspaceUpdateFieldMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FIELD]: (translate, action, _policy, _convertToDisplayString, preferredLocale) =>
+        getWorkspaceUpdateFieldMessage(translate, preferredLocale, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FEATURE_ENABLED]: (translate, action) => getWorkspaceFeatureEnabledMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_IS_ATTENDEE_TRACKING_ENABLED]: (translate, action) => getWorkspaceAttendeeTrackingUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRE_COMPANY_CARDS_ENABLED]: (translate, action) => getRequireCompanyCardsEnabledMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_CATEGORY]: (translate, action) => getRequiresCategoryMessage(translate, action),
+    [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG]: (translate, action) => getRequiresTagMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_DEFAULT_APPROVER]: (translate, action) => getDefaultApproverUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_SUBMITS_TO]: (translate, action) => getSubmitsToUpdateMessage(translate, action),
     [CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_FORWARDS_TO]: (translate, action) => getForwardsToUpdateMessage(translate, action),
@@ -280,7 +289,7 @@ type PolicyChangeLogContentProps = {
 };
 
 function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps) {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
@@ -289,7 +298,7 @@ function PolicyChangeLogContent({action, policyID}: PolicyChangeLogContentProps)
         return null;
     }
 
-    const message = resolver(translate, action, policy, convertToDisplayString);
+    const message = resolver(translate, action, policy, convertToDisplayString, preferredLocale);
 
     if (typeof message === 'object') {
         return (

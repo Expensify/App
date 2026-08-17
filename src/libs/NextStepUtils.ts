@@ -1,7 +1,7 @@
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
 
 import CONST from '@src/CONST';
-import type {Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
+import type {Locale, Policy, Report, ReportAction, Transaction, TransactionViolations} from '@src/types/onyx';
 import type {ReportNextStep} from '@src/types/onyx/Report';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -10,6 +10,8 @@ import type {ValueOf} from 'type-fest';
 import {addMonths, format, isPast, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
+import DateUtils from './DateUtils';
+import {toLocaleOrdinal} from './LocaleDigitUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
@@ -59,6 +61,7 @@ type GetReportNextStepParams = {
 function buildNextStepMessage(
     nextStep: ReportNextStep,
     translate: LocaleContextProps['translate'],
+    preferredLocale: Locale,
     currentUserAccountID: number,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
 ): string {
@@ -79,12 +82,20 @@ function buildNextStepMessage(
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        const formatString = nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT ? CONST.DATE.ORDINAL_DAY_OF_MONTH : CONST.DATE.LONG_DATE_FORMAT_WITH_WEEKDAY;
-        eta = format(new Date(nextStep.eta.dateTime), formatString);
+        const etaDate = new Date(nextStep.eta.dateTime);
+        eta =
+            nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
+                ? toLocaleOrdinal(preferredLocale, etaDate.getDate())
+                : DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 
-    return `<next-step>${translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType)}</next-step>`;
+    const requiredDepositCurrency = nextStep.requiredDepositCurrency ? Str.htmlEncode(nextStep.requiredDepositCurrency) : undefined;
+    const message =
+        nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT
+            ? translate('nextStep.message.waitingForSubmitterAccount', actor, actorType, eta, etaType, requiredDepositCurrency)
+            : translate(`nextStep.message.${nextStep.messageKey}`, actor, actorType, eta, etaType);
+    return `<next-step>${message}</next-step>`;
 }
 
 function doesReportContainTransactions(report: OnyxEntry<Report>): boolean {

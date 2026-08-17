@@ -38,14 +38,14 @@ type FrozenCardHeaderProps = {
 
 function FrozenCardHeader({cardPreview, children, style, onUnfreezePress, onAskToUnfreezePress, canUnfreezeCard, isWorkspaceAdmin, frozenByAccountID, frozenDate}: FrozenCardHeaderProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['FreezeCard']);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const isCurrentUser = frozenByAccountID === session?.accountID;
 
-    const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[frozenByAccountID], translate}) : '';
+    const frozenByName = frozenByAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: personalDetails?.[frozenByAccountID], translate, formatPhoneNumber}) : '';
     const formattedDate = frozenDate ? DateUtils.formatInUTCToMedium(frozenDate, preferredLocale) : '';
     const adminFrozenTextPrefix = translate('cardPage.frozenByAdminPrefix', {date: formattedDate});
     const frozenNeedsUnfreezePrefix = translate('cardPage.frozenByAdminNeedsUnfreezePrefix');

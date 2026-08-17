@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import Checkbox from '@components/Checkbox';
 import type FlatListRefType from '@components/FlashList/types';
@@ -32,7 +32,7 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {getReportLayoutGroupBy, getReportLayoutSelection, setReportLayout} from '@libs/actions/ReportLayout';
 import {clearActiveTransactionIDs, getActiveTransactionIDs, setActiveTransactionIDs} from '@libs/actions/TransactionThreadNavigation';
 import {resolveTransactionCardFields} from '@libs/CardUtils';
-import {hasNonReimbursableTransactions, isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
+import {isBillableEnabledOnPolicy} from '@libs/MoneyRequestReportUtils';
 import {navigationRef} from '@libs/Navigation/Navigation';
 import {isPolicyTaxEnabled} from '@libs/PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -53,9 +53,8 @@ import {
 import type {SortableColumnName} from '@libs/ReportUtils';
 import {compareValues, getColumnsToShow, getTableMinWidth, hasFlexColumn, isTransactionAmountTooLong, isTransactionTaxAmountTooLong} from '@libs/SearchUIUtils';
 import {getPendingSubmitFollowUpAction} from '@libs/telemetry/submitFollowUpAction';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {transactionHasRBR} from '@libs/TransactionPreviewUtils';
-import {getTransactionPendingAction, getVisibleTransactionViolations, isTransactionPendingDelete, shouldShowExpenseBreakdown} from '@libs/TransactionUtils';
+import {getTransactionPendingAction, getVisibleTransactionViolations, hasNonReimbursableTransactions, isTransactionPendingDelete} from '@libs/TransactionUtils';
 import shouldShowTransactionPostedYear from '@libs/TransactionUtils/shouldShowTransactionPostedYear';
 import shouldShowTransactionYear from '@libs/TransactionUtils/shouldShowTransactionYear';
 
@@ -92,8 +91,6 @@ import MoneyRequestReportTransactionItem from './MoneyRequestReportTransactionIt
 import MoneyRequestReportTransactionLongPressModal from './MoneyRequestReportTransactionLongPressModal';
 import MoneyRequestReportUnifiedList from './MoneyRequestReportUnifiedList';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
-
-const PENDING_EXPENSE_REASON_ATTRIBUTES = {context: 'MoneyRequestReportTransactionList.PendingExpensePlaceholder'} as const;
 
 type TransactionWithOptionalHighlight = OnyxTypes.Transaction & {
     /** Whether the transaction should be highlighted, when it is added to the report */
@@ -240,9 +237,6 @@ type MoneyRequestReportTransactionListProps = {
     /** Whether the initial report actions are still loading. */
     isLoadingInitialActions: boolean;
 
-    /** Reason attributes forwarded to the loading skeleton span. */
-    skeletonReasonAttributes: SkeletonSpanReasonAttributes;
-
     /** Rendered at the very bottom of the list, below all report actions (e.g. the Concierge thinking tail indicator). */
     listFooterComponent?: React.ReactElement;
 };
@@ -279,7 +273,6 @@ function MoneyRequestReportTransactionList({
     onStartReached,
     contentContainerStyle,
     isLoadingInitialActions,
-    skeletonReasonAttributes,
     listFooterComponent,
 }: MoneyRequestReportTransactionListProps) {
     useCopySelectionHelper();
@@ -304,7 +297,7 @@ function MoneyRequestReportTransactionList({
     const formattedCompanySpendAmount = convertToDisplayString(nonReimbursableSpend, report?.currency);
     const formattedBillableAmount = convertToDisplayString(billableTotal, report?.currency);
     const formattedTaxAmount = convertToDisplayString(taxTotal, report?.currency);
-    const shouldShowExpenseReportBreakDown = shouldShowExpenseBreakdown(transactions);
+    const shouldShowExpenseReportBreakDown = hasNonReimbursableTransactions(transactions);
     const shouldShowBreakdown = shouldShowExpenseReportBreakDown || !!billableTotal || (!!taxTotal && isTaxEnabled);
     const transactionsWithoutPendingDelete = useMemo(() => transactions.filter((t) => !isTransactionPendingDelete(t)), [transactions]);
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -525,11 +518,21 @@ function MoneyRequestReportTransactionList({
             isExpenseReportViewFromIOUReport,
             shouldShowBillableColumn,
             shouldShowCommentsColumn,
-            shouldShowReimbursableColumn: hasNonReimbursableTransactions(transactions),
+            shouldShowReimbursableColumn: shouldShowExpenseReportBreakDown,
             reportCurrency: report?.currency,
             isPolicyTaxEnabled: isTaxEnabled,
         });
-    }, [transactions, currentUserDetails?.accountID, isExpenseReportViewFromIOUReport, shouldShowBillableColumn, shouldShowCommentsColumn, reportDetailsColumns, report, isTaxEnabled]);
+    }, [
+        transactions,
+        currentUserDetails?.accountID,
+        isExpenseReportViewFromIOUReport,
+        shouldShowBillableColumn,
+        shouldShowCommentsColumn,
+        reportDetailsColumns,
+        report,
+        isTaxEnabled,
+        shouldShowExpenseReportBreakDown,
+    ]);
 
     const {windowWidth, windowHeight} = useWindowDimensions();
     const minTableWidth = getTableMinWidth(columnsToShow);
@@ -574,22 +577,16 @@ function MoneyRequestReportTransactionList({
         return groupedTransactions.flatMap((group) => group.transactions.filter((transaction) => !isTransactionPendingDelete(transaction)).map((transaction) => transaction.transactionID));
     }, [groupedTransactions, sortedTransactions, shouldGroupTransactions]);
 
-    // Order-sensitive proxy for visualOrderTransactionIDs used as the effect dependency below. It must stay
-    // order-sensitive: changing the report's sorting/grouping (without changing which transactions are present)
-    // reorders the list, and the carousel needs to be re-seeded so its counter and prev/next buttons match the
-    // new visual order. The active-list checks in the effect still prevent unrelated carousels from being overwritten.
+    // Primitive proxy for visualOrderTransactionIDs used as the effect dependency below.
+    // Other callers (e.g. TransactionDuplicateReview.onPreviewPressed) can write to the same
+    // Onyx key with a different ordering. Using the raw array reference would cause the effect
+    // to re-fire on every referential change and overwrite those IDs. The joined string ensures
+    // the effect only re-fires when the actual content changes.
     const visualOrderTransactionIDsKey = useMemo(() => visualOrderTransactionIDs.join(','), [visualOrderTransactionIDs]);
-
-    const [latestActiveTransactionIDs] = useOnyx(ONYXKEYS.TRANSACTION_THREAD_NAVIGATION_TRANSACTION_IDS);
 
     useEffect(() => {
         const focusedRoute = findFocusedRoute(navigationRef.getRootState());
         if (focusedRoute?.name !== SCREENS.RIGHT_MODAL.SEARCH_REPORT) {
-            return;
-        }
-
-        const anchorTransactionID = (focusedRoute?.params as {anchorTransactionID?: string} | undefined)?.anchorTransactionID;
-        if (anchorTransactionID && latestActiveTransactionIDs?.includes(anchorTransactionID)) {
             return;
         }
         // Don't take over a snapshot-backed carousel (identified by its sibling descriptors, e.g. the Home
@@ -599,23 +596,11 @@ function MoneyRequestReportTransactionList({
         if (getActiveTransactionIDs().descriptors) {
             return;
         }
-
-        if (visualOrderTransactionIDs.length < 2) {
-            return;
-        }
-
-        if (
-            latestActiveTransactionIDs &&
-            latestActiveTransactionIDs.length >= visualOrderTransactionIDs.length &&
-            visualOrderTransactionIDs.every((id) => latestActiveTransactionIDs.includes(id))
-        ) {
-            return;
-        }
         setActiveTransactionIDs(visualOrderTransactionIDs);
         return () => {
             clearActiveTransactionIDs();
         };
-        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is an order-sensitive proxy for the array, and we intentionally don't depend on latestActiveTransactionIDs to avoid re-firing when the carousel changes elsewhere
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- visualOrderTransactionIDsKey is a primitive proxy for the array to avoid re-firing on referential-only changes
     }, [visualOrderTransactionIDsKey]);
 
     const groupSelectionState = useMemo(() => {
@@ -982,17 +967,17 @@ function MoneyRequestReportTransactionList({
                     />
                 )}
                 {!shouldUseNarrowLayout && !isExpenseReportViewFromIOUReport && (
-                    <Button
-                        link
-                        small
-                        shouldUseDefaultHover={false}
-                        text={translate('search.columns')}
-                        iconFill={theme.link}
-                        iconHoverFill={theme.linkHover}
-                        icon={expensifyIcons.Columns}
-                        textStyles={[styles.textMicroBold]}
+                    <LinkButton
+                        size={CONST.BUTTON_SIZE.SMALL}
                         onPress={openColumnsPage}
-                    />
+                    >
+                        <LinkButton.Icon
+                            src={expensifyIcons.Columns}
+                            fill={theme.link}
+                            hoverFill={theme.linkHover}
+                        />
+                        <LinkButton.Text style={[styles.textMicroBold]}>{translate('search.columns')}</LinkButton.Text>
+                    </LinkButton>
                 )}
             </View>
         </View>
@@ -1013,7 +998,6 @@ function MoneyRequestReportTransactionList({
                         isLoadMore
                         containerStyle={styles.mhn5}
                         shouldUseNarrowLayout={false}
-                        reasonAttributes={PENDING_EXPENSE_REASON_ATTRIBUTES}
                     />
                 </View>
             )}
@@ -1139,7 +1123,6 @@ function MoneyRequestReportTransactionList({
                 contentContainerStyle={contentContainerStyle}
                 isOffline={isOffline}
                 isLoadingInitialActions={isLoadingInitialActions}
-                skeletonReasonAttributes={skeletonReasonAttributes}
                 listFooterComponent={listFooterComponent}
             />
             <MoneyRequestReportTransactionLongPressModal

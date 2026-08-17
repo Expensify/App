@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -58,7 +58,6 @@ import {getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettle
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 
@@ -89,7 +88,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate, preferredLocale} = useLocalize();
+    const {translate, preferredLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -104,7 +103,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -369,6 +368,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -400,6 +400,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isOffline,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
     };
 
@@ -483,15 +484,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100]}
-                text={translate('common.save')}
                 onPress={onSaveSplitExpense}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 
@@ -573,16 +574,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SplitExpensePage',
-            isLoadingDraftTransaction,
-        };
-        return (
-            <FullScreenLoadingIndicator
-                style={[styles.opacity1]}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

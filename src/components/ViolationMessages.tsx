@@ -25,7 +25,7 @@ type ViolationMessagesProps = {
     canEdit: boolean;
     companyCardPageURL?: string;
     connectionLink?: string;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 
@@ -42,7 +42,7 @@ export default function ViolationMessages({
     distanceUnit,
 }: ViolationMessagesProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
 
@@ -56,6 +56,7 @@ export default function ViolationMessages({
                 return [
                     violation.name,
                     ViolationsUtils.getViolationTranslation({
+                        preferredLocale,
                         violation,
                         translate,
                         convertToDisplayString,
@@ -69,7 +70,7 @@ export default function ViolationMessages({
                     }),
                 ];
             }),
-        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit],
+        [canEdit, translate, convertToDisplayString, filteredViolations, companyCardPageURL, connectionLink, cardList, isMarkAsCash, routeDistanceMeters, distanceUnit, preferredLocale],
     );
 
     return (

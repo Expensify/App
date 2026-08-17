@@ -14,6 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
+import {toLocaleOrdinal} from '@libs/LocaleDigitUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -36,7 +37,7 @@ type WorkspaceCardSettingsPageProps = PlatformStackScreenProps<SettingsNavigator
 
 function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const policyID = route.params?.policyID;
     const defaultFundID = useDefaultFundID(policyID);
 
@@ -55,6 +56,10 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
+    const monthlySettlementDateText =
+        settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
+            ? translate('workspace.expensifyCard.monthlySettlementDate', toLocaleOrdinal(preferredLocale, new Date(settings.monthlySettlementDate).getDate()))
+            : undefined;
 
     return (
         <AccessOrNotFoundWrapper
@@ -102,7 +107,9 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
                                             </TextLink>
                                             .
                                         </>
-                                    ) : undefined
+                                    ) : (
+                                        monthlySettlementDateText
+                                    )
                                 }
                             />
                         </OfflineWithFeedback>

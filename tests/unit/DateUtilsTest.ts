@@ -12,6 +12,7 @@ import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 /* eslint-disable @typescript-eslint/naming-convention */
 import {addDays, addMinutes, endOfDay, format, set, setHours, setMinutes, startOfDay, subDays, subHours, subMinutes, subSeconds} from 'date-fns';
 import {fromZonedTime, toZonedTime, format as tzFormat} from 'date-fns-tz';
+import {enUS} from 'date-fns/locale/en-US';
 import Onyx from 'react-native-onyx';
 
 import {translateLocal} from '../utils/TestHelper';
@@ -195,14 +196,16 @@ describe('DateUtils', () => {
     });
 
     it('should return the date in calendar time when calling datetimeToRelative', () => {
+        jest.useFakeTimers().setSystemTime(new Date('2026-03-11T12:00:00Z'));
+
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('less than a minute ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('10 seconds ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC)).toBe('1 minute ago');
 
         const anHourAgo = subHours(new Date(), 1).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC)).toBe('about 1 hour ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, anHourAgo, UTC)).toBe('1 hour ago');
     });
 
     it('datetimeToRelative renders localized wording for non-English locales', async () => {
@@ -282,12 +285,12 @@ describe('DateUtils', () => {
         });
     });
 
-    describe('formatWithUTCTimeZone', () => {
+    describe('formatMachineDateWithUTCTimeZone', () => {
         describe('when the date is invalid', () => {
             it('returns an empty string', () => {
                 const invalidDateStr = '';
 
-                const formattedDate = DateUtils.formatWithUTCTimeZone(invalidDateStr);
+                const formattedDate = DateUtils.formatMachineDateWithUTCTimeZone(invalidDateStr);
 
                 expect(formattedDate).toEqual('');
             });
@@ -301,7 +304,7 @@ describe('DateUtils', () => {
             ];
 
             test.each(scenarios)('returns the date as string with the format "$dateFormat"', ({dateFormat, expectedResult}) => {
-                const formattedDate = DateUtils.formatWithUTCTimeZone(datetime, dateFormat);
+                const formattedDate = DateUtils.formatMachineDateWithUTCTimeZone(datetime, dateFormat);
 
                 expect(formattedDate).toEqual(expectedResult);
             });
@@ -310,7 +313,7 @@ describe('DateUtils', () => {
         it('returns the correct date when the date with time is used', () => {
             const datetimeStr = '2022-11-07 17:48:00';
             const expectedResult = '2022-11-07';
-            expect(DateUtils.formatWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
+            expect(DateUtils.formatMachineDateWithUTCTimeZone(datetimeStr)).toEqual(expectedResult);
         });
     });
 
@@ -384,7 +387,8 @@ describe('DateUtils', () => {
             const inputDateStr = tzFormat(targetTime, CONST.DATE.FNS_DATE_TIME_FORMAT_STRING, {timeZone: currentTimeZone});
 
             const result = DateUtils.getStatusUntilDate(translateLocal, inputDateStr, currentTimeZone, currentTimeZone, LOCALE);
-            const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- expected label pinned to enUS to match the SUT.
+            const expectedLabel = tzFormat(targetTime, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone, locale: enUS});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -407,7 +411,8 @@ describe('DateUtils', () => {
 
             const date = fromZonedTime(inputDateStrNY, inputTimeZoneNY);
             const converted = toZonedTime(date, currentTimeZone);
-            const expectedLabel = tzFormat(converted, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone});
+            // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- expected label pinned to enUS to match the SUT.
+            const expectedLabel = tzFormat(converted, CONST.DATE.LOCAL_TIME_FORMAT, {timeZone: currentTimeZone, locale: enUS});
 
             expect(result).toBe(`Until ${expectedLabel}`);
         });
@@ -622,21 +627,25 @@ describe('DateUtils', () => {
                 expect(DateUtils.getWeekStartsOn('ja')).toBe(0);
             });
 
-            it('returns Monday when neither getWeekInfo() nor weekInfo is available', () => {
+            it('falls back to the CLDR-per-locale map when neither getWeekInfo() nor weekInfo is available', () => {
                 swapIntlLocale(() => ({}));
-                expect(DateUtils.getWeekStartsOn('ja')).toBe(CONST.WEEK_STARTS_ON);
+                // ja is Sunday-start per CLDR. The static-map fallback preserves that on engines without `getWeekInfo`.
+                expect(DateUtils.getWeekStartsOn('ja')).toBe(0);
+                expect(DateUtils.getWeekStartsOn('fr')).toBe(1);
             });
 
-            it('returns Monday when Intl.Locale constructor throws', () => {
+            it('falls back to the CLDR-per-locale map when Intl.Locale constructor throws', () => {
                 swapIntlLocale(() => {
                     throw new RangeError('Intl.Locale unavailable');
                 });
-                expect(DateUtils.getWeekStartsOn('ja')).toBe(CONST.WEEK_STARTS_ON);
+                expect(DateUtils.getWeekStartsOn('ja')).toBe(0);
+                expect(DateUtils.getWeekStartsOn('fr')).toBe(1);
             });
 
-            it('returns Monday when firstDay is out of range', () => {
+            it('falls back to the CLDR-per-locale map when firstDay is out of range', () => {
                 swapIntlLocale(() => ({weekInfo: {firstDay: 99, weekend: [6, 7], minimalDays: 1}}));
-                expect(DateUtils.getWeekStartsOn('ja')).toBe(CONST.WEEK_STARTS_ON);
+                expect(DateUtils.getWeekStartsOn('ja')).toBe(0);
+                expect(DateUtils.getWeekStartsOn('fr')).toBe(1);
             });
         });
     });
@@ -667,7 +676,7 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when both dates are undefined', () => {
-            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, undefined);
+            const result = DateUtils.getFormattedSplitDateRange(translateEN, undefined, CONST.LOCALES.EN);
             expect(result).toBe('');
         });
 
@@ -805,31 +814,31 @@ describe('DateUtils', () => {
         });
 
         it('should return empty string when violationSnapshotStartedAt is empty', () => {
-            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC)).toBe('');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('', UTC, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should return empty string when timeZone is undefined', () => {
-            expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined)).toBe('');
+            expect(DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', undefined, CONST.LOCALES.EN)).toBe('');
         });
 
         it('should format a date-only value in the target timezone', () => {
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC);
-            expect(result).toBe('June 20th, 2026');
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20', UTC, CONST.LOCALES.EN);
+            expect(result).toBe('June 20, 2026');
         });
 
         it('should format a UTC datetime value in the target timezone', () => {
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC);
-            expect(result).toBe('June 20th, 2026');
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 00:00:00', UTC, CONST.LOCALES.EN);
+            expect(result).toBe('June 20, 2026');
         });
 
         it('should format a UTC datetime using the target timezone date', () => {
             const americaNewYork = 'America/New_York' as SelectedTimezone;
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork);
-            expect(result).toBe('June 19th, 2026');
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('2026-06-20 02:00:00', americaNewYork, CONST.LOCALES.EN);
+            expect(result).toBe('June 19, 2026');
         });
 
         it('should return empty string for invalid date', () => {
-            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC);
+            const result = DateUtils.formatViolationSnapshotStartedAtDate('invalid-date', UTC, CONST.LOCALES.EN);
             expect(result).toBe('');
         });
     });
@@ -1056,6 +1065,28 @@ describe('DateUtils', () => {
 
         it('should clamp to 0 once the window has elapsed', () => {
             expect(DateUtils.getRemainingSecondsInWindow(Date.now() - 31 * 1000, windowMs)).toBe(0);
+        });
+    });
+
+    describe('time picker helpers with a non-English date-fns locale', () => {
+        beforeEach(() => IntlStore.load(CONST.LOCALES.DE));
+
+        it('combineDateAndTime parses the picker-submitted English AM/PM value', () => {
+            expect(DateUtils.combineDateAndTime('02:00 PM', '2026-08-04')).toBe('2026-08-04 14:00:00');
+            expect(DateUtils.combineDateAndTime('08:00 AM', '2026-08-04 00:00:00')).toBe('2026-08-04 08:00:00');
+        });
+
+        it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
+            const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon).period).toBe(CONST.TIME_PERIOD.PM);
+            const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
+        });
+
+        it('per diem start/end range built from picker values validates', () => {
+            const newStart = DateUtils.combineDateAndTime('08:00 AM', '2026-08-04');
+            const newEnd = DateUtils.combineDateAndTime('02:00 PM', '2026-08-04');
+            expect(DateUtils.isValidStartEndTimeRange({startTime: newStart, endTime: newEnd})).toBe(true);
         });
     });
 });

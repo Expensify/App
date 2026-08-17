@@ -1,7 +1,10 @@
+import DateUtils from '@libs/DateUtils';
+
 import CONST from '@src/CONST';
+import type Locale from '@src/types/onyx/Locale';
 import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 
-import {addMonths, format, startOfMonth} from 'date-fns';
+import {addMonths, startOfMonth} from 'date-fns';
 
 type PrivatePromoDiscountInfo = {
     isSecretPromoCode: boolean;
@@ -35,18 +38,18 @@ function appendMidnightTime(date: string): string {
     return `${date}T00:00:00`;
 }
 
-function formatSubscriptionEndDate(date: string | undefined): string {
+function formatSubscriptionEndDate(date: string | undefined, preferredLocale: Locale): string {
     if (!date) {
         return '';
     }
 
     const dateWithMidnightTime = appendMidnightTime(date);
 
-    return format(new Date(dateWithMidnightTime), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+    return DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', new Date(dateWithMidnightTime));
 }
 
-function getNewSubscriptionRenewalDate(): string {
-    return format(startOfMonth(addMonths(new Date(), 12)), CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT);
+function getNewSubscriptionRenewalDate(preferredLocale: Locale): string {
+    return DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', startOfMonth(addMonths(new Date(), 12)));
 }
 
 export {getNewSubscriptionRenewalDate, formatSubscriptionEndDate, getPrivatePromoDiscountInfo};

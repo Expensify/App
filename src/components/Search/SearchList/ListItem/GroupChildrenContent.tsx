@@ -40,7 +40,7 @@ function GroupChildrenContent({
     cardFeeds,
     conciergeReportID,
 }: GroupChildrenContentProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -65,6 +65,7 @@ function GroupChildrenContent({
             return [];
         }
         const [sectionData] = getSections({
+            preferredLocale,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: snapshotData,
             currentAccountID: currentUserDetails.accountID,
@@ -96,6 +97,7 @@ function GroupChildrenContent({
         conciergeReportID,
         convertToDisplayString,
         selectedTransactionIDsSet,
+        preferredLocale,
     ]);
 
     const isEmpty = transactions.length === 0;

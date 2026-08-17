@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CalendarPicker from '@components/DatePicker/CalendarPicker';
 import DotIndicatorMessage from '@components/DotIndicatorMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -179,10 +179,7 @@ function ScheduleCallPage() {
             <FullPageOfflineBlockingView>
                 {adminReportNameValuePairs?.calendlySchedule?.isLoading ? (
                     <View style={[styles.flex1, styles.fullScreenLoading]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            reasonAttributes={{context: 'ScheduleCallPage', isLoading: !!adminReportNameValuePairs?.calendlySchedule?.isLoading}}
-                        />
+                        <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
                     </View>
                 ) : (
                     <ScrollView style={styles.flexGrow1}>
@@ -228,8 +225,8 @@ function ScheduleCallPage() {
                                     {timeSlotsForSelectedData.map((timeSlot: TimeSlot) => (
                                         <Button
                                             key={`time-slot-${timeSlot.startTime}`}
-                                            large
-                                            success={scheduleCallDraft?.timeSlot === timeSlot.startTime}
+                                            size={CONST.BUTTON_SIZE.LARGE}
+                                            variant={scheduleCallDraft?.timeSlot === timeSlot.startTime ? CONST.BUTTON_VARIANT.SUCCESS : undefined}
                                             onPress={() => {
                                                 saveBookingDraft({
                                                     timeSlot: timeSlot.startTime,
@@ -242,10 +239,11 @@ function ScheduleCallPage() {
                                                 });
                                                 Navigation.navigate(ROUTES.SCHEDULE_CALL_CONFIRMATION.getRoute(reportID));
                                             }}
-                                            shouldEnableHapticFeedback
+                                            enableHapticFeedback
                                             style={styles.twoColumnLayoutCol}
-                                            text={DateUtils.formatInTimeZoneToShortTime(timeSlot.startTime, userTimezone, preferredLocale)}
-                                        />
+                                        >
+                                            <Button.Text>{DateUtils.formatInTimeZoneToShortTime(timeSlot.startTime, userTimezone, preferredLocale)}</Button.Text>
+                                        </Button>
                                     ))}
                                     {timeFillerItem}
                                 </View>

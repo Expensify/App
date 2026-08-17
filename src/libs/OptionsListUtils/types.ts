@@ -6,6 +6,7 @@ import type {AvatarSource} from '@libs/UserAvatarUtils';
 import type {IOUAction} from '@src/CONST';
 import type {
     Beta,
+    Locale,
     Login,
     PersonalDetails,
     PersonalDetailsList,
@@ -146,6 +147,7 @@ type GetValidOptionsSharedConfig = {
 };
 
 type GetValidReportsConfig = {
+    preferredLocale: Locale;
     betas?: OnyxEntry<Beta[]>;
     includeMultipleParticipantReports?: boolean;
     showChatPreviewLine?: boolean;
@@ -202,6 +204,7 @@ type IsValidReportsConfig = Pick<
 };
 
 type GetOptionsConfig = {
+    preferredLocale: Locale;
     excludeLogins?: Record<string, boolean>;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     includeCurrentUser?: boolean;
@@ -225,6 +228,7 @@ type GetOptionsConfig = {
 } & GetValidReportsConfig;
 
 type GetUserToInviteConfig = {
+    preferredLocale: Locale;
     searchValue: string | undefined;
     personalDetails: OnyxEntry<PersonalDetailsList>;
     searchInputValue?: string;
@@ -280,6 +284,7 @@ type PreviewConfig = {
 };
 
 type FilterUserToInviteConfig = Pick<GetUserToInviteConfig, 'selectedOptions' | 'shouldAcceptName' | 'searchInputValue'> & {
+    preferredLocale: Locale;
     canInviteUser?: boolean;
     excludeLogins?: Record<string, boolean>;
 };

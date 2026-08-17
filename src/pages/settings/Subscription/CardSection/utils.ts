@@ -15,7 +15,7 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {addMonths, format, fromUnixTime, startOfMonth} from 'date-fns';
+import {addMonths, fromUnixTime, startOfMonth} from 'date-fns';
 
 type BillingStatusResult = {
     title: string;
@@ -185,17 +185,13 @@ function getBillingStatus({
     }
 }
 
-/**
- * Get the next billing date.
- *
- * @returns - The next billing date in 'yyyy-MM-dd' format.
- */
-function getNextBillingDate(): string {
+/** Next billing date formatted with the user's preferred locale. */
+function getNextBillingDate(preferredLocale: Locale): string {
     const today = new Date();
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return format(nextBillingDate, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return DateUtils.formatIntl(preferredLocale, 'LONG_DATE', nextBillingDate);
 }
 
 export default {getBillingStatus, getNextBillingDate};

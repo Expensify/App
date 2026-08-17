@@ -98,7 +98,6 @@ describe('IntlStore', () => {
             await waitForBatchedUpdates();
 
             expect(IntlStore.getCurrentLocale()).toBe(CONST.LOCALES.EN);
-            expect(IntlStore.getDateFnsLocale(CONST.LOCALES.EN)).toBeDefined();
             expect(IntlStore.get('common.close')).toBeTruthy();
             expect(listener).toHaveBeenCalled();
             unsubscribe();

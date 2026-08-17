@@ -10,7 +10,6 @@ function LineChart(props: LineChartProps) {
         <SkiaWebChart
             getComponent={getLineChartContent}
             componentProps={props}
-            reasonContext="LineChart.SkiaWebLoading"
         />
     );
 }

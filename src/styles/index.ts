@@ -951,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -1986,7 +1986,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -2049,6 +2050,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojisWithTextFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
         },
 
         createMenuContainer: {
@@ -2151,13 +2161,6 @@ const staticStyles = (theme: ThemeColors) =>
         sidebarLinkTextBold: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             color: theme.heading,
-        },
-
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
         },
 
         optionItemAvatarNameWrapper: {
@@ -2806,6 +2809,17 @@ const staticStyles = (theme: ThemeColors) =>
 
         htmlTableLastRow: {
             borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
         },
 
         htmlTableCell: {
@@ -4235,6 +4249,15 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationInset: {
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4373,6 +4396,19 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: 13,
             fontWeight: FontUtils.fontWeight.bold,
             color: colors.productLight100,
+        },
+
+        alternativeDistanceLabelWrapper: {
+            backgroundColor: colors.green100,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        alternativeDistanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.green800,
         },
 
         productTrainingTooltipWrapper: {
@@ -5303,6 +5339,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5544,26 +5606,6 @@ const staticStyles = (theme: ThemeColors) =>
 
         checkboxWithLabelCheckboxStyle: {
             marginLeft: -2,
-        },
-
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
         },
 
         interactiveStepHeaderContainer: {
@@ -6477,6 +6519,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
@@ -6991,7 +7038,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -7149,9 +7196,20 @@ const plainStyles = (theme: ThemeColors) =>
             lineCap: 'round',
         } satisfies MapDirectionStyle,
 
+        alternativeMapDirection: {
+            lineColor: colors.green200,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
         },
 
         mapDirectionLayerBorder: {
@@ -7194,11 +7252,19 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

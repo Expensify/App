@@ -98,9 +98,16 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const EMPTY_PRIVATE_IS_ARCHIVED_MAP: PrivateIsArchivedMap = {};
-const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {conciergeReportID: undefined, isSearching: true});
+const CURRENT_USER_ACCOUNT_ID = 1;
+const options = createFilteredOptionList(personalDetails, reports, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+    preferredLocale: CONST.LOCALES.EN,
+    conciergeReportID: undefined,
+    isSearching: true,
+    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+});
 
 const ValidOptionsConfig = {
+    preferredLocale: CONST.LOCALES.EN,
     betas: mockedBetas,
     includeRecentReports: true,
     includeTasks: true,
@@ -136,6 +143,7 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             getSearchOptions({
+                preferredLocale: CONST.LOCALES.EN,
                 translate: translateLocal,
                 options,
                 betas: mockedBetas,
@@ -200,6 +208,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_EMAIL,
                 undefined,
                 {
+                    preferredLocale: CONST.LOCALES.EN,
                     betas: mockedBetas,
                     includeMultipleParticipantReports: true,
                     showChatPreviewLine: true,
@@ -265,6 +274,7 @@ describe('OptionsListUtils', () => {
                 MOCK_CURRENT_USER_ACCOUNT_ID,
                 undefined,
                 translateLocal,
+                CONST.LOCALES.EN,
                 mockedPersonalDetails,
                 true,
             ),
@@ -278,7 +288,19 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                {},
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                CONST.LOCALES.EN,
+                mockedPersonalDetails,
+                true,
+            ),
         );
     });
 
@@ -288,6 +310,8 @@ describe('OptionsListUtils', () => {
             // Inputs are referentially identical across measured runs, so clear the cache to measure the build path.
             clearFilteredOptionListCache();
             return createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                preferredLocale: CONST.LOCALES.EN,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
@@ -299,6 +323,8 @@ describe('OptionsListUtils', () => {
         await waitForBatchedUpdates();
         await measureFunction(() =>
             createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                preferredLocale: CONST.LOCALES.EN,
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
@@ -309,6 +335,8 @@ describe('OptionsListUtils', () => {
     test('[OptionsListUtils] getSearchOptions with isSearching is true', async () => {
         await waitForBatchedUpdates();
         const optionLists = createFilteredOptionList(personalDetails, mockedReportsMap, undefined, EMPTY_PRIVATE_IS_ARCHIVED_MAP, undefined, {
+            currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+            preferredLocale: CONST.LOCALES.EN,
             conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
@@ -316,6 +344,7 @@ describe('OptionsListUtils', () => {
 
         await measureFunction(() =>
             getSearchOptions({
+                preferredLocale: CONST.LOCALES.EN,
                 translate: translateLocal,
                 options: optionLists,
                 betas: mockedBetas,

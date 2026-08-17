@@ -31,6 +31,7 @@ import {hasValidModifiedAmount, isViolationDismissed, shouldShowViolation} from 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Beta, Card, CardList, Policy, PolicyCategories, PolicyTagLists, PolicyTags, Report, ReportAction, Transaction, TransactionViolation, ViolationName} from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
 import type {Unit} from '@src/types/onyx/Policy';
 import type {ReceiptError, ReceiptErrors} from '@src/types/onyx/Transaction';
@@ -56,6 +57,7 @@ Onyx.connectWithoutView({
 type ViolationTranslationParams = {
     violation: TransactionViolation;
     translate: LocaleContextProps['translate'];
+    preferredLocale: Locale;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
     canEdit?: boolean;
     tags?: PolicyTagLists;
@@ -63,7 +65,7 @@ type ViolationTranslationParams = {
     connectionLink?: string;
     card?: Card;
     isMarkAsCash?: boolean;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 
@@ -276,12 +278,12 @@ function getTagViolationMessagesForMultiLevelTags(tagName: string | undefined, e
     return errorIndexes.map((i) => translate('violations.someTagLevelsRequired', tagsWithIndexes[i]?.name)).join('. ');
 }
 
-function formatViolationDate(date?: string): string | undefined {
+function formatViolationDate(date: string | undefined, preferredLocale: Locale): string | undefined {
     if (!date) {
         return undefined;
     }
 
-    return DateUtils.formatWithUTCTimeZone(date, CONST.DATE.MONTH_DAY_YEAR_FORMAT);
+    return DateUtils.formatInUTCToLong(date, preferredLocale);
 }
 
 /**
@@ -551,7 +553,7 @@ const ViolationsUtils = {
             }
 
             // Add 'missingCategory' violation when categories are required and none is set. isCategoryMissing also
-            // covers the 'Uncategorized'/'none' sentinel, mirroring the categoryOutOfPolicy check above.
+            // covers the 'Uncategorized'/'none' placeholder value, mirroring the categoryOutOfPolicy check above.
             if (!hasMissingCategoryViolation && !!policy.requiresCategory && isCategoryMissing(categoryKey) && !isSelfDM) {
                 newTransactionViolations.push({name: 'missingCategory', type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true});
             }
@@ -937,7 +939,20 @@ const ViolationsUtils = {
      * functions.
      */
     getViolationTranslation(params: ViolationTranslationParams): string {
-        const {violation, translate, convertToDisplayString, canEdit = true, tags, companyCardPageURL, connectionLink, card, isMarkAsCash, routeDistanceMeters, distanceUnit} = params;
+        const {
+            violation,
+            translate,
+            preferredLocale,
+            convertToDisplayString,
+            canEdit = true,
+            tags,
+            companyCardPageURL,
+            connectionLink,
+            card,
+            isMarkAsCash,
+            routeDistanceMeters,
+            distanceUnit,
+        } = params;
         const {
             brokenBankConnection = false,
             isAdmin = false,
@@ -977,8 +992,8 @@ const ViolationsUtils = {
                 return translate('violations.customUnitOutOfPolicy');
             case CONST.VIOLATIONS.CUSTOM_UNIT_RATE_OUT_OF_DATE_RANGE: {
                 const {startDate, endDate} = violation.data ?? {};
-                const formattedStartDate = formatViolationDate(startDate);
-                const formattedEndDate = formatViolationDate(endDate);
+                const formattedStartDate = formatViolationDate(startDate, preferredLocale);
+                const formattedEndDate = formatViolationDate(endDate, preferredLocale);
                 if (formattedStartDate && formattedEndDate) {
                     return translate('violations.customUnitRateOutOfDateRange', {startDate: formattedStartDate, endDate: formattedEndDate});
                 }
@@ -1097,6 +1112,7 @@ const ViolationsUtils = {
         transaction,
         transactionViolations,
         translate,
+        preferredLocale,
         convertToDisplayString,
         missingFieldError,
         transactionThreadActions,
@@ -1110,6 +1126,7 @@ const ViolationsUtils = {
         transaction: Transaction;
         transactionViolations: TransactionViolation[];
         translate: LocaleContextProps['translate'];
+        preferredLocale: Locale;
         convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
         missingFieldError?: string;
         transactionThreadActions?: ReportAction[];
@@ -1132,6 +1149,7 @@ const ViolationsUtils = {
                 const cardID = violation?.data?.cardID;
                 const card = cardID ? cardList?.[cardID] : undefined;
                 const message = ViolationsUtils.getViolationTranslation({
+                    preferredLocale,
                     violation,
                     translate,
                     convertToDisplayString,

@@ -16,12 +16,13 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolations} f
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
-import {formatPhoneNumber, translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 Onyx.init({keys: ONYXKEYS});
@@ -52,6 +53,7 @@ describe('libs/NextStepUtils', () => {
         };
         const report = buildOptimisticExpenseReport({
             chatReportID: 'fake-chat-report-id-1',
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             policyID,
             payeeAccountID: 1,
             total: -500,
@@ -103,6 +105,7 @@ describe('libs/NextStepUtils', () => {
                     policy,
                     '2025-03-31 13:23:11',
                     [CONST.BETAS.ALL],
+                    getCurrencyDecimalsLocal,
                 );
 
                 const expectedResult: ReportNextStep = {
@@ -849,6 +852,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-1',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -878,6 +882,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-2',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -891,12 +896,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-1',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -910,7 +915,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy: undefined,
                 transactionViolations,
                 currentUserEmail,
@@ -949,6 +954,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-3',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1002,6 +1008,7 @@ describe('libs/NextStepUtils', () => {
             const report: Report = {
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-4',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: 1,
                     total: -500,
@@ -1015,12 +1022,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-2',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -1037,7 +1044,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy,
                 transactionViolations,
                 currentUserEmail,
@@ -1075,8 +1082,33 @@ describe('libs/NextStepUtils', () => {
             };
 
             // A currentUserAccountID different from the actor renders the actor as an OTHER_USER, so its name appears in the message.
-            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, 999999, formatPhoneNumber);
+            const message = buildNextStepMessage(nextStep, translateWithHiddenMarker, CONST.LOCALES.EN, 999999, formatPhoneNumber);
             expect(message).toBe('<next-step>Waiting for HiddenMarker to submit expenses.</next-step>');
+        });
+
+        it.each([
+            {requiredDepositCurrency: CONST.CURRENCY.USD, expectedAccount: 'USD bank account'},
+            {requiredDepositCurrency: '<strong>USD</strong>', expectedAccount: '&lt;strong&gt;USD&lt;/strong&gt; bank account'},
+            {requiredDepositCurrency: undefined, expectedAccount: 'bank account'},
+        ])('renders the required deposit currency when it is available', ({requiredDepositCurrency, expectedAccount}) => {
+            const currentUserAccountID = 780071;
+            const nextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_SUBMITTER_ACCOUNT,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: currentUserAccountID,
+                requiredDepositCurrency,
+            };
+            const translateWithDepositCurrency: LocalizedTranslate = (path, ...parameters) => {
+                if (path === 'nextStep.message.waitingForSubmitterAccount') {
+                    const currency = parameters.at(4);
+                    const account = typeof currency === 'string' ? `${currency} bank account` : 'bank account';
+                    return `Waiting for <strong>you</strong> to add a ${account}.`;
+                }
+                return translateLocal(path, ...parameters);
+            };
+
+            const message = buildNextStepMessage(nextStep, translateWithDepositCurrency, CONST.LOCALES.EN, currentUserAccountID, formatPhoneNumber);
+            expect(message).toBe(`<next-step>Waiting for <strong>you</strong> to add a ${expectedAccount}.</next-step>`);
         });
 
         it('uses the provided phone number formatter when resolving an SMS actor login', async () => {
@@ -1097,7 +1129,7 @@ describe('libs/NextStepUtils', () => {
             };
             const formatPhoneNumberMock = jest.fn((phoneNumber: string) => `formatted:${phoneNumber}`);
 
-            const message = buildNextStepMessage(nextStep, translateWithActorName, 999999, formatPhoneNumberMock);
+            const message = buildNextStepMessage(nextStep, translateWithActorName, CONST.LOCALES.EN, 999999, formatPhoneNumberMock);
 
             expect(formatPhoneNumberMock).toHaveBeenCalledWith(phoneActorLogin);
             expect(message).toBe(`<next-step>Waiting for formatted:${phoneActorLogin} to submit expenses.</next-step>`);
@@ -1153,6 +1185,7 @@ describe('libs/NextStepUtils', () => {
             ({
                 ...buildOptimisticExpenseReport({
                     chatReportID: 'chat-track-intent',
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     policyID,
                     payeeAccountID: currentUserAccountID,
                     total: -500,

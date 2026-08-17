@@ -219,7 +219,8 @@ function CalendarPicker({
 
     const monthNames = DateUtils.getMonthNames(preferredLocale);
     const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
-    const daysOfWeek = DateUtils.getDaysOfWeekShort(preferredLocale);
+    // Narrow labels fit the 7-column grid on mobile. Short 3-letter labels get cramped or truncated in Latin locales.
+    const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale);
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;

@@ -43,7 +43,7 @@ type OnboardingHelpButtonProps = {
 const reportNameValuePartsSelector = (reportNameValuePairs?: ReportNameValuePairs) => reportNameValuePairs?.calendlyCalls?.at(-1);
 
 function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldShowRegisterForWebinar, shouldShowGuideBooking, hasActiveScheduledCall}: OnboardingHelpButtonProps) {
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const StyleUtils = useStyleUtils();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {
         selector: accountIDSelector,
@@ -79,18 +79,15 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     }
 
     if (hasActiveScheduledCall && latestScheduledCall) {
+        const eventDate = new Date(latestScheduledCall.eventTime);
+        const weekday = DateUtils.formatInTimeZoneToWeekday(eventDate, userTimezone, preferredLocale);
+        const longDate = DateUtils.formatIntl(preferredLocale, 'LONG_DATE', eventDate, userTimezone);
+        const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
         options.push({
-            text: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.WEEKDAY_TIME_FORMAT)}, ${DateUtils.formatInTimeZoneWithFallback(
-                latestScheduledCall.eventTime,
-                userTimezone,
-                CONST.DATE.MONTH_DAY_YEAR_FORMAT,
-            )}`,
+            text: `${weekday}, ${longDate}`,
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${DateUtils.formatInTimeZoneWithFallback(latestScheduledCall.eventTime, userTimezone, CONST.DATE.LOCAL_TIME_FORMAT)} - ${DateUtils.formatInTimeZoneWithFallback(
-                addMinutes(latestScheduledCall.eventTime, 30),
-                userTimezone,
-                CONST.DATE.LOCAL_TIME_FORMAT,
-            )} ${DateUtils.getZoneAbbreviation(new Date(latestScheduledCall.eventTime), userTimezone)}`,
+            description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,

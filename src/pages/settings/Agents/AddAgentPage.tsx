@@ -236,12 +236,7 @@ function AddAgentPage({route}: AddAgentPageProps) {
     const [template, templateMetadata] = useOnyx(ONYXKEYS.NEW_AGENT_TEMPLATE);
 
     if (isLoadingOnyxValue(templateMetadata)) {
-        return (
-            <FullScreenLoadingIndicator
-                shouldUseGoBackButton
-                reasonAttributes={{context: 'AddAgentPage'}}
-            />
-        );
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     return (
