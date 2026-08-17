@@ -36,7 +36,7 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
@@ -759,6 +759,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -941,6 +942,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1137,6 +1139,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1362,6 +1365,7 @@ describe('actions/Transaction', () => {
                     isTrackIntentUser: false,
                     formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();

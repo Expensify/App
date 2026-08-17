@@ -16,11 +16,12 @@ import type {Policy, Report, ReportAction, Transaction, TransactionViolations} f
 import type {ReportNextStep} from '@src/types/onyx/Report';
 import {toCollectionDataSet} from '@src/types/utils/CollectionDataSet';
 
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {format} from 'date-fns';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -895,12 +896,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-1',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -914,7 +915,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy: undefined,
                 transactionViolations,
                 currentUserEmail,
@@ -1021,12 +1022,12 @@ describe('libs/NextStepUtils', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.OPEN,
             } as Report;
 
-            const transaction: Transaction = {
+            const transaction = createMock<Transaction>({
                 transactionID: 'txn-2',
                 reportID: report.reportID,
                 amount: -500,
                 currency: CONST.CURRENCY.USD,
-            } as Transaction;
+            });
 
             const transactionViolations: OnyxCollection<TransactionViolations> = {
                 [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}`]: [
@@ -1043,7 +1044,7 @@ describe('libs/NextStepUtils', () => {
             const result = getReportNextStep({
                 moneyRequestReport: report,
                 moneyRequestReportOwnerLogin: currentUserEmail,
-                transactions: [transaction] as Array<OnyxEntry<Transaction>>,
+                transactions: [transaction],
                 policy,
                 transactionViolations,
                 currentUserEmail,
