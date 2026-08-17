@@ -1,20 +1,14 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import AttachmentPicker from '@components/AttachmentPicker';
-import Button from '@components/ButtonComposed';
 import {useFullScreenLoaderActions} from '@components/FullScreenLoaderContext';
 import Icon from '@components/Icon';
-import ImageSVG from '@components/ImageSVG';
-import PressableWithFeedback from '@components/Pressable/PressableWithFeedback';
 import RenderHTML from '@components/RenderHTML';
-import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 
 import useFilesValidation from '@hooks/useFilesValidation';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNativeCamera from '@hooks/useNativeCamera';
-import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -30,7 +24,9 @@ import ReceiptStorage from '@libs/ReceiptStorage';
 import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {logReceiptAdoptFailed} from '@libs/telemetry/ReceiptObservability';
 
-import NavigationAwareCamera from '@pages/iou/request/step/IOURequestStepScan/components/NavigationAwareCamera/Camera';
+import CameraPermissionPrompt from '@pages/iou/request/step/IOURequestStepScan/components/CameraPermissionPrompt';
+import CameraViewport from '@pages/iou/request/step/IOURequestStepScan/components/CameraViewport';
+import ScannerControlsBar from '@pages/iou/request/step/IOURequestStepScan/components/ScannerControlsBar';
 import {cropImageToAspectRatio} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import type {ImageObject} from '@pages/iou/request/step/IOURequestStepScan/cropImageToAspectRatio';
 import getCameraAspectRatio from '@pages/iou/request/step/IOURequestStepScan/getCameraAspectRatio';
@@ -49,11 +45,10 @@ import type {LayoutRectangle} from 'react-native';
 import type {PhotoFile} from 'react-native-vision-camera';
 
 import React, {useRef} from 'react';
-import {Alert, StyleSheet, View} from 'react-native';
+import {Alert, View} from 'react-native';
 import ReactNativeBlobUtil from 'react-native-blob-util';
-import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
-import Animated, {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
+import {useAnimatedStyle, useSharedValue} from 'react-native-reanimated';
 import {useCameraFormat} from 'react-native-vision-camera';
 
 type IOURequestStepOdometerImageProps = WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.ODOMETER_IMAGE>;
@@ -66,10 +61,8 @@ function IOURequestStepOdometerImage({
 }: IOURequestStepOdometerImageProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const StyleUtils = useStyleUtils();
     const theme = useTheme();
-    const lazyIcons = useMemoizedLazyExpensifyIcons(['Bolt', 'Gallery', 'boltSlash', 'OdometerStart', 'OdometerEnd']);
-    const lazyIllustrationsOnly = useMemoizedLazyIllustrations(['Hand', 'Shutter']);
+    const lazyIcons = useMemoizedLazyExpensifyIcons(['OdometerStart', 'OdometerEnd']);
 
     const viewfinderLayout = useRef<LayoutRectangle>(null);
     const isTransactionDraft = shouldUseTransactionDraft(action ?? CONST.IOU.ACTION.CREATE, iouType ?? CONST.IOU.TYPE.REQUEST);
@@ -274,79 +267,44 @@ function IOURequestStepOdometerImage({
             testID="IOURequestStepOdometerImage"
         >
             <View style={[styles.flex1, isInLandscapeMode && styles.flexRow]}>
-                {cameraPermissionStatus !== RESULTS.GRANTED && (
-                    <ScrollView contentContainerStyle={styles.flexGrow1}>
-                        <View style={[styles.cameraView, isInLandscapeMode ? styles.permissionViewLandscape : styles.permissionView, styles.userSelectNone]}>
-                            <ImageSVG
-                                contentFit="contain"
-                                src={lazyIllustrationsOnly.Hand}
-                                width={CONST.RECEIPT.HAND_ICON_WIDTH}
-                                height={CONST.RECEIPT.HAND_ICON_HEIGHT}
-                                style={styles.pb5}
-                            />
-
-                            <Text style={[styles.textFileUpload]}>{translate('receipt.takePhoto')}</Text>
-                            <Text style={[styles.subTextFileUpload]}>{translate('distance.odometer.cameraAccessRequired')}</Text>
-                            <Button
-                                variant={CONST.BUTTON_VARIANT.SUCCESS}
-                                accessibilityLabel={translate('common.continue')}
-                                style={[styles.p9, styles.pt5]}
-                                onPress={capturePhoto}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
-                            >
-                                <Button.Text>{translate('common.continue')}</Button.Text>
-                            </Button>
-                        </View>
-                    </ScrollView>
-                )}
-                {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
-                    <View style={[styles.cameraView]}>
-                        <ActivityIndicator
-                            size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                            style={[styles.flex1]}
-                            color={theme.textSupporting}
+                <View style={[styles.flex1]}>
+                    {cameraPermissionStatus !== RESULTS.GRANTED && (
+                        <CameraPermissionPrompt
+                            isInLandscapeMode={isInLandscapeMode}
+                            onPress={capturePhoto}
+                            subtitle={translate('distance.odometer.cameraAccessRequired')}
+                            sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.CONTINUE_BUTTON}
                         />
-                    </View>
-                )}
-                {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
-                    <View style={[styles.cameraView, isInLandscapeMode && styles.alignItemsCenter]}>
-                        <GestureDetector gesture={tapGesture}>
-                            <View style={StyleUtils.getOdometerCameraViewStyle(cameraAspectRatio, isInLandscapeMode)}>
-                                <NavigationAwareCamera
-                                    ref={camera}
-                                    device={device}
-                                    format={format}
-                                    style={styles.flex1}
-                                    zoom={device.neutralZoom}
-                                    photo
-                                    cameraTabIndex={1}
-                                    onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
-                                    forceInactive={isAttachmentPickerActive}
-                                />
-                                <Animated.View style={[styles.cameraFocusIndicator, cameraFocusIndicatorAnimatedStyle]} />
-                                <Animated.View
-                                    pointerEvents="none"
-                                    style={[StyleSheet.absoluteFill, StyleUtils.getBackgroundColorStyle(theme.appBG), blinkStyle, styles.zIndex10]}
-                                />
-                            </View>
-                        </GestureDetector>
-                        <>
-                            <View style={[styles.flashButtonContainer, styles.primaryMediumIcon, flash && styles.bgGreenSuccess, !hasFlash && styles.opacity0]}>
-                                <PressableWithFeedback
-                                    role={CONST.ROLE.BUTTON}
-                                    accessibilityLabel={translate('receipt.flash')}
-                                    disabled={cameraPermissionStatus !== RESULTS.GRANTED || !hasFlash}
-                                    onPress={() => setFlash((prevFlash) => !prevFlash)}
-                                    sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
-                                >
-                                    <Icon
-                                        height={variables.iconSizeSmall}
-                                        width={variables.iconSizeSmall}
-                                        src={lazyIcons.Bolt}
-                                        fill={flash ? theme.white : theme.icon}
-                                    />
-                                </PressableWithFeedback>
-                            </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device == null && (
+                        <View style={[styles.cameraView]}>
+                            <ActivityIndicator
+                                size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
+                                style={[styles.flex1]}
+                                color={theme.textSupporting}
+                            />
+                        </View>
+                    )}
+                    {cameraPermissionStatus === RESULTS.GRANTED && device != null && (
+                        <CameraViewport
+                            camera={camera}
+                            device={device}
+                            format={format}
+                            cameraAspectRatio={cameraAspectRatio}
+                            isInLandscapeMode={isInLandscapeMode}
+                            shouldFillPortraitViewport={false}
+                            tapGesture={tapGesture}
+                            cameraFocusIndicatorAnimatedStyle={cameraFocusIndicatorAnimatedStyle}
+                            blinkStyle={blinkStyle}
+                            isAttachmentPickerActive={isAttachmentPickerActive}
+                            onLayout={(e) => (viewfinderLayout.current = e.nativeEvent.layout)}
+                            shouldShowFlashButton
+                            flashSentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.FLASH}
+                            cameraPermissionStatus={cameraPermissionStatus}
+                            flash={flash}
+                            hasFlash={hasFlash}
+                            setFlash={setFlash}
+                        >
                             <View style={[styles.odometerPhotoInformationContainer, isInLandscapeMode && styles.w40]}>
                                 <Icon
                                     height={variables.menuIconSize}
@@ -358,62 +316,21 @@ function IOURequestStepOdometerImage({
                                     <RenderHTML html={snapPhotoText} />
                                 </View>
                             </View>
-                        </>
-                    </View>
-                )}
-                <View style={[styles.justifyContentAround, styles.alignItemsCenter, styles.pv3, isInLandscapeMode ? styles.ph3 : styles.flexRow]}>
-                    <AttachmentPicker
-                        onOpenPicker={() => {
-                            setIsAttachmentPickerActive(true);
-                            setIsLoaderVisible(true);
-                        }}
-                        fileLimit={1}
-                        shouldValidateImage={false}
-                    >
-                        {({openPicker}) => (
-                            <PressableWithFeedback
-                                role={CONST.ROLE.BUTTON}
-                                accessibilityLabel={translate('receipt.gallery')}
-                                style={[styles.alignItemsStart]}
-                                sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.GALLERY}
-                                onPress={() => {
-                                    openPicker({
-                                        onPicked: (data) => validateFiles(data),
-                                        onCanceled: () => setIsLoaderVisible(false),
-                                        // makes sure the loader is not visible anymore e.g. when there is an error while uploading a file
-                                        onClosed: () => {
-                                            setIsAttachmentPickerActive(false);
-                                            setIsLoaderVisible(false);
-                                        },
-                                    });
-                                }}
-                            >
-                                <Icon
-                                    height={variables.iconSizeMenuItem}
-                                    width={variables.iconSizeMenuItem}
-                                    src={lazyIcons.Gallery}
-                                    fill={theme.textSupporting}
-                                />
-                            </PressableWithFeedback>
-                        )}
-                    </AttachmentPicker>
-                    <PressableWithFeedback
-                        role={CONST.ROLE.BUTTON}
-                        accessibilityLabel={translate('receipt.shutter')}
-                        style={[styles.alignItemsCenter]}
-                        onPress={capturePhoto}
-                        sentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.SHUTTER}
-                    >
-                        <ImageSVG
-                            contentFit="contain"
-                            src={lazyIllustrationsOnly.Shutter}
-                            width={CONST.RECEIPT.SHUTTER_SIZE}
-                            height={CONST.RECEIPT.SHUTTER_SIZE}
-                        />
-                    </PressableWithFeedback>
-                    {/* Empty View matching gallery size so justifyContentAround keeps the shutter exactly centered - it's the simplest solution */}
-                    <View style={{width: variables.iconSizeMenuItem, height: variables.iconSizeMenuItem}} />
+                        </CameraViewport>
+                    )}
                 </View>
+
+                <ScannerControlsBar
+                    isInLandscapeMode={isInLandscapeMode}
+                    cameraPermissionStatus={cameraPermissionStatus}
+                    shouldShowFlashButton={false}
+                    setIsAttachmentPickerActive={setIsAttachmentPickerActive}
+                    onAttachmentPickerStatusChange={setIsLoaderVisible}
+                    onPicked={(files) => validateFiles(files)}
+                    capturePhoto={capturePhoto}
+                    gallerySentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.GALLERY}
+                    shutterSentryLabel={CONST.SENTRY_LABEL.REQUEST_STEP.ODOMETER_IMAGE.SHUTTER}
+                />
             </View>
         </StepScreenWrapper>
     );
