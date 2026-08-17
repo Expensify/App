@@ -36,8 +36,9 @@ function FocusTrapForModal({children, active, initialFocus = false, shouldPreven
         // opened from a popover has neither a focused element nor an anchorRef, but the popover that opened
         // it registered its own launcher, and that is the element the user came from.
         const launcher = activeElement instanceof HTMLElement && activeElement !== document.body ? activeElement : (resolveLauncherElement(launcherRef) ?? pickLauncher());
+        // Assigned unconditionally so this activation can never inherit a previous one's launcher.
+        cachedLauncherRef.current = launcher;
         if (launcher) {
-            cachedLauncherRef.current = launcher;
             setActivePopoverLauncher(launcher);
         }
     };
