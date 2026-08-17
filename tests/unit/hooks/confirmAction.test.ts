@@ -1,6 +1,6 @@
 import buildConfirmAction from '@components/MoneyRequestConfirmationList/confirmAction';
 
-import type {hasInvoicingDetails} from '@userActions/Policy/Policy';
+import {hasInvoicingDetails} from '@userActions/Policy/Policy';
 
 import CONST from '@src/CONST';
 
@@ -10,6 +10,8 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: () => '/',
 }));
 jest.mock('@userActions/Policy/Policy', () => ({hasInvoicingDetails: jest.fn(() => true)}));
+
+const mockHasInvoicingDetails = jest.mocked(hasInvoicingDetails);
 
 type Params = Parameters<typeof buildConfirmAction>[0];
 
@@ -74,8 +76,7 @@ describe('buildConfirmAction', () => {
     });
 
     it('navigates to company-info step for invoice with no invoicing details', () => {
-        const policyMock = jest.requireMock<{hasInvoicingDetails: typeof hasInvoicingDetails}>('@userActions/Policy/Policy');
-        (policyMock.hasInvoicingDetails as jest.Mock).mockReturnValueOnce(false);
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
         const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE});
         buildConfirmAction(params)({paymentType: undefined});
         expect(mockNavigate).toHaveBeenCalled();
@@ -84,8 +85,7 @@ describe('buildConfirmAction', () => {
     });
 
     it('does not navigate to company-info step when routeError is set', () => {
-        const policyMock = jest.requireMock<{hasInvoicingDetails: typeof hasInvoicingDetails}>('@userActions/Policy/Policy');
-        (policyMock.hasInvoicingDetails as jest.Mock).mockReturnValueOnce(false);
+        mockHasInvoicingDetails.mockReturnValueOnce(false);
         const params = makeBase({iouType: CONST.IOU.TYPE.INVOICE, routeError: 'route error'});
         buildConfirmAction(params)({paymentType: undefined});
         expect(mockNavigate).not.toHaveBeenCalled();
