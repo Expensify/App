@@ -36,6 +36,7 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import buildPerDiemTimeBasePath from './perDiemTimeBasePath';
 import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
@@ -84,6 +85,10 @@ function DynamicIOURequestStepTime({
     const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
     const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
 
+    // Rebuilds the path of this (time) route from its own params instead of the current URL: dynamic suffixes carry
+    // no `:reportID`, so a URL-derived path can carry the pre-retarget `reportID` and miss the stacked route (#97558).
+    const buildTimeBasePath = () => buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled});
+
     const navigateBack = () => {
         if (isEditPage) {
             Navigation.goBack(editBackPath);
@@ -92,12 +97,8 @@ function DynamicIOURequestStepTime({
 
         if (transaction?.isFromGlobalCreate || iouType === CONST.IOU.TYPE.TRACK) {
             // We want to navigate to the destination step only when the first step was the workspace selector.
-            // The destination step is rebuilt from this route's own params instead of the current URL: dynamic suffixes
-            // carry no `:reportID`, so a URL-derived back path can miss the destination route in the stack (#97558).
             if (hasMoreThanOnePolicyWithPerDiemEnabled) {
-                Navigation.goBack(
-                    createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
-                );
+                Navigation.goBack(buildTimeBasePath());
                 return;
             }
 
@@ -132,7 +133,13 @@ function DynamicIOURequestStepTime({
         if (isEditPage) {
             navigateBack();
         } else {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute()));
+            // Subrate is stacked on this (time) route, so its base is rebuilt from this route's own params (see
+            // buildTimeBasePath) instead of the current URL. The URL can still carry the `reportID` from before the
+            // workspace selector retargeted the report. Deriving the base from it would create a subrate route whose
+            // report is missing from Onyx, and the step would render the not-found page.
+            Navigation.navigate(
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(), createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path, buildTimeBasePath())),
+            );
         }
     };
 

@@ -11,16 +11,19 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
@@ -38,11 +41,12 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import buildPerDiemTimeBasePath from './perDiemTimeBasePath';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
@@ -80,8 +84,12 @@ function DynamicIOURequestStepSubrate({
     report,
 }: DynamicIOURequestStepSubrateProps) {
     const isEditPage = routeName === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT;
-    const backPath = useDynamicBackPath(isEditPage ? DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.path : DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.path);
+    const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.path);
     const styles = useThemeStyles();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -127,7 +135,19 @@ function DynamicIOURequestStepSubrate({
     const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
 
     const goBack = () => {
-        Navigation.goBack(backPath);
+        if (isEditPage) {
+            Navigation.goBack(editBackPath);
+            return;
+        }
+        // The time step is rebuilt from this route's own params instead of the current URL. A URL-derived path can
+        // still carry the `reportID` from before the workspace selector retargeted the report; it would fail to
+        // match the time route on the stack and re-push the time suffix, doubling the URL (#97558).
+        Navigation.goBack(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled}),
+            ),
+        );
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
