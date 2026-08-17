@@ -2221,7 +2221,9 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             options.push(payButtonOption);
         }
 
-        const selectedMergeReports = selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report?.reportID);
+        const selectedMergeReports = areAllMatchingItemsSelected
+            ? []
+            : selectedReports.map(({reportID}) => currentSearchResults?.data[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]).filter((report) => !!report?.reportID);
         if (
             selectedMergeReports.length === selectedReports.length &&
             queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT &&
