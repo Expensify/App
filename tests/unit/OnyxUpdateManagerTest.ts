@@ -568,20 +568,15 @@ describe('OnyxUpdateManager', () => {
         expect(App.reconnectApp).not.toHaveBeenCalled();
     });
 
-    it('should not escalate or back off when the fetch response reports progress', async () => {
-        // Progress is read from the response itself: its lastUpdateID is past the ID the fetch was fired
-        // from, so this is not a stall even though nothing was applied yet.
+    it('should escalate when the fetch response is ahead of the client but the client did not move', async () => {
         App.mockValues.missingOnyxUpdatesResponse = {jsonCode: 200, lastUpdateID: 2, onyxData: []};
 
         OnyxUpdateManager.handleMissingOnyxUpdates(update3);
         await OnyxUpdateManager.queryPromise;
-        expect(App.reconnectApp).not.toHaveBeenCalled();
-        const fetchCalls = App.getMissingOnyxUpdates.mock.calls.length;
 
-        OnyxUpdateManager.handleMissingOnyxUpdates(update5);
-        await OnyxUpdateManager.queryPromise;
-        expect(App.getMissingOnyxUpdates.mock.calls.length).toBeGreaterThan(fetchCalls);
-        expect(App.reconnectApp).not.toHaveBeenCalled();
+        expect(lastUpdateIDAppliedToClient).toBe(1);
+        expect(App.reconnectApp).toHaveBeenCalledTimes(1);
+        expect(App.reconnectApp).toHaveBeenCalledWith(1);
     });
 
     it('should not escalate when the client advances through another path while the fetch is in flight', async () => {
