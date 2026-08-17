@@ -10,6 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
+import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,7 +24,7 @@ import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOpt
 
 import {enablePolicyCategories, setWorkspaceRequiresCategory} from '@userActions/Policy/Category';
 import {clearPolicyErrorField} from '@userActions/Policy/Policy';
-import {clearPolicyTagListErrorField, enablePolicyTags, setPolicyRequiresTag, setPolicyTagLevelsRequired, setPolicyTagsRequired} from '@userActions/Policy/Tag';
+import {clearPolicyTagListErrorField, enablePolicyTags, openPolicyTagsPage, setPolicyRequiresTag, setPolicyTagLevelsRequired, setPolicyTagsRequired} from '@userActions/Policy/Tag';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -48,6 +49,8 @@ function RulesRequireFieldsPage({
     const styles = useThemeStyles();
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
+    // The self-heal below writes to the server, so it needs the same Tags write check the Tags table uses.
+    const {canWrite: canWriteTags} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
 
@@ -73,12 +76,41 @@ function RulesRequireFieldsPage({
     // Pending per-level edits until Save, keyed by orderWeight. Only toggled levels are here, so late-arriving tag lists aren't edits.
     const [tagRequiredByLevel, setTagRequiredByLevel] = useState<Record<number, boolean>>({});
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
+    const hasRequestedTagsRef = useRef(false);
 
     const getLevelRequired = useCallback((tagList: ValueOf<PolicyTagLists>) => tagRequiredByLevel[tagList.orderWeight] ?? !!tagList.required, [tagRequiredByLevel]);
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
     }, [policyID]);
+
+    useEffect(() => {
+        // The General tab hydrates the tag lists, but it only mounts when it is the last selected Rules tab, so the
+        // per-level rows would stay hidden when this page is opened directly. Fetch only when nothing loaded them.
+        if (policyTags || hasRequestedTagsRef.current) {
+            return;
+        }
+
+        hasRequestedTagsRef.current = true;
+        openPolicyTagsPage(policyID);
+    }, [policyID, policyTags]);
+
+    useEffect(() => {
+        // Same self-heal as the Tags table: a required level with no enabled tags can never be satisfied, and it still
+        // fires a violation, so clear it. Pending edits are skipped so this can't fight a toggle the admin just flipped.
+        if (!canWriteTags || !hasPerLevelTagRequired) {
+            return;
+        }
+
+        for (const tagList of tagLists) {
+            const isAlreadyHandled = !tagList.required || !!tagList.pendingFields?.required || tagRequiredByLevel[tagList.orderWeight] !== undefined;
+            if (isAlreadyHandled || hasEnabledOptions(Object.values(tagList.tags ?? {}))) {
+                continue;
+            }
+
+            setPolicyTagsRequired(policyData, false, tagList.orderWeight);
+        }
+    }, [canWriteTags, hasPerLevelTagRequired, policyData, tagLists, tagRequiredByLevel]);
 
     useEffect(() => {
         if (!policy?.id || policy.isLoading || syncedPolicyIDRef.current === policy.id) {
@@ -317,7 +349,7 @@ function RulesRequireFieldsPage({
                                     switchAccessibilityLabel={label}
                                     shouldPlaceSubtitleBelowSwitch
                                     wrapperStyle={styles.pv3}
-                                    isActive={getLevelRequired(tagList) && areLevelTagsEnabled}
+                                    isActive={getLevelRequired(tagList)}
                                     disabled={isLevelToggleDisabled}
                                     showLockIcon={shouldShowTagLock || isLastRequiredLevel(tagList)}
                                     disabledText={tagDisabledText}
