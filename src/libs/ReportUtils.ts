@@ -2070,9 +2070,6 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
     // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report.policyID);
 
-    // The next approver on a Dynamic External Workflow policy is decided by an external system, so the report's
-    // position in the approval chain cannot be determined here. The backend never treats submitted expense reports
-    // on these policies as awaiting first-level approval and rejects adding expenses to them.
     if (isExpenseReport(report) && hasDynamicExternalWorkflow(policy)) {
         return false;
     }
