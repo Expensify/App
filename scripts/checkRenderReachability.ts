@@ -31,6 +31,7 @@
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import ts from 'typescript';
 
 import type {PathAliases} from './buildCallGraph';
 import type {FileAnalysis} from './callGraphFromSource';
@@ -56,12 +57,48 @@ function isPathAliases(value: unknown): value is PathAliases {
     return typeof value === 'object' && value !== null && Object.values(value).every((targets) => Array.isArray(targets) && targets.every((target) => typeof target === 'string'));
 }
 
+/**
+ * Read through TypeScript rather than `JSON.parse`: `tsconfig.json` is JSONC, and it inherits from
+ * `expo/tsconfig.base`, so `paths` can come from either file. Throws rather than returning `{}`, because
+ * without aliases every cross-file import goes unresolved and every unit then looks safe.
+ */
 function readPathAliases(): PathAliases {
-    const tsconfig: unknown = JSON.parse(fs.readFileSync(path.join(projectRoot, 'tsconfig.json'), 'utf8'));
-    const compilerOptions: unknown = typeof tsconfig === 'object' && tsconfig !== null ? Reflect.get(tsconfig, 'compilerOptions') : null;
-    const paths: unknown = typeof compilerOptions === 'object' && compilerOptions !== null ? Reflect.get(compilerOptions, 'paths') : null;
+    const configPath = path.join(projectRoot, 'tsconfig.json');
+    const configFile = ts.readConfigFile(configPath, (fileName) => ts.sys.readFile(fileName));
 
-    return isPathAliases(paths) ? paths : {};
+    if (configFile.error) {
+        throw new Error(`Cannot read ${configPath}: ${ts.flattenDiagnosticMessageText(configFile.error.messageText, ' ')}`);
+    }
+
+    const config: unknown = configFile.config;
+
+    // Only `compilerOptions` is wanted, so `readDirectory` is stubbed out instead of letting TypeScript glob
+    // the include patterns over the whole repo. TS18003, "no inputs were found", is that stub's own artifact.
+    const parsed = ts.parseJsonConfigFileContent(
+        config,
+        {
+            useCaseSensitiveFileNames: ts.sys.useCaseSensitiveFileNames,
+            readDirectory: () => [],
+            fileExists: (fileName) => ts.sys.fileExists(fileName),
+            readFile: (fileName) => ts.sys.readFile(fileName),
+        },
+        projectRoot,
+        undefined,
+        configPath,
+    );
+    const errors = parsed.errors.filter((diagnostic) => diagnostic.code !== 18003);
+
+    if (errors.length > 0) {
+        throw new Error(`Cannot parse ${configPath}: ${errors.map((diagnostic) => ts.flattenDiagnosticMessageText(diagnostic.messageText, ' ')).join('; ')}`);
+    }
+
+    const paths: unknown = parsed.options.paths;
+
+    if (!isPathAliases(paths) || Object.keys(paths).length === 0) {
+        throw new Error(`No compilerOptions.paths found in ${configPath}`);
+    }
+
+    return paths;
 }
 
 type Verdict = {
