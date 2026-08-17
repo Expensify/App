@@ -86,6 +86,9 @@ const report = {
     policyID: POLICY_ID,
     total: 10000 * TRANSACTIONS_COUNT,
     currency: CONST.CURRENCY.USD,
+    // Seed the report as already read so mount doesn't fire readNewestAction (a network action whose
+    // timing would add noise to the measurement).
+    lastReadTime: sortedReportActions.at(0)?.created,
 };
 
 const transactions = Array.from({length: TRANSACTIONS_COUNT}, (unused, index) => {
