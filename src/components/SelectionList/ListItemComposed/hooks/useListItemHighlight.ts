@@ -46,7 +46,7 @@ function useListItemHighlight({shouldHighlight = false, isSelected = false, vari
     if (!isSearchTable) {
         return {
             animatedHighlightStyle,
-            pressableStyle: [styles.selectionListPressableItemWrapper, styles.mh0, shouldHighlight ? styles.bgTransparent : undefined, isSelected && styles.activeComponentBG],
+            pressableStyle: [styles.selectionListPressableItemWrapper, styles.mh0, styles.bgTransparent, isSelected && styles.activeComponentBG],
             pressableWrapperStyle: [styles.mh5, animatedHighlightStyle],
         };
     }

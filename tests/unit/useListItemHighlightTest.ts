@@ -66,20 +66,16 @@ describe('useListItemHighlight', () => {
     });
 
     describe('default variant pressable bundle', () => {
-        it('rests on the wrapper style and margins', () => {
+        it('rests on the wrapper style and margins, staying transparent for the animated background', () => {
             const {styles, highlight} = renderHighlightHook();
 
             expect(highlight.pressableStyle).toContain(styles.selectionListPressableItemWrapper);
             expect(highlight.pressableStyle).toContain(styles.mh0);
-            expect(highlight.pressableStyle).not.toContain(styles.bgTransparent);
+            // Unconditional even when not highlighting: the highlight flag resets mid-animation, so an opaque
+            // background here would mask the still-running animation on the wrapper underneath.
+            expect(highlight.pressableStyle).toContain(styles.bgTransparent);
             expect(highlight.pressableWrapperStyle).toContain(styles.mh5);
             expect(highlight.pressableWrapperStyle).toContain(animatedHighlightStyleMock);
-        });
-
-        it('goes transparent while highlighting so the animated background shows through', () => {
-            const {styles, highlight} = renderHighlightHook({shouldHighlight: true});
-
-            expect(highlight.pressableStyle).toContain(styles.bgTransparent);
         });
 
         it('paints the selected background when selected', () => {
