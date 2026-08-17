@@ -9,7 +9,7 @@ type HeaderRightProps = {
     children: ReactNode;
 };
 
-/** Right-hand zone. Separates trailing content from the center content, nothing more; spacing between the blocks inside it is each block's own concern. */
+/** Right-hand zone. Separates trailing content from the center content. Spacing between the blocks inside it is each block's own concern. */
 function HeaderRight({children}: HeaderRightProps) {
     const styles = useThemeStyles();
 

@@ -37,7 +37,7 @@ type HeaderTooltipIconButtonProps = {
     ref?: PressableRef;
 };
 
-/** Shared shape for the header's icon buttons: Tooltip + Pressable + Icon. Callers own their own onPress wrapping, loading states, and fill logic; this only renders the common skeleton. */
+/** Shared shape for the header's icon buttons: Tooltip, Pressable and Icon. Callers own their own onPress wrapping, loading states and fill logic. This only renders the common skeleton. */
 function HeaderTooltipIconButton({text, onPress, iconSrc, iconFill, sentryLabel, style, id, ref}: HeaderTooltipIconButtonProps) {
     const theme = useTheme();
     const styles = useThemeStyles();
