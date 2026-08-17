@@ -78,7 +78,6 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const {isOffline} = useNetwork();
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -90,9 +89,8 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    // Match Quick Creation and Search actions by using shared report eligibility rules. Unlike the FAB's
-    // expense-chat filter, this intentionally includes Submit workspaces only when the beta is enabled.
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, isSubmit2026BetaEnabled, sessionEmail);
+    // Match Quick Creation and Search actions by using shared report eligibility rules.
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies ?? null, sessionEmail);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const [isLoading = false] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
