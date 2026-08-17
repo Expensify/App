@@ -15,12 +15,15 @@ import {setTimeSkew} from './actions/Network';
 import {alertUser} from './actions/UpdateRequired';
 import {READ_COMMANDS, SIDE_EFFECT_REQUEST_COMMANDS, WRITE_COMMANDS} from './API/types';
 import {getCommandURL} from './ApiUtils';
+import isStartupNetworkRequest from './AppStartupNetworkRequest';
 import HttpsError from './Errors/HttpsError';
 import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
+import {cancelSpan, endSpan} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
+import startStartupPhaseSpan, {getStartupPhaseSpanId} from './telemetry/startStartupPhaseSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -67,6 +70,8 @@ const ALREADY_CREATED_MESSAGES = new Set<string>([CONST.ERROR_TITLE.ALREADY_CREA
  */
 const APICommandRegex = /\/api\/([^&?]+)\??.*/;
 
+let startupRequestAttempt = 0;
+
 /**
  * Send an HTTP request, and attempt to resolve the json response.
  * If there is a network error, we'll set the application offline.
@@ -98,8 +103,23 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
+    // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
+    const isStartupRequest = isStartupNetworkRequest(command);
+    const attempt = isStartupRequest ? (startupRequestAttempt += 1) : 0;
+    const waitSpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt);
+    const downloadSpanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt);
+    if (isStartupRequest && command) {
+        startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.WAIT, attempt, command);
+    }
+
     return fetch(url, fetchParams)
         .then((response) => {
+            if (isStartupRequest && command) {
+                endSpan(waitSpanId);
+                startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.DOWNLOAD, attempt, command, {
+                    [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
+                });
+            }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
             }
@@ -153,7 +173,11 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
-            return response.json() as Promise<Response<TKey>>;
+            const parsedResponse = response.json() as Promise<Response<TKey>>;
+            if (!isStartupRequest) {
+                return parsedResponse;
+            }
+            return parsedResponse.finally(() => endSpan(downloadSpanId));
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
@@ -197,6 +221,12 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .catch((error: unknown) => {
+            // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
+            cancelSpan(waitSpanId);
+            cancelSpan(downloadSpanId);
+            throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }

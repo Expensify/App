@@ -56,6 +56,8 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
     });
     const hasOnceLoadedReportActions = reportLoadingState?.hasOnceLoadedReportActions;
     const isLoadingInitialReportActions = reportLoadingState?.isLoadingInitialReportActions;
+    const isLoadingOlderReportActions = reportLoadingState?.isLoadingOlderReportActions;
+    const hasLoadingOlderReportActionsError = reportLoadingState?.hasLoadingOlderReportActionsError;
 
     const {sessionStartTime, showFullHistory: conciergeShowFullHistory, hadMessagesAtSessionStart: conciergeHadMessagesAtSessionStart} = useConciergeSessionState();
     const {setShowFullHistory: setConciergeShowFullHistory, setHadMessagesAtSessionStart: setConciergeHadMessagesAtSessionStart} = useConciergeSessionActions();
@@ -69,7 +71,7 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
 
     const [reportPaginationState] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_PAGINATION_STATE}${reportID}`);
 
-    const {loadOlderChats, loadNewerChats} = useLoadReportActions({
+    const {loadOlderChats, loadNewerChats, currentReportOldestActionID} = useLoadReportActions({
         reportID,
         reportActions,
         allReportActionIDs,
@@ -120,10 +122,15 @@ function useReportActionsListModel(reportID: string, isReportLoadPending: boolea
         isReportTransactionThread,
         shouldBeAlignedToTop,
         isReportLoadPending,
+        isLoadingOlderReportActions,
+        hasLoadingOlderReportActionsError,
         hasOnceLoadedReportActions,
         isLoadingInitialReportActions,
         isLoadingApp: isAppLoadPending,
         reportActionsLength: reportActions.length,
+        oldestReportActionID: currentReportOldestActionID,
+        hasOlderActions,
+        hasNewerActions,
         oldestUnreadReportAction,
         isSingleExpenseReport,
         isMissingReportActions,

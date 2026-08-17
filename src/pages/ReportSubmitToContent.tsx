@@ -6,16 +6,17 @@ import InviteMemberListItem from '@components/SelectionList/ListItem/InviteMembe
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
 import useInitialSelection from '@hooks/useInitialSelection';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -80,15 +81,14 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare} = useLocalize();
-    // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
-    const {isSmallScreenWidth} = useResponsiveLayout();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
-    const isBottomDockedInLandscape = isSmallScreenWidth && isInLandscapeMode;
+    const {keyboardActiveHeight} = useKeyboardState();
+
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
-    const [nextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${report?.reportID}`);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
@@ -214,6 +214,7 @@ function ReportSubmitToContent({
         }
 
         const inviteOption = getUserToInviteOption({
+            dateFnsLocale,
             searchValue: trimmed,
             personalDetails,
             loginList,
@@ -235,7 +236,7 @@ function ReportSubmitToContent({
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
-    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails]);
+    }, [countryCode, currentUserDetails.email, searchTerm, filteredWorkspaceMembers.length, loginList, managerEmail, personalDetails, dateFnsLocale]);
 
     const submitToSelectionData = useMemo(() => {
         if (!nonWorkspaceInviteRow) {
@@ -305,13 +306,13 @@ function ReportSubmitToContent({
         }
 
         submitReport({
+            getCurrencyDecimals,
             expenseReport: report,
             policy,
             currentUserAccountIDParam: currentUserDetails.accountID,
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
-            expenseReportCurrentNextStepDeprecated: nextStep,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
@@ -348,7 +349,6 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
-        nextStep,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
@@ -365,6 +365,7 @@ function ReportSubmitToContent({
         canSubmitRef,
         shouldDismissRHPAfterSubmit,
         isTrackIntentUser,
+        getCurrencyDecimals,
     ]);
 
     const onSelectMember = useCallback(
@@ -415,22 +416,22 @@ function ReportSubmitToContent({
 
     const confirmButtonOptions = useMemo(
         () => ({
-            showButton: true,
+            showButton: !keyboardActiveHeight || !isInLandscapeMode,
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
             confirmButtonSize: 'medium' as const,
         }),
-        [handleSubmit, translate],
+        [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode],
     );
 
     const containerStyle = useMemo(() => {
         const baseStyle = [styles.w100, styles.flex1, styles.pt3, styles.pb3];
-        if (isBottomDockedInLandscape) {
+        if (isInLandscapeMode) {
             return baseStyle;
         }
 
         return [...baseStyle, StyleUtils.getMinimumHeight(CONST.POPOVER_REPORT_SUBMIT_TO_CONTENT_HEIGHT)];
-    }, [StyleUtils, isBottomDockedInLandscape, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
+    }, [StyleUtils, isInLandscapeMode, styles.flex1, styles.pb3, styles.pt3, styles.w100]);
 
     if (shouldShowNotFoundView) {
         return (
@@ -456,7 +457,7 @@ function ReportSubmitToContent({
                 isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
-                addBottomSafeAreaPadding
+                addBottomSafeAreaPadding={!isInLandscapeMode}
             >
                 {hasError && (
                     <FormHelpMessage
