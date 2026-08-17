@@ -7,6 +7,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHydrateReportsFromSnapshot from '@hooks/useHydrateReportsFromSnapshot';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -53,6 +54,7 @@ function SearchReportsMergeReports() {
     const personalPolicy = usePersonalPolicy();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const delegateAccountID = useDelegateAccountID();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [destinationReportID, setDestinationReportID] = useState<string | undefined>();
@@ -156,6 +158,7 @@ function SearchReportsMergeReports() {
             isTrackIntentUser,
             personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             selfDMReportActions,
+            delegateAccountID,
             getCurrencyDecimals,
         });
 
