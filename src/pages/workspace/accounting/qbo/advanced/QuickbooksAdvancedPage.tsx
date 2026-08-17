@@ -5,6 +5,7 @@ import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
@@ -38,6 +39,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
@@ -89,15 +91,19 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             pendingAction: settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
         },
-        {
-            key: 'qboFxExpenseAccount',
-            title: selectedFxExpenseAccountName,
-            description: translate('workspace.qbo.advancedConfig.qboFxExpenseAccount', integrationName),
-            onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))),
-            subscribedSettings: fxExpenseAccounts,
-            brickRoadIndicator: areSettingsInErrorFields(fxExpenseAccounts, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
-            pendingAction: settingsPendingAction(fxExpenseAccounts, qboConfig?.pendingFields),
-        },
+        ...(isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)
+            ? [
+                  {
+                      key: 'qboFxExpenseAccount',
+                      title: selectedFxExpenseAccountName,
+                      description: translate('workspace.qbo.advancedConfig.qboFxExpenseAccount', integrationName),
+                      onPress: waitForNavigate(() => Navigation.navigate(ROUTES.WORKSPACE_ACCOUNTING_QUICKBOOKS_ONLINE_FX_EXPENSE_ACCOUNT_SELECTOR.getRoute(policyID))),
+                      subscribedSettings: fxExpenseAccounts,
+                      brickRoadIndicator: areSettingsInErrorFields(fxExpenseAccounts, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
+                      pendingAction: settingsPendingAction(fxExpenseAccounts, qboConfig?.pendingFields),
+                  },
+              ]
+            : []),
     ];
 
     const syncReimbursedSubMenuItems = () => (

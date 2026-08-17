@@ -5,6 +5,7 @@ import Text from '@components/Text';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateQuickbooksOnlineFxExpenseAccount} from '@libs/actions/connections/QuickbooksOnline';
@@ -33,6 +34,7 @@ type SelectorType = ListItem & {
 function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
     const illustrations = useMemoizedLazyIllustrations(['Telescope']);
 
@@ -89,6 +91,7 @@ function QuickbooksFxExpenseAccountSelectPage({policy}: WithPolicyConnectionsPro
             policyID={policyID}
             accessVariants={[CONST.POLICY.ACCESS_VARIANTS.ADMIN, CONST.POLICY.ACCESS_VARIANTS.PAID]}
             featureName={CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED}
+            shouldBeBlocked={!isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) || !isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)}
             displayName="QuickbooksFxExpenseAccountSelectPage"
             data={qboOnlineSelectorOptions}
             headerContent={listHeaderComponent}
