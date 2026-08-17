@@ -167,8 +167,7 @@ type StableReport = Omit<Report, TupleToUnion<ExcludedFields>>;
  *
  * When adding a new `Report` field: include it in the return object below; only add to
  * `ExcludedFields` if it updates on every message/read and the subtree does not read it.
- */
-/**
+ *
  * Onyx merge replaces arrays wholesale even when their content is identical (arrays are
  * non-mergeable leaf values compared by reference), so `report.permissions` can arrive with a new
  * reference on every report push. Intern the array by content so the projection keeps a stable
