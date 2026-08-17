@@ -121,7 +121,8 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                 <Tooltip text={translate('supportalSwitcher.title')}>
                     <PressableWithoutFeedback
                         ref={anchorRef}
-                        style={styles.navigationTabBarFABItem}
+                        // The FAB below adds 16 of its own top padding, so pull back 4 to match its 12 gap.
+                        style={[styles.navigationTabBarFABItem, styles.mbn1]}
                         accessibilityLabel={translate('supportalSwitcher.title')}
                         role={CONST.ROLE.BUTTON}
                         onPress={openSwitcher}
