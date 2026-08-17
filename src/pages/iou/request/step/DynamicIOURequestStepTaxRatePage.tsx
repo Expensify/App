@@ -60,7 +60,7 @@ function DynamicIOURequestStepTaxRatePage({
     report,
 }: DynamicIOURequestStepTaxRatePageProps) {
     const {translate} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TAX_RATE.path);
 
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
@@ -119,6 +119,8 @@ function DynamicIOURequestStepTaxRatePage({
             delegateAccountID,
             reportPolicyTags,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         };
 
         if (shouldClearTax && isEditing) {
@@ -135,11 +137,17 @@ function DynamicIOURequestStepTaxRatePage({
         const taxValue = getTaxValue(policy, currentTransaction, taxes.code) ?? '';
 
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(currentTransaction.transactionID, splitDraftTransaction, {
-                taxAmount: convertToBackendAmount(taxAmount ?? 0),
-                taxCode: taxes.code,
-                taxValue,
-            });
+            setDraftSplitTransaction(
+                currentTransaction.transactionID,
+                splitDraftTransaction,
+                {
+                    taxAmount: convertToBackendAmount(taxAmount ?? 0),
+                    taxCode: taxes.code,
+                    taxValue,
+                },
+                getCurrencyDecimals,
+                getCurrencySymbol,
+            );
             saveAndNavigateBack();
             return;
         }

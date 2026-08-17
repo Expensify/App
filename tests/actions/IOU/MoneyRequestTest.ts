@@ -870,7 +870,7 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
         });
 
         it('threads the conciergeChat report through to trackExpense when skipping confirmation', () => {

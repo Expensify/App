@@ -6698,7 +6698,7 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
         return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
     }
 
-    const attachmentTags = currentCommentHtml.match(/<(?:img|video)\b[^>]*>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
+    const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
     const syncedAttachmentTag = attachmentTags.find((tag) => {
         const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
         return source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
@@ -6719,13 +6719,23 @@ function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentH
     });
 }
 
+/** Empty parts are dropped so deleting all the text does not leave a separator above the attachment. */
+function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachmentHtml: string | undefined): string {
+    if (!uploadingAttachmentHtml) {
+        return commentHtml;
+    }
+    return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
+}
+
 /** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
 function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
     if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
         return undefined;
     }
     const attachmentTagRegex = new RegExp(
-        `<(?:img|video)\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
+        `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
+            `|<video\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</video>` +
+            `|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
         'i',
     );
     return currentCommentHtml.match(attachmentTagRegex)?.at(0);
@@ -12043,15 +12053,17 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
             );
             return;
         }
@@ -12081,7 +12093,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
         return;
     }
 
@@ -13533,6 +13547,20 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
+function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction {
+    return (
+        isExportIntegrationAction(action) ||
+        isIntegrationMessageAction(action) ||
+        isDynamicExternalWorkflowSubmitFailedAction(action) ||
+        isDynamicExternalWorkflowApproveFailedAction(action) ||
+        isSubmittedAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
+    );
+}
+
 function selectFilteredReportActions(
     reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
 ): Record<string, ReportAction[]> | undefined {
@@ -13541,20 +13569,19 @@ function selectFilteredReportActions(
     }
 
     return Object.fromEntries(
-        Object.entries(reportActions).map(([reportID, actionsGroup]) => {
-            const actions = Object.values(actionsGroup ?? {});
-            const filteredActions = actions.filter(
-                (action): action is ReportAction =>
-                    isExportIntegrationAction(action) ||
-                    isIntegrationMessageAction(action) ||
-                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
-                    isDynamicExternalWorkflowApproveFailedAction(action) ||
-                    isSubmittedAction(action) ||
-                    isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED),
-            );
-            return [reportID, filteredActions];
-        }),
+        Object.entries(reportActions).map(([reportActionsKey, actionsGroup]) => [reportActionsKey, Object.values(actionsGroup ?? {}).filter(isSearchRelevantReportAction)]),
     );
+}
+
+function selectFilteredReportActionsForReports(
+    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
+    reportActionsKeys: string[],
+): Record<string, ReportAction[]> {
+    const result: Record<string, ReportAction[]> = {};
+    for (const reportActionsKey of reportActionsKeys) {
+        result[reportActionsKey] = Object.values(reportActions?.[reportActionsKey] ?? {}).filter(isSearchRelevantReportAction);
+    }
+    return result;
 }
 
 /**
@@ -14356,6 +14383,7 @@ export {
     parseReportRouteParams,
     requiresAttentionFromCurrentUser,
     selectFilteredReportActions,
+    selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,
@@ -14476,6 +14504,7 @@ export {
     replaceLocalAttachmentReferences,
     isUploadingAttachmentRemovedFromDraft,
     getUploadingAttachmentHtmlFromComment,
+    buildEditedCommentWithAttachment,
 };
 
 export type {

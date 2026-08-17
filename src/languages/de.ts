@@ -2156,6 +2156,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Bitte installiere die neueste Version von Expensify',
         toGetLatestChanges: 'Für Mobilgeräte lade die neueste Version herunter und installiere sie. Für das Web aktualisiere deinen Browser.',
         newAppNotAvailable: 'Jetzt aktualisieren, und Sie werden es uns später danken.',
+        updateAvailable: 'Aktualisierung verfügbar',
+        pleaseRefresh: 'Bitte aktualisieren Sie diese Seite, um die neueste Version von Expensify zu erhalten.',
+        refreshPage: 'Seite aktualisieren',
     },
     initialSettingsPage: {
         about: 'Info',
@@ -5912,6 +5915,7 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             directFeed: 'Direktfeed',
             whoNeedsCardAssigned: 'Wer braucht eine zugewiesene Karte?',
             chooseTheCardholder: 'Wähle den Karteninhaber',
+            pleaseSelectACardholder: 'Bitte wähle einen Karteninhaber aus, um fortzufahren',
             chooseCard: 'Wähle eine Karte',
             chooseCardFor: (assignee: string) => `Wähle eine Karte für <strong>${assignee}</strong>. Du findest die gesuchte Karte nicht? <concierge-link>Gib uns Bescheid.</concierge-link>`,
             noActiveCards: 'Keine aktiven Karten in diesem Feed',

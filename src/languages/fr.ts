@@ -2161,6 +2161,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Veuillez installer la dernière version d’Expensify',
         toGetLatestChanges: 'Sur mobile, téléchargez et installez la dernière version. Sur le web, actualisez votre navigateur.',
         newAppNotAvailable: 'Mettez à jour maintenant et vous nous remercierez plus tard.',
+        updateAvailable: 'Mise à jour disponible',
+        pleaseRefresh: 'Veuillez actualiser cette page pour obtenir la dernière version d’Expensify.',
+        refreshPage: 'Actualiser la page',
     },
     initialSettingsPage: {
         about: 'À propos',
@@ -5924,6 +5927,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,

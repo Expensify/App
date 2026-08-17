@@ -2148,6 +2148,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Installeer de nieuwste versie van Expensify',
         toGetLatestChanges: 'Voor mobiel: download en installeer de nieuwste versie. Voor web: vernieuw je browser.',
         newAppNotAvailable: 'Werk nu bij en je zult ons later dankbaar zijn.',
+        updateAvailable: 'Update beschikbaar',
+        pleaseRefresh: 'Ververs deze pagina om de nieuwste versie van Expensify te krijgen.',
+        refreshPage: 'Pagina vernieuwen',
     },
     initialSettingsPage: {
         about: 'Over',
@@ -5873,6 +5876,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             directFeed: 'Directe feed',
             whoNeedsCardAssigned: 'Wie moet er een kaart toegewezen krijgen?',
             chooseTheCardholder: 'Kies de kaarthouder',
+            pleaseSelectACardholder: 'Selecteer een kaarthouder om door te gaan',
             chooseCard: 'Kies een kaart',
             chooseCardFor: (assignee: string) =>
                 `Kies een kaart voor <strong>${assignee}</strong>. Kun je de kaart die je zoekt niet vinden? <concierge-link>Laat het ons weten.</concierge-link>`,

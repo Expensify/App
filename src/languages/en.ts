@@ -2249,10 +2249,13 @@ const translations = {
     },
     updateRequiredView: {
         updateRequired: 'Update required',
+        updateAvailable: 'Update available',
         pleaseInstall: 'Please update to the latest version of New Expensify',
         pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
+        pleaseRefresh: 'Please refresh this page to get the latest version of Expensify.',
         toGetLatestChanges: 'For mobile, download and install the latest version. For web, refresh your browser.',
         newAppNotAvailable: "Update now and you'll thank us later.",
+        refreshPage: 'Refresh page',
     },
     initialSettingsPage: {
         about: 'About',
@@ -5998,6 +6001,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',

@@ -106,6 +106,7 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 import {updateTitleFieldToMatchPolicy} from '@libs/ReportTitleUtils';
 import type {Ancestor, OptimisticAddCommentReportAction, OptimisticChatReport, SelfDMParameters} from '@libs/ReportUtils';
 import {
+    buildEditedCommentWithAttachment,
     buildOptimisticAddCommentReportAction,
     buildOptimisticChangeFieldAction,
     buildOptimisticChangePolicyReportAction,
@@ -3565,7 +3566,7 @@ function editReportComment(
 
     // Optimistic message only: the sent copy is stripped, so without this the attachment vanishes until upload lands.
     const uploadingAttachmentHtml = shouldRemoveQueuedAttachment ? undefined : getUploadingAttachmentHtmlFromComment(originalCommentHTML);
-    const optimisticHtml = uploadingAttachmentHtml ? `${htmlForNewComment}<br /><br />${uploadingAttachmentHtml}` : htmlForNewComment;
+    const optimisticHtml = buildEditedCommentWithAttachment(htmlForNewComment, uploadingAttachmentHtml);
     const optimisticText = uploadingAttachmentHtml ? Parser.htmlToText(optimisticHtml) : reportComment;
 
     const optimisticReportActions: PartialDeep<ReportActions> = {

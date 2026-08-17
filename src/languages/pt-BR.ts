@@ -2142,6 +2142,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Instale a versão mais recente do Expensify',
         toGetLatestChanges: 'Para mobile, faça o download e instale a versão mais recente. Para web, atualize o seu navegador.',
         newAppNotAvailable: 'Atualize agora e você vai agradecer a gente depois.',
+        updateAvailable: 'Atualização disponível',
+        pleaseRefresh: 'Atualize esta página para obter a versão mais recente do Expensify.',
+        refreshPage: 'Atualizar página',
     },
     initialSettingsPage: {
         about: 'Sobre',
@@ -5870,6 +5873,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             directFeed: 'Feed direto',
             whoNeedsCardAssigned: 'Quem precisa de um cartão atribuído?',
             chooseTheCardholder: 'Escolha o titular do cartão',
+            pleaseSelectACardholder: 'Selecione um titular do cartão para continuar',
             chooseCard: 'Escolha um cartão',
             chooseCardFor: (assignee: string) =>
                 `Escolha um cartão para <strong>${assignee}</strong>. Não encontra o cartão que está procurando? <concierge-link>Conte para a gente.</concierge-link>`,

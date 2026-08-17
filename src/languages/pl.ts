@@ -2145,6 +2145,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Zainstaluj najnowszą wersję Expensify',
         toGetLatestChanges: 'Na urządzeniu mobilnym pobierz i zainstaluj najnowszą wersję. W przeglądarce odśwież stronę.',
         newAppNotAvailable: 'Zaktualizuj teraz, a później nam podziękujesz.',
+        updateAvailable: 'Dostępna aktualizacja',
+        pleaseRefresh: 'Odśwież tę stronę, żeby uzyskać najnowszą wersję Expensify.',
+        refreshPage: 'Odśwież stronę',
     },
     initialSettingsPage: {
         about: 'Informacje',
@@ -5853,6 +5856,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseTheCardholder: 'Wybierz posiadacza karty',
+            pleaseSelectACardholder: 'Wybierz posiadacza karty, aby kontynuować',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
