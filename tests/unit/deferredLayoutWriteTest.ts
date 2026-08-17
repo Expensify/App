@@ -130,7 +130,7 @@ describe('deferredLayoutWrite', () => {
         expect(callbackA).not.toHaveBeenCalled();
         expect(callbackB).not.toHaveBeenCalled();
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+        AppState.emitCurrentTestState('background');
 
         expect(callbackA).toHaveBeenCalledTimes(1);
         expect(callbackB).toHaveBeenCalledTimes(1);
@@ -142,14 +142,14 @@ describe('deferredLayoutWrite', () => {
         reserveDeferredWriteChannel('test', {destinationReportID: 'report-A'});
         const promise = getRegistrationPromiseForReport('test', 'report-A');
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+        AppState.emitCurrentTestState('background');
 
         // Still reserved and still unresolved - backgrounding only pauses whatever is waiting to
         // register (e.g. a throttled rAF), which still fires on resume. Abandoning here would
         // resolve a submit-waiter before that write actually lands.
         expect(isWritePending('test')).toBe(true);
         let resolved = false;
-        void promise?.then(() => {
+        promise?.then(() => {
             resolved = true;
         });
         await Promise.resolve();
@@ -159,7 +159,7 @@ describe('deferredLayoutWrite', () => {
     it('marks flushRequested (not abandon) for a reserved write when the app goes to background', () => {
         reserveDeferredWriteChannel('test');
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('background');
+        AppState.emitCurrentTestState('background');
 
         expect(isWritePending('test')).toBe(true);
 
@@ -172,7 +172,7 @@ describe('deferredLayoutWrite', () => {
         const callback = jest.fn();
         registerDeferredWrite('test', callback);
 
-        (AppState as unknown as {emitCurrentTestState: (state: string) => void}).emitCurrentTestState('active');
+        AppState.emitCurrentTestState('active');
 
         expect(callback).not.toHaveBeenCalled();
         expect(isLayoutPending('test')).toBe(true);
