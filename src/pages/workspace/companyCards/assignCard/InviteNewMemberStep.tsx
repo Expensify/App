@@ -58,7 +58,7 @@ function InviteNewMemberStep({route, currentUserPersonalDetails}: InviteeNewMemb
             // Don't force isEditing:false here. When the user reached the invite step while editing the cardholder from
             // Confirmation, backing out must keep isEditing:true so the assignee step's own back returns to Confirmation
             // instead of dismissing the whole RHP (regression #97410). Omitting the field leaves the Onyx.merge value
-            // untouched; a fresh (non-edit) assign flow already has isEditing:false throughout, so it's unaffected.
+            // untouched. A fresh (non-edit) assign flow already has isEditing:false throughout, so it's unaffected.
         });
         Navigation.goBack();
     };
