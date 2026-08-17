@@ -1395,8 +1395,8 @@ const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boole
  *
  * Archived policies are never editable, regardless of role.
  */
-function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string): boolean {
-    if (isArchivedPolicy(policy)) {
+function canEditWorkspaceSettings(policy: OnyxInputOrEntry<Policy>, login?: string, canBeAccessedIfArchived = false): boolean {
+    if (!canBeAccessedIfArchived && isArchivedPolicy(policy)) {
         return false;
     }
     return isPolicyAdmin(policy, login) || (isSubmitPolicy(policy) && isPolicyEditor(policy, login));
