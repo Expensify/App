@@ -908,6 +908,7 @@ describe('actions/IOU/Hold', () => {
                         betas: [],
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
                     });
@@ -950,6 +951,7 @@ describe('actions/IOU/Hold', () => {
                         betas: [],
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
                     });
@@ -977,6 +979,7 @@ describe('actions/IOU/Hold', () => {
                         betas: [],
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
 
                     expect(result.successData).not.toEqual(
@@ -999,6 +1002,7 @@ describe('actions/IOU/Hold', () => {
                         betas: [],
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
 
                     const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
@@ -1020,6 +1024,7 @@ describe('actions/IOU/Hold', () => {
                         betas: [],
                         delegateAccountID: undefined,
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                         shouldMoveHeldTransactions: false,
                         shouldMoveScanFailedTransactions: true,
                     });

@@ -2544,6 +2544,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
                 ownerLogin: undefined,
+                formatPhoneNumber,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic/failure data structure

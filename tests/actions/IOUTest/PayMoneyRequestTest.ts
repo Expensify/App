@@ -1092,6 +1092,7 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     isTrackIntentUser: false,
                     conciergeChat: undefined,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    formatPhoneNumber,
                 });
 
             it('moves the scan-failed expense to a new report when another expense is being paid', async () => {

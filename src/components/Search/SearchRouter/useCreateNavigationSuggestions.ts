@@ -73,7 +73,7 @@ function replaceTopmostModalWithAction(action: () => void) {
 }
 
 function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceItem[] {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Coins', 'Receipt', 'Cash', 'Transfer', 'MoneyCircle', 'Location', 'Document', 'ChatBubble', 'InvoiceGeneric', 'NewWorkspace']);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -122,17 +122,19 @@ function useCreateNavigationSuggestions(query = ''): NavigationSuggestionSourceI
                 clearLastSearchParams();
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                false,
-                isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
-                defaultChatEnabledPolicy,
-                allBetas,
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: false,
+                isASAPSubmitBetaEnabled: isBetaEnabled(CONST.BETAS.ASAP_SUBMIT),
+                policy: defaultChatEnabledPolicy,
+                betas: allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                formatPhoneNumber,
+                shouldNotifyNewAction: false,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
             // Navigate to the Reports page first so getCreateReportRoute() resolves against
             // the Search/Reports fullscreen context before opening the created report modal.
             Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});
