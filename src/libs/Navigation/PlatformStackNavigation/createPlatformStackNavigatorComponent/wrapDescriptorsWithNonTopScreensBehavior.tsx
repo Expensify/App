@@ -7,6 +7,7 @@ import React from 'react';
 
 import type NonTopScreenWrapperProps from './nonTopScreenWrapperTypes';
 
+import ScreenActivityWrapper from './ScreenActivityWrapper';
 import ScreenFreezeWrapper from './ScreenFreezeWrapper';
 
 type Descriptor = {
@@ -22,6 +23,7 @@ type Descriptor = {
 
 const WRAPPER_FOR_BEHAVIOR: Record<Exclude<NonTopScreenBehavior, 'none'>, ComponentType<NonTopScreenWrapperProps>> = {
     freeze: ScreenFreezeWrapper,
+    activity: ScreenActivityWrapper,
 };
 
 /**

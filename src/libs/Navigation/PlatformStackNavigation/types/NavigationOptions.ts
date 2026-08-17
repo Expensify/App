@@ -13,9 +13,11 @@ type NativeOnlyNavigationOptions = NativeStackNavigationOptions;
 // Common navigation options merged from both stack and native-stack navigations.
 type CommonStackNavigationOptions = CommonProperties<StackNavigationOptions, NativeStackNavigationOptions>;
 
-// How a screen behaves while it is not on top. With 'freeze' it is suspended via react-freeze while another screen
-// of the same navigator covers it. With 'none' it renders as is.
-type NonTopScreenBehavior = 'none' | 'freeze';
+// How a screen behaves while it is not on top. With 'freeze' it is suspended via react-freeze only while another
+// screen of the same navigator covers it. With 'activity' it is wrapped in React <Activity> and keeps updating at
+// background priority, both when a screen of the same navigator covers it and when its whole navigator loses focus
+// (for example after an RHP push). With 'none' it renders as is.
+type NonTopScreenBehavior = 'none' | 'freeze' | 'activity';
 
 type GeneralPlatformStackNavigationOptions = {
     web?: WebOnlyNavigationOptions;
