@@ -474,6 +474,7 @@ describe('NumberWithSymbolForm', () => {
             renderForm({value: '10', shouldShowBigNumberPad: false});
             await waitForBatchedUpdatesWithAct();
 
+            expect(queryAllById('numPadContainerView')).toHaveLength(0);
             expect(screen.queryByTestId('button_1')).toBeNull();
         });
 
@@ -700,6 +701,7 @@ describe('NumberWithSymbolForm', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('Portrait footer')).toBeTruthy();
+            expect(queryAllById('numPadContainerView').length).toBeGreaterThan(0);
             expect(screen.queryByTestId('button_1')).toBeNull();
         });
 
