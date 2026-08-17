@@ -983,8 +983,8 @@ describe('NumberWithSymbolForm', () => {
             expect(getTextInput().props.selection).toEqual({start: 2, end: 2});
 
             // `onLongPress` flips `shouldUpdateSelection` off via `longPressHandlerStateChanged(true)`.
-            // BigNumberPad also starts a 100ms interval that would call `updateValueNumberPad('<')`;
-            // pin timers so that interval cannot fire, then release the press to clear it.
+            // BigNumberPad also starts a 100ms interval that would call `updateValueNumberPad('<')`.
+            // Pin timers so that interval cannot fire, then release the press to clear it.
             jest.useFakeTimers({doNotFake: ['nextTick']});
             try {
                 const backspace = screen.getByTestId('button_<');
