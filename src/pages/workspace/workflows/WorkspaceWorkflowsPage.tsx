@@ -7,7 +7,6 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -54,7 +53,6 @@ function WorkspaceWorkflowsPage(props: WorkspaceWorkflowsPageProps) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Table', 'Download']);
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {showConfirmModal} = useConfirmModal();
-    const {isBetaEnabled} = usePermissions();
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const isSubmitPolicyWorkspace = isSubmitPolicy(policy);
