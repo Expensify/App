@@ -24,7 +24,7 @@ type TableFilterBarProps = PropsWithChildren<{
 
 export default function TableFilterBar({label, shouldShowClearFiltersButton, children}: TableFilterBarProps) {
     const styles = useThemeStyles();
-    const {filterConfig, tableMethods, activeFilters, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
+    const {filterConfig, tableMethods, activeFilters, onSearchStringChange, columns, narrowLayoutSortColumn, originalDataLength, shouldUseNarrowTableLayout} = useTableContext();
 
     const hasFiltersAvailable = Object.keys(filterConfig ?? {}).length > 0;
     const showsDisplaySettingsTrigger = shouldShowTableDisplaySettingsTrigger({columns, shouldUseNarrowTableLayout, narrowLayoutSortColumn});
@@ -52,6 +52,9 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
         for (const filter of appliedFilters) {
             tableMethods.updateFilter({key: filter.key, value: []});
         }
+        // Also clear the search input so the Clear button resets the table to its unfiltered, unsearched state.
+        tableMethods.updateSearchString('');
+        onSearchStringChange?.('');
     };
 
     const ActiveFilterChipsComponent = !!appliedFilters.length && (
