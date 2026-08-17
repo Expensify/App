@@ -1944,6 +1944,20 @@ describe('SearchQueryUtils', () => {
             expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
         });
 
+        it('should return different similarSearchHash for queries with different has values', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.RECEIPT}`);
+
+            expect(queryJSONa?.similarSearchHash).not.toEqual(queryJSONb?.similarSearchHash);
+        });
+
+        it('should return same similarSearchHash for queries with the same has value but different dates', () => {
+            const queryJSONa = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-month has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+            const queryJSONb = buildSearchQueryJSON(`type:expense groupBy:from submitted:last-year has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryJSONa?.similarSearchHash).toEqual(queryJSONb?.similarSearchHash);
+        });
+
         it('should return different primary hash for queries with different explicit views but the same similarSearchHash', () => {
             const queryJSONa = buildSearchQueryJSON('type:expense groupBy:category view:pie');
             const queryJSONb = buildSearchQueryJSON('type:expense groupBy:category view:bar');
