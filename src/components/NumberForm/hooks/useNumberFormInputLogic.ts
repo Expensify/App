@@ -96,25 +96,38 @@ function useNumberFormInputLogic({
         }
 
         const strippedNumber = stripCommaFromAmount(numberWithOptionalLeadingZero);
-        const isForwardDelete = value.length > strippedNumber.length && forwardDeletePressedRef.current;
 
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = strippedNumber;
-        setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? strippedNumber.length : value.length, strippedNumber.length));
-        setValue(strippedNumber);
+
+        // The selection is derived from the previous value inside the updater so two calls in the same tick can't read a stale length.
+        let hasSelectionBeenSet = false;
+        setValue(strippedNumber, {
+            onPreviousValue: (previousNumber) => {
+                if (hasSelectionBeenSet) {
+                    return;
+                }
+                hasSelectionBeenSet = true;
+
+                const isForwardDelete = previousNumber.length > strippedNumber.length && forwardDeletePressedRef.current;
+                setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? strippedNumber.length : previousNumber.length, strippedNumber.length));
+                willSelectionBeUpdatedManually.current = false;
+            },
+        });
     };
 
     useEffect(() => {
         const hasDecimalsChanged = previousDecimals.current === undefined || previousDecimals.current !== decimals;
         previousDecimals.current = decimals;
 
-        if (!hasDecimalsChanged || value === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput)) {
+        // A negative sign is valid whichever way negatives are modelled: kept in the value, or stripped and tracked externally.
+        if (!hasDecimalsChanged || value === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput || shouldFlipNegative)) {
             return;
         }
 
         // Keep the existing behavior when a currency or unit changes its decimal precision. This intentionally updates the root value from an effect.
         setNumber(stripDecimalsFromAmount(value));
-    }, [decimals, maxLength, setNumber, shouldAllowNegativeInput, value]);
+    }, [decimals, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
 
     const updateNumber = (newNumber: string) => {
         const updatedNumber = handleNegativeAmountFlipping(newNumber, shouldFlipNegative, toggleNegative);

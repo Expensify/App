@@ -1,5 +1,6 @@
 import {useState} from 'react';
 
+import type {SetValueOptions} from './context/types';
 import type {NumberFormProps} from './types';
 
 import {NumberFormActionsContext, NumberFormStateContext} from './context';
@@ -14,8 +15,13 @@ function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText
         setCurrentValue(value);
     }
 
-    const setValue = (nextValue: string, options?: {notify?: boolean}) => {
-        setCurrentValue(nextValue);
+    const setValue = (nextValue: string, options?: SetValueOptions) => {
+        // The updater form is used so `onPreviousValue` always sees the latest committed value, even when `setValue` is
+        // called twice before the next render. `onInputChange` stays outside the updater so it never fires during render.
+        setCurrentValue((committedValue) => {
+            options?.onPreviousValue?.(committedValue);
+            return nextValue;
+        });
         if (options?.notify !== false) {
             onInputChange?.(nextValue);
         }
