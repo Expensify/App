@@ -1461,7 +1461,6 @@
 "../../tests/unit/useAccountTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/useCreateReportTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/useSearchAutoRefetchTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/useSubPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../tests/utils/getIsUsingFakeTimers.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
