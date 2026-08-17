@@ -7,6 +7,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNavigateBackOnSave from '@hooks/useNavigateBackOnSave';
 import useNetwork from '@hooks/useNetwork';
@@ -29,6 +30,7 @@ import {updateMoneyRequestMerchant} from '@userActions/IOU/UpdateMoneyRequest';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import INPUT_IDS from '@src/types/form/MoneyRequestMerchantForm';
@@ -45,16 +47,17 @@ import StepScreenWrapper from './StepScreenWrapper';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepMerchantProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT> &
-    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_MERCHANT>;
+type DynamicIOURequestStepMerchantProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT> &
+    WithFullTransactionOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_MERCHANT>;
 
-function IOURequestStepMerchant({
+function DynamicIOURequestStepMerchant({
     route: {
-        params: {transactionID, reportID, backTo, action, iouType, reportActionID},
+        params: {transactionID, reportID, action, iouType, reportActionID},
     },
     transaction,
     report,
-}: IOURequestStepMerchantProps) {
+}: DynamicIOURequestStepMerchantProps) {
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_MERCHANT.path);
     const policy = usePolicy(report?.policyID);
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${report?.policyID}`);
@@ -87,7 +90,7 @@ function IOURequestStepMerchant({
 
     const isMerchantRequired = isPolicyExpenseChat(report) || isExpenseRequest(report) || transaction?.participants?.some((participant) => !!participant.isPolicyExpenseChat);
 
-    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backTo);
+    const {navigateBack, armNavigateBack} = useNavigateBackOnSave(isSaved, backPath);
 
     const validate = useCallback(
         (value: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_MERCHANT_FORM>) => {
@@ -183,7 +186,7 @@ function IOURequestStepMerchant({
             headerTitle={translate('common.merchant')}
             onBackButtonPress={navigateBack}
             shouldShowWrapper
-            testID="IOURequestStepMerchant"
+            testID="DynamicIOURequestStepMerchant"
             shouldShowNotFoundPage={shouldShowNotFoundPage}
         >
             <FormProvider
@@ -216,4 +219,4 @@ function IOURequestStepMerchant({
     );
 }
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepMerchant));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepMerchant));
