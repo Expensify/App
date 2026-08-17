@@ -126,7 +126,11 @@ function useAutoCreateSubmitWorkspace() {
                 policyIDForNavigation = existingSubmitPolicyID;
             }
 
-            navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID);
+            if (conciergeReportID) {
+                navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout, conciergeReportID);
+            } else {
+                navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue(policyIDForNavigation, shouldUseNarrowLayout);
+            }
         },
         [
             currentUserEmail,
