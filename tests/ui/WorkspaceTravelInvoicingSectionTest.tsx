@@ -576,7 +576,7 @@ describe('WorkspaceTravelInvoicingSection', () => {
             renderWorkspaceTravelInvoicingSection();
             await waitForBatchedUpdatesWithAct();
 
-            // openPolicyTravelPage pulses isLoading on every page focus; that pulse must not flash the lock icon
+            // openPolicyTravelPage pulses isLoading on every page focus. That pulse must not flash the lock icon.
             expect(screen.queryByTestId(CONST.SWITCH_LOCK_ICON_TEST_ID, {includeHiddenElements: true})).toBeNull();
         });
     });
