@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import DateFilterBase from '@components/Search/FilterComponents/DateFilterBase';
 import type {DateFilterBaseHandle} from '@components/Search/FilterComponents/DateFilterBase';
@@ -12,7 +12,10 @@ import type {SearchDateValues} from '@libs/SearchQueryUtils';
 import {getDatePresets} from '@libs/SearchUIUtils';
 import type {SearchDateModifier} from '@libs/SearchUIUtils';
 
+import CONST from '@src/CONST';
+
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {ValueOf} from 'type-fest';
 
 import React, {useRef} from 'react';
 
@@ -21,13 +24,13 @@ type DateFilterContentProps = {
     value: SearchDateValues;
     selectedDateModifier: SearchDateModifier | null;
     hasFeed: boolean;
-    largeButton?: boolean;
+    size?: Exclude<ValueOf<typeof CONST.BUTTON_SIZE>, typeof CONST.BUTTON_SIZE.SMALL>;
     style?: StyleProp<ViewStyle>;
     onDateModifierSelected: (modifier: SearchDateModifier | null) => void;
     onChange: (values: SearchDateValues) => void;
 };
 
-function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, largeButton, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
+function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed, size, style, onDateModifierSelected, onChange}: DateFilterContentProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const dateFilterRef = useRef<DateFilterBaseHandle>(null);
@@ -61,12 +64,13 @@ function DateFilterContent({baseFilterKey, value, selectedDateModifier, hasFeed,
             {!!selectedDateModifier && (
                 <Button
                     style={[styles.ph5, styles.pb5, styles.pt3]}
-                    text={translate('common.apply')}
-                    success
-                    large={largeButton}
-                    pressOnEnter
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                    size={size}
                     onPress={() => dateFilterRef.current?.save()}
-                />
+                >
+                    <Button.KeyboardShortcut />
+                    <Button.Text>{translate('common.apply')}</Button.Text>
+                </Button>
             )}
         </>
     );
