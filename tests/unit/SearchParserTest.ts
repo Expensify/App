@@ -1,5 +1,4 @@
-import type {SearchQueryJSON} from '@components/Search/types';
-
+import {isRecord} from '@libs/ObjectUtils';
 import {parse} from '@libs/SearchParser/searchParser';
 
 import CONST from '@src/CONST';
@@ -11,7 +10,6 @@ const tests = [
         query: parserCommonTests.simple,
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -22,7 +20,6 @@ const tests = [
         query: parserCommonTests.userFriendlyNames,
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -61,7 +58,6 @@ const tests = [
         query: parserCommonTests.oldNames,
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -100,7 +96,6 @@ const tests = [
         query: parserCommonTests.complex,
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -147,7 +142,6 @@ const tests = [
         query: parserCommonTests.quotesIOS,
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -162,7 +156,6 @@ const tests = [
         query: ',',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -177,7 +170,6 @@ const tests = [
         query: 'currency:,',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -192,7 +184,6 @@ const tests = [
         query: 'tag:,,travel,',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -207,7 +198,6 @@ const tests = [
         query: 'category:',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -222,7 +212,6 @@ const tests = [
         query: 'in:123333 currency:USD merchant:marriott',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -253,7 +242,6 @@ const tests = [
         query: 'date>2024-01-01 date<2024-06-01 merchant:"McDonald\'s"',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -284,7 +272,6 @@ const tests = [
         query: 'from:usera@user.com to:userb@user.com date>2024-01-01',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -315,7 +302,6 @@ const tests = [
         query: 'amount>100 amount<200 from:usera@user.com tax-rate:1234 card:1234 report-id:12345 tag:ecx date>2023-01-01',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -386,7 +372,6 @@ const tests = [
         query: 'amount>200 las vegas',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -409,18 +394,147 @@ const tests = [
         query: 'status:all',
         expected: {
             type: 'expense',
-            status: '',
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            filters: null,
+            filters: {
+                operator: 'eq',
+                left: 'status',
+                right: 'all',
+            },
+        },
+    },
+    {
+        query: '-status:all',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                right: 'all',
+            },
+        },
+    },
+    {
+        query: 'status:drafts,outstanding',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                right: ['drafts', 'outstanding'],
+            },
+        },
+    },
+    {
+        query: '-status:drafts,outstanding',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS,
+                right: ['drafts', 'outstanding'],
+            },
+        },
+    },
+    {
+        query: 'policyID:123',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: '123',
+            },
+        },
+    },
+    {
+        query: '-policyID:123',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: '123',
+            },
+        },
+    },
+    {
+        query: 'policyID:123,456',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: ['123', '456'],
+            },
+        },
+    },
+    {
+        query: '-policyID:123,456',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: ['123', '456'],
+            },
+        },
+    },
+    {
+        // The "workspace" keyword is an alias that resolves to the policyID filter key
+        query: 'workspace:123',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: '123',
+            },
+        },
+    },
+    {
+        query: '-workspace:123',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.NOT_EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID,
+                right: '123',
+            },
         },
     },
     {
         query: 'amount>200 las vegas category:"Hotel : Marriott"',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -451,7 +565,6 @@ const tests = [
         query: 'amount>200 las vegas category:"Hotel : Marriott" date:2024-01-01,2024-02-01 merchant:"Expensify, Inc." tag:hotel,travel,"meals & entertainment"',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -506,7 +619,6 @@ const tests = [
         query: 'type:expense withdrawal-type:expensify-card',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -521,7 +633,6 @@ const tests = [
         query: 'type:expense withdrawal-id:1234567890',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -536,7 +647,6 @@ const tests = [
         query: 'type:expense withdrawal-status:pending',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -551,7 +661,6 @@ const tests = [
         query: 'type:expense withdrawal-status:pending,cleared,failed',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -566,7 +675,6 @@ const tests = [
         query: 'type:expense -withdrawal-status:failed',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -578,10 +686,37 @@ const tests = [
         },
     },
     {
+        query: 'type:expense-report paid-status:markedAsPaid',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+                right: CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID,
+            },
+        },
+    },
+    {
+        query: 'type:expense-report paid-status:markedAsPaid,withdrawing,confirmed',
+        expected: {
+            type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+            sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
+            sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+            view: 'table',
+            filters: {
+                operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
+                left: CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS,
+                right: [CONST.SEARCH.PAID_STATUS.MARKED_AS_PAID, CONST.SEARCH.PAID_STATUS.WITHDRAWING, CONST.SEARCH.PAID_STATUS.CONFIRMED],
+            },
+        },
+    },
+    {
         query: 'type:expense withdrawn:last-month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -596,7 +731,6 @@ const tests = [
         query: 'type:expense group-by:from',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_FROM,
             sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
@@ -608,7 +742,6 @@ const tests = [
         query: 'type:expense group-by:card',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CARD,
             sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
@@ -620,7 +753,6 @@ const tests = [
         query: 'type:expense group-by:withdrawal-id',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -632,7 +764,6 @@ const tests = [
         query: 'type:expense group-by:category',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
@@ -644,7 +775,6 @@ const tests = [
         query: 'type:expense group-by:tag',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_TAG,
             sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
@@ -656,7 +786,6 @@ const tests = [
         query: 'type:expense group-by:merchant',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MERCHANT,
             sortOrder: CONST.SEARCH.SORT_ORDER.ASC,
             view: 'table',
@@ -668,7 +797,6 @@ const tests = [
         query: 'type:expense group-by:month',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -680,7 +808,6 @@ const tests = [
         query: 'type:expense group-by:week',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -692,7 +819,6 @@ const tests = [
         query: 'type:expense group-by:year',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_YEAR,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -704,7 +830,6 @@ const tests = [
         query: 'type:expense group-by:quarter',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_QUARTER,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -716,7 +841,6 @@ const tests = [
         query: 'type:chat is:read',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -731,7 +855,6 @@ const tests = [
         query: 'type:chat is:unread',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -746,7 +869,6 @@ const tests = [
         query: 'type:chat is:pinned',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -761,7 +883,6 @@ const tests = [
         query: 'type:chat is:pinned,read,unread',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -776,7 +897,6 @@ const tests = [
         query: 'type:chat has:attachment',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -791,7 +911,6 @@ const tests = [
         query: 'type:chat has:link',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -806,7 +925,6 @@ const tests = [
         query: 'type:chat has:link,attachment',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -821,7 +939,6 @@ const tests = [
         query: 'type:chat is:READ',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -836,7 +953,6 @@ const tests = [
         query: 'type:chat is:PINNED',
         expected: {
             type: CONST.SEARCH.DATA_TYPES.CHAT,
-            status: '',
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -851,7 +967,6 @@ const tests = [
         query: 'bankAccount:42',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -866,7 +981,6 @@ const tests = [
         query: 'bankAccount:42,99',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             view: 'table',
@@ -888,7 +1002,6 @@ const keywordTests = [
         query: '" " "  "', // Multiple whitespaces wrapped in quotes
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -903,7 +1016,6 @@ const keywordTests = [
         query: '"https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -918,7 +1030,6 @@ const keywordTests = [
         query: '""https://expensify.com"" to ""https://new.expensify.com""', // Nested quotes with a colon
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -933,7 +1044,6 @@ const keywordTests = [
         query: '"""https://expensify.com" to "https://new.expensify.com"""', // Mismatched quotes
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -948,7 +1058,6 @@ const keywordTests = [
         query: 'date>2024-01-01 from:usera@user.com "https://expensify.com" "https://new.expensify.com"',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -979,7 +1088,6 @@ const keywordTests = [
         query: 'from:““Rag” Dog”,"Bag ”Dog“",email@gmail.com,1605423 to:"""Unruly"" “““Glad””” """Dog"""',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1002,7 +1110,6 @@ const keywordTests = [
         query: 'expense-type:per-diem',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1017,7 +1124,6 @@ const keywordTests = [
         query: 'receipt-type:ereceipt',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1032,7 +1138,6 @@ const keywordTests = [
         query: 'receipt-type:hotel,itemized',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1047,7 +1152,6 @@ const keywordTests = [
         query: 'columns:per-diem,drafts,draft,tax-rate,policy-name,withdrawal-id,bank-account',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1067,7 +1171,6 @@ const keywordTests = [
         query: 'columns:long-report-id,exported-to,exchange-rate,reimbursable-total,non-reimbursable-total',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1082,10 +1185,9 @@ const keywordTests = [
         },
     },
     {
-        query: 'columns:original-amount,tax,report-id',
+        query: 'columns:purchase-amount,tax,report-id',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1097,7 +1199,6 @@ const keywordTests = [
         query: 'columns:group-from,group-expenses,group-total,group-card,group-feed,group-bank-account,group-withdrawn,group-withdrawal-id',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1118,7 +1219,6 @@ const keywordTests = [
         query: 'columns:group-category,group-tag,group-merchant,group-month,group-week,group-year,group-quarter',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1138,7 +1238,6 @@ const keywordTests = [
         query: 'columns:tax',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1150,7 +1249,6 @@ const keywordTests = [
         query: 'merchant:tax',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1165,7 +1263,6 @@ const keywordTests = [
         query: 'type:expense action:submit columns:group-bank-account,group-from',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1185,7 +1282,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:bar',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: 'asc',
             view: 'bar',
@@ -1197,7 +1293,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:table',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1208,11 +1303,14 @@ const viewAndGroupByTests = [
         query: 'type:expense status:all',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
-            filters: null,
+            filters: {
+                operator: 'eq',
+                left: 'status',
+                right: 'all',
+            },
         },
     },
     // view:line defaults to groupBy:month, sortOrder:asc
@@ -1220,7 +1318,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:line',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'asc',
             view: 'line',
@@ -1234,7 +1331,6 @@ const viewAndGroupByTests = [
         query: 'type:expense groupBy:week',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
             sortOrder: 'desc',
             view: 'table',
@@ -1246,7 +1342,6 @@ const viewAndGroupByTests = [
         query: 'type:expense groupBy:category',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: 'asc',
             view: 'table',
@@ -1260,7 +1355,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:line groupBy:week',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
             sortOrder: 'asc',
             view: 'line',
@@ -1274,7 +1368,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:line groupBy:category',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: 'asc',
             view: 'line',
@@ -1286,7 +1379,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:line groupBy:withdrawal-id',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WITHDRAWN,
             sortOrder: 'desc',
             view: 'line',
@@ -1300,7 +1392,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:bar groupBy:week',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_WEEK,
             sortOrder: 'asc',
             view: 'bar',
@@ -1314,7 +1405,6 @@ const viewAndGroupByTests = [
         query: 'type:expense view:line sortOrder:desc',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'desc',
             view: 'line',
@@ -1328,7 +1418,6 @@ const viewAndGroupByTests = [
         query: 'sortBy:groupCategory type:expense groupBy:category view:line',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: 'asc',
             view: 'line',
@@ -1340,7 +1429,6 @@ const viewAndGroupByTests = [
         query: 'sortBy:groupmonth type:expense groupBy:month view:bar',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'asc',
             view: 'bar',
@@ -1352,7 +1440,6 @@ const viewAndGroupByTests = [
         query: 'sortBy:groupCategory type:expense groupBy:category view:table',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_CATEGORY,
             sortOrder: 'asc',
             view: 'table',
@@ -1364,7 +1451,6 @@ const viewAndGroupByTests = [
         query: 'sortBy:groupmonth type:expense groupBy:month view:table',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.GROUP_MONTH,
             sortOrder: 'desc',
             view: 'table',
@@ -1380,7 +1466,6 @@ const limitTests = [
         query: 'type:expense limit:10',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1393,7 +1478,6 @@ const limitTests = [
         query: 'type:expense limit:50 merchant:Amazon',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1410,7 +1494,6 @@ const limitTests = [
         query: 'type:expense LIMIT:25',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1423,7 +1506,6 @@ const limitTests = [
         query: 'limit:100 category:travel,hotel',
         expected: {
             type: 'expense',
-            status: CONST.SEARCH.STATUS.EXPENSE.ALL,
             sortBy: 'date',
             sortOrder: 'desc',
             view: 'table',
@@ -1437,30 +1519,35 @@ const limitTests = [
     },
 ];
 
+function parseSearchQueryWithoutRawFilters(query: string): Record<string, unknown> {
+    const parsed: unknown = parse(query);
+    if (!isRecord(parsed)) {
+        throw new Error('Expected search parser to return a record');
+    }
+    const {rawFilterList, ...resultWithoutRawFilters} = parsed;
+    return resultWithoutRawFilters;
+}
+
 describe('search parser', () => {
     test.each(tests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('Testing search parser with special characters and wrapped in quotes.', () => {
     test.each(keywordTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('search parser - view and groupBy defaults', () => {
     test.each(viewAndGroupByTests)(`parsing: $query`, ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });
 
 describe('search parser - limit filter', () => {
     test.each(limitTests)('$description: $query', ({query, expected}) => {
-        const {rawFilterList, ...resultWithoutRawFilters} = parse(query) as SearchQueryJSON;
-        expect(resultWithoutRawFilters).toEqual(expected);
+        expect(parseSearchQueryWithoutRawFilters(query)).toEqual(expected);
     });
 });

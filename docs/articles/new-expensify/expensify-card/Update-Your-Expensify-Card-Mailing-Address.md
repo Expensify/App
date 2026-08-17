@@ -20,7 +20,7 @@ The name on your Expensify Card is pulled from the legal name in your profile. T
 3. Under **Private**, select **Legal name**.
 4. Update your **Legal first name** and **Legal last name**. 
 5. Click **Save**.
-6. Enter the magic code sent to your email or phone to verify the change.
+6. Enter the security code sent to your email or phone to verify the change.
 
 Your updated legal name will apply to your Expensify Card. To get a new physical card with the updated name embossed on it, [request a replacement card](/articles/new-expensify/expensify-card/How-to-Request-a-New-Expensify-Card).
 
@@ -34,7 +34,7 @@ The phone number linked to your Expensify Card is used for 3D Secure (Verified b
 2. Select **Profile**.
 3. Under **Private**, select **Phone number**.
 4. Enter your updated phone number and click **Save**.
-5. Enter the magic code sent to your email or phone to verify the change.
+5. Enter the security code sent to your email or phone to verify the change.
 
 After updating, your new phone number will be used for future 3D Secure SMS verification codes.
 

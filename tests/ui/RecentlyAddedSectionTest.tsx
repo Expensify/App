@@ -39,11 +39,10 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-jest.mock('@hooks/usePopoverPosition', () =>
-    jest.fn(() => ({
-        calculatePopoverPosition: jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0})),
-    })),
-);
+jest.mock('@hooks/usePopoverPosition', () => {
+    const calculatePopoverPosition = jest.fn(() => Promise.resolve({horizontal: 0, vertical: 0, width: 0, height: 0}));
+    return jest.fn(() => ({calculatePopoverPosition}));
+});
 
 jest.mock('@hooks/useLocalize', () =>
     jest.fn(() => ({

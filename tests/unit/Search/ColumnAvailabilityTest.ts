@@ -32,6 +32,9 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.NON_REIMBURSABLE_TOTAL,
         TABLE_COLUMNS.FIRST_APPROVER,
         TABLE_COLUMNS.FIRST_APPROVED,
+        TABLE_COLUMNS.PAID_STATUS,
+        TABLE_COLUMNS.AMOUNT_DEBITED,
+        TABLE_COLUMNS.AMOUNT_REIMBURSED,
         // Grouped search views.
         TABLE_COLUMNS.EXPENSES,
         TABLE_COLUMNS.FEED,
@@ -53,6 +56,8 @@ describe('Column availability single source of truth', () => {
         TABLE_COLUMNS.GROUP_YEAR,
         TABLE_COLUMNS.GROUP_QUARTER,
         TABLE_COLUMNS.GROUP_WITHDRAWAL_STATUS,
+        TABLE_COLUMNS.GROUP_AMOUNT_DEBITED,
+        TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED,
     ]);
 
     test('every TABLE_COLUMNS value is classified in COLUMN_AVAILABILITY or owned by another surface', () => {
@@ -107,6 +112,7 @@ describe('Column availability single source of truth', () => {
         const reportColumns = Object.values(CONST.SEARCH.REPORT_DETAILS_CUSTOM_COLUMNS);
         const reportLevelColumns = [
             TABLE_COLUMNS.STATUS,
+            TABLE_COLUMNS.PAID_STATUS,
             TABLE_COLUMNS.SUBMITTED,
             TABLE_COLUMNS.APPROVED,
             TABLE_COLUMNS.EXPORTED,

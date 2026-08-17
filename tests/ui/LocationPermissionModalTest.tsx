@@ -11,22 +11,22 @@ import React from 'react';
 import {Linking} from 'react-native';
 import {RESULTS} from 'react-native-permissions';
 
-type MockConfirmModalProps = Record<string, unknown>;
+import type * as MockUseConfirmModalUtil from '../utils/mockUseConfirmModal';
+
+import {getShowConfirmModalOption, mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../utils/mockUseConfirmModal';
 
 const mockGetLocationPermission = jest.fn();
 const mockRequestLocationPermission = jest.fn();
 const mockUpdateLastLocationPermissionPrompt = jest.fn();
 
-let mockConfirmModalProps: MockConfirmModalProps = {};
+jest.mock('@hooks/useConfirmModal', () => {
+    const {default: mockUseConfirmModal} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return mockUseConfirmModal;
+});
 
-jest.mock('@components/ConfirmModal', () => {
-    function MockConfirmModal(props: Record<string, unknown>) {
-        mockConfirmModalProps = props;
-        return null;
-    }
-
-    MockConfirmModal.displayName = 'ConfirmModal';
-    return MockConfirmModal;
+jest.mock('@components/Modal/Global/ModalContext', () => {
+    const {createMockModalContextModule} = jest.requireActual<typeof MockUseConfirmModalUtil>('../utils/mockUseConfirmModal');
+    return createMockModalContextModule();
 });
 
 jest.mock('@components/Icon/IllustrationLoader', () => ({
@@ -92,10 +92,6 @@ function createDefaultProps() {
     };
 }
 
-function getConfirmModalProp<T>(prop: string): T | undefined {
-    return mockConfirmModalProps[prop] as T | undefined;
-}
-
 function renderLocationPermissionModal(props: ReturnType<typeof createDefaultProps>) {
     render(
         <LocationPermissionModal
@@ -121,7 +117,7 @@ function renderAndroidLocationPermissionModal(props: ReturnType<typeof createDef
 describe('LocationPermissionModal', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockConfirmModalProps = {};
+        resetMockConfirmModal();
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         mockRequestLocationPermission.mockResolvedValue(RESULTS.GRANTED);
         setOpenSettings(originalOpenSettings);
@@ -132,91 +128,189 @@ describe('LocationPermissionModal', () => {
         jest.restoreAllMocks();
     });
 
-    it('reports user-initiated denial when the user explicitly skips the prompt', async () => {
-        const props = createDefaultProps();
-        mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+    describe('web/iOS (index.tsx)', () => {
+        it('Prompt -> Dismiss -> no denial reported', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
 
-        renderLocationPermissionModal(props);
+            renderLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        await act(async () => {
-            getConfirmModalProp<() => void>('onCancel')?.();
+            await act(async () => {
+                getShowConfirmModalOption('onBackdropPress')?.();
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+
+            expect(props.resetPermissionFlow).toHaveBeenCalled();
+            expect(props.onDeny).not.toHaveBeenCalled();
         });
 
-        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
-        expect(props.onDeny).toHaveBeenCalledWith(true);
+        it('Prompt -> Not Now -> denies (user initiated)', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+
+            renderLocationPermissionModal(props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+
+            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(props.onDeny).toHaveBeenCalledWith(true);
+        });
+
+        it('Prompt -> Continue -> Allow -> grants', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            mockRequestLocationPermission.mockResolvedValue(RESULTS.GRANTED);
+
+            renderLocationPermissionModal(props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
+
+            await waitFor(() => expect(props.onGrant).toHaveBeenCalledTimes(1));
+            expect(props.onDeny).not.toHaveBeenCalled();
+        });
+
+        it('Prompt -> Continue -> Reject -> denies (not user initiated)', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
+
+            renderLocationPermissionModal(props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
+
+            await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
+        });
+
+        it('Prompt -> Confirm -> still Blocked -> denies without last prompt update', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
+            setOpenSettings(undefined);
+
+            renderLocationPermissionModal(props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+
+            expect(getShowConfirmModalOption('confirmText')).toBe('common.buttonConfirm');
+            expect(getShowConfirmModalOption('shouldShowCancelButton')).toBe(false);
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
+
+            await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(mockRequestLocationPermission).not.toHaveBeenCalled();
+        });
     });
 
-    it('does not update the prompt timestamp when blocked browser permission is still blocked after confirm', async () => {
-        const props = createDefaultProps();
-        mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
-        setOpenSettings(undefined);
+    describe('Android', () => {
+        it('Prompt -> Dismiss -> no denial reported', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
 
-        renderLocationPermissionModal(props);
+            renderAndroidLocationPermissionModal(props);
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        expect(getConfirmModalProp<string>('confirmText')).toBe('common.buttonConfirm');
-        expect(getConfirmModalProp<boolean>('shouldShowCancelButton')).toBe(false);
+            await act(async () => {
+                getShowConfirmModalOption('onBackdropPress')?.();
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
 
-        await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            expect(props.resetPermissionFlow).toHaveBeenCalled();
+            expect(props.onDeny).not.toHaveBeenCalled();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
-        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
-        expect(mockRequestLocationPermission).not.toHaveBeenCalled();
-    });
+        it('Prompt -> Not Now -> denies (user initiated)', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
 
-    it('does not update the prompt timestamp when the OS denies after the user tries to continue', async () => {
-        const props = createDefaultProps();
-        mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
-        mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            renderAndroidLocationPermissionModal(props);
 
-        renderLocationPermissionModal(props);
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
 
-        await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
+            expect(props.onDeny).toHaveBeenCalledWith(true);
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
-        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
-        expect(mockRequestLocationPermission).toHaveBeenCalledTimes(1);
-    });
+        it('Prompt -> Continue -> Allow -> grants', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            mockRequestLocationPermission.mockResolvedValue(RESULTS.GRANTED);
 
-    it('does not update the prompt timestamp from Android when the OS denies after continue', async () => {
-        const props = createDefaultProps();
-        mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
-        mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            renderAndroidLocationPermissionModal(props);
 
-        renderAndroidLocationPermissionModal(props);
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
 
-        await act(async () => {
-            getConfirmModalProp<() => void>('onConfirm')?.();
+            await waitFor(() => expect(props.onGrant).toHaveBeenCalledTimes(1));
+            expect(props.onDeny).not.toHaveBeenCalled();
         });
 
-        await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
-        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
-    });
+        it('Prompt -> Continue -> Reject -> denies (not user initiated)', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            mockRequestLocationPermission.mockResolvedValue(RESULTS.DENIED);
 
-    it('reports user-initiated denial from Android when the user explicitly skips the prompt', async () => {
-        const props = createDefaultProps();
-        mockGetLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
+            renderAndroidLocationPermissionModal(props);
 
-        renderAndroidLocationPermissionModal(props);
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
 
-        await waitFor(() => expect(getConfirmModalProp<boolean>('isVisible')).toBe(true));
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
 
-        await act(async () => {
-            getConfirmModalProp<() => void>('onCancel')?.();
+            await waitFor(() => expect(props.onDeny).toHaveBeenCalledWith(false));
+            expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
         });
 
-        expect(mockUpdateLastLocationPermissionPrompt).not.toHaveBeenCalled();
-        expect(props.onDeny).toHaveBeenCalledWith(true);
+        it('Prompt -> Continue -> becomes Blocked -> re-prompts with Settings copy -> Dismiss -> denies (user initiated)', async () => {
+            const props = createDefaultProps();
+            mockGetLocationPermission.mockResolvedValue(RESULTS.DENIED);
+            mockRequestLocationPermission.mockResolvedValue(RESULTS.BLOCKED);
+
+            renderAndroidLocationPermissionModal(props);
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(1));
+            expect(getShowConfirmModalOption('confirmText')).toBe('common.continue');
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CONFIRM'});
+            });
+
+            await waitFor(() => expect(mockShowConfirmModal).toHaveBeenCalledTimes(2));
+            expect(getShowConfirmModalOption('confirmText')).toBe('common.settings');
+            expect(props.onGrant).not.toHaveBeenCalled();
+            expect(props.onDeny).not.toHaveBeenCalled();
+
+            await act(async () => {
+                resolveShowConfirmModal({action: 'CLOSE'});
+            });
+
+            expect(props.onDeny).toHaveBeenCalledWith(true);
+        });
     });
 });

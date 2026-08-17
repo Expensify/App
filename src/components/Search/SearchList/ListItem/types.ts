@@ -86,6 +86,9 @@ type TransactionListItemType = ListItem &
         /** The date the report was exported */
         exported?: string;
 
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
+
         /** Policy to which the transaction belongs */
         policy: Policy | undefined;
 
@@ -162,6 +165,9 @@ type TransactionListItemType = ListItem &
         /** Key used internally by React */
         keyForList: string;
 
+        /** Parent selection key when this transaction is rendered inside a lazily loaded group. */
+        selectionGroupKey?: string;
+
         /** The name of the file used for a receipt */
         filename?: string;
 
@@ -234,6 +240,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
         /** Final and formatted "status" value used for displaying and sorting */
         formattedStatus?: string;
 
+        /** Final and formatted "paid status" value (Marked as paid / Withdrawing / Confirmed) used for displaying and sorting */
+        formattedPaidStatus?: string;
+
         /** Final and formatted "from" value used for displaying and sorting */
         formattedFrom?: string;
 
@@ -242,6 +251,9 @@ type TransactionReportGroupListItemType = TransactionGroupListItemType & {groupe
 
         /** The date the report was exported */
         exported?: string;
+
+        /** Names of the integrations/templates the report was exported to, used for sorting the "Exported to" column */
+        exportedTo?: string;
 
         /** The date of the report's first approval (created date of the earliest APPROVED/FORWARDED report action) */
         firstApproved?: string;
@@ -549,7 +561,7 @@ type GroupChildrenContentProps = {
     newTransactionID?: string;
     bankAccountList?: OnyxEntry<BankAccountList>;
     cardFeeds?: OnyxCollection<CardFeeds>;
-    conciergeReportID?: string;
+    conciergeReportID: string | undefined;
 };
 
 type UnreportedExpenseListItemType = Transaction & {

@@ -47,6 +47,9 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** A shared value of type boolean, that indicates disabled the transformation gestures (pinch, pan, double tap) */
     shouldDisableTransformationGestures?: SharedValue<boolean>;
 
+    /** A shared value updated while transform gestures or transform animations are active. */
+    isTransformGestureActive?: SharedValue<boolean>;
+
     /** A shared value to enable/disable the pager scroll */
     isPagerScrollEnabled: SharedValue<boolean>;
 
@@ -65,6 +68,12 @@ type MultiGestureCanvasProps = ChildrenProps & {
     /** Handles swipe down event */
     onSwipeDown?: OnSwipeDownCallback;
 
+    /** Whether swipe-down-to-close should be disabled while preserving other pan gestures. */
+    shouldDisableSwipeDownToClose?: boolean;
+
+    /** Whether the wrapper should prevent the browser's default touch-end behavior. */
+    shouldPreventTouchEndDefault?: boolean;
+
     /** We need to ensure that any native gesture handlers in this component tree is working simultaneously with panning and do not get blocked. */
     externalGestureHandler?: GestureType;
 };
@@ -80,10 +89,13 @@ function MultiGestureCanvas({
     pagerRef,
     isUsedInCarousel,
     shouldDisableTransformationGestures: shouldDisableTransformationGesturesProp,
+    isTransformGestureActive: isTransformGestureActiveProp,
     isPagerScrollEnabled,
     onTap,
     onScaleChanged,
     onSwipeDown,
+    shouldDisableSwipeDownToClose = false,
+    shouldPreventTouchEndDefault = true,
     externalGestureHandler,
 }: MultiGestureCanvasProps) {
     const styles = useThemeStyles();
@@ -92,6 +104,8 @@ function MultiGestureCanvas({
     const contentSize = contentSizeProp ?? defaultContentSize;
     const shouldDisableTransformationGesturesFallback = useSharedValue(false);
     const shouldDisableTransformationGestures = shouldDisableTransformationGesturesProp ?? shouldDisableTransformationGesturesFallback;
+    const isTransformGestureActiveFallback = useSharedValue(false);
+    const isTransformGestureActive = isTransformGestureActiveProp ?? isTransformGestureActiveFallback;
 
     const zoomRange = useMemo(
         () => ({
@@ -197,6 +211,7 @@ function MultiGestureCanvas({
         reset,
         stopAnimation,
         onScaleChanged,
+        isTransformGestureActive,
         onTap,
         shouldDisableTransformationGestures,
     });
@@ -219,6 +234,7 @@ function MultiGestureCanvas({
         stopAnimation,
         shouldDisableTransformationGestures,
         isSwipingDownToClose,
+        shouldDisableSwipeDownToClose,
         onSwipeDown,
     })
         .simultaneousWithExternalGesture(...panGestureSimultaneousList)
@@ -235,6 +251,7 @@ function MultiGestureCanvas({
         pinchScale,
         stopAnimation,
         onScaleChanged,
+        isTransformGestureActive,
         shouldDisableTransformationGestures,
     }).simultaneousWithExternalGesture(panGesture, singleTapGesture, doubleTapGesture);
 
@@ -283,7 +300,13 @@ function MultiGestureCanvas({
             <GestureDetector gesture={Gesture.Simultaneous(pinchGesture, Gesture.Race(singleTapGesture, doubleTapGesture, panGestureWrapper))}>
                 <View
                     collapsable={false}
-                    onTouchEnd={(e) => e.preventDefault()}
+                    onTouchEnd={(e) => {
+                        if (!shouldPreventTouchEndDefault) {
+                            return;
+                        }
+
+                        e.preventDefault();
+                    }}
                     style={StyleUtils.getFullscreenCenteredContentStyles()}
                 >
                     <Animated.View

@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {PressableWithFeedback} from '@components/Pressable';
 
@@ -15,6 +15,8 @@ import ROUTES from '@src/ROUTES';
 
 import React from 'react';
 
+import getSearchHeaderIconSize from './getSearchHeaderIconSize';
+
 function SearchSaveButton() {
     const {translate} = useLocalize();
     const theme = useTheme();
@@ -27,6 +29,8 @@ function SearchSaveButton() {
     };
 
     if (shouldUseNarrowLayout || isMediumScreenWidth) {
+        const iconSize = getSearchHeaderIconSize(isMediumScreenWidth, shouldUseNarrowLayout);
+
         return (
             <PressableWithFeedback
                 accessibilityLabel={translate('common.save')}
@@ -39,8 +43,7 @@ function SearchSaveButton() {
                 <Icon
                     src={expensifyIcons.Bookmark}
                     fill={theme.icon}
-                    small={shouldUseNarrowLayout}
-                    extraSmall={isMediumScreenWidth}
+                    size={iconSize}
                 />
             </PressableWithFeedback>
         );
@@ -48,12 +51,13 @@ function SearchSaveButton() {
 
     return (
         <Button
-            small
-            icon={expensifyIcons.Bookmark}
-            text={translate('common.save')}
+            size={CONST.BUTTON_SIZE.SMALL}
             onPress={openSaveSearchPage}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.FILTER_SAVE_BUTTON}
-        />
+        >
+            <Button.Icon src={expensifyIcons.Bookmark} />
+            <Button.Text>{translate('common.save')}</Button.Text>
+        </Button>
     );
 }
 

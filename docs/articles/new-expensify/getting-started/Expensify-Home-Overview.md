@@ -1,7 +1,7 @@
 ---
 title: Expensify Home Overview
 description: Learn what you’ll see on Home and how it helps you understand what needs attention, get oriented, and stay informed when you sign in. 
-keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses]
+keywords: [New Expensify, Expensify Home, Home, Home tab, For you, Recently added, recently added expenses, view all expenses, Discover, Announcements, time-sensitive, urgent alerts, Expensify Card fraud, broken bank connection, Your spend, awaiting approval, repaid, recent transactions, Expensify Card, Spend over time, spending chart, insights, Getting started, onboarding checklist, track and budget my expenses, organize my personal spending, personal spending, customize spend categories, link personal card]
 internalScope: Audience is all Expensify members. Covers what Home is and what appears on it, including the For you, Recently added, Spend over time, Discover, Announcements, Time-sensitive, Getting started, and Your spend sections. Does not cover how to complete actions like submitting, approving, paying, exporting, or fixing expenses.
 
 ---
@@ -50,6 +50,7 @@ The **Time-sensitive alerts** section appears only when there is something that 
 These alerts appear when:
 - A workflow is blocked, such as a broken bank or accounting connection due to expired or invalid credentials
 - A bank account is locked, such as a business or personal bank account that has been locked due to a failed debit or bank-side restriction
+- A reimbursement is waiting for the payee to add a personal deposit account
 - There is potential risk, such as suspected Expensify Card fraud on an active card
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
@@ -68,7 +69,9 @@ The **For you** section highlights items that may need your attention like:
 
 Each item links you to where you can complete the action, such as a specific report or workspace.
 
-If there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. 
+
+After the section has appeared, if there’s nothing that needs action, the **For you** section may appear empty. This means you’re fully caught up.
 
 ![]({{site.url}}/assets/images/home2.png){:width="100%"}
 
@@ -78,12 +81,8 @@ If there’s nothing that needs action, the **For you** section may appear empty
 
 The **Recently added** section shows your most recently added expenses, so you can quickly get back to what you just created or imported.
 
-It lists up to five expenses, sorted by when each expense was added to Expensify (most recent first), regardless of the expense date. For example, an expense added today but dated months ago still appears at the top. Each row shows the receipt thumbnail, expense date, merchant, and amount.
-
 - Select any expense to open it.
 - To see your full list of expenses, select the three dots **(⋮)** in the **Recently added** section, then select **View all expenses**.
-
-The **Recently added** section always appears on Home. If you haven’t added any expenses yet, it shows an empty state inviting you to create one or drag a receipt to add it.
 
 ---
 
@@ -157,6 +156,10 @@ Not directly. Home links you to other parts of Expensify where actions are compl
 
 If there are no current financial to-dos, the **For you** section may appear empty. This means there’s nothing that requires action at that time.
 
+## Why don’t I see the For you section at all?
+
+If you recently created your account, the **For you** section stays hidden until you have your first to-do to submit, approve, export, or pay. After your first to-do appears, the section stays on Home—even when you’re caught up and it’s empty.
+
 ## How does the Recently added section decide what to show?
 
 The **Recently added** section shows up to five of your most recently added expenses, ordered by when each one was added to Expensify rather than by the expense date. An expense you add today appears at the top even if its date is in the past.
@@ -179,7 +182,7 @@ The **Discover** section only appears until you’ve watched the demo. Once you�
 
 ## Why don’t I see the Getting started section?
 
-The **Getting started** section only appears if you selected the **manage my team** or **track and budget my expenses** intent during onboarding, you are within 60 days of your free trial start date, and you have an active paid workspace. If any of these conditions are not met, the section won’t be visible.
+The **Getting started** section only appears if you selected the **manage my team**, **track and budget my expenses**, or **Organize my personal spending** intent during onboarding and you are within 60 days of your free trial start date. If any of these conditions are not met, the section won’t be visible.
 
 ## Why don’t I see the Your spend section?
 

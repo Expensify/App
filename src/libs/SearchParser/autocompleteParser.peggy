@@ -93,6 +93,7 @@ autocompleteKey "key"
       / receiptType
       / withdrawalType
       / withdrawalStatus
+      / paidStatus
       / type
       / status
       / cardID
@@ -116,12 +117,18 @@ autocompleteKey "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      // Both must precede `amount`, which would otherwise match their prefix.
+      / amountDebited
+      / amountReimbursed
       / amount
       / merchant
       / description
       / reportID
       / withdrawalID
       / title
+      / submitterUserID
+      / submitterPayrollID
+      / orderDealNumbers
       / reportFieldDynamic
       / columns
       / limit

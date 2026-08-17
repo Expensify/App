@@ -3,9 +3,8 @@ import Table from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
 
-import {isControlPolicy, isPolicyApprover, isSubmitPolicy} from '@libs/PolicyUtils';
+import {getPolicyApproverLogins, isControlPolicy, isSubmitPolicy} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -18,7 +17,6 @@ import type {ListRenderItemInfo} from '@shopify/flash-list';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
-import {View} from 'react-native';
 
 import WorkspaceMembersTableRow from './WorkspaceMembersTableRow';
 
@@ -60,6 +58,7 @@ const WORKSPACE_MEMBER_FILTER_VALUES = {
     CARD_ADMINS: 'cardAdmins',
     EDITORS: 'editors',
     MEMBERS: 'members',
+    PAYMENTS_ADMINS: 'paymentsAdmins',
     PEOPLE_ADMINS: 'peopleAdmins',
 } as const;
 
@@ -73,7 +72,6 @@ export default function WorkspaceMembersTable({
     members,
     onRowSelectionChange,
 }: WorkspaceMembersTableProps) {
-    const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
@@ -205,6 +203,8 @@ export default function WorkspaceMembersTable({
         return results.length > 0;
     };
 
+    const approverLogins = getPolicyApproverLogins(policy);
+
     const isItemInFilter: IsItemInFilterCallback<WorkspaceMemberRowData> = (item, filterValues) => {
         if (!filterValues || filterValues.length === 0) {
             return true;
@@ -215,8 +215,7 @@ export default function WorkspaceMembersTable({
             return true;
         }
 
-        const isApprover = isPolicyApprover(policy, item.login);
-        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && isApprover) {
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS) && approverLogins.has(item.login)) {
             return true;
         }
 
@@ -232,6 +231,11 @@ export default function WorkspaceMembersTable({
 
         const isPeopleAdmin = item.role === CONST.POLICY.ROLE.PEOPLE_ADMIN;
         if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS) && isPeopleAdmin) {
+            return true;
+        }
+
+        const isPaymentsAdmin = item.role === CONST.POLICY.ROLE.PAYMENTS_ADMIN;
+        if (filterValues.includes(WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS) && isPaymentsAdmin) {
             return true;
         }
 
@@ -251,10 +255,16 @@ export default function WorkspaceMembersTable({
     const filterConfig: FilterConfig = {
         role: {
             label: translate('common.role'),
-            filterType: 'multi-select',
+            filterType: CONST.TABLES.FILTER_TYPE.MULTI_SELECT,
             options: [
-                {label: translate('workspace.people.admins'), value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS},
-                {label: translate('workspace.people.approvers'), value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS},
+                {
+                    label: translate('workspace.people.admins'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.ADMINS,
+                },
+                {
+                    label: translate('workspace.people.approvers'),
+                    value: WORKSPACE_MEMBER_FILTER_VALUES.APPROVERS,
+                },
             ],
         },
     };
@@ -268,6 +278,11 @@ export default function WorkspaceMembersTable({
         filterConfig.role.options.push({
             label: translate('workspace.people.peopleAdmins'),
             value: WORKSPACE_MEMBER_FILTER_VALUES.PEOPLE_ADMINS,
+        });
+
+        filterConfig.role.options.push({
+            label: translate('workspace.people.paymentsAdmins'),
+            value: WORKSPACE_MEMBER_FILTER_VALUES.PAYMENTS_ADMINS,
         });
 
         filterConfig.role.options.push({
@@ -317,14 +332,8 @@ export default function WorkspaceMembersTable({
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
         >
-            <View style={[styles.gap3, styles.alignItemsCenter, styles.mb5, styles.mh5, styles.flexRow, !shouldUseNarrowLayout && styles.justifyContentBetween]}>
-                <Table.SearchBar
-                    label={translate('workspace.people.findMember')}
-                    style={[styles.mb0, styles.mh0, shouldUseNarrowTableLayout && styles.flex1]}
-                />
-                <Table.FilterButtons style={[styles.mw50, styles.flexShrink1]} />
-            </View>
-
+            <Table.FilterBar label={translate('workspace.people.findMember')} />
+            <Table.NoResultsState />
             <Table.Header />
             <Table.Body />
         </Table>

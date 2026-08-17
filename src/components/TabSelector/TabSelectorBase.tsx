@@ -22,7 +22,7 @@ import TabSelectorItem from './TabSelectorItem';
  * (getOpacity / getBackgroundColor). It is reused by both navigation-based TabSelector and
  * inline tab selectors like SplitExpensePage.
  */
-function TabSelectorBase({
+function TabSelectorBase<K extends string = string>({
     tabs,
     activeTabKey,
     onTabPress = () => {},
@@ -32,7 +32,7 @@ function TabSelectorBase({
     shouldShowLabelWhenInactive = true,
     equalWidth = false,
     contentContainerStyles,
-}: TabSelectorBaseProps) {
+}: TabSelectorBaseProps<K>) {
     const theme = useTheme();
     const styles = useThemeStyles();
 
@@ -104,6 +104,10 @@ function TabSelectorBase({
                 });
 
                 const handlePress = () => {
+                    if (tab.isDisabled) {
+                        tab.disabledAction?.();
+                        return;
+                    }
                     if (isActive) {
                         onActiveTabPress(tab.key);
                         return;
@@ -133,6 +137,7 @@ function TabSelectorBase({
                         badgeStyles={tab.badgeStyles}
                         pendingAction={tab.pendingAction}
                         isDisabled={tab.isDisabled}
+                        disabledAction={tab.disabledAction}
                     />
                 );
             })}

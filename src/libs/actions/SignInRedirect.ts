@@ -1,6 +1,7 @@
 import {getMicroSecondOnyxErrorWithMessage} from '@libs/ErrorUtils';
 import {clearSessionStorage} from '@libs/Navigation/helpers/lastVisitedTabPathUtils';
 import {getIsOffline} from '@libs/NetworkState';
+import clearPrefetchOnAppStart from '@libs/Prefetch/clearPrefetchOnAppStart';
 
 import CONFIG from '@src/CONFIG';
 import type {OnyxKey} from '@src/ONYXKEYS';
@@ -75,7 +76,7 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         keysToPreserve.push(ONYXKEYS.NETWORK);
     }
 
-    // When the user is in the middle of a 2FA sign-in flow (they've entered their magic code but not yet completed
+    // When the user is in the middle of a 2FA sign-in flow (they've entered their validateCode but not yet completed
     // 2FA), we want to preserve their credentials and account state so that after a page refresh they are still
     // prompted to enter their 2FA code rather than being sent back to the initial sign-in page.
     const isIncompleteSignIn = !currentSessionAuthToken && !!currentCredentialsValidateCode;
@@ -92,7 +93,10 @@ function clearStorageAndRedirect(errorMessage?: string, isSAMLReauthentication?:
         Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
     }
 
-    return Onyx.clear(keysToPreserve).then(() => {
+    return Onyx.clear(keysToPreserve).then(async () => {
+        // Requests may be processed while sign-out is in progress. Clear again after credentials have been removed so none of those requests remain queued for the next startup.
+        await clearPrefetchOnAppStart();
+
         if (CONFIG.IS_HYBRID_APP) {
             resetSignInFlow();
             HybridAppModule.signOutFromOldDot();

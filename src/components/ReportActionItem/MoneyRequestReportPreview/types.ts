@@ -65,6 +65,12 @@ type MoneyRequestReportPreviewContentOnyxProps = {
     invoiceReceiverPolicy: OnyxEntry<Policy>;
     iouReport: OnyxEntry<Report>;
     transactions: Transaction[];
+    /** Transactions with a receipt, derived from the report's full transaction set (including optimistically-deleted rows) */
+    transactionsWithReceipts: Transaction[];
+    /** Whether the report's full transaction set (including optimistically-deleted rows) has any non-reimbursable transaction */
+    hasNonReimbursableTransactions: boolean;
+    /** Whether every request in the report's full transaction set (including optimistically-deleted rows) is still being SmartScanned */
+    areAllRequestsBeingSmartScanned: boolean;
     policy: OnyxEntry<Policy>;
     invoiceReceiverPersonalDetail: OnyxEntry<PersonalDetails> | null;
     lastTransactionViolations: TransactionViolations;

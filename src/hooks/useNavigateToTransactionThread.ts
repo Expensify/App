@@ -1,3 +1,4 @@
+import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {useWideRHPActions} from '@components/WideRHPContextProvider';
 
 import {createTransactionThreadReport, setOptimisticTransactionThread} from '@libs/actions/Report';
@@ -44,8 +45,9 @@ type NavigateToTransactionThreadParams = {
  * `siblingTransactionIDs` because the data sources differ per screen.
  */
 function useNavigateToTransactionThread() {
-    const {markReportIDAsExpense} = useWideRHPActions();
+    const {markReportRHPWidth} = useWideRHPActions();
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const personalDetails = usePersonalDetails();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
 
@@ -68,6 +70,7 @@ function useNavigateToTransactionThread() {
                 iouReport: report,
                 iouReportAction: iouAction,
                 transaction,
+                personalDetails,
             });
             if (transactionThreadReport) {
                 reportIDToNavigate = transactionThreadReport.reportID;
@@ -81,7 +84,7 @@ function useNavigateToTransactionThread() {
         // display prev/next arrows for navigation between expenses.
         setActiveTransactionIDs(siblingTransactionIDs).then(() => {
             if (reportIDToNavigate) {
-                markReportIDAsExpense(reportIDToNavigate);
+                markReportRHPWidth(reportIDToNavigate, 'wide');
             }
             Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute(routeParams));
         });

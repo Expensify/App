@@ -24,8 +24,8 @@ import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
 import GettingStartedSection from './GettingStartedSection';
+import InsightsSection from './InsightsSection';
 import RecentlyAddedSection from './RecentlyAddedSection';
-import SpendOverTimeSection from './SpendOverTimeSection';
 import TimeSensitiveSection from './TimeSensitiveSection';
 import UpcomingTravelSection from './UpcomingTravelSection';
 import YourSpendSection from './YourSpendSection';
@@ -63,7 +63,11 @@ function HomePage() {
                         contentContainerStyle={styles.homePageContentContainer}
                         addBottomSafeAreaPadding
                     >
-                        {!shouldUseNarrowLayout && <QuickCreationActionsBar />}
+                        {!shouldUseNarrowLayout && (
+                            <View style={styles.centeredContentWidthLimiter}>
+                                <QuickCreationActionsBar />
+                            </View>
+                        )}
                         <View style={styles.homePageMainLayout(shouldUseNarrowLayout)}>
                             {/* Widgets handle their own visibility and may return null to avoid duplicating visibility logic here */}
                             {shouldUseNarrowLayout ? (
@@ -75,7 +79,7 @@ function HomePage() {
                                     <UpcomingTravelSection />
                                     <RecentlyAddedSection />
                                     <YourSpendSection />
-                                    <SpendOverTimeSection />
+                                    <InsightsSection />
                                     <DiscoverSection />
                                     <AnnouncementSection />
                                 </>
@@ -86,16 +90,16 @@ function HomePage() {
                                         style={styles.homePageLeftColumn}
                                     >
                                         <TimeSensitiveSection />
+                                        <GettingStartedSection />
                                         <ForYouSection />
                                         <RecentlyAddedSection />
-                                        <SpendOverTimeSection />
+                                        <InsightsSection />
                                     </View>
                                     <View
                                         testID="homePageRightColumn"
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <GettingStartedSection />
                                         <UpcomingTravelSection />
                                         <YourSpendSection />
                                         <DiscoverSection />

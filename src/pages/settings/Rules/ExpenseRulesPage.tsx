@@ -1,19 +1,16 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import ConfirmModal from '@components/ConfirmModal';
-import GenericEmptyStateComponent from '@components/EmptyStateComponent/GenericEmptyStateComponent';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
-import ScrollView from '@components/ScrollView';
 import type {PersonalExpenseRuleRowData} from '@components/Tables/PersonalExpenseRulesTable';
 import PersonalExpenseRulesTable from '@components/Tables/PersonalExpenseRulesTable';
 import Text from '@components/Text';
 
 import useDocumentTitle from '@hooks/useDocumentTitle';
-import useGenericEmptyStateIllustration from '@hooks/useGenericEmptyStateIllustration';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -27,7 +24,6 @@ import {clearDraftRule, clearExpenseRuleErrors, deleteExpenseRules, setDraftRule
 import {formatExpenseRuleChanges, getKeyForRule} from '@libs/ExpenseRuleUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -50,8 +46,6 @@ function ExpenseRulesPage() {
     const {isOffline} = useNetwork();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const genericIllustration = useGenericEmptyStateIllustration();
-    const illustrations = useMemoizedLazyIllustrations(['Flash']);
     const icons = useMemoizedLazyExpensifyIcons(['Pencil', 'Plus', 'Trashcan']);
     const [expenseRules = getEmptyArray<ExpenseRule>(), expenseRulesResult] = useOnyx(ONYXKEYS.NVP_EXPENSE_RULES);
 
@@ -140,7 +134,8 @@ function ExpenseRulesPage() {
 
     const headerButton = isInSelectionMode ? (
         <ButtonWithDropdownMenu
-            buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
+            size={CONST.BUTTON_SIZE.MEDIUM}
             customText={translate('workspace.common.selected', {count: selectedRules.length})}
             isDisabled={!selectedRules.length}
             isSplitButton={false}
@@ -153,39 +148,16 @@ function ExpenseRulesPage() {
     ) : (
         <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={navigateToNewRulePage}
-                icon={icons.Plus}
-                text={translate('expenseRulesPage.newRule')}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_RULES.NEW_RULE}
-            />
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('expenseRulesPage.newRule')}</Button.Text>
+            </Button>
         </View>
     );
-
-    const emptyStateComponent = (
-        <ScrollView contentContainerStyle={[styles.flexGrow1, styles.flexShrink0]}>
-            <GenericEmptyStateComponent
-                {...genericIllustration}
-                title={translate('expenseRulesPage.emptyRules.title')}
-                subtitle={translate('expenseRulesPage.emptyRules.subtitle')}
-                headerStyles={styles.emptyStateCardIllustrationContainer}
-                buttons={[
-                    {
-                        success: true,
-                        buttonAction: navigateToNewRulePage,
-                        icon: icons.Plus,
-                        buttonText: translate('expenseRulesPage.newRule'),
-                    },
-                ]}
-            />
-        </ScrollView>
-    );
-
-    const loadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'ExpenseRulesPage.loading',
-        isLoading,
-    };
 
     return (
         <ScreenWrapper
@@ -196,7 +168,6 @@ function ExpenseRulesPage() {
             offlineIndicatorStyle={styles.mtAuto}
         >
             <HeaderWithBackButton
-                icon={!selectionModeHeader ? illustrations.Flash : undefined}
                 onBackButtonPress={() => {
                     if (isMobileSelectionModeEnabled) {
                         setSelectedRules([]);
@@ -223,7 +194,6 @@ function ExpenseRulesPage() {
                 <ActivityIndicator
                     size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                     style={[styles.flex1]}
-                    reasonAttributes={loadingReasonAttributes}
                 />
             )}
 
@@ -232,7 +202,6 @@ function ExpenseRulesPage() {
                     selectedKeys={selectedRules}
                     personalExpenseRules={personalExpenseRules}
                     onRowSelectionChange={setSelectedRules}
-                    EmptyStateComponent={emptyStateComponent}
                 />
             )}
 

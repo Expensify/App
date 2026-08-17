@@ -35,7 +35,7 @@ function ExpandCollapseArrowButton({isExpanded, onPress}: ExpandCollapseArrowBut
                     src={isExpanded ? icons.UpArrow : icons.DownArrow}
                     fill={theme.icon}
                     additionalStyles={!hovered && styles.opacitySemiTransparent}
-                    small={isLargeScreenWidth}
+                    size={isLargeScreenWidth ? CONST.ICON_SIZE.SMALL : undefined}
                 />
             )}
         </PressableWithFeedback>

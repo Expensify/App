@@ -5,6 +5,7 @@ import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
 import {showContextMenuForReport, useShowContextMenuActions, useShowContextMenuState} from '@components/ShowContextMenuContext';
 import ThumbnailImage from '@components/ThumbnailImage';
 
+import useCachedAttachmentSource from '@hooks/useCachedAttachmentSource';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -63,6 +64,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
     // For other image formats, we retain the thumbnail as is to avoid unnecessary modifications.
     const processedPreviewSource = typeof previewSource === 'string' ? previewSource.replaceAll(/\.png\.(1024|320)\.jpg$/g, '.png') : previewSource;
     const source = tryResolveUrlFromApiRoot(isAttachmentOrReceipt ? attachmentSourceAttribute : htmlAttribs.src);
+    const cachedPreviewSource = useCachedAttachmentSource(attachmentID, processedPreviewSource);
 
     const alt = htmlAttribs.alt;
     const imageWidth = (htmlAttribs['data-expensify-width'] && parseInt(htmlAttribs['data-expensify-width'], 10)) || undefined;
@@ -81,7 +83,7 @@ function ImageRenderer({tnode}: CustomRendererProps<TBlock>) {
 
     const thumbnailImageComponent = (
         <ThumbnailImage
-            previewSourceURL={processedPreviewSource}
+            previewSourceURL={cachedPreviewSource ?? processedPreviewSource}
             style={styles.webViewStyles.tagStyles.img}
             isAuthTokenRequired={isAttachmentOrReceipt}
             fallbackIcon={fallbackIcon}

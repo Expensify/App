@@ -1,8 +1,8 @@
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import Tooltip from '@components/Tooltip/PopoverAnchorTooltip';
 
-import {ReactionListContext} from '@pages/inbox/ReportScreenContext';
-import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReportScreenContext';
+import type {ReactionListAnchor, ReactionListEvent} from '@pages/inbox/ReactionListContext';
+import {ReactionListContext} from '@pages/inbox/ReactionListContext';
 
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 

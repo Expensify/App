@@ -1,6 +1,7 @@
 import BaseWidgetItem from '@components/BaseWidgetItem';
 import WidgetContainer from '@components/WidgetContainer';
 
+import {useAppLoadSkeletonState} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -9,23 +10,26 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useTodoCounts from '@hooks/useTodoCounts';
 
+import {setHasSeenForYouTodo} from '@libs/actions/Todos';
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import colors from '@styles/theme/colors';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
+import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 import {accountIDSelector} from '@src/selectors/Session';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useIsFocused} from '@react-navigation/native';
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import EmptyState from './EmptyState';
 import ForYouSkeleton from './ForYouSkeleton';
+import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
 function ForYouSection() {
@@ -34,14 +38,18 @@ function ForYouSection() {
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
-    const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
-    // HAS_LOADED_APP flips to true once the first OpenApp completes and persists across reconnects.
-    // Gating the skeleton on it prevents the section from flashing skeleton on every foreground/reconnect
-    // when IS_LOADING_REPORT_DATA is optimistically set to true by ReconnectApp.
-    const [hasLoadedApp = false] = useOnyx(ONYXKEYS.HAS_LOADED_APP);
+    const {shouldShowSkeleton: isInitialLoad} = useAppLoadSkeletonState({isLoadingReportData});
     const isFocused = useIsFocused();
     const {counts: reportCounts, singleReportIDs} = useTodoCounts(isFocused);
+    const [firstDayFreeTrial] = useOnyx(ONYXKEYS.NVP_FIRST_DAY_FREE_TRIAL);
+    const [onboarding] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
+    const isOnboardingCompleted = hasCompletedGuidedSetupFlowSelector(onboarding);
+    // The onboarding NVP defaults to "completed" before it loads, so only trust it once the value is present.
+    const isOnboardingStatusKnown = onboarding !== undefined;
+    // Old/migrated accounts have an empty onboarding NVP; a non-empty record marks a NewDot-onboarded (new) user.
+    const isNewDotOnboardedUser = !isEmptyObject(onboarding);
+    const [hasSeenForYouTodo = false] = useOnyx(ONYXKEYS.NVP_HAS_SEEN_FOR_YOU_TODO);
     const {count: flaggedExpensesCount, reviewExpenses} = useReviewFlaggedExpenses();
 
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptSearch', 'MoneyBag', 'Send', 'ThumbsUp', 'Export']);
@@ -169,20 +177,36 @@ function ForYouSection() {
         </View>
     );
 
+    // Persist a one-time flag the first time a to-do appears so the section stays visible even when later empty.
+    useEffect(() => {
+        if (isInitialLoad || !hasAnyTodos || hasSeenForYouTodo) {
+            return;
+        }
+        setHasSeenForYouTodo();
+    }, [isInitialLoad, hasAnyTodos, hasSeenForYouTodo]);
+
     const renderContent = () => {
-        const isInitialLoad = !hasLoadedApp && (isLoadingApp || isLoadingReportData);
         if (isInitialLoad) {
-            const reasonAttributes: SkeletonSpanReasonAttributes = {
-                context: 'ForYouSection.ForYouSkeleton',
-                isLoadingApp,
-                isLoadingReportData,
-                hasLoadedApp,
-            };
-            return <ForYouSkeleton reasonAttributes={reasonAttributes} />;
+            return <ForYouSkeleton />;
         }
 
         return hasAnyTodos ? renderTodoItems() : <EmptyState />;
     };
+
+    if (
+        shouldHideForYouSection({
+            isInitialLoad,
+            hasAnyTodos,
+            hasSeenTodo: hasSeenForYouTodo,
+            firstDayFreeTrial,
+            cutoffDate: CONST.HOME.FOR_YOU_NEW_USER_CUTOFF_DATE,
+            isOnboardingCompleted,
+            isOnboardingStatusKnown,
+            isNewDotOnboardedUser,
+        })
+    ) {
+        return null;
+    }
 
     return <WidgetContainer title={translate('homePage.forYou')}>{renderContent()}</WidgetContainer>;
 }

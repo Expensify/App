@@ -1,3 +1,4 @@
+import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 import type {SpendRuleTableItem} from '@components/Tables/WorkspaceSpendRulesTable';
 import WorkspaceSpendRulesTable from '@components/Tables/WorkspaceSpendRulesTable';
 
@@ -20,8 +21,6 @@ import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
-
-import RulesTabEmptyState from './RulesTabEmptyState';
 
 const DEFAULT_SPEND_RULE_ID = 'default-rule';
 
@@ -74,6 +73,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         searchTokens: [],
         action: showBuiltInProtectionModal,
     };
+
     const customSpendRules: SpendRuleTableItem[] = cardRules.map((rule) => {
         const ruleSummary = rule.summaryParts.map((part) => part.text).join(', ');
         return {
@@ -90,6 +90,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             action: () => Navigation.navigate(ROUTES.RULES_SPEND_EDIT.getRoute(policyID, rule.ruleID)),
         };
     });
+
     const spendRulesTableData: SpendRuleTableItem[] = [defaultSpendRule, ...customSpendRules];
 
     const handleGetExpensifyCardPress = () => {
@@ -101,17 +102,24 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
         enableExpensifyCard(policyID, true, true);
     };
 
-    const cardRulesEmptyState = (
-        <RulesTabEmptyState
-            illustration={illustrations.ExpensifyCardCoins}
-            headerContentStyles={shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration}
-            title={translate('workspace.rules.spendRules.cardRulesUpsell.title')}
-            subtitle={translate('workspace.rules.spendRules.cardRulesUpsell.subtitle')}
-            buttonText={translate('workspace.rules.spendRules.cardRulesUpsell.cta')}
-            onPress={handleGetExpensifyCardPress}
-            isDisabled={!canWriteMoreFeatures}
-        />
-    );
+    const cardRulesEmptyState: TableEmptyStateProps = {
+        minModalHeight: 0,
+        cardContentStyles: styles.ph0,
+        headerMedia: illustrations.ExpensifyCardCoins,
+        headerContentStyles: shouldUseNarrowLayout ? styles.expensifyCardEmptyIllustration : styles.cardRulesEmptyStateIllustration,
+        title: translate('workspace.rules.spendRules.cardRulesUpsell.title'),
+        subtitle: translate('workspace.rules.spendRules.cardRulesUpsell.subtitle'),
+        subtitleStyles: [styles.textLabel, styles.textSupporting],
+        containerStyles: [styles.alignItemsCenter, styles.w100, styles.alignSelfCenter, StyleUtils.getMaximumWidth(variables.cardRulesEmptyStateMaxWidth)],
+        buttons: [
+            {
+                success: true,
+                isDisabled: !canWriteMoreFeatures,
+                buttonText: translate('workspace.rules.spendRules.cardRulesUpsell.cta'),
+                buttonAction: handleGetExpensifyCardPress,
+            },
+        ],
+    };
 
     return (
         <WorkspaceSpendRulesTable
@@ -119,7 +127,7 @@ function RulesCardRestrictionsTab({policyID, canWriteRules, selectedKeys, onSele
             selectionEnabled={canWriteRules}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onSelectionChange}
-            emptyStateContent={areCardsEnabled ? undefined : cardRulesEmptyState}
+            emptyState={cardRulesEmptyState}
         />
     );
 }

@@ -4,6 +4,7 @@ import {getVisibleTransactionViolations, isDistanceRequest} from '@libs/Transact
 import {syncCustomUnitRateOutOfDateRangeViolation} from '@libs/Violations/ViolationsUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {personalDetailsLoginSelector} from '@src/selectors/PersonalDetails';
 import type {Policy, TransactionViolation, TransactionViolations} from '@src/types/onyx';
 import getEmptyArray from '@src/types/utils/getEmptyArray';
 
@@ -19,6 +20,7 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
     const [transactionViolations = getEmptyArray<TransactionViolation>()] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transactionID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const [reportPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${iouReport?.policyID}`);
     const customUnitRateID = isDistanceRequest(transaction) ? transaction?.comment?.customUnit?.customUnitRateID : undefined;
     const shouldLookupDistancePolicy = !policyOverride && !!customUnitRateID && !getDistanceRateCustomUnitRate(reportPolicy, customUnitRateID);
@@ -35,10 +37,11 @@ function useTransactionViolations(transactionID?: string, shouldShowRterForSettl
             currentUserDetails.email ?? '',
             currentUserDetails.accountID,
             iouReport,
+            ownerLogin,
             policy,
             shouldShowRterForSettledReport,
         );
-    }, [transaction, transactionViolations, iouReport, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
+    }, [transaction, transactionViolations, iouReport, ownerLogin, policy, shouldShowRterForSettledReport, currentUserDetails.email, currentUserDetails.accountID]);
 }
 
 export default useTransactionViolations;

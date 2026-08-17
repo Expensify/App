@@ -1,5 +1,5 @@
 import * as API from '@libs/API';
-import type {ConnectPolicyToAccountingIntegrationParams, UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
+import type {UpdateQuickbooksOnlineAccountingMethodParams} from '@libs/API/parameters';
 import type UpdateQuickbooksOnlineAutoCreateVendorParams from '@libs/API/parameters/UpdateQuickbooksOnlineAutoCreateVendorParams';
 import type UpdateQuickbooksOnlineGenericTypeParams from '@libs/API/parameters/UpdateQuickbooksOnlineGenericTypeParams';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
@@ -19,13 +19,19 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
-function getQuickbooksOnlineSetupLink(policyID: string) {
-    const params: ConnectPolicyToAccountingIntegrationParams = {policyID};
+function getQuickbooksOnlineSetupLink(policyID: string, isIntuitEnterpriseSuite = false, isSandbox = false) {
+    const params = new URLSearchParams({policyID});
+    if (isIntuitEnterpriseSuite) {
+        params.set('isIntuitEnterpriseSuite', 'true');
+    }
+    if (isSandbox) {
+        params.set('isSandbox', 'true');
+    }
     const commandURL = getCommandURL({
         command: READ_COMMANDS.CONNECT_POLICY_TO_QUICKBOOKS_ONLINE,
         shouldSkipWebProxy: true,
     });
-    return commandURL + new URLSearchParams(params).toString();
+    return commandURL + params.toString();
 }
 
 function shouldShowQBOReimbursableExportDestinationAccountError(policy: OnyxEntry<Policy>): boolean {
@@ -243,6 +249,20 @@ function updateQuickbooksOnlineSyncPeople<TSettingValue extends Connections['qui
         idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.SYNC_PEOPLE),
     };
     API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_PEOPLE, parameters, onyxData);
+}
+
+function updateQuickbooksOnlineSyncItems<TSettingValue extends Connections['quickbooksOnline']['config']['syncItems']>(policyID: string | undefined, settingValue: TSettingValue) {
+    if (!policyID) {
+        return;
+    }
+    const onyxData = buildOnyxDataForQuickbooksConfiguration(policyID, CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS, settingValue, !settingValue);
+
+    const parameters: UpdateQuickbooksOnlineGenericTypeParams = {
+        policyID,
+        settingValue: JSON.stringify(settingValue),
+        idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.SYNC_ITEMS),
+    };
+    API.write(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_SYNC_ITEMS, parameters, onyxData);
 }
 
 function updateQuickbooksOnlineReimbursableExpensesAccount<TSettingValue extends Connections['quickbooksOnline']['config']['reimbursableExpensesAccount']>(
@@ -524,6 +544,7 @@ export {
     updateQuickbooksOnlineReimbursableExpensesAccount,
     updateQuickbooksOnlineAutoSync,
     updateQuickbooksOnlineSyncPeople,
+    updateQuickbooksOnlineSyncItems,
     updateQuickbooksOnlineReimbursementAccountID,
     updateQuickbooksOnlinePreferredExporter,
     updateQuickbooksOnlineReceivableAccount,

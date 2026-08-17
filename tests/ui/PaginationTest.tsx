@@ -10,7 +10,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction} from '@src/types/onyx';
 
 /* eslint-disable @typescript-eslint/naming-convention */
-import * as NativeNavigation from '@react-navigation/native';
 import {addSeconds, format, subMinutes} from 'date-fns';
 import React from 'react';
 import Onyx from 'react-native-onyx';
@@ -101,7 +100,7 @@ async function navigateToSidebarOption(reportID: string): Promise<void> {
     const optionRow = screen.getByTestId(reportID);
     fireEvent(optionRow, 'press');
     await waitFor(() => {
-        (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+        jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd();
     });
     // ReportScreen relies on the onLayout event to receive updates from onyx.
     triggerListLayout(reportID);
@@ -231,7 +230,7 @@ async function signInAndGetApp(): Promise<void> {
     await waitForBatchedUpdatesWithAct();
 
     // Start listening for pusher events after navigation settles.
-    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, undefined);
+    subscribeToUserEvents(USER_A_ACCOUNT_ID, USER_A_EMAIL, () => {}, undefined);
     await waitForBatchedUpdates();
 
     await Promise.all([
@@ -368,7 +367,7 @@ describe('Pagination', () => {
         const link = screen.getByText('Link 1');
         fireEvent(link, 'press');
         await waitFor(() => {
-            (NativeNavigation as NativeNavigationMock).triggerTransitionEnd();
+            jest.requireMock<NativeNavigationMock>('@react-navigation/native').triggerTransitionEnd();
         });
         // Due to https://github.com/facebook/react-native/commit/3485e9ed871886b3e7408f90d623da5c018da493
         // we need to scroll too to trigger `onStartReached` which triggers other updates

@@ -17,6 +17,7 @@ import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {addErrorMessage} from '@libs/ErrorUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
@@ -27,7 +28,7 @@ import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
@@ -127,7 +128,12 @@ function IOURequestStepSubrate({
             Navigation.goBack(backTo);
             return;
         }
-        Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_TIME.getRoute(action, iouType, transactionID, reportID, backToReport));
+        Navigation.goBack(
+            createDynamicRoute(
+                DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
+            ),
+        );
     };
 
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.MONEY_REQUEST_SUBRATE_FORM>): Partial<Record<string, TranslationPaths>> => {
@@ -259,6 +265,9 @@ function IOURequestStepSubrate({
                                     },
                                     waitForUpcomingTransition: true,
                                 });
+                            }}
+                            onOpen={() => {
+                                textInputRef.current?.blur();
                             }}
                         />
                     </View>

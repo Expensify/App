@@ -5,9 +5,12 @@ import {LoginProvider} from '@pages/signin/SignInLoginContext';
 import {beginSignIn} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
 import type * as ReactNavigationNative from '@react-navigation/native';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -71,13 +74,22 @@ jest.mock('@userActions/CloseAccount', () => ({
 // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
 const BaseLoginForm = require('@pages/signin/LoginForm/BaseLoginForm').default;
 
-const mockBeginSignIn = beginSignIn as jest.MockedFunction<typeof beginSignIn>;
+const mockBeginSignIn = jest.mocked(beginSignIn);
+const Stack = createStackNavigator();
 
 function renderForm() {
     return render(
-        <LoginProvider>
-            <BaseLoginForm isVisible />
-        </LoginProvider>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.SIGN_IN_ROOT}>
+                    {() => (
+                        <LoginProvider>
+                            <BaseLoginForm isVisible />
+                        </LoginProvider>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 }
 

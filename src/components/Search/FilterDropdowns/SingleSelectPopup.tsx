@@ -12,6 +12,9 @@ import React, {useCallback, useState} from 'react';
 import BasePopup from './BasePopup';
 
 type SingleSelectPopupProps<T> = {
+    /** Whether to show the label in the popup or not */
+    showLabel?: boolean;
+
     /** The label to show when in an overlay on mobile */
     label?: string;
 
@@ -48,6 +51,9 @@ type SingleSelectPopupProps<T> = {
 
     /** Whether SelectionList of popup should stay mounted when popup is not visible. */
     shouldShowList?: boolean;
+
+    /** Whether the popover should keep a fixed height while filtering results. */
+    shouldUseFixedPopoverHeight?: boolean;
 };
 
 function SingleSelectPopup<T extends string>({
@@ -63,7 +69,9 @@ function SingleSelectPopup<T extends string>({
     style,
     selectionListStyle,
     itemHeight,
+    showLabel,
     shouldShowList = true,
+    shouldUseFixedPopoverHeight,
 }: SingleSelectPopupProps<T>) {
     const [selectedItem, setSelectedItem] = useState(value);
 
@@ -80,6 +88,7 @@ function SingleSelectPopup<T extends string>({
     return (
         <BasePopup
             label={label}
+            showLabel={showLabel}
             onReset={resetChanges}
             onApply={applyChanges}
             onBackButtonPress={onBackButtonPress}
@@ -99,6 +108,7 @@ function SingleSelectPopup<T extends string>({
                     selectionListStyle={selectionListStyle}
                     shouldShowList={shouldShowList}
                     itemHeight={itemHeight}
+                    shouldUseFixedPopoverHeight={shouldUseFixedPopoverHeight}
                 />
             </ListFilterHeightContextProvider>
         </BasePopup>

@@ -6,7 +6,6 @@ import type Session from '@src/types/onyx/Session';
 const NOW = new Date('2026-04-15T00:00:00Z');
 const MOCK_URI = 'https://example.com/receipt.jpg';
 const MOCK_TOKEN = 'encrypted-token';
-type GetImageSourceParams = Parameters<typeof getImageSource>[0];
 
 describe('getImageSource', () => {
     beforeAll(() => {
@@ -100,9 +99,12 @@ describe('getImageSource', () => {
     });
 
     it('preserves numeric image sources', () => {
+        // @ts-expect-error -- Numeric object URIs intentionally exercise the runtime compatibility branch not represented by the public image source model.
+        const propsSource: Parameters<typeof getImageSource>[0]['propsSource'] = {uri: 42};
+
         expect(
             getImageSource({
-                propsSource: {uri: 42} as unknown as GetImageSourceParams['propsSource'],
+                propsSource,
                 session: undefined,
                 isAuthTokenRequired: true,
                 isOffline: false,

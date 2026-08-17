@@ -8,7 +8,6 @@ import {
     allHavePendingRTERViolation,
     hasDuplicateTransactions,
     hasReceipt,
-    isExpensifyCardTransaction,
     isPayAtEndExpense as isPayAtEndExpenseTransactionUtils,
     isPending,
     isScanning,
@@ -20,6 +19,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import type {ValueOf} from 'type-fest';
 
+import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 import {getArchiveReason} from '@selectors/Report';
 
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
@@ -43,6 +43,7 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const {accountID, email} = useCurrentUserPersonalDetails();
 
     const [moneyRequestReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+    const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(moneyRequestReport?.policyID)}`);
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
@@ -75,13 +76,21 @@ function useMoneyReportHeaderStatusBar(reportID: string | undefined, chatReportI
     const [archiveReason] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${moneyRequestReport?.reportID}`, {selector: getArchiveReason});
 
     const hasScanningReceipt = transactions.filter((t) => hasReceipt(t)).some(isScanning);
-    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isExpensifyCardTransaction(t) && isPending(t));
-    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, policy);
-    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(transactions, moneyRequestReport, policy, violations, email ?? '', accountID);
+    const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
+    const hasAllPendingRTERViolations = allHavePendingRTERViolation(transactions, violations, email ?? '', accountID, moneyRequestReport, ownerLogin, policy);
+    const shouldShowBrokenConnectionViolation = shouldShowBrokenConnectionViolationForMultipleTransactions(
+        transactions,
+        moneyRequestReport,
+        ownerLogin,
+        policy,
+        violations,
+        email ?? '',
+        accountID,
+    );
     const hasOnlyHeldExpenses = hasOnlyHeldExpensesReportUtils(transactions);
     const isPayAtEndExpense = isPayAtEndExpenseTransactionUtils(transaction);
     const isReportSettled = isSettledReportUtils(moneyRequestReport);
-    const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, policy, allTransactionViolations);
+    const hasDuplicates = !isReportSettled && hasDuplicateTransactions(email ?? '', accountID, moneyRequestReport, ownerLogin, policy, allTransactionViolations);
     const shouldShowMarkAsResolved = isMarkAsResolvedAction(moneyRequestReport, transactionViolations);
 
     const shouldShowStatusBar =

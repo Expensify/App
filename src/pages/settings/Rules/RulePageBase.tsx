@@ -9,6 +9,7 @@ import Text from '@components/Text';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearDraftRule, saveExpenseRule, updateDraftRule} from '@libs/actions/User';
@@ -100,6 +101,7 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
     // Cannot use useRef because react compiler fails
     const [isSaving, setIsSaving] = useState(false);
     const [shouldShowError, setShouldShowError] = useState(false);
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isSaving});
     const styles = useThemeStyles();
 
     useEffect(() => () => clearDraftRule(), []);
@@ -143,12 +145,14 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
             return;
         }
 
-        setIsSaving(true);
+        startWithLoading(() => {
+            setIsSaving(true);
 
-        const newRule = extractRuleFromForm(form, selectedTaxRate);
-        saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
+            const newRule = extractRuleFromForm(form, selectedTaxRate);
+            saveExpenseRule(expenseRules, newRule, hash, getKeyForRule);
 
-        Navigation.goBack();
+            Navigation.goBack();
+        });
     };
 
     const sections: SectionType[] = [
@@ -283,6 +287,8 @@ function RulePageBase({titleKey, testID, hash}: RulePageBaseProps) {
                     isAlertVisible={shouldShowError && !!errorMessage}
                     message={errorMessage}
                     onSubmit={handleSubmit}
+                    isLoading={isLoading}
+                    shouldShowLoadingImmediatelyOnPress={false}
                     enabledWhenOffline
                 />
             </ScreenWrapper>

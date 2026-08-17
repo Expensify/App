@@ -6,6 +6,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import DateUtils from '@libs/DateUtils';
 import {getPaymentMethodDescription} from '@libs/PaymentUtils';
 
+import CONST from '@src/CONST';
 import type Fund from '@src/types/onyx/Fund';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
@@ -32,10 +33,10 @@ type PaymentCardDetailsProps = {
 function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDetailsProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['CreditCard']);
 
-    const cardMonth = DateUtils.getMonthNames()[(card?.accountData?.cardMonth ?? 1) - 1];
+    const cardMonth = DateUtils.getMonthNames(dateFnsLocale)[(card?.accountData?.cardMonth ?? 1) - 1];
 
     if (!card?.accountData || isEmptyObject(card?.accountData)) {
         return null;
@@ -47,7 +48,7 @@ function PaymentCardDetails({card, rightComponent, wrapperStyle}: PaymentCardDet
                 src={icons.CreditCard}
                 additionalStyles={styles.subscriptionAddedCardIcon}
                 fill={theme.icon}
-                medium
+                size={CONST.ICON_SIZE.MEDIUM}
             />
             <View style={styles.flex1}>
                 <Text style={styles.textStrong}>{getPaymentMethodDescription(card.accountType, card.accountData, translate)}</Text>

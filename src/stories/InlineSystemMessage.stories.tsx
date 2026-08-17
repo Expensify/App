@@ -1,7 +1,7 @@
 import InlineSystemMessage from '@components/InlineSystemMessage';
 import type {InlineSystemMessageProps} from '@components/InlineSystemMessage';
 
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
 
 import React from 'react';
 

@@ -10,7 +10,7 @@ import type {SharedValue} from 'react-native-reanimated/lib/typescript/commonTyp
 
 import {getTagNamesFromTagsLists} from './PolicyUtils';
 import {parse} from './SearchParser/autocompleteParser';
-import {getUserFriendlyValue} from './SearchQueryUtils';
+import {getUserFriendlyValue, sanitizeSearchValue, stripSearchValueQuotes} from './SearchQueryUtils';
 
 /**
  * Parses given query using the autocomplete parser.
@@ -23,6 +23,20 @@ function parseForAutocomplete(text: string) {
     } catch (e) {
         console.error(`Error when parsing autocomplete query"`, e);
     }
+}
+
+/**
+ * Returns a value that survives a round trip through the parser under the given filter key. Quotes are only dropped
+ * when the value cannot be read back as one value, because `from` and the other name filters carry them fine while
+ * `workspace` and `in` do not. Only safe for a value that is swapped for an ID before the query is sent.
+ */
+function getParsableSearchValue(filterKey: string, value: string) {
+    const ranges = parseForAutocomplete(`${filterKey}:${sanitizeSearchValue(value, true)}`)?.ranges ?? [];
+    if (ranges.length === 1 && ranges.at(0)?.value === value) {
+        return value;
+    }
+
+    return stripSearchValueQuotes(value);
 }
 
 /**
@@ -166,6 +180,7 @@ function filterOutRangesWithCorrectValue(
     const receiptTypeList = userFriendlyReceiptTypeList;
     const withdrawalTypeList = Object.values(CONST.SEARCH.WITHDRAWAL_TYPE) as string[];
     const withdrawalStatusList = Object.values(CONST.SEARCH.SETTLEMENT_STATUS) as string[];
+    const paidStatusList = Object.values(CONST.SEARCH.PAID_STATUS) as string[];
     const statusList = userFriendlyStatusList;
     const groupByList = userFriendlyGroupByList;
     const viewList = userFriendlyViewList;
@@ -209,7 +224,9 @@ function filterOutRangesWithCorrectValue(
             return withdrawalTypeList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.WITHDRAWAL_STATUS:
             return withdrawalStatusList.includes(range.value);
-        case CONST.SEARCH.SYNTAX_ROOT_KEYS.STATUS:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.PAID_STATUS:
+            return paidStatusList.includes(range.value);
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.STATUS:
             return statusList.includes(range.value);
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.ACTION:
             return actionList.includes(range.value);
@@ -249,6 +266,8 @@ function filterOutRangesWithCorrectValue(
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.TOTAL:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.PURCHASE_AMOUNT:
         case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_DEBITED:
+        case CONST.SEARCH.SYNTAX_FILTER_KEYS.AMOUNT_REIMBURSED:
             // This uses the same regex as the AmountWithoutCurrencyInput component (allowing for 3 digit decimals as some currencies support that)
             return new RegExp(`^-?(?!.*[.,].*[.,])\\d{0,${CONST.IOU.AMOUNT_MAX_LENGTH}}(?:[.,]\\d{0,2})?$`).test(range.value);
         case CONST.SEARCH.SYNTAX_ROOT_KEYS.COLUMNS:
@@ -332,6 +351,7 @@ function getTrimmedUserSearchQueryPreservingComma(textInputValue: string, fieldK
 
 export {
     getAutocompleteCategories,
+    getParsableSearchValue,
     getAutocompleteQueryWithComma,
     getAutocompleteRecentCategories,
     getAutocompleteRecentTags,

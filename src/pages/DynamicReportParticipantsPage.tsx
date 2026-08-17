@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -30,7 +30,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {ParticipantsNavigatorParamList} from '@libs/Navigation/types';
 import {temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {
     getReportPersonalDetailsParticipants,
     isAnnounceRoom,
@@ -113,9 +113,6 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     // Get the active chat members by filtering out the pending members with delete action
     const activeParticipants = participantsForDisplay.filter((participant) => isOffline || !participant.isPendingDelete);
 
-    // Include the search bar when there are STANDARD_LIST_ITEM_LIMIT or more active members in the list
-    const shouldShowSearchBar = activeParticipants.length >= CONST.STANDARD_LIST_ITEM_LIMIT;
-
     useEffect(() => {
         if (!isAnnounceRoom(report)) {
             return;
@@ -180,7 +177,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,
@@ -250,44 +247,45 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(deprecatedGetReportName(report, reportAttributes))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {isGroupChat && (
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
                                     customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    buttonSize={CONST.DROPDOWN_BUTTON_SIZE.MEDIUM}
+                                    size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                     isDisabled={!selectedMembers.length}
                                 />
                             ) : (
                                 <Button
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    text={translate('workspace.invite.member')}
-                                    icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                                />
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                                >
+                                    <Button.Icon src={icons.Plus} />
+                                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
                         members={participants}
                         isGroupChat={isGroupChat}
                         selectionEnabled={isCurrentUserGroupChatAdmin}
                         selectedKeys={selectedKeys}
-                        shouldShowSearchBar={shouldShowSearchBar}
                         onRowSelectionChange={onRowSelectionChange}
                     />
                 </View>

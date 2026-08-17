@@ -9,7 +9,7 @@ import {
     getIcons,
     getIconsForParticipants,
     getIOUReportActionDisplayMessage,
-    getReportPreviewMessage,
+    getReportPreviewReportActionMessage,
     getReportRecipientAccountIDs,
     getTransactionDetails,
     getWorkspaceChats,
@@ -37,7 +37,8 @@ import createRandomPolicyTags from '../utils/collections/policyTags';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
-import {formatPhoneNumber, localeCompare, translateLocal} from '../utils/TestHelper';
+import createMock from '../utils/createMock';
+import {convertToDisplayString, formatPhoneNumber, getCurrencyDecimalsLocal, localeCompare, translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const getMockedReports = (length = 500) =>
@@ -101,10 +102,10 @@ describe('ReportUtils', () => {
     test('[ReportUtils] canDeleteReportAction on 1k reports and policies', async () => {
         const reportID = '1';
         const transaction = createRandomTransaction(1);
-        const reportAction = {...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT} as unknown as ReportAction;
+        const reportAction = createMock<ReportAction>({...createRandomReportAction(1), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT});
 
         await waitForBatchedUpdates();
-        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined));
+        await measureFunction(() => canDeleteReportAction(reportAction, reportID, transaction, undefined, undefined, 1));
     });
 
     test('[ReportUtils] getReportRecipientAccountID on 1k participants', async () => {
@@ -130,7 +131,7 @@ describe('ReportUtils', () => {
         const defaultIconId = -1;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIcons(report, formatPhoneNumber, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
+        await measureFunction(() => getIcons(report, formatPhoneNumber, translateLocal, personalDetails, defaultIcon, defaultName, defaultIconId, policy));
     });
 
     test('[ReportUtils] getDisplayNamesWithTooltips 1k participants', async () => {
@@ -138,7 +139,7 @@ describe('ReportUtils', () => {
         const shouldFallbackToHidden = true;
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, shouldFallbackToHidden));
+        await measureFunction(() => getDisplayNamesWithTooltips(personalDetails, isMultipleParticipantReport, localeCompare, formatPhoneNumber, translateLocal, shouldFallbackToHidden));
     });
 
     test('[ReportUtils] getReportPreviewMessage on 1k policies', async () => {
@@ -150,13 +151,16 @@ describe('ReportUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            getReportPreviewMessage({
-                reportOrID: report,
-                iouReportAction: reportAction,
-                shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
-                isPreviewMessageForParentChatReport,
-                policy,
-            }),
+            getReportPreviewReportActionMessage(
+                {
+                    reportOrID: report,
+                    iouReportAction: reportAction,
+                    shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
+                    isPreviewMessageForParentChatReport,
+                    policy,
+                },
+                getCurrencyDecimalsLocal,
+            ),
         );
     });
 
@@ -193,6 +197,7 @@ describe('ReportUtils', () => {
                 excludeEmptyChats: false,
                 draftComment: undefined,
                 isReportArchived: false,
+                conciergeReportID: undefined,
             }),
         );
     });
@@ -202,7 +207,7 @@ describe('ReportUtils', () => {
         const policy = createRandomPolicy(1);
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getWorkspaceIcon(report, policy));
+        await measureFunction(() => getWorkspaceIcon(report, translateLocal, policy));
     });
 
     test('[ReportUtils] getMoneyRequestOptions on 1k participants', async () => {
@@ -300,6 +305,6 @@ describe('ReportUtils', () => {
         };
 
         await waitForBatchedUpdates();
-        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction));
+        await measureFunction(() => getIOUReportActionDisplayMessage(translateLocal, reportAction, convertToDisplayString));
     });
 });

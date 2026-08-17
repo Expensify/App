@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import Text from '@components/Text';
 
@@ -82,7 +82,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
 
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id)));
             return;
         }
 
@@ -111,10 +111,11 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    text={translate('subscription.yourPlan.downgrade')}
                     style={style}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.TEAM)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.downgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -126,11 +127,12 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
             }
             return (
                 <Button
-                    success
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     style={style}
-                    text={translate('subscription.yourPlan.upgrade')}
                     onPress={() => handlePlanPress(CONST.POLICY.TYPE.CORPORATE)}
-                />
+                >
+                    <Button.Text>{translate('subscription.yourPlan.upgrade')}</Button.Text>
+                </Button>
             );
         }
     }
@@ -146,14 +148,23 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
     const expensifyCode = isSecretPromoCode ? '' : (privatePromoCode ?? '');
 
     return (
-        <MenuItemWithTopDescription
-            description={translate('subscription.subscriptionSettings.title')}
-            style={style}
-            shouldShowRightIcon
-            onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
-            numberOfLinesTitle={3}
-            title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
-        />
+        <View>
+            <MenuItemWithTopDescription
+                description={translate('subscription.subscriptionSettings.title')}
+                style={style}
+                interactive={false}
+                numberOfLinesTitle={3}
+                title={translate('subscription.subscriptionSettings.summary', subscriptionType, subscriptionSize, expensifyCode, autoRenew, autoIncrease)}
+            />
+            <View style={[style, styles.mt2]}>
+                <Button
+                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_SUBSCRIPTION_SETTINGS_DETAILS)}
+                    style={styles.alignSelfStart}
+                >
+                    <Button.Text>{translate('subscription.subscriptionSettings.editSubscription')}</Button.Text>
+                </Button>
+            </View>
+        </View>
     );
 }
 
