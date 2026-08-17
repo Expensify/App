@@ -2163,6 +2163,10 @@ const staticStyles = (theme: ThemeColors) =>
             color: theme.heading,
         },
 
+        sidebarLinkTextUnread: {
+            color: theme.heading,
+        },
+
         optionItemAvatarNameWrapper: {
             minWidth: 0,
             flex: 1,

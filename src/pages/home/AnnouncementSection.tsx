@@ -37,7 +37,6 @@ function AnnouncementSection() {
                     key={announcement.title}
                     description={announcement.subtitle}
                     title={announcement.title}
-                    shouldShowBasicTitle
                     onPress={() => Linking.openURL(announcement.url)}
                     shouldShowRightIcon
                     iconRight={icons.NewWindow}

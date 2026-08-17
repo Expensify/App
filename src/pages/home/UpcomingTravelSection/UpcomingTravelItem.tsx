@@ -114,7 +114,6 @@ function UpcomingTravelItem({reservation: upcomingReservation}: UpcomingTravelIt
         <MenuItemWithTopDescription
             description={formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)}
             title={title}
-            shouldShowBasicTitle
             titleStyle={isCancelled ? styles.textSupporting : undefined}
             accessibilityLabel={isCancelled ? `${formatCancelledDescription(translate('iou.canceled'), subtitle, isCancelled)} ${title}` : undefined}
             onPress={handlePress}

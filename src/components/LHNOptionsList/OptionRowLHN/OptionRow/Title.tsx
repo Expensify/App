@@ -1,7 +1,6 @@
 import DisplayNames from '@components/DisplayNames';
 
 import useLocalize from '@hooks/useLocalize';
-import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {shouldUseBoldText} from '@libs/OptionsListUtils';
@@ -23,10 +22,9 @@ type TitleProps = {
 function Title({optionItem, testID}: TitleProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const theme = useTheme();
 
-    // Unread rows keep the heading color for emphasis but use regular weight instead of bold.
-    const textUnreadStyle = shouldUseBoldText(optionItem) ? [styles.sidebarLinkText, {color: theme.heading}] : [styles.sidebarLinkText];
+    // Unread rows use the heading color so they stand out from read rows.
+    const textUnreadStyle = shouldUseBoldText(optionItem) ? [styles.sidebarLinkText, styles.sidebarLinkTextUnread] : [styles.sidebarLinkText];
     const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0];
 
     const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);
