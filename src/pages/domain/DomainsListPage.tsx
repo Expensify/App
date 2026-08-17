@@ -20,7 +20,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isAdminSelector} from '@src/selectors/Domain';
+import {isAdminSelector, memberAccountIDsSelector} from '@src/selectors/Domain';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
@@ -57,7 +57,14 @@ function DomainsListPage() {
                 continue;
             }
 
-            const isDomainAdmin = isAdminSelector(currentUserPersonalDetails?.accountID)(domain);
+            const currentUserAccountID = currentUserPersonalDetails?.accountID;
+            const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
+            const isDomainMember = !!currentUserAccountID && memberAccountIDsSelector(domain).includes(currentUserAccountID);
+
+            if (!isDomainAdmin && !isDomainMember) {
+                continue;
+            }
+
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({

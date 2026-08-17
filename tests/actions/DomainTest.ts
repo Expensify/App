@@ -64,7 +64,7 @@ describe('actions/Domain', () => {
             {domainName: 'test.com'},
             {
                 successData: [expect.objectContaining({value: {hasCreationSucceeded: true, isLoading: null}})],
-                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true}})],
+                optimisticData: [expect.objectContaining({value: {hasCreationSucceeded: null, isLoading: true, errors: null, domainAccountID: null}})],
                 failureData: [expect.objectContaining({value: {isLoading: null}})],
             },
         );

@@ -389,6 +389,19 @@ function resetCreateDomainForm() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, null);
 }
 
+/**
+ * Surfaces an inline error on the create-domain form when the domain already exists AND the current user already has
+ * access to it (they are an admin/member). In that case requesting admin access is meaningless, so we mirror OldDot and
+ * show an inline error instead of navigating to the "request access" page. We also clear the transient domainAccountID
+ * returned by the BE so the navigation effect on the add domain page does not re-fire. No server call is performed.
+ */
+function setCreateDomainAlreadyHaveAccessError() {
+    Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {
+        domainAccountID: null,
+        errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
+    });
+}
+
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
     const optimisticData: Array<
         OnyxUpdate<typeof ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER | typeof ONYXKEYS.COLLECTION.DOMAIN_PENDING_ACTIONS | typeof ONYXKEYS.COLLECTION.DOMAIN_ERRORS>
@@ -2378,6 +2391,7 @@ export {
     getScimToken,
     createDomain,
     resetCreateDomainForm,
+    setCreateDomainAlreadyHaveAccessError,
     setPrimaryContact,
     clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,

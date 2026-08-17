@@ -119,6 +119,10 @@ const OPTIONS_PER_SCREEN: Partial<Record<Screen, PlatformStackNavigationOptions>
     [SCREENS.TWO_FACTOR_AUTH.SUCCESS]: {
         animationTypeForReplace: 'push',
     },
+    // Opened via forceReplace from the add domain page, so it needs a forward (push) transition instead of the default reversed (pop) one.
+    [SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS]: {
+        animationTypeForReplace: 'push',
+    },
 };
 
 /**
