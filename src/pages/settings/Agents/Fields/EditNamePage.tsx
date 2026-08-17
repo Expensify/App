@@ -37,7 +37,7 @@ function EditNamePage({route}: EditNamePageProps) {
 
     const handleSubmit = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM>) => {
         updateAgentName(accountID, values[INPUT_IDS.FIRST_NAME].trim(), personalDetails?.displayName ?? '');
-        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID));
+        Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(route.params.accountID));
     };
 
     return (
@@ -49,7 +49,7 @@ function EditNamePage({route}: EditNamePageProps) {
         >
             <HeaderWithBackButton
                 title={translate('editAgentNamePage.title')}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID))}
+                onBackButtonPress={() => Navigation.goBack(ROUTES.SETTINGS_AGENTS_EDIT.getRoute(route.params.accountID))}
             />
             <FormProvider
                 formID={ONYXKEYS.FORMS.EDIT_AGENT_NAME_FORM}

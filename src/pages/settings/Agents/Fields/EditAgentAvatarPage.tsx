@@ -234,7 +234,7 @@ function EditAgentAvatarPage({route}: EditAgentAvatarPageProps) {
     return (
         <EditAgentAvatarContent
             accountID={accountID}
-            fallbackRoute={ROUTES.SETTINGS_AGENTS_EDIT.getRoute(accountID)}
+            fallbackRoute={ROUTES.SETTINGS_AGENTS_EDIT.getRoute(route.params.accountID)}
         />
     );
 }

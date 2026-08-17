@@ -57,9 +57,10 @@ function EditAgentPage({route}: EditAgentPageProps) {
 
     const agentLogin = personalDetails?.login ?? '';
     const handleBackPress = () => Navigation.goBack();
-    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(accountID));
-    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(accountID));
-    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID));
+    // Navigate with the raw route accountID (not the resolved one) so the sub-page URL stays consistent with this page's URL and device back doesn't create a duplicate entry.
+    const handleEditAvatarPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_AVATAR.getRoute(route.params.accountID));
+    const handleEditNamePress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_NAME.getRoute(route.params.accountID));
+    const handleEditPromptPress = () => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(route.params.accountID));
     const handleDeletePress = async () => {
         const ruleBotEnforcedPolicy = getRuleBotEnforcedPolicy(accountID, allPolicies);
         if (ruleBotEnforcedPolicy) {
