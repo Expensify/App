@@ -10534,7 +10534,7 @@ describe('ReportUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(report?.reportID));
             const result = canAddTransaction(report, isReportArchived.current);
 
-            // Then the result is false because the external system decides the next approver, so the report is not treated as awaiting first-level approval
+            // Then the result is false because the report is now in a Dynamic External Workflow
             expect(result).toBe(false);
         });
 
