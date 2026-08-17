@@ -1,5 +1,5 @@
 import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
@@ -136,7 +136,7 @@ function TransactionPreviewContent({
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -463,11 +463,12 @@ function TransactionPreviewContent({
                     )}
                     {isReviewDuplicateTransactionPage && !isIOUSettled && !isApproved && !isCardTransaction && areThereDuplicates && (
                         <Button
-                            text={translate('violations.keepThisOne')}
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             style={[styles.ph4, styles.pb4]}
                             onPress={navigateToReviewFields}
-                        />
+                        >
+                            <Button.Text>{translate('violations.keepThisOne')}</Button.Text>
+                        </Button>
                     )}
                 </View>
             </OfflineWithFeedback>
