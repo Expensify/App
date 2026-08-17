@@ -7465,6 +7465,31 @@ const translations = {
             confirmText: 'Yes, export again',
             cancelText: 'Cancel',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Careful!',
+            description: (connectionName: ConnectionName) =>
+                `The selected reports are connected to different ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
+            confirmText: 'Got it',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Only reports connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Only reports that are eligible to export will be exported.`);
+                }
+                return `${reasons.join('\n\n')}\n\nThe following reports will be exported:`;
+            },
+            confirmText: () => ({
+                one: `Export 1 report`,
+                other: (count: number) => `Export ${count} reports`,
+            }),
+            cancelText: 'Cancel',
+        },
         upgrade: {
             reportFields: {
                 title: 'Report fields',

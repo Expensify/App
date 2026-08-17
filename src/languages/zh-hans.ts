@@ -6989,6 +6989,31 @@ ${reportName}`,
             confirmText: '是，再次导出',
             cancelText: '取消',
         },
+        exportDifferentCompaniesModal: {
+            title: '小心！',
+            description: (connectionName: ConnectionName) =>
+                `所选报表连接到不同的 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择连接到同一公司的报表，然后重试。`,
+            confirmText: '知道了',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                }
+                return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
+            },
+            confirmText: () => ({
+                one: `导出 1 份报表`,
+                other: (count: number) => `导出 ${count} 份报表`,
+            }),
+            cancelText: '取消',
+        },
         upgrade: {
             reportFields: {
                 title: '报表字段',

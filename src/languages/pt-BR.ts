@@ -7233,6 +7233,31 @@ ${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Cuidado!',
+            description: (connectionName: ConnectionName) =>
+                `Os relatórios selecionados estão conectados a empresas ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diferentes, portanto não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
+            confirmText: 'Entendi',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Exportar ${exportableCount}/${selectedCount} relatórios para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Somente os relatórios conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Somente os relatórios elegíveis para exportação serão exportados.`);
+                }
+                return `${reasons.join('\n\n')}\n\nOs seguintes relatórios serão exportados:`;
+            },
+            confirmText: () => ({
+                one: `Exportar 1 relatório`,
+                other: (count: number) => `Exportar ${count} relatórios`,
+            }),
+            cancelText: 'Cancelar',
+        },
         upgrade: {
             reportFields: {
                 title: 'Campos do relatório',

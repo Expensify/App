@@ -7305,6 +7305,31 @@ ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
             cancelText: 'Annuler',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Attention !',
+            description: (connectionName: ConnectionName) =>
+                `Les notes de frais sélectionnées sont connectées à différentes entreprises ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais connectées à la même entreprise, puis réessayez.`,
+            confirmText: 'Compris',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Seuls les rapports éligibles à l’exportation seront exportés.`);
+                }
+                return `${reasons.join('\n\n')}\n\nLes rapports suivants seront exportés :`;
+            },
+            confirmText: () => ({
+                one: `Exporter 1 rapport`,
+                other: (count: number) => `Exporter ${count} rapports`,
+            }),
+            cancelText: 'Annuler',
+        },
         upgrade: {
             reportFields: {
                 title: 'Champs de note de frais',

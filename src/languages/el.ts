@@ -7540,6 +7540,30 @@ ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
             cancelText: 'Άκυρο',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Προσοχή!',
+            description: (connectionName) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            confirmText: 'Το κατάλαβα',
+        },
+        exportPartialModal: {
+            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                }
+                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+            },
+            confirmText: () => ({
+                one: `Εξαγωγή 1 αναφοράς`,
+                other: (count: number) => `Εξαγωγή ${count} αναφορών`,
+            }),
+            cancelText: 'Άκυρο',
+        },
         upgrade: {
             reportFields: {
                 title: 'Πεδία αναφοράς',

@@ -7212,6 +7212,31 @@ ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
             cancelText: 'Anuluj',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Uwaga!',
+            description: (connectionName: ConnectionName) =>
+                `Wybrane raporty są połączone z różnymi firmami ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
+            confirmText: 'Rozumiem',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty kwalifikujące się do eksportu.`);
+                }
+                return `${reasons.join('\n\n')}\n\nWyeksportowane zostaną następujące raporty:`;
+            },
+            confirmText: () => ({
+                one: `Wyeksportuj 1 raport`,
+                other: (count: number) => `Wyeksportuj ${count} raportów`,
+            }),
+            cancelText: 'Anuluj',
+        },
         upgrade: {
             reportFields: {
                 title: 'Pola raportu',

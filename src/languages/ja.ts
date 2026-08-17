@@ -7164,6 +7164,31 @@ ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
             cancelText: 'キャンセル',
         },
+        exportDifferentCompaniesModal: {
+            title: '注意！',
+            description: (connectionName: ConnectionName) =>
+                `選択したレポートは異なる ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
+            confirmText: '了解',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`エクスポート可能なレポートのみがエクスポートされます。`);
+                }
+                return `${reasons.join('\n\n')}\n\n以下のレポートがエクスポートされます：`;
+            },
+            confirmText: () => ({
+                one: `1件のレポートをエクスポート`,
+                other: (count: number) => `${count}件のレポートをエクスポート`,
+            }),
+            cancelText: 'キャンセル',
+        },
         upgrade: {
             reportFields: {
                 title: 'レポート項目',

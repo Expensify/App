@@ -7234,6 +7234,31 @@ ${reportName}`,
             confirmText: 'Ja, opnieuw exporteren',
             cancelText: 'Annuleren',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Voorzichtig!',
+            description: (connectionName: ConnectionName) =>
+                `De geselecteerde rapporten zijn verbonden met verschillende ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-bedrijven en kunnen daarom niet samen worden geëxporteerd. Selecteer rapporten die met hetzelfde bedrijf zijn verbonden en probeer het opnieuw.`,
+            confirmText: 'Begrepen',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `${exportableCount}/${selectedCount} rapporten exporteren naar ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Alleen rapporten die zijn verbonden met ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} worden geëxporteerd.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Alleen rapporten die in aanmerking komen voor export worden geëxporteerd.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDe volgende rapporten worden geëxporteerd:`;
+            },
+            confirmText: () => ({
+                one: `1 rapport exporteren`,
+                other: (count: number) => `${count} rapporten exporteren`,
+            }),
+            cancelText: 'Annuleren',
+        },
         upgrade: {
             reportFields: {
                 title: 'Rapportvelden',
