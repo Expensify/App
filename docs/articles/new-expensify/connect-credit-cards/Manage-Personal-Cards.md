@@ -95,10 +95,7 @@ When a personal card connection breaks, you'll see:
 - A red dot indicator on **Wallet** in the navigation tabs. 
 - A red dot indicator on the card in **Wallet** leading to the error.
 
-<!-- SCREENSHOT:
-Suggestion: Show broken personal card connection with indicators on Wallet and on the card. 
-Design request: https://github.com/Expensify/Expensify/issues/620248
--->
+![Broken personal card connection with indicators on Wallet and on the card.]({{site.url}}/assets/images/ExpensifyHelp-FixPersonalCards-2){:width="100%"}
 
 
 ## How to fix a broken personal card connection 
