@@ -13,7 +13,7 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -88,7 +88,30 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toContain('violations.reviewRequired');
+            // The hold is the only reason, so there is nothing for the caller to prepend to it.
+            expect(result.shouldShowHoldMessage).toBe(true);
+            expect(result.RBRMessage.text).toEqual('');
+            // The hold belongs to the RBR row only, never repeated on the supporting line.
+            expect(result.previewStatusText).toEqual([]);
+        });
+
+        it('keeps the other violation in the RBR message when the transaction is on hold and also has violations', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                violations: [
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ] as TransactionViolation[],
+                violationMessage: 'Category missing',
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            // The hold violation is excluded, so the real violation survives for the caller to prepend.
+            expect(result.RBRMessage.text).toEqual('Category missing');
+            expect(result.shouldShowHoldMessage).toBe(true);
         });
 
         it('returns correct receipt error message when the transaction has receipt error', () => {

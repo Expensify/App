@@ -90,7 +90,8 @@ function TransactionPreviewContent({
     );
     const {amount, comment: requestComment, merchant, category, currency: requestCurrency} = transactionDetails;
     const [originalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`);
-    const filteredViolations = filterReceiptViolations(violations);
+    // The hold is appended to the RBR message on its own, so it must not also be picked as the violation to describe.
+    const filteredViolations = filterReceiptViolations(violations).filter((violation) => violation.name !== CONST.VIOLATIONS.HOLD);
     const firstViolation = filteredViolations.at(0);
     const cardID = firstViolation?.data?.cardID;
     const [card] = useOnyx(ONYXKEYS.CARD_LIST, {selector: cardByIdSelector(String(cardID))});
@@ -177,7 +178,8 @@ function TransactionPreviewContent({
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 
-    const RBRMessage = getTranslatedText(previewText.RBRMessage);
+    // The hold comes last, after whatever else flagged the expense, e.g. "Category missing • This expense was put on hold".
+    const RBRMessage = [getTranslatedText(previewText.RBRMessage), previewText.shouldShowHoldMessage ? translate('violations.hold') : ''].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     const displayAmountText = getTranslatedText(previewText.displayAmountText);
     const displayDeleteAmountText = getTranslatedText(previewText.displayDeleteAmountText);
     const displayTypeText = getTranslatedText(previewText.previewTypeText);
