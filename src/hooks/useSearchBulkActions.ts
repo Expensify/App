@@ -1806,8 +1806,11 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             // Shared confirmation flow used by BOTH "Export to <integration>" and "Mark as exported" so the
             // two actions behave identically. When applicable, the partial-export modal is shown first and,
             // only after it resolves, the existing "export again" modal — the two are never combined.
+            // `shouldCheckCompanyMismatch` gates the different-companies guard: it only applies to the real
+            // integration export (which pushes data into a single external company), not to manual marking.
             const buildIntegrationHandleExportAction =
-                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>, integrationGroupSize: number) => (exportAction: () => void) => {
+                (integrationReportIDs: string[], integration: NonNullable<ReturnType<typeof getConnectedIntegration>>, integrationGroupSize: number, shouldCheckCompanyMismatch: boolean) =>
+                (exportAction: () => void) => {
                     const runExport = () => {
                         if (!hash) {
                             return;
@@ -1822,21 +1825,26 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     // companies), the export can't be fulfilled — inform the user and exit without exporting.
                     // An unresolved (undefined) companyID is kept as its own distinct value so a selection mixing a
                     // known company with an unidentifiable one is still treated as spanning different companies.
-                    const companyIDs = new Set<string | undefined>();
-                    for (const reportID of integrationReportIDs) {
-                        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
-                        const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
-                        const companyID = getConnectionCompanyID(reportPolicy, integration);
-                        companyIDs.add(companyID);
-                    }
-                    if (companyIDs.size > 1) {
-                        showConfirmModal({
-                            title: translate('workspace.exportDifferentCompaniesModal.title'),
-                            prompt: translate('workspace.exportDifferentCompaniesModal.description', integration),
-                            confirmText: translate('workspace.exportDifferentCompaniesModal.confirmText'),
-                            shouldShowCancelButton: false,
-                        });
-                        return;
+                    // This guard is skipped for "Mark as exported": the MarkAsExported backend command logs a
+                    // per-report exported action independently and never pushes into an external company, so marking
+                    // reports across different companies in one call is fine.
+                    if (shouldCheckCompanyMismatch) {
+                        const companyIDs = new Set<string | undefined>();
+                        for (const reportID of integrationReportIDs) {
+                            const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`] ?? currentSearchResults?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                            const reportPolicy = report?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
+                            const companyID = getConnectionCompanyID(reportPolicy, integration);
+                            companyIDs.add(companyID);
+                        }
+                        if (companyIDs.size > 1) {
+                            showConfirmModal({
+                                title: translate('workspace.exportDifferentCompaniesModal.title'),
+                                prompt: translate('workspace.exportDifferentCompaniesModal.description', integration),
+                                confirmText: translate('workspace.exportDifferentCompaniesModal.confirmText'),
+                                shouldShowCancelButton: false,
+                            });
+                            return;
+                        }
                     }
 
                     const exportableReportNames: string[] = [];
@@ -1934,7 +1942,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
                 if (exportableReportIDs.length > 0) {
-                    const handleExportAction = buildIntegrationHandleExportAction(exportableReportIDs, integration, integrationGroupSize);
+                    const handleExportAction = buildIntegrationHandleExportAction(exportableReportIDs, integration, integrationGroupSize, true);
                     exportOptions.push({
                         text: CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration],
                         icon: getIntegrationIcon(integration, expensifyIcons),
@@ -1951,7 +1959,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     .map((report) => report.reportID)
                     .filter((reportID): reportID is string => reportID !== undefined);
                 if (reportIDsToMark.length > 0) {
-                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize);
+                    const handleMarkAction = buildIntegrationHandleExportAction(reportIDsToMark, integration, integrationGroupSize, false);
                     exportOptions.push({
                         text: translate('workspace.common.markAsExported'),
                         // Every integration's "Mark as exported" option shares the same visible text and differs only by icon,

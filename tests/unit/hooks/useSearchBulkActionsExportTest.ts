@@ -664,6 +664,51 @@ describe('useSearchBulkActions - export options', () => {
         expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
     });
 
+    it('does NOT show the different-companies modal for "Mark as exported" and marks reports across different companies together', async () => {
+        /**
+         * Given: two approved reports on two workspaces both connected to NetSuite, but to DIFFERENT
+         *        external companies (distinct accountIDs) — the same selection that blocks a real export.
+         *
+         * When: the user clicks NetSuite's "Mark as exported".
+         *
+         * Then: the different-companies guard does NOT apply to manual marking (MarkAsExported logs a
+         *       per-report exported action independently and never pushes into an external company), so
+         *       no blocking modal is shown and both reports are marked together in a single call.
+         */
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-A'}},
+        });
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, {
+            id: POLICY_ID_2,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {accountID: 'company-B'}},
+        });
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportSubMenuItems(result.current.headerButtonsOptions)?.some((item) => item.text === 'workspace.common.markAsExported')).toBe(true);
+        });
+
+        getExportSubMenuItems(result.current.headerButtonsOptions)
+            ?.find((item) => item.text === 'workspace.common.markAsExported')
+            ?.onSelected?.();
+
+        // No blocking modal, and both reports (from different companies) are marked together in one call.
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+        });
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
+    });
+
     it('shows the partial-export modal for a multi-integration selection, then exports only the chosen integration subset', async () => {
         /**
          * Given: two reports on workspaces connected to different integrations (report1 → NetSuite,
