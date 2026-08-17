@@ -52,7 +52,7 @@ export default function TableFilterBar({label, shouldShowClearFiltersButton, chi
         for (const filter of appliedFilters) {
             tableMethods.updateFilter({key: filter.key, value: []});
         }
-        // Also clear the search input so the Clear button resets the table to its unfiltered, unsearched state.
+        // Also clear the search input so the Clear button resets both the filters and the search text.
         tableMethods.updateSearchString('');
         onSearchStringChange?.('');
     };
