@@ -20,7 +20,6 @@ import HeaderDownloadButton from './primitives/HeaderDownloadButton';
 import HeaderIcon from './primitives/HeaderIcon';
 import HeaderMenuItemButtonTooltip from './primitives/HeaderMenuItemButtonTooltip';
 import HeaderPolicyAvatar from './primitives/HeaderPolicyAvatar';
-import HeaderRotateButton from './primitives/HeaderRotateButton';
 import HeaderThreeDotsMenu from './primitives/HeaderThreeDotsMenu';
 import HeaderTitle from './primitives/HeaderTitle';
 import useHeaderStyles from './styles';
@@ -34,7 +33,6 @@ function HeaderWithBackButton({
     onBackButtonPress = () => Navigation.goBack(),
     onCloseButtonPress = () => Navigation.dismissModal(),
     onDownloadButtonPress = () => {},
-    onRotateButtonPress = () => {},
     onThreeDotsButtonPress = () => {},
     report,
     policyAvatar,
@@ -45,8 +43,6 @@ function HeaderWithBackButton({
     shouldShowCloseButton = false,
     shouldShowDownloadButton = false,
     isDownloading = false,
-    shouldShowRotateButton = false,
-    isRotating = false,
     shouldSetModalVisibility = true,
     shouldShowThreeDotsButton = false,
     shouldUseHeadlineHeader = false,
@@ -156,13 +152,6 @@ function HeaderWithBackButton({
                             <HeaderDownloadButton
                                 onPress={onDownloadButtonPress}
                                 isLoading={isDownloading}
-                                iconFill={iconFill}
-                            />
-                        )}
-                        {shouldShowRotateButton && (
-                            <HeaderRotateButton
-                                onPress={onRotateButtonPress}
-                                isLoading={isRotating}
                                 iconFill={iconFill}
                             />
                         )}
