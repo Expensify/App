@@ -907,11 +907,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal into another account',
-        emailLabel: 'Email address',
-        reasonLabel: 'Support login reason',
-        reasonHint: 'No recent tickets found for this account.',
-        login: 'Log in',
+        title: 'Supportal で別のアカウントにログイン',
+        emailLabel: 'メールアドレス',
+        reasonLabel: 'サポートログインの理由',
+        reasonHint: 'このアカウントの最近のチケットは見つかりませんでした。',
+        login: 'サインイン',
     },
     sidebarScreen: {
         buttonFind: '何かを検索…',

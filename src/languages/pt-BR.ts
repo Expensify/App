@@ -915,11 +915,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal into another account',
-        emailLabel: 'Email address',
-        reasonLabel: 'Support login reason',
-        reasonHint: 'No recent tickets found for this account.',
-        login: 'Log in',
+        title: 'Supportal em outra conta',
+        emailLabel: 'Endereço de e-mail',
+        reasonLabel: 'Motivo do login de suporte',
+        reasonHint: 'Nenhum chamado recente encontrado para esta conta.',
+        login: 'Entrar',
     },
     sidebarScreen: {
         buttonFind: 'Encontre algo...',

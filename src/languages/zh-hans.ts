@@ -888,11 +888,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal into another account',
-        emailLabel: 'Email address',
-        reasonLabel: 'Support login reason',
-        reasonHint: 'No recent tickets found for this account.',
-        login: 'Log in',
+        title: 'Supportal 登录到其他账户',
+        emailLabel: '邮箱地址',
+        reasonLabel: '支持登录原因',
+        reasonHint: '未找到该账户的最近工单。',
+        login: '登录',
     },
     sidebarScreen: {
         buttonFind: '查找内容…',

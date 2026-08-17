@@ -934,11 +934,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal into another account',
-        emailLabel: 'Email address',
-        reasonLabel: 'Support login reason',
-        reasonHint: 'No recent tickets found for this account.',
-        login: 'Log in',
+        title: 'Supportal σε άλλο λογαριασμό',
+        emailLabel: 'Διεύθυνση email',
+        reasonLabel: 'Λόγος σύνδεσης υποστήριξης',
+        reasonHint: 'Δεν βρέθηκαν πρόσφατα αιτήματα για αυτόν τον λογαριασμό.',
+        login: 'Συνδεθείτε',
     },
     sidebarScreen: {
         buttonFind: 'Βρείτε κάτι...',

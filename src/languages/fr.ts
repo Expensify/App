@@ -919,11 +919,11 @@ const translations: TranslationDeepObject<typeof en> = {
         },
     },
     supportalSwitcher: {
-        title: 'Supportal into another account',
-        emailLabel: 'Email address',
-        reasonLabel: 'Support login reason',
-        reasonHint: 'No recent tickets found for this account.',
-        login: 'Log in',
+        title: 'Supportal vers un autre compte',
+        emailLabel: 'Adresse e-mail',
+        reasonLabel: 'Motif de la connexion support',
+        reasonHint: 'Aucun ticket récent trouvé pour ce compte.',
+        login: 'Se connecter',
     },
     sidebarScreen: {
         buttonFind: 'Trouver quelque chose...',
