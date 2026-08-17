@@ -33,8 +33,8 @@ import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './step/withWritableReportOrNotFound';
 
+import DynamicIOURequestStepDistanceManual from './step/DynamicIOURequestStepDistanceManual';
 import IOURequestStepDistanceGPS from './step/IOURequestStepDistanceGPS';
-import IOURequestStepDistanceManual from './step/IOURequestStepDistanceManual';
 import IOURequestStepDistanceMap from './step/IOURequestStepDistanceMap';
 import IOURequestStepDistanceOdometer from './step/IOURequestStepDistanceOdometer';
 
@@ -179,7 +179,7 @@ function DistanceRequestStartPage({
                             <TopTab.Screen name={CONST.TAB_REQUEST.DISTANCE_MANUAL}>
                                 {() => (
                                     <TabScreenWithFocusTrapWrapper>
-                                        <IOURequestStepDistanceManual
+                                        <DynamicIOURequestStepDistanceManual
                                             route={route}
                                             navigation={navigation}
                                         />

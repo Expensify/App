@@ -1986,7 +1986,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -5329,6 +5330,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -7216,11 +7243,19 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>

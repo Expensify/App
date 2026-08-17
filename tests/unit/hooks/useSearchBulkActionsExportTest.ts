@@ -5,7 +5,7 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 
-import {getExportTemplates} from '@libs/actions/Search';
+import {getExportTemplates, exportSearchItemsToCSV} from '@libs/actions/Search';
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
@@ -181,8 +181,9 @@ jest.mock('@libs/SearchUIUtils', () => ({
     shouldShowDeleteOption: () => false,
     getSelectedGroupFilterEntry: jest.fn(),
     navigateToSearchRHP: jest.fn(),
-    // The export queries under test are not grouped, so this resolves to undefined.
     getValidGroupBy: jest.fn((groupBy?: string) => groupBy),
+    getSearchColumnTranslationKey: jest.fn((column: string) => column),
+    getColumnsToShow: jest.fn(() => []),
 }));
 
 jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
@@ -270,6 +271,13 @@ const expenseReportQueryJSON: SearchQueryJSON = {
     filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: 'type', right: 'expense-report'},
 };
 
+const groupedExpenseQueryJSON: SearchQueryJSON = {
+    ...expenseReportQueryJSON,
+    inputQuery: 'type:expense groupBy:category',
+    type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+    groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
+};
+
 function makeSelectedReport(overrides: Partial<SelectedReports> = {}): SelectedReports {
     return {
         reportID: REPORT_ID,
@@ -353,6 +361,26 @@ function getExportSubMenuItems(headerButtonsOptions: ReturnType<typeof useSearch
 function getExportOptionTexts(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions']) {
     const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
     return exportOption?.subMenuItems?.map((item) => item.text) ?? (exportOption ? [exportOption.text] : []);
+}
+
+/** The export menu collapses into a single top-level option when it holds only one item, so look in both shapes. */
+function getExportOptionByText(headerButtonsOptions: ReturnType<typeof useSearchBulkActions>['headerButtonsOptions'], text: string) {
+    const exportOption = headerButtonsOptions.find((option) => option.value === CONST.SEARCH.BULK_ACTION_TYPES.EXPORT);
+    if (!exportOption) {
+        return undefined;
+    }
+    return exportOption.subMenuItems?.find((item) => item.text === text) ?? (exportOption.text === text ? exportOption : undefined);
+}
+
+/** The parameters the last plain-CSV export sent to the backend, with the serialized query parsed back. */
+function getLastCSVExportParameters() {
+    const [parameters] = jest.mocked(exportSearchItemsToCSV).mock.calls.at(-1) ?? [];
+    if (!parameters) {
+        throw new Error('exportSearchItemsToCSV was not called');
+    }
+    const query: unknown = JSON.parse(parameters.jsonQuery);
+    const columnLabels: unknown = JSON.parse(parameters.exportColumnLabels);
+    return {...parameters, query, columnLabels};
 }
 
 // ---------------------------------------------------------------------------
@@ -479,12 +507,6 @@ describe('useSearchBulkActions - export options', () => {
             }),
         };
 
-        const groupedExpenseQueryJSON: SearchQueryJSON = {
-            ...expenseReportQueryJSON,
-            inputQuery: 'type:expense groupBy:category',
-            type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-            groupBy: CONST.SEARCH.GROUP_BY.CATEGORY,
-        };
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
 
         await waitFor(() => {
@@ -492,6 +514,70 @@ describe('useSearchBulkActions - export options', () => {
         });
     });
 
+    it('offers Current view as the only plain-CSV export on a grouped search', async () => {
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        expect(getExportOptionTexts(result.current.headerButtonsOptions)).not.toContain('export.basicExport');
+    });
+
+    it('exports the current view of a grouped search with the default expense columns', async () => {
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const expectedColumns: string[] = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE)];
+        const {isBasicExport, query, columnLabels} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(expectedColumns).toContain(CONST.SEARCH.TABLE_COLUMNS.FROM);
+        expect(query).toEqual(expect.objectContaining({columns: expectedColumns}));
+
+        // translate and the column translation key are both mocked as the identity here, so every column
+        // carries a label of its own name - what matters is that a label is sent for each one.
+        expect(columnLabels).toEqual(Object.fromEntries(expectedColumns.map((column) => [column, column])));
+    });
+
+    it('exports the current view of a grouped search with the configured expense columns in order', async () => {
+        await Onyx.merge(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {
+            columns: [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+        });
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: groupedExpenseQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            expect(getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')).toBeDefined();
+        });
+
+        getExportOptionByText(result.current.headerButtonsOptions, 'export.currentView')?.onSelected?.();
+
+        await waitFor(() => {
+            expect(exportSearchItemsToCSV).toHaveBeenCalled();
+        });
+
+        const {isBasicExport, query} = getLastCSVExportParameters();
+        expect(isBasicExport).toBe(false);
+        expect(query).toEqual(
+            expect.objectContaining({
+                columns: [CONST.SEARCH.TABLE_COLUMNS.TYPE, CONST.SEARCH.TABLE_COLUMNS.TAG, CONST.SEARCH.TABLE_COLUMNS.MERCHANT, CONST.SEARCH.TABLE_COLUMNS.FROM],
+            }),
+        );
+    });
     describe('Canadian Multiple Tax Export eligibility', () => {
         const SECOND_POLICY_ID = 'policy2';
         const SECOND_REPORT_ID = 'report2';
