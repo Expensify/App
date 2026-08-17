@@ -113,7 +113,9 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {
         report,
         hasOnceLoadedReportActions,
+        hasOlderActions,
         hasNewerActions,
+        oldestReportActionID,
         sortedAllReportActions,
         oldestUnreadReportAction,
         transactionThreadReport,
@@ -135,11 +137,11 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     const {sessionStartTime} = useConciergeSessionState();
 
     const didLayout = useRef(false);
-    const didReachStartRef = useRef(false);
+    const lastRequestedOldestActionIDRef = useRef<string | undefined>(undefined);
 
     useEffect(() => {
         didLayout.current = false;
-        didReachStartRef.current = false;
+        lastRequestedOldestActionIDRef.current = undefined;
     }, [reportID]);
 
     useLinkedMessageOfflineLoading({reportID: report?.reportID ?? reportID, reportActionIDFromRoute});
@@ -319,23 +321,23 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     });
 
     const loadOlderChatsOnStartReached = () => {
-        if (showHiddenHistory || didReachStartRef.current) {
+        if (showHiddenHistory || isOffline || !hasOlderActions || !oldestReportActionID || lastRequestedOldestActionIDRef.current === oldestReportActionID) {
             return;
         }
 
-        didReachStartRef.current = true;
+        lastRequestedOldestActionIDRef.current = oldestReportActionID;
         loadOlderChats(false);
     };
 
     const trackScrollPositionAndThreshold = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
         const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
         const distanceFromBottom = Math.max(0, contentSize.height - layoutMeasurement.height - contentOffset.y);
-        const startReachedThreshold = layoutMeasurement.height * PAGINATION_THRESHOLD;
+        const isNearStart = contentOffset.y <= layoutMeasurement.height * PAGINATION_THRESHOLD;
 
-        if (contentOffset.y > startReachedThreshold) {
-            didReachStartRef.current = false;
-        } else {
+        if (isNearStart) {
             loadOlderChatsOnStartReached();
+        } else {
+            lastRequestedOldestActionIDRef.current = undefined;
         }
 
         const bottomRelativeEvent = {

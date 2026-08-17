@@ -115,9 +115,10 @@ jest.mock('@hooks/useCopySelectionHelper', () => jest.fn());
 jest.mock('@hooks/useCurrentUserPersonalDetails', () => jest.fn());
 const mockLoadOlderChats = jest.fn();
 jest.mock('@hooks/useLoadReportActions', () =>
-    jest.fn(() => ({
+    jest.fn(({reportActions}: {reportActions: OnyxTypes.ReportAction[]}) => ({
         loadOlderChats: mockLoadOlderChats,
         loadNewerChats: jest.fn(),
+        currentReportOldestActionID: reportActions.at(-1)?.reportActionID,
     })),
 );
 jest.mock('@hooks/usePrevious', () => jest.fn());
@@ -246,6 +247,19 @@ const mockReportActions: OnyxTypes.ReportAction[] = [
     },
 ];
 
+const olderMockReportAction: OnyxTypes.ReportAction = {
+    reportActionID: '0',
+    actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+    created: '2022-12-31',
+    actorAccountID: 125,
+    message: [{type: 'COMMENT', html: 'Older message', text: 'Older message'}],
+    originalMessage: {},
+    shouldShow: true,
+    person: [{type: 'TEXT', style: 'strong', text: 'Older User'}],
+    pendingAction: null,
+    errors: {},
+};
+
 const renderReportActionsList = (props: {reportID?: string} = {}) => {
     const reportID = props.reportID ?? mockReport.reportID;
     return render(<ReportActionsList reportID={reportID} />);
@@ -349,9 +363,14 @@ describe('ReportActionsList (body)', () => {
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false, on: {layout: true}});
     });
 
-    it('loads older actions at the chronological start and rearms after moving away', () => {
+    it('continues loading older pages from scroll events when LegendList does not report reaching the start', () => {
         mockUseNetwork.mockReturnValue({isOffline: false});
-        renderReportActionsList();
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: mockReportActions,
+            hasOlderActions: true,
+        });
+        const view = renderReportActionsList();
 
         const listProps = getCapturedListProps();
         const createScrollEvent = (offset: number) => ({
@@ -363,14 +382,30 @@ describe('ReportActionsList (body)', () => {
         });
 
         act(() => {
-            listProps?.onStartReached?.();
             listProps?.onScroll?.(createScrollEvent(0));
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
 
         act(() => {
-            listProps?.onScroll?.(createScrollEvent(500));
+            listProps?.onStartReached?.();
             listProps?.onScroll?.(createScrollEvent(0));
+        });
+        expect(mockLoadOlderChats).toHaveBeenCalledTimes(1);
+
+        mockUsePaginatedReportActions.mockReturnValue({
+            ...defaultPaginatedReportActionsResult,
+            reportActions: [...mockReportActions, olderMockReportAction],
+            hasOlderActions: true,
+        });
+        view.rerender(
+            <ReportActionsList
+                reportID={mockReport.reportID}
+                onLayout={jest.fn()}
+            />,
+        );
+
+        act(() => {
+            getCapturedListProps()?.onScroll?.(createScrollEvent(0));
         });
         expect(mockLoadOlderChats).toHaveBeenCalledTimes(2);
     });
