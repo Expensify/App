@@ -39,6 +39,9 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 // Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
+// A single line of placeholder text is one lineHeightXLarge tall. Anything meaningfully taller has wrapped.
+const SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT = variables.lineHeightXLarge * 1.5;
+
 type ConciergePromptBoxProps = {
     /**
      * Visibility of the "+" actions menu is owned by HomePage (above the narrow/wide layout branch) so it survives the
@@ -65,6 +68,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
+    const [longPlaceholderHeight, setLongPlaceholderHeight] = useState<number | null>(null);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
 
@@ -96,7 +100,13 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const localNow = getLocalDateFromDatetime();
     const dateLabel = DateUtils.formatToLongDateWithWeekdayWithoutYear(localNow, dateFnsLocale);
     const greeting = translate(`homePage.conciergePrompt.${DateUtils.getTimeOfDayGreetingKey(localNow)}`, {name: firstName});
-    const placeholder = translate(shouldUseNarrowLayout ? 'homePage.conciergePrompt.inputPlaceholderMobile' : 'homePage.conciergePrompt.inputPlaceholder');
+    const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
+    const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');
+
+    // On the wide layout, fall back to the short placeholder when the long one would wrap past one line
+    // (until it is measured, optimistically assume it fits to avoid a flash of the short copy).
+    const longPlaceholderFitsOneLine = longPlaceholderHeight === null || longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
+    const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0;
 
     const submit = () => {
@@ -200,21 +210,36 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     </View>
                     <View style={styles.conciergePromptBoxDivider} />
                 </View>
-                <Composer
-                    style={[styles.textNormal, styles.noOutline, styles.flex1, styles.conciergePromptBoxInput]}
-                    value={value}
-                    onChangeText={setValue}
-                    selection={selection}
-                    onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
-                    shouldCalculateCaretPosition
-                    onFocus={() => setIsFocused(true)}
-                    onBlur={() => setIsFocused(false)}
-                    onKeyPress={handleKeyPress}
-                    maxLines={MAX_INPUT_LINES}
-                    multiline
-                    placeholder={placeholder}
-                    accessibilityLabel={placeholder}
-                />
+                <View style={[styles.flex1, styles.flexRow, styles.pRelative]}>
+                    <Composer
+                        style={[styles.textNormal, styles.noOutline, styles.flex1, styles.conciergePromptBoxInput]}
+                        value={value}
+                        onChangeText={setValue}
+                        selection={selection}
+                        onSelectionChange={(event) => setSelection(event.nativeEvent.selection)}
+                        shouldCalculateCaretPosition
+                        onFocus={() => setIsFocused(true)}
+                        onBlur={() => setIsFocused(false)}
+                        onKeyPress={handleKeyPress}
+                        maxLines={MAX_INPUT_LINES}
+                        multiline
+                        placeholder={placeholder}
+                        accessibilityLabel={placeholder}
+                    />
+                    {/* Hidden probe stretched to the input's width. Its height reveals whether the long placeholder wraps past one line. */}
+                    <View
+                        pointerEvents="none"
+                        style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.opacity0]}
+                        onLayout={(event) => setLongPlaceholderHeight(event.nativeEvent.layout.height)}
+                    >
+                        <Text
+                            accessible={false}
+                            style={[styles.textNormal, styles.conciergePromptBoxInput]}
+                        >
+                            {longPlaceholder}
+                        </Text>
+                    </View>
+                </View>
                 <Tooltip text={translate('common.send')}>
                     <PressableWithFeedback
                         accessibilityLabel={translate('common.send')}
