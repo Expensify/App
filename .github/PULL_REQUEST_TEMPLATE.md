@@ -93,9 +93,6 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
 - [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
-- [ ] If a new CSS style is added I verified that:
-    - [ ] A similar style doesn't already exist
-    - [ ] The style can't be created with an existing [StyleUtils](https://github.com/Expensify/App/blob/main/src/styles/utils/index.ts) function (i.e. `StyleUtils.getBackgroundAndBorderStyle(theme.componentBG)`)
 - [ ] If new assets were added or existing ones were modified, I verified that:
     - [ ] The assets are optimized and compressed (for SVG files, run `npm run compress-svg`)
     - [ ] The assets load correctly across all supported platforms.
