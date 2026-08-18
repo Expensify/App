@@ -9,6 +9,7 @@ const RECENT_REPORTS_BATCH_SIZE = 500;
 // state shows none.
 const SEARCH_ROUTER_OPTIONS_CONFIG = {
     enabled: true,
+    includeP2P: true,
     deferContactsUntilSearch: true,
     maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
     batchSize: RECENT_REPORTS_BATCH_SIZE,
