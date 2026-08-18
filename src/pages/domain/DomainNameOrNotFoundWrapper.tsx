@@ -6,7 +6,6 @@ import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import {domainNameSelector} from '@src/selectors/Domain';
-import callOrReturn from '@src/types/utils/callOrReturn';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ReactNode} from 'react';
@@ -21,21 +20,21 @@ type DomainNameOrNotFoundWrapperProps = {
     onLinkPress?: () => void;
 
     /** The children to render once the domain name has loaded, given the loaded domain name */
-    children: ((domainName: string) => ReactNode) | ReactNode;
+    children: (domainName: string) => ReactNode;
 };
 
 function DomainNameOrNotFoundWrapper({domainAccountID, onLinkPress, children}: DomainNameOrNotFoundWrapperProps) {
     const [domainName, domainNameResult] = useOnyx(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, {selector: domainNameSelector});
 
     if (isLoadingOnyxValue(domainNameResult)) {
-        return <FullScreenLoadingIndicator />;
+        return <FullScreenLoadingIndicator shouldUseGoBackButton />;
     }
 
     if (!domainName) {
         return <NotFoundPage onLinkPress={onLinkPress} />;
     }
 
-    return callOrReturn(children, domainName);
+    return children(domainName);
 }
 
 export default DomainNameOrNotFoundWrapper;

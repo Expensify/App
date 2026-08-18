@@ -354,7 +354,12 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
     }
 }
 
-/** Sends request for claiming a domain */
+/**
+ * Sends request for claiming a domain.
+ *
+ * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
+ * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
+ */
 function createDomain(domainName: string) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
@@ -399,6 +404,14 @@ function setCreateDomainAlreadyHaveAccessError() {
         domainAccountID: null,
         errors: getMicroSecondOnyxErrorWithTranslationKey('domain.addDomain.alreadyHaveAccessError'),
     });
+}
+
+/**
+ * Removes the minimal domain entry the BE sends along with the "domain already exists" failure. It only carries that flow, so we
+ * drop it to keep a domain the user has no access to out of the domains list. No server call is performed.
+ */
+function clearDomainFromFailedCreation(domainAccountID: number) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null);
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -2391,6 +2404,7 @@ export {
     createDomain,
     resetCreateDomainForm,
     setCreateDomainAlreadyHaveAccessError,
+    clearDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,

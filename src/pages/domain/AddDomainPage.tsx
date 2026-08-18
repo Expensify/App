@@ -13,15 +13,13 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
-import {createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
-import {clearDraftValues, clearErrors} from '@libs/actions/FormActions';
+import {clearDomainFromFailedCreation, createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
+import {clearDraftValues} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasDomainAccess} from '@src/selectors/Domain';
-import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
 import {Str} from 'expensify-common';
@@ -32,10 +30,8 @@ function AddDomainPage() {
     const {translate} = useLocalize();
     const {inputCallbackRef} = useAutoFocusInput();
 
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -56,6 +52,11 @@ function AddDomainPage() {
 
     const submittedDomainName = useRef<string | undefined>(undefined);
 
+    // Domains we had before submitting. The BE returns the same generic failure whether or not we already have access to the
+    // existing domain, so this is what tells the two apart. Stays undefined until we submit, so a response that arrives for an
+    // earlier mount (e.g. a queued offline request) is ignored instead of being judged against an empty set.
+    const domainKeysBeforeCreation = useRef<Set<string> | undefined>(undefined);
+
     // The domain name only lives in form state, which the verify account page can't reach, so we resume the submit here instead of forwarding from that page.
     const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeCreateDomain?: () => void) => resumeCreateDomain?.());
 
@@ -74,27 +75,25 @@ function AddDomainPage() {
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
+    // Must be a layout effect - a passive one runs after the paint, so the generic BE error flashes on the form before we redirect.
     useLayoutEffect(() => {
         const domainAccountID = form?.domainAccountID;
-        if (!domainAccountID) {
+        if (!domainAccountID || !domainKeysBeforeCreation.current) {
             return;
         }
 
-        const existingDomain = allDomains?.[`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`];
-        if (!existingDomain) {
-            return;
-        }
-
-        if (hasDomainAccess(session?.accountID, session?.email, myDomainSecurityGroups)(existingDomain)) {
+        if (domainKeysBeforeCreation.current.has(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`)) {
             setCreateDomainAlreadyHaveAccessError();
             return;
         }
 
-        clearErrors(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+        clearDomainFromFailedCreation(domainAccountID);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
-    }, [form?.domainAccountID, allDomains, session?.accountID, session?.email, myDomainSecurityGroups]);
+    }, [form?.domainAccountID]);
 
     useEffect(() => {
+        resetCreateDomainForm();
+
         return () => {
             clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
             resetCreateDomainForm();
@@ -122,6 +121,7 @@ function AddDomainPage() {
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
+                            domainKeysBeforeCreation.current = new Set(Object.keys(allDomains ?? {}));
                             createDomain(domainName);
                         };
 

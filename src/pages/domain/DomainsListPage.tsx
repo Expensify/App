@@ -19,8 +19,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasDomainAccess, isAdminSelector} from '@src/selectors/Domain';
-import {sessionEmailAndAccountIDSelector} from '@src/selectors/Session';
+import {isAdminSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
@@ -36,10 +36,9 @@ function DomainsListPage() {
     useDocumentTitle(translate('common.domains'));
 
     const isAppLoadPending = useIsAppLoadPending();
-    const [session] = useOnyx(ONYXKEYS.SESSION, {selector: sessionEmailAndAccountIDSelector});
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
-    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
@@ -53,14 +52,8 @@ function DomainsListPage() {
     const shouldShowLoadingIndicator = isAppLoadPending && !isOffline;
 
     if (!isEmptyObject(allDomains)) {
-        const currentUserAccountID = session?.accountID;
-
         for (const domain of Object.values(allDomains)) {
             if (!domain?.accountID || !domain.email) {
-                continue;
-            }
-
-            if (!currentUserAccountID || !hasDomainAccess(currentUserAccountID, session?.email, myDomainSecurityGroups)(domain)) {
                 continue;
             }
 

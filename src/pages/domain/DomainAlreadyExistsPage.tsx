@@ -8,52 +8,39 @@ import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import Navigation from '@libs/Navigation/Navigation';
-import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
 import ROUTES from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
 
 import React from 'react';
 
-import DomainNameOrNotFoundWrapper from './DomainNameOrNotFoundWrapper';
-
-type DomainAlreadyExistsPageProps = PlatformStackScreenProps<WorkspacesDomainModalNavigatorParamList, typeof SCREENS.WORKSPACES_DOMAIN_ALREADY_EXISTS>;
-
-function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
+function DomainAlreadyExistsPage() {
     const {asset: GlobeLock} = useMemoizedLazyAsset(() => loadIllustration('GlobeLock'));
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const domainAccountID = route.params.domainAccountID;
 
     const goToDomainsList = () => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute());
 
     return (
-        <DomainNameOrNotFoundWrapper
-            domainAccountID={domainAccountID}
-            onLinkPress={goToDomainsList}
-        >
-            <ScreenWrapper testID="DomainAlreadyExistsPage">
-                <HeaderWithBackButton
-                    title={translate('domain.domainAlreadyExists.headerTitle')}
-                    onBackButtonPress={goToDomainsList}
-                />
-                <ConfirmationPage
-                    illustration={GlobeLock}
-                    heading={translate('domain.domainAlreadyExists.title')}
-                    innerContainerStyle={styles.p10}
-                    description={translate('domain.domainAlreadyExists.description')}
-                    descriptionStyle={styles.textSupporting}
-                    shouldShowSecondaryButton
-                    secondaryButtonText={translate('domain.common.neverMind')}
-                    onSecondaryButtonPress={goToDomainsList}
-                    shouldShowButton
-                    buttonText={translate('domain.domainAlreadyExists.requestAccess')}
-                    onButtonPress={() => {}}
-                    isButtonDisabled
-                />
-            </ScreenWrapper>
-        </DomainNameOrNotFoundWrapper>
+        <ScreenWrapper testID="DomainAlreadyExistsPage">
+            <HeaderWithBackButton
+                title={translate('domain.domainAlreadyExists.headerTitle')}
+                onBackButtonPress={goToDomainsList}
+            />
+            <ConfirmationPage
+                illustration={GlobeLock}
+                heading={translate('domain.domainAlreadyExists.title')}
+                innerContainerStyle={styles.p10}
+                description={translate('domain.domainAlreadyExists.description')}
+                descriptionStyle={styles.textSupporting}
+                shouldShowSecondaryButton
+                secondaryButtonText={translate('domain.common.neverMind')}
+                onSecondaryButtonPress={goToDomainsList}
+                shouldShowButton
+                buttonText={translate('domain.domainAlreadyExists.requestAccess')}
+                onButtonPress={() => {}}
+                isButtonDisabled
+            />
+        </ScreenWrapper>
     );
 }
 
