@@ -324,7 +324,7 @@ const SCREENS = {
 
     MONEY_REQUEST: {
         CREATE: 'Money_Request_Create',
-        HOLD: 'Money_Request_Hold_Reason',
+        DYNAMIC_HOLD_REASON: 'Dynamic_Money_Request_Hold_Reason',
         REJECT: 'Money_Request_Reject_Reason',
         REPORT_REJECT: 'Money_Request_Report_Reject',
         STEP_CONFIRMATION: 'Money_Request_Step_Confirmation',
@@ -345,7 +345,7 @@ const SCREENS = {
         DYNAMIC_STEP_TAX_AMOUNT: 'Dynamic_Money_Request_Step_Tax_Amount',
         DYNAMIC_STEP_TAX_RATE: 'Dynamic_Money_Request_Step_Tax_Rate',
         STEP_VENDOR: 'Money_Request_Step_Vendor',
-        RECEIPT_VIEW: 'Money_Request_Receipt_View',
+        DYNAMIC_RECEIPT_VIEW: 'Dynamic_Money_Request_Receipt_View',
         DYNAMIC_STEP_SEND_FROM: 'Dynamic_Money_Request_Step_Send_From',
         DYNAMIC_STEP_COMPANY_INFO: 'Dynamic_Money_Request_Step_Company_Info',
         CURRENCY: 'Money_Request_Currency',
