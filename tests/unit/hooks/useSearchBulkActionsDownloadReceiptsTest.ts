@@ -207,7 +207,7 @@ function makeReportSearchResults(reports: Array<{reportID: string; withReceipt: 
             reportName: `Report ${report.reportID}`,
         };
         data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = reportEntry;
-        const transactionID = `srchtx_${report.reportID}`;
+        const transactionID = `searchTransaction_${report.reportID}`;
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`] = makeTransaction(transactionID, report.reportID, report.withReceipt);
     }
     return {
