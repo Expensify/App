@@ -1,8 +1,10 @@
+import type {AttachmentSource} from '@components/Attachments/types';
+
 import getImageRecyclingKey from '@libs/getImageRecyclingKey';
 
 import {AttachmentStateContext} from '@pages/media/AttachmentModalScreen/AttachmentModalBaseContent/AttachmentStateContextProvider';
 
-import type {ImageLoadEventData} from 'expo-image';
+import type {ImageProps as ExpoImageProps, ImageLoadEventData} from 'expo-image';
 
 import {Image as ExpoImage} from 'expo-image';
 import {useCallback, useContext, useEffect, useRef} from 'react';
@@ -15,10 +17,10 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
     const {setAttachmentLoaded, isAttachmentLoaded} = attachmentContext || {};
 
     useEffect(() => {
-        if (source === undefined || isAttachmentLoaded?.(source)) {
+        if (isAttachmentLoaded?.(source as AttachmentSource)) {
             return;
         }
-        setAttachmentLoaded(source, false);
+        setAttachmentLoaded(source as AttachmentSource, false);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
@@ -29,9 +31,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
 
     const imageLoadedSuccessfully = useCallback(
         (event: ImageLoadEventData) => {
-            if (source !== undefined) {
-                setAttachmentLoaded(source, true);
-            }
+            setAttachmentLoaded(source as AttachmentSource, true);
             if (!onLoad) {
                 return;
             }
@@ -53,7 +53,7 @@ function BaseImage({onLoad, source, style, ...props}: BaseImageProps) {
             onLoad={onLoad ? imageLoadedSuccessfully : undefined}
             source={source}
             recyclingKey={getImageRecyclingKey(source)}
-            style={style}
+            style={style as ExpoImageProps['style']}
             {...props}
         />
     );

@@ -7,10 +7,9 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isMobileSafari} from '@libs/Browser';
 import mergeRefs from '@libs/mergeRefs';
 
-import type {ForwardedRef, RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
 
-import React, {useCallback, useEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 import {FlatList} from 'react-native';
 
 import type {CustomFlatListProps} from './types';
@@ -18,14 +17,6 @@ import type {CustomFlatListProps} from './types';
 // Changing the scroll position during a momentum scroll does not work on mobile Safari.
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
-
-function useMergeRefs<T>(...args: Array<RefObject<T> | ForwardedRef<T> | null | undefined>) {
-    return useMemo(
-        () => mergeRefs<T>(...args),
-        // eslint-disable-next-line
-        [...args],
-    );
-}
 
 function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
     const scrollableNode: unknown = flatList?.getScrollableNode();
@@ -50,7 +41,10 @@ function MVCPFlatList<T>({
     const lastScrollOffsetRef = useRef(0);
     const isListRenderedRef = useRef(false);
     const mvcpAutoscrollToTopThresholdRef = useRef(mvcpAutoscrollToTopThreshold);
-    mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
+
+    useLayoutEffect(() => {
+        mvcpAutoscrollToTopThresholdRef.current = mvcpAutoscrollToTopThreshold;
+    }, [mvcpAutoscrollToTopThreshold]);
 
     const getScrollOffset = useCallback((): number => {
         if (!listRef.current) {
@@ -199,7 +193,7 @@ function MVCPFlatList<T>({
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useMergeRefs<FlatList>(listRef, ref);
+    const setMergedRef = useCallback((newRef: FlatList) => mergeRefs<FlatList>(listRef, ref)(newRef), [ref]);
 
     const onRef = useCallback(
         (newRef: FlatList) => {

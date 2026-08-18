@@ -1,14 +1,8 @@
 import type {AttachmentSource} from '@components/Attachments/types';
-import type {BaseImageProps} from '@components/Image/types';
 
 import React, {createContext, useCallback, useMemo, useState} from 'react';
 
-type AttachmentStateSource = AttachmentSource | BaseImageProps['source'];
-
-function convertSourceToString(source: AttachmentStateSource) {
-    if (source === undefined) {
-        return '';
-    }
+function convertSourceToString(source: AttachmentSource) {
     if (typeof source === 'string' || typeof source === 'number') {
         return source.toString();
     }
@@ -22,9 +16,9 @@ function convertSourceToString(source: AttachmentStateSource) {
 }
 
 type AttachmentStateContextType = {
-    setAttachmentLoaded: (key: AttachmentStateSource, state?: boolean) => void;
+    setAttachmentLoaded: (key: AttachmentSource, state?: boolean) => void;
     clearAttachmentLoaded: () => void;
-    isAttachmentLoaded: (key: AttachmentStateSource) => boolean;
+    isAttachmentLoaded: (key: AttachmentSource) => boolean;
 };
 
 const AttachmentStateContext = createContext<AttachmentStateContextType>({
@@ -39,7 +33,7 @@ type Props = {
 
 function AttachmentStateContextProvider({children}: Props) {
     const [attachmentLoaded, setAttachmentLoadedState] = useState<Record<string, boolean>>({});
-    const setAttachmentLoaded = useCallback((key: AttachmentStateSource, state = true) => {
+    const setAttachmentLoaded = useCallback((key: AttachmentSource, state = true) => {
         const url = convertSourceToString(key);
         if (!url) {
             return;
@@ -54,7 +48,7 @@ function AttachmentStateContextProvider({children}: Props) {
         setAttachmentLoadedState({});
     }, []);
 
-    const isAttachmentLoaded = useCallback((key: AttachmentStateSource) => attachmentLoaded?.[convertSourceToString(key)] === true, [attachmentLoaded]);
+    const isAttachmentLoaded = useCallback((key: AttachmentSource) => attachmentLoaded?.[convertSourceToString(key)] === true, [attachmentLoaded]);
     const value = useMemo(() => ({setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded}), [setAttachmentLoaded, clearAttachmentLoaded, isAttachmentLoaded]);
     return <AttachmentStateContext.Provider value={value}>{children}</AttachmentStateContext.Provider>;
 }
