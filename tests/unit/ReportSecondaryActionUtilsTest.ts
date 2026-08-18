@@ -3804,6 +3804,9 @@ describe('getSecondaryAction', () => {
         });
         const reportActions = [actionR14932];
         const policy = createMock<Policy>({});
+        const moveExpenseReportNameValuePairs = {
+            [`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${REPORT_ID}`]: createMock<ReportNameValuePairs>({}),
+        };
 
         jest.spyOn(ReportUtils, 'canEditFieldOfMoneyRequest').mockReturnValue(true);
         jest.spyOn(ReportUtils, 'canUserPerformWriteAction').mockReturnValue(true);
@@ -3820,10 +3823,17 @@ describe('getSecondaryAction', () => {
             bankAccountList: {},
             policy,
             reportActions,
+            moveExpenseReportNameValuePairs,
 
             isProduction: false,
         });
         expect(result).toContain(CONST.REPORT.SECONDARY_ACTIONS.MOVE_EXPENSE);
+        expect(ReportUtils.canEditFieldOfMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                isChatReportArchived: false,
+                reportNameValuePairs: moveExpenseReportNameValuePairs,
+            }),
+        );
     });
 
     it('does not include MOVE_EXPENSE option when canEditFieldOfMoneyRequest returns false', async () => {

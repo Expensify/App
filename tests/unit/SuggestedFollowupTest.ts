@@ -11,18 +11,19 @@ import Onyx from 'react-native-onyx';
 
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORT_ID = '1';
 const REPORT_ACTION_ID = '100';
 
-const fakeConciergeAction = {
+const fakeConciergeAction = createMock<ReportAction>({
     reportActionID: REPORT_ACTION_ID,
     actorAccountID: CONST.ACCOUNT_ID.CONCIERGE,
     actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
     message: [{html: 'Hello.', text: 'Hello.', type: CONST.REPORT.MESSAGE.TYPE.COMMENT}],
-} as ReportAction;
+});
 
 describe('SuggestedFollowup actions — followup-list skeleton flag', () => {
     beforeAll(() => {

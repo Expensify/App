@@ -9,7 +9,6 @@ import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 
-import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -20,7 +19,7 @@ import {expensifyLoginsSelector, getContactMethodsOptions} from '@libs/UserUtils
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {isUserValidatedSelector} from '@selectors/Account';
 import React, {useCallback, useMemo} from 'react';
@@ -31,7 +30,6 @@ function DynamicContactMethodsPage() {
     const {translate, formatPhoneNumber} = useLocalize();
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [session] = useOnyx(ONYXKEYS.SESSION);
-    const navigateBackTo = useDynamicBackPath(DYNAMIC_ROUTES.CONTACT_METHODS.path);
 
     const {isActingAsDelegate} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -55,8 +53,8 @@ function DynamicContactMethodsPage() {
             Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
             return;
         }
-        Navigation.navigate(ROUTES.SETTINGS_NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.getRoute(navigateBackTo));
-    }, [navigateBackTo, isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_CONTACT_METHOD_CONFIRM_VALIDATE_CODE.path));
+    }, [isActingAsDelegate, showDelegateNoAccessModal, isAccountLocked, isUserValidated, showLockedAccountModal]);
 
     return (
         <ScreenWrapper
@@ -81,7 +79,7 @@ function DynamicContactMethodsPage() {
                                 <MenuItem
                                     title={option.menuItemTitle}
                                     description={option.description}
-                                    onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID, navigateBackTo))}
+                                    onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHOD_DETAILS.getRoute(option.partnerUserID)))}
                                     brickRoadIndicator={option.indicator}
                                     shouldShowBasicTitle
                                     shouldShowRightIcon
