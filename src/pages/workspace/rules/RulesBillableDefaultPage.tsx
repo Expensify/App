@@ -47,7 +47,7 @@ function RulesBillableDefaultPage({
     const selectedBillable = draftBillable ?? persistedBillable;
     const hasChanges = selectedBillable !== persistedBillable;
 
-    const navigateToBillableUpgrade = useCallback(() => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, upgradeBackTo), [policy, rulesUpgradeAlias, upgradeBackTo]);
+    const navigateToBillableUpgrade = () => tryNavigateToControlPolicyUpgrade(policy, rulesUpgradeAlias, upgradeBackTo);
 
     const billableModes = [
         {
