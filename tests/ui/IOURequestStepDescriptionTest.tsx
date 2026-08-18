@@ -28,10 +28,10 @@ jest.mock('@libs/focusComposerWithDelay', () => ({
 
 // The component gates `forceKeyboardIfAlreadyFocused` behind this platform-resolved helper. Mock it so each test
 // can drive the platform's value and assert the component forwards it verbatim.
-const mockShouldForceKeyboard = jest.fn();
+const mockShouldForceKeyboard = jest.fn(() => false);
 jest.mock('@libs/shouldForceKeyboardIfAlreadyFocused', () => ({
     __esModule: true,
-    default: () => mockShouldForceKeyboard() as boolean,
+    default: () => mockShouldForceKeyboard(),
 }));
 
 // Capture the `onCancel` the component wires into the discard-changes hook, without dragging in the real
