@@ -249,7 +249,7 @@ function WorkspaceInviteMessageComponent({
 
     const invitingMemberEmail = Object.keys(invitedEmailsToAccountIDsDraft ?? {}).at(0) ?? '';
     const invitingMemberDetails = usePersonalDetailByLogin(invitingMemberEmail);
-    const invitingMemberName = "Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '')";
+    const invitingMemberName = Str.removeSMSDomain(invitingMemberDetails?.displayName ?? '');
 
     useEffect(() => {
         return () => {
