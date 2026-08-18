@@ -16,8 +16,8 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
-import type Session from '@src/types/onyx/Session';
 
+import {accountIDSelector} from '@selectors/Session';
 import {hasStartedLocationUpdatesAsync, startLocationUpdatesAsync, stopLocationUpdatesAsync} from 'expo-location';
 import React, {useEffect, useState} from 'react';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
@@ -25,13 +25,11 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import useUpdateGpsNotification from './useUpdateGpsNotification';
 import useUpdateGpsTripOnReconnect from './useUpdateGpsTripOnReconnect';
 
-const sessionAccountIDSelector = (session: Session | undefined) => session?.accountID;
-
 function GPSTripStateChecker() {
     const {translate} = useLocalize();
     const [showContinueTripModal, setShowContinueTripModal] = useState(false);
     const [gpsDraftDetails] = useOnyx(ONYXKEYS.GPS_DRAFT_DETAILS);
-    const [currentAccountID, currentAccountIDResult] = useOnyx(ONYXKEYS.SESSION, {selector: sessionAccountIDSelector});
+    const [currentAccountID, currentAccountIDResult] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const isSessionLoaded = currentAccountIDResult.status === 'loaded';
     const {isOffline} = useNetwork();
 
