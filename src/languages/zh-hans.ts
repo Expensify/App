@@ -5503,8 +5503,8 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             billPaymentAccount: {label: '账单支付账户', description: '选择从哪里支付账单，我们会在 Rillet 中创建付款。'},
             syncExpensifyCardSettlements: '同步 Expensify 卡结算',
             settlementAccount: {label: 'Expensify 卡结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
-            syncTravelInvoicingSettlements: '同步差旅发票结算',
-            travelInvoicingSettlementAccount: {label: '差旅开票结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
+            syncTravelInvoicingSettlements: '同步合并差旅结算',
+            travelInvoicingSettlementAccount: {label: '合并差旅结算账户', description: '选择您的结算账户，我们会在 Rillet 中创建这笔付款。'},
             exportToMultipleAccounts: '配置导出到多个账户',
             cardProgramAccount: {
                 label: '卡计划账户',

@@ -5611,8 +5611,11 @@ ${amount} para ${merchant} - ${date}`,
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
-            travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelInvoicingSettlementAccount: {
+                label: 'Cuenta de liquidación de facturación consolidada de viajes',
+                description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.',
+            },
             exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
             cardProgramAccount: {
                 label: 'Cuenta del programa de tarjetas',

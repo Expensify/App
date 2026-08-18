@@ -5723,8 +5723,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
             syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
-            syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
-            travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
+            travelInvoicingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungs­konto für Geschäftsreisen',
+                description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.',
+            },
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',
