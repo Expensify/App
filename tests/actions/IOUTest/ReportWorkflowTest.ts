@@ -443,7 +443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             mockFetch?.resume?.();
         });
 
-        it('splits held expenses onto a new report for a DEW policy but skips optimistic report state updates', async () => {
+        it('skips the optimistic hold split and report state updates for a DEW policy', async () => {
             // Given an open expense report on a DEW policy with two expenses, one of which is held
             const policyID = generatePolicyID();
             const policy: Policy = {
@@ -546,14 +546,9 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
-            // But the held expense is still split onto a new open report because the backend splits on every submit path
+            // And the held expense is not optimistically split onto a new report either
             const heldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
-            expect(heldTransactionAfter?.reportID).not.toBe(expenseReport.reportID);
-
-            const newHeldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${heldTransactionAfter?.reportID}`);
-            expect(newHeldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
-            expect(newHeldReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
-            expect(newHeldReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+            expect(heldTransactionAfter?.reportID).toBe(expenseReport.reportID);
 
             const unheldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`);
             expect(unheldTransactionAfter?.reportID).toBe(expenseReport.reportID);
