@@ -90,12 +90,13 @@ function AddDomainPage() {
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
-        resetCreateDomainForm();
     }, [form?.domainAccountID, allDomains, currentUserAccountID]);
 
     useEffect(() => {
-        resetCreateDomainForm();
-        return () => clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+        return () => {
+            clearDraftValues(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+            resetCreateDomainForm();
+        };
     }, []);
 
     return (
