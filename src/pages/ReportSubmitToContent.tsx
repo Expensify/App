@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useInitialSelection from '@hooks/useInitialSelection';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -27,6 +28,7 @@ import {getSearchValueForPhoneOrEmail, getUserToInviteOption, sortAlphabetically
 import {getKnownAccountIDByLogin, getPersonalDetailsByID} from '@libs/PersonalDetailsUtils';
 import {getAccountIDForSubmitManagerEmail, getMemberAccountIDsForWorkspace, getSubmitToEmail} from '@libs/PolicyUtils';
 import {hasViolations as hasViolationsReportUtils, isExpenseReport, isMoneyRequestReportPendingDeletion} from '@libs/ReportUtils';
+import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -111,6 +113,9 @@ function ReportSubmitToContent({
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
     const [hasError, setHasError] = useState(false);
     const managerEmail = userSelectedManagerEmail ?? prepopulatedEmail;
+    // Freeze the manager selected when the picker opened (the prepopulated default) so it can be pinned to the
+    // top without repinning when the user picks someone else during the same open cycle.
+    const initialManagerEmail = useInitialSelection(managerEmail, {resetOnFocus: true});
 
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
         const employeeList = policy?.employeeList;
@@ -141,6 +146,7 @@ function ReportSubmitToContent({
                     alternateText: email,
                     keyForList: email,
                     email,
+                    value: email,
                     isSelected: managerEmail.trim().toLowerCase() === email.toLowerCase(),
                 },
             ];
@@ -170,6 +176,7 @@ function ReportSubmitToContent({
             alternateText: email,
             keyForList: `prepopulated:${email}`,
             email,
+            value: email,
             isSelected: managerEmail.trim().toLowerCase() === emailLower,
         };
     }, [prepopulatedEmail, workspaceMembers, extraSubmitToRecipients, managerEmail, personalDetails]);
@@ -182,8 +189,11 @@ function ReportSubmitToContent({
         }));
         const extrasDeduped = extrasWithSelection.filter((item) => !workspaceEmailSet.has(item.email.toLowerCase()));
         const members = prepopulatedSubmitToRecipient ? [prepopulatedSubmitToRecipient, ...workspaceMembers, ...extrasDeduped] : [...workspaceMembers, ...extrasDeduped];
-        return sortAlphabetically(members, 'text', localeCompare);
-    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare, prepopulatedSubmitToRecipient]);
+        const sorted = sortAlphabetically(members, 'text', localeCompare);
+        // Pin the initially selected manager to the top of the full sorted list before the search filter runs
+        // over it, so the default submit-to recipient is visible on open and stays pinned while searching.
+        return moveInitialSelectionToTop<WorkspaceMemberItem>(sorted, initialManagerEmail ? [initialManagerEmail] : []);
+    }, [workspaceMembers, extraSubmitToRecipients, managerEmail, localeCompare, prepopulatedSubmitToRecipient, initialManagerEmail]);
 
     const filteredWorkspaceMembers = useMemo(() => {
         if (!searchTerm.trim()) {
@@ -222,6 +232,7 @@ function ReportSubmitToContent({
         return {
             ...inviteOption,
             email: login,
+            value: login,
             keyForList: `nonWorkspace:${login}`,
             isSelected: managerEmail.trim().toLowerCase() === login.trim().toLowerCase(),
         };
