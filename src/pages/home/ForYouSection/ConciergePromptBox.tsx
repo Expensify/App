@@ -39,7 +39,17 @@ import useConciergeAttachmentPicker from './useConciergeAttachmentPicker';
 // Max number of lines before the input starts scrolling internally.
 const MAX_INPUT_LINES = 5;
 
-function ConciergePromptBox() {
+type ConciergePromptBoxProps = {
+    /**
+     * Visibility of the "+" actions menu is owned by HomePage (above the narrow/wide layout branch) so it survives the
+     * ForYouSection remount that happens when crossing the responsive breakpoint. Otherwise the open menu would be lost
+     * on resize instead of converting between an anchored popover and a bottom-docked modal.
+     */
+    isMenuVisible: boolean;
+    setIsMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBoxProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate, getLocalDateFromDatetime, dateFnsLocale} = useLocalize();
@@ -55,7 +65,6 @@ function ConciergePromptBox() {
     // shouldCalculateCaretPosition), otherwise every value update re-renders it with the caret at the start.
     const [selection, setSelection] = useState({start: 0, end: 0});
     const [isFocused, setIsFocused] = useState(false);
-    const [isMenuVisible, setIsMenuVisible] = useState(false);
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
     const actionButtonRef = useRef<View | HTMLDivElement | null>(null);
 

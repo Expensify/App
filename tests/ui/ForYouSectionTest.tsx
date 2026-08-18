@@ -207,8 +207,11 @@ function setTodoCounts(todos: TodoFixture) {
     });
 }
 
+// ConciergePromptBox is mocked, so these props are inert here. They only satisfy ForYouSection's required prop types.
+const conciergeMenuProps = {isConciergeMenuVisible: false, setIsConciergeMenuVisible: () => {}};
+
 function renderForYouSection() {
-    return render(<ForYouSection />);
+    return render(<ForYouSection {...conciergeMenuProps} />);
 }
 
 function pressFirstBeginButton() {
@@ -500,7 +503,7 @@ describe('ForYouSection', () => {
 
             // Clearing the to-dos must not unmount the section; it should stay visible (now empty).
             setTodoCounts(BASE_TODOS);
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYou')).toBeOnTheScreen();
@@ -661,7 +664,7 @@ describe('ForYouSection', () => {
             // While the Home tab is blurred the scan is skipped, but the hook retains the last computed count
             // in state, so the row keeps its count instead of flashing back to the empty state.
             mockIsFocused = false;
-            rerender(<ForYouSection />);
+            rerender(<ForYouSection {...conciergeMenuProps} />);
             await waitForBatchedUpdatesWithAct();
 
             expect(screen.getByText('homePage.forYouSection.reviewExpenses:{"count":1}')).toBeOnTheScreen();

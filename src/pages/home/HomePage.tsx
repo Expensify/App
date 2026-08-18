@@ -16,7 +16,7 @@ import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useRef} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AnnouncementSection from './AnnouncementSection';
@@ -38,6 +38,10 @@ function HomePage() {
     const [isLoadingReportData = false] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const isForYouLoading = !!(isLoadingApp || isLoadingReportData);
     const receiptDropTargetRef = useRef<View>(null);
+
+    // Owned here (above the narrow/wide layout branch) so the Concierge "+" menu survives the ForYouSection remount that
+    // happens on breakpoint change, converting between anchored popover and bottom-docked modal instead of vanishing.
+    const [isConciergeMenuVisible, setIsConciergeMenuVisible] = useState(false);
 
     return (
         <View style={styles.flex1}>
@@ -73,7 +77,10 @@ function HomePage() {
                                 <>
                                     <FreeTrialSection />
                                     <GettingStartedSection />
-                                    <ForYouSection />
+                                    <ForYouSection
+                                        isConciergeMenuVisible={isConciergeMenuVisible}
+                                        setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                    />
                                     <UpcomingTravelSection />
                                     <RecentlyAddedSection />
                                     <YourSpendSection />
@@ -88,7 +95,10 @@ function HomePage() {
                                         style={styles.homePageLeftColumn}
                                     >
                                         <GettingStartedSection />
-                                        <ForYouSection />
+                                        <ForYouSection
+                                            isConciergeMenuVisible={isConciergeMenuVisible}
+                                            setIsConciergeMenuVisible={setIsConciergeMenuVisible}
+                                        />
                                         <RecentlyAddedSection />
                                         <InsightsSection />
                                     </View>

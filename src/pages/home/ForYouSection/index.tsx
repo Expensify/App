@@ -37,7 +37,13 @@ import ForYouSkeleton from './ForYouSkeleton';
 import shouldHideForYouSection from './shouldHideForYouSection';
 import useReviewFlaggedExpenses from './useReviewFlaggedExpenses';
 
-function ForYouSection() {
+type ForYouSectionProps = {
+    /** Concierge "+" menu visibility, owned by HomePage so it survives this section's remount on breakpoint change. */
+    isConciergeMenuVisible: boolean;
+    setIsConciergeMenuVisible: React.Dispatch<React.SetStateAction<boolean>>;
+};
+
+function ForYouSection({isConciergeMenuVisible, setIsConciergeMenuVisible}: ForYouSectionProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
@@ -219,7 +225,14 @@ function ForYouSection() {
     }
 
     return (
-        <WidgetContainer titleContent={<ConciergePromptBox />}>
+        <WidgetContainer
+            titleContent={
+                <ConciergePromptBox
+                    isMenuVisible={isConciergeMenuVisible}
+                    setIsMenuVisible={setIsConciergeMenuVisible}
+                />
+            }
+        >
             <TimeSensitiveGroup items={timeSensitiveItems} />
             {!hideForYou && (
                 <>
