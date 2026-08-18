@@ -114,6 +114,7 @@ function AddExistingExpenseFooter({selectedIds, report, reportToConfirm, policy,
                         isTrackIntentUser,
                         personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
                         selfDMReportActions,
+                        delegateAccountID,
                         getCurrencyDecimals,
                     });
                 }

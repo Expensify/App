@@ -52,7 +52,7 @@ When you click **New agent**, the **New agent** screen opens. From here you can 
 6. Review the auto-generated profile image and display name. If needed, you can edit these later.
 7. Click **Create agent**.
 
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
+After you click **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
 
 ![The Agents page in Account settings, showing the New agent button and a list of created agents]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
@@ -62,6 +62,7 @@ After saving, the new agent appears in your **Agents** list with **Edit**, **Cha
 
 After you create an agent:
 
+- You're taken directly to a DM with the agent, where its welcome message appears once it arrives.
 - A new Expensify account is created for the agent.
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.

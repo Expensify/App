@@ -314,3 +314,26 @@
 - E/App issue: https://github.com/Expensify/App/issues/97471
 - PR introducing patch: https://github.com/Expensify/App/pull/97496
 - 0.86.0 migration note: the `fixFindShadowNodeByTagRaceCondition` flag still defaults to `false` in RN 0.86.0 (unchanged from 0.85.3), and the surrounding code in `UIManager.cpp` is byte-for-byte identical, so the original diff applies with zero fuzz. Only the patch-package filename was renumbered from `0.85.3+040` to `0.86.0+036`; no content changes were needed.
+
+### [react-native+0.86.0+037+fix-stale-font-scale.patch](react-native+0.86.0+037+fix-stale-font-scale.patch)
+
+- Reason: Fixes Fabric reusing shadow nodes that hold a stale font scale, leaving text at its old measured size after the OS font size changes. RN 0.86.0 dirties measurable nodes from `SurfaceHandler::constraintLayout` only on the commit where the multiplier changes, and only compares against the *root's* value — so a node cloned from a parent still carrying an obsolete `fontSizeMultiplier` is never re-dirtied. The upstream rewrite stores `fontSizeMultiplier` on `LayoutMetrics` and threads it through `YogaLayoutableShadowNode::configureYogaTree` alongside `pointScaleFactor`, so every commit re-checks each node's own value and calls `markDirtyAndPropagate()` when it is out of date; the now-redundant `dirtyMeasurableNodes`/`dirtyMeasurableNodesRecursive` helpers are removed from `SurfaceHandler`. Gated by RN's existing `enableFontScaleChangesUpdatingLayout` flag, which defaults to `true` in 0.86.0.
+- Upstream PR/issue: https://github.com/react/react-native/pull/57246 (fixes https://github.com/react/react-native/issues/52895)
+- E/App issue: 🛑 — backport of an upstream fix, no separate E/App issue was filed.
+- PR introducing patch: https://github.com/Expensify/App/pull/98507
+- 0.86.0 migration note: **drop this patch with the RN 0.87 upgrade** — upstream commit `45904c8` is absent from every 0.86.x release but ships in `v0.87.0`, and the patch will not apply against it. Two deviations from the upstream commit: the `scripts/cxx-api/api-snapshots/*.api` hunks are omitted (those files are not shipped in the npm package), and `fontSizeMultiplier` is declared *last* in `LayoutMetrics` rather than after `pointScaleFactor`, because `@rnmapbox/maps` initializes that struct positionally and inserting a field mid-struct breaks its iOS build.
+
+### [react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch](react-native+0.86.0+038+log-soft-exception-if-viewState-not-found.patch)
+
+- Reason: Restores the Android `updateOverflowInset` half of the dropped `react-native+0.85.3+025+log-soft-exception-if-viewState-not-found.patch`. `SurfaceMountingManager.updateOverflowInset` still resolves its tag through the throwing `getViewState`, so an `INSTRUCTION_UPDATE_OVERFLOW_INSET` op for a view that was already unmounted throws `RetryableMountingLayerException` from inside `IntBufferBatchMountItem.execute`. `MountItemDispatcher.dispatchMountItems` only retries `DispatchCommandMountItem`s, and `RetryableMountingLayerException` is not a `ReactIgnorableMountingException`, so the exception is rethrown and every remaining instruction in that mount transaction is dropped — the incoming views are created but never added or laid out, leaving a blank screen. This patch resolves the tag with `getNullableViewState` and soft-logs + returns instead, matching what upstream already does for `addViewAt`, `updateProps` and `updateLayout`.
+- Upstream PR/issue: [#49077](https://github.com/facebook/react-native/issues/49077) [#56762](https://github.com/facebook/react-native/pull/56762) [#7493](https://github.com/software-mansion/react-native-reanimated/issues/7493)
+- E/App issues: [#82611](https://github.com/Expensify/App/issues/82611) [#93833](https://github.com/Expensify/App/issues/93833)
+- PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303) (original 0.85.3 patch)
+- 0.86.0 migration note: RN 0.86.0 upstreamed the `getNullableViewState` + soft-log guard for `addViewAt`, `updateProps`, `updateLayout` and `removeViewAt`, which is why the 0.85.3 patch was dropped during the upgrade — but it did **not** upstream the `updateOverflowInset` guard, so that one site regressed. Only that site is re-patched here; `updatePadding` and `updateState` still use the throwing `getViewState`, matching 0.85.3 behaviour. Re-check on the RN 0.87 upgrade whether `updateOverflowInset` has been guarded upstream, and drop this patch if so.
+
+### [react-native+0.86.0+039+persist-change-bundle-location.patch](react-native+0.86.0+039+persist-change-bundle-location.patch)
+
+- Reason: Backports React Native's Android fix for persisting the host selected through `Change Bundle Location`. The setting is written to the existing `debug_http_host` preference, restored after process restarts, and removed when the host is reset. This replaces the HybridApp-specific lifecycle workaround and can be removed after upgrading to React Native 0.88 or later.
+- Upstream PR/issue: [facebook/react-native#57425](https://github.com/facebook/react-native/pull/57425) / [d2ac1904118](https://github.com/facebook/react-native/commit/d2ac190411877e7a1bc94ffac346c5fd35b65a7c)
+- E/App issue: N/A
+- PR introducing patch: https://github.com/Expensify/Mobile-Expensify/pull/14058

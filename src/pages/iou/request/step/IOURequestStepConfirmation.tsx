@@ -44,6 +44,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
+    getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
@@ -178,9 +179,7 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const selectedWorkspacePolicyID =
-        initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
-        initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+    const selectedWorkspacePolicyID = getSelectedWorkspacePolicyID(initialTransaction, action);
     // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
     // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
     // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
@@ -190,6 +189,7 @@ function IOURequestStepConfirmation({
     const [policyDraft] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_DRAFTS}${draftPolicyID}`);
     const [policyReal] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${realPolicyID}`);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [reportNameValuePair] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ReplaceReceipt', 'SmartScan']);
 
@@ -209,8 +209,9 @@ function IOURequestStepConfirmation({
                 transactionReport,
                 routeReport: reportWithDraftFallback,
                 policy: policyReal,
+                reportNameValuePair,
             }),
-        [transaction, transactionReport, reportWithDraftFallback, policyReal],
+        [transaction, transactionReport, reportWithDraftFallback, policyReal, reportNameValuePair],
     );
     const [reportDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT);
 

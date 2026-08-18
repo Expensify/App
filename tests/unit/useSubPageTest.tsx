@@ -7,6 +7,7 @@ import type {PageConfig, SubPageProps} from '@hooks/useSubPage/types';
 
 import Navigation from '@libs/Navigation/Navigation';
 
+import ROUTES from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 
 import type {RouteProp} from '@react-navigation/native';
@@ -51,10 +52,7 @@ const createMockPages = (): Array<PageConfig<SubPageProps>> => [
 ];
 
 const createBuildRoute = (): ((pageName: string, action?: 'edit') => Route) => {
-    return (pageName: string, action?: 'edit'): Route => {
-        const base = `/test/${pageName}` as Route;
-        return action ? (`${base}?action=${action}` as Route) : base;
-    };
+    return (pageName: string, action?: 'edit'): Route => ROUTES.TRAVEL_ENABLE.getRoute('test-policy', pageName, action);
 };
 
 const mockOnFinished = jest.fn();
