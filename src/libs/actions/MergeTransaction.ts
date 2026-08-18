@@ -753,12 +753,10 @@ function mergeTransactionRequest({
             });
         }
 
-        // Always write the optimistic newIOUAction so the transaction thread has a parent action to
-        // render immediately, online or offline. For a Self-DM destination the server creates its own
-        // TRACK action instead of reusing createdIOUReportActionID, so successData deletes our
-        // placeholder rather than clearing its pendingAction, which would leave a duplicate expense
-        // card. The server's onyxData is applied first and also updates the thread's parent pointers.
-        // Verified against a live merge response: https://github.com/Expensify/App/pull/96633
+        // For a Self-DM destination the server creates its own TRACK action instead of reusing
+        // createdIOUReportActionID, so successData deletes our placeholder rather than clearing its
+        // pendingAction, which would leave a duplicate expense card. The server's onyxData is applied
+        // first and also updates the thread's parentReportID and parentReportActionID, so we do not set them here.
         const isSelfDMDestination = mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const destinationReportActionsKey: `${typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS}${string}` = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticDestinationReportID}`;
 
