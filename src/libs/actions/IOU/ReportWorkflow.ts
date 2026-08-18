@@ -1347,7 +1347,11 @@ function submitReport({
         return;
     }
 
-    const submittedTotal = hasHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
+    // The held expenses are split onto a new report optimistically only when the parent chat report is available to
+    // build the new report in, so the submitted amount excludes held expenses only in that case. This keeps the
+    // submitted report action amount consistent with the optimistic state of the report.
+    const shouldSplitHeldExpenses = hasHeldExpenses && !!parentReport?.reportID;
+    const submittedTotal = shouldSplitHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
 
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
         submittedTotal,
@@ -1585,7 +1589,7 @@ function submitReport({
 
     // An all-held report is already blocked from being submitted, so this only has to handle the case where at
     // least one unheld expense remains.
-    if (hasHeldExpenses && parentReport?.reportID) {
+    if (shouldSplitHeldExpenses) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport: parentReport,
             iouReport: expenseReport,
