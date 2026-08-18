@@ -2473,11 +2473,6 @@ const staticStyles = (theme: ThemeColors) =>
             flex: 1,
         },
 
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
-        },
-
         chatItemSubmitButton: {
             alignSelf: 'flex-end',
             borderRadius: variables.componentBorderRadiusRounded,
