@@ -10023,6 +10023,11 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 onboardingChatTitle: (discountType: number) => `Offerta a tempo limitato: ${discountType}% di sconto sul primo anno!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Richiedi entro ${days > 0 ? `${days}g :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {
+                title: 'La tua fattura di viaggio è scaduta',
+                subtitle: (date: string) => `Paga la tua fattura di viaggio entro il ${date} per continuare a prenotare viaggi.`,
+            },
+            travelInvoiceOverdueLocked: {title: 'La prenotazione dei viaggi è in pausa', subtitle: 'La tua fattura di viaggio è scaduta. Pagala per poter ricominciare a prenotare viaggi.'},
         },
         cardSection: {
             title: 'Pagamento',

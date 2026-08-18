@@ -24,6 +24,8 @@ type GetSubmitExpensePreMountDestinationRouteParams = {
     isCreatingTrackExpense: boolean;
     isSelfDMDestination: boolean;
     isOptimisticNewChatDestination: boolean;
+    /** Whether the flow relocates an already-tracked expense (SUBMIT/SHARE/CATEGORIZE) rather than creating one in place. */
+    isMovingTransactionFromTrackExpense: boolean;
 };
 
 /**
@@ -40,6 +42,7 @@ function getSubmitExpensePreMountDestinationRoute({
     isCreatingTrackExpense,
     isSelfDMDestination,
     isOptimisticNewChatDestination,
+    isMovingTransactionFromTrackExpense,
 }: GetSubmitExpensePreMountDestinationRouteParams): Route | undefined {
     // Unlike getSkipConfirmationPreMountDestinationRoute (which lets usePreMountDestination own the narrow gate), this builder
     // returns undefined on wide up front - it avoids the nav reads below, and reveal() would never consume a wide result anyway.
@@ -73,12 +76,18 @@ function getSubmitExpensePreMountDestinationRoute({
     const isOutsideRHP = !isReportOpenInRHP(navigationRef.getRootState());
     // Don't pre-insert if the report is already the topmost fullscreen - it would push a duplicate route (extra back press).
     const hasValidDestination = !!destinationReportID && (hasPreInsertedFullscreen || Navigation.getTopmostReportId() !== destinationReportID);
+    // A report destination while a *different* report is topmost has no tab to switch to, so the pre-insert overwrites the
+    // visible report and cancelling must rebuild it from a state snapshot - a restore the root router's guards can silently
+    // swallow (#97437). Relocating a tracked expense is where that bites: it is rebound to its destination chat before this
+    // screen opens, so the destination is a report the user has never been on. Skipping it costs only the pre-mount.
+    const isReplacingVisibleReport =
+        !hasPreInsertedFullscreen && isMovingTransactionFromTrackExpense && isReportTopmostSplitNavigator() && Navigation.getTopmostReportId() !== destinationReportID;
     // Only pre-insert loaded reports because drafts can show an infinite skeleton after backing out. Employer-flow drafts
     // are promoted by the caller. Optimistic new chats are safe because submit reuses their reportID and no report row
     // exists yet. Passing an empty draft skips REPORT_DRAFT while preserving the module-cache fallback.
     const isDestinationReportLoaded =
         isOptimisticNewChatDestination || (!!destinationReportID && !!getReportOrDraftReport(destinationReportID, undefined, undefined, {}, destinationReport)?.reportID);
-    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded;
+    const shouldPreInsertReport = canUseReportPreInsert && isOutsideRHP && hasValidDestination && isDestinationReportLoaded && !isReplacingVisibleReport;
 
     if (!shouldPreInsertSearch && !shouldPreInsertReport) {
         return undefined;

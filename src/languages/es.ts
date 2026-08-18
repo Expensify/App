@@ -10251,6 +10251,8 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 onboardingChatTitle: (discountType) => `Oferta por tiempo limitado: ¡${discountType}% de descuento en tu primer año!`,
                 subtitle: (days, hours, minutes, seconds) => `Solicítala en ${days > 0 ? `${days}d : ` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {title: 'Tu factura de viaje está vencida', subtitle: (date: string) => `Paga tu factura de viaje antes del ${date} para seguir reservando viajes.`},
+            travelInvoiceOverdueLocked: {title: 'La reserva de viajes está en pausa', subtitle: 'Tu factura de viaje está vencida. Págala para volver a reservar viajes.'},
         },
         cardSection: {
             title: 'Pago',

@@ -57,6 +57,7 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -87,7 +88,7 @@ import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActio
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -664,6 +665,7 @@ function IOURequestStepConfirmation({
                 isCreatingTrackExpense,
                 isSelfDMDestination,
                 isOptimisticNewChatDestination: !!optimisticP2PDestinationReportID,
+                isMovingTransactionFromTrackExpense,
             }),
         [
             isTransactionReady,
@@ -676,6 +678,7 @@ function IOURequestStepConfirmation({
             iouType,
             isCreatingTrackExpense,
             isSelfDMDestination,
+            isMovingTransactionFromTrackExpense,
         ],
     );
 
@@ -808,7 +811,18 @@ function IOURequestStepConfirmation({
                 Navigation.goBack();
                 return;
             }
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport));
+            Navigation.goBack(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                            ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                        ),
+                    ),
+                ),
+            );
             return;
         }
 
