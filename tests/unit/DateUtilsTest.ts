@@ -198,8 +198,9 @@ describe('DateUtils', () => {
     it('should return the date in calendar time when calling datetimeToRelative', () => {
         jest.useFakeTimers().setSystemTime(new Date('2026-03-11T12:00:00Z'));
 
+        // Sub-minute rounds up to a whole minute. date-fns said "less than a minute ago", which Intl cannot express, but neither exposes seconds.
         const aFewSecondsAgo = subSeconds(new Date(), 10).toString();
-        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('10 seconds ago');
+        expect(DateUtils.datetimeToRelative(LOCALE, aFewSecondsAgo, UTC)).toBe('1 minute ago');
 
         const aMinuteAgo = subMinutes(new Date(), 1).toString();
         expect(DateUtils.datetimeToRelative(LOCALE, aMinuteAgo, UTC)).toBe('1 minute ago');

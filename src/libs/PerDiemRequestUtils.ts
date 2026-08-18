@@ -234,11 +234,13 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    // Both endpoints required, else a partial compose state renders a dangling "HH:MM AM, Date - " or " - HH:MM AM, Date" fragment in the picker row.
-    if (!customUnitRateDate.start || !customUnitRateDate.end) {
+    const start = formatDateTimeTo12Hour(customUnitRateDate.start, locale);
+    const end = formatDateTimeTo12Hour(customUnitRateDate.end, locale);
+    // Guard the formatted output, not the raw input. An unparsable timestamp is truthy but formats to '', which would leave the bare " - " separator on its own.
+    if (!start || !end) {
         return '';
     }
-    return `${formatDateTimeTo12Hour(customUnitRateDate.start, locale)} - ${formatDateTimeTo12Hour(customUnitRateDate.end, locale)}`;
+    return `${start} - ${end}`;
 }
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {

@@ -75,13 +75,16 @@ const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
 
 /**
  * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German
- * or `第1` in Japanese.
+ * or `第1` in Japanese. Returns an empty string for a non-finite number, because callers commonly pass
+ * `Date` getters and `PluralRules.select(NaN)` resolves to 'other' rather than throwing, which renders "NaNth".
  *
- * @param locale - The locale to use for formatting. Returns an empty string when absent, matching the
- * placeholder on the locale context.
+ * @param locale - The locale to use for formatting
  * @param number - The number to format
  */
 function toLocaleOrdinal(locale: Locale, number: number): string {
+    if (!Number.isFinite(number)) {
+        return '';
+    }
     // Ordinal rules vary far more than they appear to: English selects four categories, Italian two,
     // and most locales only ever select `other`. Asking Intl avoids reimplementing English's rule and
     // applying it everywhere.

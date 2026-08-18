@@ -55,10 +55,7 @@ function AuthorizeCardTransactionPreview({transactionID, amount, currency, merch
         );
     }
 
-    let formattedDate = '';
-    if (created) {
-        formattedDate = DateUtils.formatTransactionListDate(created, preferredLocale);
-    }
+    const formattedDate = DateUtils.formatTransactionListDate(created ?? '', preferredLocale);
     const headerText = [formattedDate, translate('common.card')].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
     let displayAmount = '';
     if (amount !== undefined) {
