@@ -224,6 +224,11 @@ function IOURequestStartPage({
 
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
+    // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
+    // amount-first flow. (`shouldUseTab` also excludes SEND, but the money-request route params type it away, so PAY is
+    // the only type this has to add back.)
+    // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
+    // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
 
     let manualContent: React.ReactNode;
@@ -237,7 +242,10 @@ function IOURequestStartPage({
                 reportDraft={reportDraft}
             />
         );
-    } else if (isScanRequest(transaction) || isPerDiemRequest(transaction)) {
+    } else if (shouldUseTab && (isScanRequest(transaction) || isPerDiemRequest(transaction))) {
+        // Only the tabbed flows can land here with a stale draft, and only they run the reset that clears it
+        // (`resetIOUTypeIfChanged` is wired to `onTabSelected` below). PAY renders no tabs, so it must skip this
+        // branch or a leftover scan/per-diem draft would strand it on a loader with no way out but the back button.
         // When switching from the Scan or Per diem tab, the shared draft is briefly still a scan/per-diem request
         // until the tab-switch reset rebuilds it as manual. Mounting the embedded confirmation against that stale
         // draft does throwaway work that is immediately discarded once the reset lands - for scan a heavy first

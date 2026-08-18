@@ -50,8 +50,16 @@ const baseParams: Params = {
 };
 
 // A manual draft the user never typed a merchant into: `initMoneyRequest` seeds it with the "Expense" placeholder.
+const placeholderMerchantTransaction = createMock<OnyxTypes.Transaction>({
+    transactionID: 'txn1',
+    amount: 100,
+    merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
+    isMerchantSet: false,
+    comment: {},
+});
+
 const placeholderMerchantParams: Partial<Params> = {
-    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', amount: 100, merchant: CONST.TRANSACTION.DEFAULT_MERCHANT, isMerchantSet: false, comment: {}}),
+    transaction: placeholderMerchantTransaction,
     iouMerchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
 };
 
@@ -169,13 +177,7 @@ describe('useFormErrorManagement', () => {
                 useFormErrorManagement({
                     ...baseParams,
                     ...placeholderMerchantParams,
-                    transaction: createMock<OnyxTypes.Transaction>({
-                        transactionID: 'txn1',
-                        amount: 100,
-                        merchant: CONST.TRANSACTION.DEFAULT_MERCHANT,
-                        isMerchantSet: true,
-                        comment: {},
-                    }),
+                    transaction: {...placeholderMerchantTransaction, isMerchantSet: true},
                     isPolicyExpenseChat: false,
                 }),
             {wrapper: Wrapper},
@@ -184,7 +186,7 @@ describe('useFormErrorManagement', () => {
         expect(result.current.isMerchantFieldValid).toBe(false);
     });
 
-    it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', async () => {
+    it('clears the invalid merchant error once the recipient changes from a workspace chat to a user (#96593)', () => {
         // Given an untouched manual draft (still carrying the placeholder merchant) headed for a workspace chat
         const {result, rerender} = renderHook(
             ({isPolicyExpenseChat}: {isPolicyExpenseChat: boolean}) =>
