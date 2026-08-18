@@ -66,6 +66,13 @@ class IntlStore {
         return () => {};
     }
 
+    // One cached snapshot so repeated `useSyncExternalStore` reads return the same reference and never trigger an infinite render loop.
+    private static snapshot: {locale: Locale; loaded: boolean} = {locale: IntlStore.currentLocale, loaded: IntlStore.localeCache.has(IntlStore.currentLocale)};
+
+    static getSnapshot(): {locale: Locale; loaded: boolean} {
+        return IntlStore.snapshot;
+    }
+
     static hasLocale(locale: Locale): boolean {
         return this.localeCache.has(locale);
     }

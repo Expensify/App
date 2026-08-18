@@ -1,6 +1,5 @@
 import DateUtils from '@libs/DateUtils';
 
-import CONST from '@src/CONST';
 import type Locale from '@src/types/onyx/Locale';
 import type PrivatePromoDiscount from '@src/types/onyx/PrivatePromoDiscount';
 

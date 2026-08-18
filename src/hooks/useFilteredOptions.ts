@@ -132,7 +132,6 @@ function useFilteredOptions(config: UseFilteredOptionsConfig = {}): UseFilteredO
             isTrackIntentUser,
             sortedActions,
             currentUserAccountID,
-            preferredLocale,
         ],
     );
 

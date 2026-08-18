@@ -42,6 +42,11 @@ jest.mock('@src/languages/IntlStore', () => {
                 return translations?.[key] ?? null;
             },
             subscribe: () => () => {},
+            // Same reference on every call so `useSyncExternalStore` does not loop the render.
+            getSnapshot: (() => {
+                const snapshot = {locale: 'en', loaded: cache.has('en')};
+                return () => snapshot;
+            })(),
             hasLocale: (locale: string) => cache.has(locale),
         },
     };

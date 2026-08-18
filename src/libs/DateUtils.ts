@@ -131,9 +131,9 @@ const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.NL]: 1,
     [CONST.LOCALES.PL]: 1,
     [CONST.LOCALES.EL]: 1,
-    // Sunday-start per CLDR.
+    [CONST.LOCALES.ZH_HANS]: 1,
+    // Sunday-start per CLDR (JP, BR).
     [CONST.LOCALES.JA]: 0,
-    [CONST.LOCALES.ZH_HANS]: 0,
     [CONST.LOCALES.PT_BR]: 0,
 };
 
