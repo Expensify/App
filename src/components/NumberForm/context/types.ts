@@ -8,8 +8,8 @@ type SetValueOptions = {
     notify?: boolean;
 
     /**
-     * Called with the previous value from inside the state updater, so callers can derive cursor positions against a
-     * value that is never stale - even when `setValue` runs more than once before the next render.
+     * Called synchronously with the previous committed value before the write, so callers can derive cursor positions
+     * against a value that is never stale - even when `setValue` runs more than once before the next render.
      */
     onPreviousValue?: (previousValue: string) => void;
 };

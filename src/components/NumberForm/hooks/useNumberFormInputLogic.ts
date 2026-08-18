@@ -98,7 +98,7 @@ function useNumberFormInputLogic({
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = numberWithLeadingZero;
 
-        // The selection is derived from the previous value inside the updater so two calls in the same tick can't read a stale length.
+        // The selection is derived from the previous committed value so two calls in the same tick can't read a stale length.
         let hasSelectionBeenSet = false;
         setValue(numberWithLeadingZero, {
             onPreviousValue: (previousNumber) => {
