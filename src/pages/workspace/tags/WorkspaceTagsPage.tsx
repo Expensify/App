@@ -430,6 +430,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policyTags,
         shouldShowApproverColumn,
         tagApproverEmails,
+        employeePersonalDetails,
         formatPhoneNumber,
     ]);
 

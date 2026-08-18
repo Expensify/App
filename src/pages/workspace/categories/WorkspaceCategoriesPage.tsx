@@ -307,6 +307,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
         navigateToCategory,
         handleCategoryToggle,
         policyId,
+        employeePersonalDetails,
         formatPhoneNumber,
     ]);
 
