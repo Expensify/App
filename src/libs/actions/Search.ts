@@ -980,6 +980,8 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
     shouldSaveRecentSearch: boolean;
+    pendingShouldCalculateTotals?: boolean;
+    pendingShouldSaveRecentSearch?: boolean;
     pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
 };
 
@@ -1080,18 +1082,24 @@ function search({
         // of the same query) must still reach the backend flagged, or it never enters recent searches.
         const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
         if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+            // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
+            // upgrade for the other. Only a single pending re-fire is kept.
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? false) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? false) || shouldSaveRecentSearch;
+            const pendingShouldCalculateTotals = inFlightRequest.pendingShouldCalculateTotals;
+            const pendingShouldSaveRecentSearch = inFlightRequest.pendingShouldSaveRecentSearch;
             inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
                     searchKey,
                     offset,
-                    shouldCalculateTotals,
+                    shouldCalculateTotals: pendingShouldCalculateTotals,
                     prevReportsLength,
                     isOffline,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
-                    shouldSaveRecentSearch,
+                    shouldSaveRecentSearch: pendingShouldSaveRecentSearch,
                 });
         }
         return;

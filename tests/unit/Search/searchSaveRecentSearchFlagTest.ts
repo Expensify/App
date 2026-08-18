@@ -132,4 +132,46 @@ describe('search shouldSaveRecentSearch flag', () => {
         expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldSaveRecentSearch: true}));
     });
+
+    it('unions totals and save upgrades when both collide with the same in-flight request', async () => {
+        const queryJSON = getQueryJSON('type:expense merchant:ferry');
+        let resolveFirstRequest: () => void = () => {};
+        const firstRequestPromise = new Promise<void>((resolve) => {
+            resolveFirstRequest = resolve;
+        });
+        mockedMakeRequestWithSideEffects.mockImplementationOnce(() => firstRequestPromise);
+
+        const firstSearch = search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: true,
+            isLoading: false,
+        });
+        search({
+            queryJSON,
+            searchKey: CONST.SEARCH.SEARCH_KEYS.EXPENSES,
+            offset: 0,
+            shouldCalculateTotals: false,
+            isLoading: false,
+            shouldSaveRecentSearch: true,
+        });
+
+        await Promise.resolve();
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(1);
+
+        resolveFirstRequest();
+        await firstSearch;
+        await Promise.resolve();
+
+        expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
+        expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldCalculateTotals: true, shouldSaveRecentSearch: true}));
+    });
 });
