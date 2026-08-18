@@ -135,6 +135,7 @@ describe('MoneyRequest', () => {
         const selfDMReport = createSelfDM(Number(SELF_DM_REPORT_ID), TEST_USER_ACCOUNT_ID);
 
         const baseParams = {
+            conciergeChat: undefined,
             transactions: [fakeTransaction],
             iouType: CONST.IOU.TYPE.REQUEST,
             report: fakeReport,
@@ -203,6 +204,26 @@ describe('MoneyRequest', () => {
             const lastTrackExpenseParams = jest.mocked(TrackExpense.trackExpense).mock.calls.at(-1)?.at(0);
             expect(lastTrackExpenseParams && 'shouldDeferForSearch' in lastTrackExpenseParams).toBeFalsy();
             expect(lastTrackExpenseParams && 'shouldHandleNavigation' in lastTrackExpenseParams).toBeFalsy();
+        });
+
+        it('threads the conciergeChat report through to trackExpense and requestMoney', () => {
+            const conciergeChat = {reportID: 'concierge-create-transaction-1'};
+
+            createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.TRACK,
+            });
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+
+            createTransaction({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                iouType: CONST.IOU.TYPE.SEND,
+            });
+            expect(TrackExpense.requestMoney).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('should call requestMoney for non-TRACK (SEND) iouType', () => {
@@ -768,6 +789,7 @@ describe('MoneyRequest', () => {
             amountOwed: 0,
             draftTransactionIDs: undefined,
             userBillingGracePeriodEnds: undefined,
+            conciergeChat: undefined,
             action: CONST.IOU.ACTION.CREATE,
             currentUserLocalCurrency: undefined,
             policyTagList: {},
@@ -848,7 +870,24 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
+        });
+
+        it('threads the conciergeChat report through to trackExpense when skipping confirmation', () => {
+            const conciergeChat = {reportID: 'concierge-distance-1'};
+            handleMoneyRequestStepDistanceNavigation({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                ...baseParams,
+                conciergeChat,
+                manualDistance: 20,
+                shouldSkipConfirmation: true,
+                iouType: CONST.IOU.TYPE.TRACK,
+                draftTransactionIDs: [baseParams.transactionID],
+                delegateAccountID: undefined,
+                getCurrencySymbol,
+            });
+
+            expect(TrackExpense.trackExpense).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
         });
 
         it('call trackExpense for TRACK iouType when from manual distance step and skipping confirmation', async () => {
@@ -1751,10 +1790,10 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
-        it('should return false when isPolicyExpenseChatEnabled is false', () => {
+        it('should return false when policy is not a group policy', () => {
             const policy = {
                 ...fakePolicy,
-                type: CONST.POLICY.TYPE.TEAM,
+                type: CONST.POLICY.TYPE.PERSONAL,
                 isPolicyExpenseChatEnabled: false,
             };
 
