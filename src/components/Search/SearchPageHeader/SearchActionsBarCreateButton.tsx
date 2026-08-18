@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 
@@ -242,12 +242,13 @@ function SearchActionsBarCreateButton() {
             />
             <Button
                 ref={createButtonRef}
-                success
-                small
-                icon={expensifyIcons.Plus}
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={showCreateMenu}
-            />
+            >
+                <Button.Icon src={expensifyIcons.Plus} />
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
         </View>
     );
 }

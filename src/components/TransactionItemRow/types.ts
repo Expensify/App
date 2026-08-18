@@ -22,6 +22,12 @@ type TransactionWithOptionalSearchFields = TransactionWithOptionalHighlight & {
     /** The personal details of the user paying the request */
     to?: PersonalDetails;
 
+    /** The date the report was submitted, derived from the report and its live actions on the Search page */
+    submitted?: string;
+
+    /** The date the report was approved, derived from the report and its live actions on the Search page */
+    approved?: string;
+
     /** The date the report was exported */
     exported?: string;
 
