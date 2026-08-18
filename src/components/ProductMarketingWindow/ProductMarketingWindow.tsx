@@ -1,3 +1,4 @@
+import ActivityIndicator from '@components/ActivityIndicator';
 import Button from '@components/ButtonComposed';
 import Image from '@components/Image';
 import ImageSVG from '@components/ImageSVG';
@@ -46,6 +47,7 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
     const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
     const narrowBottomOffset = safeAreaPaddingBottom + variables.productMarketingWindowOffsetNarrow;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
+    const [isImageLoading, setIsImageLoading] = React.useState(variant.visual.type === 'image');
 
     return (
         <View
@@ -72,17 +74,33 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
                     style={[
                         styles.productMarketingWindowIllustrationContainer,
                         shouldUseLightMarketingWindow ? styles.productMarketingWindowIllustrationContainerLight : styles.productMarketingWindowIllustrationContainerDark,
+                        styles.pRelative,
                         styles.mb4,
                     ]}
                     testID="ProductMarketingWindowVisual"
                 >
                     {variant.visual.type === 'image' ? (
-                        // eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop.
-                        <Image
-                            source={variant.visual.source}
-                            style={styles.productMarketingWindowImage}
-                            resizeMode="cover"
-                        />
+                        <>
+                            {/* eslint-disable-next-line react-native-a11y/has-valid-accessibility-ignores-invert-colors -- Custom Image wrapper does not support this prop. */}
+                            <Image
+                                source={variant.visual.source}
+                                style={styles.productMarketingWindowImage}
+                                resizeMode="cover"
+                                onLoadStart={() => setIsImageLoading(true)}
+                                onLoadEnd={() => setIsImageLoading(false)}
+                            />
+                            {isImageLoading && (
+                                <View
+                                    pointerEvents="none"
+                                    style={[styles.pAbsolute, styles.h100, styles.w100, styles.alignItemsCenter, styles.justifyContentCenter]}
+                                >
+                                    <ActivityIndicator
+                                        color={theme.textReversed}
+                                        testID="ProductMarketingWindowImageLoading"
+                                    />
+                                </View>
+                            )}
+                        </>
                     ) : (
                         <ImageSVG
                             src={illustration}

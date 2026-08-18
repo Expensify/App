@@ -3,6 +3,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react-native';
 import August2026PromoAdminsImage from '@assets/images/august2026-promo-admins.png';
 import August2026PromoEmployeesImage from '@assets/images/august2026-promo-employees.png';
 
+import ActivityIndicator from '@components/ActivityIndicator';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import Image from '@components/Image';
@@ -227,6 +228,42 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByText(adminHeading)).toBeTruthy();
         expect(screen.getByText(adminBody)).toBeTruthy();
         expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoAdminsImage);
+    });
+
+    it('shows a loading spinner until the promotional image finishes loading', async () => {
+        await act(async () => {
+            await setupOnyxBaseline({isAdmin: true});
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        renderManager();
+        await waitForBatchedUpdatesWithAct();
+
+        const image = screen.UNSAFE_getByType(Image);
+        expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
+        expect(screen.UNSAFE_getByType(ActivityIndicator).props.color).toBe(colors.productDark900);
+
+        await act(async () => {
+            image.props.onLoadEnd();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByTestId('ProductMarketingWindowImageLoading')).toBeNull();
+        expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoAdminsImage);
+
+        await act(async () => {
+            image.props.onLoadStart();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
+
+        await act(async () => {
+            image.props.onLoadEnd();
+            await waitForBatchedUpdatesWithAct();
+        });
+
+        expect(screen.queryByTestId('ProductMarketingWindowImageLoading')).toBeNull();
     });
 
     it('renders nothing on startup when the active update key was already dismissed', async () => {
