@@ -1024,6 +1024,7 @@ describe('mergeTransactionRequest', () => {
             sourceTransactionThreadReportActions: undefined,
             sourceIOUAction: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            getCurrencySymbol: getCurrencySymbolLocal,
         });
 
         await waitForBatchedUpdates();
