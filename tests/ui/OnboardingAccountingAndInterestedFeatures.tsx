@@ -11,6 +11,7 @@ import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
 import * as Browser from '@libs/Browser';
+import {OnboardingHeaderContextProvider, OnboardingStickyHeader} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 
 import BaseOnboardingAccounting from '@pages/OnboardingAccounting/BaseOnboardingAccounting';
@@ -57,16 +58,19 @@ function renderInterestedFeaturesPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
-                        {(props) => (
-                            <BaseOnboardingInterestedFeatures
-                                {...props}
-                                shouldUseNativeStyles={false}
-                            />
-                        )}
-                    </Stack.Screen>
-                </Stack.Navigator>
+                <OnboardingHeaderContextProvider>
+                    <OnboardingStickyHeader />
+                    <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
+                        <Stack.Screen name={SCREENS.ONBOARDING.INTERESTED_FEATURES}>
+                            {(props) => (
+                                <BaseOnboardingInterestedFeatures
+                                    {...props}
+                                    shouldUseNativeStyles={false}
+                                />
+                            )}
+                        </Stack.Screen>
+                    </Stack.Navigator>
+                </OnboardingHeaderContextProvider>
             </NavigationContainer>
         </ComposeProviders>,
     );
@@ -76,16 +80,19 @@ function renderAccountingPage() {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <NavigationContainer>
-                <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
-                    <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>
-                        {(props) => (
-                            <BaseOnboardingAccounting
-                                {...props}
-                                shouldUseNativeStyles={false}
-                            />
-                        )}
-                    </Stack.Screen>
-                </Stack.Navigator>
+                <OnboardingHeaderContextProvider>
+                    <OnboardingStickyHeader />
+                    <Stack.Navigator initialRouteName={SCREENS.ONBOARDING.ACCOUNTING}>
+                        <Stack.Screen name={SCREENS.ONBOARDING.ACCOUNTING}>
+                            {(props) => (
+                                <BaseOnboardingAccounting
+                                    {...props}
+                                    shouldUseNativeStyles={false}
+                                />
+                            )}
+                        </Stack.Screen>
+                    </Stack.Navigator>
+                </OnboardingHeaderContextProvider>
             </NavigationContainer>
         </ComposeProviders>,
     );

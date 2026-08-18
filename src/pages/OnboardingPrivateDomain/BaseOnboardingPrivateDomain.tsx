@@ -1,4 +1,3 @@
-import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
@@ -10,6 +9,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateOnboardingValuesAndNavigation} from '@libs/actions/Welcome';
+import {useOnboardingHeaderConfig} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {expensifyLoginsSelector, isCurrentUserValidated} from '@libs/UserUtils';
 
@@ -118,6 +118,11 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
         }
     }, [isValidated, joinablePoliciesLength, getAccessiblePoliciesAction?.loading, shouldBlockPublicDomain, navigateToNextOnboardingStep]);
 
+    useOnboardingHeaderConfig({
+        shouldShowBackButton: true,
+        onBackButtonPress: handleBackButtonPress,
+    });
+
     if (shouldBlockPublicDomain) {
         return null;
     }
@@ -129,10 +134,6 @@ function BaseOnboardingPrivateDomain({shouldUseNativeStyles, route}: BaseOnboard
             testID="BaseOnboardingPrivateDomain"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader
-                shouldShowBackButton
-                onBackButtonPress={handleBackButtonPress}
-            />
             <ScrollView
                 style={[styles.w100, styles.h100, styles.flex1]}
                 contentContainerStyle={styles.flexGrow1}

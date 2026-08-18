@@ -5,6 +5,8 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import React from 'react';
 import {View} from 'react-native';
 
+import {OnboardingHeaderContextProvider, OnboardingStickyHeader} from './OnboardingHeaderContext';
+
 type OnboardingModalNavigatorContentWrapperProps = {
     /** Rendered child component */
     children: React.ReactNode;
@@ -21,12 +23,16 @@ function OnboardingModalNavigatorContentWrapper({children, onboardingIsMediumOrL
 
     // Add padding left and right to the style to account for the safe area insets
     return (
-        <View
-            onClick={(e) => e.stopPropagation()}
-            style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth), {paddingLeft, paddingRight}]}
-        >
-            {children}
-        </View>
+        <OnboardingHeaderContextProvider>
+            <View
+                onClick={(e) => e.stopPropagation()}
+                style={[styles.maxHeight100Percentage, styles.overflowHidden, styles.OnboardingNavigatorInnerView(onboardingIsMediumOrLargerScreenWidth), {paddingLeft, paddingRight}]}
+            >
+                {/* Sticky back-caret header rendered once above the Stack.Navigator so it stays put across screen transitions */}
+                <OnboardingStickyHeader />
+                {children}
+            </View>
+        </OnboardingHeaderContextProvider>
     );
 }
 

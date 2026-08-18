@@ -1,7 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
-import OnboardingHeader from '@components/OnboardingHeader';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
@@ -20,6 +19,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 import {navigateAfterOnboardingWithMicrotaskQueue} from '@libs/navigateAfterOnboarding';
+import {useOnboardingHeaderConfig} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {hasURL} from '@libs/Url';
@@ -234,6 +234,24 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
         return errors;
     };
 
+    useOnboardingHeaderConfig({
+        shouldShowBackButton: !isPrivateDomainAndHasAccessiblePolicies,
+        onBackButtonPress: () => {
+            // Based on the `handleSubmit` function to reverse where to return
+            if (isPrivateDomainAndHasAccessiblePolicies) {
+                Navigation.goBack();
+                return;
+            }
+
+            if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
+                Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
+                return;
+            }
+
+            Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
+        },
+    });
+
     return (
         <ScreenWrapper
             shouldEnableMaxHeight
@@ -241,23 +259,6 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
             testID="BaseOnboardingPersonalDetails"
             style={[styles.defaultModalContainer, shouldUseNativeStyles && styles.pt8]}
         >
-            <OnboardingHeader
-                shouldShowBackButton={!isPrivateDomainAndHasAccessiblePolicies}
-                onBackButtonPress={() => {
-                    // Based on the `handleSubmit` function to reverse where to return
-                    if (isPrivateDomainAndHasAccessiblePolicies) {
-                        Navigation.goBack();
-                        return;
-                    }
-
-                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.TRACK_PERSONAL) {
-                        Navigation.goBack(ROUTES.ONBOARDING_PERSONAL_TRACK_GOAL.getRoute(route.params?.backTo));
-                        return;
-                    }
-
-                    Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
-                }}
-            />
             <FormProvider
                 style={[styles.flexGrow1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}
                 formID={ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM}

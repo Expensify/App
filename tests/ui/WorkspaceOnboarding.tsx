@@ -8,6 +8,7 @@ import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 import * as useResponsiveLayoutModule from '@hooks/useResponsiveLayout';
 import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 
+import {OnboardingHeaderContextProvider, OnboardingStickyHeader} from '@libs/Navigation/AppNavigator/Navigators/OnboardingModalNavigatorContentWrapper/OnboardingHeaderContext';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
@@ -82,13 +83,16 @@ const renderOnboardingWorkspacesPage = (initialRouteName: typeof SCREENS.ONBOARD
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
             <PortalProvider>
                 <NavigationContainer>
-                    <Stack.Navigator initialRouteName={initialRouteName}>
-                        <Stack.Screen
-                            name={SCREENS.ONBOARDING.WORKSPACES}
-                            component={OnboardingWorkspaces}
-                            initialParams={initialParams}
-                        />
-                    </Stack.Navigator>
+                    <OnboardingHeaderContextProvider>
+                        <OnboardingStickyHeader />
+                        <Stack.Navigator initialRouteName={initialRouteName}>
+                            <Stack.Screen
+                                name={SCREENS.ONBOARDING.WORKSPACES}
+                                component={OnboardingWorkspaces}
+                                initialParams={initialParams}
+                            />
+                        </Stack.Navigator>
+                    </OnboardingHeaderContextProvider>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
