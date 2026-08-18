@@ -884,7 +884,8 @@ function MenuItem({
                                         isCompact && styles.optionRowCompact,
                                         isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
-                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
+                                            // Pass false for the pressed state so a press keeps the resting background and only dims via activeOpacity, matching the Inbox LHN rows
+                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, false, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
