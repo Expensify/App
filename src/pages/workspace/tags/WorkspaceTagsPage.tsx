@@ -116,7 +116,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const {canWrite: canWriteTags, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.TAGS);
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const shouldShowTagsSettings = canWriteTags && !(isRulesRevampEnabled && isMultiLevelTags);
+    // The revamp moves the multi-level tag settings to Rules, but the GL codes toggle stays here and needs a way in.
+    const shouldShowTagsSettings = canWriteTags && (!(isRulesRevampEnabled && isMultiLevelTags) || !!policy?.glCodes);
     const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const tagApproverEmails = useMemo(() => {
