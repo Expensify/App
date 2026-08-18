@@ -17,7 +17,7 @@ import variables from '@styles/variables';
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React from 'react';
+import {useState} from 'react';
 import {View} from 'react-native';
 
 type ProductMarketingWindowProps = {
@@ -47,7 +47,7 @@ function ProductMarketingWindow({variant, illustration, isCtaDisabled = false, o
     const shouldUseCompactNarrowLayout = shouldUseNarrowLayout && isExtraSmallScreenHeight && isInLandscapeMode;
     const narrowBottomOffset = safeAreaPaddingBottom + variables.productMarketingWindowOffsetNarrow;
     const buttonSize = shouldUseNarrowLayout ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.SMALL;
-    const [isImageLoading, setIsImageLoading] = React.useState(variant.visual.type === 'image');
+    const [isImageLoading, setIsImageLoading] = useState(variant.visual.type === 'image');
 
     return (
         <View
