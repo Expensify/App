@@ -916,7 +916,6 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (queryHasSubmittedViolationFilter(queryJSON)) {
                     insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
                 }
-                console.log('columnsToExport', columnsToExport);
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,
