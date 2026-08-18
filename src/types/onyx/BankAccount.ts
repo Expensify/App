@@ -77,6 +77,9 @@ type BankAccountAdditionalData = {
                 needsFixing?: boolean;
             };
         };
+
+        /** Present once the account is set up with Corpay for Global Reimbursement */
+        corpay?: Record<string, unknown>;
     };
 };
 

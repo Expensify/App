@@ -28,7 +28,6 @@ import type {
     BankAccountList,
     Beta,
     BillingGraceEndPeriod,
-    CurrencyList,
     IntroSelected,
     OnyxInputOrEntry,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -292,6 +291,7 @@ import {
     isReceiptBeingScanned,
     isScanning,
     isScanRequest as isScanRequestTransactionUtils,
+    isTransactionPendingDelete,
 } from './TransactionUtils';
 import addTrailingForwardSlash from './UrlUtils';
 import {getDefaultAvatarURL} from './UserAvatarUtils';
@@ -1015,7 +1015,6 @@ type BuildOptimisticExpenseReportParams = {
     optimisticIOUReportID?: string;
     reportTransactions?: Record<string, Transaction>;
     createdTimestamp?: string;
-    currencyList?: CurrencyList;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -2052,15 +2051,15 @@ function isReportOpenOrUnsubmitted(reportID: string | undefined, reports: OnyxCo
     return report.stateNum === CONST.REPORT.STATE_NUM.OPEN;
 }
 
-function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>): boolean {
+function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, reportActions?: OnyxEntry<ReportActions>): boolean {
     if (!report?.reportID) {
         return false;
     }
 
-    const reportActions = Object.values(allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
-    const lastSubmittedAt = reportActions.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
+    const reportActionsArray = Object.values(reportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
+    const lastSubmittedAt = reportActionsArray.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
 
-    return reportActions.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
+    return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
 }
 
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
@@ -4536,11 +4535,22 @@ function getReasonAndReportActionThatRequiresAttention(
     const transactions = getReportTransactions(iouReportID);
     const hasOnlyPendingTransactions = transactions.length > 0 && transactions.every((t) => isPending(t));
 
+    const iouReport = reports ? reports[`${ONYXKEYS.COLLECTION.REPORT}${iouReportID}`] : getReportOrDraftReport(iouReportID);
+    const hasAllExpensesHeld = hasOnlyHeldExpenses(transactions);
+    const iouReportActions = allReportActionsParam?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReportID}`] ?? getAllReportActions(iouReportID);
+    // An all-held report can't move to its next state, so it isn't a to-do. Keep it only for a report awaiting
+    // approval or payment where the current user placed a hold, since they can remove it. An open report stays
+    // excluded because only its owner can place a hold there, and that owner is the one who submits.
+    const isExcludedForHeldExpenses = hasAllExpensesHeld && (isOpenExpenseReport(iouReport) || !didCurrentUserPlaceHoldOnReportExpense(iouReportActions, transactions, currentUserAccountID));
+
     // Has a child report that is awaiting action (e.g. approve, pay, add bank account) from current user.
     // A report whose only expenses are pending Expensify Card transactions can't be actioned until they post, so it
     // shouldn't demand attention even when the chat still carries an outstanding-child flag.
     const hasStaleChildRequest = isTripRoom(optionOrReport) && (optionOrReport.transactionCount ?? 0) === 0;
-    const hasValidIOUAction = ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) && !hasOnlyPendingTransactions;
+    const hasValidIOUAction =
+        ((optionOrReport.hasOutstandingChildRequest === true && !hasStaleChildRequest) || iouReportActionToApproveOrPay?.reportActionID) &&
+        !hasOnlyPendingTransactions &&
+        !isExcludedForHeldExpenses;
 
     if (actionTypeForAssigneeToComplete) {
         const isAssigneeExpenseAction = actionTypeForAssigneeToComplete === CONST.REPORT.ACTION_TYPES_FOR_ASSIGNEE_TO_COMPLETE.EXPENSE;
@@ -4765,9 +4775,24 @@ function isReportFieldOfTypeTitle(reportField: OnyxEntry<PolicyReportField>): bo
 /**
  * Check if Report has any held expenses
  */
-function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | undefined): boolean {
+function isHoldCreator(transaction: OnyxEntry<Transaction>, reportID: string | undefined, currentUserAccountID?: number): boolean {
     const holdReportAction = getReportAction(reportID, `${transaction?.comment?.hold ?? ''}`);
-    return isActionCreator(holdReportAction);
+    return isActionCreator(holdReportAction, currentUserAccountID);
+}
+
+/**
+ * Whether the current user placed the hold on at least one of the report's held expenses. Used to keep an
+ * all-held report in that user's to-do queue, since only the person who placed a hold can remove it.
+ */
+function didCurrentUserPlaceHoldOnReportExpense(reportActions: OnyxEntry<ReportActions>, reportTransactions: Transaction[], currentUserAccountID?: number): boolean {
+    return Object.values(reportActions ?? {}).some((action) => {
+        if (!isMoneyRequestAction(action)) {
+            return false;
+        }
+        const transactionID = getOriginalMessage(action)?.IOUTransactionID;
+        const transaction = reportTransactions.find((reportTransaction) => reportTransaction.transactionID === transactionID);
+        return !!transaction && isOnHoldTransactionUtils(transaction) && isHoldCreator(transaction, action.childReportID, currentUserAccountID);
+    });
 }
 
 /**
@@ -5000,6 +5025,7 @@ function canEditMoneyRequest(
     isChatReportArchived = false,
     report?: OnyxInputOrEntry<Report>,
     policy?: OnyxEntry<Policy>,
+    reportActions?: OnyxEntry<ReportActions>,
 ): boolean {
     const isDeleted = isDeletedAction(reportAction);
 
@@ -5079,7 +5105,7 @@ function canEditMoneyRequest(
     if (reportPolicy?.type === CONST.POLICY.TYPE.CORPORATE && moneyRequestReport && isSubmitted && isCurrentUserSubmitter(moneyRequestReport)) {
         const isForwarded =
             getSubmitToAccountID(reportPolicy, moneyRequestReport, getLoginByAccountID(moneyRequestReport.ownerAccountID, allPersonalDetails)) !== moneyRequestReport.managerID ||
-            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport);
+            hasReportBeenForwardedSinceLastSubmit(moneyRequestReport, reportActions);
         return !isForwarded;
     }
 
@@ -5421,15 +5447,15 @@ function canEditFieldOfMoneyRequest({
  *
  * - It was written by the current user
  * - It's an ADD_COMMENT or IOU action
- * - It's not an optimistic attachment (still uploading)
+ * - It's not an optimistic attachment-only comment (still uploading, with no text to edit)
  * - It's an expense where conditions for modifications are defined in canEditMoneyRequest method
  * - It's not pending deletion
  */
 function canEditReportAction(reportAction: OnyxInputOrEntry<ReportAction>, linkedTransaction: OnyxEntry<Transaction>): boolean {
     const isCommentOrIOU = reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT || reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.IOU;
 
-    // Block editing only while the attachment is still uploading; once synced, attachments are editable.
-    const isOptimisticAttachment = !!reportAction?.isOptimisticAction && (!!reportAction?.isAttachmentOnly || !!reportAction?.isAttachmentWithText);
+    // Only an attachment-only comment has nothing to edit while it uploads; text keeps it editable throughout.
+    const isOptimisticAttachment = !!reportAction?.isOptimisticAction && !!reportAction?.isAttachmentOnly;
 
     // For money request actions on settled/approved/closed expense reports, the action cannot be edited.
     // canEditMoneyRequest has an admin/manager bypass for field-level edits (via canEditFieldOfMoneyRequest),
@@ -5552,8 +5578,7 @@ const changeMoneyRequestHoldStatus = (
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
     } else {
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
     }
 };
 
@@ -6285,7 +6310,7 @@ function getModifiedExpenseOriginalMessage(
 
     if (
         ('customUnitRateID' in transactionChanges && updatedTransaction?.comment?.customUnit?.customUnitRateID) ||
-        ('distance' in transactionChanges && updatedTransaction?.comment?.customUnit?.quantity)
+        (('distance' in transactionChanges || 'selectedRouteKey' in transactionChanges) && updatedTransaction?.comment?.customUnit?.quantity)
     ) {
         originalMessage.oldAmount = getTransactionAmount(oldTransaction, isFromExpenseReport, false, true);
         originalMessage.oldCurrency = getCurrency(oldTransaction);
@@ -6293,7 +6318,9 @@ function getModifiedExpenseOriginalMessage(
 
         // For the originalMessage, we should use the non-negative amount, similar to what getAmount does for oldAmount
         originalMessage.amount = Math.abs(Number(updatedTransaction?.modifiedAmount ?? 0));
-        originalMessage.currency = updatedTransaction?.modifiedCurrency ?? CONST.CURRENCY.USD;
+        // `modifiedCurrency` is only written when the currency actually changes (e.g. a route switch on a non-USD
+        // expense leaves it unset), so read through to the transaction currency instead of defaulting to USD.
+        originalMessage.currency = getCurrency(updatedTransaction);
         originalMessage.merchant = updatedTransaction?.modifiedMerchant;
     }
 
@@ -6303,14 +6330,14 @@ function getModifiedExpenseOriginalMessage(
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate): string | undefined {
+function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, currentUserAccountID: number | undefined): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
 
     const participantsWithoutCurrentUser = Object.keys(report?.participants ?? {})
         .map(Number)
-        .filter((accountID) => accountID !== deprecatedCurrentUserAccountID);
+        .filter((accountID) => accountID !== currentUserAccountID);
 
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
@@ -6680,6 +6707,74 @@ function getUploadingAttachmentHtml(file?: FileObject, attachmentID?: string): s
     return `<a href="${file.uri}" ${dataAttributes}>${file.name}</a>`;
 }
 
+/**
+ * Saving a draft captured mid-upload would persist a local URI only the author's device can resolve, so swap it
+ * for the synced attachment, or drop it while the upload is pending because the queued Add re-attaches the file.
+ */
+function replaceLocalAttachmentReferences(draftMarkdown: string, currentCommentHtml: string | undefined, reportActionID: string): string {
+    const localAttachmentReferenceRegex = /\n*(?:!?\[[^\]]*\]\((?:blob:|file:|content:)[^)]*\)|!\((?:blob:|file:|content:)[^)]*\))/g;
+    if (!localAttachmentReferenceRegex.test(draftMarkdown)) {
+        return draftMarkdown;
+    }
+    localAttachmentReferenceRegex.lastIndex = 0;
+
+    const isStillUploading = !currentCommentHtml || currentCommentHtml.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE);
+    if (isStillUploading) {
+        return draftMarkdown.replace(localAttachmentReferenceRegex, '').trim();
+    }
+
+    const attachmentTags = currentCommentHtml.match(/<img\b[^>]*>|<video\b[^>]*>[\s\S]*?<\/video>|<a\b[^>]*data-expensify-source="[^"]*"[^>]*>[\s\S]*?<\/a>/gi) ?? [];
+    const syncedAttachmentTag = attachmentTags.find((tag) => {
+        const source = tag.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE)?.at(2) ?? '';
+        return source.match(CONST.REGEX.ATTACHMENT.ATTACHMENT_SOURCE_ID)?.at(1) === reportActionID;
+    });
+    if (!syncedAttachmentTag) {
+        return draftMarkdown;
+    }
+
+    const syncedAttachmentMarkdown = Parser.htmlToMarkdown(syncedAttachmentTag);
+    let isReplaced = false;
+    localAttachmentReferenceRegex.lastIndex = 0;
+    return draftMarkdown.replace(localAttachmentReferenceRegex, (match) => {
+        if (isReplaced) {
+            return '';
+        }
+        isReplaced = true;
+        return `${match.match(/^\n*/)?.at(0) ?? ''}${syncedAttachmentMarkdown}`;
+    });
+}
+
+/** Empty parts are dropped so deleting all the text does not leave a separator above the attachment. */
+function buildEditedCommentWithAttachment(commentHtml: string, uploadingAttachmentHtml: string | undefined): string {
+    if (!uploadingAttachmentHtml) {
+        return commentHtml;
+    }
+    return [commentHtml, uploadingAttachmentHtml].filter(Boolean).join('<br /><br />');
+}
+
+/** The still-uploading attachment tag, re-appended to an edit's optimistic message so it stays on screen. */
+function getUploadingAttachmentHtmlFromComment(currentCommentHtml: string | undefined): string | undefined {
+    if (!currentCommentHtml?.includes(CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE)) {
+        return undefined;
+    }
+    const attachmentTagRegex = new RegExp(
+        `<img\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>` +
+            `|<video\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</video>` +
+            `|<a\\b[^>]*${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="[^"]*"[^>]*>[\\s\\S]*?</a>`,
+        'i',
+    );
+    return currentCommentHtml.match(attachmentTagRegex)?.at(0);
+}
+
+/**
+ * Whether a draft dropped a still-uploading attachment. Compared against the local URI, not the parsed HTML,
+ * because a kept reference stays plain markdown and never parses back into an attachment tag.
+ */
+function isUploadingAttachmentRemovedFromDraft(draftMarkdown: string, currentCommentHtml: string | undefined): boolean {
+    const localSource = currentCommentHtml?.match(new RegExp(`${CONST.ATTACHMENT_OPTIMISTIC_SOURCE_ATTRIBUTE}="([^"]+)"`))?.at(1);
+    return !!localSource && !draftMarkdown.includes(localSource);
+}
+
 function getReportDescription(report: OnyxEntry<Report>): string {
     if (!report?.description) {
         return '';
@@ -7037,9 +7132,9 @@ function computeOptimisticReportName(
     policy: OnyxEntry<Policy>,
     policyID: string | undefined,
     reportTransactions: Record<string, Transaction>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string | null {
-    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, currencyList);
+    const result = computeOptimisticReportNameWithMetadata(report, policy, policyID, reportTransactions, getCurrencyDecimals);
     if (!result || result.hasUnresolvedTokens) {
         return null;
     }
@@ -7055,7 +7150,7 @@ function computeOptimisticReportNameWithMetadata(
     policy: OnyxEntry<Policy>,
     policyID: string | undefined,
     reportTransactions: Record<string, Transaction>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): {value: string; hasUnresolvedTokens: boolean} | null {
     if (!isGroupPolicyPolicyUtils(policy)) {
         return null;
@@ -7065,7 +7160,7 @@ function computeOptimisticReportNameWithMetadata(
     const formulaContext: FormulaContext = {
         report,
         policy,
-        currencyList,
+        getCurrencyDecimals,
         allTransactions: reportTransactions,
     };
 
@@ -7137,7 +7232,6 @@ function buildOptimisticExpenseReport({
     optimisticIOUReportID,
     reportTransactions,
     createdTimestamp,
-    currencyList,
     getCurrencyDecimals,
 }: BuildOptimisticExpenseReportParams): OptimisticExpenseReport {
     // The amount for Expense reports are stored as negative value in the database
@@ -7190,7 +7284,7 @@ function buildOptimisticExpenseReport({
     }
 
     // Compute optimistic report name if applicable
-    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, currencyList);
+    const computedName = computeOptimisticReportName(expenseReport, policy, policyID, reportTransactions ?? {}, getCurrencyDecimals);
     if (computedName !== null) {
         expenseReport.reportName = computedName;
     }
@@ -7210,7 +7304,7 @@ function buildOptimisticEmptyReport(
     policy: OnyxEntry<Policy>,
     timeOfCreation: string,
     betas: OnyxEntry<Beta[]>,
-    currencyList?: CurrencyList,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ) {
     const {stateNum, statusNum} = getExpenseReportStateAndStatus(policy, betas, true);
     const optimisticEmptyReport: OptimisticNewReport = {
@@ -7237,7 +7331,7 @@ function buildOptimisticEmptyReport(
     };
 
     // Compute optimistic report name if applicable
-    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, currencyList);
+    const optimisticReportName = computeOptimisticReportName(optimisticEmptyReport as Report, policy, policy?.id, {}, getCurrencyDecimals);
     if (optimisticReportName !== null) {
         optimisticEmptyReport.reportName = optimisticReportName;
     }
@@ -9559,13 +9653,15 @@ function getViolatingReportIDForRBRInLHN(report: OnyxEntry<Report>, transactionV
             if (!potentialReport) {
                 return false;
             }
-            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
-            const transactions = getReportTransactions(potentialReport.reportID);
-
             // Allow both open and processing reports to show RBR for violations
             if (!isOpenOrProcessingReport(potentialReport)) {
                 return false;
             }
+
+            const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${potentialReport.policyID}`];
+            // Ignore transactions that are already pending deletion (e.g. a reverted split child) so the LHN RBR stays
+            // consistent with what the opened report renders, which also filters out DELETE-pending transactions.
+            const transactions = getReportTransactions(potentialReport.reportID).filter((transaction) => !isTransactionPendingDelete(transaction));
 
             const excludedNoticeNamesForLHN = isProcessingReport(potentialReport) ? [CONST.VIOLATIONS.MODIFIED_AMOUNT] : [];
 
@@ -11102,7 +11198,7 @@ function getIOUReportActionDisplayMessage(
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhere';
+                translationKey = 'iou.paidElsewhere';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
@@ -11129,9 +11225,6 @@ function getIOUReportActionDisplayMessage(
         }
         if (translationKey === 'iou.paidElsewhere') {
             return getElsewherePaymentReportActionMessage(translate, originalMessage);
-        }
-        if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
-            return translate(translationKey, '');
         }
     }
 
@@ -11846,7 +11939,9 @@ function createDraftWorkspaceAndNavigateToConfirmationScreen(
     ]);
     setMoneyRequestReportID(transactionID, expenseChatReportID);
     if (isCategorizing) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, expenseChatReportID));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: expenseChatReportID})),
+        );
     } else {
         // The confirmation route needs a `:reportID`, so it points at the (draft) workspace expense chat to resolve the
         // draft policy/destination. That report only lives in REPORT_DRAFT. Send back to the origin report (e.g. the
@@ -11967,7 +12062,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
                 },
             ]);
             if (policyExpenseReportID) {
-                Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+                Navigation.navigate(
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                        ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                    ),
+                );
             } else {
                 Log.warn('policyExpenseReportID is not valid during expense categorizing');
             }
@@ -11975,15 +12075,17 @@ function createDraftTransactionAndNavigateToParticipantSelector({
         }
         if (filteredPoliciesCount === 0 || filteredPoliciesCount > 1) {
             Navigation.navigate(
-                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                    action: actionName,
-                    iouType: CONST.IOU.TYPE.SUBMIT,
-                    transactionID,
-                    reportID,
-                    backTo: '',
-                    upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
-                    shouldSubmitExpense: true,
-                }),
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                        action: actionName,
+                        iouType: CONST.IOU.TYPE.SUBMIT,
+                        transactionID,
+                        reportID,
+                        upgradePath: actionName === CONST.IOU.ACTION.CATEGORIZE ? CONST.UPGRADE_PATHS.CATEGORIES : '',
+                        shouldSubmitExpense: true,
+                    }),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
             );
             return;
         }
@@ -12000,7 +12102,12 @@ function createDraftTransactionAndNavigateToParticipantSelector({
             },
         ]);
         if (policyExpenseReportID) {
-            Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, policyExpenseReportID));
+            Navigation.navigate(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_CATEGORY.getRoute({action: actionName, iouType: CONST.IOU.TYPE.SUBMIT, transactionID, reportID: policyExpenseReportID}),
+                    ROUTES.REPORT_WITH_ID.getRoute(reportID),
+                ),
+            );
         } else {
             Log.warn('policyExpenseReportID is not valid during expense categorizing');
         }
@@ -12008,7 +12115,9 @@ function createDraftTransactionAndNavigateToParticipantSelector({
     }
 
     if (actionName === CONST.IOU.ACTION.SHARE) {
-        Navigation.navigate(ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID, Navigation.getActiveRoute()));
+        Navigation.navigate(
+            createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_ACCOUNTANT.getRoute(actionName, CONST.IOU.TYPE.SUBMIT, transactionID, reportID), ROUTES.REPORT_WITH_ID.getRoute(reportID)),
+        );
         return;
     }
 
@@ -12224,6 +12333,8 @@ type PrepareOnboardingOnyxDataParams = {
     selfDMReport?: OnyxEntry<Report>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    /** Whether onboarding is handled outside the Concierge DM, so no message, tasks, or sign-off should be posted there. */
+    shouldSkipConciergeOnboarding?: boolean;
 };
 
 function prepareOnboardingOnyxData({
@@ -12243,6 +12354,7 @@ function prepareOnboardingOnyxData({
     adminsChatReport: adminsChatReportParam,
     selfDMReport: selfDMReportParam,
     currentUserAccountID,
+    shouldSkipConciergeOnboarding = false,
 }: PrepareOnboardingOnyxDataParams) {
     if (engagementChoice === CONST.ONBOARDING_CHOICES.PERSONAL_SPEND) {
         // eslint-disable-next-line no-param-reassign
@@ -12251,7 +12363,7 @@ function prepareOnboardingOnyxData({
 
     if (engagementChoice === CONST.ONBOARDING_CHOICES.EMPLOYER || engagementChoice === CONST.ONBOARDING_CHOICES.SUBMIT) {
         // eslint-disable-next-line no-param-reassign
-        onboardingMessage = getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
+        onboardingMessage = shouldSkipConciergeOnboarding ? {message: '', tasks: []} : getOnboardingMessages().onboardingMessages[CONST.ONBOARDING_CHOICES.SUBMIT];
     }
 
     const shouldPostTasksInAdminsRoom = isPostingTasksInAdminsRoom(engagementChoice);
@@ -12594,7 +12706,7 @@ function prepareOnboardingOnyxData({
     }, []);
 
     const optimisticData: Array<TupleToUnion<typeof tasksForOptimisticData> | OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = shouldDeferOptimisticTasks ? [] : [...tasksForOptimisticData];
-    const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const skipSignOff = engagementChoice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND || shouldSkipConciergeOnboarding;
     const lastVisibleActionCreated = skipSignOff ? textCommentAction.created : welcomeSignOffCommentAction.created;
     optimisticData.push(
         {
@@ -13150,13 +13262,13 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
  * Determines whether the report can be moved to the workspace.
  */
 function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, newPolicy: OnyxEntry<Policy>, report?: Report): boolean {
-    if (!submitterEmail || !newPolicy?.isPolicyExpenseChatEnabled) {
+    if (!submitterEmail || !newPolicy || !isGroupPolicyPolicyUtils(newPolicy)) {
         return false;
     }
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
         return false;
     }
-    return isGroupPolicyPolicyUtils(newPolicy) && !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
+    return !!newPolicy.role && !isPendingDeletePolicy(newPolicy);
 }
 
 /**
@@ -13404,11 +13516,11 @@ function getReportPersonalDetailsParticipants(report: Report, personalDetailsPar
     };
 }
 
-function canRejectReportAction(currentUserLogin: string, report: Report): boolean {
+function canRejectReportAction(report: Report, currentUserAccountID: number | undefined): boolean {
     const isReportBeingProcessed = isProcessingReport(report);
     const isIOU = isIOUReport(report);
     const isInvoice = isInvoiceReport(report);
-    const isCurrentUserManager = report?.managerID === deprecatedCurrentUserAccountID;
+    const isCurrentUserManager = !!currentUserAccountID && report?.managerID === currentUserAccountID;
 
     if (!isCurrentUserManager) {
         return false;
@@ -13457,6 +13569,20 @@ function hasReportBeenRetracted(report: OnyxEntry<Report>, reportActions?: OnyxE
     return reportActionList.some((action) => isRetractedAction(action));
 }
 
+function isSearchRelevantReportAction(action: OnyxInputOrEntry<ReportAction>): action is ReportAction {
+    return (
+        isExportIntegrationAction(action) ||
+        isIntegrationMessageAction(action) ||
+        isDynamicExternalWorkflowSubmitFailedAction(action) ||
+        isDynamicExternalWorkflowApproveFailedAction(action) ||
+        isSubmittedAction(action) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.UNAPPROVED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.RETRACTED) ||
+        isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.REOPENED)
+    );
+}
+
 function selectFilteredReportActions(
     reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
 ): Record<string, ReportAction[]> | undefined {
@@ -13465,20 +13591,19 @@ function selectFilteredReportActions(
     }
 
     return Object.fromEntries(
-        Object.entries(reportActions).map(([reportID, actionsGroup]) => {
-            const actions = Object.values(actionsGroup ?? {});
-            const filteredActions = actions.filter(
-                (action): action is ReportAction =>
-                    isExportIntegrationAction(action) ||
-                    isIntegrationMessageAction(action) ||
-                    isDynamicExternalWorkflowSubmitFailedAction(action) ||
-                    isDynamicExternalWorkflowApproveFailedAction(action) ||
-                    isSubmittedAction(action) ||
-                    isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.APPROVED),
-            );
-            return [reportID, filteredActions];
-        }),
+        Object.entries(reportActions).map(([reportActionsKey, actionsGroup]) => [reportActionsKey, Object.values(actionsGroup ?? {}).filter(isSearchRelevantReportAction)]),
     );
+}
+
+function selectFilteredReportActionsForReports(
+    reportActions: Record<string, Record<string, OnyxInputOrEntry<ReportAction>> | undefined> | null | undefined,
+    reportActionsKeys: string[],
+): Record<string, ReportAction[]> {
+    const result: Record<string, ReportAction[]> = {};
+    for (const reportActionsKey of reportActionsKeys) {
+        result[reportActionsKey] = Object.values(reportActions?.[reportActionsKey] ?? {}).filter(isSearchRelevantReportAction);
+    }
+    return result;
 }
 
 /**
@@ -14175,6 +14300,7 @@ export {
     getPolicyIDsWithEmptyReportsForAccount,
     getActionErrorsByTransaction,
     hasActionWithErrorsForTransaction,
+    hasReportBeenForwardedSinceLastSubmit,
     hasAutomatedExpensifyAccountIDs,
     hasEmptyReportsForPolicy,
     hasHeldExpenses,
@@ -14220,6 +14346,7 @@ export {
     isGroupChatAdmin,
     isHarvestCreatedExpenseReport,
     isHoldCreator,
+    didCurrentUserPlaceHoldOnReportExpense,
     isIOUOwnedByCurrentUser,
     isIOUReport,
     isIOUReportUsingReport,
@@ -14279,6 +14406,7 @@ export {
     parseReportRouteParams,
     requiresAttentionFromCurrentUser,
     selectFilteredReportActions,
+    selectFilteredReportActionsForReports,
     shouldAutoFocusOnKeyPress,
     shouldCreateNewMoneyRequestReport,
     shouldDisableDetailPage,
@@ -14396,6 +14524,10 @@ export {
     hasHeldExpensesFromTransactions,
     canMergeReports,
     canModifyHoldStatus,
+    replaceLocalAttachmentReferences,
+    isUploadingAttachmentRemovedFromDraft,
+    getUploadingAttachmentHtmlFromComment,
+    buildEditedCommentWithAttachment,
 };
 
 export type {
@@ -14413,6 +14545,5 @@ export type {
     PartialReportAction,
     SelfDMParameters,
     OptimisticReportAction,
-    CreateDraftTransactionParams,
     ActionErrorsByTransaction,
 };
