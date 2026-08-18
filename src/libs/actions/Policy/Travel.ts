@@ -82,13 +82,13 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
     // Pending and error state is tracked per setting so that updating one setting does not
     // put every other travel setting's row into a pending or failed state.
     const pendingSettings: PendingFields<keyof OnyxTypes.WorkspaceTravelSettings> = {};
-    const clearedPendingSettings: Record<string, null> = {};
+    const clearedSettingFields: Record<string, null> = {};
     const settingErrors: ErrorFields = {};
 
     for (const key of getObjectKeys(settings)) {
         (revertedSettings as Record<string, unknown>)[key] = previousTravelSettings?.[key] ?? null;
         pendingSettings[key] = CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE;
-        clearedPendingSettings[key] = null;
+        clearedSettingFields[key] = null;
         settingErrors[key] = ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage');
     }
 
@@ -100,6 +100,7 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 value: {
                     travelSettings: {...previousTravelSettings, ...settings},
                     pendingFields: pendingSettings,
+                    errorFields: clearedSettingFields,
                 },
             },
         ],
@@ -108,7 +109,8 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 onyxMethod: Onyx.METHOD.MERGE,
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
-                    pendingFields: clearedPendingSettings,
+                    pendingFields: clearedSettingFields,
+                    errorFields: clearedSettingFields,
                 },
             },
         ],
@@ -118,7 +120,7 @@ function setPolicyTravelSettings(policy: OnyxEntry<OnyxTypes.Policy>, settings: 
                 key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
                 value: {
                     travelSettings: revertedSettings,
-                    pendingFields: clearedPendingSettings,
+                    pendingFields: clearedSettingFields,
                     errorFields: settingErrors,
                 },
             },

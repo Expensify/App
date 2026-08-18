@@ -91,6 +91,26 @@ describe('actions/Policy/Travel', () => {
             expect(settledPolicy?.pendingFields?.isCodingSyncEnabled).toBeFalsy();
         });
 
+        it('clears the error from a failed update when the retry succeeds', async () => {
+            const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: undefined};
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+
+            mockFetch?.fail?.();
+            setPolicyTravelSettings(fakePolicy, {isCodingSyncEnabled: true});
+            await waitForBatchedUpdates();
+
+            const failedPolicy = await getPolicy(fakePolicy.id);
+            expect(failedPolicy?.errorFields?.isCodingSyncEnabled).toBeTruthy();
+
+            mockFetch?.succeed?.();
+            setPolicyTravelSettings(failedPolicy, {isCodingSyncEnabled: true});
+            await waitForBatchedUpdates();
+
+            const retriedPolicy = await getPolicy(fakePolicy.id);
+            expect(retriedPolicy?.travelSettings?.isCodingSyncEnabled).toBe(true);
+            expect(retriedPolicy?.errorFields?.isCodingSyncEnabled).toBeFalsy();
+        });
+
         it('leaves the other travel settings free of pending and error state', async () => {
             const fakePolicy: Policy = {...createRandomPolicy(0), travelSettings: {autoAddTripName: true}};
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
