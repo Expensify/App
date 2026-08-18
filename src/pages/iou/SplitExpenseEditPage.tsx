@@ -60,7 +60,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -459,7 +459,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
                                     Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}

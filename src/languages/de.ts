@@ -1417,7 +1417,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} hat genehmigt:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} hat ${amount} genehmigt`,
         payerSettled: (amount: number | string) => `${amount} bezahlt`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `${amount} bezahlt. Füge ein Bankkonto hinzu, um deine Zahlung zu erhalten.`,
         automaticallyApproved: `über Genehmigung durch <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">Workspace-Regeln</a>`,
         approvedAmount: (amount: number | string) => `${amount} genehmigt`,
         approvedMessage: `genehmigt`,
@@ -3207,6 +3206,7 @@ ${amount} für ${merchant} – ${date}`,
         accounting: {
             title: 'Verwendest du eine Buchhaltungssoftware?',
             none: 'Keine',
+            otherAccountingSoftware: 'Deine Buchhaltungssoftware',
         },
         interestedFeatures: {
             title: 'An welchen Funktionen bist du interessiert?',
@@ -7280,6 +7280,31 @@ ${reportName}`,
             confirmText: 'Ja, erneut exportieren',
             cancelText: 'Abbrechen',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Vorsicht!',
+            description: (connectionName: ConnectionName) =>
+                `Die ausgewählten Berichte sind mit verschiedenen ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}-Unternehmen verbunden und können daher nicht zusammen exportiert werden. Wählen Sie Berichte aus, die mit demselben Unternehmen verbunden sind, und versuchen Sie es erneut.`,
+            confirmText: 'Verstanden',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `${exportableCount}/${selectedCount} Berichte nach ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} exportieren?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Nur mit ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} verbundene Berichte werden exportiert.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Nur exportierbare Berichte werden exportiert.`);
+                }
+                return `${reasons.join('\n\n')}\n\nDie folgenden Berichte werden exportiert:`;
+            },
+            confirmText: () => ({
+                one: `1 Bericht exportieren`,
+                other: (count: number) => `${count} Berichte exportieren`,
+            }),
+            cancelText: 'Abbrechen',
+        },
         upgrade: {
             reportFields: {
                 title: 'Berichtsfelder',
@@ -9099,7 +9124,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Karte',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Erstattung',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Konsolidierte Reiseabrechnung',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Konsolidierte Reiseabrechnung',
             },
             is: 'Ist',
             has: {submittedViolation: 'Eingereichter Verstoß'},
