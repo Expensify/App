@@ -9228,9 +9228,6 @@ const CONST = {
         VALIDATE_ACCOUNT: 'validate_account',
         REVEAL_CARD_DETAILS: 'reveal_card_details',
         REGISTER_AUTHENTICATION_KEY: 'register_authentication_key',
-        REPLACE_CARD: 'replace_card',
-        SHIP_CARD: 'ship_card',
-        REPORT_CARD_FRAUD: 'report_card_fraud',
     },
     EXPENSIFY_CARD: {
         FEED_NAME: 'Expensify Card',
