@@ -41,7 +41,7 @@ function isNumericLiteral(node) {
     if (node.type === 'Literal' && typeof node.value === 'number') {
         return true;
     }
-    return node.type === 'UnaryExpression' && node.operator === '-' && isNumericLiteral(node.argument);
+    return node.type === 'UnaryExpression' && (node.operator === '-' || node.operator === '+') && isNumericLiteral(node.argument);
 }
 
 /**

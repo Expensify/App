@@ -82,6 +82,14 @@ describe('no-raw-typography', () => {
                 errors: [{messageId: 'rawTypography'}],
             },
             {
+                code: 'const style = {fontSize: +17};',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
+                code: 'const jsx = <Text lineHeight={+20}>hi</Text>;',
+                errors: [{messageId: 'rawTypography'}],
+            },
+            {
                 code: 'const style = {fontSize: 17, lineHeight: 20};',
                 errors: [{messageId: 'rawTypography'}, {messageId: 'rawTypography'}],
             },
