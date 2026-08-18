@@ -1567,7 +1567,19 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
         finallyData,
     });
 }
-
+type RejectMoneyRequestInBulkParams = {
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<Policy>;
+    transactionIDs: string[];
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    hash?: number;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
 function rejectMoneyRequestInBulk({
     reportID,
     comment,
@@ -1580,19 +1592,7 @@ function rejectMoneyRequestInBulk({
     getCurrencyDecimals,
     hash,
     formatPhoneNumber,
-}: {
-    reportID: string;
-    comment: string;
-    policy: OnyxEntry<Policy>;
-    transactionIDs: string[];
-    currentUserAccountIDParam: number;
-    currentUserLogin: string;
-    betas: OnyxEntry<Beta[]>;
-    delegateAccountID: number | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    hash?: number;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-}) {
+}: RejectMoneyRequestInBulkParams) {
     const optimisticData: Array<RejectMoneyRequestData['optimisticData'][number] | OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const finallyData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [];
     const successData: RejectMoneyRequestData['successData'] = [];
@@ -1649,6 +1649,19 @@ function rejectMoneyRequestInBulk({
 type TransactionReportInfo = {
     reportID?: string;
 };
+type RejectMoneyRequestsOnSearchParams = {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+};
 
 function rejectMoneyRequestsOnSearch({
     hash,
@@ -1662,19 +1675,7 @@ function rejectMoneyRequestsOnSearch({
     delegateAccountID,
     getCurrencyDecimals,
     formatPhoneNumber,
-}: {
-    hash: number;
-    selectedTransactions: Record<string, TransactionReportInfo>;
-    comment: string;
-    allPolicies: OnyxCollection<Policy>;
-    allReports: OnyxCollection<Report>;
-    currentUserAccountIDParam: number;
-    currentUserLogin: string;
-    betas: OnyxEntry<Beta[]>;
-    delegateAccountID: number | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-}) {
+}: RejectMoneyRequestsOnSearchParams) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {

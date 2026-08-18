@@ -4527,6 +4527,19 @@ function buildNewReportOptimisticData({
         optimisticReportData,
     };
 }
+type CreateNewReportParams = {
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    hasViolationsParam: boolean;
+    isASAPSubmitBetaEnabled: boolean;
+    policy: OnyxEntry<Policy>;
+    betas: OnyxEntry<Beta[]>;
+    isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    shouldNotifyNewAction: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    options: {managedCardTransactionID?: string; reportName?: string};
+};
 
 function createNewReport({
     ownerPersonalDetails,
@@ -4540,19 +4553,7 @@ function createNewReport({
     formatPhoneNumber,
     shouldDismissEmptyReportsConfirmation,
     options = {},
-}: {
-    ownerPersonalDetails: CurrentUserPersonalDetails;
-    hasViolationsParam: boolean;
-    isASAPSubmitBetaEnabled: boolean;
-    policy: OnyxEntry<Policy>;
-    betas: OnyxEntry<Beta[]>;
-    isTrackIntentUser: boolean | undefined;
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    shouldNotifyNewAction: boolean;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    shouldDismissEmptyReportsConfirmation?: boolean;
-    options: {managedCardTransactionID?: string; reportName?: string};
-}) {
+}: CreateNewReportParams) {
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -5341,7 +5342,6 @@ function buildInviteToRoomOnyxData(
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 participants: newParticipantAccountCleanUp,
-                pendingAction: null,
             },
         },
         {

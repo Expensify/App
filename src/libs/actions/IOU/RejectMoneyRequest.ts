@@ -944,6 +944,19 @@ function prepareRejectMoneyRequestData({
 
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
+type RejectMoneyRequestParams = {
+    transactionID: string;
+    reportID: string;
+    comment: string;
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    options?: RejectMoneyRequestOptions;
+};
 
 function rejectMoneyRequest({
     transactionID,
@@ -957,19 +970,7 @@ function rejectMoneyRequest({
     formatPhoneNumber,
     getCurrencyDecimals,
     options,
-}: {
-    transactionID: string;
-    reportID: string;
-    comment: string;
-    policy: OnyxEntry<OnyxTypes.Policy>;
-    currentUserAccountIDParam: number;
-    currentUserLogin: string;
-    betas: OnyxEntry<OnyxTypes.Beta[]>;
-    delegateAccountID: number | undefined;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    options?: RejectMoneyRequestOptions;
-}): Route | undefined {
+}: RejectMoneyRequestParams): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
         reportID,
