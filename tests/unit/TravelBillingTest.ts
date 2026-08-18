@@ -228,7 +228,7 @@ describe('TravelBilling', () => {
 
     it('a server-supplied settlement account message outranks the generic fallback error', () => {
         const serverErrorKey = '1770000000000000';
-        const serverMessage = 'The selected bank account ending in 1234 could not be used as the settlement account. Please contact us so we can verify it.';
+        const serverMessage = 'The selected bank account ending in 1234 could not be used as the settlement account. Please contact Concierge to verify the account.';
         const fallbackErrors = getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage', 0);
 
         // The backend applies its onyxData before failureData, so both messages end up merged under the same field
