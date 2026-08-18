@@ -223,7 +223,7 @@ function ForYouSection() {
             <TimeSensitiveGroup items={timeSensitiveItems} />
             {!hideForYou && (
                 <>
-                    <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4]}>
+                    <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4, styles.mb2]}>
                         <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.forYou')}</Text>
                     </View>
                     {renderContent()}

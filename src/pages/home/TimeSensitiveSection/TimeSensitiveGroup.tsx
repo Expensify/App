@@ -42,7 +42,7 @@ function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
 
     return (
         <>
-            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4]}>
+            <View style={[shouldUseNarrowLayout ? styles.ph5 : styles.ph8, styles.mt4, styles.mb2]}>
                 <Text style={styles.getWidgetContainerTitleStyle(theme.text)}>{translate('homePage.timeSensitiveSection.title')}</Text>
             </View>
             <View style={styles.getForYouSectionContainerStyle(shouldUseNarrowLayout)}>
