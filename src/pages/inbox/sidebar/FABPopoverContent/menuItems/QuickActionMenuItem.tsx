@@ -14,6 +14,7 @@ import {navigateToQuickAction} from '@libs/actions/QuickActionNavigation';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
+import {isGroupPolicy} from '@libs/PolicyUtils';
 import {getQuickActionIcon, getQuickActionTitle, isQuickActionAllowed} from '@libs/QuickActionUtils';
 import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import {getDisplayNameForParticipant, getIcons, getWorkspaceChats, isPolicyExpenseChat} from '@libs/ReportUtils';
@@ -71,7 +72,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const isValidReport = !(isEmptyObject(quickActionReport) || isReportArchived);
 
     const policyChatForActivePolicy: OnyxTypes.Report =
-        !isEmptyObject(activePolicy) && activePolicy?.isPolicyExpenseChatEnabled && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
+        !isEmptyObject(activePolicy) && isGroupPolicy(activePolicy) && policyChats.length > 0 ? (policyChats.at(0) ?? ({} as OnyxTypes.Report)) : ({} as OnyxTypes.Report);
 
     const quickActionReportPolicyID = getNonEmptyStringOnyxID(quickActionReport?.policyID);
     const policyChatForActivePolicyPolicyID = getNonEmptyStringOnyxID(policyChatForActivePolicy?.policyID);
