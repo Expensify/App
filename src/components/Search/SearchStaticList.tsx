@@ -16,6 +16,7 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import Navigation from '@libs/Navigation/Navigation';
 import {getReportStatusColorStyle, getReportStatusTooltipTranslation, getReportStatusTranslation, isOneTransactionReport} from '@libs/ReportUtils';
 import {createAndOpenSearchTransactionThread, getSections, getSortedSections, getValidGroupBy} from '@libs/SearchUIUtils';
+import {isDeletedTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -180,16 +181,17 @@ function SearchStaticList({
             return null;
         }
 
+        const isDeleted = isDeletedTransaction(item);
         const participantFromDisplayName = item.formattedFrom ?? item.from?.displayName ?? '';
-        const shouldShowUserInfo = !!item.from;
+        const shouldShowUserInfo = !isDeleted && !!item.from;
         const isFirstItem = index === 0;
         const isLastItem = index === sortedData.length - 1;
 
         const stateNum = item.report?.stateNum;
         const statusNum = item.report?.statusNum;
-        const statusText = getReportStatusTranslation({stateNum, statusNum, translate});
-        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum);
-        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, translate});
+        const statusText = getReportStatusTranslation({stateNum, statusNum, isDeleted, translate});
+        const reportStatusColorStyle = getReportStatusColorStyle(theme, stateNum, statusNum, isDeleted);
+        const statusTooltipText = getReportStatusTooltipTranslation({stateNum, statusNum, isDeleted, translate});
 
         return (
             <PressableWithoutFeedback
