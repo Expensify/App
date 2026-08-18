@@ -1412,7 +1412,7 @@
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/unit/ReportTitleUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
+"../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/SidebarUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/TelemetrySynchronizerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/TranslateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
