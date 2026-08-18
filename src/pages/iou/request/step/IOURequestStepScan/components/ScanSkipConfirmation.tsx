@@ -7,6 +7,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useFilesValidation from '@hooks/useFilesValidation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTagsForReport from '@hooks/useMoneyRequestPolicyTagsForReport';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import useParticipantsPolicyTags from '@hooks/useParticipantsPolicyTags';
@@ -108,7 +109,10 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
         selector: shouldStartLocationPermissionFlowSelector,
     });
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const {isOffline} = useNetwork();
+    // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
+    // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
+    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();

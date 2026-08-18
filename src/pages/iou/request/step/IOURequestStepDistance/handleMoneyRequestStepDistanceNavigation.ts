@@ -76,6 +76,8 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
+    /** Whether the app is offline. Suppresses the LOOKING_AROUND self-DM -> Search routing offline (Search can't load its snapshot). */
+    isOffline?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
     gpsCoordinates?: string;
@@ -208,13 +210,16 @@ function handleMoneyRequestStepDistanceNavigation({
     getCurrencyDecimals,
     participants,
     participantsPolicyTags,
+    isOffline = false,
 }: MoneyRequestStepDistanceNavigationParams): void {
     const isManualDistance = manualDistance !== undefined;
     const isOdometerDistance = odometerDistance !== undefined;
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
     // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
+    // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
+    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserAccountID);

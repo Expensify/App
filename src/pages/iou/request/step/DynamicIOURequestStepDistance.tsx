@@ -324,7 +324,10 @@ function DynamicIOURequestStepDistance({
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
         shouldSkipConfirmation,
         report?.reportID,
-        introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+        // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
+        // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM
+        // landing that shows the optimistic expense. Mirrors the navigate half (handleMoneyRequestStepDistanceNavigation).
+        !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
         // Same self-DM predicate as the navigate half (handleMoneyRequestStepDistanceNavigation) so the guard suppresses in
         // exactly the cases navigation forces Search. Kept inline to stay under this component's React Compiler memo limit.
         // Both self-DM signals are ORed: on a quick-action flow participants are not populated yet when this runs, so the

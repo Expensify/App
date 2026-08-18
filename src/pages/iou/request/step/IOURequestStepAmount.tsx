@@ -6,6 +6,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDiscardChangesConfirmation from '@hooks/useDiscardChangesConfirmation';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePreMountDestination from '@hooks/usePreMountDestination';
@@ -73,6 +74,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
+    const {isOffline} = useNetwork();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
@@ -167,7 +169,9 @@ function IOURequestStepAmount({
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
         shouldSkipConfirmation,
         report?.reportID,
-        isLookingAroundUser,
+        // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
+        // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
+        !isOffline && isLookingAroundUser,
         isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
     );
     usePreMountDestination(skipConfirmationPreMountRoute);
@@ -259,6 +263,7 @@ function IOURequestStepAmount({
             paymentMethod,
             formatPhoneNumber,
             isTrackIntentUser,
+            isOffline,
             policyTags,
             reportPolicyTags,
             ...submitData,

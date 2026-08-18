@@ -4,6 +4,7 @@ import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
 import useLocalize from '@hooks/useLocalize';
 import useMoneyRequestPolicyTags from '@hooks/useMoneyRequestPolicyTags';
+import useNetwork from '@hooks/useNetwork';
 import useOnboardingTaskInformation from '@hooks/useOnboardingTaskInformation';
 import useOnyx from '@hooks/useOnyx';
 import useParentReportAction from '@hooks/useParentReportAction';
@@ -292,7 +293,11 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     const [odometerDraft] = useOnyx(ONYXKEYS.ODOMETER_DRAFT);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const {isOffline} = useNetwork();
+    // Gated on !isOffline: the LOOKING_AROUND self-DM routing sends the user to Spend > Expenses (Search), which reads a
+    // server-populated snapshot that can't be fetched offline and would render empty. Offline, treat them as
+    // not-LOOKING_AROUND for routing so they fall back to the self-DM landing that shows the optimistic expense.
+    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     // Onboarding task data
     const {
         taskReport: viewTourTaskReport,

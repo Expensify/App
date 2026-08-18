@@ -276,7 +276,10 @@ function IOURequestStepConfirmation({
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     // "Something else" (LOOKING_AROUND) users have no workspace, so their global-create expense lands in their self-DM.
     // We route them to Spend > Expenses (Search) after creating instead of dropping them into that self-DM report.
-    const isLookingAroundUser = introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    // Gated on !isOffline: Search reads a server-populated snapshot that can't be fetched while offline, so a brand-new
+    // user's first Expenses query would render empty. Offline, treat them as not-LOOKING_AROUND for routing so they fall
+    // back to the self-DM landing, which renders the optimistically-created expense from local Onyx.
+    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;
