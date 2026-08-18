@@ -1568,16 +1568,27 @@ function exportToIntegrationOnSearch(hash: number, reportIDs: string[], connecti
     });
 }
 type RejectMoneyRequestInBulkParams = {
+    /** Report where the selected expenses belong. */
     reportID: string;
+    /** Parsed comment included with each rejection. */
     comment: string;
+    /** Policy used to determine delayed submission behavior. */
     policy: OnyxEntry<Policy>;
+    /** Transaction IDs being rejected in bulk. */
     transactionIDs: string[];
+    /** Current user's account ID used for optimistic updates. */
     currentUserAccountIDParam: number;
+    /** Current user's login used for optimistic personal details updates. */
     currentUserLogin: string;
+    /** Beta flags used to determine available rejection behavior. */
     betas: OnyxEntry<Beta[]>;
+    /** Delegate account ID used when acting on behalf of another user. */
     delegateAccountID: number | undefined;
+    /** Currency helper used for optimistic monetary formatting. */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Snapshot hash used to merge loading data into the search result. */
     hash?: number;
+    /** Formatter used when building optimistic personal details. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 function rejectMoneyRequestInBulk({
@@ -1650,16 +1661,27 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 type RejectMoneyRequestsOnSearchParams = {
+    /** Search snapshot hash used for loading state. */
     hash: number;
+    /** Selected transactions mapped to their report metadata. */
     selectedTransactions: Record<string, TransactionReportInfo>;
+    /** Parsed comment included with each rejection. */
     comment: string;
+    /** All policies available in Onyx for resolving report policy data. */
     allPolicies: OnyxCollection<Policy>;
+    /** All reports available in Onyx for resolving report metadata. */
     allReports: OnyxCollection<Report>;
+    /** Current user's account ID used for optimistic updates. */
     currentUserAccountIDParam: number;
+    /** Current user's login used for optimistic personal details updates. */
     currentUserLogin: string;
+    /** Beta flags used to determine available rejection behavior. */
     betas: OnyxEntry<Beta[]>;
+    /** Delegate account ID used when acting on behalf of another user. */
     delegateAccountID: number | undefined;
+    /** Currency helper used for optimistic monetary formatting. */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Formatter used when building optimistic personal details. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 

@@ -4528,16 +4528,27 @@ function buildNewReportOptimisticData({
     };
 }
 type CreateNewReportParams = {
+    /** Personal details for the user creating the report. */
     ownerPersonalDetails: CurrentUserPersonalDetails;
+    /** Whether the draft report has policy violations. */
     hasViolationsParam: boolean;
+    /** Whether ASAP submit is available for this policy. */
     isASAPSubmitBetaEnabled: boolean;
+    /** Policy used to build the report and optimistic data. */
     policy: OnyxEntry<Policy>;
+    /** Beta flags used when creating the report. */
     betas: OnyxEntry<Beta[]>;
+    /** Whether the user is a tracked intent user. */
     isTrackIntentUser: boolean | undefined;
+    /** Currency helper used for optimistic report formatting. */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Whether the new report should trigger a new action notification. */
     shouldNotifyNewAction: boolean;
+    /** Formatter used for phone numbers in optimistic report data. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Whether the empty reports confirmation should be dismissed. */
     shouldDismissEmptyReportsConfirmation?: boolean;
+    /** Optional managed card transaction and report name overrides. */
     options: {managedCardTransactionID?: string; reportName?: string};
 };
 

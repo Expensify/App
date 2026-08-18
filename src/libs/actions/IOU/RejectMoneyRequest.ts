@@ -945,16 +945,27 @@ function prepareRejectMoneyRequestData({
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
 type RejectMoneyRequestParams = {
+    /** Transaction being rejected. */
     transactionID: string;
+    /** Report that owns the transaction. */
     reportID: string;
+    /** Parsed comment sent with the rejection. */
     comment: string;
+    /** Policy used to resolve permissions and delayed submission behavior. */
     policy: OnyxEntry<OnyxTypes.Policy>;
+    /** Current user's account ID used for optimistic report updates. */
     currentUserAccountIDParam: number;
+    /** Current user's login used for optimistic personal details updates. */
     currentUserLogin: string;
+    /** Beta flags used to decide which rejection behavior is available. */
     betas: OnyxEntry<OnyxTypes.Beta[]>;
+    /** Delegate account ID used when acting on behalf of another user. */
     delegateAccountID: number | undefined;
+    /** Formatter used when building optimistic personal details. */
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Currency helper used for optimistic monetary formatting. */
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Optional flags that alter the rejection flow. */
     options?: RejectMoneyRequestOptions;
 };
 
