@@ -1,6 +1,7 @@
 import {afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, jest} from 'bun:test';
 
 import * as core from '@actions/core';
+import {RequestError as NestedRequestError} from '@actions/github/node_modules/@octokit/request-error';
 
 import type {InternalOctokit} from '../../.github/libs/GithubUtils';
 
@@ -302,5 +303,38 @@ platform | result
                 repo: CONST.APP_REPO,
             });
         }
+    });
+
+    it('logs and skips a 404 from the Octokit dependency used by GitHub Actions while processing the remaining pull requests', async () => {
+        const notFoundError = new NestedRequestError('Not Found', 404, {
+            request: {method: 'GET', url: 'https://api.github.com/repos/Expensify/App/pulls/1', headers: {}},
+        });
+        mockGetPullRequest.mockImplementation(({pull_number}: PullRequestParams): PullRequestData => {
+            if (pull_number === 1) {
+                throw notFoundError;
+            }
+            return {data: PRList[pull_number]};
+        });
+        const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        try {
+            await run();
+
+            expect(consoleLogSpy).toHaveBeenCalledWith(`Unable to comment on ${CONST.APP_REPO} PR #1. GitHub responded with 404.`);
+            expect(mockGetPullRequest).toHaveBeenCalledTimes(Object.keys(PRList).length);
+            expect(mockCreateComment).toHaveBeenCalledTimes(1);
+            expect(mockCreateComment).toHaveBeenCalledWith(expect.objectContaining({issue_number: 2}));
+        } finally {
+            consoleLogSpy.mockRestore();
+        }
+    });
+
+    it('rethrows a non-404 from the Octokit dependency used by GitHub Actions without changing its identity', async () => {
+        const serviceUnavailableError = new NestedRequestError('Service Unavailable', 503, {
+            request: {method: 'GET', url: 'https://api.github.com/repos/Expensify/App/pulls/1', headers: {}},
+        });
+        mockGetPullRequest.mockRejectedValue(serviceUnavailableError);
+
+        await expect(run()).rejects.toBe(serviceUnavailableError);
     });
 });

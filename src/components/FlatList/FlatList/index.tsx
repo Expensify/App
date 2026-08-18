@@ -5,6 +5,7 @@ import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isMobileSafari} from '@libs/Browser';
+import mergeRefs from '@libs/mergeRefs';
 
 import type {ForwardedRef, RefObject} from 'react';
 import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
@@ -18,35 +19,17 @@ import type {CustomFlatListProps} from './types';
 // We do a best effort to avoid content jumping by using some hacks on mobile Safari only.
 const IS_MOBILE_SAFARI = isMobileSafari();
 
-function mergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
-    return function (node: FlatList) {
-        for (const ref of args) {
-            if (ref == null) {
-                continue;
-            }
-            if (typeof ref === 'function') {
-                ref(node);
-                continue;
-            }
-            if (typeof ref === 'object') {
-                ref.current = node;
-                continue;
-            }
-            console.error(`mergeRefs cannot handle Refs of type boolean, number or string, received ref ${String(ref)}`);
-        }
-    };
-}
-
-function useMergeRefs(...args: Array<RefObject<FlatList> | ForwardedRef<FlatList> | null>) {
+function useMergeRefs<T>(...args: Array<RefObject<T> | ForwardedRef<T> | null | undefined>) {
     return useMemo(
-        () => mergeRefs(...args),
+        () => mergeRefs<T>(...args),
         // eslint-disable-next-line
         [...args],
     );
 }
 
 function getScrollableNode(flatList: FlatList | null): HTMLElement | undefined {
-    return flatList?.getScrollableNode() as HTMLElement | undefined;
+    const scrollableNode: unknown = flatList?.getScrollableNode();
+    return scrollableNode instanceof HTMLElement ? scrollableNode : undefined;
 }
 
 function MVCPFlatList<T>({
@@ -115,7 +98,10 @@ function MVCPFlatList<T>({
 
         const contentViewLength = contentView.childNodes.length;
         for (let i = mvcpMinIndexForVisible; i < contentViewLength; i++) {
-            const subview = contentView.childNodes[i] as HTMLElement;
+            const subview = contentView.childNodes[i];
+            if (!(subview instanceof HTMLElement)) {
+                continue;
+            }
             const subviewOffset = horizontal ? subview.offsetLeft : subview.offsetTop;
             if (subviewOffset > scrollOffset) {
                 prevFirstVisibleOffsetRef.current = subviewOffset;
@@ -171,7 +157,7 @@ function MVCPFlatList<T>({
                     firstVisibleViewRef.current = null;
                 }
                 for (const node of mutation.addedNodes) {
-                    if (node.nodeType !== Node.ELEMENT_NODE || !(node as HTMLElement).querySelector('#composer')) {
+                    if (!(node instanceof Element) || !node.querySelector('#composer')) {
                         continue;
                     }
                     isEditComposerAdded = true;
@@ -213,7 +199,7 @@ function MVCPFlatList<T>({
         };
     }, [prepareForMaintainVisibleContentPosition, setupMutationObserver]);
 
-    const setMergedRef = useMergeRefs(listRef, ref as ForwardedRef<FlatList>);
+    const setMergedRef = useMergeRefs<FlatList>(listRef, ref);
 
     const onRef = useCallback(
         (newRef: FlatList) => {
