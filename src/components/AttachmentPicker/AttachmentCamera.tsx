@@ -16,7 +16,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPhotoSource from '@libs/fileDownload/getPhotoSource';
-import getReceiptsUploadFolderPath from '@libs/getReceiptsUploadFolderPath';
 import Log from '@libs/Log';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
@@ -152,12 +151,9 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
 
         isCapturing.current = true;
 
-        const path = getReceiptsUploadFolderPath();
-
         cameraRef.current
             .takePhoto({
                 flash: flash && hasFlash ? 'on' : 'off',
-                path,
             })
             .then((photo: PhotoFile) => {
                 // Discard capture if the camera was closed while takePhoto was in-flight
