@@ -224,6 +224,7 @@ function DynamicEditInviteReceiptPartnerPolicyPage({route}: DynamicEditInviteRec
         icons.Checkmark,
         icons.FallbackAvatar,
         formatPhoneNumber,
+        employeePersonalDetails,
     ]);
 
     const applyTabStatusFilter = useCallback(
