@@ -112,7 +112,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string) => key,
+        translate: (key: string) => (key === 'workspace.accounting.qbo' ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
         localeCompare: (a: string, b: string) => a && b,
         formatPhoneNumber: (phone: string) => phone,
     }),
@@ -661,7 +661,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // The shared companyID clears the different-companies block: no modal, both reports exported together.
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
     });
 
     it('does NOT show the different-companies modal for "Mark as exported" and marks reports across different companies together', async () => {
@@ -703,7 +703,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // No blocking modal, and both reports (from different companies) are marked together in one call.
         await waitFor(() => {
-            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
         });
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(exportToIntegrationOnSearch).not.toHaveBeenCalled();
@@ -742,7 +742,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
         });
 
         // Only the partial-export modal is shown (there is nothing already-exported to warn about). Its
@@ -788,7 +788,7 @@ describe('useSearchBulkActions - export options', () => {
 
         // Only the approved report (report1) is exported; the submitted report is skipped.
         await waitFor(() => {
-            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
         });
 
         // The partial-export modal is shown for the eligible subset (1 of 2 selected reports).
@@ -867,7 +867,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
         });
 
         // Both modals were shown, in order: partial-export first, export-again second. Each splits its
@@ -913,7 +913,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+            expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
         });
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(1);
@@ -983,7 +983,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         expect(mockShowConfirmModal).not.toHaveBeenCalled();
-        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, undefined);
+        expect(exportToIntegrationOnSearch).toHaveBeenCalledWith(expect.anything(), [REPORT_ID, REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything(), undefined);
     });
 
     it('routes "Mark as exported" through the same flow: partial modal first, then export-again, then marks the subset', async () => {
@@ -1019,7 +1019,7 @@ describe('useSearchBulkActions - export options', () => {
             ?.onSelected?.();
 
         await waitFor(() => {
-            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE);
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID], CONST.POLICY.CONNECTIONS.NAME.NETSUITE, expect.anything());
         });
 
         expect(mockShowConfirmModal).toHaveBeenCalledTimes(2);
