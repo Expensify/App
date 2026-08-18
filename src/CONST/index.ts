@@ -1016,6 +1016,7 @@ const CONST = {
         DEFAULT_LETTER_AVATARS: 'defaultLetterAvatars',
         NETSUITE_OAUTH: 'netSuiteOAuth',
         CONCIERGE_RESPOND_IN_THREAD: 'conciergeRespondInThread',
+        ARCHIVE_POLICIES: 'archivePolicies',
     },
     BUTTON_STATES: {
         DEFAULT: 'default',

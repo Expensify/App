@@ -3,6 +3,7 @@ import Table from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -66,6 +67,8 @@ type WorkspaceListTableProps = {
 export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, pendingDeletePolicyID}: WorkspaceListTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {isBetaEnabled} = usePermissions();
+    const canUseArchivePolicies = isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES);
     const {isRestrictedPolicyCreation} = usePreferredPolicy();
     const illustrations = useMemoizedLazyIllustrations(['PlanetWithMobileApp']);
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
@@ -131,7 +134,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
     };
 
     const canAccessArchived = (role: ValueOf<typeof CONST.POLICY.ROLE>) => role === CONST.POLICY.ROLE.ADMIN || role === CONST.POLICY.ROLE.OWNER || role === CONST.POLICY.ROLE.AUDITOR;
-    const canSeeFilter = workspaces.some((w) => canAccessArchived(w.role));
+    const canSeeFilter = canUseArchivePolicies && workspaces.some((w) => canAccessArchived(w.role));
 
     const isItemInFilter: IsItemInFilterCallback<WorkspaceRowData> = (item, filterValues) => {
         if (item.isArchived && !canAccessArchived(item.role)) {
@@ -199,7 +202,7 @@ export default function WorkspaceListTable({ref, workspaces, onDeleteWorkspace, 
         >
             <Table.FilterBar
                 label={translate('workspace.common.findWorkspace')}
-                shouldShowClearFiltersButton
+                shouldShowClearFiltersButton={canSeeFilter}
             />
             <Table.NoResultsState />
             <Table.EmptyState
