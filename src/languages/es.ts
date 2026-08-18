@@ -1416,7 +1416,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager) => `${manager} aprobó:`,
         managerApprovedAmount: (manager, amount) => `${manager} aprobó ${amount}`,
         payerSettled: (amount) => `pagó ${amount}`,
-        payerSettledWithMissingBankAccount: (amount) => `pagó ${amount}. Agrega una cuenta bancaria para recibir tu pago.`,
         automaticallyApproved: `aprobó mediante <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reglas del espacio de trabajo</a>`,
         approvedAmount: (amount) => `aprobó ${amount}`,
         approvedMessage: `aprobado`,
@@ -2077,6 +2076,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Por favor, instala la última versión de Expensify',
         toGetLatestChanges: 'Para móvil, descarga e instala la última versión. Para la web, actualiza tu navegador.',
         newAppNotAvailable: 'Actualiza ahora y nos lo agradecerás más tarde.',
+        updateAvailable: 'Actualización disponible',
+        pleaseRefresh: 'Por favor, actualiza esta página para obtener la última versión de Expensify.',
+        refreshPage: 'Actualizar página',
     },
     initialSettingsPage: {
         about: 'Acerca de',
@@ -3109,6 +3111,7 @@ ${amount} para ${merchant} - ${date}`,
         accounting: {
             title: '¿Utilizas algún software de contabilidad?',
             none: 'Ninguno',
+            otherAccountingSoftware: 'Tu software de contabilidad',
         },
         interestedFeatures: {
             title: '¿Qué funciones te interesan?',
@@ -5781,6 +5784,7 @@ ${amount} para ${merchant} - ${date}`,
             directFeed: 'Fuente directa',
             whoNeedsCardAssigned: '¿Quién necesita una tarjeta?',
             chooseTheCardholder: 'Elige el titular de la tarjeta',
+            pleaseSelectACardholder: 'Selecciona un titular de la tarjeta para continuar',
             chooseCard: 'Elige una tarjeta',
             chooseCardFor: (assignee) => `Elige una tarjeta para <strong>${assignee}</strong>. ¿No encuentras la tarjeta que buscas? <concierge-link>Avísanos.</concierge-link>`,
             noActiveCards: 'No hay tarjetas activas en este feed',
@@ -5929,6 +5933,7 @@ ${amount} para ${merchant} - ${date}`,
             deleteFailureMessage: 'Se ha producido un error al intentar eliminar la categoría. Por favor, inténtalo más tarde.',
             categoryName: 'Nombre de la categoría',
             requiresCategory: 'Los miembros deben clasificar todos los gastos',
+            showCategoryGLCodes: 'Mostrar códigos GL al categorizar gastos',
             needCategoryForExportToIntegration: (connectionName) => `Todos los gastos deben estar categorizados para poder exportar a ${connectionName}.`,
             subtitle: 'Obtén una visión general de dónde te gastas el dinero. Utiliza las categorías predeterminadas o añade las tuyas propias.',
             emptyCategories: {
@@ -7226,6 +7231,30 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             description: (reportName, connectionName) =>
                 `Los siguientes informes ya se han exportado a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. ¿Estás seguro de que deseas exportarlos de nuevo?\n\n${reportName}`,
             confirmText: 'Sí, exportar de nuevo',
+            cancelText: 'Cancelar',
+        },
+        exportDifferentCompaniesModal: {
+            title: '¡Cuidado!',
+            description: (connectionName) =>
+                `Los informes seleccionados están conectados a diferentes empresas de ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, por lo que no se pueden exportar juntos. Selecciona informes conectados a la misma empresa e inténtalo de nuevo.`,
+            confirmText: 'Entendido',
+        },
+        exportPartialModal: {
+            title: (exportableCount, selectedCount, integration) => `¿Exportar ${exportableCount}/${selectedCount} informes a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Solo se exportarán los informes conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Solo se exportarán los informes aptos para la exportación.`);
+                }
+                return `${reasons.join('\n\n')}\n\nSe exportarán los siguientes informes:`;
+            },
+            confirmText: () => ({
+                one: `Exportar 1 informe`,
+                other: (count: number) => `Exportar ${count} informes`,
+            }),
             cancelText: 'Cancelar',
         },
         planTypePage: {
@@ -8953,7 +8982,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Tarjeta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturación consolidada de viajes',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturación consolidada de viajes',
             },
             is: 'Es',
             has: {submittedViolation: 'Infracción enviada'},
@@ -9756,7 +9785,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         decline: 'Rechazar',
     },
     actionableMentionTrackExpense: {
-        submit: 'Pedirle a alguien que lo pague',
         submitToFriend: 'Enviar a un amigo',
         submitToEmployer: 'Enviar a mi empleador',
         categorize: 'Categorizarlo',
