@@ -1,5 +1,6 @@
 import WorkspaceAvatar from '@components/Avatar/WorkspaceAvatar';
 import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -90,8 +91,10 @@ function InvoiceSenderField({selectedParticipants, isReadOnly, didConfirm, trans
                         />
                     </MenuItem.Leading>
                     <MenuItem.Content>
-                        <MenuItem.Title>{senderWorkspace?.name ?? ''}</MenuItem.Title>
-                        <MenuItem.Description>{translate('workspace.common.workspace')}</MenuItem.Description>
+                        {!!senderWorkspace?.name && <MenuItem.Title>{senderWorkspace.name}</MenuItem.Title>}
+                        <MenuItem.Description variant={senderWorkspace?.name ? MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING : MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>
+                            {translate('workspace.common.workspace')}
+                        </MenuItem.Description>
                     </MenuItem.Content>
                     {isInteractive && (
                         <MenuItem.Trailing>

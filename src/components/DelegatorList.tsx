@@ -29,17 +29,14 @@ function DelegatorList({delegators, message}: DelegatorListProps) {
     return (
         <>
             <Text style={[styles.mh5, styles.mb4]}>{message}</Text>
-            {delegators?.map((delegatorEmail) => {
-                const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
-                const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
-                const displayLogin = formattedLogin || delegatorEmail;
+            <View style={[styles.mt1, styles.gap1]}>
+                {delegators?.map((delegatorEmail) => {
+                    const delegatorDetails = personalDetailsByLogin[delegatorEmail.toLowerCase()];
+                    const formattedLogin = formatPhoneNumber(delegatorDetails?.login ?? '');
+                    const displayLogin = formattedLogin || delegatorEmail;
 
-                return (
-                    <View
-                        key={delegatorEmail}
-                        style={styles.mt1}
-                    >
-                        <MenuItem.Root>
+                    return (
+                        <MenuItem.Root key={delegatorEmail}>
                             <MenuItem.Row>
                                 <MenuItem.Leading>
                                     <UserAvatar
@@ -53,9 +50,9 @@ function DelegatorList({delegators, message}: DelegatorListProps) {
                                 </MenuItem.Content>
                             </MenuItem.Row>
                         </MenuItem.Root>
-                    </View>
-                );
-            })}
+                    );
+                })}
+            </View>
         </>
     );
 }

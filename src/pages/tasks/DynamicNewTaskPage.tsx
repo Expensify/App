@@ -1,9 +1,11 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import DisplayNames from '@components/DisplayNames';
+import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import FormHelpMessage from '@components/FormHelpMessage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import ReportActionAvatars from '@components/ReportActionAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -35,6 +37,80 @@ import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
+
+type TaskFieldRowProps = {
+    /** Name of the field, shown above the row once the field has a value */
+    label: string;
+
+    /** Avatars for the selected value. Falsy while the field is empty, which drops the leading cell */
+    avatars?: React.ReactNode;
+
+    /** Display name of the selected value. Absent while the field is empty */
+    displayName?: string;
+
+    /** Per-name tooltips for `displayName`. Falls back to plain text when empty */
+    displayNamesWithTooltips?: DisplayNameWithTooltip[];
+
+    /** Supporting line under the title. With no `displayName` it carries the row on its own */
+    description: string;
+
+    /** Whether to show the `Required` hint in the trailing cell */
+    shouldShowRequiredLabel?: boolean;
+
+    /** Whether to show the trailing chevron */
+    shouldShowChevron?: boolean;
+
+    /** Function to fire when the row is pressed. Omit to make the row non-interactive */
+    onPress?: () => void;
+};
+
+/**
+ * One of the task's participant fields (assignee, share destination). Both render the same shape: the
+ * field name on top once a value is picked, then that value's avatar, name and secondary line.
+ */
+function TaskFieldRow({label, avatars, displayName, displayNamesWithTooltips, description, shouldShowRequiredLabel = false, shouldShowChevron = true, onPress}: TaskFieldRowProps) {
+    const styles = useThemeStyles();
+    const {translate} = useLocalize();
+
+    const hasValue = !!displayName;
+
+    return (
+        <MenuItem.Root onPress={onPress}>
+            {hasValue && (
+                <View style={styles.mb2}>
+                    <MenuItem.Label>{label}</MenuItem.Label>
+                </View>
+            )}
+            <MenuItem.Row>
+                {!!avatars && <MenuItem.Leading>{avatars}</MenuItem.Leading>}
+                <MenuItem.Content>
+                    {hasValue &&
+                        (displayNamesWithTooltips?.length ? (
+                            <MenuItem.Title accessibilityLabel={displayName}>
+                                <DisplayNames
+                                    fullTitle={displayName}
+                                    displayNamesWithTooltips={displayNamesWithTooltips}
+                                    tooltipEnabled
+                                    numberOfLines={1}
+                                />
+                            </MenuItem.Title>
+                        ) : (
+                            <MenuItem.Title>{displayName}</MenuItem.Title>
+                        ))}
+                    {!!description && (
+                        <MenuItem.Description variant={hasValue ? MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING : MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>{description}</MenuItem.Description>
+                    )}
+                </MenuItem.Content>
+                {(shouldShowRequiredLabel || shouldShowChevron) && (
+                    <MenuItem.Trailing>
+                        {shouldShowRequiredLabel && <Text style={styles.rightLabelMenuItem}>{translate('common.required')}</Text>}
+                        {shouldShowChevron && <MenuItem.Chevron />}
+                    </MenuItem.Trailing>
+                )}
+            </MenuItem.Row>
+        </MenuItem.Root>
+    );
+}
 
 function DynamicNewTaskPage() {
     const [task] = useOnyx(ONYXKEYS.TASK);
@@ -186,87 +262,38 @@ function DynamicNewTaskPage() {
                                 numberOfLinesTitle={2}
                                 titleStyle={styles.flex1}
                             />
-                            <MenuItem.Root onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path))}>
-                                {!!assignee?.displayName && (
-                                    <View style={styles.mb2}>
-                                        <MenuItem.Label>{translate('task.assignee')}</MenuItem.Label>
-                                    </View>
-                                )}
-                                <MenuItem.Row>
-                                    {!!task?.assigneeAccountID && (
-                                        <MenuItem.Leading>
-                                            <ReportActionAvatars
-                                                singleAvatarContainerStyle={[styles.actionAvatar]}
-                                                accountIDs={[task.assigneeAccountID]}
-                                            />
-                                        </MenuItem.Leading>
-                                    )}
-                                    <MenuItem.Content>
-                                        {!!assignee?.displayName &&
-                                            (assigneeTooltipDetails.length > 0 ? (
-                                                <MenuItem.Title accessibilityLabel={assignee.displayName}>
-                                                    <DisplayNames
-                                                        fullTitle={assignee.displayName}
-                                                        displayNamesWithTooltips={assigneeTooltipDetails}
-                                                        tooltipEnabled
-                                                        numberOfLines={1}
-                                                    />
-                                                </MenuItem.Title>
-                                            ) : (
-                                                <MenuItem.Title>{assignee.displayName}</MenuItem.Title>
-                                            ))}
-                                        <MenuItem.Description
-                                            variant={assignee?.displayName ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
-                                        >
-                                            {assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
-                                        </MenuItem.Description>
-                                    </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        <MenuItem.Chevron />
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
-                            <MenuItem.Root onPress={task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path))}>
-                                {!!shareDestination?.displayName && (
-                                    <View style={styles.mb2}>
-                                        <MenuItem.Label>{translate('common.share')}</MenuItem.Label>
-                                    </View>
-                                )}
-                                <MenuItem.Row>
-                                    {!!task?.shareDestination && (
-                                        <MenuItem.Leading>
-                                            <ReportActionAvatars
-                                                singleAvatarContainerStyle={[styles.actionAvatar]}
-                                                reportID={task.shareDestination}
-                                            />
-                                        </MenuItem.Leading>
-                                    )}
-                                    <MenuItem.Content>
-                                        {!!shareDestination?.displayName &&
-                                            (!shareDestination.shouldUseFullTitleToDisplay && shareDestination.displayNamesWithTooltips.length > 0 ? (
-                                                <MenuItem.Title accessibilityLabel={shareDestination.displayName}>
-                                                    <DisplayNames
-                                                        fullTitle={shareDestination.displayName}
-                                                        displayNamesWithTooltips={shareDestination.displayNamesWithTooltips}
-                                                        tooltipEnabled
-                                                        numberOfLines={1}
-                                                    />
-                                                </MenuItem.Title>
-                                            ) : (
-                                                <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
-                                            ))}
-                                        <MenuItem.Description
-                                            variant={shareDestination?.displayName ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
-                                        >
-                                            {shareDestination?.displayName ? (shareDestination.subtitle ?? '') : translate('common.share')}
-                                        </MenuItem.Description>
-                                    </MenuItem.Content>
-                                    <MenuItem.Trailing>
-                                        {!task?.shareDestination && <Text style={styles.rightLabelMenuItem}>{translate('common.required')}</Text>}
-                                        {!task?.parentReportID && <MenuItem.Chevron />}
-                                    </MenuItem.Trailing>
-                                </MenuItem.Row>
-                            </MenuItem.Root>
+                            <TaskFieldRow
+                                label={translate('task.assignee')}
+                                avatars={
+                                    !!task?.assigneeAccountID && (
+                                        <ReportActionAvatars
+                                            singleAvatarContainerStyle={[styles.actionAvatar]}
+                                            accountIDs={[task.assigneeAccountID]}
+                                        />
+                                    )
+                                }
+                                displayName={assignee?.displayName}
+                                displayNamesWithTooltips={assigneeTooltipDetails}
+                                description={assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
+                                onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_ASSIGNEE.path))}
+                            />
+                            <TaskFieldRow
+                                label={translate('common.share')}
+                                avatars={
+                                    !!task?.shareDestination && (
+                                        <ReportActionAvatars
+                                            singleAvatarContainerStyle={[styles.actionAvatar]}
+                                            reportID={task.shareDestination}
+                                        />
+                                    )
+                                }
+                                displayName={shareDestination?.displayName}
+                                displayNamesWithTooltips={shareDestination?.shouldUseFullTitleToDisplay ? undefined : shareDestination?.displayNamesWithTooltips}
+                                description={shareDestination?.displayName ? (shareDestination.subtitle ?? '') : translate('common.share')}
+                                shouldShowRequiredLabel={!shareDestination?.displayName}
+                                shouldShowChevron={!task?.parentReportID}
+                                onPress={task?.parentReportID ? undefined : () => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.NEW_TASK_SHARE_DESTINATION.path))}
+                            />
                         </View>
                     </View>
                     <View style={styles.flexShrink0}>
