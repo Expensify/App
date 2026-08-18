@@ -126,6 +126,7 @@ function getChannel(channelName: string): Channel | undefined {
     return socket.channel(channelName);
 }
 
+// Runs the callback on every later handshake and never on the first one.
 // Unlike native, this opens the channel, so a caller must not rely on subscribe() to create it.
 function onChannelResubscribe(channelName: string, callback: () => void) {
     let unbind = () => {};
@@ -316,13 +317,8 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                             return;
                         }
 
-                        const onSubscriptionSucceeded = () => {
-                            unbindHandshakeHandlers();
-                            bindAndResolve();
-                        };
-
                         const onSubscriptionError = (data: PusherSubscriptionErrorData = {}) => {
-                            unbindHandshakeHandlers();
+                            channel.unbind('pusher:subscription_error', onSubscriptionError);
                             const {type, error, status} = data;
                             Log.hmmm('[Pusher] Issue authenticating with Pusher during subscribe attempt.', {
                                 channelName,
@@ -333,10 +329,11 @@ function subscribe<EventName extends PusherEventName>(channelName: string, event
                             reject(error);
                         };
 
-                        function unbindHandshakeHandlers() {
+                        const onSubscriptionSucceeded = () => {
                             channel.unbind('pusher:subscription_succeeded', onSubscriptionSucceeded);
                             channel.unbind('pusher:subscription_error', onSubscriptionError);
-                        }
+                            bindAndResolve();
+                        };
 
                         channel.bind('pusher:subscription_succeeded', onSubscriptionSucceeded);
                         channel.bind('pusher:subscription_error', onSubscriptionError);

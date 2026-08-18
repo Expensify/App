@@ -28,6 +28,7 @@ type FakeChannel = {
     completeHandshake: () => void;
     failAuthorization: () => void;
     dropConnection: () => void;
+    receiveEvent: (eventName: string, data?: unknown) => void;
 };
 
 const mockChannels = new Map<string, FakeChannel>();
@@ -95,6 +96,10 @@ jest.mock('pusher-js/with-encryption', () => {
             dropConnection: () => {
                 channel.subscribed = false;
                 channel.subscriptionPending = false;
+            },
+
+            receiveEvent: (eventName, data) => {
+                emit(eventName, data);
             },
         };
 
@@ -203,6 +208,23 @@ describe('Pusher.subscribe on web', () => {
         await retried;
 
         expect(channel?.authAttempts).toBe(2);
+    });
+
+    it('should bind the event callback when pusher-js authorizes the channel again after a subscription error', async () => {
+        const onEvent = jest.fn();
+
+        const failed = Pusher.subscribe(CHANNEL, 'pong', onEvent);
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(CHANNEL);
+        channel?.failAuthorization();
+        await expect(failed).rejects.toBe('Forbidden');
+
+        channel?.startSubscription();
+        channel?.completeHandshake();
+        channel?.receiveEvent('pong', {});
+
+        expect(onEvent).toHaveBeenCalledTimes(1);
     });
 
     it('should reject every caller waiting on a failed handshake, not only the first', async () => {
