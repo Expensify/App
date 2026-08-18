@@ -86,10 +86,8 @@ This is a checklist for PR authors. Please make sure to complete all tasks and c
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
 - [ ] I verified there are no console errors (if there's a console error not related to the PR, report it or open an issue for it to be fixed)
-- [ ] I followed proper code patterns (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I verified any copy / text that was added to the app is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
+- [ ] I verified any copy / text that was added to the app is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
-- [ ] I followed the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I tested other components that can be impacted by my changes (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` are working as expected)
 - [ ] If new assets were added or existing ones were modified, I verified that:
     - [ ] The assets are optimized and compressed (for SVG files, run `npm run compress-svg`)

@@ -17,10 +17,8 @@
     - [ ] iOS: mWeb Safari
     - [ ] MacOS: Chrome / Safari
 - [ ] If there are any errors in the console that are unrelated to this PR, I either fixed them (preferred) or linked to where I reported them in Slack
-- [ ] I verified proper code patterns were followed (see [Reviewing the code](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md#reviewing-the-code))
-    - [ ] I verified any copy / text that was added to the app is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
+- [ ] I verified any copy / text that was added to the app is either coming verbatim from figma or has been approved by marketing (in order to get marketing approval, ask the Bug Zero team member to add the Waiting for copy label to the issue)
 - [ ] If a new code pattern is added I verified it was agreed to be used by multiple Expensify engineers
-- [ ] I verified that this PR follows the guidelines as stated in the [Review Guidelines](https://github.com/Expensify/App/blob/main/contributingGuides/PR_REVIEW_GUIDELINES.md)
 - [ ] I verified other components that can be impacted by these changes have been tested, and I retested again (i.e. if the PR modifies a shared library or component like `Avatar`, I verified the components using `Avatar` have been tested & I retested again)
 - [ ] If a new component is created I verified that:
     - [ ] A similar component doesn't exist in the codebase
