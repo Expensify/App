@@ -13,7 +13,7 @@ import * as IsFileUploadable from '@libs/isFileUploadable';
 import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction} from '@libs/ReportActionsUtils';
+import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isActionableTrackExpense, isMoneyRequestAction, isMovedTransactionAction} from '@libs/ReportActionsUtils';
 import {mintAndStampReceiptTraceId} from '@libs/telemetry/ReceiptObservability';
 
 import type {IOUAction} from '@src/CONST';
@@ -25,7 +25,6 @@ import DateUtils from '@src/libs/DateUtils';
 import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Policy, RecentlyUsedTags, Report} from '@src/types/onyx';
-import type {OriginalMessageMovedTransaction} from '@src/types/onyx/OriginalMessage';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type {Participant} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
@@ -53,6 +52,8 @@ import {
     getCurrencyDecimalsLocal,
     getGlobalFetchMock,
     getOnyxData,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
     setPersonalDetails,
     signInWithTestUser,
     translateLocal,
@@ -182,8 +183,8 @@ describe('actions/IOU', () => {
     let mockFetch: MockFetch;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -234,6 +235,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return waitForBatchedUpdates()
                 .then(
@@ -496,6 +498,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -729,6 +732,7 @@ describe('actions/IOU', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -897,6 +901,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             return (
                 waitForBatchedUpdates()
@@ -1419,6 +1424,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(notifyNewAction).toHaveBeenCalledTimes(0);
         });
@@ -1455,6 +1461,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
         });
@@ -1491,6 +1498,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             // Verify that the iouReport is created successfully when isSelfTourViewed is true
             expect(iouReport).toBeDefined();
@@ -1546,6 +1554,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1594,6 +1603,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1669,6 +1679,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             waitForBatchedUpdates();
 
@@ -1741,6 +1752,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1818,6 +1830,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(iouReport).toBeDefined();
@@ -1866,6 +1879,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // Should still create the expense even with empty personalDetails
@@ -2030,6 +2044,7 @@ describe('actions/IOU', () => {
                 betas: [CONST.BETAS.ALL],
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2052,11 +2067,9 @@ describe('actions/IOU', () => {
 
             // Also, the fromReportID of movedTransactionAction should be CONST.REPORT.UNREPORTED_REPORT_ID
             const updatedTransactionThreadReportActions = getAllReportActions(transactionThreadReport?.reportID);
-            const movedTransactionAction = Object.values(updatedTransactionThreadReportActions ?? {}).find(
-                (reportAction) => reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION,
-            );
+            const movedTransactionAction = Object.values(updatedTransactionThreadReportActions ?? {}).find(isMovedTransactionAction);
             expect(movedTransactionAction).toBeTruthy();
-            const originalMessage = getOriginalMessage(movedTransactionAction) as OriginalMessageMovedTransaction | undefined;
+            const originalMessage = getOriginalMessage(movedTransactionAction);
             expect(originalMessage?.fromReportID).toBe(CONST.REPORT.UNREPORTED_REPORT_ID);
         });
 
@@ -2108,6 +2121,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2198,6 +2212,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2279,6 +2294,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2355,6 +2371,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2432,6 +2449,7 @@ describe('actions/IOU', () => {
                         personalDetails: {},
                         delegateAccountID: undefined,
                         isTrackIntentUser: false,
+                        formatPhoneNumber,
                     });
                     return waitForBatchedUpdates();
                 })
@@ -2506,6 +2524,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2570,6 +2589,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2642,6 +2662,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2649,11 +2670,12 @@ describe('actions/IOU', () => {
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
-            const [command, params] = writeSpy.mock.calls.at(0);
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [command, params] = getRequiredWriteCall(writeCalls);
             expect(command).toBe(expectedCommand);
 
             // And the parameters should be supported by XMLHttpRequest
-            for (const value of Object.values(params as Record<string, unknown>)) {
+            for (const value of Object.values(params)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
         });
@@ -2703,6 +2725,7 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -2938,6 +2961,7 @@ describe('actions/IOU', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -3010,15 +3034,17 @@ describe('actions/IOU', () => {
                 personalDetails: {},
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
 
             expect(writeSpy).toHaveBeenCalledTimes(1);
-            const [, , requestData] = writeSpy.mock.calls.at(0) as [ApiCommand, Record<string, unknown>, {optimisticData?: Array<{key: string}>}];
-            const optimisticData = requestData.optimisticData ?? [];
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [, , requestData] = getRequiredWriteCall(writeCalls);
+            const optimisticData = getRequiredOnyxUpdates(requestData, 'optimisticData');
             const mainSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`;
-            expect(optimisticData.some((update) => update.key === mainSnapshotKey)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: mainSnapshotKey})]));
 
             const newFlatFilters = currentSearchQueryJSON.flatFilters.filter((filter) => filter.key !== CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM);
             newFlatFilters.push({
@@ -3038,7 +3064,7 @@ describe('actions/IOU', () => {
                 throw new Error('Expected grouped transactions query JSON to be defined');
             }
             const groupedSnapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupedTransactionsQueryJSON.hash}`;
-            expect(optimisticData.some((update) => update.key === groupedSnapshotKey)).toBeTruthy();
+            expect(optimisticData).toEqual(expect.arrayContaining([expect.objectContaining({key: groupedSnapshotKey})]));
 
             getCurrentSearchQueryJSONSpy.mockRestore();
         });
@@ -3096,7 +3122,8 @@ describe('actions/IOU', () => {
             // Then the correct API request should be made
             expect(writeSpy).toHaveBeenCalledTimes(1);
 
-            const [command, params] = writeSpy.mock.calls.at(0);
+            const writeCalls: unknown = writeSpy.mock.calls;
+            const [command, params] = getRequiredWriteCall(writeCalls);
             expect(command).toBe(expectedCommand);
 
             if (expectedCommand === WRITE_COMMANDS.SHARE_TRACKED_EXPENSE) {
@@ -3104,7 +3131,7 @@ describe('actions/IOU', () => {
             }
 
             // And the parameters should be supported by XMLHttpRequest
-            for (const value of Object.values(params as Record<string, unknown>)) {
+            for (const value of Object.values(params)) {
                 expect(Array.isArray(value) ? value.every(isValid) : isValid(value)).toBe(true);
             }
         });
@@ -3121,6 +3148,7 @@ describe('actions/IOU', () => {
             return {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactions: [transaction],
+                conciergeChat: undefined,
                 iouType,
                 report,
                 currentUserAccountID: CREATE_TRANSACTION_USER_ACCOUNT_ID,
@@ -3139,6 +3167,7 @@ describe('actions/IOU', () => {
                 optimisticChatReportID: undefined,
                 currentUserLocalCurrency: 'USD',
                 isTrackIntentUser: false,
+                formatPhoneNumber,
                 delegateAccountID: undefined,
             };
         };

@@ -26,6 +26,7 @@ import type * as FileUtilsModule from '../../src/libs/fileDownload/FileUtils';
 
 import * as TrackExpense from '../../src/libs/actions/IOU/TrackExpense';
 import cleanupAndNavigateAfterExpenseCreate from '../../src/libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
+import createMock from '../utils/createMock';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
@@ -229,7 +230,7 @@ function renderSubmitDetailsPage() {
     return render(
         <SubmitDetailsPage
             route={{key: 'submit-test', name: SCREENS.SHARE.SUBMIT_DETAILS, params: {reportOrAccountID: SHARED_REPORT_ID}}}
-            navigation={{} as never}
+            navigation={createMock<React.ComponentProps<typeof SubmitDetailsPage>['navigation']>({})}
         />,
     );
 }

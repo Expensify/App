@@ -77,6 +77,7 @@ function DuplicateTransactionItem({transaction, isLastItem, isSelected, shouldSh
             iouReport: report,
             iouReportAction: action,
             transaction,
+            personalDetails,
         });
         if (!transactionThreadReport?.reportID) {
             return;
