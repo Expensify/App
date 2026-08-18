@@ -9889,6 +9889,11 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `期間限定オファー：初年度が${discountType}%オフ！`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `${days > 0 ? `${days}日：` : ''}${hours}時間以内に請求：${minutes}分：${seconds}秒`,
             },
+            travelInvoiceOverdue: {title: '出張請求書のお支払い期限が過ぎています', subtitle: (date: string) => `${date}までに旅行の請求書を支払って、旅行の予約を続けてください。`},
+            travelInvoiceOverdueLocked: {
+                title: '出張予約は一時停止されています',
+                subtitle: '旅行の請求書のお支払い期限が過ぎています。お支払いを完了して、再度旅行の予約を開始してください。',
+            },
         },
         cardSection: {
             title: '支払い',

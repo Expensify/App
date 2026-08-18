@@ -9963,6 +9963,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 onboardingChatTitle: (discountType: number) => `Oferta ograniczona czasowo: ${discountType}% zniżki na pierwszy rok!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Odbierz w ciągu ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {
+                title: 'Twoja faktura za podróż jest przeterminowana',
+                subtitle: (date: string) => `Opłać fakturę za podróż do ${date}, żeby móc dalej rezerwować podróże.`,
+            },
+            travelInvoiceOverdueLocked: {title: 'Rezerwacja podróży jest wstrzymana', subtitle: 'Twoja faktura za podróż jest przeterminowana. Opłać ją, żeby znowu móc rezerwować podróże.'},
         },
         cardSection: {
             title: 'Płatność',
