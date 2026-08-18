@@ -770,6 +770,7 @@ function BasePopoverMenu({
             <FocusTrapForModal
                 active={isVisible}
                 shouldReturnFocus={!shouldUseNewFocusManagement}
+                launcherRef={anchorRef}
             >
                 <CompactMenuContext.Provider value>
                     <View

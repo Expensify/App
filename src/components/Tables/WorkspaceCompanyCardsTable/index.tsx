@@ -115,7 +115,10 @@ function WorkspaceCompanyCardsTable({
 
     const {cardFeedErrors} = useCardFeedErrors();
     const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
-    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
+    // Per-row errors are hidden while we surface the connection error for the whole feed instead. Keyed on the prompting flag
+    // so that past the grace period an actionable card error (e.g. a failed unassignment) becomes visible and dismissible
+    // again rather than being suppressed forever.
+    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
