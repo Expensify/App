@@ -265,7 +265,7 @@ function SearchAutocompleteList({
             isUsedInChatFinder: true,
             includeReadOnly: true,
             searchQuery: autocompleteQueryValue,
-            // With an Auth order, keep every matching report instead of just the 20 most recent, so the Auth-order sort below can't drop a top-ranked but old one.
+            // This cuts the list down before the server's order is applied below, so an old report the server ranked highly would be dropped before it could sort up.
             maxResults: searchResultReportIDs && searchResultReportIDs.length > 0 ? listOptions.reports.length : CONST.AUTO_COMPLETE_SUGGESTER.MAX_AMOUNT_OF_SUGGESTIONS,
             includeUserToInvite: true,
             includeRecentReports: true,
@@ -447,8 +447,8 @@ function SearchAutocompleteList({
             reportOptions.push(searchOptions.userToInvite);
         }
 
-        // When the server has returned a tier-ranked order for this search, display results in that order
-        // instead of the client-side kind/recency order. Reports absent from the list sort to the end.
+        // When the results are ordered by the server, display them in that order instead of the client-side
+        // kind/recency order. Reports absent from the list sort to the end.
         if (searchResultReportIDs && searchResultReportIDs.length > 0) {
             const rankByReportID = new Map(searchResultReportIDs.map((reportID, index) => [reportID, index]));
             const rankOf = (option: OptionData) => {
@@ -571,9 +571,8 @@ function SearchAutocompleteList({
                 });
             }
         } else if (searchResultReportIDs && searchResultReportIDs.length > 0) {
-            // The server returned a tier-ranked order for this query (already applied to recentReportsOptions),
-            // so render a single list in that order rather than splitting into local/server sections — splitting
-            // would group local matches separately and break the global tier ordering.
+            // The order is already applied to recentReportsOptions, so render one list instead of splitting into
+            // local/server sections, which would group local matches separately and break it.
             if (nextStyledRecentReports.length > 0 || !isLoadingOptions) {
                 pushSection({title: translate('search.serverResults'), data: nextStyledRecentReports, sectionIndex: sectionIndex++});
             } else {
