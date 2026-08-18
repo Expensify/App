@@ -326,7 +326,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each([CONST.CURRENCY.USD, undefined])('keeps the confirm action for a PENDING account in currency "%s"', (currency) => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual(
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual(
                 expect.objectContaining({
                     labelKey: 'walletPage.bankAccountStatus.pending',
                     actionKey: 'common.confirm',
@@ -335,7 +335,7 @@ describe('BankAccountUtils', () => {
         });
 
         it.each(['GBP', 'EUR', 'AUD'])('maps a PENDING account in currency "%s" to Incomplete, since only USD accounts have test transactions', (currency) => {
-            expect(getBankAccountConnectionStatus(CONST.BANK_ACCOUNT.STATE.PENDING, currency)).toEqual({
+            expect(getBankAccountConnectionStatus({state: CONST.BANK_ACCOUNT.STATE.PENDING}, currency)).toEqual({
                 labelKey: 'walletPage.bankAccountStatus.incomplete',
                 messageKey: 'walletPage.bankAccountStatus.finishAddingBankAccount',
                 actionKey: 'walletPage.bankAccountStatus.finish',
@@ -347,7 +347,7 @@ describe('BankAccountUtils', () => {
         it.each([CONST.BANK_ACCOUNT.STATE.OPEN, CONST.BANK_ACCOUNT.STATE.SETUP, CONST.BANK_ACCOUNT.STATE.VERIFYING, CONST.BANK_ACCOUNT.STATE.LOCKED])(
             'is unaffected by a non-USD currency in state "%s"',
             (state) => {
-                expect(getBankAccountConnectionStatus(state, 'GBP')).toEqual(getBankAccountConnectionStatus(state));
+                expect(getBankAccountConnectionStatus({state}, 'GBP')).toEqual(getBankAccountConnectionStatus({state}));
             },
         );
 
@@ -367,7 +367,7 @@ describe('BankAccountUtils', () => {
             } as AccountData;
 
             it('returns Connect branch (requiresPlaidHandler) when card-eligible US business is OPEN with no Plaid connection', () => {
-                expect(getBankAccountConnectionStatus(openBusinessUS, true)).toEqual({
+                expect(getBankAccountConnectionStatus(openBusinessUS, CONST.CURRENCY.USD, true)).toEqual({
                     requiresPlaidHandler: true,
                     labelKey: 'walletPage.bankAccountStatus.active',
                     messageKey: 'walletPage.bankAccountStatus.plaidConnectForLimit',
@@ -386,7 +386,7 @@ describe('BankAccountUtils', () => {
                         verifications: {externalApiResponses: {plaidAssets: {needsFixing: true}}},
                     },
                 } as AccountData;
-                expect(getBankAccountConnectionStatus(accountData, true)).toEqual({
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
                     requiresPlaidHandler: true,
                     labelKey: 'walletPage.bankAccountStatus.active',
                     messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
@@ -397,7 +397,7 @@ describe('BankAccountUtils', () => {
             });
 
             it('falls through to plain Active when isCardEligible is false', () => {
-                expect(getBankAccountConnectionStatus(openBusinessUS, false)).toEqual({
+                expect(getBankAccountConnectionStatus(openBusinessUS, CONST.CURRENCY.USD, false)).toEqual({
                     labelKey: 'walletPage.bankAccountStatus.active',
                     tone: 'success',
                 });
@@ -408,7 +408,7 @@ describe('BankAccountUtils', () => {
                     ...openBusinessUS,
                     additionalData: {country: 'CA'},
                 } as AccountData;
-                expect(getBankAccountConnectionStatus(accountData, true)).toEqual({
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
                     labelKey: 'walletPage.bankAccountStatus.active',
                     tone: 'success',
                 });
@@ -420,7 +420,7 @@ describe('BankAccountUtils', () => {
                     state: CONST.BANK_ACCOUNT.STATE.OPEN,
                     additionalData: {},
                 } as AccountData;
-                expect(getBankAccountConnectionStatus(accountData, true)?.requiresPlaidHandler).toBe(true);
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)?.requiresPlaidHandler).toBe(true);
             });
 
             it('falls through to plain Active for personal accounts', () => {
@@ -429,7 +429,7 @@ describe('BankAccountUtils', () => {
                     state: CONST.BANK_ACCOUNT.STATE.OPEN,
                     additionalData: {country: CONST.COUNTRY.US},
                 } as AccountData;
-                expect(getBankAccountConnectionStatus(accountData, true)).toEqual({
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
                     labelKey: 'walletPage.bankAccountStatus.active',
                     tone: 'success',
                 });
@@ -440,7 +440,7 @@ describe('BankAccountUtils', () => {
                     ...openBusinessUS,
                     additionalData: {...openBusinessUS.additionalData, plaidAccountID: 'plaid-123'},
                 } as AccountData;
-                expect(getBankAccountConnectionStatus(accountData, true)).toEqual({
+                expect(getBankAccountConnectionStatus(accountData, CONST.CURRENCY.USD, true)).toEqual({
                     labelKey: 'walletPage.bankAccountStatus.active',
                     tone: 'success',
                 });
