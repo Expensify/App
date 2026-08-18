@@ -7,6 +7,22 @@ describe('getOnboardingIntentFromUrl', () => {
         expect(getOnboardingIntentFromUrl('https://new.expensify.com/onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
     });
 
+    it('reads the intent from a custom scheme link, where the route sits where a host would', () => {
+        expect(getOnboardingIntentFromUrl('new-expensify://onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
+    });
+
+    it('reads the intent from a custom scheme link with a placeholder host', () => {
+        expect(getOnboardingIntentFromUrl('app://-/onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
+    });
+
+    it('reads the intent from the exitTo of a custom scheme magic link', () => {
+        expect(getOnboardingIntentFromUrl('new-expensify://v/12345/678910?exitTo=onboarding%3Fintent%3Dsubmit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
+    });
+
+    it('reads the intent from a link served on a port, as the dev server does', () => {
+        expect(getOnboardingIntentFromUrl('https://dev.new.expensify.com:8082/onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
+    });
+
     it('reads the intent from an in-app path without an origin', () => {
         expect(getOnboardingIntentFromUrl('/onboarding?intent=submit')).toBe(CONST.ONBOARDING_INTENTS.SUBMIT);
     });

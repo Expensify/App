@@ -22,10 +22,17 @@ function isOnboardingIntent(value: string | null): value is OnboardingIntent {
     return !!value && ONBOARDING_INTENT_VALUES.has(value);
 }
 
-/** Strips the scheme and host so absolute URLs and in-app paths can be inspected the same way. */
+/**
+ * Strips the scheme and, for web URLs, the host, so absolute URLs and in-app paths can be inspected the same way.
+ *
+ * Custom schemes have to keep the segment straight after `://`. In `new-expensify://onboarding?intent=submit` that
+ * segment is the route rather than a host, so dropping it the way we drop `new.expensify.com` would discard the
+ * route and lose the intent. The `app://-/` prefix puts a placeholder host there instead, which is dropped.
+ */
 function getPathWithQuery(url: string): string {
-    const [withoutHash] = url.replace(/^[a-z][\w+.-]*:\/\/[^/]*/i, '').split('#', 2);
-    return withoutHash.replace(/^\/+/, '');
+    const [withoutHash] = url.split('#', 2);
+    const withoutOrigin = /^https?:\/\//i.test(withoutHash) ? withoutHash.replace(/^https?:\/\/[^/?#]*/i, '') : withoutHash.replace(/^[a-z][\w+.-]*:\/\//i, '');
+    return withoutOrigin.replace(/^(-\/)?\/*/, '');
 }
 
 function getOnboardingIntentFromUrl(url: string | null | undefined): OnboardingIntent | undefined {

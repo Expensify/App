@@ -12,7 +12,8 @@ import {useState} from 'react';
  *
  * The URL is latched at mount because the app rewrites it as soon as it navigates, which happens well before the
  * intent has been acted on. The initial URL is the only source on native, where the browser URL is empty and the
- * deeplink resolves asynchronously.
+ * deeplink resolves asynchronously. It also covers links opened while the app is already running, which DeepLinkHandler
+ * records there because the latched URL is stale by then.
  */
 function useOnboardingDeeplinkIntent(): OnboardingIntent | undefined {
     const {initialURL} = useInitialURLState();
