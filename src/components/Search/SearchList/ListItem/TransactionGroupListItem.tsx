@@ -580,7 +580,7 @@ function TransactionGroupListItemImpl({
                 onFocus={onFocus}
                 wrapperStyle={[
                     styles.mh5,
-                    {backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG},
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItem, isItemSelected), isLastItem && styles.overflowHidden]

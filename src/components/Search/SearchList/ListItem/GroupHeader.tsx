@@ -401,7 +401,7 @@ function GroupHeader({
                 ]}
                 wrapperStyle={[
                     styles.mh5,
-                    {backgroundColor: isItemSelected ? theme.activeComponentBG : theme.highlightBG},
+                    StyleUtils.getSearchRowBackgroundStyle(!!isItemSelected),
                     styles.userSelectNone,
                     isLargeScreenWidth
                         ? [StyleUtils.getSearchTableGroupRowBorderStyle(isFirstItem, isLastItemCollapsed, isItemSelected), isLastItemCollapsed && styles.overflowHidden]

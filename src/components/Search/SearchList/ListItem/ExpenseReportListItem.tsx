@@ -482,7 +482,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             hoverStyle={isSelected && styles.activeComponentBG}
             pressableWrapperStyle={[
                 styles.mh5,
-                {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG, ...(!isLargeScreenWidth && {borderRadius: 0})},
+                StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                !isLargeScreenWidth && styles.br0,
                 isPendingDelete && styles.cursorDisabled,
                 isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 !isLargeScreenWidth && isFirstItem && styles.tableTopRadius,

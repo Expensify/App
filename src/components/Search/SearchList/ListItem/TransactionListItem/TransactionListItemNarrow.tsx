@@ -90,7 +90,8 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
-                    {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG, borderRadius: 0},
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
+                    styles.br0,
                     styles.userSelectNone,
                     isFirstItem && styles.tableTopRadius,
                     isLastItem && styles.tableBottomRadius,

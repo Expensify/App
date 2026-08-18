@@ -168,7 +168,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 wrapperStyle={[
                     styles.mh5,
                     styles.flex1,
-                    {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG},
+                    StyleUtils.getSearchRowBackgroundStyle(isSelected),
                     styles.userSelectNone,
                     isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
                 ]}

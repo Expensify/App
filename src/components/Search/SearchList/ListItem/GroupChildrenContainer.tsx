@@ -1,7 +1,7 @@
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
-import useTheme from '@hooks/useTheme';
+import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import React from 'react';
@@ -34,8 +34,8 @@ function GroupChildrenContainer({
     cardFeeds,
     conciergeReportID,
 }: GroupChildrenContainerProps) {
-    const theme = useTheme();
     const styles = useThemeStyles();
+    const StyleUtils = useStyleUtils();
     const {selectedTransactions} = useSearchSelectionContext();
     const {isRendered, animatedStyle, onLayout} = useExpandCollapseAnimation(isExpanded, false, item.keyForList);
     const isContentVisible = isExpanded || isRendered;
@@ -48,7 +48,7 @@ function GroupChildrenContainer({
     }
 
     return (
-        <View style={[styles.mh5, {backgroundColor: isSelected ? theme.activeComponentBG : theme.highlightBG}, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
+        <View style={[styles.mh5, StyleUtils.getSearchRowBackgroundStyle(isSelected), isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}>
             <Animated.View style={animatedStyle}>
                 {isContentVisible ? (
                     <Animated.View
