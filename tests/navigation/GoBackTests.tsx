@@ -5,14 +5,11 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
-import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-
-import type {NavigationContainerRef} from '@react-navigation/native';
 
 import React from 'react';
 
@@ -660,7 +657,11 @@ describe('Go back with nothing to pop', () => {
 
         // The key identifies the mounted screen. A reset assigns a new one, which remounts SignInPage.
         const keyBefore = navigationRef.current?.getRootState().routes.at(0)?.key;
-        const resetSpy = jest.spyOn(navigationRef.current as NavigationContainerRef<RootNavigatorParamList>, 'reset');
+        const navigationContainer = navigationRef.current;
+        if (!navigationContainer) {
+            throw new Error('Navigation container is not ready');
+        }
+        const resetSpy = jest.spyOn(navigationContainer, 'reset');
 
         // When going back without a fallback route
         act(() => {
