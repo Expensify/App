@@ -86,6 +86,5 @@ function SearchRouterOptionsWarmer({onDone}: SearchRouterOptionsWarmerProps) {
     return null;
 }
 
-SearchRouterOptionsWarmer.displayName = 'SearchRouterOptionsWarmer';
-
 export default SearchRouterOptionsWarmer;
+export type {SearchRouterOptionsWarmerProps};

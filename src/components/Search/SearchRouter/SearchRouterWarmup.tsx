@@ -9,12 +9,9 @@ import type {ComponentType} from 'react';
 
 import {useEffect, useState} from 'react';
 
-import {getIsSearchRouterOpenOrOpening} from './SearchRouterContext';
+import type {SearchRouterOptionsWarmerProps} from './SearchRouterOptionsWarmer';
 
-type OptionsWarmerProps = {
-    /** Called once the option list is cached (or the warm is no longer needed), so this component can unmount the warmer. */
-    onDone: () => void;
-};
+import {getIsSearchRouterOpenOrOpening} from './SearchRouterContext';
 
 /**
  * Moves the first search-open of the session off the critical path: evaluates the SearchRouterPage and
@@ -24,7 +21,7 @@ type OptionsWarmerProps = {
  */
 function SearchRouterWarmup() {
     const [isLoadingApp] = useOnyx(ONYXKEYS.IS_LOADING_APP);
-    const [OptionsWarmer, setOptionsWarmer] = useState<ComponentType<OptionsWarmerProps> | null>(null);
+    const [OptionsWarmer, setOptionsWarmer] = useState<ComponentType<SearchRouterOptionsWarmerProps> | null>(null);
 
     useEffect(() => {
         if (isLoadingApp !== false) {
@@ -39,7 +36,7 @@ function SearchRouterWarmup() {
 
             loadSearchRouterPage();
             loadRightModalNavigator();
-            setOptionsWarmer(() => require<{default: ComponentType<OptionsWarmerProps>}>('@components/Search/SearchRouter/SearchRouterOptionsWarmer').default);
+            setOptionsWarmer(() => require<{default: ComponentType<SearchRouterOptionsWarmerProps>}>('@components/Search/SearchRouter/SearchRouterOptionsWarmer').default);
         });
 
         return () => task.cancel();
@@ -51,7 +48,5 @@ function SearchRouterWarmup() {
 
     return <OptionsWarmer onDone={() => setOptionsWarmer(null)} />;
 }
-
-SearchRouterWarmup.displayName = 'SearchRouterWarmup';
 
 export default SearchRouterWarmup;
