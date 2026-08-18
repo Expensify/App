@@ -8,6 +8,7 @@ import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type WebCryptoProvider from '@libs/CloudflareAccess/getWebCrypto/types';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import type * as SessionCleanupModule from '@libs/SessionCleanup';
 
 import type * as SessionActionsModule from '@userActions/CloudflareSession';
 
@@ -66,6 +67,7 @@ let SessionActions: typeof SessionActionsModule;
 let oAuthClient: typeof OAuthClientModule;
 let pkce: typeof PKCEModule;
 let pendingAuthFlowStorage: typeof PendingAuthFlowStorageModule;
+let sessionCleanup: typeof SessionCleanupModule;
 let assignSpy: jest.Mock;
 let realLocation: Location;
 
@@ -88,10 +90,14 @@ beforeEach(() => {
     pkce = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
     pendingAuthFlowStorage = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
     SessionActions = require<typeof SessionActionsModule>('@userActions/CloudflareSession');
+    // Required after the actions module, which registers its cleanup callback on import
+    sessionCleanup = require<typeof SessionCleanupModule>('@libs/SessionCleanup');
 });
 
 afterEach(() => {
     Object.defineProperty(window, 'location', {value: realLocation, writable: true, configurable: true});
+    // jsdom ships no Web Locks, so the lock test installs one — every other test must see it absent again
+    Object.defineProperty(navigator, 'locks', {value: undefined, writable: true, configurable: true});
 });
 
 async function seedSession(session: CloudflareSession | null) {
@@ -170,6 +176,54 @@ describe('refreshCloudflareSession', () => {
         await seedSession(null);
         await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
+    });
+
+    it('leaves the session another tab already rotated alone when the token this one submitted is rejected', async () => {
+        await seedSession(SESSION_A);
+        const refreshDeferred = createDeferred<CloudflareSession>();
+        jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
+
+        const refresh = SessionActions.refreshCloudflareSession();
+        // The other tab won the rotation race and its new pair reached this tab through Onyx
+        await seedSession(SESSION_B);
+        refreshDeferred.reject(new oAuthClient.OAuthError('invalid_grant'));
+
+        // Terminal for the spent token, but clearing here would destroy the pair the other tab just persisted
+        await expect(refresh).resolves.toBe('skipped-newer-token');
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
+    });
+
+    it('re-reads the session after acquiring the cross-tab lock, so the tab that waited cannot spend a rotated token', async () => {
+        await seedSession(SESSION_A);
+        const lockDeferred = createDeferred<void>();
+        Object.defineProperty(navigator, 'locks', {
+            value: {request: (_name: string, callback: () => Promise<unknown>) => lockDeferred.promise.then(callback)},
+            writable: true,
+            configurable: true,
+        });
+
+        const refresh = SessionActions.refreshCloudflareSession(SESSION_A.accessToken);
+        // While this call is queued behind the other tab's lock, that tab rotates and persists
+        await seedSession(SESSION_B);
+        lockDeferred.resolve();
+
+        await expect(refresh).resolves.toBe('skipped-newer-token');
+        // Never sent: the staleness check that matched at call time is repeated once the lock is held
+        expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
+    });
+
+    it('does not persist a rotation that resolves after sign-out', async () => {
+        await seedSession(SESSION_A);
+        const refreshDeferred = createDeferred<CloudflareSession>();
+        jest.mocked(oAuthClient.refreshTokens).mockReturnValue(refreshDeferred.promise);
+
+        const refresh = SessionActions.refreshCloudflareSession();
+        sessionCleanup.runSessionCleanupCallbacks();
+        refreshDeferred.resolve(SESSION_B);
+
+        await expect(refresh).resolves.toBe('reauth-required');
+        // The cache is written before Onyx, so a null cache is proof the rotated pair never reached the store
+        expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 });
 
@@ -250,6 +304,19 @@ describe('beginCloudflareAuthRedirect', () => {
         Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});
     });
 
+    it('refuses to navigate when sign-out invalidated the flow while the key material was generated', async () => {
+        const pkceDeferred = createDeferred<PKCEPair>();
+        jest.mocked(pkce.generatePKCEPair).mockReturnValue(pkceDeferred.promise);
+
+        const redirect = SessionActions.beginCloudflareAuthRedirect('http://localhost/settings/troubleshoot');
+        sessionCleanup.runSessionCleanupCallbacks();
+        pkceDeferred.resolve(PAIR_1);
+
+        await expect(redirect).rejects.toThrow();
+        expect(assignSpy).not.toHaveBeenCalled();
+        expect(window.sessionStorage.getItem('QA_AUTH_REDIRECT_FLOW')).toBeNull();
+    });
+
     it('a second press while the first navigation settles does not overwrite the stored flow', async () => {
         jest.mocked(pkce.generatePKCEPair).mockResolvedValue(PAIR_1);
 
@@ -298,6 +365,19 @@ describe('completeCloudflareAuthRedirect', () => {
         exchangeDeferred.resolve(SESSION_A);
         await first;
         expect(SessionActions.getPendingCloudflareAuthCompletion()).toBeNull();
+    });
+
+    it('discards an exchange that resolves after sign-out, so the signed-out account is not resurrected', async () => {
+        const exchangeDeferred = createDeferred<CloudflareSession>();
+        jest.mocked(oAuthClient.exchangeCode).mockReturnValue(exchangeDeferred.promise);
+
+        const completion = SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier});
+        sessionCleanup.runSessionCleanupCallbacks();
+        exchangeDeferred.resolve(SESSION_A);
+
+        await completion;
+        // The cache is written before Onyx, so a null cache is proof the exchanged pair never reached the store
+        expect(SessionActions.getCloudflareSession()).toBeNull();
     });
 
     it('exposes no pending completion before an exchange starts', () => {

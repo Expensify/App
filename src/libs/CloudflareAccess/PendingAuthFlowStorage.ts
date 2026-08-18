@@ -59,8 +59,19 @@ function consumePendingAuthFlow(): PendingAuthFlow | null {
     if (!storage) {
         return null;
     }
-    const raw = storage.getItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);
-    storage.removeItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);
+
+    // Reaching the object and using it are separate permissions: a hardened configuration hands back a real
+    // Storage whose methods still throw SecurityError. This runs during boot, so a throw here would take the
+    // whole app start down. A record that could not be removed is reported absent too — refusing to exchange
+    // a verifier we failed to consume is what keeps the record single-use.
+    let raw: string | null;
+    try {
+        raw = storage.getItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);
+        storage.removeItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);
+    } catch {
+        return null;
+    }
+
     if (!raw) {
         return null;
     }

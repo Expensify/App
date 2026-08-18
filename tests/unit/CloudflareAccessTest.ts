@@ -307,6 +307,8 @@ describe('pendingAuthFlowStorage', () => {
 
     afterEach(() => {
         nowSpy.mockRestore();
+        // Storage.prototype spies below must not survive into the next test, whether or not it asserted cleanly
+        jest.restoreAllMocks();
         window.sessionStorage.clear();
     });
 
@@ -342,6 +344,18 @@ describe('pendingAuthFlowStorage', () => {
     it('clearPendingAuthFlow drops a pending record', () => {
         savePendingAuthFlow(FLOW);
         clearPendingAuthFlow();
+        expect(consumePendingAuthFlow()).toBeNull();
+    });
+
+    it('reports the record absent when reading it throws, rather than taking down the boot it runs in', () => {
+        // A hardened configuration hands back a usable Storage whose methods still throw SecurityError
+        jest.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('SecurityError');
+        });
+        jest.spyOn(Storage.prototype, 'removeItem').mockImplementation(() => {
+            throw new Error('SecurityError');
+        });
+
         expect(consumePendingAuthFlow()).toBeNull();
     });
 
