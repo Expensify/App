@@ -47,6 +47,7 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
 
         const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, buildState());
 
+        expect(result).toBe(descriptors);
         expect(result[COVERED_KEY]).toBe(descriptors[COVERED_KEY]);
         expect(result[TOP_KEY]).toBe(descriptors[TOP_KEY]);
     });

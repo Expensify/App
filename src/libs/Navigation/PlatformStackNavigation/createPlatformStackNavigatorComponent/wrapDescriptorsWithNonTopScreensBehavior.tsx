@@ -37,13 +37,13 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
     persistentScreens?: string[],
 ): Record<string, T> {
     const topRouteKey = state.routes[state.index]?.key;
-    const result: Record<string, T> = {};
+    let result: Record<string, T> | undefined;
     for (const [key, descriptor] of Object.entries(descriptors)) {
         const behavior = persistentScreens?.includes(descriptor.route.name) ? 'none' : (descriptor.options.nonTopScreenBehavior ?? 'none');
         if (behavior === 'none') {
-            result[key] = descriptor;
             continue;
         }
+        result ??= {...descriptors};
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
         const isScreenBlurred = key !== topRouteKey;
         result[key] = {
@@ -51,7 +51,7 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
             render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,
         };
     }
-    return result;
+    return result ?? descriptors;
 }
 
 export default wrapDescriptorsWithNonTopScreensBehavior;
