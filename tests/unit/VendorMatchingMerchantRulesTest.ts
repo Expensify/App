@@ -63,13 +63,13 @@ const buildQBOWithVendorBillExportPolicy = (vendors: Array<{id: string; name: st
     });
 
 /** Xero policy whose supplier list scopes vendor matching to Xero (label flips vendor -> supplier). */
-const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}>): Policy =>
+const buildXeroPolicy = (contacts: Record<string, {id: string; name: string; email: string}> | undefined): Policy =>
     createMock<Policy>({
         ...createRandomPolicy(0),
         connections: createMock<Connections>({
             [CONST.POLICY.CONNECTIONS.NAME.XERO]: {
                 config: {isConfigured: true},
-                data: {contacts},
+                data: contacts === undefined ? {} : {contacts},
             },
         }),
     });
@@ -147,12 +147,13 @@ describe('Vendor matching on merchant rules', () => {
             expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('renders "Vendor unavailable" instead of the raw external ID when no connection knows the vendor', () => {
-            // No active matching list and no connection (active or stale) resolves the vendorID — e.g. the accounting
-            // connection was disconnected, so its vendor data is gone from Onyx. The summary must surface the
-            // "unavailable" copy rather than leaking the raw external ID. (A vendorID that a connection still knows
-            // continues to render its name — see the export-mode-switch case, which exercises the same tier-3 branch.)
+        it('preserves the raw external ID while the active vendor list is not hydrated', () => {
             const policy = withCodingRules(buildQBOPolicy(undefined), {rule1: buildVendorRule('v-1')});
+            expect(buildTableData(policy).at(0)?.ruleDescription).toContain('Update vendor to "v-1"');
+        });
+
+        it('renders "Vendor unavailable" when no matching integration remains', () => {
+            const policy = withCodingRules(createRandomPolicy(0), {rule1: buildVendorRule('v-1')});
             const description = buildTableData(policy).at(0)?.ruleDescription;
             expect(description).toContain('Update vendor to "Vendor unavailable"');
             expect(description).not.toContain('"v-1"');
@@ -185,6 +186,9 @@ describe('Vendor matching on merchant rules', () => {
 
             const missing = withCodingRules(buildXeroPolicy({}), {rule1: buildVendorRule('xc1')});
             expect(buildTableData(missing).at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
+
+            const unhydrated = withCodingRules(buildXeroPolicy(undefined), {rule1: buildVendorRule('xc1')});
+            expect(buildTableData(unhydrated).at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
         });
     });
 
@@ -213,8 +217,12 @@ describe('Vendor matching on merchant rules', () => {
             expect(describeRule(buildQBOPolicy([]), 'v-1')).toContain('Update vendor to "Vendor unavailable"');
         });
 
-        it('renders "Vendor unavailable" instead of the raw external ID when no connection knows the vendor', () => {
-            const description = describeRule(buildQBOPolicy(undefined), 'v-1');
+        it('preserves the raw external ID while the active vendor list is not hydrated', () => {
+            expect(describeRule(buildQBOPolicy(undefined), 'v-1')).toContain('Update vendor to "v-1"');
+        });
+
+        it('renders "Vendor unavailable" when no matching integration remains', () => {
+            const description = describeRule(createRandomPolicy(0), 'v-1');
             expect(description).toContain('Update vendor to "Vendor unavailable"');
             expect(description).not.toContain('"v-1"');
         });
@@ -237,6 +245,9 @@ describe('Vendor matching on merchant rules', () => {
 
             const missing = buildXeroPolicy({});
             expect(describeRule(missing, 'xc1')).toContain('Update supplier to "Supplier unavailable"');
+
+            const unhydrated = buildXeroPolicy(undefined);
+            expect(describeRule(unhydrated, 'xc1')).toContain('Update supplier to "xc1"');
         });
     });
 

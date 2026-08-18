@@ -17,7 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {findVendorByID, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {findVendorByID, getActiveVendorMatchingIntegration, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -74,20 +74,21 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         //   1. Render the name from the active vendor-matching integration when it contains the vendor.
         //   2. Render "unavailable" when the loaded active list does not contain the vendor, so a stale or
         //      inactive connection never surfaces a misleading name.
-        //   3. When there is no active vendor-matching source, use `findVendorByID` to search every connection.
-        //      This preserves the historical name while connection data is hydrating. Render "unavailable" when
-        //      no connection knows the ID instead of leaking the raw external ID.
+        //   3. Before an active source hydrates, preserve a historical name or the stored ID. When no source
+        //      remains, render "unavailable" if no connection knows the ID instead of leaking the raw ID.
         const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
         const unavailableLabel = translate(
             isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable',
         );
+        const historicalVendorName = findVendorByID(policy, rule.vendorID)?.name;
+        const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
         let vendorValue: string;
         if (activeVendorName) {
             vendorValue = activeVendorName;
         } else if (isMatchingVendorListLoaded(policy)) {
             vendorValue = unavailableLabel;
         } else {
-            vendorValue = findVendorByID(policy, rule.vendorID)?.name ?? unavailableLabel;
+            vendorValue = historicalVendorName ?? (hasActiveVendorMatchingSource ? rule.vendorID : unavailableLabel);
         }
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }
