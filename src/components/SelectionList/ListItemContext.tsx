@@ -10,7 +10,7 @@ type ListItemContextValue = {
     /**
      * Whether the row should render focus styling. True when the row is logically focused (keyboard index)
      * AND the highlight is allowed to show (initial highlight enabled or the user is keyboard-navigating),
-     * so it can lag behind logical focus — see BaseSelectionList's isItemVisuallyFocused.
+     * so it can lag behind logical focus - see BaseSelectionList's isItemVisuallyFocused.
      */
     isFocusVisible?: boolean;
 
