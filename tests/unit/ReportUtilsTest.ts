@@ -756,9 +756,7 @@ describe('ReportUtils', () => {
             };
 
             // Then the copied message matches what is displayed ("marked as paid"), not the broken empty-amount string.
-            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined, iouReport)).toBe(
-                translateLocal('iou.paidElsewhere'),
-            );
+            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined)).toBe(translateLocal('iou.paidElsewhere'));
         });
     });
 
