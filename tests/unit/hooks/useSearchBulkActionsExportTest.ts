@@ -110,11 +110,11 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => {
-    const CONST = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
+    const actualCONST = jest.requireActual<typeof import('@src/CONST')>('@src/CONST').default;
     return {
         __esModule: true,
         default: () => ({
-            translate: (key: string) => (key === 'workspace.accounting.qbo' ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
+            translate: (key: string) => (key === 'workspace.accounting.qbo' ? actualCONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
             localeCompare: (a: string, b: string) => a && b,
             formatPhoneNumber: (phone: string) => phone,
         }),

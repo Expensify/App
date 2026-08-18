@@ -59,7 +59,7 @@ function CardInstructionsStep({policyID}: CardInstructionsStepProps) {
 
     const submit = () => {
         if (isStripeFeedProvider && policyID) {
-            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID) as CompanyCardFeedWithDomainID, policyID);
+            updateSelectedFeed(getCardFeedWithDomainID(feedProvider, workspaceAccountID), policyID);
             Navigation.goBack();
             return;
         }
