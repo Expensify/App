@@ -19,7 +19,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import {merchantStateSelector} from './selectors';
@@ -65,6 +65,24 @@ function MerchantField({
     const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
+    // The new-flow Merchant field is a fully controlled plain TextInput whose persisted value only comes back
+    // asynchronously through Onyx. Feeding that lagging value straight to `value` snaps the caret to the end of
+    // the field on every keystroke (see #98647). To avoid that, we mirror the text in local state and update it
+    // synchronously as the user types, so the controlled value always matches what is in the input and the caret
+    // is preserved.
+    const isMerchantInputFocused = useRef(false);
+    const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
+
+    // Re-sync the local mirror from the persisted value only while the field is not being edited, so external
+    // updates (SmartScan, drafts, switching transactions) still flow in without overwriting text the user is
+    // actively typing.
+    useEffect(() => {
+        if (isMerchantInputFocused.current) {
+            return;
+        }
+        setMerchantInput(displayMerchantValue);
+    }, [displayMerchantValue]);
+
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
         const {isValid, byteLength} = isValidInputLength(merchantValue, CONST.MERCHANT_NAME_MAX_BYTES);
@@ -87,6 +105,8 @@ function MerchantField({
     const shouldDisplayMerchantError = !!merchantErrorText;
 
     const handleMerchantInputChange = (newMerchant: string) => {
+        setMerchantInput(newMerchant);
+
         if (!transactionID) {
             return;
         }
@@ -114,9 +134,15 @@ function MerchantField({
         return (
             <View style={[styles.mh4, styles.mv2]}>
                 <TextInput
-                    value={displayMerchantValue}
+                    value={merchantInput}
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
+                    onFocus={() => {
+                        isMerchantInputFocused.current = true;
+                    }}
+                    onBlur={() => {
+                        isMerchantInputFocused.current = false;
+                    }}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
                     errorText={merchantErrorText}
