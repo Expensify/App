@@ -116,12 +116,12 @@ type BuildWorkspaceNavigationItemsParams = {
     getDestinationText: (destination: string) => string;
 };
 
-type WorkspaceContextProps = {
+type WorkspaceIdentityCellProps = {
     /** The policy used to identify the workspace suggestion */
     policy: OnyxTypes.Policy;
 };
 
-function WorkspaceContext({policy}: WorkspaceContextProps) {
+function WorkspaceIdentityCell({policy}: WorkspaceIdentityCellProps) {
     const styles = useThemeStyles();
 
     return (
@@ -236,7 +236,7 @@ function buildWorkspaceNavigationItems({
                     singleIcon: item.icon,
                     action: () => navigateToWorkspaceSettingsRoute(item.getRoute(), policy.id, shouldUseNarrowLayout),
                     keyForList: `workspace_${policy.id}_${item.screenName}`,
-                    rightElement: <WorkspaceContext policy={policy} />,
+                    rightElement: <WorkspaceIdentityCell policy={policy} />,
                     matchTerms: item.screenName === SCREENS.WORKSPACE.PROFILE ? [itemText, policy.name] : [itemText],
                 };
             });
