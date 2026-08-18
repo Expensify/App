@@ -34,7 +34,7 @@ import type {PolicyTagLists} from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 
 type RulesRequireFieldsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.RULES_REQUIRE_FIELDS>;
 
@@ -66,7 +66,7 @@ function RulesRequireFieldsPage({
     const isTagToggleDisabled = isTagFeatureDisabled || !hasEnabledTags;
 
     // Independent multi-level tags carry Required per list, so a row each. Single-level and dependent have only the policy-wide flag.
-    const tagLists = useMemo(() => getTagLists(policyTags), [policyTags]);
+    const tagLists = getTagLists(policyTags);
     const hasPerLevelTagRequired = hasPerTagListRequired(policy, policyTags);
     const initialCategoryRequired = !!policy?.requiresCategory;
     const initialTagRequired = !!policy?.requiresTag;
@@ -78,7 +78,7 @@ function RulesRequireFieldsPage({
     const syncedPolicyIDRef = useRef<string | undefined>(undefined);
     const hasRequestedTagsRef = useRef(false);
 
-    const getLevelRequired = useCallback((tagList: ValueOf<PolicyTagLists>) => tagRequiredByLevel[tagList.orderWeight] ?? !!tagList.required, [tagRequiredByLevel]);
+    const getLevelRequired = (tagList: ValueOf<PolicyTagLists>) => tagRequiredByLevel[tagList.orderWeight] ?? !!tagList.required;
 
     useEffect(() => {
         syncedPolicyIDRef.current = undefined;
@@ -123,17 +123,11 @@ function RulesRequireFieldsPage({
         setTagRequiredByLevel({});
     }, [policy?.id, policy?.isLoading, policy?.requiresCategory, policy?.requiresTag]);
 
-    const changedTagLevels = useMemo(
-        () => (hasPerLevelTagRequired ? tagLists.filter((tagList) => getLevelRequired(tagList) !== !!tagList.required) : []),
-        [hasPerLevelTagRequired, tagLists, getLevelRequired],
-    );
+    const changedTagLevels = hasPerLevelTagRequired ? tagLists.filter((tagList) => getLevelRequired(tagList) !== !!tagList.required) : [];
 
-    const hasChanges = useMemo(
-        () => categoryRequired !== initialCategoryRequired || (hasPerLevelTagRequired ? changedTagLevels.length > 0 : tagRequired !== initialTagRequired),
-        [categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels.length, tagRequired, initialTagRequired],
-    );
+    const hasChanges = categoryRequired !== initialCategoryRequired || (hasPerLevelTagRequired ? changedTagLevels.length > 0 : tagRequired !== initialTagRequired);
 
-    const handleSave = useCallback(() => {
+    const handleSave = () => {
         if (!hasChanges) {
             Navigation.goBack();
             return;
@@ -157,38 +151,33 @@ function RulesRequireFieldsPage({
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
-    }, [hasChanges, categoryRequired, initialCategoryRequired, hasPerLevelTagRequired, changedTagLevels, tagRequired, initialTagRequired, policyData]);
+    };
 
-    const showAllTagsOptionalWarning = useCallback(() => {
+    const showAllTagsOptionalWarning = () => {
         showConfirmModal({
             title: translate('workspace.tags.cannotMakeAllTagsOptional.title'),
             prompt: translate('workspace.tags.cannotMakeAllTagsOptional.description'),
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,
         });
-    }, [showConfirmModal, translate]);
+    };
 
     // setPolicyTagsRequired doesn't write policy.requiresTag, so it stays false until a refresh. A saved required level means
     // the same thing, and reading it saved (not pending) lets a level toggled on this visit still be switched back off.
     const doesWorkspaceRequireTag = !!policy?.requiresTag || tagLists.some((tagList) => tagList.required);
 
     // isMakingLastRequiredTagListOptional over pending edits, since it only sees saved state and would miss levels switched off this visit.
-    const isLastRequiredLevel = useCallback(
-        (tagList: ValueOf<PolicyTagLists>) => doesWorkspaceRequireTag && getLevelRequired(tagList) && tagLists.filter((currentTagList) => getLevelRequired(currentTagList)).length === 1,
-        [doesWorkspaceRequireTag, getLevelRequired, tagLists],
-    );
+    const isLastRequiredLevel = (tagList: ValueOf<PolicyTagLists>) =>
+        doesWorkspaceRequireTag && getLevelRequired(tagList) && tagLists.filter((currentTagList) => getLevelRequired(currentTagList)).length === 1;
 
-    const handleTagListRequiredToggle = useCallback(
-        (required: boolean, tagList: ValueOf<PolicyTagLists>) => {
-            if (!required && isLastRequiredLevel(tagList)) {
-                showAllTagsOptionalWarning();
-                return;
-            }
+    const handleTagListRequiredToggle = (required: boolean, tagList: ValueOf<PolicyTagLists>) => {
+        if (!required && isLastRequiredLevel(tagList)) {
+            showAllTagsOptionalWarning();
+            return;
+        }
 
-            setTagRequiredByLevel((previous) => ({...previous, [tagList.orderWeight]: required}));
-        },
-        [isLastRequiredLevel, showAllTagsOptionalWarning],
-    );
+        setTagRequiredByLevel((previous) => ({...previous, [tagList.orderWeight]: required}));
+    };
 
     // Lock only when the feature is off (or categories are accounting-controlled). No enabled items just disables, no lock/modal.
     const shouldShowCategoryLock = isCategoryFeatureDisabled || isConnectedToAccounting;
@@ -209,7 +198,7 @@ function RulesRequireFieldsPage({
         return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
     })();
 
-    const promptEnableCategoriesForRequireCategory = useCallback(async () => {
+    const promptEnableCategoriesForRequireCategory = async () => {
         if (isConnectedToAccounting) {
             const {action} = await showConfirmModal({
                 title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
@@ -240,7 +229,7 @@ function RulesRequireFieldsPage({
         enablePolicyCategories(policyData, true, false);
         setWorkspaceRequiresCategory(policyData, true);
         setCategoryRequired(true);
-    }, [isCategoryFeatureDisabled, isConnectedToAccounting, policyData, policyID, showConfirmModal, translate]);
+    };
 
     const tagDisabledText = (() => {
         if (!shouldShowTagLock) {
@@ -253,49 +242,46 @@ function RulesRequireFieldsPage({
     })();
 
     /** Pass orderWeight from a per-level row so only that level is required; omit it for the policy-wide row. */
-    const promptEnableTagsForRequireTag = useCallback(
-        async (orderWeight?: number) => {
-            if (!isTagFeatureDisabled) {
-                return;
-            }
+    const promptEnableTagsForRequireTag = async (orderWeight?: number) => {
+        if (!isTagFeatureDisabled) {
+            return;
+        }
 
-            // The connection owns turning Tags on, so route to Accounting instead of calling enablePolicyTags.
-            if (isConnectedToAccounting) {
-                const {action} = await showConfirmModal({
-                    title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
-                    prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
-                    confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
-                    cancelText: translate('common.cancel'),
-                });
-                if (action !== ModalActions.CONFIRM) {
-                    return;
-                }
-                Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
-                return;
-            }
-
+        // The connection owns turning Tags on, so route to Accounting instead of calling enablePolicyTags.
+        if (isConnectedToAccounting) {
             const {action} = await showConfirmModal({
-                title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
-                prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
-                confirmText: translate('common.ok'),
+                title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
+                prompt: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledText'),
+                confirmText: translate('workspace.moreFeatures.connectionsWarningModal.manageSettings'),
                 cancelText: translate('common.cancel'),
             });
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            enablePolicyTags(policyData, true);
+            Navigation.navigate(ROUTES.POLICY_ACCOUNTING.getRoute(policyID));
+            return;
+        }
 
-            if (orderWeight !== undefined) {
-                // setPolicyRequiresTag would require every list, not just this level.
-                setPolicyTagsRequired(policyData, true, orderWeight);
-                return;
-            }
+        const {action} = await showConfirmModal({
+            title: translate('workspace.rules.individualExpenseRules.enableTagsToUnlockTitle'),
+            prompt: translate('workspace.rules.individualExpenseRules.enableTagsAndRequirePrompt'),
+            confirmText: translate('common.ok'),
+            cancelText: translate('common.cancel'),
+        });
+        if (action !== ModalActions.CONFIRM) {
+            return;
+        }
+        enablePolicyTags(policyData, true);
 
-            setPolicyRequiresTag(policyData, true);
-            setTagRequired(true);
-        },
-        [isConnectedToAccounting, isTagFeatureDisabled, policyData, policyID, showConfirmModal, translate],
-    );
+        if (orderWeight !== undefined) {
+            // setPolicyRequiresTag would require every list, not just this level.
+            setPolicyTagsRequired(policyData, true, orderWeight);
+            return;
+        }
+
+        setPolicyRequiresTag(policyData, true);
+        setTagRequired(true);
+    };
 
     return (
         <AccessOrNotFoundWrapper
