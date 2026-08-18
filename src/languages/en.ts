@@ -10721,7 +10721,6 @@ const translations = {
             headerTitle: 'Domain exists',
             title: 'Domain already set up. Request access?',
             description: 'Someone already set this domain up in Expensify. Want to request admin access?',
-            neverMind: 'Nevermind',
             requestAccess: 'Ask for admin access',
         },
         domainAdded: {
@@ -10820,6 +10819,7 @@ const translations = {
             forceTwoFactorAuthError: "Force two-factor authentication couldn't be changed. Please try again later.",
             resetTwoFactorAuth: 'Reset two-factor authentication',
             error: "Couldn't save this change. Please try again.",
+            neverMind: 'Never mind',
         },
         groups: {
             title: 'Groups',
@@ -10833,7 +10833,6 @@ const translations = {
             defaultGroupPrompt: (currentName: string, newName: string) =>
                 `Are you sure you want to make ${newName} the default group? New members will be invited to this group instead of the previous default group (${currentName}). `,
             makeDefault: 'Make default',
-            neverMind: 'Never mind',
             createGroupError: 'Unable to create this group. Please try again.',
             permissions: 'Group permissions',
             createNewGroupButton: 'New group',
