@@ -846,17 +846,17 @@ describe('domainSelectors', () => {
 
     describe('hasDomainAccess', () => {
         it('Should return false if domain is undefined', () => {
-            expect(hasDomainAccess(userID1, undefined)(undefined)).toBe(false);
+            expect(hasDomainAccess(userID1, undefined, undefined)(undefined)).toBe(false);
         });
 
         it('Should return false if accountID is 0', () => {
             const domain = createDomainFixture({admins: [['123456', userID1]]});
-            expect(hasDomainAccess(0, undefined)(domain)).toBe(false);
+            expect(hasDomainAccess(0, undefined, undefined)(domain)).toBe(false);
         });
 
         it('Should return true if the accountID is an admin', () => {
             const domain = createDomainFixture({admins: [['123456', userID1]]});
-            expect(hasDomainAccess(userID1, undefined)(domain)).toBe(true);
+            expect(hasDomainAccess(userID1, undefined, undefined)(domain)).toBe(true);
         });
 
         it('Should return true if the accountID is a member of a security group', () => {
@@ -870,7 +870,7 @@ describe('domainSelectors', () => {
                 },
             });
 
-            expect(hasDomainAccess(userID1, undefined)(domain)).toBe(true);
+            expect(hasDomainAccess(userID1, undefined, undefined)(domain)).toBe(true);
         });
 
         it('Should return false if the accountID is neither an admin nor a member', () => {
@@ -885,12 +885,12 @@ describe('domainSelectors', () => {
                 },
             });
 
-            expect(hasDomainAccess(userID1, undefined)(domain)).toBe(false);
+            expect(hasDomainAccess(userID1, undefined, undefined)(domain)).toBe(false);
         });
 
         it('Should return false for empty domain object', () => {
             const domain = createDomainFixture({empty: true});
-            expect(hasDomainAccess(userID1, undefined)(domain)).toBe(false);
+            expect(hasDomainAccess(userID1, undefined, undefined)(domain)).toBe(false);
         });
 
         it("Should return true if the domain name is present in the account's own myDomainSecurityGroups map, even without admin/security-group data on the domain entry", () => {
@@ -899,14 +899,40 @@ describe('domainSelectors', () => {
             const domain = createDomainFixture({email: 'member@example.com'});
             const myDomainSecurityGroups = {'example.com': 'groupID123'};
 
-            expect(hasDomainAccess(userID1, myDomainSecurityGroups)(domain)).toBe(true);
+            expect(hasDomainAccess(userID1, undefined, myDomainSecurityGroups)(domain)).toBe(true);
         });
 
         it("Should return false if the domain name is not present in the account's own myDomainSecurityGroups map", () => {
             const domain = createDomainFixture({email: 'member@example.com'});
             const myDomainSecurityGroups = {'other-domain.com': 'groupID123'};
 
-            expect(hasDomainAccess(userID1, myDomainSecurityGroups)(domain)).toBe(false);
+            expect(hasDomainAccess(userID1, undefined, myDomainSecurityGroups)(domain)).toBe(false);
+        });
+
+        it('Should return true if the myDomainSecurityGroups entry maps to an empty group ID', () => {
+            const domain = createDomainFixture({email: 'member@example.com'});
+            const myDomainSecurityGroups = {'example.com': ''};
+
+            expect(hasDomainAccess(userID1, undefined, myDomainSecurityGroups)(domain)).toBe(true);
+        });
+
+        it('Should match the myDomainSecurityGroups domain name case-insensitively', () => {
+            const domain = createDomainFixture({email: 'member@Example.com'});
+            const myDomainSecurityGroups = {'example.com': 'groupID123'};
+
+            expect(hasDomainAccess(userID1, undefined, myDomainSecurityGroups)(domain)).toBe(true);
+        });
+
+        it("Should return true if the domain matches the current user's own email domain, without any admin/security-group data", () => {
+            const domain = createDomainFixture({email: 'admin@example.com'});
+
+            expect(hasDomainAccess(userID1, 'MEMBER@Example.com', undefined)(domain)).toBe(true);
+        });
+
+        it("Should return false if the domain does not match the current user's own email domain", () => {
+            const domain = createDomainFixture({email: 'admin@example.com'});
+
+            expect(hasDomainAccess(userID1, 'member@other-domain.com', undefined)(domain)).toBe(false);
         });
     });
 

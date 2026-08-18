@@ -213,8 +213,8 @@ function isAdminSelector(accountID: number) {
     };
 }
 
-/** Checks if a given account ID has any access to the domain, as an admin, a security group member, or via `myDomainSecurityGroups`. */
-function hasDomainAccess(accountID: number, myDomainSecurityGroups: OnyxEntry<Record<string, string>>) {
+/** Checks if a given account ID has any access to the domain, as an admin, a security group member, or through the domain of its own email. */
+function hasDomainAccess(accountID: number | undefined, currentUserEmail: string | undefined, myDomainSecurityGroups: OnyxEntry<Record<string, string>>) {
     return (domain: OnyxEntry<Domain>): boolean => {
         if (!domain || !accountID) {
             return false;
@@ -225,7 +225,18 @@ function hasDomainAccess(accountID: number, myDomainSecurityGroups: OnyxEntry<Re
         }
 
         const domainName = domainNameSelector(domain);
-        return !!domainName && !!myDomainSecurityGroups?.[domainName];
+        if (!domainName) {
+            return false;
+        }
+
+        // A member's own `domain_<id>` entry carries neither `expensify_adminPermissions_*` nor `domain_securityGroup_*` data,
+        // since only admins receive that, so we fall back to the domain of their email and to `myDomainSecurityGroups`.
+        if (currentUserEmail && Str.caseInsensitiveEquals(Str.extractEmailDomain(currentUserEmail), domainName)) {
+            return true;
+        }
+
+        // Only the presence of the key matters here - the group ID it maps to can be empty for the default security group.
+        return Object.keys(myDomainSecurityGroups ?? {}).some((name) => Str.caseInsensitiveEquals(name, domainName));
     };
 }
 
