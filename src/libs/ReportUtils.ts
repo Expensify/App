@@ -14302,7 +14302,6 @@ export {
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
     isTeachersUniteReport,
-    isTeachersUnitePolicyID,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,
