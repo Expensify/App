@@ -31,7 +31,7 @@ import React from 'react';
 
 const ITEM_ID = CONST.FAB_MENU_ITEM_IDS.CREATE_REPORT;
 
-// Returns up to 2 matching policies — we only ever check length > 0, length === 1, and length > 1.
+// Returns up to 2 matching policies
 const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes.Policy>, currentUserLogin: string | undefined) =>
     getGroupPoliciesWhereReportCanBeCreated(policies, currentUserLogin).slice(0, 2);
 
