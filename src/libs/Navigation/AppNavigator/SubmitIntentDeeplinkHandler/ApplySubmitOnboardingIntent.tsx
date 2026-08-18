@@ -18,7 +18,7 @@ import {useEffect, useRef} from 'react';
  * leaves them. Anyone who still has onboarding ahead of them is left to it untouched, since that flow already offers
  * the Submit outcome.
  *
- * Only rendered once the deeplink has been recognised, so the Onyx subscriptions behind `useAutoCreateSubmitWorkspace`
+ * Only rendered once the deeplink has been recognized, so the Onyx subscriptions behind `useAutoCreateSubmitWorkspace`
  * are never set up for ordinary sessions.
  */
 function ApplySubmitOnboardingIntent() {

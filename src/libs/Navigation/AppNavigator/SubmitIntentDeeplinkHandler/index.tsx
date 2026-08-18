@@ -7,7 +7,7 @@ import React from 'react';
 import ApplySubmitOnboardingIntent from './ApplySubmitOnboardingIntent';
 
 /**
- * Recognises the `intent=submit` onboarding deeplink and hands off to the component that acts on it.
+ * Recognizes the `intent=submit` onboarding deeplink and hands off to the component that acts on it.
  */
 function SubmitIntentDeeplinkHandler() {
     const onboardingDeeplinkIntent = useOnboardingDeeplinkIntent();

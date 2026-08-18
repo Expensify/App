@@ -4,8 +4,8 @@
  *
  * The param arrives in one of two shapes:
  * - directly, when the recipient is already signed in: `/onboarding?intent=submit`
- * - nested in the `exitTo` of an auth handoff link: `/transition?...&exitTo=onboarding%3Fintent%3Dsubmit` or
- *   `/v/<accountID>/<validateCode>?exitTo=onboarding%3Fintent%3Dsubmit`
+ * - nested in the `exitTo` of an auth handoff link, where `onboarding?intent=submit` is URL-encoded:
+ *   `/transition?...&exitTo=<encoded>` or `/v/<accountID>/<validateCode>?exitTo=<encoded>`
  *
  * Nesting it in `exitTo` is what carries the intent across the logged-out -> logged-in transition: the deeplink
  * outlives the sign-in itself, so the intent is still readable once the authenticated screens mount.
