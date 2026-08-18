@@ -6005,6 +6005,7 @@ function getReportPreviewMessage(
  * in {@link getReportPreviewMessage}.
  */
 function getReportPreviewReportActionMessage(
+    // TODO: Remove the `Omit` and make `policy` required once all callers pass it, issue https://github.com/Expensify/App/issues/66415
     params: Omit<GetReportPreviewMessageBaseParams, 'policy'> & {policy?: OnyxInputOrEntry<Policy>},
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): string {
