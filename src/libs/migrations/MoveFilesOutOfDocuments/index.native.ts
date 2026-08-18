@@ -53,11 +53,11 @@ function moveAttachmentCache(): Promise<void> {
 
 /**
  * Attachment records written by older app versions point into the old attachment directory, so
- * they are repointed at the new location. Records are repointed even when the files themselves
- * are gone (on iOS the user can delete them via the Files app): reads verify the file exists and
- * re-cache on a miss, so a repointed record never renders a dead path.
+ * their paths are rewritten to the new location. Records are rewritten even when the files
+ * themselves are gone (on iOS the user can delete them via the Files app): reads verify the file
+ * exists and re-cache on a miss, so a rewritten record never renders a dead path.
  */
-function repointAttachmentRecords(): Promise<void> {
+function updateAttachmentRecordPaths(): Promise<void> {
     return new Promise((resolve) => {
         // connectWithoutView is appropriate here because migrations run once at startup, before anything renders
         const connection = Onyx.connectWithoutView({
@@ -81,7 +81,7 @@ function repointAttachmentRecords(): Promise<void> {
                 // No need to add a new action just for this migration
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
                 Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates).then(() => {
-                    Log.info('[Migrate Onyx] MoveFilesOutOfDocuments repointed attachment records at the new cache directory');
+                    Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
                     resolve();
                 });
             },
@@ -131,7 +131,7 @@ function removeStaleExportStagingDir(): Promise<void> {
  */
 export default function (): Promise<void> {
     return (
-        Promise.all([moveAttachmentCache().then(() => repointAttachmentRecords()), removeStaleOnyxDump(), removeStaleExportStagingDir()])
+        Promise.all([moveAttachmentCache().then(() => updateAttachmentRecordPaths()), removeStaleOnyxDump(), removeStaleExportStagingDir()])
             .then(() => undefined)
             // A failed cleanup must never block app startup; new files already go to the new
             // locations, and the cleanup runs again on the next launch

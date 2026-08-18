@@ -87,7 +87,7 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         expect(mockRNFS.unlink).toHaveBeenCalledWith(OLD_ATTACHMENT_DIR);
     });
 
-    it('repoints attachment records at the new cache directory and preserves their other fields', async () => {
+    it('rewrites attachment record paths to the new cache directory and preserves their other fields', async () => {
         mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === OLD_ATTACHMENT_DIR));
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}source1`, {attachmentID: 'source1', source: `${OLD_ATTACHMENT_DIR}/file.jpg`, remoteSource: 'https://example.com/file.jpg'});
         await waitForBatchedUpdates();
@@ -99,7 +99,7 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         expect(attachment).toEqual({attachmentID: 'source1', source: `${NEW_ATTACHMENT_DIR}/file.jpg`, remoteSource: 'https://example.com/file.jpg'});
     });
 
-    it('repoints attachment records even when the old directory is already gone', async () => {
+    it('rewrites attachment record paths even when the old directory is already gone', async () => {
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}source1`, {attachmentID: 'source1', source: `${OLD_ATTACHMENT_DIR}/file.jpg`});
         await waitForBatchedUpdates();
 
