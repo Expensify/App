@@ -2,6 +2,8 @@ import {getUnsupportedReportFieldFormulaParts, hasFormulaPartsInInitialValue, is
 
 import type {PolicyReportField} from '@src/types/onyx/Policy';
 
+import createMock from '../utils/createMock';
+
 describe('WorkspaceReportFieldUtils.hasFormulaPartsInInitialValue', () => {
     it('returns true for recognized formula tokens', () => {
         const truthyCases = [
@@ -85,8 +87,8 @@ describe('WorkspaceReportFieldUtils.getUnsupportedReportFieldFormulaParts', () =
 
 describe('WorkspaceReportFieldUtils.isReportFieldNameExisting', () => {
     const fieldList: Record<string, PolicyReportField> = {
-        field1: {name: 'Field1', type: 'text'} as PolicyReportField,
-        field2: {name: 'Field2', type: 'date'} as PolicyReportField,
+        field1: createMock<PolicyReportField>({name: 'Field1', type: 'text'}),
+        field2: createMock<PolicyReportField>({name: 'Field2', type: 'date'}),
     };
 
     it('should return false when field name does not exist', () => {

@@ -39,7 +39,7 @@ import {View} from 'react-native';
 type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
@@ -64,18 +64,19 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(
+        resetSplitExpensesByDateRange({
             transaction,
             draftTransaction,
-            currentReport,
-            value[INPUT_IDS.START_DATE],
-            value[INPUT_IDS.END_DATE],
-            effectivePolicy,
-            isSelfDM(currentReport) || isSelfDM(parentReport),
-            personalPolicy?.outputCurrency,
+            transactionReport: currentReport,
+            startDate: value[INPUT_IDS.START_DATE],
+            endDate: value[INPUT_IDS.END_DATE],
+            policy: effectivePolicy,
+            isSelfDMSplit: isSelfDM(currentReport) || isSelfDM(parentReport),
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             getCurrencySymbol,
-            allPolicies,
-        );
+            getCurrencyDecimals,
+            policies: allPolicies,
+        });
         Navigation.goBack(backTo);
     };
 
