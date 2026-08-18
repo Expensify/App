@@ -1329,7 +1329,8 @@ function submitReport({
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, policy?.employeeList) : undefined;
     const resolvedManagerAccountIDFromEmail = managerAccountIDFromPopover ?? managerAccountIDFromEmail;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(policy, expenseReport, submitterLogin);
-    const managerID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain ?? expenseReport.managerID) : submitReportManagerAccountID;
+    const apiManagerAccountID = trimmedManagerEmail ? (resolvedManagerAccountIDFromEmail ?? managerIDFromChain) : submitReportManagerAccountID;
+    const managerID = apiManagerAccountID ?? expenseReport.managerID;
     const optimisticNextStepApproverID = !isSubmitAndClosePolicy && managerID !== undefined && isValidAccountRoute(managerID) ? managerID : undefined;
     const isCurrentUserManager = currentUserAccountIDParam === managerID;
     const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
@@ -1576,8 +1577,12 @@ function submitReport({
 
     const parameters: SubmitReportParams = {
         reportID: expenseReport.reportID,
-        managerAccountID: managerID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(apiManagerAccountID !== undefined
+            ? {
+                  managerAccountID: apiManagerAccountID,
+              }
+            : {}),
         ...(trimmedManagerEmail
             ? {
                   managerEmail: trimmedManagerEmail,

@@ -1257,7 +1257,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
         });
 
-        it('preserves the existing report manager when policy employee data is missing', async () => {
+        it('omits the API managerAccountID but keeps the existing report manager optimistically when policy employee data is missing', async () => {
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
             const submitterAccountID = 100;
@@ -1313,14 +1313,15 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            expect(parameters).not.toHaveProperty('managerAccountID');
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticReportUpdate.value.managerID).toBe(correctManagerAccountID);
         });
 
-        it('preserves the existing report manager for a retracted report when policy employee data is missing', async () => {
+        it('omits the API managerAccountID but keeps the existing report manager optimistically for a retracted report when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify submit payload and optimistic data.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
@@ -1378,7 +1379,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
-            expect(parameters.managerAccountID).toBe(correctManagerAccountID);
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            expect(parameters).not.toHaveProperty('managerAccountID');
 
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
             const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
@@ -1653,11 +1655,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 throw new Error('Expected an optimistic next step.');
             }
             expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
-
-            const reportKeyForNextStep = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
-            const optimisticReportNextStepUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKeyForNextStep, Onyx.METHOD.MERGE, true);
-            const optimisticReportNextStepUpdateValue = optimisticReportNextStepUpdate.value;
-            expect(optimisticReportNextStepUpdateValue.nextStep).toEqual({
+            expect(optimisticReportValue.nextStep).toEqual({
                 actorAccountID: ruleApproverAccountID,
                 icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
                 messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
@@ -2068,7 +2066,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(failureReportUpdate.value.managerID).toBe(managerAccountID);
         });
 
-        it('uses the same submit approver selection from search submit', async () => {
+        it('omits the API managerAccountID from search submit when policy employee data is missing', async () => {
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify search submit payload.
             const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
             const policyID = '1';
@@ -2110,13 +2108,9 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal);
 
-            expect(apiWriteSpy).toHaveBeenCalledWith(
-                'SubmitReport',
-                expect.objectContaining({
-                    managerAccountID: correctManagerAccountID,
-                }),
-                expect.anything(),
-            );
+            // The client route isn't reliable here, so we let the server route the report by the live workflow.
+            const [, parameters] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(parameters).not.toHaveProperty('managerAccountID');
         });
 
         it('uses the popover-selected manager email for search submit managerAccountID', async () => {

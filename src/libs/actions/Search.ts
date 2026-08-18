@@ -1431,12 +1431,12 @@ function submitMoneyRequestOnSearch(
     const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
     const submitReportManagerAccountID = getSubmitReportManagerAccountID(firstPolicy, firstReport, submitterLogin);
-    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain ?? firstReport.managerID) : submitReportManagerAccountID;
+    const resolvedManagerAccountID = trimmedManagerEmail ? (managerAccountID ?? managerAccountIDFromEmail ?? managerIDFromChain) : submitReportManagerAccountID;
 
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
-        managerAccountID: resolvedManagerAccountID,
         reportActionID: optimisticSubmittedReportAction.reportActionID,
+        ...(resolvedManagerAccountID !== undefined ? {managerAccountID: resolvedManagerAccountID} : {}),
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 
