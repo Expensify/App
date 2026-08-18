@@ -240,7 +240,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -1334,6 +1334,35 @@ describe('ReportUtils', () => {
             expect(sortedParticipants.at(1)?.name).toBe('floki@vikings.net');
             expect(sortedParticipants.at(1)?.id).toBe(2);
             expect(sortedParticipants.at(1)?.type).toBe('avatar');
+        });
+
+        it('sorts by the display name embedded in the icon without a personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Ragnar Lothbrok'},
+                {id: 3, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+            ];
+
+            const sortedIcons = sortIconsByName(icons, undefined, localeCompare);
+
+            // Sorted by display name first, then by accountID for identical names
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 3, 1]);
+        });
+
+        it('prefers the embedded display name over the personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Zed'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Abe'},
+            ];
+
+            // Personal details would put account 1 first, but the embedded names must win
+            const details: PersonalDetailsList = {
+                1: {accountID: 1, displayName: 'Aaa'},
+                2: {accountID: 2, displayName: 'Zzz'},
+            };
+            const sortedIcons = sortIconsByName(icons, details, localeCompare);
+
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 1]);
         });
     });
 
