@@ -884,23 +884,12 @@ function MenuItem({
                                         isCompact && styles.optionRowCompact,
                                         isCompactPopoverItem && (description ? styles.compactPopoverMenuItemBase : styles.compactPopoverMenuItem),
                                         !shouldRemoveBackground &&
-                                            // Nav rows (role=tab) skip the pressed background so a press keeps the hover/selected color and only dims via opacity
-                                            StyleUtils.getButtonBackgroundColorStyle(
-                                                getButtonState(focused || isHovered, role === CONST.ROLE.TAB ? false : pressed, success, disabled, interactive),
-                                                true,
-                                            ),
+                                            StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, pressed, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        // Nav rows (role=tab) hold the hover color through a press (dimmed via opacity); other rows drop it on press
-                                        isHovered &&
-                                            interactive &&
-                                            !focused &&
-                                            !shouldRemoveBackground &&
-                                            !shouldRemoveHoverBackground &&
-                                            (role === CONST.ROLE.TAB || !pressed) &&
-                                            styles.hoveredComponentBG,
-                                        // Nav rows (role=tab) use the product300 selected color, held through a press
-                                        role === CONST.ROLE.TAB && focused && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
+                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        // Nav rows (role=tab) use product300 for the selected state
+                                        role === CONST.ROLE.TAB && focused && !pressed && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}

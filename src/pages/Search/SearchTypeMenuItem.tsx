@@ -82,14 +82,13 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
             accessibilityState={{selected: focused}}
             role={CONST.ROLE.TAB}
             sentryLabel={CONST.SENTRY_LABEL.SEARCH.TYPE_MENU_ITEM}
-            // A press keeps the hover/selected color and only dims via opacity, matching the Inbox LHN rows
             style={({hovered, pressed}) => [
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                focused ? StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG) : undefined,
-                hovered && !focused ? styles.hoveredComponentBG : undefined,
-                pressed ? {opacity: variables.pressDimValue} : undefined,
+                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, pressed, false, false, true), true),
+                hovered && !focused && !pressed && styles.hoveredComponentBG,
+                focused && !pressed ? StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG) : undefined,
             ]}
         >
             {({hovered, pressed}) => (

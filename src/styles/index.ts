@@ -6862,7 +6862,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             }
 
             return {
-                backgroundColor: hovered && !isFocused ? theme.hoverComponentBG : (background as string),
+                backgroundColor: hovered && !isFocused ? theme.highlightBG : (background as string),
             };
         },
 

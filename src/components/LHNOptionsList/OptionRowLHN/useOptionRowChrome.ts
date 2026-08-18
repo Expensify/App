@@ -44,7 +44,7 @@ function useOptionRowChrome({isOptionFocused, viewMode}: UseOptionRowChromeParam
     );
     const contentContainerStyles = isInFocusMode ? [styles.flex1, styles.flexRow, styles.overflowHidden, StyleUtils.getCompactContentContainerStyles()] : [styles.flex1];
 
-    const hoveredBackgroundColor = theme.sidebarHover;
+    const hoveredBackgroundColor = !!styles.sidebarLinkHover && 'backgroundColor' in styles.sidebarLinkHover ? styles.sidebarLinkHover.backgroundColor : theme.sidebar;
     const focusedBackgroundColor = theme.navItemSelectedBG;
 
     let avatarBackgroundColor: ColorValue = theme.sidebar;

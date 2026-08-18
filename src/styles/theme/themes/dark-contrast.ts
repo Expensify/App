@@ -5,8 +5,6 @@ import darkTheme from './dark';
 
 const darkContrastTheme = {
     ...darkTheme,
-    // Keep nav rows/tabs at the stronger prior selected value so the state stays legible under high contrast
-    navItemSelectedBG: colors.productDark400,
     border: colors.productDark500,
     icon: colors.productDark700,
     textSupporting: colors.productDark800,
