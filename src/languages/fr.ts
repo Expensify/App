@@ -1423,7 +1423,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} a approuvé :`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} a approuvé ${amount}`,
         payerSettled: (amount: number | string) => `payé ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `a payé ${amount}. Ajoutez un compte bancaire pour recevoir votre paiement.`,
         automaticallyApproved: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         approvedAmount: (amount: number | string) => `${amount} approuvé`,
         approvedMessage: `approuvé`,
@@ -2163,6 +2162,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Veuillez installer la dernière version d’Expensify',
         toGetLatestChanges: 'Sur mobile, téléchargez et installez la dernière version. Sur le web, actualisez votre navigateur.',
         newAppNotAvailable: 'Mettez à jour maintenant et vous nous remercierez plus tard.',
+        updateAvailable: 'Mise à jour disponible',
+        pleaseRefresh: 'Veuillez actualiser cette page pour obtenir la dernière version d’Expensify.',
+        refreshPage: 'Actualiser la page',
     },
     initialSettingsPage: {
         about: 'À propos',
@@ -3212,6 +3214,7 @@ ${amount} pour ${merchant} - ${date}`,
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
             none: 'Aucun',
+            otherAccountingSoftware: 'Votre logiciel de comptabilité',
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
@@ -5926,6 +5929,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
@@ -6073,6 +6077,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
+            showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
             emptyCategories: {
@@ -7300,6 +7305,31 @@ Si vous souhaitez prendre en charge la facturation de l’ensemble de son abonne
 
 ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
+            cancelText: 'Annuler',
+        },
+        exportDifferentCompaniesModal: {
+            title: 'Attention !',
+            description: (connectionName: ConnectionName) =>
+                `Les notes de frais sélectionnées sont connectées à différentes entreprises ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais connectées à la même entreprise, puis réessayez.`,
+            confirmText: 'Compris',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Seuls les rapports éligibles à l’exportation seront exportés.`);
+                }
+                return `${reasons.join('\n\n')}\n\nLes rapports suivants seront exportés :`;
+            },
+            confirmText: () => ({
+                one: `Exporter 1 rapport`,
+                other: (count: number) => `Exporter ${count} rapports`,
+            }),
             cancelText: 'Annuler',
         },
         upgrade: {
@@ -9130,7 +9160,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages consolidée',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturation de voyages consolidée',
             },
             is: 'Est',
             has: {submittedViolation: 'Infraction soumise'},
