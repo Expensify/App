@@ -224,7 +224,6 @@ import type {
     Report,
     ReportAction,
     ReportAttributesDerivedValue,
-    ReportLoadingState,
     ReportNextStepDeprecated,
     ReportUserIsTyping,
     SidePanelContext,
@@ -513,17 +512,23 @@ Onyx.connect({
     },
 });
 
-// RAM-only per-report loading state. `hasOnceLoadedReportActions` is false until the first successful
-// openReport of the session and resets only on a genuine reload (page refresh / cold start), so it's the
-// signal for "has this report already been loaded this session" — used by openReport below to reconcile the
-// manual unread marker only on a true reload, not on every navigation.
-let allReportLoadingStates: OnyxCollection<ReportLoadingState>;
-Onyx.connect({
-    key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
-    callback: (value) => {
-        allReportLoadingStates = value;
-    },
-});
+// RAM-only set of reportIDs the user has navigated away from this session. It is populated when the report
+// screen blurs/unmounts (see `flagReportNavigatedAway`) and consumed by `openReport` to clear a manual unread
+// marker on the *return* trip only. A blur is the one signal that uniquely identifies "navigated away and back
+// to the chat": it does not fire on the multiple `openReport` calls of a single visit, and — being RAM-only —
+// it is empty after a page refresh, so the marker survives a refresh and is only cleared by a real navigation.
+const reportsNavigatedAwayFrom = new Set<string>();
+
+/**
+ * Records that the user has navigated away from the given report. Called from the report screen when it blurs
+ * or unmounts. The next `openReport` for this report will clear its manual unread marker and drop it from the set.
+ */
+function flagReportNavigatedAway(reportID: string | undefined) {
+    if (!reportID) {
+        return;
+    }
+    reportsNavigatedAwayFrom.add(reportID);
+}
 
 let allPersonalDetails: OnyxEntry<PersonalDetailsList> = {};
 Onyx.connect({
@@ -1555,12 +1560,12 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    // Whether this report had already been loaded once this session before this call. openReport fires on
-    // every navigation into a report, not just the first open, so we use this RAM-only flag to tell the first
-    // open apart from a re-open: a manual unread marker is kept on the first open and cleared on the second
-    // (and later) open. A page refresh or cold start resets this flag, so the marker survives one more open
-    // after a reload.
-    const wasReportAlreadyLoaded = !!allReportLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`]?.hasOnceLoadedReportActions;
+    // Whether the user navigated away from this report and is now coming back to it. The flag is set only when
+    // the report screen blurs/unmounts (see `flagReportNavigatedAway`), so it is true on a genuine return trip
+    // but false on the first open, on the repeated openReport calls of a single visit, and after a page refresh
+    // (the set is RAM-only). We consume it here to clear a manual unread marker only on that return trip.
+    const didNavigateBackToReport = reportsNavigatedAwayFrom.has(reportID);
+    reportsNavigatedAwayFrom.delete(reportID);
     const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
     const optimisticData: Array<
@@ -1619,13 +1624,12 @@ function openReport(params: OpenReportActionParams) {
                 errorFields: {
                     notFound: null,
                 },
-                // An explicit mark-as-unread keeps its "New" marker anchored across auto-read
-                // (readNewestAction no longer clears it) and across the first open of the report, so the user
-                // sees the marker they created. Clear it on the second (and later) open of the report —
-                // `hasOnceLoadedReportActions` is already true by then — so the marker shows once and is then
-                // reconciled away when the user re-opens the report. A page refresh / cold start resets this
-                // RAM-only flag, so the marker survives one more open after a reload.
-                ...(wasReportAlreadyLoaded ? {manuallyMarkedUnreadReportActionID: null} : {}),
+                // An explicit mark-as-unread keeps its "New" marker anchored while the user stays in the report
+                // (readNewestAction no longer clears it, and the repeated openReport calls of a single visit
+                // don't either), so the user sees the marker they created. It is reconciled away only when the
+                // user navigates away and comes back — `didNavigateBackToReport` is true only on that return
+                // trip. A page refresh leaves the RAM-only set empty, so the marker survives a refresh.
+                ...(didNavigateBackToReport ? {manuallyMarkedUnreadReportActionID: null} : {}),
             },
         },
         {
@@ -8389,6 +8393,7 @@ export {
     leaveRoom,
     markAsManuallyExported,
     markCommentAsUnread,
+    flagReportNavigatedAway,
     navigateToAndOpenChildReport,
     navigateToAndOpenReport,
     navigateToAndOpenReportWithAccountIDs,
