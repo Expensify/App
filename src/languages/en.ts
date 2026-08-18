@@ -1499,7 +1499,6 @@ const translations = {
         managerApproved: (manager: string) => `${manager} approved:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} approved ${amount}`,
         payerSettled: (amount: number | string) => `paid ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `paid ${amount}. Add a bank account to receive your payment.`,
         automaticallyApproved: `approved via <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">workspace rules</a>`,
         approvedAmount: (amount: number | string) => `approved ${amount}`,
         approvedMessage: `approved`,
@@ -2249,10 +2248,13 @@ const translations = {
     },
     updateRequiredView: {
         updateRequired: 'Update required',
+        updateAvailable: 'Update available',
         pleaseInstall: 'Please update to the latest version of New Expensify',
         pleaseInstallExpensifyClassic: 'Please install the latest version of Expensify',
+        pleaseRefresh: 'Please refresh this page to get the latest version of Expensify.',
         toGetLatestChanges: 'For mobile, download and install the latest version. For web, refresh your browser.',
         newAppNotAvailable: "Update now and you'll thank us later.",
+        refreshPage: 'Refresh page',
     },
     initialSettingsPage: {
         about: 'About',
@@ -3295,6 +3297,7 @@ const translations = {
         accounting: {
             title: 'Do you use any accounting software?',
             none: 'None',
+            otherAccountingSoftware: 'Your accounting software',
         },
         interestedFeatures: {
             title: 'What features are you interested in?',
@@ -5998,6 +6001,7 @@ const translations = {
             directFeed: 'Direct feed',
             whoNeedsCardAssigned: 'Who needs a card assigned?',
             chooseTheCardholder: 'Choose the cardholder',
+            pleaseSelectACardholder: 'Please select a cardholder to continue',
             chooseCard: 'Choose a card',
             chooseCardFor: (assignee: string) => `Choose a card for <strong>${assignee}</strong>. Can't find the card you're looking for? <concierge-link>Let us know.</concierge-link>`,
             noActiveCards: 'No active cards on this feed',
@@ -7459,6 +7463,31 @@ const translations = {
             description: (reportName: string, connectionName: ConnectionName) =>
                 `The following reports have already been exported to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}. Are you sure you want to export them again?\n\n${reportName}`,
             confirmText: 'Yes, export again',
+            cancelText: 'Cancel',
+        },
+        exportDifferentCompaniesModal: {
+            title: 'Careful!',
+            description: (connectionName: ConnectionName) =>
+                `The selected reports are connected to different ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} companies, so they can't be exported together. Select reports connected to the same company and try again.`,
+            confirmText: 'Got it',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Export ${exportableCount}/${selectedCount} reports to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Only reports connected to ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} will be exported.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Only reports that are eligible to export will be exported.`);
+                }
+                return `${reasons.join('\n\n')}\n\nThe following reports will be exported:`;
+            },
+            confirmText: () => ({
+                one: `Export 1 report`,
+                other: (count: number) => `Export ${count} reports`,
+            }),
             cancelText: 'Cancel',
         },
         upgrade: {
@@ -9236,7 +9265,7 @@ const translations = {
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify Card',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reimbursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Consolidated Travel Billing',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Consolidated Travel Billing',
             },
             is: 'Is',
             has: {

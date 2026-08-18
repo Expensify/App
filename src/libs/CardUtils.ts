@@ -847,6 +847,31 @@ function getBankName(feedType: CardFeedWithNumber | CardFeedWithDomainID): strin
     return result;
 }
 
+const ANZ_NZ_COMMERCIAL_FEED_BASE = 'vcfanzfav';
+const ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME = 'ANZ NZ';
+
+const COMMERCIAL_FEED_DISPLAY_BASES = [
+    {base: ANZ_NZ_COMMERCIAL_FEED_BASE, displayName: ANZ_NZ_COMMERCIAL_FEED_DISPLAY_NAME, shouldHideOne: false},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX), shouldHideOne: true},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.VISA), shouldHideOne: true},
+    {base: CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD, displayName: getBankName(CONST.COMPANY_CARD.FEED_BANK_NAME.MASTER_CARD), shouldHideOne: true},
+] as const;
+
+function getDefaultCommercialFeedDisplayName(feed: CardFeedWithNumber | CardFeedWithDomainID | undefined): string | undefined {
+    const feedName = getCompanyCardFeed(feed);
+    const displayBase = COMMERCIAL_FEED_DISPLAY_BASES.find(({base}) => feedName.startsWith(base));
+    if (!displayBase) {
+        return;
+    }
+
+    const suffix = feedName.slice(displayBase.base.length);
+    if (!suffix || !/^\d+$/.test(suffix) || (displayBase.shouldHideOne && suffix === '1')) {
+        return displayBase.displayName;
+    }
+
+    return `${displayBase.displayName} ${suffix}`;
+}
+
 const getBankCardDetailsImage = (bank: BankName, illustrations: IllustrationsType, companyCardIllustrations: CompanyCardBankIcons): IconAsset => {
     const iconMap: Record<BankName, IconAsset> = {
         [CONST.COMPANY_CARDS.BANKS.AMEX]: companyCardIllustrations.AmexCardCompanyCardDetail,
@@ -878,7 +903,7 @@ function getCustomOrFormattedFeedName(
         return '';
     }
 
-    const feedName = getBankName(feed);
+    const feedName = getDefaultCommercialFeedDisplayName(feed) ?? getBankName(feed);
     const formattedFeedName = feedName && shouldAddCardsSuffix ? translate('workspace.companyCards.feedName', feedName) : feedName;
 
     // Custom feed name can be empty. Fallback to default feed name
@@ -951,7 +976,7 @@ function getFeedNameForDisplay(
         return translate('workspace.companyCards.deletedFeed');
     }
 
-    // Travel Invoicing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
+    // Travel Billing cards share the Expensify Card bank, so feedCountry is what distinguishes them.
     if (feed === CONST.EXPENSIFY_CARD.BANK && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US) {
         return translate('search.filters.card.travelInvoicing');
     }
@@ -1467,7 +1492,7 @@ function isExpensifyCardFullySetUp(policy?: OnyxEntry<Policy>, cardSettings?: On
 /**
  * The set of valid card program keys used to key nested settings in ExpensifyCardSettings.
  * 'US' and 'GB' are geo-based programs, 'CURRENT' is the legacy pre-2024 US program,
- * and 'TRAVEL_US' is the travel invoicing program. These map directly to the keys
+ * and 'TRAVEL_US' is the travel billing program. These map directly to the keys
  * the backend nests card settings under.
  */
 type CardProgramKey = typeof CONST.COUNTRY.US | typeof CONST.EXPENSIFY_CARD.CARD_PROGRAM.CURRENT | typeof CONST.COUNTRY.GB | typeof CONST.TRAVEL.PROGRAM_TRAVEL_US;
@@ -2115,6 +2140,7 @@ export {
     isCurrencySupportedForECards,
     getCardFeedIcon,
     getBankName,
+    getDefaultCommercialFeedDisplayName,
     isSelectedFeedExpired,
     isTravelCard,
     isTravelCardTransaction,

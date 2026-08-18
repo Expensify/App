@@ -1410,7 +1410,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} zatwierdził(a):`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} zatwierdził(a) ${amount}`,
         payerSettled: (amount: number | string) => `zapłacono ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `zapłacono ${amount}. Dodaj konto bankowe, aby otrzymać płatność.`,
         automaticallyApproved: `zatwierdzone przez <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">reguły przestrzeni roboczej</a>`,
         approvedAmount: (amount: number | string) => `zatwierdzono ${amount}`,
         approvedMessage: `zatwierdzono`,
@@ -2145,6 +2144,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Zainstaluj najnowszą wersję Expensify',
         toGetLatestChanges: 'Na urządzeniu mobilnym pobierz i zainstaluj najnowszą wersję. W przeglądarce odśwież stronę.',
         newAppNotAvailable: 'Zaktualizuj teraz, a później nam podziękujesz.',
+        updateAvailable: 'Dostępna aktualizacja',
+        pleaseRefresh: 'Odśwież tę stronę, żeby uzyskać najnowszą wersję Expensify.',
+        refreshPage: 'Odśwież stronę',
     },
     initialSettingsPage: {
         about: 'Informacje',
@@ -3179,6 +3181,7 @@ ${amount} dla ${merchant} - ${date}`,
         accounting: {
             title: 'Czy korzystasz z jakiegoś oprogramowania księgowego?',
             none: 'Brak',
+            otherAccountingSoftware: 'Twoje oprogramowanie księgowe',
         },
         interestedFeatures: {
             title: 'Jakie funkcje Cię interesują?',
@@ -5853,6 +5856,7 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             directFeed: 'Bezpośredni kanał',
             whoNeedsCardAssigned: 'Kto potrzebuje przypisanej karty?',
             chooseTheCardholder: 'Wybierz posiadacza karty',
+            pleaseSelectACardholder: 'Wybierz posiadacza karty, aby kontynuować',
             chooseCard: 'Wybierz kartę',
             chooseCardFor: (assignee: string) => `Wybierz kartę dla <strong>${assignee}</strong>. Nie możesz znaleźć karty, której szukasz? <concierge-link>Daj nam znać.</concierge-link>`,
             noActiveCards: 'Brak aktywnych kart w tym kanale',
@@ -7206,6 +7210,31 @@ Jeśli chcesz przejąć rozliczenia za całą ich subskrypcję, poproś ich najp
 
 ${reportName}`,
             confirmText: 'Tak, wyeksportuj ponownie',
+            cancelText: 'Anuluj',
+        },
+        exportDifferentCompaniesModal: {
+            title: 'Uwaga!',
+            description: (connectionName: ConnectionName) =>
+                `Wybrane raporty są połączone z różnymi firmami ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, więc nie można ich wyeksportować razem. Wybierz raporty połączone z tą samą firmą i spróbuj ponownie.`,
+            confirmText: 'Rozumiem',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Wyeksportować ${exportableCount}/${selectedCount} raportów do ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty połączone z ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Wyeksportowane zostaną tylko raporty kwalifikujące się do eksportu.`);
+                }
+                return `${reasons.join('\n\n')}\n\nWyeksportowane zostaną następujące raporty:`;
+            },
+            confirmText: () => ({
+                one: `Wyeksportuj 1 raport`,
+                other: (count: number) => `Wyeksportuj ${count} raportów`,
+            }),
             cancelText: 'Anuluj',
         },
         upgrade: {
@@ -9014,7 +9043,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Karta Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Zwrot kosztów',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Zbiorcze rozliczanie podróży',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Zbiorcze rozliczanie podróży',
             },
             is: 'Jest',
             has: {submittedViolation: 'Zgłoszone naruszenie'},

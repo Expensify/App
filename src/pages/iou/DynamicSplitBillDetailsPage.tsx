@@ -50,7 +50,7 @@ type SplitBillDetailsPageProps = WithReportAndReportActionOrNotFoundProps & Plat
 function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPageProps) {
     const styles = useThemeStyles();
     const {translate, formatPhoneNumber, preferredLocale} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const theme = useTheme();
     const {isBetaEnabled} = usePermissions();
     const icons = useMemoizedLazyExpensifyIcons(['ReceiptScan']);
@@ -186,7 +186,7 @@ function DynamicSplitBillDetailsPage({report, reportAction}: SplitBillDetailsPag
                                 policyID={isPolicyExpenseChat(report) ? report?.policyID : undefined}
                                 action={isEditingSplitBill ? CONST.IOU.ACTION.EDIT : CONST.IOU.ACTION.CREATE}
                                 onToggleBillable={(billable) => {
-                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable});
+                                    setDraftSplitTransaction(transaction?.transactionID, draftTransaction, {billable}, getCurrencyDecimals, getCurrencySymbol);
                                 }}
                                 isConfirmed={isConfirmed}
                             />

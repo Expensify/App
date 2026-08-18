@@ -870,7 +870,7 @@ describe('MoneyRequest', () => {
                 getCurrencySymbol,
             });
 
-            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1);
+            expect(Split.resetSplitShares).toHaveBeenCalledWith(splitTransaction, undefined, undefined, 1, getCurrencyDecimalsLocal);
         });
 
         it('threads the conciergeChat report through to trackExpense when skipping confirmation', () => {
@@ -1845,10 +1845,10 @@ describe('MoneyRequest', () => {
             expect(shouldUseDefaultExpensePolicy(CONST.IOU.TYPE.CREATE, policy, 0, undefined, undefined, currentUserAccountID)).toBe(false);
         });
 
-        it('should return false when isPolicyExpenseChatEnabled is false', () => {
+        it('should return false when policy is not a group policy', () => {
             const policy = {
                 ...fakePolicy,
-                type: CONST.POLICY.TYPE.TEAM,
+                type: CONST.POLICY.TYPE.PERSONAL,
                 isPolicyExpenseChatEnabled: false,
             };
 

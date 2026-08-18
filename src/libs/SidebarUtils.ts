@@ -762,21 +762,33 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-// TODO: Refactor to use options object parameter to reduce parameter count
-// eslint-disable-next-line @typescript-eslint/max-params
-function getReasonAndReportActionThatHasRedBrickRoad(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    currentUserAccountID: number,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+type GetReasonAndReportActionThatHasRedBrickRoadParams = {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    isReportArchived?: boolean;
+    reports?: OnyxCollection<Report>;
+};
+
+function getReasonAndReportActionThatHasRedBrickRoad({
+    report,
+    chatReport,
+    reportActions,
+    hasViolations,
+    reportErrors,
+    transactions,
+    isOffline,
+    currentUserAccountID,
+    transactionViolations,
     isReportArchived = false,
-    reports?: OnyxCollection<Report>,
-): ReasonAndReportActionThatHasRedBrickRoad | null {
+    reports,
+}: GetReasonAndReportActionThatHasRedBrickRoadParams): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
     }
