@@ -160,10 +160,11 @@ function buildDomainNavigationItems({
     getDomainContext,
     onSelect,
 }: BuildDomainNavigationItemsParams): NavigationSuggestionSourceItem[] {
+    const isCurrentUserDomainAdmin = isAdminSelector(currentUserAccountID);
+
     return domains
         .filter(
-            (domain): domain is Domain =>
-                !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isAdminSelector(currentUserAccountID)(domain),
+            (domain): domain is Domain => !!domain?.accountID && !!domain.email && domain.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE && isCurrentUserDomainAdmin(domain),
         )
         .flatMap((domain) => {
             const domainName = Str.extractEmailDomain(domain.email);
