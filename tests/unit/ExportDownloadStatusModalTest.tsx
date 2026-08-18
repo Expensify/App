@@ -61,9 +61,9 @@ jest.mock('@libs/ActiveClientManager', () => ({
     isClientTheLeader: () => mockIsClientTheLeader(),
 }));
 
-const mockFileDownload = fileDownload as jest.MockedFunction<typeof fileDownload>;
-const mockSendFromConcierge = sendExportFileFromConcierge as jest.MockedFunction<typeof sendExportFileFromConcierge>;
-const mockClearExportDownload = clearExportDownload as jest.MockedFunction<typeof clearExportDownload>;
+const mockFileDownload = jest.mocked(fileDownload);
+const mockSendFromConcierge = jest.mocked(sendExportFileFromConcierge);
+const mockClearExportDownload = jest.mocked(clearExportDownload);
 const mockModalClose = jest.mocked(Modal.close);
 
 const EXPORT_ID = 'test-export-123';
