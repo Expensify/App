@@ -1,3 +1,4 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import type {SearchActionsContextValue, SearchStateContextValue} from '@components/Search/types';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
@@ -19,7 +20,6 @@ import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
 import {
-    getAllReportActions,
     getIOUActionForReportID,
     getIOUActionForTransactionID,
     getLastVisibleAction,
@@ -83,7 +83,7 @@ import type {UpdateMoneyRequestDataKeys} from './UpdateMoneyRequest';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getAllReports} from './index';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {getMoneyRequestInformation, getReportPreviewAction} from './MoneyRequestBuilder';
+import {getMoneyRequestInformation, getReportPreviewReportAction} from './MoneyRequestBuilder';
 import {getDeleteTrackExpenseInformation} from './TrackExpense';
 import {getUpdateMoneyRequestParams} from './UpdateMoneyRequest';
 
@@ -122,7 +122,9 @@ type UpdateSplitTransactionsParams = {
     isOffline: boolean;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /**
@@ -204,7 +206,9 @@ function updateSplitTransactions({
     isOffline,
     delegateAccountID,
     isTrackIntentUser,
+    formatPhoneNumber,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -301,11 +305,11 @@ function updateSplitTransactions({
     if (isReverseSplitOperation) {
         const revertSplitTransactionID = splitExpenses.at(0)?.transactionID;
         const revertSplitTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${revertSplitTransactionID}`];
-        const revertSplitReportActions = getAllReportActions(revertSplitTransaction?.reportID);
+        const revertSplitReportActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${revertSplitTransaction?.reportID}`] ?? {};
         splitThreadReportAction = revertSplitTransactionID ? getIOUActionForTransactionID(Object.values(revertSplitReportActions ?? {}), revertSplitTransactionID) : undefined;
         splitTransactionThreadReportID = splitThreadReportAction?.childReportID;
         if (splitTransactionThreadReportID) {
-            const splitTransactionThreadActions = getAllReportActions(splitTransactionThreadReportID);
+            const splitTransactionThreadActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${splitTransactionThreadReportID}`] ?? {};
             splitThreadComments = Object.values(splitTransactionThreadActions).filter(
                 (action): action is OnyxTypes.ReportAction =>
                     isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) && !isDeletedAction(action) && (action.actorAccountID ?? CONST.DEFAULT_NUMBER_ID) > 0,
@@ -386,12 +390,12 @@ function updateSplitTransactions({
     }
 
     let updatedReportPreviewAction: Partial<OnyxTypes.ReportAction> | undefined;
-    const originalReportPreviewAction = getReportPreviewAction(
+    const originalReportPreviewAction = getReportPreviewReportAction(
         expenseReport?.chatReportID,
         expenseReport?.reportID,
         allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport?.chatReportID}`],
     );
-    const transactionReportActions = getAllReportActions(firstIOU?.childReportID);
+    const transactionReportActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstIOU?.childReportID}`] ?? {};
     const expenseReportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${expenseReport?.reportID}`];
     const isArchivedExpenseReport = isArchivedReport(expenseReportNameValuePairs);
     const canUserPerformWriteAction = chatReport ? !!canUserPerformWriteActionReportUtils(chatReport, isArchivedExpenseReport) : true;
@@ -599,7 +603,7 @@ function updateSplitTransactions({
             reportActionsReportID = splitTransaction?.reportID;
         }
 
-        const splitReportActions = getAllReportActions(reportActionsReportID);
+        const splitReportActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`] ?? {};
         const currentReportAction = Object.values(splitReportActions).find((action) => {
             const transactionID = isMoneyRequestAction(action) ? (getOriginalMessage(action)?.IOUTransactionID ?? CONST.DEFAULT_NUMBER_ID) : CONST.DEFAULT_NUMBER_ID;
             return transactionID === existingTransactionID;
@@ -639,7 +643,14 @@ function updateSplitTransactions({
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -667,6 +678,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         } as MoneyRequestInformationParams;
 
@@ -683,7 +695,14 @@ function updateSplitTransactions({
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
                 taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -782,6 +801,7 @@ function updateSplitTransactions({
             personalDetails,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
             getCurrencyDecimals,
         });
 
@@ -877,6 +897,8 @@ function updateSplitTransactions({
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
@@ -1149,7 +1171,7 @@ function updateSplitTransactions({
         if (isReverseSplitOperation && transactionThreadReportID) {
             const remainingTransaction = allTransactionsList?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense.transactionID}`];
             const remainTransactionThreadReportAction = getIOUActionForReportID(splitExpense.reportID, splitExpense.transactionID);
-            const allReportActions = getAllReportActions(remainTransactionThreadReportAction?.childReportID);
+            const allReportActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${remainTransactionThreadReportAction?.childReportID}`] ?? {};
             const isRemainingTransactionOnHold = isOnHold(remainingTransaction);
             const remainingHoldReportAction = getReportAction(remainTransactionThreadReportAction?.childReportID, `${remainingTransaction?.comment?.hold ?? ''}`);
 
@@ -1349,7 +1371,7 @@ function updateSplitTransactions({
         const isSelfDMTransaction = splitTransaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
         const selfDMReportIDForLookup = originalSelfDMReportID ?? selfDMReport?.reportID;
         const reportActionsReportID = isSelfDMTransaction ? selfDMReportIDForLookup : splitTransaction?.reportID;
-        const splitReportActions = getAllReportActions(reportActionsReportID);
+        const splitReportActions = allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`] ?? {};
         const reportNameValuePairs = allReportNameValuePairsList?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${splitTransaction?.reportID}`];
         const splitReportID = isSelfDMTransaction ? (selfDMReportIDForLookup ?? String(CONST.DEFAULT_NUMBER_ID)) : (splitTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID));
         const splitTransactionReport = allReportsList?.[`${ONYXKEYS.COLLECTION.REPORT}${splitReportID}`];
@@ -1646,6 +1668,7 @@ function updateSplitTransactions({
                     reportAction: iouActionToCleanUp,
                     updatedReportPreviewAction: updatedReportPreviewAction as OnyxTypes.ReportAction,
                     currentUserAccountID: currentUserPersonalDetails.accountID,
+                    transactionThreadReportActionsParam: allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouActionToCleanUp.childReportID}`],
                 });
 
                 onyxData.optimisticData?.push(...optimisticData);

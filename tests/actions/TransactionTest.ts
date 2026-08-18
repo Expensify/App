@@ -36,12 +36,12 @@ import createPersonalDetails from '../utils/collections/personalDetails';
 import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import getOnyxValue from '../utils/getOnyxValue';
-import {getCurrencyDecimalsLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
+import {formatPhoneNumber, getCurrencyDecimalsLocal, getCurrencySymbolLocal, getGlobalFetchMock, getOnyxData} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'getCurrencyDecimals'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'delegateAccountID' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations: Parameters<typeof changeTransactionsReportAction>[0]['allTransactionViolation'];
@@ -58,6 +58,7 @@ function changeTransactionsReport({allTransactions, transactionIDs, transactionV
         allTransactionViolation: transactionViolations,
         personalPolicyOutputCurrency,
         selfDMReportActions,
+        delegateAccountID: undefined,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
         ...rest,
     });
@@ -309,6 +310,14 @@ describe('actions/Transaction', () => {
 
             const policyTagList = (await getOnyxValue(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${mockPolicy.id}`)) ?? {};
 
+            let reports: OnyxCollection<Report>;
+            await getOnyxData({
+                key: ONYXKEYS.COLLECTION.REPORT,
+                callback: (value) => {
+                    reports = value;
+                },
+            });
+
             changeTransactionsReport({
                 transactionIDs: [transaction?.transactionID],
                 isASAPSubmitBetaEnabled: false,
@@ -318,8 +327,8 @@ describe('actions/Transaction', () => {
                 policy: mockPolicy,
                 allTransactions,
                 policyTagList,
+                reports,
                 transactionViolations: {},
-                allReports: undefined,
                 selfDMReportActions,
                 isTrackIntentUser: false,
             });
@@ -439,8 +448,8 @@ describe('actions/Transaction', () => {
                 allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`]: transaction},
                 policyTagList: undefined,
                 transactionViolations: {},
-                allReports: undefined,
                 personalPolicyOutputCurrency: 'EUR',
+                reports: undefined,
                 isTrackIntentUser: false,
             });
             await waitForBatchedUpdates();
@@ -516,6 +525,14 @@ describe('actions/Transaction', () => {
                 await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
                 await waitForBatchedUpdates();
 
+                let reports: OnyxCollection<Report>;
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT,
+                    callback: (value) => {
+                        reports = value;
+                    },
+                });
+
                 changeTransactionsReport({
                     transactionIDs: [TRANSACTION_ID],
                     isASAPSubmitBetaEnabled: false,
@@ -526,7 +543,7 @@ describe('actions/Transaction', () => {
                     allTransactions: {[`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`]: transaction},
                     policyTagList: undefined,
                     transactionViolations: {},
-                    allReports: undefined,
+                    reports,
                     isTrackIntentUser: false,
                 });
                 await waitForBatchedUpdates();
@@ -635,6 +652,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -742,7 +760,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -815,6 +835,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -922,7 +943,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1000,6 +1023,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1116,7 +1140,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
                 await waitForBatchedUpdates();
 
@@ -1195,6 +1221,7 @@ describe('actions/Transaction', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
                 await waitForBatchedUpdates();
@@ -1222,7 +1249,7 @@ describe('actions/Transaction', () => {
 
                 // Put the expense on hold
                 if (originalTransactionID && transactionThreadReportID) {
-                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false);
+                    putOnHold(originalTransactionID, 'Test hold reason', transactionThreadReportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, [], false, undefined);
                 }
                 await waitForBatchedUpdates();
 
@@ -1276,6 +1303,7 @@ describe('actions/Transaction', () => {
                 let allTransactions: OnyxCollection<Transaction>;
                 let allReports: OnyxCollection<Report>;
                 let allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>;
+                let allReportActions: OnyxCollection<ReportActions>;
 
                 await getOnyxData({
                     key: ONYXKEYS.COLLECTION.TRANSACTION,
@@ -1295,6 +1323,12 @@ describe('actions/Transaction', () => {
                         allReportNameValuePairs = value;
                     },
                 });
+                await getOnyxData({
+                    key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
+                    callback: (value) => {
+                        allReportActions = value;
+                    },
+                });
 
                 const reportID = draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID);
                 const reports = getTransactionAndExpenseReports(reportID);
@@ -1303,7 +1337,7 @@ describe('actions/Transaction', () => {
                 updateSplitTransactionsFromSplitExpensesFlow({
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
-                    allReportActionsList: undefined,
+                    allReportActionsList: allReportActions,
                     allReportNameValuePairsList: allReportNameValuePairs,
                     transactionData: {
                         reportID,
@@ -1332,7 +1366,9 @@ describe('actions/Transaction', () => {
                     isOffline: false,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    getCurrencySymbol: getCurrencySymbolLocal,
                 });
 
                 await waitForBatchedUpdates();

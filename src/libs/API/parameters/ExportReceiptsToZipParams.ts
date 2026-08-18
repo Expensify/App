@@ -1,5 +1,6 @@
 type ExportReceiptsToZipParams = {
-    reportIDs: string;
+    transactionIDs?: string;
+    reportIDs?: string;
     exportID: string;
 };
 
