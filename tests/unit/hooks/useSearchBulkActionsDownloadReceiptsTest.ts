@@ -393,6 +393,26 @@ describe('useSearchBulkActions - Download receipts', () => {
             expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeUndefined();
         });
 
+        it('drops deleted transactions and only sends the live ones', async () => {
+            mockSelectedTransactions = {
+                tx1: makeSelectedTransaction(),
+                tx2: makeSelectedTransaction({reportID: CONST.REPORT.TRASH_REPORT_ID, transaction: makeTransaction('tx2', CONST.REPORT.TRASH_REPORT_ID)}),
+            };
+
+            const {result} = renderHookWithProvider(() => useSearchBulkActions({queryJSON: expenseQueryJSON}));
+
+            await waitFor(() => {
+                expect(getDownloadReceiptsOption(result.current.headerButtonsOptions)).toBeDefined();
+            });
+
+            await act(async () => {
+                await getDownloadReceiptsOption(result.current.headerButtonsOptions)?.onSelected?.();
+            });
+
+            expect(exportReceiptsToZip).toHaveBeenCalledTimes(1);
+            expect(exportReceiptsToZip).toHaveBeenCalledWith({transactionIDs: ['tx1']});
+        });
+
         it('hides the option when only group_ keys are selected', async () => {
             const groupKey = `${CONST.SEARCH.GROUP_PREFIX}123`;
             mockSelectedTransactions = {[groupKey]: makeSelectedTransaction({reportID: undefined})};

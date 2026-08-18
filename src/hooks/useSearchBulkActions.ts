@@ -2382,15 +2382,16 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         }
 
         const isExpenseSearch = queryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE || searchResults?.search.type === CONST.SEARCH.DATA_TYPES.EXPENSE;
-        // A group selected before its children load is stored under a group_ key, which is not a real
-        // transaction ID. Drop those keys so ExportReceiptsToZip only receives valid transaction IDs.
-        const transactionIDs = selectedTransactionsKeys.filter((key) => !key.startsWith(CONST.SEARCH.GROUP_PREFIX));
-        if (
-            isExpenseSearch &&
-            selectedTransactionsKeys.length > 0 &&
-            transactionIDs.length > 0 &&
-            Object.values(selectedTransactions).some(({transaction}) => hasReceiptTransactionUtils(transaction))
-        ) {
+        // Only export transactions that have a downloadable receipt. Drop group_ keys (a group selected before its
+        // children load is not a real transaction ID) and deleted transactions so ExportReceiptsToZip gets a clean set.
+        const transactionIDs = selectedTransactionsKeys.filter((key) => {
+            if (key.startsWith(CONST.SEARCH.GROUP_PREFIX)) {
+                return false;
+            }
+            const selected = selectedTransactions[key];
+            return hasReceiptTransactionUtils(selected?.transaction) && !isDeletedTransaction(selected ?? {});
+        });
+        if (isExpenseSearch && transactionIDs.length > 0) {
             options.push({
                 icon: expensifyIcons.Download,
                 text: translate('common.downloadReceipts'),
