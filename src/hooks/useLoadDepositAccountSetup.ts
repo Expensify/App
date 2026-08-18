@@ -4,7 +4,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {useRoute} from '@react-navigation/native';
-import {useEffect, useRef, useState} from 'react';
+import {useEffect, useEffectEvent, useState} from 'react';
 
 import useOnyx from './useOnyx';
 
@@ -30,20 +30,24 @@ function useLoadDepositAccountSetup(): boolean {
     const [isFlowEntryMount] = useState(() => !(route.params as {subPage?: string} | undefined)?.subPage);
     const [isLoadingDepositAccountSetup, metadata] = useOnyx(ONYXKEYS.RAM_ONLY_IS_LOADING_DEPOSIT_ACCOUNT_SETUP);
     const isReadingFlagFromOnyx = isLoadingOnyxValue(metadata);
-    const hasRequestedRef = useRef(false);
+
+    // Reading the flag through an effect event keeps it out of the effect's dependencies, so the request the flag
+    // itself triggers can't feed back and re-run the effect.
+    const openDepositAccountSetupEvent = useEffectEvent(() => {
+        if (!isFlowEntryMount && isLoadingDepositAccountSetup !== undefined) {
+            return;
+        }
+        openDepositAccountSetup();
+    });
 
     useEffect(() => {
         // Until Onyx has read the key, an undefined flag only means "not read yet" - deciding now would fire a
         // duplicate request on every mid-flow mount.
-        if (hasRequestedRef.current || isReadingFlagFromOnyx) {
+        if (isReadingFlagFromOnyx) {
             return;
         }
-        if (!isFlowEntryMount && isLoadingDepositAccountSetup !== undefined) {
-            return;
-        }
-        hasRequestedRef.current = true;
-        openDepositAccountSetup();
-    }, [isFlowEntryMount, isLoadingDepositAccountSetup, isReadingFlagFromOnyx]);
+        openDepositAccountSetupEvent();
+    }, [isReadingFlagFromOnyx]);
 
     return isLoadingDepositAccountSetup ?? true;
 }
