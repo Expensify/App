@@ -1,3 +1,4 @@
+// cspell:ignore Julesssss jasperhuangg GYJH
 import {describe, expect, it} from 'bun:test';
 
 import CONST from '@github/libs/CONST';
