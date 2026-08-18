@@ -101,6 +101,10 @@ function useAutoCreateSubmitWorkspace() {
                         introSelected,
                         isSelfTourViewed,
                         conciergeChat,
+                        // Creating a Submit workspace posts a Concierge welcome with suggested responses in its
+                        // #admins room, so a Concierge DM checklist on top of that is a competing second onboarding
+                        // experience. Without a new workspace there is no #admins welcome, so the checklist stays.
+                        shouldSkipConciergeOnboarding: shouldCreateWorkspace,
                     });
                 } catch (error) {
                     // Swallow onboarding completion failures so a network error doesn't block workspace

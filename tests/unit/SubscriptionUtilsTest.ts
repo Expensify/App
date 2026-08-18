@@ -1313,16 +1313,21 @@ describe('SubscriptionUtils', () => {
             },
         };
 
-        const translate = jest.fn((key: string, ...parameters: unknown[]) => {
-            const remainingDays = parameters.at(0) as number | undefined;
-            if (key === 'subscription.billingBanner.trialStarted.title' && remainingDays !== undefined) {
+        const translateImplementation: LocalizedTranslate = (key, ...parameters) => {
+            const remainingDays = parameters.at(0);
+            if (key === 'subscription.billingBanner.trialStarted.title' && typeof remainingDays === 'number') {
                 return `trialStarted:${remainingDays}`;
             }
             if (key === 'subscription.billingBanner.preTrial.title') {
                 return 'preTrial';
             }
             return key;
-        }) as unknown as LocalizedTranslate;
+        };
+        const translateMock = jest.fn();
+        const translate: LocalizedTranslate = (key, ...parameters) => {
+            translateMock(key, ...parameters);
+            return translateImplementation(key, ...parameters);
+        };
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -1330,7 +1335,7 @@ describe('SubscriptionUtils', () => {
 
         it('returns undefined when the user has no owned paid workspace', () => {
             expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined)).toBeUndefined();
-            expect(translate).not.toHaveBeenCalled();
+            expect(translateMock).not.toHaveBeenCalled();
         });
 
         it('returns pre-trial billing copy when the trial has not started and has not ended', () => {
@@ -1341,7 +1346,7 @@ describe('SubscriptionUtils', () => {
             };
 
             expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBe('preTrial');
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
         });
 
         it('returns trial-started copy with remaining days when the user is currently on a free trial', () => {
@@ -1354,7 +1359,7 @@ describe('SubscriptionUtils', () => {
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 
@@ -1363,7 +1368,7 @@ describe('SubscriptionUtils', () => {
             const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
             expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial)).toBeUndefined();
-            expect(translate).not.toHaveBeenCalled();
+            expect(translateMock).not.toHaveBeenCalled();
         });
     });
 

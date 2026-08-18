@@ -6,7 +6,6 @@ import type * as SubscriptionUtils from '@libs/SubscriptionUtils';
 import {PAYMENT_STATUS} from '@libs/SubscriptionUtils';
 
 import type {TranslationParameters, TranslationPaths} from '@src/languages/types';
-import type {BillingStatusResult} from '@src/pages/settings/Subscription/CardSection/utils';
 import CardSectionUtils from '@src/pages/settings/Subscription/CardSection/utils';
 import type {Purchase} from '@src/types/onyx/PurchaseList';
 import type IconAsset from '@src/types/utils/IconAsset';
@@ -31,11 +30,11 @@ const ACCOUNT_DATA = {
     cardYear: 2024,
 };
 
-const mockGetSubscriptionStatus = jest.fn();
+const mockGetSubscriptionStatus = jest.fn<ReturnType<typeof SubscriptionUtils.getSubscriptionStatus>, Parameters<typeof SubscriptionUtils.getSubscriptionStatus>>();
 
 jest.mock('@libs/SubscriptionUtils', () => ({
     ...jest.requireActual<typeof SubscriptionUtils>('@libs/SubscriptionUtils'),
-    getSubscriptionStatus: (...args: Parameters<typeof SubscriptionUtils.getSubscriptionStatus>) => mockGetSubscriptionStatus(...args) as BillingStatusResult,
+    getSubscriptionStatus: (...args: Parameters<typeof SubscriptionUtils.getSubscriptionStatus>) => mockGetSubscriptionStatus(...args),
 }));
 
 describe('getNextBillingDate', () => {
@@ -90,7 +89,7 @@ describe('CardSectionUtils', () => {
         const {result: iconsResult} = renderHook(() => useMemoizedLazyExpensifyIcons(['Close']));
         closeIcon = iconsResult.current.Close;
 
-        mockGetSubscriptionStatus.mockReturnValue('');
+        mockGetSubscriptionStatus.mockReturnValue(undefined);
 
         jest.useFakeTimers();
         // Month is zero indexed, so this is July 5th 2024
