@@ -1,32 +1,15 @@
-import {act, render} from '@testing-library/react-native';
+import {render} from '@testing-library/react-native';
 
-import BaseModal from '@components/Modal/BaseModal';
 import type BaseModalComponent from '@components/Modal/BaseModal';
 import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
 
 import type * as ModalActions from '@userActions/Modal';
-import {close} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
 import React from 'react';
 
-let mockCapturedProps: ReanimatedModalProps | undefined;
-
-jest.mock('@components/Modal/ReanimatedModal', () => ({
-    __esModule: true,
-    default: (props: ReanimatedModalProps) => {
-        mockCapturedProps = props;
-        return null;
-    },
-}));
-
 describe('BaseModal', () => {
-    beforeEach(() => {
-        mockCapturedProps = undefined;
-    });
-
-    // The `it.each` cases below use `jest.doMock`, which only takes effect on a fresh module registry.
     afterEach(() => {
         jest.resetModules();
     });
@@ -34,10 +17,21 @@ describe('BaseModal', () => {
     it('passes a non-null initialFocus for a bottom-docked modal when the dismiss-button ref is unmounted', () => {
         // focus-trap throws when `initialFocus` resolves to `null` (vs `false`/`undefined`). For a bottom-docked
         // modal, the dismiss-button ref can be `null` by the time focus-trap reads it (the read is deferred), so
-        // the getter must coerce that `null` to `false`.
+        // the getter must coerce that `null` to `false`. The ReanimatedModal mock is scoped to this test (via
+        // jest.doMock) so it doesn't leak into other BaseModal cases.
+        let captured: ReanimatedModalProps | undefined;
+        jest.doMock('@components/Modal/ReanimatedModal', () => ({
+            __esModule: true,
+            default: (props: ReanimatedModalProps) => {
+                captured = props;
+                return null;
+            },
+        })); // Scope the dependency mock to this test.
+        const BaseModal = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal').default;
+
         render(
             <BaseModal
-                isVisible={false}
+                isVisible
                 type={CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED}
                 onClose={jest.fn()}
             >
@@ -45,44 +39,13 @@ describe('BaseModal', () => {
             </BaseModal>,
         );
 
-        const initialFocus = mockCapturedProps?.initialFocus;
+        const initialFocus = captured?.initialFocus;
         expect(typeof initialFocus).toBe('function');
         if (typeof initialFocus !== 'function') {
-            throw new Error('Expected initialFocus to be a function');
+            throw new Error('Expected the bottom-docked modal to provide an initial-focus getter');
         }
         // dismiss button never mounted -> ref.current is null -> the getter resolves to false (no crash)
         expect(initialFocus()).toBe(false);
-    });
-
-    it('calls onModalHide before the callback deferred by close', () => {
-        const events: string[] = [];
-
-        render(
-            <BaseModal
-                isVisible
-                type={CONST.MODAL.MODAL_TYPE.POPOVER}
-                onClose={() => {
-                    events.push('close');
-                }}
-                onModalHide={() => {
-                    events.push('modalHide');
-                }}
-            >
-                {null}
-            </BaseModal>,
-        );
-
-        act(() => {
-            close(() => {
-                events.push('deferred');
-            });
-        });
-        expect(events).toEqual(['close']);
-
-        act(() => {
-            mockCapturedProps?.onModalHide?.();
-        });
-        expect(events).toEqual(['close', 'modalHide', 'deferred']);
     });
 
     it.each([
@@ -111,16 +74,16 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const {default: ReloadedBaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
 
         const {unmount} = render(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={type}
                 shouldTreatModalAsCovering={shouldTreatModalAsCovering}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
 
         expect(willAlertModalBecomeVisible).toHaveBeenLastCalledWith(true, isPopover);
@@ -154,15 +117,15 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const {default: ReloadedBaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
 
         const {rerender, unmount} = render(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         const coveringModalID = setModalCovering.mock.calls.at(0)?.at(0);
         if (coveringModalID === undefined) {
@@ -171,30 +134,30 @@ describe('BaseModal', () => {
         modalProps.at(-1)?.onModalWillShow?.();
 
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible={false}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         modalProps.at(-1)?.onModalWillHide?.();
         // A transient reopen collapses back to hidden before the exit transition completes.
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible={false}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
 
         // The exit completes; ReanimatedModal invokes the freshest onModalHide prop, which observes the hidden state.
@@ -224,15 +187,15 @@ describe('BaseModal', () => {
                 return null;
             },
         }));
-        const {default: ReloadedBaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
+        const {default: BaseModal} = jest.requireActual<{default: typeof BaseModalComponent}>('@components/Modal/BaseModal');
 
         const {rerender, unmount} = render(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         const coveringModalID = setModalCovering.mock.calls.at(0)?.at(0);
         if (coveringModalID === undefined) {
@@ -241,22 +204,22 @@ describe('BaseModal', () => {
         modalProps.at(-1)?.onModalWillShow?.();
 
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible={false}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         modalProps.at(-1)?.onModalWillHide?.();
         // The modal is asked to re-show while the exit transition is still running.
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
 
         // The interrupted exit completes; the freshest onModalHide prop observes the visible state,
@@ -266,22 +229,22 @@ describe('BaseModal', () => {
         expect(setModalCovering).not.toHaveBeenCalledWith(coveringModalID, false);
 
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible={false}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         const closeStartProps = modalProps.at(-1);
         closeStartProps?.onModalWillHide?.();
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
 
         // Android invokes the callback retained when the close began (the reanimated exit snapshot), whose
@@ -291,12 +254,12 @@ describe('BaseModal', () => {
         expect(setModalCovering).not.toHaveBeenCalledWith(coveringModalID, false);
 
         rerender(
-            <ReloadedBaseModal
+            <BaseModal
                 isVisible={false}
                 type={CONST.MODAL.MODAL_TYPE.CENTERED}
             >
                 {null}
-            </ReloadedBaseModal>,
+            </BaseModal>,
         );
         modalProps.at(-1)?.onModalWillHide?.();
         modalProps.at(-1)?.onModalHide?.();

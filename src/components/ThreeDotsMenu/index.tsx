@@ -15,9 +15,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {isMobile, isSafari} from '@libs/Browser';
-import {resolvePopoverLauncherElement, setActivePopoverLauncher} from '@libs/LauncherStack';
-import restoreFocusWithModality from '@libs/restoreFocusWithModality';
+import {isMobile} from '@libs/Browser';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -69,8 +67,6 @@ function ThreeDotsMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
-    // When an item uses shouldCallAfterModalHide, restore the anchor before onSelected so nav/confirm capture it.
-    const shouldRestoreAnchorOnHideRef = useRef(false);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -98,13 +94,6 @@ function ThreeDotsMenu({
             return;
         }
         hideProductTrainingTooltip?.();
-
-        // Register before blur — FocusTrapForModal.onActivate only sees document.activeElement, which is
-        // body after this blur, so without this NavigationFocusReturn has no launcher for Back restore.
-        const anchor = resolvePopoverLauncherElement(buttonRef);
-        if (anchor) {
-            setActivePopoverLauncher(anchor);
-        }
         buttonRef.current?.blur();
 
         // Dismiss the keyboard before opening the menu so the menu doesn't
@@ -213,33 +202,12 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalHide={() => {
-                    setRestoreFocusType(undefined);
-                    if (!shouldRestoreAnchorOnHideRef.current) {
-                        return;
-                    }
-                    shouldRestoreAnchorOnHideRef.current = false;
-                    // ComposerFocusManager often has a null saved input because we blur before open;
-                    // put focus back on the anchor before shouldCallAfterModalHide runs onSelected.
-                    const anchor = resolvePopoverLauncherElement(buttonRef);
-                    if (anchor) {
-                        restoreFocusWithModality(anchor);
-                    }
-                }}
+                onModalHide={() => setRestoreFocusType(undefined)}
                 isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    // Match PopoverMenu: Safari runs shouldCallAfterModalHide immediately (no defer),
-                    // so do not arm post-hide restore — that would refocus the anchor behind the destination.
-                    const willDeferSelection = !!item.shouldCallAfterModalHide && !isSafari();
-                    if (willDeferSelection) {
-                        // Let the anchor regain focus before the deferred action (nav / confirm modal).
-                        shouldRestoreAnchorOnHideRef.current = true;
-                    } else {
-                        // Immediate selection (incl. Safari) — skip flashing focus back onto the 3-dot button.
-                        setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
-                    }
+                    setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                     hidePopoverMenu(item);
                 }}
                 menuItems={menuItems}

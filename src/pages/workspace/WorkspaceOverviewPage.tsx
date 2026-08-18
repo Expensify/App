@@ -21,7 +21,7 @@ import useConfirmModal from '@hooks/useConfirmModal';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDefaultFundID from '@hooks/useDefaultFundID';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -92,7 +92,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
     const shouldDisplayButtonsInSeparateLine = useShouldDisplayButtonsInSeparateLine();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencySymbol} = useCurrencyListActions();
-    const illustrationIcons = useMemoizedLazyIllustrations(['Building']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Exit', 'ImageCropSquareMask', 'QrCode', 'Transfer', 'Trashcan', 'Upload', 'UserPlus']);
 
     const backTo = route.params.backTo;
@@ -495,7 +494,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             shouldShowOfflineIndicatorInWideScreen
             shouldShowNonAdmin
             policyFeature={CONST.POLICY.POLICY_FEATURE.OVERVIEW}
-            icon={illustrationIcons.Building}
             shouldShowNotFoundPage={policy === undefined}
             onBackButtonPress={handleBackButtonPress}
             addBottomSafeAreaPadding
@@ -554,7 +552,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                             titleStyle={styles.workspaceTitleStyle}
                             description={translate('workspace.common.workspaceName')}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.NAME}
-                            pressableTestID="workspace-overview-name-menu-item"
                             shouldShowRightIcon={!readOnly}
                             interactive={!readOnly}
                             wrapperStyle={[styles.sectionMenuItemTopDescription, shouldUseNarrowLayout ? styles.mt3 : {}]}
@@ -580,7 +577,6 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                                     title={policyDescription}
                                     description={translate('workspace.editor.descriptionInputLabel')}
                                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.OVERVIEW.DESCRIPTION}
-                                    pressableTestID="workspace-overview-description-menu-item"
                                     shouldShowRightIcon={!readOnly}
                                     interactive={!readOnly}
                                     wrapperStyle={styles.sectionMenuItemTopDescription}

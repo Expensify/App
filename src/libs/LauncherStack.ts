@@ -2,36 +2,24 @@
  * Stack of popover/modal launcher elements — the element that opened a focus trap. Top is the most recent.
  * pickLauncher prefers the topmost active entry, else the most recent deactivated-within-LAUNCHER_CLEAR_DELAY_MS.
  */
-import type {RefObject} from 'react';
-import type {View} from 'react-native';
-
 import {LAUNCHER_CLEAR_DELAY_MS, LAUNCHER_STACK_MAX} from './focusReturnTimings';
 
-// deactivatedAt is set on trap close; entry lives LAUNCHER_CLEAR_DELAY_MS so deferred-nav popovers can still consume it.
-type LauncherEntry = {element: HTMLElement; deactivatedAt?: number};
+// deactivatedAt is set once every trap holding the launcher has closed; the entry then lives LAUNCHER_CLEAR_DELAY_MS so
+// deferred-nav popovers can still consume it. holders counts those traps: nested traps and a modal opened from a popover
+// all adopt the same element, and the entry must stay active until the last of them lets go.
+type LauncherEntry = {element: HTMLElement; deactivatedAt?: number; holders: number};
 
 // Stack (not slot) so nested + sequential traps retain correct launcher context.
 const launcherStack: LauncherEntry[] = [];
 let hasWarnedAboutOverflow = false;
 
-/** Resolve a RN View ref to its web host node for LauncherStack registration. No-op on native. */
-function resolvePopoverLauncherElement(ref: RefObject<View | null> | null | undefined): HTMLElement | null {
-    if (typeof document === 'undefined' || !ref?.current) {
-        return null;
-    }
-    // On web, RN View refs are DOM nodes; instanceof avoids an unsafe cast.
-    const node = ref.current;
-    if (!(node instanceof HTMLElement) || !document.contains(node)) {
-        return null;
-    }
-    return node;
-}
-
 // Two passes so nested traps resolve to the outer (active) launcher, not the just-closed inner.
-function pickActiveLauncher(): HTMLElement | null {
+function pickLauncher(): HTMLElement | null {
     if (typeof document === 'undefined') {
         return null;
     }
+    // Monotonic — Date.now() would misbehave on clock jumps.
+    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (!entry) {
@@ -45,19 +33,6 @@ function pickActiveLauncher(): HTMLElement | null {
             return entry.element;
         }
     }
-    return null;
-}
-
-function pickLauncher(): HTMLElement | null {
-    if (typeof document === 'undefined') {
-        return null;
-    }
-    const active = pickActiveLauncher();
-    if (active) {
-        return active;
-    }
-    // Monotonic — Date.now() would misbehave on clock jumps.
-    const now = performance.now();
     for (let i = launcherStack.length - 1; i >= 0; i -= 1) {
         const entry = launcherStack.at(i);
         if (entry?.deactivatedAt === undefined) {
@@ -76,6 +51,14 @@ function pickLauncher(): HTMLElement | null {
     return null;
 }
 
+/**
+ * Whether `element` is still tracked. A forward navigation consumes its launcher (see captureTriggerForRoute), so a
+ * missing entry means navigation already claimed this launcher and owns the focus restore from here on.
+ */
+function hasLauncher(element: HTMLElement): boolean {
+    return launcherStack.some((entry) => entry.element === element);
+}
+
 function consumeLauncher(element: HTMLElement): void {
     const idx = launcherStack.findIndex((e) => e.element === element);
     if (idx >= 0) {
@@ -89,10 +72,8 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     }
     // Reactivation must move the entry to the tail — pickLauncher scans end-first, so leaving a reactivated entry mid-stack lets newer (still-active) entries shadow it.
     const existingIdx = launcherStack.findIndex((e) => e.element === element);
-    if (existingIdx >= 0) {
-        launcherStack.splice(existingIdx, 1);
-    }
-    launcherStack.push({element});
+    const [existing] = existingIdx >= 0 ? launcherStack.splice(existingIdx, 1) : [];
+    launcherStack.push({element, holders: (existing?.holders ?? 0) + 1, deactivatedAt: undefined});
     if (launcherStack.length > LAUNCHER_STACK_MAX) {
         if (!hasWarnedAboutOverflow) {
             hasWarnedAboutOverflow = true;
@@ -104,7 +85,11 @@ function setActivePopoverLauncher(element: HTMLElement): void {
     }
 }
 
-/** Mark a launcher (or top-of-stack) as deactivated. pickLauncher lazy-prunes on LAUNCHER_CLEAR_DELAY_MS. */
+/**
+ * Release one trap's hold on a launcher (or on the top-of-stack entry). The entry is only marked deactivated once the
+ * last holder releases it, so a popover closing underneath a modal it opened cannot age out the launcher that modal
+ * still needs. pickLauncher lazy-prunes deactivated entries on LAUNCHER_CLEAR_DELAY_MS.
+ */
 function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (typeof document === 'undefined') {
         return;
@@ -113,8 +98,16 @@ function markActivePopoverLauncherDeactivated(element?: HTMLElement): void {
     if (index < 0) {
         return;
     }
+    const entry = launcherStack.at(index);
+    if (!entry) {
+        return;
+    }
+    entry.holders = Math.max(0, entry.holders - 1);
+    if (entry.holders > 0) {
+        return;
+    }
     // Splice-then-push so end-first scan returns the most-recently-deactivated (correct for nested-trap close: outer closes after inner).
-    const [entry] = launcherStack.splice(index, 1);
+    launcherStack.splice(index, 1);
     entry.deactivatedAt = performance.now();
     launcherStack.push(entry);
 }
@@ -124,4 +117,4 @@ function resetLauncherStackForTests(): void {
     hasWarnedAboutOverflow = false;
 }
 
-export {pickLauncher, pickActiveLauncher, consumeLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests, resolvePopoverLauncherElement};
+export {pickLauncher, consumeLauncher, hasLauncher, setActivePopoverLauncher, markActivePopoverLauncherDeactivated, resetLauncherStackForTests};
