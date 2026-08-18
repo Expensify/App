@@ -109,14 +109,17 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => '/test'),
 }));
 
-jest.mock('@hooks/useLocalize', () => ({
-    __esModule: true,
-    default: () => ({
-        translate: (key: string) => (key === 'workspace.accounting.qbo' ? 'QuickBooks Online' : key),
-        localeCompare: (a: string, b: string) => a && b,
-        formatPhoneNumber: (phone: string) => phone,
-    }),
-}));
+jest.mock('@hooks/useLocalize', () => {
+    const CONST = jest.requireActual<{default: typeof CONST}>('@src/CONST').default;
+    return {
+        __esModule: true,
+        default: () => ({
+            translate: (key: string) => (key === 'workspace.accounting.qbo' ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
+            localeCompare: (a: string, b: string) => a && b,
+            formatPhoneNumber: (phone: string) => phone,
+        }),
+    };
+});
 
 jest.mock('@hooks/useThemeStyles', () => ({
     __esModule: true,
