@@ -38,6 +38,7 @@ type Parameters = {
 let isAuthenticatingWithShortLivedToken = false;
 let isSupportAuthTokenUsed = false;
 let isSupportSession = false;
+let hasRestoredDelegateSession = false;
 
 // A SAML-required account cannot silently reauthenticate (there is no stored password), so an expired
 // session sends the user back through their IdP. When the token expires, the app fires several requests
@@ -175,6 +176,8 @@ function reauthenticate(command = ''): Promise<boolean> {
         command,
     });
 
+    hasRestoredDelegateSession = false;
+
     // Prevent re-authentication if authentication with shortLiveToken is in progress
     if (isAuthenticatingWithShortLivedToken) {
         // Only treat the short-lived auth state as stale once account loading has
@@ -299,6 +302,7 @@ function reauthenticate(command = ''): Promise<boolean> {
                 // This is because the credentials used to reauthenticate were for the delegate's original account, and not for the account they were connected as.
                 if (isDelegate) {
                     Log.info('[Reauthenticate] Reauthenticate while connected as a delegate. Restoring original account.');
+                    hasRestoredDelegateSession = true;
                     restoreDelegateSession({
                         authToken: response.authToken,
                         encryptedAuthToken: response.encryptedAuthToken,
@@ -306,6 +310,14 @@ function reauthenticate(command = ''): Promise<boolean> {
                         email: response.email,
                         stashedCredentials,
                         stashedSession,
+                    }).catch((error: unknown) => {
+                        // If the restore chain is interrupted before it unpauses the network, the queue would stay
+                        // paused forever and the app would be stuck loading indefinitely.
+                        setIsAuthenticating(false);
+                        Log.hmmm('[Reauthenticate] Failed to restore the delegate session', {
+                            command,
+                            error: getErrorMessage(error),
+                        });
                     });
                     return false;
                 }
@@ -367,4 +379,9 @@ function reauthenticate(command = ''): Promise<boolean> {
     });
 }
 
+function hasRestoredDelegateSessionOnLastReauthentication(): boolean {
+    return hasRestoredDelegateSession;
+}
+
 export default reauthenticate;
+export {hasRestoredDelegateSessionOnLastReauthentication};

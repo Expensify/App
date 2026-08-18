@@ -328,6 +328,10 @@ function isExpiredSession(sessionCreationDate: number): boolean {
     return new Date().getTime() - sessionCreationDate >= CONST.SESSION_EXPIRATION_TIME_MS;
 }
 
+function isDelegateSession(sessionParam?: OnyxEntry<Session>): boolean {
+    return (sessionParam?.authTokenType ?? deprecatedSession.authTokenType) === CONST.AUTH_TOKEN_TYPES.DELEGATE;
+}
+
 const KEYS_TO_PRESERVE_SUPPORTAL = [
     ONYXKEYS.NVP_TRY_FOCUS_MODE,
     ONYXKEYS.PREFERRED_THEME,
@@ -1758,6 +1762,7 @@ export {
     waitForUserSignIn,
     hasAuthToken,
     isExpiredSession,
+    isDelegateSession,
     canAnonymousUserAccessRoute,
     signInWithSupportAuthToken,
     isSupportAuthToken,
