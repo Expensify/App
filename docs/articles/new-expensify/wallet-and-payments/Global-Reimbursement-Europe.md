@@ -115,15 +115,15 @@ An employee can add their deposit accounts by doing the following:
 1. Navigate to **Account > Wallet**.
 2. Click **Add deposit-only bank account** and input their bank account details.
 
-## Is my bank supported?
+## What banks are supported for Global Reimbursement in Europe?
 
-Global Reimbursements uses the SEPA B2B scheme to deliver payments, and does not currently support SEPA Core. 
+Global Reimbursement uses the SEPA B2B scheme to deliver payments, and does not currently support SEPA Core. 
 
 These are the known banks that currently cannot support SEPA B2B:
 
- - Bank of Ireland
- - HSBC Innovation Banking
- - Barclays
- - Revolut
+- Bank of Ireland
+- HSBC Innovation Banking
+- Barclays
+- Revolut
 
 This is not a full list, so please check if your bank supports SEPA B2B before proceeding. 
