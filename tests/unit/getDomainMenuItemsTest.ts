@@ -32,9 +32,11 @@ describe('getDomainMenuItems', () => {
         expect(items.every((item) => item.brickRoadIndicator === undefined)).toBe(true);
     });
 
-    const groupErrors: DomainErrors = {errors: {}};
     const securityGroupErrorKey = `${CONST.DOMAIN.DOMAIN_SECURITY_GROUP_PREFIX}1` as const;
-    groupErrors[securityGroupErrorKey] = {errors: {groupError: 'Group error'}};
+    const groupErrors: DomainErrors = {
+        errors: {},
+        [securityGroupErrorKey]: {errors: {groupError: 'Group error'}},
+    };
 
     it.each([
         ['Members', {errors: {}, memberErrors: {member: {errors: {memberError: 'Member error'}}}}, 'domain.domainMembers'],
