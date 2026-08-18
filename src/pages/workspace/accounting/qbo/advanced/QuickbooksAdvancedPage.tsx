@@ -4,8 +4,8 @@ import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 
 import useAccordionAnimation from '@hooks/useAccordionAnimation';
+import useIsGlobalReimbursementFXEnabled from '@hooks/useIsGlobalReimbursementFXEnabled';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWaitForNavigation from '@hooks/useWaitForNavigation';
 
@@ -39,7 +39,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
+    const isGlobalReimbursementFXEnabled = useIsGlobalReimbursementFXEnabled();
     const integrationName = getQuickbooksOnlineIntegrationName(policy, translate);
 
     const policyID = policy?.id;
@@ -91,7 +91,7 @@ function QuickbooksAdvancedPage({policy}: WithPolicyConnectionsProps) {
             brickRoadIndicator: areSettingsInErrorFields(collectionAccountIDs, qboConfig?.errorFields) ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined,
             pendingAction: settingsPendingAction(collectionAccountIDs, qboConfig?.pendingFields),
         },
-        ...(isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENTS) && isBetaEnabled(CONST.BETAS.GLOBAL_REIMBURSEMENT_FX)
+        ...(isGlobalReimbursementFXEnabled
             ? [
                   {
                       key: 'qboFxExpenseAccount',
