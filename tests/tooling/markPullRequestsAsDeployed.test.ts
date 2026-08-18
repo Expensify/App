@@ -86,7 +86,7 @@ const mockOctokit = {
     },
     paginate: jest.fn().mockImplementation(<T>(objectMethod: () => Promise<ObjectMethodData<T>>) => objectMethod().then(({data}) => data)),
 };
-// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub implements only the endpoints this action touches, and the load-order constraint above rules out initialising a real octokit and spying on it
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- the stub implements only the endpoints this action touches, and the load-order constraint above rules out initializing a real octokit and spying on it
 GithubUtils.internalOctokit = mockOctokit as unknown as InternalOctokit;
 
 // Must be imported after the GithubUtils.internalOctokit setup above so it picks up the mocks.
