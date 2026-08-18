@@ -416,7 +416,7 @@ function ReportActionItemMessageEdit({action, reportID, originalReportID, policy
                     <MessageEditCancelButton
                         testID={CONST.COMPOSER.TEST_ID.MESSAGE_EDIT_CANCEL_INLINE}
                         onCancel={deleteDraft}
-                        style={[styles.justifyContentEnd, styles.mb1]}
+                        style={styles.justifyContentEnd}
                     />
                     <View style={StyleUtils.getContainerComposeStyles()}>
                         <Composer
