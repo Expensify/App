@@ -205,13 +205,15 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         };
     }, [reportID]);
 
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
+    const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
+    const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
+    useMarkOpenReportEndOnSkeleton(reportID, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
         return <InitialLoadingSkeleton styles={styles} />;
     }
 
-    if (reportActions.length === 0) {
+    if (shouldShowEmptyActionsSkeleton) {
         return <ReportActionsSkeletonView shouldAnimate={false} />;
     }
 
@@ -219,7 +221,7 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
         return;
     }
 
-    if (isAppLoadPending) {
+    if (shouldShowAppLoadSkeleton) {
         return (
             <View style={styles.flex1}>
                 <ReportHeaderSkeletonView />

@@ -214,7 +214,7 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     }, [reportActions, isOffline, canPerformWriteAction, reportTransactionIDs, shouldShowHarvestCreatedAction, visibleReportActionsData, reportID]);
 
     const shouldShowOpenReportLoadingSkeleton = isInitialReportLoadPending && visibleReportActions.length === 0;
-    useMarkOpenReportEndOnSkeleton(report, shouldShowOpenReportLoadingSkeleton);
+    useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton);
 
     const lastAction = visibleReportActions.at(-1);
 
@@ -726,14 +726,14 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
      * Runs when the FlatList finishes laying out
      */
     const recordTimeToMeasureItemLayout = useCallback(() => {
-        if (didLayout.current || !report) {
+        if (didLayout.current || !reportIDFromRoute) {
             return;
         }
 
         didLayout.current = true;
 
-        markOpenReportEnd(report, {warm: !shouldShowOpenReportLoadingSkeleton});
-    }, [report, shouldShowOpenReportLoadingSkeleton]);
+        markOpenReportEnd(reportIDFromRoute, report, {warm: !shouldShowOpenReportLoadingSkeleton});
+    }, [reportIDFromRoute, report, shouldShowOpenReportLoadingSkeleton]);
 
     const isReportEmpty = isEmpty(visibleReportActions) && isEmpty(transactions) && !isInitialReportLoadPending;
     const showEmptyState = isReportEmpty;
