@@ -243,25 +243,19 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
         expect(screen.UNSAFE_getByType(ActivityIndicator).props.color).toBe(colors.productDark900);
 
-        await act(async () => {
-            fireEvent(image, 'onLoadEnd');
-            await waitForBatchedUpdatesWithAct();
-        });
+        fireEvent(image, 'onLoadEnd');
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('ProductMarketingWindowImageLoading')).toBeNull();
         expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoAdminsImage);
 
-        await act(async () => {
-            fireEvent(image, 'onLoadStart');
-            await waitForBatchedUpdatesWithAct();
-        });
+        fireEvent(image, 'onLoadStart');
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
 
-        await act(async () => {
-            fireEvent(image, 'onLoadEnd');
-            await waitForBatchedUpdatesWithAct();
-        });
+        fireEvent(image, 'onLoadEnd');
+        await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('ProductMarketingWindowImageLoading')).toBeNull();
     });
