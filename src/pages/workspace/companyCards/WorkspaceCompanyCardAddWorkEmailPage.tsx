@@ -52,7 +52,8 @@ function WorkspaceCompanyCardAddWorkEmailPage({route}: WorkspaceCompanyCardAddWo
                     <Button
                         variant="success"
                         size={CONST.BUTTON_SIZE.LARGE}
-                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(Navigation.getActiveRoute()))}
+                        // After the user adds their work email, the back button should take them to the feed selector to pick a feed again, not back to this now-stale prompt page.
+                        onPress={() => Navigation.navigate(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute(policyID)))}
                     >
                         <Button.Text>{translate('onboarding.workEmail.addWorkEmail')}</Button.Text>
                     </Button>
