@@ -1,4 +1,4 @@
-import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
+import type {NonTopScreenBehavior, PlatformSpecificNavigationOptions, PlatformStackNavigationOptions, PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 
 import type {ParamListBase} from '@react-navigation/native';
 import type {ComponentType} from 'react';
@@ -15,7 +15,7 @@ type Descriptor = {
     route: {name: string};
 
     /** Resolved options of the screen, carrying the behavior it picked for the time it is covered by another one */
-    options: PlatformSpecificNavigationOptions & {nonTopScreenBehavior?: NonTopScreenBehavior};
+    options: PlatformSpecificNavigationOptions & Pick<PlatformStackNavigationOptions, 'nonTopScreenBehavior'>;
 
     /** Render function for the screen content, wrapped with the non-top screen wrapper */
     render: () => React.JSX.Element;
