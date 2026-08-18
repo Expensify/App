@@ -10,7 +10,6 @@ import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToBackendAmount, convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
@@ -46,7 +45,6 @@ function RulesRequireReceiptsPage({
     const policy = usePolicy(policyID);
     const {translate} = useLocalize();
     const styles = useThemeStyles();
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -138,11 +136,29 @@ function RulesRequireReceiptsPage({
             const receiptValue = receiptEnabled ? values.maxExpenseAmountNoReceipt : '';
             const itemizedValue = itemizedEnabled ? values.maxExpenseAmountNoItemizedReceipt : '';
 
-            if (receiptChanged) {
-                setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt, getReviewWorkspaceSettingsTaskCompletion());
-            }
-            if (itemizedChanged) {
-                setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+            const updateReceipt = () => setPolicyMaxExpenseAmountNoReceipt(policyID, receiptValue, policy?.maxExpenseAmountNoReceipt);
+            const updateItemized = () => setPolicyMaxExpenseAmountNoItemizedReceipt(policyID, itemizedValue, policy?.maxExpenseAmountNoItemizedReceipt);
+
+            if (receiptChanged && itemizedChanged) {
+                // The two amounts are saved as separate requests, and each is validated on the server against the OTHER
+                // amount still stored there, under the invariant "require-receipt amount <= require-itemized-receipt amount".
+                // Send the update that keeps that invariant true first, so no intermediate server state is ever rejected.
+                const oldReceiptCents = policy?.maxExpenseAmountNoReceipt ?? 0;
+                const newItemizedCents = itemizedValue === '' ? CONST.DISABLED_MAX_EXPENSE_VALUE : convertToBackendAmount(Number(itemizedValue));
+                // Sending the itemized update first is safe unless it would lower the itemized amount below the receipt
+                // amount still on the server; in that (lowering) case send the receipt update first instead.
+                const itemizedFirstIsSafe = oldReceiptCents === CONST.DISABLED_MAX_EXPENSE_VALUE || newItemizedCents >= oldReceiptCents;
+                if (itemizedFirstIsSafe) {
+                    updateItemized();
+                    updateReceipt();
+                } else {
+                    updateReceipt();
+                    updateItemized();
+                }
+            } else if (receiptChanged) {
+                updateReceipt();
+            } else if (itemizedChanged) {
+                updateItemized();
             }
             Navigation.setNavigationActionToMicrotaskQueue(Navigation.goBack);
         },
@@ -156,7 +172,6 @@ function RulesRequireReceiptsPage({
             policyID,
             policy?.maxExpenseAmountNoReceipt,
             policy?.maxExpenseAmountNoItemizedReceipt,
-            getReviewWorkspaceSettingsTaskCompletion,
         ],
     );
 

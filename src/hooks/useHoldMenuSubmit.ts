@@ -18,6 +18,7 @@ import {delegateEmailSelector} from '@selectors/Account';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
@@ -52,13 +53,13 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
-    const [moneyRequestReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${moneyRequestReport?.reportID}`);
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(moneyRequestReport?.ownerAccountID)});
     const {isBetaEnabled} = usePermissions();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
     const hasViolations = hasViolationsReportUtils(moneyRequestReport?.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
 
@@ -84,12 +85,12 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
 
         if (isApprove) {
             approveMoneyRequest({
+                getCurrencyDecimals,
                 expenseReport: currentMoneyRequestReport,
                 currentUserAccountIDParam: currentUserDetails.accountID,
                 currentUserEmailParam: currentUserDetails.email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
-                expenseReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
@@ -104,11 +105,11 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, requestType, payment
             });
         } else if (currentChatReport && paymentType) {
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,
                 introSelected,
-                iouReportCurrentNextStepDeprecated: moneyRequestReportNextStep,
                 currentUserAccountID: currentUserDetails.accountID,
                 currentUserLogin: currentUserDetails.login ?? '',
                 full,

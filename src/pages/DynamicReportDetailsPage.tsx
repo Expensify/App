@@ -1,15 +1,17 @@
+import UserAvatar from '@components/Avatar/UserAvatar';
 import AvatarWithImagePicker from '@components/AvatarWithImagePicker';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import ParentNavigationSubtitle from '@components/ParentNavigationSubtitle';
 import type {PromotedAction} from '@components/PromotedActionsBar';
 import PromotedActionsBar, {PromotedActions} from '@components/PromotedActionsBar';
-import ReportActionAvatars from '@components/ReportActionAvatars';
+import ReportHeaderAvatars from '@components/ReportHeaderAvatars';
 import RoomHeaderAvatars from '@components/RoomHeaderAvatars';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -19,6 +21,7 @@ import {SUPER_WIDE_RIGHT_MODALS} from '@components/WideRHPContextProvider/WIDE_R
 import useActivePolicy from '@hooks/useActivePolicy';
 import useAncestors from '@hooks/useAncestors';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDeleteTransactions from '@hooks/useDeleteTransactions';
 import useDuplicateTransactionsAndViolations from '@hooks/useDuplicateTransactionsAndViolations';
@@ -32,9 +35,8 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
-import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
+import {useDerivedReportNamesByReportIDs} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -52,7 +54,8 @@ import Parser from '@libs/Parser';
 import Permissions from '@libs/Permissions';
 import {isPolicyAdmin as isPolicyAdminUtil, isPolicyEmployee as isPolicyEmployeeUtil, shouldShowPolicy} from '@libs/PolicyUtils';
 import {getOneTransactionThreadReportID, getOriginalMessage, getTrackExpenseActionableWhisper, isDeletedAction, isMoneyRequestAction, isTrackExpenseAction} from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportNameFromNames} from '@libs/ReportAttributesUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {
     canDeleteCardTransactionByLiabilityType,
     canDeleteTransaction,
@@ -108,6 +111,7 @@ import {
 } from '@libs/ReportUtils';
 import StringUtils from '@libs/StringUtils';
 import {getDeleteConfirmationPrompt, getDeleteExpenseTitle, getOriginalTransactionWithSplitInfo, isDemoTransaction} from '@libs/TransactionUtils';
+import {getAccountIDFromAvatarID} from '@libs/UserAvatarUtils';
 
 import {getNavigationUrlOnMoneyRequestDelete} from '@userActions/IOU/DeleteMoneyRequest';
 import {deleteTrackExpense, getNavigationUrlAfterTrackExpenseDelete} from '@userActions/IOU/TrackExpense';
@@ -176,10 +180,8 @@ type CaseID = ValueOf<typeof CASES>;
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -199,6 +201,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         'Hashtag',
     ]);
     const navigateBackFromReportDetailsPath = useDynamicBackPath(DYNAMIC_ROUTES.REPORT_DETAILS.path);
+    const taskDeleteBackTo = Navigation.getTopmostSearchReportRouteParams()?.backTo;
 
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -236,11 +239,14 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const [allTransactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const filteredPoliciesInfoSelector = useMemo(() => createFilteredPoliciesInfoSelector(currentUserPersonalDetails?.email), [currentUserPersonalDetails?.email]);
     const [filteredPoliciesInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: filteredPoliciesInfoSelector});
     const {showConfirmModal} = useConfirmModal();
-    const reportAttributes = useReportAttributes();
-    const derivedParentReportName = useDerivedReportNameByReportID(report?.parentReportID);
+    const reportForHeader = getReportForHeader(report);
+    const derivedReportNames = useDerivedReportNamesByReportIDs([report?.parentReportID, reportForHeader?.reportID]);
+    const derivedParentReportName = getReportNameFromNames(derivedReportNames, report?.parentReportID);
+    const derivedHeaderReportName = getReportNameFromNames(derivedReportNames, reportForHeader?.reportID);
     const isPolicyAdmin = useMemo(() => isPolicyAdminUtil(policy), [policy]);
     const isPolicyEmployee = useMemo(() => isPolicyEmployeeUtil(report?.policyID, policy), [report?.policyID, policy]);
     const isPolicyExpenseChat = useMemo(() => isPolicyExpenseChatUtil(report), [report]);
@@ -355,11 +361,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const hasWorkspaceToSubmitToSelector = useMemo(
-        () => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login, isSubmit2026BetaEnabled),
-        [currentUserPersonalDetails.login, isSubmit2026BetaEnabled],
-    );
+    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login), [currentUserPersonalDetails.login]);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
@@ -370,7 +372,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const isCardTransactionCanBeDeleted = canDeleteCardTransactionByLiabilityType(iouTransaction);
     const shouldShowDeleteButton = shouldShowTaskDeleteButton || (canDeleteRequest && isCardTransactionCanBeDeleted) || isDemoTransaction(iouTransaction);
     const shouldShowEditSplitOnDeleteAction = iouTransactionID ? shouldOpenSplitExpenseEditFlowOnDelete([iouTransactionID]) : false;
-    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', {action: requestParentReportAction});
+    let deleteMenuItemTitle = translate('reportActionContextMenu.deleteAction', requestParentReportAction);
     if (shouldShowEditSplitOnDeleteAction) {
         deleteMenuItemTitle = translate('iou.editSplits');
     } else if (caseID === CASES.DEFAULT) {
@@ -442,9 +444,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const shouldShowGoToRoom = (isChatRoom || isPolicyExpenseChat) && !isRoomCurrentlyOpen;
     const shouldShowGoToWorkspace = shouldShowPolicy(policy, false, currentUserPersonalDetails?.email) && !policy?.isJoinRequestPending && !shouldShowGoToRoom;
 
-    const reportForHeader = useMemo(() => getReportForHeader(report), [report]);
     const shouldParseFullTitle = parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat;
-    const rawReportName = deprecatedGetReportName(reportForHeader, reportAttributes);
+    const rawReportName = getReportName(reportForHeader, derivedHeaderReportName);
     const reportName = shouldParseFullTitle ? Parser.htmlToText(rawReportName) : rawReportName;
     const additionalRoomDetails = isExpenseReportUtil(report) || isPolicyExpenseChat || isInvoiceRoom ? chatRoomSubtitle : `${translate('threads.in')} ${chatRoomSubtitle}`;
 
@@ -567,33 +568,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
                     firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                 };
-                if (canUseSubmit2026) {
-                    // On the Submit (submit2026) plan, "Submit to someone" splits into two destinations here too, matching the
-                    // track-expense whisper: submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                    const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+                // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
+                // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
 
-                    // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
-                    // just like it is on the track-expense whisper.
-                    if (!isSelfDMExpenseSplit) {
-                        items.push({
-                            key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
-                            translationKey: 'actionableMentionTrackExpense.submitToFriend',
-                            icon: expensifyIcons.Send,
-                            isAnonymousAction: false,
-                            shouldShowRightIcon: true,
-                            action: () => {
-                                createDraftTransactionAndNavigateToParticipantSelector({
-                                    ...baseSubmitParams,
-                                    actionName: CONST.IOU.ACTION.SUBMIT,
-                                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.FRIEND,
-                                    defaultWorkspaceName,
-                                });
-                            },
-                        });
-                    }
+                // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
+                // just like it is on the track-expense whisper.
+                if (!isSelfDMExpenseSplit) {
                     items.push({
-                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
-                        translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
+                        translationKey: 'actionableMentionTrackExpense.submitToFriend',
                         icon: expensifyIcons.Send,
                         isAnonymousAction: false,
                         shouldShowRightIcon: true,
@@ -601,26 +585,27 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             createDraftTransactionAndNavigateToParticipantSelector({
                                 ...baseSubmitParams,
                                 actionName: CONST.IOU.ACTION.SUBMIT,
-                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.FRIEND,
                                 defaultWorkspaceName,
                             });
                         },
                     });
-                } else {
-                    items.push({
-                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
-                        translationKey: 'actionableMentionTrackExpense.submit',
-                        icon: expensifyIcons.Send,
-                        isAnonymousAction: false,
-                        shouldShowRightIcon: true,
-                        action: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector({
-                                ...baseSubmitParams,
-                                actionName: CONST.IOU.ACTION.SUBMIT,
-                            });
-                        },
-                    });
                 }
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
+                    translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                    icon: expensifyIcons.Send,
+                    isAnonymousAction: false,
+                    shouldShowRightIcon: true,
+                    action: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            ...baseSubmitParams,
+                            actionName: CONST.IOU.ACTION.SUBMIT,
+                            submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                            defaultWorkspaceName,
+                        });
+                    },
+                });
             }
             if (Permissions.canUseTrackFlows()) {
                 items.push({
@@ -825,7 +810,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         parentReport,
         delegateEmail,
         conciergeReportID,
-        canUseSubmit2026,
         lastWorkspaceNumber,
         translate,
         currentUserPersonalDetails.displayName,
@@ -853,23 +837,27 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         if (!isGroupChat || isThread) {
             return (
                 <View style={styles.mb3}>
-                    <ReportActionAvatars
-                        noRightMarginOnSubscriptContainer
-                        size={CONST.AVATAR_SIZE.XXXX_LARGE}
-                        useProfileNavigationWrapper
-                        singleAvatarContainerStyle={[]}
-                        reportID={report?.reportID ?? moneyRequestReport?.reportID}
-                    />
+                    <ReportHeaderAvatars reportID={report?.reportID ?? moneyRequestReport?.reportID} />
                 </View>
             );
         }
 
+        const groupChatIcon = icons.at(0);
+        const groupChatAvatarSource = groupChatIcon?.source;
+        const groupChatAvatar = groupChatAvatarSource ? (
+            <UserAvatar
+                source={groupChatAvatarSource}
+                size={CONST.AVATAR_SIZE.XXXX_LARGE}
+                accountID={getAccountIDFromAvatarID(groupChatIcon?.id)}
+                fallbackIcon={groupChatIcon?.fallbackIcon}
+            />
+        ) : null;
+
         return (
             <AvatarWithImagePicker
-                source={icons.at(0)?.source}
-                avatarID={icons.at(0)?.id}
+                source={groupChatAvatarSource}
+                avatar={groupChatAvatar}
                 isUsingDefaultAvatar={!report.avatarUrl}
-                size={CONST.AVATAR_SIZE.XXXX_LARGE}
                 onViewPhotoPress={() => Navigation.navigate(ROUTES.REPORT_AVATAR.getRoute(report.reportID))}
                 onImageRemoved={() => {
                     // Calling this without a file will remove the avatar
@@ -1036,7 +1024,10 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 conciergeReportID,
                 delegateEmail,
                 reportActionsForOriginalReportID,
-                ancestors,
+                {
+                    ancestors,
+                    shouldNavigateBack: !taskDeleteBackTo,
+                },
             );
             return;
         }
@@ -1066,6 +1057,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 currentUserAccountID: currentUserPersonalDetails.accountID,
                 currentUserEmail: currentUserPersonalDetails.email ?? '',
                 policy: iouPolicy,
+                getCurrencyDecimals,
             });
         } else if (iouTransactionID) {
             const deleteResult = deleteTransactions([iouTransactionID], duplicateTransactions, duplicateTransactionViolations, undefined, isSingleTransactionView);
@@ -1076,6 +1068,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         }
     }, [
         caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         iouTransaction,
         iouOriginalTransaction,
@@ -1104,10 +1097,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         deleteTransactions,
         removeTransaction,
         iouPolicy,
+        getCurrencyDecimals,
     ]);
 
     // Where to navigate back to after deleting the transaction and its report.
     const navigateToTargetUrl = useCallback(() => {
+        if (caseID === CASES.DEFAULT && taskDeleteBackTo) {
+            Navigation.goBack(taskDeleteBackTo);
+            return;
+        }
+
         let urlToNavigateBack: string | undefined;
         // Only proceed with navigation logic if transaction was actually deleted
         if (!isEmptyObject(requestParentReportAction)) {
@@ -1152,6 +1151,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             } else {
@@ -1162,6 +1162,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     iouReport,
                     chatIOUReport,
                     isChatIOUReportArchived,
+                    getCurrencyDecimals,
                     isSingleTransactionView,
                 );
             }
@@ -1174,6 +1175,8 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
             navigateBackOnDeleteTransaction(urlToNavigateBack as Route);
         }
     }, [
+        caseID,
+        taskDeleteBackTo,
         requestParentReportAction,
         route.params.reportID,
         moneyRequestReport,
@@ -1183,6 +1186,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         isChatIOUReportArchived,
         isSingleTransactionView,
         requestParentReportActionChildReport,
+        getCurrencyDecimals,
     ]);
 
     const showDeleteModal = useCallback(async () => {
@@ -1290,7 +1294,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     ))}
 
                     {shouldShowDeleteButton && (
-                        <MenuItem
+                        <MenuItemAction
                             key={CONST.REPORT_DETAILS_MENU_ITEM.DELETE}
                             icon={shouldShowEditSplitOnDeleteAction ? expensifyIcons.ArrowSplit : expensifyIcons.Trashcan}
                             title={deleteMenuItemTitle}

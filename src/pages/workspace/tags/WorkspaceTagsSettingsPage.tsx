@@ -11,11 +11,10 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
-import useReviewWorkspaceSettingsTaskCompletion from '@hooks/useReviewWorkspaceSettingsTaskCompletion';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
-import {clearPolicyTagListErrors, setPolicyRequiresTag} from '@libs/actions/Policy/Tag';
+import {clearPolicyErrorField, getBillableExpensesPendingAction, toggleBillableExpenses} from '@libs/actions/Policy/Policy';
+import {clearPolicyTagListErrors, setPolicyRequiresTag, setPolicyShowTagGLCodes} from '@libs/actions/Policy/Tag';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -48,7 +47,6 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const getReviewWorkspaceSettingsTaskCompletion = useReviewWorkspaceSettingsTaskCompletion();
     const [policyTagLists, isMultiLevelTags] = useMemo(() => [getTagListsUtil(policyTags), isMultiLevelTagsUtil(policyTags)], [policyTags]);
     const isLoading = !getTagListsUtil(policyTags)?.at(0) || Object.keys(policyTags ?? {}).at(0) === 'undefined';
     const {isOffline} = useNetwork();
@@ -64,6 +62,9 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const shouldBlockEmptySettings = isRulesRevampEnabled && isMultiLevelTags && !isLoading;
 
     const getTagsSettings = (policy: OnyxEntry<Policy>) => {
+        const updateShowTagGLCodes = (value: boolean) => {
+            setPolicyShowTagGLCodes(policyID, value, policy?.showTagGLCodes);
+        };
         const hasDependentTags = hasDependentTagsUtil(policy, policyTags);
         return (
             <View style={styles.flexGrow1}>
@@ -131,12 +132,36 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
                                 <Switch
                                     isOn={!(policy?.disabledFields?.defaultBillable ?? false)}
                                     accessibilityLabel={translate('workspace.tags.trackBillable')}
-                                    onToggle={() => toggleBillableExpenses(policy, getReviewWorkspaceSettingsTaskCompletion())}
+                                    onToggle={() => toggleBillableExpenses(policy)}
                                     disabled={!policy?.areTagsEnabled}
                                 />
                             </View>
                         </OfflineWithFeedback>
                     </>
+                )}
+                {!!policy?.glCodes && (
+                    <OfflineWithFeedback
+                        errors={policy?.errorFields?.showTagGLCodes}
+                        pendingAction={policy?.pendingFields?.showTagGLCodes}
+                        errorRowStyles={styles.mh5}
+                        onClose={() => clearPolicyErrorField(policyID, 'showTagGLCodes')}
+                    >
+                        <View style={[styles.flexRow, styles.mh5, styles.mv4, styles.alignItemsCenter, styles.justifyContentBetween]}>
+                            <Text
+                                style={[styles.textNormal, styles.flex1, styles.mr2]}
+                                accessible={false}
+                                aria-hidden
+                            >
+                                {translate('workspace.tags.showTagGLCodes')}
+                            </Text>
+                            <Switch
+                                isOn={policy?.showTagGLCodes ?? false}
+                                accessibilityLabel={translate('workspace.tags.showTagGLCodes')}
+                                onToggle={updateShowTagGLCodes}
+                                disabled={!policy?.areTagsEnabled}
+                            />
+                        </View>
+                    </OfflineWithFeedback>
                 )}
             </View>
         );

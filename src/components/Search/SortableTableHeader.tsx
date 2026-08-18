@@ -80,9 +80,14 @@ function SortableTableHeader({
                     const sortByColumnName = sortColumnName ?? columnName;
                     const isActive = sortBy === sortByColumnName;
                     const isReimbursableOrBillableColumn = columnName === CONST.SEARCH.TABLE_COLUMNS.REIMBURSABLE || columnName === CONST.SEARCH.TABLE_COLUMNS.BILLABLE;
+                    const isConversionAmountColumn =
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_DEBITED ||
+                        columnName === CONST.SEARCH.TABLE_COLUMNS.AMOUNT_REIMBURSED;
                     const textStyle = [
                         columnName === CONST.SEARCH.TABLE_COLUMNS.RECEIPT ? StyleUtils.getTextOverflowStyle('clip') : null,
-                        isReimbursableOrBillableColumn ? styles.flexShrink1 : null,
+                        isReimbursableOrBillableColumn || isConversionAmountColumn ? styles.flexShrink1 : null,
                     ];
 
                     return (
