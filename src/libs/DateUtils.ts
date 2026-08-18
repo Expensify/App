@@ -272,7 +272,10 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): s
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
-    const date = getLocalDateFromDatetime(locale, fallbackToSupportedTimezone(currentSelectedTimezone), datetime);
+    // Capture the mapped tz once. Passing the unmapped tz into isToday/isYesterday/toZonedTime after formatting `date` with the mapped tz would let the "today" branch and the display disagree on the reference zone if a legacy alias with a divergent offset is ever added to `timezoneNewToBackwardMap`. The map's backward IANA values are valid tz identifiers that date-fns accepts, they just aren't in the tight `SelectedTimezone` union, so the cast is safe.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    const mappedTimezone = fallbackToSupportedTimezone(currentSelectedTimezone) as SelectedTimezone;
+    const date = getLocalDateFromDatetime(locale, mappedTimezone, datetime);
     const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translateLocalize(locale, 'common.todayAt');
     let tomorrowAt = translateLocalize(locale, 'common.tomorrowAt');
@@ -280,7 +283,7 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
     const at = translateLocalize(locale, 'common.conjunctionAt');
     const weekStartsOn = getWeekStartsOn(locale);
 
-    const nowInUserZone = toZonedTime(new Date(), currentSelectedTimezone);
+    const nowInUserZone = toZonedTime(new Date(), mappedTimezone);
     const startOfCurrentWeek = startOfWeek(nowInUserZone, {weekStartsOn});
     const endOfCurrentWeek = endOfWeek(nowInUserZone, {weekStartsOn});
 
@@ -296,13 +299,13 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
         return '';
     }
 
-    if (isToday(date, currentSelectedTimezone)) {
+    if (isToday(date, mappedTimezone)) {
         return `${todayAt} ${time}${tz}`;
     }
-    if (isTomorrow(date, currentSelectedTimezone)) {
+    if (isTomorrow(date, mappedTimezone)) {
         return `${tomorrowAt} ${time}${tz}`;
     }
-    if (isYesterday(date, currentSelectedTimezone)) {
+    if (isYesterday(date, mappedTimezone)) {
         return `${yesterdayAt} ${time}${tz}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
@@ -343,13 +346,14 @@ const RELATIVE_TIME_UNITS: ReadonlyArray<[thresholdSecs: number, divisor: number
 ];
 
 /**
- * `numeric: 'always'` keeps the wording numeric ("1 day ago" not "yesterday"), matching the semantics `formatDistance`
- * shipped before the migration. LRU-bounded to keep the ~10-20 KB ICU state per RelativeTimeFormat off the render path.
+ * `numeric: 'auto'` preserves date-fns `formatDistance`-style fuzzy phrasing ("yesterday", "less than a minute ago")
+ * that consumers across chat/report action headers were tested against. LRU-bounded to keep the ~10-20 KB ICU state
+ * per RelativeTimeFormat off the render path.
  */
 const getRelativeTimeFormat = memoize(
     (locale: Locale): Intl.RelativeTimeFormat | null => {
         try {
-            return new Intl.RelativeTimeFormat(locale, {numeric: 'always'});
+            return new Intl.RelativeTimeFormat(locale, {numeric: 'auto'});
         } catch (error) {
             // Engines that ship Intl but not RelativeTimeFormat (older Hermes builds, ICU-stripped runtimes) end up here.
             Log.warn('[DateUtils] Intl.RelativeTimeFormat unavailable', {locale, error});
@@ -411,22 +415,22 @@ function formatToDayOfWeek(datetime: Date, locale: Locale): string {
 
 /** Locale-aware short time — 12h with AM/PM in en, 24h in es/de. @returns 2:30 PM (en) / 14:30 (es) */
 function formatToLocalTime(datetime: string | Date, locale: Locale): string {
-    return formatIntl(locale, 'SHORT_TIME', new Date(datetime));
+    return formatIntl(locale, 'SHORT_TIME', toLocalDate(datetime));
 }
 
 /** @returns July 2025 (en) / julio de 2025 (es) */
 function formatToLongMonthYear(datetime: Date | string, locale: Locale): string {
-    return formatIntl(locale, 'LONG_MONTH_YEAR', new Date(datetime));
+    return formatIntl(locale, 'LONG_MONTH_YEAR', toLocalDate(datetime));
 }
 
 /** @returns Jul (en) / jul (es) */
 function formatToShortMonth(datetime: Date | string, locale: Locale): string {
-    return formatIntl(locale, 'SHORT_MONTH', new Date(datetime));
+    return formatIntl(locale, 'SHORT_MONTH', toLocalDate(datetime));
 }
 
 /** @returns July (en) / julio (es) */
 function formatToLongMonth(datetime: Date | string, locale: Locale): string {
-    return formatIntl(locale, 'LONG_MONTH', new Date(datetime));
+    return formatIntl(locale, 'LONG_MONTH', toLocalDate(datetime));
 }
 
 const THREE_HOURS = 1000 * 60 * 60 * 3;
@@ -465,10 +469,14 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
  * as broken in a picker.
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
+const FALLBACK_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
+
 function getMonthNames(locale: Locale): string[] {
     // Fixed-year UTC mid-month dates. Month name is year-independent, so UTC + mid-month sidesteps any local-tz boundary that could shift a January-1 or December-31 endpoint into the neighbouring month on extreme timezones.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
-    return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
+    const names = monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
+    // If Intl.DateTimeFormat throws on the host engine, formatIntl returns '' for every month and the picker would render 12 blank rows. Fall back to English so the picker stays usable.
+    return names.some((name) => !name) ? [...FALLBACK_MONTH_NAMES] : names;
 }
 
 /**
@@ -1128,10 +1136,13 @@ function formatCountdownTimer(translateParam: LocaleContextProps['translate'], h
     return `${hours}${translateParam('common.hourAbbreviation')} : ${paddedMinutes}${translateParam('common.minuteAbbreviation')} : ${paddedSeconds}${translateParam('common.secondAbbreviation')}`;
 }
 
+const WIRE_YEAR_PREFIX = /^(\d{4})/;
+
 function doesDateBelongToAPastYear(date: string): boolean {
-    // UTC-year matches the UTC-anchored formatters. Local would drift around New Year.
-    const transactionYear = toUTCDate(date).getUTCFullYear();
-    return transactionYear !== new Date().getUTCFullYear();
+    // Extract the year from the wire string directly, so a "2023-12-31" transaction viewed on Dec 31 evening (Jan 1 UTC) still compares 2023 vs 2023 and does not spuriously suffix ", 2023" onto today's row. Falls back to UTC parsing when the input is not a leading-year string.
+    const yearMatch = date.match(WIRE_YEAR_PREFIX);
+    const transactionYear = yearMatch ? Number(yearMatch[1]) : toUTCDate(date).getUTCFullYear();
+    return transactionYear !== new Date().getFullYear();
 }
 
 /**

@@ -228,8 +228,8 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    // Both empty is the default shape for a transaction with no dates set yet. Skip the render so a lone " - " does not surface in the picker row.
-    if (!customUnitRateDate.start && !customUnitRateDate.end) {
+    // Both endpoints required, else a partial compose state renders a dangling "HH:MM AM, Date - " or " - HH:MM AM, Date" fragment in the picker row.
+    if (!customUnitRateDate.start || !customUnitRateDate.end) {
         return '';
     }
     return `${formatDateTimeTo12Hour(customUnitRateDate.start, locale)} - ${formatDateTimeTo12Hour(customUnitRateDate.end, locale)}`;

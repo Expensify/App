@@ -196,9 +196,10 @@ class IntlStore {
         return IntlStore.cache.has(locale);
     }
 
-    /** Test-only cache seed — skips `load()`'s side effects (Onyx write, telemetry span, date-fns default) that pollute unrelated suites' mocks. Prod uses `load()`. */
+    /** Test-only cache seed. Skips `load()`'s telemetry span but still clears the splash gate so Expensify.tsx does not stay stuck. Prod uses `load()`. */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
+        setAreTranslationsLoading(false);
         // Snapshot's `loaded` derives from cache membership. Without notifying, subscribers stay on the stale pre-seed value forever.
         IntlStore.notifyListeners();
     }

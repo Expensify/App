@@ -2,9 +2,13 @@ import {act, renderHook} from '@testing-library/react-native';
 
 import useNow from '@hooks/useNow';
 
+import {resetForTests as resetNowStore} from '@libs/NowStore';
+
 describe('useNow', () => {
     beforeEach(() => {
         jest.useFakeTimers();
+        // Reset NowStore module state so a prior test's leftover `lastMinute` cannot mask a stale snapshot in the next test.
+        resetNowStore();
     });
 
     afterEach(() => {
@@ -24,9 +28,9 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
+        // Advance the fake clock past the next minute boundary. This also fires the aligned setTimeout the store scheduled at subscribe time.
         act(() => {
-            jest.setSystemTime(new Date('2026-05-24T10:31:00Z'));
-            jest.advanceTimersByTime(1000);
+            jest.advanceTimersByTime(60_100);
         });
 
         expect(result.current).not.toBe(initial);
@@ -39,9 +43,9 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
+        // Advance by an hour so multiple scheduled timers can fire back-to-back. Even though the minute-of-hour is the same, the monotonic minute index changed.
         act(() => {
-            jest.setSystemTime(new Date('2026-05-24T11:30:00Z'));
-            jest.advanceTimersByTime(1000);
+            jest.advanceTimersByTime(3600_000);
         });
 
         expect(result.current).not.toBe(initial);
@@ -54,25 +58,22 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
+        // Advance wall-clock time without firing the pending minute-boundary timer, so no notify fires and the subscriber keeps its cached snapshot.
         act(() => {
-            jest.setSystemTime(new Date('2026-05-24T10:30:30Z'));
-            jest.advanceTimersByTime(1000);
             jest.setSystemTime(new Date('2026-05-24T10:30:45Z'));
-            jest.advanceTimersByTime(1000);
         });
 
         expect(result.current).toBe(initial);
         unmount();
     });
 
-    it('fans out a single minute change to multiple subscribers', () => {
+    it('notifies every subscriber on a single minute change', () => {
         jest.setSystemTime(new Date('2026-05-24T10:30:00Z'));
         const a = renderHook(() => useNow());
         const b = renderHook(() => useNow());
 
         act(() => {
-            jest.setSystemTime(new Date('2026-05-24T10:31:00Z'));
-            jest.advanceTimersByTime(1000);
+            jest.advanceTimersByTime(60_100);
         });
 
         expect(a.result.current.getUTCMinutes()).toBe(31);
@@ -82,8 +83,8 @@ describe('useNow', () => {
         b.unmount();
     });
 
-    it('clears the interval when the last subscriber unmounts', () => {
-        const clearSpy = jest.spyOn(globalThis, 'clearInterval');
+    it('clears the pending timer when the last subscriber unmounts', () => {
+        const clearSpy = jest.spyOn(globalThis, 'clearTimeout');
         const a = renderHook(() => useNow());
         const b = renderHook(() => useNow());
 

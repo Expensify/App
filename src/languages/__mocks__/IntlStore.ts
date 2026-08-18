@@ -48,33 +48,46 @@ class IntlStore {
         },
     };
 
+    private static listeners = new Set<() => void>();
+
+    // One cached snapshot so repeated `useSyncExternalStore` reads return the same reference and never trigger an infinite render loop. Replaced (not mutated) on locale change so subscribers see a fresh identity.
+    private static snapshot: {locale: Locale; loaded: boolean} = {locale: IntlStore.currentLocale, loaded: IntlStore.localeCache.has(IntlStore.currentLocale)};
+
     static getCurrentLocale() {
-        return this.currentLocale;
+        return IntlStore.currentLocale;
     }
 
-    static load() {
+    static load(locale?: Locale): Promise<void> {
+        // Real behaviour: mutate currentLocale, replace the snapshot, notify subscribers. Otherwise tests exercising a locale switch see no effect and coverage silently fails-open.
+        if (locale && IntlStore.localeCache.has(locale)) {
+            IntlStore.currentLocale = locale;
+            IntlStore.snapshot = {locale, loaded: true};
+            for (const listener of IntlStore.listeners) {
+                listener();
+            }
+        }
         return Promise.resolve();
     }
 
     static get<TPath extends TranslationPaths>(key: TPath, locale?: Locale) {
-        const localeToUse = locale && this.localeCache.has(locale) ? locale : this.currentLocale;
-        const translations = this.localeCache.get(localeToUse);
+        const localeToUse = locale && IntlStore.localeCache.has(locale) ? locale : IntlStore.currentLocale;
+        const translations = IntlStore.localeCache.get(localeToUse);
         return translations?.[key] ?? null;
     }
 
-    static subscribe(): () => void {
-        return () => {};
+    static subscribe(listener: () => void): () => void {
+        IntlStore.listeners.add(listener);
+        return () => {
+            IntlStore.listeners.delete(listener);
+        };
     }
-
-    // One cached snapshot so repeated `useSyncExternalStore` reads return the same reference and never trigger an infinite render loop.
-    private static snapshot: {locale: Locale; loaded: boolean} = {locale: IntlStore.currentLocale, loaded: IntlStore.localeCache.has(IntlStore.currentLocale)};
 
     static getSnapshot(): {locale: Locale; loaded: boolean} {
         return IntlStore.snapshot;
     }
 
     static hasLocale(locale: Locale): boolean {
-        return this.localeCache.has(locale);
+        return IntlStore.localeCache.has(locale);
     }
 }
 

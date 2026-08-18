@@ -613,6 +613,23 @@ describe('DateUtils', () => {
             }
         });
 
+        it('static CLDR map agrees with Intl.Locale.getWeekInfo for every supported locale (guards against copy-paste into the wrong Monday/Sunday block)', () => {
+            // Skip on hosts without CLDR week info; where it exists, the static fallback must match Intl or older Hermes ships the wrong week start.
+            const probe = new Intl.Locale('en');
+            if (typeof probe.getWeekInfo !== 'function') {
+                return;
+            }
+            for (const locale of Object.values(CONST.LOCALES)) {
+                // DEFAULT is 'en'. Skip it here (covered above by "returns a valid weekday..."), and skip 'en' itself because it's intentionally pinned to Monday to preserve prior UX even though CLDR en-US is Sunday-start.
+                if (locale === CONST.LOCALES.DEFAULT) {
+                    continue;
+                }
+                const intlLocale = new Intl.Locale(locale);
+                const intlFirstDay = intlLocale.getWeekInfo().firstDay === 7 ? 0 : intlLocale.getWeekInfo().firstDay;
+                expect({locale, mapValue: DateUtils.getWeekStartsOn(locale)}).toEqual({locale, mapValue: intlFirstDay});
+            }
+        });
+
         describe('fallback branches', () => {
             const originalLocale = Intl.Locale;
             function swapIntlLocale(impl: () => Record<string, unknown>): void {

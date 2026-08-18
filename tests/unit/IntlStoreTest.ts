@@ -88,7 +88,7 @@ describe('IntlStore', () => {
             unsubscribe();
         });
 
-        it('concurrent same-locale load() still populates the translations cache and notifies subscribers (P1 race guard, half-cached fast-path window)', async () => {
+        it('concurrent same-locale load() still populates the translations cache and notifies subscribers (half-cached fast-path race guard)', async () => {
             const listener = jest.fn();
             const unsubscribe = IntlStore.subscribe(listener);
 
