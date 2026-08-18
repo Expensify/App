@@ -142,7 +142,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
         };
     }, [excludedTransactions, selectedTransactions, isExpenseReportType, searchData]);
 
-    const handleBulkPaySubItemSelected = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
+    const payBulkSelectedItem = (subItem: PopoverMenuItem, triggerKYCFlow: (kycParams: ContinueActionParams) => void) =>
         handleBulkPayItemSelected({
             item: subItem,
             triggerKYCFlow,
@@ -230,7 +230,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 isDisabled={headerButtonsOptions.length === 0}
                                 onPress={() => null}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) => handleBulkPaySubItemSelected(subItem, triggerKYCFlow)}
+                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 isSplitButton={false}
                                 style={[styles.w100, styles.ph5]}
@@ -252,7 +252,7 @@ function SearchBulkActionsButton({queryJSON}: SearchBulkActionsButtonProps) {
                                 isLoading={isAllMatchingItemsCountLoading}
                                 options={headerButtonsOptions}
                                 shouldPopoverUseScrollView={popoverUseScrollView}
-                                onSubItemSelected={(subItem) => handleBulkPaySubItemSelected(subItem, triggerKYCFlow)}
+                                onSubItemSelected={(subItem) => payBulkSelectedItem(subItem, triggerKYCFlow)}
                                 isSplitButton={false}
                                 buttonRef={buttonRef}
                                 anchorAlignment={{
