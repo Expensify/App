@@ -37,9 +37,8 @@ function useGroupChatDraftParticipantSync(
 ) {
     const shouldRestoreSelectedOptionsRef = useRef(true);
     const isScreenFocusedRef = useIsFocusedRef();
-    const {formatPhoneNumber} = useLocalize();
 
-    const {dateFnsLocale} = useLocalize();
+    const {dateFnsLocale, formatPhoneNumber} = useLocalize();
     const draftParticipantsSelector = (draft: NewGroupChatDraft | undefined) => {
         const isSubscriptionActive = shouldRestoreSelectedOptionsRef.current || !isScreenFocusedRef.current;
         return isSubscriptionActive ? draft?.participants : undefined;

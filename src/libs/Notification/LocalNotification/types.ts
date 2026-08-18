@@ -33,7 +33,6 @@ type LocalNotificationModifiedExpenseParams = {
 type LocalNotificationModifiedExpensePushParams = LocalNotificationModifiedExpenseParams & {
     usesIcon?: boolean;
     policyTags: OnyxEntry<PolicyTagLists>;
-    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     policy?: OnyxEntry<Policy>;
 };
 
