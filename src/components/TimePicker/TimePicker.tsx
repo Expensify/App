@@ -129,13 +129,13 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    // Fall back to the placeholder when input is empty or unparsable, so a malformed defaultValue does not silently masquerade as a user-picked 12:00 PM.
-    const initialTime = DateUtils.get12HourTimeObjectFromDate(value, showFullFormat) ?? EMPTY_TWELVE_HOUR_TIME;
-    const [hours, setHours] = useState(() => initialTime.hour);
-    const [minutes, setMinutes] = useState(() => initialTime.minute);
-    const [seconds, setSeconds] = useState(() => initialTime.seconds);
-    const [milliseconds, setMilliseconds] = useState(() => initialTime.milliseconds);
-    const [amPmValue, setAmPmValue] = useState(() => initialTime.period);
+    // Parsed once on mount. The placeholder fallback keeps a malformed defaultValue from masquerading as a user-picked 12:00 PM.
+    const [initialTime] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat) ?? EMPTY_TWELVE_HOUR_TIME);
+    const [hours, setHours] = useState(initialTime.hour);
+    const [minutes, setMinutes] = useState(initialTime.minute);
+    const [seconds, setSeconds] = useState(initialTime.seconds);
+    const [milliseconds, setMilliseconds] = useState(initialTime.milliseconds);
+    const [amPmValue, setAmPmValue] = useState(initialTime.period);
 
     const [isError, setError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');

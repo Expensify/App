@@ -88,7 +88,7 @@ const DATE_FNS_MODULES = new Set(['date-fns', 'date-fns-tz']);
  * newly added format is guarded by default rather than silently escaping this rule.
  * @type {ReadonlySet<string>}
  */
-const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT', 'SHORT_DATE_FORMAT']);
+const MACHINE_DATE_CONSTANTS = new Set(['FNS_FORMAT_STRING', 'FNS_DATE_TIME_FORMAT_STRING', 'FNS_DB_FORMAT_STRING', 'FNS_TIMEZONE_FORMAT_STRING', 'YEAR_MONTH_FORMAT']);
 
 /**
  * Strips the single-quoted escaped literals date-fns supports (e.g. the "T" in `yyyy-MM-dd'T'HH:mm`)
@@ -192,7 +192,7 @@ function create(context) {
                     continue;
                 }
                 const imported = specifier.imported.name;
-                if (imported in FORMATTER_FORMAT_ARG_INDEX) {
+                if (Object.hasOwn(FORMATTER_FORMAT_ARG_INDEX, imported)) {
                     formatters.set(specifier.local.name, FORMATTER_FORMAT_ARG_INDEX[imported]);
                 } else if (LOCALE_SENSITIVE_NO_FORMAT.has(imported)) {
                     formatters.set(specifier.local.name, undefined);
@@ -215,7 +215,8 @@ function create(context) {
                 const propName = callee.property.name;
                 // Handle `import * as df from 'date-fns'; df.format(...)` as a direct call on the imported name.
                 if (callee.object.type === 'Identifier' && namespaceImports.has(callee.object.name)) {
-                    if (propName in FORMATTER_FORMAT_ARG_INDEX) {
+                    // `Object.hasOwn`, not `in`. Inherited members like `toString` would otherwise resolve to a function that `arguments.at()` coerces to index 0.
+                    if (Object.hasOwn(FORMATTER_FORMAT_ARG_INDEX, propName)) {
                         calleeName = propName;
                         formatArgIndex = FORMATTER_FORMAT_ARG_INDEX[propName];
                     } else if (LOCALE_SENSITIVE_NO_FORMAT.has(propName)) {
@@ -224,7 +225,7 @@ function create(context) {
                     } else {
                         return;
                     }
-                } else if (LOCAL_FORMATTER_FORMAT_ARG_INDEX[propName] !== undefined) {
+                } else if (Object.hasOwn(LOCAL_FORMATTER_FORMAT_ARG_INDEX, propName)) {
                     // Member calls on non-namespace objects can only be local wrappers (e.g. `DateUtils.formatInTimeZoneWithFallback`).
                     calleeName = propName;
                     formatArgIndex = LOCAL_FORMATTER_FORMAT_ARG_INDEX[propName];

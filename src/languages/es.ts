@@ -167,7 +167,6 @@ const translations: TranslationDeepObject<typeof en> = {
         remove: 'Eliminar',
         admin: 'Administrador',
         owner: 'Dueño',
-        dateFormat: 'AAAA-MM-DD',
         calendarOpened: 'calendario abierto',
         dialogOpened: 'diálogo',
         send: 'Enviar',

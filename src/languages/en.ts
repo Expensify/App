@@ -195,7 +195,6 @@ const translations = {
         admin: 'Admin',
         editor: 'Editor',
         owner: 'Owner',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'calendar opened',
         // @context Screen-reader live announcement suffix when an RHP/modal dialog opens, e.g. "App download links, dialog".
         dialogOpened: 'dialog',

@@ -49,6 +49,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
+import type Locale from '@src/types/onyx/Locale';
 import type {OnyxData} from '@src/types/onyx/Request';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -179,7 +180,8 @@ function computePerDiemExpenseAmount(customUnit: TransactionCustomUnit) {
     return subRates.reduce((total, subRate) => total + subRate.quantity * subRate.rate, 0);
 }
 
-function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>) {
+/** Rendered verbatim in MoneyRequestView, PerDiemEReceipt and the transaction list, so the date range stays localized despite also being persisted. */
+function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy: OnyxEntry<OnyxTypes.Policy>, preferredLocale: Locale) {
     if (!customUnit.customUnitRateID) {
         return '';
     }
@@ -191,8 +193,12 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getStablePerDiemMerchantDateRange(new Date(startDate), new Date(endDate));
-    return `${locationName}, ${formattedTime}`;
+    const start = DateUtils.formatToMediumDate(startDate, preferredLocale);
+    const end = DateUtils.formatToMediumDate(endDate, preferredLocale);
+    if (!start || !end) {
+        return locationName;
+    }
+    return `${locationName}, ${start} - ${end}`;
 }
 
 function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {
@@ -223,6 +229,7 @@ type RecentlyUsedParams = {
 };
 
 type PerDiemExpenseInformation = {
+    preferredLocale: Locale;
     report: OnyxEntry<OnyxTypes.Report>;
     participantParams: RequestMoneyParticipantParams;
     policyParams?: BasePolicyParams;
@@ -252,6 +259,7 @@ type PerDiemExpenseInformation = {
 };
 
 type PerDiemExpenseInformationParams = {
+    preferredLocale: Locale;
     parentChatReport: OnyxEntry<OnyxTypes.Report>;
     transactionParams: PerDiemExpenseTransactionParams;
     participantParams: RequestMoneyParticipantParams;
@@ -279,6 +287,7 @@ type PerDiemExpenseInformationParams = {
 };
 
 type PerDiemExpenseInformationForSelfDM = {
+    preferredLocale: Locale;
     selfDMReport: OnyxTypes.Report | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
     transactionParams: PerDiemExpenseTransactionParams;
@@ -357,6 +366,7 @@ function getPerDiemExpensePolicyID({report, participantParams, existingIOUReport
  */
 function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseInformationParams): MoneyRequestInformation {
     const {
+        preferredLocale,
         parentChatReport,
         transactionParams,
         participantParams,
@@ -387,7 +397,7 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy, preferredLocale);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -659,12 +669,22 @@ function getPerDiemExpenseInformation(perDiemExpenseInformation: PerDiemExpenseI
  * Gathers all the data needed to submit a per diem expense from self DM.
  */
 function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDiemExpenseInformationForSelfDM): PerDiemExpenseInformationForSelfDMResult {
-    const {selfDMReport, transactionParams, policy, currentUserAccountIDParam, currentUserEmailParam, quickAction, optimisticChatReportID, delegateAccountID, getCurrencyDecimals} =
-        perDiemExpenseInformation;
+    const {
+        preferredLocale,
+        selfDMReport,
+        transactionParams,
+        policy,
+        currentUserAccountIDParam,
+        currentUserEmailParam,
+        quickAction,
+        optimisticChatReportID,
+        delegateAccountID,
+        getCurrencyDecimals,
+    } = perDiemExpenseInformation;
     const {comment = '', currency, created, category, tag, customUnit, billable, attendees, reimbursable} = transactionParams;
 
     const amount = computePerDiemExpenseAmount(customUnit);
-    const merchant = computePerDiemExpenseMerchant(customUnit, policy);
+    const merchant = computePerDiemExpenseMerchant(customUnit, policy, preferredLocale);
     const defaultComment = computeDefaultPerDiemExpenseComment(customUnit, currency);
     const finalComment = comment || defaultComment;
 
@@ -970,6 +990,7 @@ function getPerDiemExpenseInformationForSelfDM(perDiemExpenseInformation: PerDie
  */
 function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInformation) {
     const {
+        preferredLocale,
         report,
         participantParams,
         policyParams = {},
@@ -1028,6 +1049,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
         billable,
         reimbursable,
     } = getPerDiemExpenseInformation({
+        preferredLocale,
         parentChatReport: currentChatReport,
         participantParams,
         policyParams,
@@ -1121,6 +1143,7 @@ function submitPerDiemExpense(submitPerDiemExpenseInformation: PerDiemExpenseInf
  */
 function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemExpenseInformationForSelfDM) {
     const {
+        preferredLocale,
         selfDMReport,
         policy,
         transactionParams,
@@ -1146,6 +1169,7 @@ function submitPerDiemExpenseForSelfDM(submitPerDiemExpenseInformation: PerDiemE
     }
 
     const {chatReport, transaction, iouAction, transactionThreadReportID, createdReportActionIDForThread, onyxData} = getPerDiemExpenseInformationForSelfDM({
+        preferredLocale,
         getCurrencyDecimals,
         selfDMReport,
         policy,

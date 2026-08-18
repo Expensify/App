@@ -198,7 +198,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
     } = params;
 
     // Localization
-    const {translate, toLocaleDigit, formatPhoneNumber} = useLocalize();
+    const {translate, toLocaleDigit, formatPhoneNumber, preferredLocale} = useLocalize();
     const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
@@ -593,6 +593,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
+                preferredLocale,
                 getCurrencyDecimals,
                 selfDMReport,
                 policy,
@@ -638,6 +639,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 participant,
             };
             const result = submitPerDiemExpenseIOUActions({
+                preferredLocale,
                 getCurrencyDecimals,
                 report,
                 participantParams: perDiemParticipantParams,

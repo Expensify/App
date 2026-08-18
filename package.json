@@ -103,6 +103,7 @@
     "@formatjs/intl-locale": "^4.0.0",
     "@formatjs/intl-numberformat": "^8.10.3",
     "@formatjs/intl-pluralrules": "^5.2.14",
+    "@formatjs/intl-relativetimeformat": "^11.4.13",
     "@fullstory/browser": "^2.0.6",
     "@fullstory/react-native": "^1.9.0",
     "@gorhom/portal": "^1.0.14",

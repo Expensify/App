@@ -218,9 +218,10 @@ function CalendarPicker({
     };
 
     const monthNames = DateUtils.getMonthNames(preferredLocale);
-    const daysOfWeekLong = DateUtils.getDaysOfWeek(preferredLocale);
-    // Narrow labels fit the 7-column grid on mobile. Short 3-letter labels get cramped or truncated in Latin locales.
-    const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale);
+    // Narrow labels fit the 7-column grid. Short 3-letter labels get cramped in Latin locales.
+    // Paired with each column's weekday number (0 Sunday to 6 Saturday), which stays unique even when narrow labels repeat.
+    const weekStartsOn = DateUtils.getWeekStartsOn(preferredLocale);
+    const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale).map((label, offset) => ({label, weekdayNumber: (weekStartsOn + offset) % 7}));
     useEffect(() => {
         if (isSmallScreenWidth || isFirstRender.current) {
             isFirstRender.current = false;
@@ -363,13 +364,13 @@ function CalendarPicker({
                 </View>
             </View>
             <View style={[themeStyles.flexRow, webOnlyMarginStyle]}>
-                {daysOfWeekLong.map((longName, slot) => (
+                {daysOfWeek.map(({label, weekdayNumber}) => (
                     <View
-                        key={longName}
+                        key={weekdayNumber}
                         style={[themeStyles.calendarDayRoot, themeStyles.flex1, themeStyles.justifyContentCenter, themeStyles.alignItemsCenter]}
                         dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                     >
-                        <Text style={themeStyles.sidebarLinkTextBold}>{daysOfWeek.at(slot)}</Text>
+                        <Text style={themeStyles.sidebarLinkTextBold}>{label}</Text>
                     </View>
                 ))}
             </View>

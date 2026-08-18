@@ -26,7 +26,7 @@ import type {FlatTranslationsObject, TranslationPaths} from './types';
 import type zhHans from './zh-hans';
 
 import flattenObject from './flattenObject';
-import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules} from './shouldPolyfill';
+import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat} from './shouldPolyfill';
 
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {
@@ -61,6 +61,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.DE) ? import('@formatjs/intl-numberformat/locale-data/de') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.DE) ? import('@formatjs/intl-listformat/locale-data/de') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.DE) ? import('@formatjs/intl-pluralrules/locale-data/de') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.DE) ? import('@formatjs/intl-relativetimeformat/locale-data/de') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof de>)));
                   }),
@@ -72,6 +73,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.EL) ? import('@formatjs/intl-numberformat/locale-data/el') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.EL) ? import('@formatjs/intl-listformat/locale-data/el') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.EL) ? import('@formatjs/intl-pluralrules/locale-data/el') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.EL) ? import('@formatjs/intl-relativetimeformat/locale-data/el') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.EL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof el>)));
                   }),
@@ -83,6 +85,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.EN) ? import('@formatjs/intl-numberformat/locale-data/en') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.EN) ? import('@formatjs/intl-listformat/locale-data/en') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.EN) ? import('@formatjs/intl-pluralrules/locale-data/en') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.EN) ? import('@formatjs/intl-relativetimeformat/locale-data/en') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof en>)));
                   }),
@@ -94,6 +97,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.ES) ? import('@formatjs/intl-numberformat/locale-data/es') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.ES) ? import('@formatjs/intl-listformat/locale-data/es') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.ES) ? import('@formatjs/intl-pluralrules/locale-data/es') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.ES) ? import('@formatjs/intl-relativetimeformat/locale-data/es') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof es>)));
                   }),
@@ -105,6 +109,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.FR) ? import('@formatjs/intl-numberformat/locale-data/fr') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.FR) ? import('@formatjs/intl-listformat/locale-data/fr') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.FR) ? import('@formatjs/intl-pluralrules/locale-data/fr') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.FR) ? import('@formatjs/intl-relativetimeformat/locale-data/fr') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof fr>)));
                   }),
@@ -116,6 +121,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.IT) ? import('@formatjs/intl-numberformat/locale-data/it') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.IT) ? import('@formatjs/intl-listformat/locale-data/it') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.IT) ? import('@formatjs/intl-pluralrules/locale-data/it') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.IT) ? import('@formatjs/intl-relativetimeformat/locale-data/it') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof it>)));
                   }),
@@ -127,6 +133,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.JA) ? import('@formatjs/intl-numberformat/locale-data/ja') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.JA) ? import('@formatjs/intl-listformat/locale-data/ja') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.JA) ? import('@formatjs/intl-pluralrules/locale-data/ja') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.JA) ? import('@formatjs/intl-relativetimeformat/locale-data/ja') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ja>)));
                   }),
@@ -138,6 +145,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.NL) ? import('@formatjs/intl-numberformat/locale-data/nl') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.NL) ? import('@formatjs/intl-listformat/locale-data/nl') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.NL) ? import('@formatjs/intl-pluralrules/locale-data/nl') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.NL) ? import('@formatjs/intl-relativetimeformat/locale-data/nl') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof nl>)));
                   }),
@@ -149,6 +157,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.PL) ? import('@formatjs/intl-numberformat/locale-data/pl') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.PL) ? import('@formatjs/intl-listformat/locale-data/pl') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.PL) ? import('@formatjs/intl-pluralrules/locale-data/pl') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.PL) ? import('@formatjs/intl-relativetimeformat/locale-data/pl') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof pl>)));
                   }),
@@ -160,6 +169,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.PT_BR) ? import('@formatjs/intl-numberformat/locale-data/pt') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.PT_BR) ? import('@formatjs/intl-listformat/locale-data/pt') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.PT_BR) ? import('@formatjs/intl-pluralrules/locale-data/pt') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.PT_BR) ? import('@formatjs/intl-relativetimeformat/locale-data/pt') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ptBR>)));
                   }),
@@ -171,6 +181,7 @@ class IntlStore {
                       shouldPolyfillNumberFormat(LOCALES.ZH_HANS) ? import('@formatjs/intl-numberformat/locale-data/zh') : Promise.resolve(),
                       shouldPolyfillListFormat(LOCALES.ZH_HANS) ? import('@formatjs/intl-listformat/locale-data/zh') : Promise.resolve(),
                       shouldPolyfillPluralRules(LOCALES.ZH_HANS) ? import('@formatjs/intl-pluralrules/locale-data/zh') : Promise.resolve(),
+                      shouldPolyfillRelativeTimeFormat(LOCALES.ZH_HANS) ? import('@formatjs/intl-relativetimeformat/locale-data/zh') : Promise.resolve(),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof zhHans>)));
                   }),

@@ -123,7 +123,7 @@ function buildTree(predefinedPlaces: Place[] = []) {
 }
 
 function place(description: string): Place {
-    return {description, geometry: {location: {lat: 0, lng: 0}}};
+    return {description, geometry: {location: {lat: 0, lng: 0, latitude: 0, longitude: 0}}};
 }
 
 describe('AddressSearch list', () => {

@@ -22,9 +22,8 @@ type ParticipantLocalTimeProps = {
 function getParticipantLocalTime(participant: PersonalDetails, getLocalDateFromDatetime: LocaleContextProps['getLocalDateFromDatetime'], locale: Locale, now: Date) {
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing -- Disabling this line for safeness as nullish coalescing works only if the value is undefined or null
     const reportRecipientTimezone = participant.timezone || CONST.DEFAULT_TIME_ZONE;
-    const nowIso = now.toISOString();
-    const reportTimezone = getLocalDateFromDatetime(nowIso, reportRecipientTimezone.selected);
-    const currentTimezone = getLocalDateFromDatetime(nowIso);
+    const reportTimezone = getLocalDateFromDatetime(now, reportRecipientTimezone.selected);
+    const currentTimezone = getLocalDateFromDatetime(now);
     const reportRecipientDay = DateUtils.formatToDayOfWeek(reportTimezone, locale);
     const currentUserDay = DateUtils.formatToDayOfWeek(currentTimezone, locale);
     if (reportRecipientDay !== currentUserDay) {

@@ -469,14 +469,23 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
  * as broken in a picker.
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
+/** Last-resort labels for an engine with no working Intl at all. The translation files carry no month names, so there is nothing localized to fall back to. */
 const FALLBACK_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 
-function getMonthNames(locale: Locale): string[] {
+function monthNamesIn(locale: Locale): string[] {
     // Fixed-year UTC mid-month dates. Month name is year-independent, so UTC + mid-month sidesteps any local-tz boundary that could shift a January-1 or December-31 endpoint into the neighbouring month on extreme timezones.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
-    const names = monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
-    // If Intl.DateTimeFormat throws on the host engine, formatIntl returns '' for every month and the picker would render 12 blank rows. Fall back to English so the picker stays usable.
-    return names.some((name) => !name) ? [...FALLBACK_MONTH_NAMES] : names;
+    return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
+}
+
+function getMonthNames(locale: Locale): string[] {
+    const names = monthNamesIn(locale);
+    if (names.every(Boolean)) {
+        return names;
+    }
+    // The realistic failure is an engine rejecting this locale tag, not missing Intl, so retry on the default locale before giving up on localized output.
+    const defaultNames = locale === CONST.LOCALES.DEFAULT ? names : monthNamesIn(CONST.LOCALES.DEFAULT);
+    return defaultNames.every(Boolean) ? defaultNames : [...FALLBACK_MONTH_NAMES];
 }
 
 /**
@@ -511,18 +520,42 @@ function getDaysOfWeekShort(locale: Locale): string[] {
     return weekdayNamesIn(locale, 'SHORT_WEEKDAY');
 }
 
+/** CLDR field order + separator per supported locale, used only when Intl is unavailable so a German user is not shown a US-ordered placeholder. */
+const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
+    [CONST.LOCALES.EN]: 'MM/DD/YYYY',
+    [CONST.LOCALES.ES]: 'DD/MM/YYYY',
+    [CONST.LOCALES.FR]: 'DD/MM/YYYY',
+    [CONST.LOCALES.IT]: 'DD/MM/YYYY',
+    [CONST.LOCALES.PT_BR]: 'DD/MM/YYYY',
+    [CONST.LOCALES.EL]: 'DD/MM/YYYY',
+    [CONST.LOCALES.NL]: 'DD-MM-YYYY',
+    [CONST.LOCALES.DE]: 'DD.MM.YYYY',
+    [CONST.LOCALES.PL]: 'DD.MM.YYYY',
+    [CONST.LOCALES.JA]: 'YYYY/MM/DD',
+    [CONST.LOCALES.ZH_HANS]: 'YYYY/MM/DD',
+};
+
 /**
  * Year always shown as `YYYY` even when Intl renders 2-digit (en-US `dateStyle:'short'` → "12/31/24"
  * → placeholder "MM/DD/YYYY"). de → "DD.MM.YYYY"; ja → "YYYY/MM/DD".
  */
 function getLocalizedDatePlaceholder(locale: Locale): string {
     const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE');
+    // Field order is CLDR data we cannot derive without Intl, so fall back to the most common order rather than guessing per-locale.
+    const fallback = FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? 'MM/DD/YYYY';
     if (!formatter) {
-        return 'MM/DD/YYYY';
+        return fallback;
     }
+    let parts: Intl.DateTimeFormatPart[];
     const sample = new Date(2024, 11, 31);
-    return formatter
-        .formatToParts(sample)
+    try {
+        // `formatToParts` is absent on some ICU-stripped engines, and this runs inside DatePicker's render with no error boundary.
+        parts = formatter.formatToParts(sample);
+    } catch (error) {
+        Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, error});
+        return fallback;
+    }
+    return parts
         .map((part) => {
             switch (part.type) {
                 case 'year':
@@ -1217,16 +1250,24 @@ function toLocalDate(date: Date | string): Date {
     if (typeof date !== 'string') {
         return date;
     }
-    return ISO_DATE_PATTERN.test(date) ? parse(date, 'yyyy-MM-dd', new Date()) : new Date(date);
+    if (ISO_DATE_PATTERN.test(date)) {
+        return parse(date, 'yyyy-MM-dd', new Date());
+    }
+    // Space-separated DB timestamps: V8 accepts the shape, Hermes rejects it, so parse explicitly rather than relying on engine leniency.
+    if (DB_WIRE_TIMESTAMP_PATTERN.test(date)) {
+        return parse(date, date.includes('.') ? 'yyyy-MM-dd HH:mm:ss.SSS' : 'yyyy-MM-dd HH:mm:ss', new Date());
+    }
+    return new Date(date);
 }
 
 /**
- * Like `toLocalDate` but anchors `'yyyy-MM-dd'` strings to UTC midnight, so downstream UTC-zone
- * formatters render the intended calendar day for viewers east of UTC.
+ * Like `toLocalDate` but anchors the value to UTC midnight, so downstream UTC-zone formatters render the intended
+ * calendar day for viewers east of UTC.
  */
 function toUTCDate(date: Date | string): Date {
     if (typeof date !== 'string') {
-        return date;
+        // Re-anchor the local calendar day to UTC. Passing a Date through unchanged renders the previous day east of UTC (local Jan 5 00:00 at UTC+5:30 is Jan 4 18:30Z).
+        return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()));
     }
     if (ISO_DATE_PATTERN.test(date)) {
         return new Date(`${date}T00:00:00Z`);

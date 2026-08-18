@@ -33,7 +33,7 @@ type LocaleContextProps = {
     numberFormat: (number: number, options?: Intl.NumberFormatOptions) => string;
 
     /** Converts a datetime into a local date object */
-    getLocalDateFromDatetime: (datetime?: string, currentSelectedTimezone?: SelectedTimezone) => Date;
+    getLocalDateFromDatetime: (datetime?: Date | string | number, currentSelectedTimezone?: SelectedTimezone) => Date;
 
     /** Converts a datetime into a localized string representation that's relative to current moment in time */
     datetimeToRelative: (datetime: string) => string;

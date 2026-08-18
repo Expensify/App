@@ -182,7 +182,6 @@ const translations: TranslationDeepObject<typeof en> = {
         admin: 'Διαχείριση',
         editor: 'Επεξεργαστής',
         owner: 'Ιδιοκτήτης',
-        dateFormat: 'YYYY-MM-DD',
         calendarOpened: 'άνοιξε το ημερολόγιο',
         send: 'Αποστολή',
         na: 'Μ/Δ',

@@ -19,9 +19,11 @@ function shouldPolyfillNumberFormat(locale: Locale): boolean {
     return Intl.NumberFormat.supportedLocalesOf([locale]).length === 0;
 }
 
-/** Web never installs the Intl.ListFormat or Intl.PluralRules polyfills, so their data is never needed. */
+/** Web never installs the Intl.ListFormat, Intl.PluralRules or Intl.RelativeTimeFormat polyfills, so their data is never needed. */
 const shouldPolyfillListFormat: (locale: Locale) => boolean = () => false;
 
 const shouldPolyfillPluralRules: (locale: Locale) => boolean = () => false;
 
-export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules};
+const shouldPolyfillRelativeTimeFormat: (locale: Locale) => boolean = () => false;
+
+export {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat};

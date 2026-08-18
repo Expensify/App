@@ -223,7 +223,13 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
         return '';
     }
     // Medium form ("Jan 5, 2026") matches the adjacent Time badges and existing per-diem UI copy. Short form is locale-ambiguous (MM/DD/YYYY vs DD/MM/YYYY vs YYYY/MM/DD).
-    return `${DateUtils.formatToLocalTime(dateTimeString, locale)}, ${DateUtils.formatToMediumDate(dateTimeString, locale)}`;
+    const time = DateUtils.formatToLocalTime(dateTimeString, locale);
+    const day = DateUtils.formatToMediumDate(dateTimeString, locale);
+    // Both halves required, else the hard-coded separator survives on its own and the row renders a bare ", ".
+    if (!time || !day) {
+        return '';
+    }
+    return `${time}, ${day}`;
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
