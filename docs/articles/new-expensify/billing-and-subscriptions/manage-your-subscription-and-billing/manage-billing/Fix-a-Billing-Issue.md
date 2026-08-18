@@ -1,7 +1,7 @@
 ---
 title: Fix a Billing Issue
 description: Learn how to resolve billing issues by updating your payment method or completing the action shown in Account > Subscription.
-keywords: [fix billing issue, payment failed, retry payment, good standing, update payment card, authenticate payment, billing issue, payment could not be processed]
+keywords: [fix billing issue, payment failed, retry payment, good standing, update payment card, authenticate payment, billing issue, payment could not be processed, travel invoice past due, travel booking paused, Consolidated Travel Billing invoice]
 internalScope: Audience is Workspace owners. Covers resolving billing issues from Account > Subscription. Does not cover pricing, subscription management, or billing ownership.
 retrievalIntent: How to fix a failed payment.
 contentType: task
@@ -45,6 +45,8 @@ The notification remains visible until the billing issue is resolved.
 | **Your payment information is outdated** | Update your payment card and **Retry payment**. |
 | **Your payment is past due** | Pay the outstanding balance. |
 | **A billing dispute is preventing payment** | Resolve the dispute with your bank before retrying the payment. |
+| **Your travel invoice is past due** | Pay your travel invoice by the date shown in the message to keep booking travel. |
+| **Travel booking is paused** | Your travel invoice is past due and travel booking is paused. Pay the outstanding travel invoice to start booking travel again. |
 
 ---
 
@@ -83,5 +85,12 @@ Common reasons include:
 - Your payment information is no longer valid.
 - Your payment is past due.
 - A billing dispute is preventing payment.
+- Your Consolidated Travel Billing invoice is past due.
 
 To see the specific reason for your workspace, go to **Account > Subscription**.
+
+## What happens if my travel invoice is past due?
+
+If your Consolidated Travel Billing invoice is past due, **Account > Subscription** shows a message naming the date you need to pay by, along with the red notification dots. Pay the travel invoice by that date to keep booking travel. If it isn't paid in time, travel booking is paused and the message changes to **Travel booking is paused** until the outstanding travel invoice is paid.
+
+To learn more about Consolidated Travel Billing, see [Enable Consolidated Travel Billing on a Workspace](/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace).
