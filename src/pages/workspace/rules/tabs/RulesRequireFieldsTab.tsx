@@ -81,7 +81,7 @@ function RulesRequireFieldsTab({policyID, canWriteRules, selectedKeys, onSelecti
     };
 
     if (arePolicyCategoriesLoading) {
-        return <Table.LoadingState context="RulesRequireFieldsTab" />;
+        return <Table.LoadingState />;
     }
 
     return (

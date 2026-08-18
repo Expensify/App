@@ -82,7 +82,7 @@ function SubscriptionPlanCardActionButton({subscriptionPlan, isFromComparisonMod
         }
 
         if (planType === CONST.POLICY.TYPE.TEAM) {
-            Navigation.navigate(ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id, Navigation.getActiveRoute()));
+            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_DOWNGRADE.getRoute(policy?.id)));
             return;
         }
 

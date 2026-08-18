@@ -21,7 +21,7 @@ import NarrowPaneContext from '@libs/Navigation/AppNavigator/Navigators/NarrowPa
 import Overlay from '@libs/Navigation/AppNavigator/Navigators/Overlay';
 import Navigation from '@libs/Navigation/Navigation';
 
-import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
+import {areAllModalsHidden, closeTop, onModalDidClose, setCloseModal, setModalCovering, setModalVisibility, willAlertModalBecomeVisible} from '@userActions/Modal';
 
 import CONST from '@src/CONST';
 
@@ -41,6 +41,7 @@ function BaseModal({
     isVisible,
     onClose,
     shouldSetModalVisibility = true,
+    shouldTreatModalAsCovering,
     onModalHide = () => {},
     type,
     popoverAnchorPosition = {},
@@ -66,6 +67,7 @@ function BaseModal({
     modalId,
     shouldEnableNewFocusManagement = false,
     shouldReturnFocus,
+    launcherRef,
     restoreFocusType,
     shouldUseModalPaddingStyle = true,
     initialFocus = false,
@@ -98,6 +100,7 @@ function BaseModal({
 
     // This prop does not have a default value, because React Compiler throws an internal error if this is provided as a default value.
     const shouldApplySidePanelOffset = shouldApplySidePanelOffsetProp ?? type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED;
+    const isModalCovering = shouldTreatModalAsCovering ?? (type !== CONST.MODAL.MODAL_TYPE.POPOVER && type !== CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
     const sidePanelAnimatedStyle = shouldApplySidePanelOffset && !isSmallScreenWidth ? {transform: [{translateX: Animated.multiply(sidePanelOffset.current, -1)}]} : undefined;
     const keyboardStateContextValue = useKeyboardState();
 
@@ -109,14 +112,16 @@ function BaseModal({
     const shouldCallHideModalOnUnmount = useRef(false);
     const hideModalCallbackRef = useRef<(callHideCallback: boolean) => void>(undefined);
     const bottomDockedDismissButtonRef = useRef<View>(null);
-    const fallbackModalIdRef = useRef<number | undefined>(undefined);
-    if (fallbackModalIdRef.current === undefined) {
-        fallbackModalIdRef.current = ComposerFocusManager.getId();
-    }
+    const [fallbackModalID] = useState(() => ComposerFocusManager.getId());
+    const coveringModalID = fallbackModalID;
+    // On Android the hide callback fires from the reanimated exit-animation snapshot taken when the close began,
+    // so it closes over that render's isVisible. Read the current value through a ref instead, or a reopen during
+    // the exit would be misread as still closed and its covering entry cleared.
+    const isVisibleRef = useRef(isVisible);
 
     const wasVisible = usePrevious(isVisible);
 
-    const uniqueModalId = modalId ?? fallbackModalIdRef.current;
+    const uniqueModalId = modalId ?? fallbackModalID;
     const saveFocusState = () => {
         if (shouldEnableNewFocusManagement) {
             ComposerFocusManager.saveFocusState(uniqueModalId);
@@ -153,6 +158,7 @@ function BaseModal({
         let removeOnCloseListener: () => void;
         if (isVisible) {
             shouldCallHideModalOnUnmount.current = true;
+            setModalCovering(coveringModalID, isModalCovering);
             willAlertModalBecomeVisible(true, type === CONST.MODAL.MODAL_TYPE.POPOVER || type === CONST.MODAL.MODAL_TYPE.BOTTOM_DOCKED);
             // To handle closing any modal already visible when this modal is mounted, i.e. PopoverReportActionContextMenu
             if (onClose) {
@@ -171,11 +177,18 @@ function BaseModal({
             }
             removeOnCloseListener();
         };
-    }, [isVisible, wasVisible, onClose, type, handleDismissModal]);
+    }, [isVisible, wasVisible, onClose, type, isModalCovering, handleDismissModal, coveringModalID]);
 
     useEffect(() => {
         hideModalCallbackRef.current = hideModal;
     }, [hideModal]);
+
+    useEffect(() => {
+        isVisibleRef.current = isVisible;
+    }, [isVisible]);
+
+    // The covering entry must not outlive the component, whatever path unmounts it.
+    useEffect(() => () => setModalCovering(coveringModalID, false), [coveringModalID]);
 
     useEffect(
         () => () => {
@@ -282,11 +295,7 @@ function BaseModal({
         default: false,
     };
 
-    // In Modals we need to reset the ScreenWrapperOfflineIndicatorContext to allow nested ScreenWrapper components to render offline indicators,
-    // except if we are in a narrow pane navigator. In this case, we use the narrow pane's original values.
     const {isInNarrowPane} = useContext(NarrowPaneContext);
-    const {originalValues} = useContext(ScreenWrapperOfflineIndicatorContext);
-    const offlineIndicatorContextValue = isInNarrowPane ? (originalValues ?? {}) : {};
 
     const shouldSuppressRightDockedBackdrop =
         type === CONST.MODAL.MODAL_TYPE.RIGHT_DOCKED && !isSmallScreenWidth && (isInNarrowPane || isInNarrowPaneModal) && !shouldKeepRightDockedBackdropInNarrowPane;
@@ -310,7 +319,7 @@ function BaseModal({
 
     return (
         <ModalContext.Provider value={modalContextValue}>
-            <ScreenWrapperOfflineIndicatorContext.Provider value={offlineIndicatorContextValue}>
+            <ScreenWrapperOfflineIndicatorContext.Provider value={{}}>
                 <View
                     // this is a workaround for modal not being visible on the new arch in some cases
                     // it's necessary to have a non-collapsible view as a parent of the modal to prevent
@@ -327,7 +336,15 @@ function BaseModal({
                         // Note: Escape key on web will trigger onBackButtonPress callback
                         onBackButtonPress={closeTop}
                         onModalShow={handleShowModal}
-                        onModalHide={hideModal}
+                        onModalHide={() => {
+                            // A hide callback can fire after this modal was already asked to re-show (the interrupted
+                            // close completes first); only a hide for a modal that is staying closed clears its
+                            // covering entry, so the marketing window cannot appear over a reopened modal.
+                            if (!isVisibleRef.current) {
+                                setModalCovering(coveringModalID, false);
+                            }
+                            hideModal();
+                        }}
                         onModalWillShow={() => {
                             saveFocusState();
                             onModalWillShow?.();
@@ -371,6 +388,7 @@ function BaseModal({
                         shouldEnableNewFocusManagement={shouldEnableNewFocusManagement}
                         supportedOrientations={['portrait', 'portrait-upside-down', 'landscape', 'landscape-left', 'landscape-right']}
                         shouldReturnFocus={shouldReturnFocus}
+                        launcherRef={launcherRef}
                     >
                         <Animated.View
                             onLayout={onViewLayout}

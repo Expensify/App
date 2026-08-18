@@ -80,7 +80,7 @@ function WithdrawalIDListItemHeaderImpl({
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const {environmentURL} = useEnvironment();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
 
@@ -92,7 +92,10 @@ function WithdrawalIDListItemHeaderImpl({
     const formattedWithdrawalDate = DateUtils.formatWithUTCTimeZone(
         withdrawalIDItem.debitPosted,
         DateUtils.doesDateBelongToAPastYear(withdrawalIDItem.debitPosted) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+        dateFnsLocale,
     );
+    const {debitedAmount, debitedCurrency, creditedAmount, creditedCurrency} = withdrawalIDItem;
+
     const badgeProps = getSettlementStatusBadgeProps(withdrawalIDItem.state, translate, theme);
     const settlementStatus = getSettlementStatus(withdrawalIDItem.state);
     const statusBadge = !!badgeProps && (
@@ -175,6 +178,33 @@ function WithdrawalIDListItemHeaderImpl({
                 style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.EXPENSES)}
             >
                 <TextCell text={String(withdrawalIDItem.count)} />
+            </View>
+        ),
+        // A settlement that did not convert currencies reports neither amount, and an amount says nothing without the currency it moved in.
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_DEBITED)}
+            >
+                {!!debitedAmount && !!debitedCurrency && (
+                    <TotalCell
+                        total={debitedAmount}
+                        currency={debitedCurrency}
+                    />
+                )}
+            </View>
+        ),
+        [CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED]: (
+            <View
+                key={CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED}
+                style={StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.GROUP_AMOUNT_REIMBURSED)}
+            >
+                {!!creditedAmount && !!creditedCurrency && (
+                    <TotalCell
+                        total={creditedAmount}
+                        currency={creditedCurrency}
+                    />
+                )}
             </View>
         ),
         [CONST.SEARCH.TABLE_COLUMNS.GROUP_TOTAL]: (

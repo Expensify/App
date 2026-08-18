@@ -65,7 +65,7 @@ function DynamicNotificationPreferencePage({report}: DynamicNotificationPreferen
 
     return (
         <ScreenWrapper
-            includeSafeAreaPaddingBottom={false}
+            enableEdgeToEdgeBottomSafeAreaPadding
             testID="NotificationPreferencePage"
         >
             <FullPageNotFoundView shouldShow={shouldDisableNotificationPreferences}>
