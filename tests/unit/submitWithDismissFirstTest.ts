@@ -11,12 +11,14 @@ const mockGetReportOrDraftReport = jest.fn();
 const mockDismissModal = jest.fn<ReturnType<DismissModal>, Parameters<DismissModal>>();
 const mockRevealRouteBeforeDismissingModal = jest.fn<ReturnType<RevealRouteBeforeDismissingModal>, Parameters<RevealRouteBeforeDismissingModal>>();
 const mockGetIsFullscreenPreInsertedUnderRHP = jest.fn<boolean, []>();
+const mockGetIsNarrowLayout = jest.fn<boolean, []>();
 const mockReserveDeferredWriteChannel = jest.fn();
 const mockStartTracking = jest.fn();
 const mockSetFastPath = jest.fn();
 const mockSetPendingSubmitFollowUpAction = jest.fn();
 
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => mockIsSearchTopmostFullScreenRoute());
+jest.mock('@libs/getIsNarrowLayout', () => () => mockGetIsNarrowLayout());
 jest.mock('@libs/Navigation/Navigation', () => ({
     dismissModal: mockDismissModal,
     revealRouteBeforeDismissingModal: mockRevealRouteBeforeDismissingModal,
@@ -52,6 +54,7 @@ describe('submitWithDismissFirst', () => {
         mockIsSearchTopmostFullScreenRoute.mockReturnValue(false);
         mockGetReportOrDraftReport.mockReturnValue(undefined);
         mockGetIsFullscreenPreInsertedUnderRHP.mockReturnValue(false);
+        mockGetIsNarrowLayout.mockReturnValue(false);
     });
 
     describe('Search-topmost branch', () => {
@@ -201,10 +204,12 @@ describe('submitWithDismissFirst', () => {
             isSelfDMDestination: true,
         };
 
-        it('hands navigation to the write instead of revealing the self-DM report', () => {
+        it('on wide layout hands navigation to the write instead of revealing the self-DM report', () => {
             // Without this branch the destination-report fast path reveals the self-DM and calls executeWrite with
             // shouldHandleNavigation: false, which makes cleanupAfterSkipConfirmSubmit drop the routing flags before
-            // navigateAfterExpenseCreate can route these users to Spend > Expenses.
+            // navigateAfterExpenseCreate can route these users to Spend > Expenses. On wide layout navigateAfterExpenseCreate
+            // reveals Search (which dismisses the modal itself), so no explicit dismiss happens here.
+            mockGetIsNarrowLayout.mockReturnValue(false);
             mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
             const executeWrite = jest.fn();
 
@@ -218,6 +223,34 @@ describe('submitWithDismissFirst', () => {
             expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
             expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
             expect(mockDismissModal).not.toHaveBeenCalled();
+        });
+
+        it('on narrow layout dismisses the modal first, then hands navigation to the write in afterTransition', () => {
+            // Regression guard for https://github.com/Expensify/App/pull/97883: on narrow layout navigateAfterExpenseCreate
+            // only switches the tab beneath the RHP, so the Create Expense modal must be dismissed here or the user is
+            // stranded on an empty "Create Expense" page after a skip-confirmation (e.g. QAB scan) submit.
+            mockGetIsNarrowLayout.mockReturnValue(true);
+            mockGetReportOrDraftReport.mockReturnValue({reportID: 'selfDM1'});
+            const executeWrite = jest.fn();
+
+            submitWithDismissFirst({
+                executeWrite,
+                destinationReportID: 'selfDM1',
+                telemetryContext: TELEMETRY_CONTEXT,
+                ...LOOKING_AROUND_SELF_DM,
+            });
+
+            expect(mockDismissModal).toHaveBeenCalledTimes(1);
+            expect(mockRevealRouteBeforeDismissingModal).not.toHaveBeenCalled();
+            // The write is deferred until the modal transition completes.
+            expect(executeWrite).not.toHaveBeenCalled();
+
+            const [dismissOptions] = mockDismissModal.mock.calls.at(0) ?? [];
+            if (!dismissOptions?.afterTransition) {
+                throw new Error('Expected dismissModal afterTransition callback');
+            }
+            dismissOptions.afterTransition();
+            expect(executeWrite).toHaveBeenCalledWith({shouldHandleNavigation: true});
         });
 
         it('still starts tracking so telemetry is not skipped', () => {

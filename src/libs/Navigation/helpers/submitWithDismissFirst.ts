@@ -97,6 +97,19 @@ function submitWithDismissFirst({
     if (isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination) {
         startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
+        // On narrow layout there is no pre-inserted route to reveal (getSkipConfirmationPreMountDestinationRoute suppresses
+        // the self-DM pre-insert for these users), and navigateAfterExpenseCreate's narrow branch only switches the tab
+        // beneath the RHP via Navigation.navigate - it never closes the Create Expense modal, so the user is stranded on an
+        // empty "Create Expense" page with the receipt hidden. Dismiss the modal first (mirroring the confirmation flow's
+        // handleSearchDismiss), then hand navigation to the write, which routes to Search once the modal has closed. Wide
+        // layout keeps the direct write: there navigateAfterExpenseCreate reveals Search via revealRouteBeforeDismissingModal,
+        // which dismisses the modal itself, so an explicit dismiss here would be redundant (and revealing after it would break).
+        if (getIsNarrowLayout()) {
+            Navigation.dismissModal({
+                afterTransition: () => executeWrite({shouldHandleNavigation: true}),
+            });
+            return;
+        }
         executeWrite({shouldHandleNavigation: true});
         return;
     }
