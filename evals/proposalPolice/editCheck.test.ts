@@ -1,11 +1,11 @@
+import {describe, expect, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 
 import {buildEditCheckInput} from '@prompts/proposalPolice/input';
 import {buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
 import {EDIT_CHECK_RESPONSE_FORMAT, isEditCheckResponse} from '@prompts/proposalPolice/schema';
 import type {EditCheckResponse} from '@prompts/proposalPolice/schema';
-
-import {describe, expect, test} from 'bun:test';
 
 import fixtures from './fixtures/editCheck.json';
 import {majority, PROPOSAL_POLICE_MODEL, RUNS_PER_FIXTURE, sampleFixture} from './runFixture';

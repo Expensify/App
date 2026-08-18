@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+import {describe, expect, it} from 'bun:test';
+
 import {isCommentIntentResponse, isDuplicateCheckResponse} from '@prompts/proposalPolice/schema';
 
 describe('isCommentIntentResponse', () => {

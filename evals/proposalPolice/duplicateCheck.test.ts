@@ -1,3 +1,5 @@
+import {describe, expect, test} from 'bun:test';
+
 import {DUPLICATE_SIMILARITY_THRESHOLD} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem} from '@prompts/proposalPolice/input';
@@ -6,8 +8,6 @@ import {DUPLICATE_CHECK_RESPONSE_FORMAT, isDuplicateCheckResponse} from '@prompt
 import type {DuplicateCheckResponse} from '@prompts/proposalPolice/schema';
 
 import {chunkArray, MAX_ITEMS_PER_CONVERSATION_REQUEST} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
-
-import {describe, expect, test} from 'bun:test';
 
 import fixtures from './fixtures/duplicateCheck.json';
 import {majority, median, PROPOSAL_POLICE_MODEL, RUNS_PER_FIXTURE, sampleFixture} from './runFixture';

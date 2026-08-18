@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/**
- * @jest-environment node
- */
-import OpenAIUtils from '@scripts/utils/OpenAIUtils';
+import {beforeEach, describe, expect, it, jest, mock} from 'bun:test';
 
-import type * as OpenAIModule from 'openai';
+import * as OpenAIModule from 'openai';
 
 const mockResponsesCreate = jest.fn();
 const mockConversationsCreate = jest.fn();
@@ -12,26 +9,27 @@ const mockConversationItemsCreate = jest.fn();
 const mockConversationItemsList = jest.fn();
 const mockConversationItemsDelete = jest.fn();
 
-jest.mock('openai', () => {
-    const actual = jest.requireActual<typeof OpenAIModule>('openai');
-    return {
-        __esModule: true,
-        // Preserve the real APIError class so OpenAIUtils's `error instanceof OpenAI.APIError` retry check still works.
-        default: Object.assign(
-            jest.fn().mockImplementation(() => ({
-                responses: {create: mockResponsesCreate},
-                conversations: {
-                    create: mockConversationsCreate,
-                    items: {create: mockConversationItemsCreate, list: mockConversationItemsList, delete: mockConversationItemsDelete},
-                },
-            })),
-            {APIError: actual.default.APIError},
-        ),
-    };
-});
+// Preserve the real APIError class so OpenAIUtils's `error instanceof OpenAI.APIError` retry check still works.
+await mock.module('openai', () => ({
+    __esModule: true,
+    default: Object.assign(
+        jest.fn(() => ({
+            responses: {create: mockResponsesCreate},
+            conversations: {
+                create: mockConversationsCreate,
+                items: {create: mockConversationItemsCreate, list: mockConversationItemsList, delete: mockConversationItemsDelete},
+            },
+        })),
+        {APIError: OpenAIModule.default.APIError},
+    ),
+}));
+
+// Imported after the mock.module() call above so it picks up the mock.
+const {default: OpenAIUtils} = await import('@scripts/utils/OpenAIUtils');
+type OpenAIUtilsInstance = InstanceType<typeof OpenAIUtils>;
 
 describe('OpenAIUtils', () => {
-    let openAI: OpenAIUtils;
+    let openAI: OpenAIUtilsInstance;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -83,17 +81,16 @@ describe('OpenAIUtils', () => {
             await expect(openAI.promptResponses({input: 'hi'})).rejects.toThrow('Error getting response from OpenAI Responses API');
         });
 
+        // Waits out retryWithBackoff's real 1s first delay. Under Jest this advanced the globally-faked
+        // timers, but bun:test has no global fake timers and no async timer advance to install, and the
+        // second here buys a test that exercises the actual backoff rather than a stubbed one.
         it('retries a retryable error and succeeds on the next attempt', async () => {
-            const actual = jest.requireActual<typeof OpenAIModule>('openai');
-            const rateLimitError = new actual.default.APIError(429, undefined, 'Rate limited', undefined);
+            const rateLimitError = new OpenAIModule.default.APIError(429, undefined, 'Rate limited', undefined);
             mockResponsesCreate.mockRejectedValueOnce(rateLimitError).mockResolvedValueOnce({output_text: 'recovered', id: 'resp_4'});
 
-            const promise = openAI.promptResponses({input: 'hi'});
-            await jest.advanceTimersByTimeAsync(1000);
-
-            await expect(promise).resolves.toEqual({text: 'recovered', responseID: 'resp_4'});
+            await expect(openAI.promptResponses({input: 'hi'})).resolves.toEqual({text: 'recovered', responseID: 'resp_4'});
             expect(mockResponsesCreate).toHaveBeenCalledTimes(2);
-        });
+        }, 10_000);
     });
 
     describe('createConversation', () => {

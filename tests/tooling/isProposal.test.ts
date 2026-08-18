@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+import {describe, expect, it} from 'bun:test';
+
 import isProposal from '@github/libs/isProposal';
 
 const ROOT_CAUSE_HEADER = '### What is the root cause of that problem?';

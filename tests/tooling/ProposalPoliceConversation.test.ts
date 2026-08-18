@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/naming-convention */
-/**
- * @jest-environment node
- */
+import {describe, expect, it} from 'bun:test';
+
 import {
     buildSeedItems,
     buildTrackingCommentBody,
@@ -13,7 +12,7 @@ import {
 
 import type {ConversationItem} from 'openai/resources/conversations/items';
 
-import {makeComment} from '../utils/proposalPoliceFixtures';
+import {makeComment} from './proposalPoliceFixtures';
 
 describe('ProposalPoliceConversation', () => {
     describe('buildTrackingCommentBody / findTrackedConversationID', () => {

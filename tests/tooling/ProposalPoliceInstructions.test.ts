@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+import {describe, expect, it} from 'bun:test';
+
 import {buildCommentIntentInstructions, buildDuplicateCheckInstructions, buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
 
 /**

@@ -1,11 +1,11 @@
+import {describe, expect, test} from 'bun:test';
+
 import CONST from '@github/libs/CONST';
 
 import {buildCommentIntentInput} from '@prompts/proposalPolice/input';
 import {buildCommentIntentInstructions} from '@prompts/proposalPolice/instructions';
 import {COMMENT_INTENT_RESPONSE_FORMAT, isCommentIntentResponse} from '@prompts/proposalPolice/schema';
 import type {CommentIntentResponse} from '@prompts/proposalPolice/schema';
-
-import {describe, expect, test} from 'bun:test';
 
 import fixtures from './fixtures/commentIntent.json';
 import {majority, PROPOSAL_POLICE_MODEL, RUNS_PER_FIXTURE, sampleFixture} from './runFixture';

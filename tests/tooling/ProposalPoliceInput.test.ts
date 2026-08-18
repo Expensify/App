@@ -1,6 +1,5 @@
-/**
- * @jest-environment node
- */
+import {describe, expect, it} from 'bun:test';
+
 import {buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput, buildCommentIntentInput} from '@prompts/proposalPolice/input';
 
 describe('ProposalPolice input builders', () => {
