@@ -14,8 +14,6 @@ import resolveArtifacts from './lib/artifactsResolver';
 const args = parseCommandLineArguments();
 const platform = args.platform;
 const isHybrid = args.hybrid === 'true';
-// The only two package names that exist; every caller's package and hybrid-ness always move together, so
-// deriving it here instead of taking it as a flag keeps that pairing from being restated at each call site.
 const packageName = isHybrid ? 'react-hybrid' : 'react-standalone';
 
 if (platform !== 'ios' && platform !== 'android') {
