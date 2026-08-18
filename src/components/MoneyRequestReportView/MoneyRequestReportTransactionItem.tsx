@@ -28,7 +28,6 @@ import {clearError} from '@userActions/Transaction';
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
 import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
-import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
@@ -174,6 +173,7 @@ function MoneyRequestReportTransactionItemBody({
     // The backend reports a reject against an expense it has already moved under its own `reject` field rather than
     // the generic `errors`, so both have to be read to show the message.
     const rejectErrorKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+    const hasRejectError = !!rejectErrorKey;
     const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
 
     // A reject error is terminal for this row, so it replaces any other message rather than stacking with it.
@@ -186,7 +186,7 @@ function MoneyRequestReportTransactionItemBody({
     // A reject error means the server no longer has this expense on this report, so dismissing it drops the stale
     // local copy rather than just hiding the message. Any other error is a plain dismiss.
     const dismissTransactionError = () => {
-        if (!isEmptyObject(rejectError)) {
+        if (hasRejectError) {
             dismissRejectExpenseError(transaction.transactionID);
             return;
         }
@@ -246,7 +246,7 @@ function MoneyRequestReportTransactionItemBody({
                 isNested
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
-                hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
+                hoverStyle={[!isPendingDelete && !hasRejectError && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
                 onMouseDown={handleMouseDown}
                 onHoverIn={handleHoverIn}
@@ -260,7 +260,7 @@ function MoneyRequestReportTransactionItemBody({
                 onLongPress={() => {
                     handleLongPress(transaction.transactionID);
                 }}
-                disabled={isTransactionPendingDelete(transaction)}
+                disabled={isPendingDelete || hasRejectError}
                 wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
@@ -282,7 +282,7 @@ function MoneyRequestReportTransactionItemBody({
                         shouldShowCheckbox={!!isSelectionModeEnabled || !isSmallScreenWidth}
                         onCheckboxPress={toggleTransaction}
                         columns={columns}
-                        isDisabled={isPendingDelete}
+                        isDisabled={isPendingDelete || hasRejectError}
                         style={transactionRowStyle}
                         onButtonPress={() => {
                             handleOnPress(transaction.transactionID);
