@@ -150,9 +150,26 @@ const oldRoutes: Record<string, string> = {
     '/*/*/report/*/*': '/r/$4/expense-report?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/tag/*/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5&reportActionID=$6',
     '/*/*/tag/*/*/*': '/r/$5/expense-tag?action=$1&iouType=$2&orderWeight=$3&transactionID=$4&reportID=$5',
+    // Optional reportActionID segment must be matched by a more-specific pattern BEFORE the broad one,
+    // otherwise the broad pattern's trailing `*` swallows "<reportID>/<reportActionID>" together.
+    '/*/*/distance/*/*/*': '/r/$4/expense-distance?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/distance/*/*': '/r/$4/expense-distance?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/distance-manual/*/*/*': '/r/$4/expense-distance-manual?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/distance-manual/*/*': '/r/$4/expense-distance-manual?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/distanceRate/*/*/*': '/r/$4/expense-distance-rate?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/distanceRate/*/*': '/r/$4/expense-distance-rate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxRate/*/*': '/r/$4/taxRate?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/taxAmount/*/*': '/r/$4/taxAmount?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/attendees/*/*': '/r/$4/attendees?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/accountant/*/*': '/r/$4/accountant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/upgrade/*/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4&upgradePath=$5',
+    '/*/*/upgrade/*/*': '/r/$4/money-request-upgrade?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/merchant/*/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/merchant/*/*': '/r/$4/expense-merchant?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/description/*/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
+    '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 
