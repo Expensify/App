@@ -97,7 +97,6 @@ import Onyx from 'react-native-onyx';
 import type {GuidedSetupData, TaskForParameters} from './actions/Report';
 import type {OnboardingCompanySize, OnboardingMessage, OnboardingPurpose, OnboardingTaskLinks} from './actions/Welcome/OnboardingFlow';
 import type {AddCommentOrAttachmentParams} from './API/parameters';
-import type EnvironmentType from './Environment/getEnvironment/types';
 import type {FormulaContext, compute as computeFormula, computeWithMetadata as computeFormulaWithMetadata} from './Formula';
 import type {MoneyRequestNavigatorParamList, ReportsSplitNavigatorParamList} from './Navigation/types';
 import type {LastVisibleMessage} from './ReportActionsUtils';
@@ -125,9 +124,9 @@ import {getCategoryGLCode} from './CategoryUtils';
 import {convertToDisplayStringEnLocale} from './CurrencyUtils';
 import DateUtils from './DateUtils';
 import {getEnvironmentURL} from './Environment/Environment';
-import getEnvironment from './Environment/getEnvironment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
+import isTeachersUnitePolicyID from './isTeachersUnitePolicyID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
@@ -1027,10 +1026,6 @@ let deprecatedIsAnonymousUser = false;
 
 let environmentURL: string;
 getEnvironmentURL().then((url: string) => (environmentURL = url));
-let environment: EnvironmentType;
-getEnvironment().then((env) => {
-    environment = env;
-});
 
 /**
  * Fallback title field used when a policy has an empty fieldList (matches OldDot behavior).
@@ -3147,7 +3142,7 @@ function shouldCurrentUserSubmitReport(iouReport: OnyxEntry<Report>, chatReport:
  */
 type GetAddExpenseDropdownOptionsParams = {
     translate: LocalizedTranslate;
-    icons: Record<'Location' | 'ReceiptPlus' | 'Plus', IconAsset>;
+    icons: Record<'Location' | 'ReceiptPlus' | 'Plus' | 'Transfer', IconAsset>;
     iouReportID: string | undefined;
     policy: OnyxEntry<Policy>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
@@ -3178,48 +3173,66 @@ function getAddExpenseDropdownOptions({
     // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so check the
     // iouReport's own policy rather than the surrounding `policy`.
     const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
+
+    // Teachers Unite doesn't support reimbursement, so members can only add an expense via Split expense.
+    if (isReportTeachersUnite) {
+        return [
+            {
+                value: CONST.REPORT.ADD_EXPENSE_OPTIONS.SPLIT_EXPENSE,
+                text: translate('iou.splitExpense'),
+                icon: icons.Transfer,
+                sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_SPLIT,
+                onSelected: () => {
+                    if (!iouReportID) {
+                        return;
+                    }
+                    if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                        Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                        return;
+                    }
+                    startMoneyRequest(CONST.IOU.TYPE.SPLIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
+                },
+            },
+        ];
+    }
+
     return [
-        // Teachers Unite doesn't support reimbursement, so "Create expense" and "Track distance" are hidden for those reports.
-        ...(isReportTeachersUnite
-            ? []
-            : [
-                  {
-                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
-                      text: translate('iou.createExpense'),
-                      icon: icons.Plus,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
-                      onSelected: () => {
-                          if (!iouReportID) {
-                              return;
-                          }
-                          if (
-                              policy &&
-                              policy.type !== CONST.POLICY.TYPE.PERSONAL &&
-                              shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
-                          ) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                              return;
-                          }
-                          startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
-                      },
-                  },
-                  {
-                      value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
-                      text: translate('iou.trackDistance'),
-                      icon: icons.Location,
-                      sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
-                      onSelected: () => {
-                          if (!iouReportID) {
-                              return;
-                          }
-                          if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
-                              Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
-                              return;
-                          }
-                          startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
-                      },
-                  },
-              ]),
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.CREATE_NEW_EXPENSE,
+            text: translate('iou.createExpense'),
+            icon: icons.Plus,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_CREATE,
+            onSelected: () => {
+                if (!iouReportID) {
+                    return;
+                }
+                if (
+                    policy &&
+                    policy.type !== CONST.POLICY.TYPE.PERSONAL &&
+                    shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)
+                ) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startMoneyRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, undefined, false, iouRequestBackToReport);
+            },
+        },
+        {
+            value: CONST.REPORT.ADD_EXPENSE_OPTIONS.TRACK_DISTANCE_EXPENSE,
+            text: translate('iou.trackDistance'),
+            icon: icons.Location,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.ADD_EXPENSE_TRACK_DISTANCE,
+            onSelected: () => {
+                if (!iouReportID) {
+                    return;
+                }
+                if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserAccountID)) {
+                    Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
+                    return;
+                }
+                startDistanceRequest(CONST.IOU.TYPE.SUBMIT, iouReportID, draftTransactionIDs, lastDistanceExpenseType, false, iouRequestBackToReport);
+            },
+        },
         {
             value: CONST.REPORT.ADD_EXPENSE_OPTIONS.ADD_EXISTING_EXPENSE,
             text: translate('iou.addExistingExpense'),
@@ -10534,15 +10547,6 @@ function isGroupChatAdmin(report: OnyxEntry<Report>, accountID: number) {
     return participant?.role === CONST.REPORT.ROLE.ADMIN;
 }
 
-/**
- * The Teachers Unite workspace doesn't allow submitting expenses for reimbursement (CONST.IOU.TYPE.SUBMIT),
- * only tracking them (CONST.IOU.TYPE.TRACK).
- */
-function isTeachersUnitePolicyID(policyID: string | undefined): boolean {
-    const teacherUnitePolicyID = environment === CONST.ENVIRONMENT.PRODUCTION ? CONST.TEACHERS_UNITE.PROD_POLICY_ID : CONST.TEACHERS_UNITE.TEST_POLICY_ID;
-    return policyID === teacherUnitePolicyID;
-}
-
 function isTeachersUniteReport(report: OnyxEntry<Report>): boolean {
     return isTeachersUnitePolicyID(report?.policyID);
 }
@@ -10614,35 +10618,33 @@ function getMoneyRequestOptions(
     }
 
     if (canRequestMoney(report, policy, otherParticipants, currentUserAccountID)) {
-        // For Teachers Unite policy, don't show Create Expense option
+        // Teachers Unite doesn't support reimbursement, so members can only add an expense via Split expense:
+        // don't show Create Expense or Track distance (Track) for TU reports.
         if (!isTeachersUniteReportValue) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
                 options = [...options, CONST.IOU.TYPE.REQUEST];
             }
-        }
 
-        // If the user can request money from the workspace report, they can also track expenses
-        if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
-            options = [...options, CONST.IOU.TYPE.TRACK];
+            // If the user can request money from the workspace report, they can also track expenses
+            if (isPolicyExpenseChat(report) || isExpenseReport(report)) {
+                options = [...options, CONST.IOU.TYPE.TRACK];
+            }
         }
-    }
-
-    // For expense reports on Teachers Unite workspace, disable "Create report" option
-    if (isExpenseReport(report) && isTeachersUniteReportValue) {
-        options = options.filter((option) => option !== CONST.IOU.TYPE.SUBMIT);
     }
 
     // User created policy rooms and default rooms like #admins or #announce will always have the Split Expense option
     // unless there are no other participants at all (e.g. #admins room for a policy with only 1 admin)
     // DM chats will have the Split Expense option.
     // Your own expense chats will have the split expense option.
-    // Only show Split Expense for TU policy
+    // Only show Split Expense for TU policy: either in the member's own policy expense chat, or in their own
+    // Teachers Unite expense report (e.g. when adding an expense from the report page rather than the chat).
     if (
         (isChatRoom(report) && !isAnnounceRoom(report) && otherParticipants.length > 0) ||
         (isDM(report) && otherParticipants.length > 0) ||
         (isGroupChat(report) && otherParticipants.length > 0) ||
-        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue)
+        (isPolicyExpenseChat(report) && report?.isOwnPolicyExpenseChat && isTeachersUniteReportValue) ||
+        (isExpenseReport(report) && isTeachersUniteReportValue && report?.ownerAccountID === (currentUserAccountID ?? deprecatedCurrentUserAccountID))
     ) {
         options = [...options, CONST.IOU.TYPE.SPLIT];
     }
@@ -14306,6 +14308,7 @@ export {
     canDeleteCardTransactionByLiabilityType,
     getAddExpenseDropdownOptions,
     isTeachersUniteReport,
+    isTeachersUnitePolicyID,
     getTaskAssigneeChatOnyxData,
     getTransactionDetails,
     getTransactionReportName,

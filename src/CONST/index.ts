@@ -1574,6 +1574,7 @@ const CONST = {
             CREATE_NEW_EXPENSE: 'createNewExpense',
             ADD_EXISTING_EXPENSE: 'addExistingExpense',
             TRACK_DISTANCE_EXPENSE: 'trackDistanceExpense',
+            SPLIT_EXPENSE: 'splitExpense',
         },
         ACTION_BADGE: {
             SUBMIT: 'submit',
@@ -8796,6 +8797,7 @@ const CONST = {
             ADD_EXPENSE_CREATE: 'MoreMenu-AddExpenseCreate',
             ADD_EXPENSE_TRACK_DISTANCE: 'MoreMenu-AddExpenseTrackDistance',
             ADD_EXPENSE_EXISTING: 'MoreMenu-AddExpenseExisting',
+            ADD_EXPENSE_SPLIT: 'MoreMenu-AddExpenseSplit',
             PAY: 'MoreMenu-Pay',
             DUPLICATE_REPORT: 'MoreMenu-DuplicateReport',
             MOVE_EXPENSE: 'MoreMenu-MoveExpense',

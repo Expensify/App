@@ -33,7 +33,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {NewReportWorkspaceSelectionNavigatorParamList} from '@libs/Navigation/types';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {canSubmitPerDiemExpenseFromWorkspace, isPolicyAdmin, shouldShowPolicy} from '@libs/PolicyUtils';
-import {getDefaultWorkspaceAvatar} from '@libs/ReportUtils';
+import {getDefaultWorkspaceAvatar, isTeachersUnitePolicyID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 import {isPerDiemRequest} from '@libs/TransactionUtils';
@@ -236,7 +236,8 @@ function DynamicNewReportWorkspaceSelectionPage({route}: NewReportWorkspaceSelec
                 policy?.isJoinRequestPending ||
                 !policy?.isPolicyExpenseChatEnabled ||
                 !shouldShowPolicy(policy, false, currentUserPersonalDetails?.login) ||
-                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy))
+                (hasPerDiemTransactions && !canSubmitPerDiemExpenseFromWorkspace(policy)) ||
+                isTeachersUnitePolicyID(policy?.id)
             ) {
                 continue;
             }

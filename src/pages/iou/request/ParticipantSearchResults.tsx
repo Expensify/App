@@ -32,7 +32,7 @@ import {doesPersonalDetailMatchSearchTerm} from '@libs/OptionsListUtils/searchMa
 import type {OptionWithKey} from '@libs/OptionsListUtils/types';
 import {getActiveAdminWorkspaces, isGroupPolicy as isGroupPolicyUtil} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
-import {getReportOrDraftReport, isInvoiceRoom} from '@libs/ReportUtils';
+import {getReportOrDraftReport, isInvoiceRoom, isTeachersUnitePolicyID} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
@@ -322,7 +322,9 @@ function ParticipantSearchResults({
         );
         sections.push({...formatResults.section, sectionIndex: 0});
 
-        const workspaceChats = (availableOptions.workspaceChats ?? []).filter((option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)));
+        const workspaceChats = (availableOptions.workspaceChats ?? []).filter(
+            (option) => !selectedParticipantKeys.has(getParticipantOptionKey(option)) && !isTeachersUnitePolicyID(option.policyID),
+        );
         if (workspaceChats.length > 0) {
             sections.push({
                 title: translate('workspace.common.workspace'),

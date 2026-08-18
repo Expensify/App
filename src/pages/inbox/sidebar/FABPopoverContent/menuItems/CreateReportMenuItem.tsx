@@ -11,7 +11,7 @@ import {createNewReport} from '@libs/actions/Report';
 import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspaceSelection} from '@libs/Navigation/helpers/getCreateReportRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import {getDefaultChatEnabledPolicy, isGroupPolicy, shouldShowPolicy} from '@libs/PolicyUtils';
-import {hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, isTeachersUnitePolicyID} from '@libs/ReportUtils';
 
 import isOnSearchMoneyRequestReportPage from '@navigation/helpers/isOnSearchMoneyRequestReportPage';
 
@@ -39,7 +39,13 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
     }
     const result: OnyxTypes.Policy[] = [];
     for (const policy of Object.values(policies)) {
-        if (!policy?.isPolicyExpenseChatEnabled || policy?.isJoinRequestPending || !isGroupPolicy(policy) || !shouldShowPolicy(policy, false, currentUserLogin)) {
+        if (
+            !policy?.isPolicyExpenseChatEnabled ||
+            policy?.isJoinRequestPending ||
+            !isGroupPolicy(policy) ||
+            !shouldShowPolicy(policy, false, currentUserLogin) ||
+            isTeachersUnitePolicyID(policy?.id)
+        ) {
             continue;
         }
 
