@@ -2,6 +2,8 @@ import type * as SelectionScraperModule from '@libs/SelectionScraper/index.nativ
 
 import {Document, Element} from 'domhandler';
 
+// cspell:ignore mtext
+
 // Selection scraping only exists in the web implementation; the native variant always returns an empty string.
 const SelectionScraper = jest.requireActual<typeof SelectionScraperModule>('@libs/SelectionScraper/index.ts').default;
 
