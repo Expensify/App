@@ -443,7 +443,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             mockFetch?.resume?.();
         });
 
-        it('does not split held expenses onto a new report for a DEW policy, and skips optimistic report state updates', async () => {
+        it('splits held expenses onto a new report for a DEW policy but skips optimistic report state updates', async () => {
             // Given an open expense report on a DEW policy with two expenses, one of which is held
             const policyID = generatePolicyID();
             const policy: Policy = {
@@ -541,13 +541,22 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             // Then the DEW policy determines the actual workflow on the backend, so the report is not optimistically
-            // moved to the submitted state, and both expenses (including the held one) stay on the original report
+            // moved to the submitted state
             const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
 
+            // But the held expense is still split onto a new open report because the backend splits on every submit path
             const heldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
-            expect(heldTransactionAfter?.reportID).toBe(expenseReport.reportID);
+            expect(heldTransactionAfter?.reportID).not.toBe(expenseReport.reportID);
+
+            const newHeldReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${heldTransactionAfter?.reportID}`);
+            expect(newHeldReport?.type).toBe(CONST.REPORT.TYPE.EXPENSE);
+            expect(newHeldReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(newHeldReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            const unheldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`);
+            expect(unheldTransactionAfter?.reportID).toBe(expenseReport.reportID);
 
             const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`);
             expect(reportMetadata?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
