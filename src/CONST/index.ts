@@ -635,6 +635,7 @@ const CONST = {
             LONG_WEEKDAY: {weekday: 'long'},
             SHORT_WEEKDAY: {weekday: 'short'},
             NARROW_WEEKDAY: {weekday: 'narrow'},
+            // Month-only so Intl returns the standalone form per CLDR. Do NOT add day or year (see getMonthNames).
             LONG_MONTH: {month: 'long'},
             SHORT_MONTH: {month: 'short'},
             LONG_MONTH_YEAR: {month: 'long', year: 'numeric'},

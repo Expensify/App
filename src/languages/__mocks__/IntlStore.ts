@@ -66,10 +66,6 @@ class IntlStore {
         return () => {};
     }
 
-    static getSnapshotVersion(): number {
-        return 0;
-    }
-
     static hasLocale(locale: Locale): boolean {
         return this.localeCache.has(locale);
     }

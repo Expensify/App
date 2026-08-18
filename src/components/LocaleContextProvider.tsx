@@ -91,8 +91,7 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [countryCodeByIP = 1] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [nvpPreferredLocale, nvpPreferredLocaleMetadata] = useOnyx(ONYXKEYS.NVP_PREFERRED_LOCALE);
-    useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshotVersion, IntlStore.getSnapshotVersion);
-    const currentLocale = IntlStore.getCurrentLocale();
+    const currentLocale = useSyncExternalStore(IntlStore.subscribe, IntlStore.getCurrentLocale, IntlStore.getCurrentLocale);
 
     let localeToApply: Locale | undefined;
     if (!isLoadingOnyxValue(nvpPreferredLocaleMetadata)) {

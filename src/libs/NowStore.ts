@@ -26,6 +26,11 @@ function tick() {
     }
 }
 
+/**
+ * Advances `snapshot` if the wall-clock minute changed and notifies existing listeners. Notifying matters when the tick
+ * interval has drifted (device sleep/wake) so already-mounted consumers see the fresh minute at the same commit as the
+ * newly subscribing one, not up to a full tick later.
+ */
 function refreshSnapshot() {
     const now = new Date();
     const currentMinute = Math.floor(now.getTime() / MS_PER_MINUTE);
@@ -34,12 +39,15 @@ function refreshSnapshot() {
     }
     lastMinute = currentMinute;
     snapshot = now;
+    for (const listener of listeners) {
+        listener();
+    }
 }
 
 function subscribe(listener: () => void): () => void {
-    // Refresh before the first render observes it, otherwise a re-subscribe after an idle gap stalls up to ~60s on stale snapshot.
-    refreshSnapshot();
     listeners.add(listener);
+    // Refresh after add so the new listener also receives any minute-advance, keeping every consumer on the same snapshot.
+    refreshSnapshot();
     if (intervalId === null) {
         intervalId = setInterval(tick, POLL_INTERVAL_MS);
     }

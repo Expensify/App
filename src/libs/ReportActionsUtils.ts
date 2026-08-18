@@ -4192,11 +4192,8 @@ function getActionableCardFraudAlertMessage(
     const merchant = fraudMessage?.triggerMerchant ?? '';
     const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
     const resolution = fraudMessage?.resolution;
-    let formattedDate = '';
-    if (reportAction?.created) {
-        const localDate = getLocalDateFromDatetime(reportAction.created);
-        formattedDate = `${DateUtils.formatIntl(preferredLocale, 'MONTH_DAY', localDate)} - ${DateUtils.formatIntl(preferredLocale, 'SHORT_TIME', localDate)}`;
-    }
+    // Intl composes date + time with the locale-correct separator, so a hard-coded " - " cannot force English shape onto other locales.
+    const formattedDate = reportAction?.created ? DateUtils.formatIntl(preferredLocale, 'MONTH_DAY_SHORT_TIME', getLocalDateFromDatetime(reportAction.created)) : '';
 
     if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
         return translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});

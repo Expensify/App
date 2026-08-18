@@ -1,6 +1,6 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import Log from '@libs/Log';
-import {endSpan, getSpan, startSpan} from '@libs/telemetry/activeSpans';
+import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
 import CONST from '@src/CONST';
 import {LOCALES} from '@src/CONST/LOCALES';
@@ -204,15 +204,7 @@ class IntlStore {
     /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
     private static loadToken = 0;
 
-    /** Bumped on every `notifyListeners` so `useSyncExternalStore` subscribers always see a fresh snapshot. */
-    private static version = 0;
-
-    public static getSnapshotVersion(this: void): number {
-        return IntlStore.version;
-    }
-
     private static notifyListeners() {
-        IntlStore.version++;
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -250,6 +242,9 @@ class IntlStore {
                 }
                 IntlStore.currentLocale = locale;
                 IntlStore.notifyListeners();
+                if (localeSpan) {
+                    endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
+                }
             })
             .catch((error: unknown) => {
                 Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
@@ -258,15 +253,17 @@ class IntlStore {
                     fingerprint: ['locale-load-failed'],
                     extra: {locale},
                 });
+                if (localeSpan) {
+                    // Stamp failure so the Sentry `failed:true` filter can separate stuck-splash incidents from healthy loads.
+                    endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
+                }
             })
             .finally(() => {
                 // Non-empty cache required — else a rejected first-load would open the splash to raw path strings.
-                if (IntlStore.loadToken === token && IntlStore.cache.size > 0) {
-                    setAreTranslationsLoading(false);
+                if (IntlStore.loadToken !== token || IntlStore.cache.size === 0) {
+                    return;
                 }
-                if (localeSpan) {
-                    endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
-                }
+                setAreTranslationsLoading(false);
             });
     }
 

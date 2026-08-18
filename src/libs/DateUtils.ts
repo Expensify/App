@@ -130,11 +130,11 @@ const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.ES]: 1,
     [CONST.LOCALES.NL]: 1,
     [CONST.LOCALES.PL]: 1,
-    [CONST.LOCALES.PT_BR]: 1,
     [CONST.LOCALES.EL]: 1,
     // Sunday-start per CLDR.
     [CONST.LOCALES.JA]: 0,
     [CONST.LOCALES.ZH_HANS]: 0,
+    [CONST.LOCALES.PT_BR]: 0,
 };
 
 /**
@@ -449,6 +449,11 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 }
 
 /**
+ * Returns capitalized month names for the picker. `LONG_MONTH` requests month with no day or year, which Intl resolves
+ * to the standalone form per CLDR. `Str.UCFirst` capitalizes lowercase Latin standalone forms (es "enero", fr "janvier")
+ * and is idempotent on already-capital ones (en "January", ru "Январь"). Do NOT add day or year to `LONG_MONTH`, because
+ * that flips Intl into format context and produces grammatically inflected labels (ru "января", cs "ledna") that read
+ * as broken in a picker.
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(locale: Locale): string[] {
@@ -708,6 +713,9 @@ function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, in
 
     // Pass UTC `date` + explicit `currentSelectedTimezone` so wall-clock matches the target zone (not the runtime default).
     const time = formatIntl(locale, 'SHORT_TIME', date, currentSelectedTimezone);
+    if (!time) {
+        return '';
+    }
 
     // If it's a time on the same date
     if (isSameDay(input, now)) {
@@ -716,11 +724,13 @@ function getStatusUntilDate(translate: LocalizedTranslate, inputDate: string, in
 
     // If it's further in the future than tomorrow but within the same year
     if (isAfter(input, now) && isSameYear(input, now)) {
-        return translate('statusPage.untilTime', `${formatIntl(locale, 'MONTH_DAY', date, currentSelectedTimezone)} ${time}`);
+        const monthDay = formatIntl(locale, 'MONTH_DAY', date, currentSelectedTimezone);
+        return monthDay ? translate('statusPage.untilTime', `${monthDay} ${time}`) : '';
     }
 
     // If it's in another year
-    return translate('statusPage.untilTime', `${formatIntl(locale, 'MEDIUM_DATE', date, currentSelectedTimezone)} ${time}`);
+    const mediumDate = formatIntl(locale, 'MEDIUM_DATE', date, currentSelectedTimezone);
+    return mediumDate ? translate('statusPage.untilTime', `${mediumDate} ${time}`) : '';
 }
 
 /**
@@ -882,12 +892,10 @@ const getTimeValidationErrorKey = (translate: LocalizedTranslate, inputTime: Dat
 };
 
 /**
- *
  * Format a date using the UTC timezone, for machine-readable output only (e.g. yyyy-MM-dd sent to the API or used as a
- * key). Anything a user reads must go through `formatWithUTCTimeZone` so it follows their language.
- * param datetime
- * param dateFormat
- * returns If the date is valid, returns the formatted date with the UTC timezone, otherwise returns an empty string.
+ * key). Anything a user reads must go through the locale-aware Intl helpers (`formatIntl`, `formatInUTCToMedium`,
+ * `formatInUTCToShort`, `formatInUTCToLong`) so it follows their language.
+ * Returns the formatted UTC string if the date is valid, otherwise an empty string.
  */
 function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
@@ -949,14 +957,20 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
     }
     if (isSameMonth(date1, date2)) {
         // Dates in the same month and year, differ by days
-        return `${formatIntl(locale, 'MONTH_DAY', date1)}-${formatIntl(locale, 'DAY_ONLY', date2)}`;
+        const monthDay = formatIntl(locale, 'MONTH_DAY', date1);
+        const dayOnly = formatIntl(locale, 'DAY_ONLY', date2);
+        return monthDay && dayOnly ? `${monthDay}-${dayOnly}` : '';
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
-        return `${formatIntl(locale, 'MONTH_DAY', date1)} ${translate('common.to').toLowerCase()} ${formatIntl(locale, 'MONTH_DAY', date2)}`;
+        const startPart = formatIntl(locale, 'MONTH_DAY', date1);
+        const endPart = formatIntl(locale, 'MONTH_DAY', date2);
+        return startPart && endPart ? `${startPart} ${translate('common.to').toLowerCase()} ${endPart}` : '';
     }
     // Dates differ by years, months, days
-    return `${formatIntl(locale, 'MEDIUM_DATE', date1)} ${translate('common.to').toLowerCase()} ${formatIntl(locale, 'MEDIUM_DATE', date2)}`;
+    const startPart = formatIntl(locale, 'MEDIUM_DATE', date1);
+    const endPart = formatIntl(locale, 'MEDIUM_DATE', date2);
+    return startPart && endPart ? `${startPart} ${translate('common.to').toLowerCase()} ${endPart}` : '';
 }
 
 /**
@@ -978,10 +992,14 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: 
     }
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        return `${formatIntl(locale, 'WEEKDAY_MONTH_DAY', date1)} ${translate('common.conjunctionTo')} ${formatIntl(locale, 'WEEKDAY_MONTH_DAY', date2)}`;
+        const startPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY', date1);
+        const endPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY', date2);
+        return startPart && endPart ? `${startPart} ${translate('common.conjunctionTo')} ${endPart}` : '';
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    return `${formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date1)} ${translate('common.conjunctionTo')} ${formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date2)}`;
+    const startPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date1);
+    const endPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date2);
+    return startPart && endPart ? `${startPart} ${translate('common.conjunctionTo')} ${endPart}` : '';
 }
 
 /**
@@ -994,6 +1012,9 @@ function getFormattedTransportDate(translate: LocalizedTranslate, date: Date, lo
     const time = formatIntl(locale, 'SHORT_TIME', date);
     const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
     const datePart = formatIntl(locale, dateOptions, date);
+    if (!datePart || !time) {
+        return '';
+    }
     return `${translate('travel.departs')} ${datePart} ${translate('common.conjunctionAt')} ${time}`;
 }
 
@@ -1005,10 +1026,13 @@ function getFormattedTransportDate(translate: LocalizedTranslate, date: Date, lo
  */
 function getFormattedTransportDateAndHour(date: Date, locale: Locale): {date: string; hour: string} {
     const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    return {
-        date: formatIntl(locale, dateOptions, date),
-        hour: formatIntl(locale, 'SHORT_TIME', date),
-    };
+    const datePart = formatIntl(locale, dateOptions, date);
+    const hour = formatIntl(locale, 'SHORT_TIME', date);
+    // Return both empty when either is missing, so callers do not render half-formatted output like "Wednesday, Mar 17  " or "  8:00 AM".
+    if (!datePart || !hour) {
+        return {date: '', hour: ''};
+    }
+    return {date: datePart, hour};
 }
 
 /**
@@ -1056,7 +1080,12 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale): st
     const venueInstant = new Date(instant.getTime() + offsetMinutes * 60_000);
     const nowInVenue = new Date(Date.now() + offsetMinutes * 60_000);
     const datePreset = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    return `${formatIntl(locale, datePreset, venueInstant, 'UTC')} ${formatIntl(locale, 'SHORT_TIME', venueInstant, 'UTC')}, ${venueTimezoneLabel}`;
+    const datePart = formatIntl(locale, datePreset, venueInstant, 'UTC');
+    const time = formatIntl(locale, 'SHORT_TIME', venueInstant, 'UTC');
+    if (!datePart || !time) {
+        return '';
+    }
+    return `${datePart} ${time}, ${venueTimezoneLabel}`;
 }
 
 /**
