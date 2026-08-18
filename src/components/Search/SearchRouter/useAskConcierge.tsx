@@ -25,7 +25,7 @@ function useAskConcierge({forceConcierge = false}: {forceConcierge?: boolean} = 
     const sidePanelReportID = useSidePanelReportID();
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const {openConciergeAnywhere, isInSidePanel} = useOpenConciergeAnywhere();
-    const targetReportID = forceConcierge ? conciergeReportID : ((isInSidePanel ? sidePanelReportID : undefined) ?? conciergeReportID);
+    const targetReportID = !forceConcierge && isInSidePanel && sidePanelReportID ? sidePanelReportID : conciergeReportID;
     const [targetReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(targetReportID)}`);
     const {timezone, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
