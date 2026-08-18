@@ -1,3 +1,4 @@
+// The provider slug keys below are dictated by Merge's API.
 /* eslint-disable @typescript-eslint/naming-convention */
 type MergeHRProviderEntry = {
     /** Human-readable label used in the UI */
