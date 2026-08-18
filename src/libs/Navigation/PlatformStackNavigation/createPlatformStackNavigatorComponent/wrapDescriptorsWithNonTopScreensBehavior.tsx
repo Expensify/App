@@ -45,7 +45,8 @@ function wrapDescriptorsWithNonTopScreensBehavior<T extends Descriptor>(
         }
         result ??= {...descriptors};
         const NonTopScreenWrapper = WRAPPER_FOR_BEHAVIOR[behavior];
-        const isScreenBlurred = key !== topRouteKey;
+        // The state always carries a top route, but a missing key must leave every screen visible instead of blurring the whole stack.
+        const isScreenBlurred = topRouteKey !== undefined && key !== topRouteKey;
         result[key] = {
             ...descriptor,
             render: () => <NonTopScreenWrapper isScreenBlurred={isScreenBlurred}>{descriptor.render()}</NonTopScreenWrapper>,

@@ -52,6 +52,19 @@ describe('wrapDescriptorsWithNonTopScreensBehavior', () => {
         expect(result[TOP_KEY]).toBe(descriptors[TOP_KEY]);
     });
 
+    it('keeps the wrappers mounted and blurs no screen when the navigation state has no top route', () => {
+        const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'activity'), [TOP_KEY]: buildDescriptor('Top', 'activity')};
+        const state = {...buildState(), routes: [], index: 0};
+
+        const result = wrapDescriptorsWithNonTopScreensBehavior(descriptors, state);
+
+        for (const key of [COVERED_KEY, TOP_KEY]) {
+            const wrapped = renderWrapped(result[key]);
+            expect(wrapped.type).toBe(ScreenActivityWrapper);
+            expect(wrapped.props.isScreenBlurred).toBe(false);
+        }
+    });
+
     it('leaves a persistent screen untouched and still wraps the others', () => {
         const descriptors = {[COVERED_KEY]: buildDescriptor('Covered', 'activity'), [TOP_KEY]: buildDescriptor('Top', 'activity')};
 
