@@ -157,6 +157,7 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 key={item.translationKey}
                                 disabled={isExecuting}
                                 title={translate(item.translationKey)}
+                                shouldShowBasicTitle
                                 icon={item.icon}
                                 onPress={item.action}
                                 brickRoadIndicator={item.brickRoadIndicator}

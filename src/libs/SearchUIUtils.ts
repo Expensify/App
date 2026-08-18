@@ -5032,6 +5032,7 @@ function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index:
         query: item.query,
         shouldShowRightComponent: true,
         focused: isFocused,
+        shouldShowBasicTitle: true,
         pendingAction: item.pendingAction,
         disabled: item.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
         shouldIconUseAutoWidthStyle: true,

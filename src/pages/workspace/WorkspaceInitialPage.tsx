@@ -581,6 +581,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
                                     disabled={hasPolicyCreationError || isExecuting}
                                     interactive={!hasPolicyCreationError}
                                     title={translate(item.translationKey)}
+                                    shouldShowBasicTitle
                                     icon={item.icon}
                                     onPress={item.action}
                                     brickRoadIndicator={item.brickRoadIndicator}

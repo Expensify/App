@@ -3,7 +3,6 @@ import DisplayNames from '@components/DisplayNames';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {shouldUseBoldText} from '@libs/OptionsListUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {isGroupChat, isSystemChat} from '@libs/ReportUtils';
 
@@ -23,8 +22,7 @@ function Title({optionItem, testID}: TitleProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
 
-    const textUnreadStyle = shouldUseBoldText(optionItem) ? [styles.sidebarLinkText, styles.sidebarLinkTextBold] : [styles.sidebarLinkText];
-    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, textUnreadStyle, styles.flexShrink0];
+    const displayNameStyle = [styles.optionDisplayName, styles.optionDisplayNameCompact, styles.pre, styles.sidebarLinkText, styles.flexShrink0];
 
     const shouldParseFullTitle = optionItem?.parentReportAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && !isGroupChat(optionItem);
     const shouldUseFullTitle =
