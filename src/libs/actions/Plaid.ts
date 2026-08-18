@@ -7,7 +7,7 @@ import getPlaidLinkTokenParameters from '@libs/getPlaidLinkTokenParameters';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedWithDomainID, CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedWithNumber, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
 
 import Onyx from 'react-native-onyx';
 
@@ -144,7 +144,7 @@ function openPlaidBankAccountSelector(publicToken: string, bankName: string, all
 
 function importPlaidAccounts(
     publicToken: string,
-    feed: CardFeedWithNumber | CardFeedWithDomainID,
+    feed: string,
     feedName: string,
     country: string,
     domainName: string,
@@ -152,9 +152,10 @@ function importPlaidAccounts(
     plaidAccessToken: string | undefined,
     domainAccountID?: number,
 ) {
+    const feedWithoutDomainID = feed.split(CONST.COMPANY_CARD.FEED_KEY_SEPARATOR).at(0) ?? feed;
     const parameters: ImportPlaidAccountsParams = {
         publicToken,
-        feed: getCompanyCardFeed(feed),
+        feed: feedWithoutDomainID,
         feedName,
         country,
         domainName,

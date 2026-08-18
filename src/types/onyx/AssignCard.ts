@@ -60,7 +60,7 @@ type AssignCardData = {
     dateOption: string;
 
     /** Bank ID for Plaid */
-    institutionId?: CardFeedWithNumber;
+    institutionId?: string;
 
     /** Access token for Plaid bank */
     plaidAccessToken?: string;
