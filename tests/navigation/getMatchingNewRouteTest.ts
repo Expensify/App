@@ -489,6 +489,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
+    it('redirects legacy money request upgrade path to the money-request-upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456')).toBe('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+    it('redirects legacy money request upgrade path with an upgrade-path suffix to the dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456/categories')).toBe(
+            '/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456&upgradePath=categories',
+        );
+    });
+
+    it('does not redirect the already-migrated money request upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
     it('redirects legacy money request category path to the category dynamic route', () => {
         expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
     });
@@ -532,6 +545,33 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/r/456/expense-report?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
         expect(getMatchingNewRoute('/r/456/expense-report-edit?action=edit&iouType=submit&reportID=456')).toBe(undefined);
         expect(getMatchingNewRoute('/r/456/expense-tag?action=edit&iouType=submit&orderWeight=0&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
+    it('redirects the legacy money request merchant step to the new dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/edit/submit/merchant/123/456')).toBe('/r/456/expense-merchant?action=edit&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/merchant/123/456/789')).toBe('/r/456/expense-merchant?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789');
+    });
+
+    it('redirects the legacy money request description step to the new dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/edit/submit/description/123/456')).toBe('/r/456/expense-description?action=edit&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/description/123/456/789')).toBe('/r/456/expense-description?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789');
+    });
+
+    it('redirects the legacy money request date step to the new dynamic route (#83852)', () => {
+        expect(getMatchingNewRoute('/edit/submit/date/123/456')).toBe('/r/456/expense-date?action=edit&iouType=submit&transactionID=123&reportID=456');
+        expect(getMatchingNewRoute('/edit/submit/date/123/456/789')).toBe('/r/456/expense-date?action=edit&iouType=submit&transactionID=123&reportID=456&reportActionID=789');
+    });
+
+    it('does not redirect the already-migrated money request merchant, description and date dynamic routes (#83852)', () => {
+        expect(getMatchingNewRoute('/r/456/expense-merchant?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-description?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+        expect(getMatchingNewRoute('/r/456/expense-date?action=edit&iouType=submit&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
+    it('does not let the new money request patterns swallow unrelated merchant/description/date routes (#83852)', () => {
+        // The transaction duplicate review merchant route and the report description route keep their own mappings.
+        expect(getMatchingNewRoute('/r/123/duplicates/review/merchant')).toBe('/r/123/merchant/123');
+        expect(getMatchingNewRoute('/r/123/description')).toBe('/r/123/description');
     });
 
     it('redirects the legacy money request distance steps to the new dynamic routes (#83851)', () => {
