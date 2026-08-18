@@ -50,6 +50,8 @@ import type {ValueOf} from 'type-fest';
 
 import Onyx from 'react-native-onyx';
 
+import type {MovedScanFailedTransaction} from './Hold';
+
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
 import {getReportFromHoldRequestsOnyxData, watchMovedScanFailedTransactions} from './Hold';
 import {getReportPreviewReportAction} from './MoneyRequestBuilder';
@@ -90,7 +92,7 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         | BuildPolicyDataKeys
     >;
-    movedScanFailedTransactions?: Array<{transactionID: string; optimisticReportActionID: string}>;
+    movedScanFailedTransactions?: MovedScanFailedTransaction[];
 };
 
 type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;

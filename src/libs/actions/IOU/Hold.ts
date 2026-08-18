@@ -5,7 +5,7 @@ import type {HoldMoneyRequestParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -1089,8 +1089,19 @@ function repointMovedScanFailedThread(transactionID: string, optimisticReportID:
                 }
             }
 
-            if (Navigation.getActiveRoute().includes(optimisticReportID)) {
-                Navigation.setParams({reportID: realReportID});
+            const currentRouteParams: unknown = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.params : undefined;
+            const isParamsObject = !!currentRouteParams && typeof currentRouteParams === 'object';
+            const routeReportID = isParamsObject && 'reportID' in currentRouteParams && typeof currentRouteParams.reportID === 'string' ? currentRouteParams.reportID : undefined;
+            const routeBackTo = isParamsObject && 'backTo' in currentRouteParams && typeof currentRouteParams.backTo === 'string' ? currentRouteParams.backTo : undefined;
+            const updatedParams: {reportID?: string; backTo?: string} = {};
+            if (routeReportID === optimisticReportID) {
+                updatedParams.reportID = realReportID;
+            }
+            if (routeBackTo?.includes(optimisticReportID)) {
+                updatedParams.backTo = routeBackTo.replaceAll(optimisticReportID, realReportID);
+            }
+            if (!isEmptyObject(updatedParams)) {
+                Navigation.setParams(updatedParams);
             }
         },
     });
@@ -1125,3 +1136,4 @@ function watchMovedScanFailedTransactions(movedTransactions: MovedScanFailedTran
 }
 
 export {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest, watchMovedScanFailedTransactions};
+export type {MovedScanFailedTransaction};

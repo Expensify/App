@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
 import DateUtils from '@src/libs/DateUtils';
-import Navigation from '@src/libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@src/libs/Navigation/Navigation';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {IntroSelected, Policy, Report} from '@src/types/onyx';
@@ -63,6 +63,7 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     setParams: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
+        getCurrentRoute: jest.fn(),
         isReady: jest.fn(() => true),
     },
 }));
@@ -1131,7 +1132,12 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 });
                 await waitForBatchedUpdates();
 
-                jest.mocked(Navigation.getActiveRoute).mockReturnValue(`/r/${optimisticReportID}`);
+                expect(optimisticReportID).toBeDefined();
+                if (!optimisticReportID) {
+                    return;
+                }
+                // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding
+                jest.mocked(navigationRef.getCurrentRoute).mockReturnValue({key: 'test', name: 'ReportAttachments', params: {reportID: optimisticReportID}});
                 await mockFetch?.resume?.();
 
                 const backendReportID = '777';
