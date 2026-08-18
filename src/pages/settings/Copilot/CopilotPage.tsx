@@ -16,6 +16,7 @@ import TextLink from '@components/TextLink';
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useDocumentTitle from '@hooks/useDocumentTitle';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -29,7 +30,6 @@ import {getLatestError} from '@libs/ErrorUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import Navigation from '@libs/Navigation/Navigation';
 import {sortAlphabetically} from '@libs/OptionsListUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {getDefaultAvatarURL} from '@libs/UserAvatarUtils';
 
 import type {AnchorPosition} from '@styles/index';
@@ -58,7 +58,7 @@ const accountDelegationSelector = (accountValue: Account | undefined) => ({
 
 function CopilotPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ArrowCircleClockwise', 'CircleSlash', 'Pencil', 'ThreeDots', 'UserPlus']);
-    const illustrations = useMemoizedLazyIllustrations(['Copilots', 'Members']);
+    const illustrations = useMemoizedLazyIllustrations(['Copilots']);
     const styles = useThemeStyles();
     const {localeCompare, translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -210,7 +210,7 @@ function CopilotPage() {
             const personalDetail = personalDetailsByLogin[email.toLowerCase()];
             const addDelegateErrors = errorFields?.addDelegate?.[email];
             const error = getLatestError(addDelegateErrors);
-            const isOwnerRow = isAgentAccount && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
+            const isOwnerRow = isAgentAccount === true && !!actingDelegateEmail && email.toLowerCase() === actingDelegateEmail;
 
             const onPress = (e: GestureResponderEvent | KeyboardEvent) => {
                 if (isEmptyObject(pendingAction)) {
@@ -413,7 +413,6 @@ function CopilotPage() {
                         title={translate('delegate.copilot')}
                         shouldShowBackButton={shouldUseNarrowLayout}
                         onBackButtonPress={Navigation.goBack}
-                        icon={illustrations.Members}
                         shouldUseHeadlineHeader
                         shouldDisplaySearchRouter
                         shouldDisplayHelpButton
@@ -455,7 +454,7 @@ function CopilotPage() {
                                         <MenuItemList menuItems={delegateMenuItems} />
                                     </>
                                 )}
-                                {!isAgentAccount ? (
+                                {isAgentAccount === false ? (
                                     <MenuItem
                                         title={translate('delegate.addCopilot')}
                                         icon={icons.UserPlus}
