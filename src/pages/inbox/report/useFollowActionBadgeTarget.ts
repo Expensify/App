@@ -1,10 +1,12 @@
+import usePrevious from '@hooks/usePrevious';
+
+import Navigation from '@libs/Navigation/Navigation';
+
+import type * as OnyxTypes from '@src/types/onyx';
+
 import {useEffect, useRef} from 'react';
 
-import type * as OnyxTypes from './src/types/onyx';
-
 import shouldFollowActionBadgeTarget from './shouldFollowActionBadgeTarget';
-import usePrevious from './src/hooks/usePrevious';
-import Navigation from './src/libs/Navigation/Navigation';
 
 type UseFollowActionBadgeTargetParams = {
     /** Whether the app is running in production, where this auto-scroll behavior is gated off */
