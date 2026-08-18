@@ -1137,7 +1137,24 @@ describe('actions/IOU/PayMoneyRequest', () => {
                     return;
                 }
                 // eslint-disable-next-line @typescript-eslint/unbound-method -- jest.fn() mocks don't rely on `this` binding
-                jest.mocked(navigationRef.getCurrentRoute).mockReturnValue({key: 'test', name: 'ReportAttachments', params: {reportID: optimisticReportID}});
+                jest.mocked(navigationRef.getRootState).mockReturnValue({
+                    key: 'root',
+                    index: 1,
+                    routeNames: ['Report', 'RightModalNavigator'],
+                    routes: [
+                        {key: 'report-screen', name: 'Report', params: {reportID: optimisticReportID}},
+                        {
+                            key: 'rhp',
+                            name: 'RightModalNavigator',
+                            state: {
+                                stale: true,
+                                routes: [{key: 'report-details', name: 'Report_Details_Root', params: {reportID: optimisticReportID, backTo: `r/${optimisticReportID}`}}],
+                            },
+                        },
+                    ],
+                    type: 'stack',
+                    stale: false,
+                });
                 await mockFetch?.resume?.();
 
                 const backendReportID = '777';
@@ -1160,7 +1177,8 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 expect(threadReport?.parentReportActionID).toBe(backendAction.reportActionID);
                 const backendActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${backendReportID}`);
                 expect(backendActions?.[backendAction.reportActionID]?.childReportID).toBe(threadReportID);
-                expect(Navigation.setParams).toHaveBeenCalledWith({reportID: backendReportID});
+                expect(Navigation.setParams).toHaveBeenCalledWith({reportID: backendReportID}, 'report-screen');
+                expect(Navigation.setParams).toHaveBeenCalledWith({reportID: backendReportID, backTo: `r/${backendReportID}`}, 'report-details');
             });
 
             it('does not create a new report when every expense in the report is scan-failed', async () => {

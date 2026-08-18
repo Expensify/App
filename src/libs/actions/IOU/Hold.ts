@@ -6,6 +6,7 @@ import {WRITE_COMMANDS} from '@libs/API/types';
 import DateUtils from '@libs/DateUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import type {NavigationRoute} from '@libs/Navigation/types';
 import {buildOptimisticNextStep} from '@libs/NextStepUtils';
 import * as NumberUtils from '@libs/NumberUtils';
 import {getAllReportActions, getIOUActionForReportID, getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
@@ -1059,6 +1060,39 @@ function getReportFromHoldRequestsOnyxData({
     };
 }
 
+/**
+ * Recursively walks the navigation state and repoints every route that still references the deleted optimistic report
+ * (via its `reportID` param or inside its `backTo` param) to the real report created by the backend. Patching only the
+ * focused route is not enough: with an RHP screen open, the report screen underneath keeps the stale ID and shows
+ * "not found" once the RHP is dismissed.
+ */
+function repointRoutesToRealReport(routes: NavigationRoute[], optimisticReportID: string, realReportID: string) {
+    for (const route of routes) {
+        const params: unknown = route.params;
+        const isParamsObject = !!params && typeof params === 'object';
+        const routeReportID = isParamsObject && 'reportID' in params && typeof params.reportID === 'string' ? params.reportID : undefined;
+        const routeBackTo = isParamsObject && 'backTo' in params && typeof params.backTo === 'string' ? params.backTo : undefined;
+        const updatedParams: {reportID?: string; backTo?: string} = {};
+        if (routeReportID === optimisticReportID) {
+            updatedParams.reportID = realReportID;
+        }
+        if (routeBackTo?.includes(optimisticReportID)) {
+            updatedParams.backTo = routeBackTo.replaceAll(optimisticReportID, realReportID);
+        }
+        if (!isEmptyObject(updatedParams) && route.key) {
+            Navigation.setParams(updatedParams, route.key);
+        }
+        if (route.state?.routes) {
+            repointRoutesToRealReport(route.state.routes, optimisticReportID, realReportID);
+        }
+    }
+}
+
+/**
+ * Once the backend report actions for a moved scan-failed expense arrive, re-parents the optimistic transaction thread
+ * under the real report action and repoints any navigation routes that still reference the deleted optimistic report,
+ * so the open expense/report screens keep working after reconnect.
+ */
 function repointMovedScanFailedThread(transactionID: string, optimisticReportID: string, optimisticReportActionID: string, realReportID: string) {
     // The backend's report actions for the moved expense may arrive after the transaction update, and this runs from the
     // action layer where no view exists to subscribe with useOnyx, so connectWithoutView is the only way to wait for them.
@@ -1089,24 +1123,19 @@ function repointMovedScanFailedThread(transactionID: string, optimisticReportID:
                 }
             }
 
-            const currentRouteParams: unknown = navigationRef.isReady() ? navigationRef.getCurrentRoute()?.params : undefined;
-            const isParamsObject = !!currentRouteParams && typeof currentRouteParams === 'object';
-            const routeReportID = isParamsObject && 'reportID' in currentRouteParams && typeof currentRouteParams.reportID === 'string' ? currentRouteParams.reportID : undefined;
-            const routeBackTo = isParamsObject && 'backTo' in currentRouteParams && typeof currentRouteParams.backTo === 'string' ? currentRouteParams.backTo : undefined;
-            const updatedParams: {reportID?: string; backTo?: string} = {};
-            if (routeReportID === optimisticReportID) {
-                updatedParams.reportID = realReportID;
-            }
-            if (routeBackTo?.includes(optimisticReportID)) {
-                updatedParams.backTo = routeBackTo.replaceAll(optimisticReportID, realReportID);
-            }
-            if (!isEmptyObject(updatedParams)) {
-                Navigation.setParams(updatedParams);
+            if (navigationRef.isReady()) {
+                repointRoutesToRealReport(navigationRef.getRootState()?.routes ?? [], optimisticReportID, realReportID);
             }
         },
     });
 }
 
+/**
+ * Watches transactions that were optimistically moved to a new report when paying a report with scan-failed expenses.
+ * The backend puts each moved expense in its own report instead of reusing the optimistic one, so when a transaction's
+ * reportID changes to the real report, the optimistic thread and any open routes are reconciled via
+ * `repointMovedScanFailedThread`.
+ */
 function watchMovedScanFailedTransactions(movedTransactions: MovedScanFailedTransaction[], optimisticReportID: string) {
     for (const {transactionID, optimisticReportActionID} of movedTransactions) {
         // The backend moves the expense into its own report instead of reusing optimisticReportID, and the only signal of
