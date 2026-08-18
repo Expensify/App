@@ -226,6 +226,7 @@ function SearchAutocompleteList({
     } = useFilteredOptions({
         enabled: true,
         isSearching: !!autocompleteQueryValue.trim(),
+        includeP2P: true,
         // The empty-query state renders only recent searches and recent reports (no standalone contacts),
         // so contacts can be deferred until the user types a query.
         deferContactsUntilSearch: true,
