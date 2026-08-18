@@ -95,7 +95,7 @@ export default createOnyxDerivedValueConfig({
             const newFeedState: Omit<CardFeedErrorState, 'shouldShowRBR'> = {
                 isFeedConnectionBroken,
                 // A personal card is fixed from its own details page, which reads the card directly, so there is no
-                // separate capability signal to preserve here — prompting follows the same grace period.
+                // separate capability signal to preserve here. Prompting follows the same grace period.
                 shouldPromptBrokenConnection: isFeedConnectionBroken,
                 hasFeedErrors: !isEmptyObject(cardErrors),
                 hasWorkspaceErrors: false,

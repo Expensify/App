@@ -1455,7 +1455,7 @@ function getCardConnectionStatusDisplay({
  * `lastScrape` is the last successful update timestamp (a separate `lastImportAttempt` tracks
  * attempts), so its age equals how long the card has gone without a working sync. A card can carry
  * a server-set connection error even when `lastScrapeResult` is one of the ignored statuses (e.g.
- * 434), so this deliberately does NOT require `isCardConnectionBroken` — use it to decide whether
+ * 434), so this deliberately does NOT require `isCardConnectionBroken`. Use it to decide whether
  * a card's errors should still surface account-level indicators.
  *
  * @param card the card to check

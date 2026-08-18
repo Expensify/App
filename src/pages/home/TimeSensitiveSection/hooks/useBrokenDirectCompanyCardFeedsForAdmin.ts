@@ -46,7 +46,7 @@ function useBrokenDirectCompanyCardFeedsForAdmin(adminPolicies: Policy[] | undef
             }
 
             // Stop offering the task once the connection has been unresolved past the grace period. The card stays in
-            // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it — we just stop prompting here.
+            // `cardsWithBrokenFeedConnection` so the Company cards page can still fix it. We just stop prompting here.
             if (isBrokenConnectionPastDismissThreshold(card)) {
                 continue;
             }
