@@ -501,6 +501,10 @@ function peg$parse(input, options) {
       );
     };
   var peg$f2 = function(key, op, value) {
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains") {
+        return buildFilter("eq", "keyword", text().trim());
+      }
       updateDefaultValues(key, value);
       return {...buildFilter(op, key, value), isDefault: true};
     };
@@ -520,7 +524,8 @@ function peg$parse(input, options) {
       const key = field;
       let operator = op;
 
-      if (neg && operator === "contains") {
+      // The "contains" operator is only supported for the merchant field
+      if (operator === "contains" && (neg || key !== "merchant")) {
         return buildFilter("eq", "keyword", text().trim());
       }
 

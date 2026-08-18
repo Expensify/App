@@ -8964,7 +8964,6 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 [CONST.SEARCH.ACTION_FILTERS.EXPORT]: 'Exportar',
             },
             reportField: (name, value) => `${name} es ${value}`,
-            merchant: {equalTo: 'Igual a', contains: 'Contiene'},
             filterType: {label: 'Tipo de filtro', has: {positive: 'tiene', negative: 'no tiene'}, is: {positive: 'es', negative: 'no es'}},
         },
         chartTitles: {

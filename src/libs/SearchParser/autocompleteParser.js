@@ -467,7 +467,8 @@ function peg$parse(input, options) {
 
       const isNegated = !!neg && !nonNegatableKeys.has(key);
 
-      if (neg && op === "contains") {
+      // The "contains" operator is only supported for the merchant field
+      if (op === "contains" && (neg || key !== "merchant")) {
         autocomplete = null;
         return;
       }

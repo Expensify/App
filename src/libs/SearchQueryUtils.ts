@@ -104,7 +104,7 @@ const operatorToCharMap = {
 const DEFAULT_MERCHANT_OPERATOR = CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO;
 
 function getMerchantOperator(operator: MerchantMatchType | undefined): MerchantMatchType {
-    return operator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS ? CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS : DEFAULT_MERCHANT_OPERATOR;
+    return operator ?? DEFAULT_MERCHANT_OPERATOR;
 }
 
 // Pre-computed validation Sets for buildFilterFormValuesFromQuery (avoids recreating per filter iteration)
