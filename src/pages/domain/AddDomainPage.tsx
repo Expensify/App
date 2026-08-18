@@ -20,7 +20,7 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasDomainAccessSelector} from '@src/selectors/Domain';
+import {hasDomainAccess} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
@@ -35,6 +35,7 @@ function AddDomainPage() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -84,13 +85,13 @@ function AddDomainPage() {
             return;
         }
 
-        if (!!currentUserAccountID && hasDomainAccessSelector(currentUserAccountID)(existingDomain)) {
+        if (!!currentUserAccountID && hasDomainAccess(currentUserAccountID, myDomainSecurityGroups)(existingDomain)) {
             setCreateDomainAlreadyHaveAccessError();
             return;
         }
 
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
-    }, [form?.domainAccountID, allDomains, currentUserAccountID]);
+    }, [form?.domainAccountID, allDomains, currentUserAccountID, myDomainSecurityGroups]);
 
     useEffect(() => {
         return () => {

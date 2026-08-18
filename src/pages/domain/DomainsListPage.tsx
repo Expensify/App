@@ -4,7 +4,6 @@ import type {DomainRowData} from '@components/Tables/DomainListTable';
 import DomainListTable from '@components/Tables/DomainListTable';
 import WorkspaceListLayout from '@components/WorkspaceListLayout';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -20,7 +19,8 @@ import Navigation from '@libs/Navigation/Navigation';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {hasDomainAccessSelector, isAdminSelector} from '@src/selectors/Domain';
+import {hasDomainAccess, isAdminSelector} from '@src/selectors/Domain';
+import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {Str} from 'expensify-common';
@@ -32,13 +32,14 @@ function DomainsListPage() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
-    const currentUserPersonalDetails = useCurrentUserPersonalDetails();
 
     useDocumentTitle(translate('common.domains'));
 
     const isAppLoadPending = useIsAppLoadPending();
+    const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [myDomainSecurityGroups] = useOnyx(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS);
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
@@ -57,14 +58,11 @@ function DomainsListPage() {
                 continue;
             }
 
-            const currentUserAccountID = currentUserPersonalDetails?.accountID;
-            const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
-
-            // we don't want to show domains that the user has no access to, so we skip them in the list
-            if (!currentUserAccountID || !hasDomainAccessSelector(currentUserAccountID)(domain)) {
+            if (!currentUserAccountID || !hasDomainAccess(currentUserAccountID, myDomainSecurityGroups)(domain)) {
                 continue;
             }
 
+            const isDomainAdmin = isAdminSelector(currentUserAccountID)(domain);
             const domainErrors = allDomainErrors?.[`${ONYXKEYS.COLLECTION.DOMAIN_ERRORS}${domain.accountID}`];
 
             domainRows.push({

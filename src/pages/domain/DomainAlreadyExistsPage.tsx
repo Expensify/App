@@ -45,12 +45,11 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                     description={translate('domain.domainAlreadyExists.description')}
                     descriptionStyle={styles.textSupporting}
                     shouldShowSecondaryButton
-                    secondaryButtonText={translate('domain.domainAlreadyExists.neverMind')}
+                    secondaryButtonText={translate('domain.common.neverMind')}
                     onSecondaryButtonPress={goToDomainsList}
                     shouldShowButton
                     buttonText={translate('domain.domainAlreadyExists.requestAccess')}
                     onButtonPress={() => {
-                        // TODO: call the BE "request domain admin access" endpoint for domainAccountID once it exists.
                         goToDomainsList();
                     }}
                 />
