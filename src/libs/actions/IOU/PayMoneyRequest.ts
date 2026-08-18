@@ -28,7 +28,6 @@ import {
 } from '@libs/ReportUtils';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import {shouldSplitScanFailedTransactions} from '@libs/TransactionUtils';
 
 import {buildPolicyData, generatePolicyID} from '@userActions/Policy/Policy';
 import type {BuildPolicyDataKeys} from '@userActions/Policy/Policy';
@@ -275,8 +274,6 @@ function getPayMoneyRequestParams({
         total = unheldReimbursableTotal;
     }
 
-    const shouldMoveScanFailedTransactions = !!full && isExpenseReport(iouReport) && shouldSplitScanFailedTransactions(reportTransactions, iouReport);
-
     const optimisticIOUReportAction = buildOptimisticIOUReportAction({
         type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
         amount: isExpenseReport(iouReport) ? -total : total,
@@ -495,18 +492,8 @@ function getPayMoneyRequestParams({
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
-    if (!full || shouldMoveScanFailedTransactions) {
-        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
-            chatReport,
-            iouReport,
-            recipient,
-            policy: reportPolicy,
-            betas,
-            delegateAccountID,
-            getCurrencyDecimals,
-            shouldMoveHeldTransactions: !full,
-            shouldMoveScanFailedTransactions,
-        });
+    if (!full) {
+        const holdReportOnyxData = getReportFromHoldRequestsOnyxData({chatReport, iouReport, recipient, policy: reportPolicy, betas, delegateAccountID, getCurrencyDecimals});
 
         onyxData.optimisticData?.push(...holdReportOnyxData.optimisticData);
         onyxData.successData?.push(...holdReportOnyxData.successData);
