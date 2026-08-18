@@ -50,6 +50,14 @@ function getNavigateAfterCreateSearchNavigatorState() {
     return searchNavigatorRoute?.state ?? (searchNavigatorRoute?.key ? getPreservedNavigatorState(searchNavigatorRoute.key) : undefined);
 }
 
+function getCurrentRouteBackTo() {
+    const params = navigationRef.current?.getCurrentRoute()?.params;
+    if (typeof params !== 'object' || params === null || !('backTo' in params) || typeof params.backTo !== 'string') {
+        return undefined;
+    }
+    return params.backTo;
+}
+
 type NavigateToCreatedExpenseParams = {
     /** The transaction thread report to open. */
     threadReportID: string;
@@ -76,12 +84,7 @@ function navigateToCreatedExpense({threadReportID, transactionID, iouReportID}: 
     // When a report/expense is already open in the RHP the app's convention is to replace it rather than stack a second
     // report RHP on top of it.
     const forceReplace = isReportOpenInRHP(navigationRef.getRootState());
-    const currentRouteParams = navigationRef.current?.getCurrentRoute()?.params;
-    const currentRouteBackTo =
-        typeof currentRouteParams === 'object' && currentRouteParams !== null && 'backTo' in currentRouteParams && typeof currentRouteParams.backTo === 'string'
-            ? currentRouteParams.backTo
-            : undefined;
-    const backTo = forceReplace ? currentRouteBackTo : Navigation.getActiveRoute();
+    const backTo = forceReplace ? getCurrentRouteBackTo() : Navigation.getActiveRoute();
 
     if (!openOnInbox) {
         setActiveTransactionIDs([transactionID]).then(() => {
