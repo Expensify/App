@@ -4,6 +4,7 @@ import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -12,7 +13,7 @@ import {putOnHold} from '@libs/actions/IOU/Hold';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import type {MoneyRequestNavigatorParamList, SearchReportActionsParamList} from '@libs/Navigation/types';
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 import {isGroupPolicyByType} from '@libs/PolicyUtils';
 import {getReportAction, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest} from '@libs/ReportUtils';
@@ -21,6 +22,7 @@ import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 import {clearErrorFields, clearErrors, setErrors} from '@userActions/FormActions';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/MoneyRequestHoldReasonForm';
 
@@ -31,16 +33,15 @@ import React, {useCallback, useEffect} from 'react';
 
 import HoldReasonFormView from './HoldReasonFormView';
 
-type HoldReasonPageProps =
-    | PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.HOLD>
-    | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
+type DynamicHoldReasonPageProps = PlatformStackScreenProps<MoneyRequestNavigatorParamList, typeof SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON>;
 
-function HoldReasonPage({route}: HoldReasonPageProps) {
+function DynamicHoldReasonPage({route}: DynamicHoldReasonPageProps) {
     const {translate} = useLocalize();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
+    const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.path);
 
-    const {transactionID, reportID, backTo} = route.params;
+    const {transactionID, reportID} = route.params;
 
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
@@ -76,7 +77,7 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         }
 
         putOnHold(transactionID, values.comment, reportID, isOffline, currentUserLogin ?? '', currentUserAccountID, transactionViolations, isTrackIntentUser, delegateAccountID, ancestors);
-        Navigation.goBack(backTo);
+        Navigation.goBack(backPath);
     };
 
     const validate = useCallback(
@@ -109,10 +110,10 @@ function HoldReasonPage({route}: HoldReasonPageProps) {
         <HoldReasonFormView
             onSubmit={onSubmit}
             validate={validate}
-            backTo={backTo}
+            backTo={backPath}
             isSubmitter={isSubmitter}
         />
     );
 }
 
-export default HoldReasonPage;
+export default DynamicHoldReasonPage;

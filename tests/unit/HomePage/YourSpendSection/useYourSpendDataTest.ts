@@ -216,7 +216,7 @@ function setupCardSnapshot(cardID: number, results: SearchResults | undefined) {
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
 function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedErrors {
-    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, hasFeedErrors: false, hasWorkspaceErrors: false};
+    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, shouldPromptBrokenConnection: false, hasFeedErrors: false, hasWorkspaceErrors: false};
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
