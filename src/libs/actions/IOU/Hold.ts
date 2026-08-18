@@ -549,6 +549,11 @@ type OptimisticHoldReportExpenseActionID = {
     oldReportActionID: string;
 };
 
+type MovedScanFailedTransaction = {
+    transactionID: string;
+    optimisticReportActionID: string;
+};
+
 function getHoldReportActionsAndTransactions(
     reportID: string | undefined,
     iouReport?: OnyxEntry<OnyxTypes.Report>,
@@ -700,6 +705,7 @@ function getReportFromHoldRequestsOnyxData({
     optimisticCreatedReportForUnapprovedTransactionsActionID: string | undefined;
     optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[];
     optimisticReportActionCopyIDs: OptimisticReportActionCopyIDs;
+    movedScanFailedTransactions: MovedScanFailedTransaction[];
     optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
     successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>>;
     failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.TRANSACTION>>;
@@ -774,6 +780,7 @@ function getReportFromHoldRequestsOnyxData({
     const addHoldReportActionsSuccess: OnyxCollection<NullishDeep<OnyxTypes.ReportAction>> = {};
     const deleteHoldReportActions: Record<string, Pick<OnyxTypes.ReportAction, 'message'>> = {};
     const optimisticHoldReportExpenseActionIDs: OptimisticHoldReportExpenseActionID[] = [];
+    const movedScanFailedTransactions: MovedScanFailedTransaction[] = [];
 
     for (const holdReportAction of holdReportActions) {
         // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
@@ -802,6 +809,10 @@ function getReportFromHoldRequestsOnyxData({
         };
 
         optimisticHoldReportExpenseActionIDs.push({optimisticReportActionID: reportActionID, oldReportActionID: holdReportAction.reportActionID});
+
+        if (shouldMoveScanFailedTransactions && originalMessage.IOUTransactionID) {
+            movedScanFailedTransactions.push({transactionID: originalMessage.IOUTransactionID, optimisticReportActionID: reportActionID});
+        }
 
         const heldReport = getReportOrDraftReport(holdReportAction.childReportID);
         if (heldReport) {
@@ -1044,7 +1055,73 @@ function getReportFromHoldRequestsOnyxData({
         optimisticHoldReportID: optimisticExpenseReport.reportID,
         optimisticHoldReportExpenseActionIDs,
         optimisticReportActionCopyIDs,
+        movedScanFailedTransactions,
     };
 }
 
-export {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest};
+function repointMovedScanFailedThread(transactionID: string, optimisticReportID: string, optimisticReportActionID: string, realReportID: string) {
+    // The backend's report actions for the moved expense may arrive after the transaction update, and this runs from the
+    // action layer where no view exists to subscribe with useOnyx, so connectWithoutView is the only way to wait for them.
+    const connection = Onyx.connectWithoutView({
+        key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${realReportID}`,
+        callback: (reportActions) => {
+            const realAction = Object.values(reportActions ?? {}).find(
+                (reportAction) => isMoneyRequestAction(reportAction) && getOriginalMessage(reportAction)?.IOUTransactionID === transactionID,
+            );
+            if (!realAction) {
+                return;
+            }
+            Onyx.disconnect(connection);
+
+            const threadReport = Object.values(getAllReports() ?? {}).find(
+                (report) => report?.parentReportActionID === optimisticReportActionID && report?.parentReportID === optimisticReportID,
+            );
+            if (threadReport?.reportID) {
+                Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReport.reportID}`, {
+                    parentReportID: realReportID,
+                    parentReportActionID: realAction.reportActionID,
+                    chatReportID: realReportID,
+                });
+                if (!realAction.childReportID) {
+                    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${realReportID}`, {
+                        [realAction.reportActionID]: {childReportID: threadReport.reportID},
+                    });
+                }
+            }
+
+            if (Navigation.getActiveRoute().includes(optimisticReportID)) {
+                Navigation.setParams({reportID: realReportID});
+            }
+        },
+    });
+}
+
+function watchMovedScanFailedTransactions(movedTransactions: MovedScanFailedTransaction[], optimisticReportID: string) {
+    for (const {transactionID, optimisticReportActionID} of movedTransactions) {
+        // The backend moves the expense into its own report instead of reusing optimisticReportID, and the only signal of
+        // the real report ID is the transaction's reportID changing. This runs from the action layer with no view to
+        // subscribe through, so connectWithoutView is required to observe that change.
+        let hasSeenOptimisticMove = false;
+        const connection = Onyx.connectWithoutView({
+            key: `${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`,
+            callback: (transaction) => {
+                if (!transaction) {
+                    Onyx.disconnect(connection);
+                    return;
+                }
+                const currentReportID = transaction.reportID;
+                if (currentReportID === optimisticReportID) {
+                    hasSeenOptimisticMove = true;
+                    return;
+                }
+                if (!hasSeenOptimisticMove || !currentReportID) {
+                    return;
+                }
+                Onyx.disconnect(connection);
+                repointMovedScanFailedThread(transactionID, optimisticReportID, optimisticReportActionID, currentReportID);
+            },
+        });
+    }
+}
+
+export {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest, watchMovedScanFailedTransactions};

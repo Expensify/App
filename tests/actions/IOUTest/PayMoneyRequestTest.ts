@@ -59,7 +59,8 @@ jest.mock('@src/libs/Navigation/Navigation', () => ({
     isNavigationReady: jest.fn(() => Promise.resolve()),
     getReportRouteByID: jest.fn(),
     getActiveRouteWithoutParams: jest.fn(),
-    getActiveRoute: jest.fn(),
+    getActiveRoute: jest.fn(() => ''),
+    setParams: jest.fn(),
     navigationRef: {
         getRootState: jest.fn(),
         isReady: jest.fn(() => true),
@@ -1104,6 +1105,56 @@ describe('actions/IOU/PayMoneyRequest', () => {
                 const reportActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`);
                 const payAction = Object.values(reportActions ?? {}).find((action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.type === CONST.IOU.REPORT_ACTION_TYPE.PAY);
                 expect(payAction && isMoneyRequestAction(payAction) ? getOriginalMessage(payAction)?.amount : undefined).toBe(3000);
+            });
+
+            it('re-points the expense thread to the backend report once the server moves the scan-failed expense', async () => {
+                const validTransaction = buildTransaction('valid1', -3000, false);
+                const scanFailedTransaction = buildTransaction('scanFailed1', 0, true);
+                const expenseReport = await setUpReport([validTransaction, scanFailedTransaction]);
+
+                mockFetch?.pause?.();
+                const optimisticReportID = pay(expenseReport);
+                await waitForBatchedUpdates();
+
+                const optimisticActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${optimisticReportID}`);
+                const copiedAction = Object.values(optimisticActions ?? {}).find(
+                    (action) => isMoneyRequestAction(action) && getOriginalMessage(action)?.IOUTransactionID === scanFailedTransaction.transactionID,
+                );
+                expect(copiedAction).toBeDefined();
+
+                const threadReportID = '999';
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`, {
+                    reportID: threadReportID,
+                    type: CONST.REPORT.TYPE.CHAT,
+                    parentReportID: optimisticReportID,
+                    parentReportActionID: copiedAction?.reportActionID,
+                });
+                await waitForBatchedUpdates();
+
+                jest.mocked(Navigation.getActiveRoute).mockReturnValue(`/r/${optimisticReportID}`);
+                await mockFetch?.resume?.();
+
+                const backendReportID = '777';
+                const backendAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 0,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID: scanFailedTransaction.transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${backendReportID}`, {reportID: backendReportID, type: CONST.REPORT.TYPE.EXPENSE, chatReportID: chatReport.reportID});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${backendReportID}`, {[backendAction.reportActionID]: backendAction as ReportAction});
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`, {reportID: backendReportID});
+                await waitForBatchedUpdates();
+
+                const threadReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${threadReportID}`);
+                expect(threadReport?.parentReportID).toBe(backendReportID);
+                expect(threadReport?.parentReportActionID).toBe(backendAction.reportActionID);
+                const backendActions = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${backendReportID}`);
+                expect(backendActions?.[backendAction.reportActionID]?.childReportID).toBe(threadReportID);
+                expect(Navigation.setParams).toHaveBeenCalledWith({reportID: backendReportID});
             });
 
             it('does not create a new report when every expense in the report is scan-failed', async () => {

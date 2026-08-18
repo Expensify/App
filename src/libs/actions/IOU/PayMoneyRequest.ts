@@ -51,7 +51,7 @@ import type {ValueOf} from 'type-fest';
 import Onyx from 'react-native-onyx';
 
 import {getAllPersonalDetails, getAllTransactionViolations} from '.';
-import {getReportFromHoldRequestsOnyxData} from './Hold';
+import {getReportFromHoldRequestsOnyxData, watchMovedScanFailedTransactions} from './Hold';
 import {getReportPreviewReportAction} from './MoneyRequestBuilder';
 
 type PayInvoiceArgs = {
@@ -90,6 +90,7 @@ type PayMoneyRequestData = {
         | typeof ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS
         | BuildPolicyDataKeys
     >;
+    movedScanFailedTransactions?: Array<{transactionID: string; optimisticReportActionID: string}>;
 };
 
 type SearchPayOnyxKey = typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT;
@@ -495,6 +496,7 @@ function getPayMoneyRequestParams({
     let optimisticHoldReportID;
     let optimisticHoldActionID;
     let optimisticHoldReportExpenseActionIDs;
+    let movedScanFailedTransactions;
     if (!full || shouldMoveScanFailedTransactions) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport,
@@ -514,6 +516,7 @@ function getPayMoneyRequestParams({
         optimisticHoldReportID = holdReportOnyxData.optimisticHoldReportID;
         optimisticHoldActionID = holdReportOnyxData.optimisticHoldActionID;
         optimisticHoldReportExpenseActionIDs = JSON.stringify(holdReportOnyxData.optimisticHoldReportExpenseActionIDs);
+        movedScanFailedTransactions = holdReportOnyxData.movedScanFailedTransactions;
     }
 
     return {
@@ -531,6 +534,7 @@ function getPayMoneyRequestParams({
             ...policyParams,
         },
         onyxData,
+        movedScanFailedTransactions,
     };
 }
 
@@ -818,7 +822,11 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
     completePaymentOnboarding(paymentSelected, introSelected, isSelfTourViewed, betas, currentUserAccountID, conciergeChat);
 
     const recipient = {accountID: iouReport?.ownerAccountID ?? CONST.DEFAULT_NUMBER_ID};
-    const {params: payMoneyRequestParams, onyxData} = getPayMoneyRequestParams({
+    const {
+        params: payMoneyRequestParams,
+        onyxData,
+        movedScanFailedTransactions,
+    } = getPayMoneyRequestParams({
         initialChatReport: chatReport,
         iouReport,
         recipient,
@@ -850,6 +858,9 @@ function payMoneyRequest(params: PayMoneyRequestFunctionParams) {
         playSound(SOUNDS.SUCCESS);
     }
     API.write(apiCommand, payMoneyRequestParams, mergeAdditionalPayOnyxData(onyxData, additionalOnyxData));
+    if (movedScanFailedTransactions?.length && payMoneyRequestParams.optimisticHoldReportID) {
+        watchMovedScanFailedTransactions(movedScanFailedTransactions, payMoneyRequestParams.optimisticHoldReportID);
+    }
     notifyNewAction(!full ? (Navigation.getTopmostReportId() ?? iouReport?.reportID) : iouReport?.reportID, undefined, true);
     return payMoneyRequestParams.optimisticHoldReportID;
 }
