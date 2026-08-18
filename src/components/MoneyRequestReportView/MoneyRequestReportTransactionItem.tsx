@@ -27,7 +27,7 @@ import {clearError} from '@userActions/Transaction';
 
 import CONST from '@src/CONST';
 import type {CardList, Policy, PolicyCategories, PolicyTagLists, Report, TransactionViolations} from '@src/types/onyx';
-import type {Errors} from '@src/types/onyx/OnyxCommon';
+import type {Errors, TranslationKeyErrors} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import type {StyleProp, ViewStyle} from 'react-native';
@@ -173,8 +173,11 @@ function MoneyRequestReportTransactionItemBody({
 
     // The backend reports a reject against an expense it has already moved under its own `reject` field rather than
     // the generic `errors`, so both have to be read to show the message.
-    const rejectError = getLatestErrorField(transaction, 'reject');
-    const transactionErrors = {...getLatestErrorMessageField({errors: messageErrors}), ...rejectError};
+    const rejectErrorKey = Object.keys(getLatestErrorField(transaction, 'reject')).at(0);
+    const rejectError: TranslationKeyErrors = rejectErrorKey ? {[rejectErrorKey]: {translationKey: 'iou.rejectReport.couldNotRejectExpense'}} : {};
+
+    // A reject error is terminal for this row, so it replaces any other message rather than stacking with it.
+    const transactionErrors: Errors | TranslationKeyErrors = rejectErrorKey ? rejectError : getLatestErrorMessageField({errors: messageErrors});
 
     // A failed action (e.g. rejecting an expense that has already moved) leaves the expense in place with no pending
     // action, so opacity has to be forced — `OfflineWithFeedback` only dims on its own while a write is pending.

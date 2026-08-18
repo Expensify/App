@@ -1682,7 +1682,7 @@ const translations: TranslationDeepObject<typeof en> = {
             rejectedNextStep: 'Ten raport został odrzucony. Czekamy, aż naprawisz problemy i wyślesz go ponownie ręcznie.',
             selectMemberError: 'Wybierz członka, do którego chcesz odesłać ten raport do odrzucenia.',
             couldNotReject: 'Nie udało się odrzucić raportu. Spróbuj ponownie.',
-            couldNotRejectExpense: 'Nie udało się odrzucić wydatku.',
+            couldNotRejectExpense: 'Nie można było odrzucić tego wydatku, ponieważ mógł już zostać przeniesiony lub odrzucony.',
         },
         moveExpenses: 'Przenieś do raportu',
         moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
