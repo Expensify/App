@@ -109,6 +109,7 @@ type SubmitAmountArgs = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
     conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
@@ -441,7 +442,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
 }
 
 function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
-    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency} = args;
+    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency, getCurrencyDecimals} = args;
     const {currentUserAccountID, isSplitBill, newAmount: backendAmount} = ctx;
 
     const participants = buildReportParticipants(args);
@@ -463,7 +464,7 @@ function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext
     }
     if (isSplitBill && !report?.isOwnPolicyExpenseChat && report?.participants) {
         const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID);
+        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
     }
     navigateToConfirmationAfterAssigningParticipants(transactionID, report, currentUserAccountID, iouType, reportID, backToReport);
 }
@@ -595,6 +596,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         navigateBack,
         isTrackIntentUser,
         reportPolicyTags,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -617,14 +620,14 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
+        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
         navigateBack();
         return;
     }
 
     // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
     if (transaction?.splitShares) {
-        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, false);
+        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, getCurrencyDecimals, false);
     }
 
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
@@ -650,6 +653,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     });
     navigateBack();
 }
@@ -660,7 +665,7 @@ function submitAmount(args: SubmitAmountArgs): void {
     if (!ctx.isEditing) {
         // Edits to the amount from the splits page should reset the split shares.
         if (args.transaction?.splitShares) {
-            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, true);
+            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, args.getCurrencyDecimals, true);
         }
         submitCreateAmount(args, ctx);
         return;
