@@ -13,6 +13,8 @@ import {createNavigationContainerRef, NavigationContainer} from '@react-navigati
 import React from 'react';
 import {View} from 'react-native';
 
+import findAncestorByType from '../../../utils/findAncestorByType';
+
 const HOST = 'Host';
 const INNER = 'Inner';
 const RHP = 'RHP';
@@ -55,14 +57,11 @@ function RHPScreen() {
 }
 
 function getInnerActivityWrapper() {
-    let node: ReturnType<typeof screen.getByTestId> | null = screen.getByTestId('inner-content', {includeHiddenElements: true});
-    while (node) {
-        if (node.type === ScreenActivityWrapper) {
-            return node;
-        }
-        node = node.parent;
+    const wrapper = findAncestorByType(screen.getByTestId('inner-content', {includeHiddenElements: true}), [ScreenActivityWrapper]);
+    if (!wrapper) {
+        throw new Error('Inner screen was not wrapped with ScreenActivityWrapper');
     }
-    throw new Error('Inner screen was not wrapped with ScreenActivityWrapper');
+    return wrapper;
 }
 
 function findAlwaysPaintedView(node: ReturnType<typeof screen.getByTestId>): ReturnType<typeof screen.getByTestId> | undefined {

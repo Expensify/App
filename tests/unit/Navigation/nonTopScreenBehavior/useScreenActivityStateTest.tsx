@@ -4,9 +4,10 @@ import useIsWindowSizeChanging from '@libs/Navigation/PlatformStackNavigation/cr
 import useScreenActivityState, {
     FIRST_RENDER_FALLBACK_DELAY_MS,
 } from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/useScreenActivityState';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
 import {useIsFocused} from '@react-navigation/native';
+
+import createTransitionTrackerHarness from '../../../utils/TransitionTrackerTestUtils';
 
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(),
@@ -22,22 +23,10 @@ jest.mock('@react-navigation/native', () => {
     };
 });
 
-const mockedRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
+const transitionTracker = createTransitionTrackerHarness();
+const {firePendingCallbacks} = transitionTracker;
 const mockedUseIsFocused = jest.mocked(useIsFocused);
 const mockedUseIsWindowSizeChanging = jest.mocked(useIsWindowSizeChanging);
-
-// Captures the callbacks handed to `runAfterTransitions` so tests can fire them on demand, and stubs a cancel handle.
-let pendingCallbacks: Array<() => void | Promise<void>> = [];
-
-function firePendingCallbacks() {
-    act(() => {
-        const callbacks = pendingCallbacks;
-        pendingCallbacks = [];
-        for (const callback of callbacks) {
-            callback();
-        }
-    });
-}
 
 // The hook keeps a freshly mounted screen visible until a frame was painted, so tests flush that first-render
 // window before asserting the steady state.
@@ -50,11 +39,7 @@ function completeFirstRender() {
 beforeEach(() => {
     jest.useFakeTimers();
     jest.clearAllMocks();
-    pendingCallbacks = [];
-    mockedRunAfterTransitions.mockImplementation(({callback}) => {
-        pendingCallbacks.push(callback);
-        return {cancel: jest.fn()};
-    });
+    transitionTracker.install();
     mockedUseIsFocused.mockReturnValue(true);
     mockedUseIsWindowSizeChanging.mockReturnValue(false);
 });
@@ -97,13 +82,13 @@ describe('useScreenActivityState', () => {
         rafSpy.mockRestore();
     });
 
-    it('falls back to the 100ms timeout when animation frames never fire', () => {
+    it('falls back to the timeout when animation frames never fire', () => {
         const rafSpy = jest.spyOn(globalThis, 'requestAnimationFrame').mockImplementation(() => 0);
 
         const {result} = renderHook(() => useScreenActivityState(true));
 
         act(() => {
-            jest.advanceTimersByTime(99);
+            jest.advanceTimersByTime(FIRST_RENDER_FALLBACK_DELAY_MS - 1);
         });
         expect(result.current.mode).toBe('visible');
 

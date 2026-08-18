@@ -69,4 +69,4 @@ function getSnapshot() {
     return isWindowSizeChanging;
 }
 
-export {subscribe, getSnapshot};
+export {subscribe, getSnapshot, WINDOW_SIZE_CHANGE_DURATION_MS};

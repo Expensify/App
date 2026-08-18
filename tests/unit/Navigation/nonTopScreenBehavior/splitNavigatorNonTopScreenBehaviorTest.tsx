@@ -14,6 +14,8 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import {View} from 'react-native';
 
+import findAncestorByType from '../../../utils/findAncestorByType';
+
 const SIDEBAR = 'Sidebar';
 const COVERED_CENTRAL = 'CoveredCentral';
 const TOP_CENTRAL = 'TopCentral';
@@ -54,14 +56,11 @@ const INITIAL_STATE = {
  * that survived the whole option resolution instead of a hand-built descriptor.
  */
 function getNonTopScreenWrapperOf(testID: string) {
-    let node: ReturnType<typeof screen.getByTestId> | null = screen.getByTestId(testID, {includeHiddenElements: true});
-    while (node) {
-        if (node.type === ScreenFreezeWrapper || node.type === ScreenActivityWrapper) {
-            return {wrapper: node.type, isScreenBlurred: typeof node.props.isScreenBlurred === 'boolean' ? node.props.isScreenBlurred : undefined};
-        }
-        node = node.parent;
+    const node = findAncestorByType(screen.getByTestId(testID, {includeHiddenElements: true}), [ScreenFreezeWrapper, ScreenActivityWrapper]);
+    if (!node) {
+        return undefined;
     }
-    return undefined;
+    return {wrapper: node.type, isScreenBlurred: typeof node.props.isScreenBlurred === 'boolean' ? node.props.isScreenBlurred : undefined};
 }
 
 function renderSplitNavigator() {
@@ -82,6 +81,7 @@ function renderSplitNavigator() {
                 <Split.Screen
                     name={COVERED_CENTRAL}
                     component={CoveredCentralScreen}
+                    options={{nonTopScreenBehavior: 'activity'}}
                 />
                 <Split.Screen
                     name={TOP_CENTRAL}
@@ -100,22 +100,16 @@ beforeEach(() => {
 });
 
 describe('SplitNavigator non-top screen behavior', () => {
-    it('freezes every covered screen that took the navigator default', () => {
+    it('freezes the covered screen that took the navigator default', () => {
         renderSplitNavigator();
 
-        expect(getNonTopScreenWrapperOf('covered-content')).toEqual({wrapper: ScreenFreezeWrapper, isScreenBlurred: true});
         expect(getNonTopScreenWrapperOf('sidebar-content')).toEqual({wrapper: ScreenFreezeWrapper, isScreenBlurred: true});
     });
 
-    it('lets a screen override the navigator default with its own option', () => {
+    it('lets a screen override the navigator default and marks only the covered one as blurred', () => {
         renderSplitNavigator();
 
-        expect(getNonTopScreenWrapperOf('top-content')?.wrapper).toBe(ScreenActivityWrapper);
-    });
-
-    it('marks the top screen as not covered', () => {
-        renderSplitNavigator();
-
-        expect(getNonTopScreenWrapperOf('top-content')?.isScreenBlurred).toBe(false);
+        expect(getNonTopScreenWrapperOf('covered-content')).toEqual({wrapper: ScreenActivityWrapper, isScreenBlurred: true});
+        expect(getNonTopScreenWrapperOf('top-content')).toEqual({wrapper: ScreenActivityWrapper, isScreenBlurred: false});
     });
 });

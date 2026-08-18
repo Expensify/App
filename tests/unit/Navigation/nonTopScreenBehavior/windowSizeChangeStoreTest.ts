@@ -1,11 +1,15 @@
-import {getSnapshot, subscribe} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/windowSizeChangeStore';
+import {act, renderHook} from '@testing-library/react-native';
+
+import useIsWindowSizeChanging from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/useIsWindowSizeChanging';
+import {
+    getSnapshot,
+    subscribe,
+    WINDOW_SIZE_CHANGE_DURATION_MS,
+} from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/ScreenActivityWrapper/windowSizeChangeStore';
 
 import type {ScaledSize} from 'react-native';
 
 import {Dimensions} from 'react-native';
-
-// How long the store keeps reporting a change after the last qualifying event, mirrored from the implementation.
-const SETTLE_DELAY_MS = 250;
 
 // The react-native manual mock (__mocks__/react-native.ts) replaces Dimensions with an inert addEventListener,
 // so the tests capture the handler the store registers there and fire the change events through it directly.
@@ -75,7 +79,7 @@ describe('windowSizeChangeStore', () => {
         unsubscribe = subscribe(listener);
 
         emitDimensionsChange(initialWindow.width + 100);
-        jest.advanceTimersByTime(SETTLE_DELAY_MS);
+        jest.advanceTimersByTime(WINDOW_SIZE_CHANGE_DURATION_MS);
 
         expect(getSnapshot()).toBe(false);
         expect(listener).toHaveBeenCalledTimes(2);
@@ -86,9 +90,9 @@ describe('windowSizeChangeStore', () => {
         unsubscribe = subscribe(listener);
 
         emitDimensionsChange(initialWindow.width + 100);
-        jest.advanceTimersByTime(SETTLE_DELAY_MS - 50);
+        jest.advanceTimersByTime(WINDOW_SIZE_CHANGE_DURATION_MS - 50);
         emitDimensionsChange(initialWindow.width + 200);
-        jest.advanceTimersByTime(SETTLE_DELAY_MS - 1);
+        jest.advanceTimersByTime(WINDOW_SIZE_CHANGE_DURATION_MS - 1);
 
         expect(getSnapshot()).toBe(true);
         expect(listener).toHaveBeenCalledTimes(1);
@@ -110,7 +114,7 @@ describe('windowSizeChangeStore', () => {
         expect(mockedAddEventListener).toHaveBeenCalledTimes(1);
         expect(getSubscriptionRemove(0)).not.toHaveBeenCalled();
 
-        jest.advanceTimersByTime(SETTLE_DELAY_MS);
+        jest.advanceTimersByTime(WINDOW_SIZE_CHANGE_DURATION_MS);
 
         expect(getSnapshot()).toBe(false);
         expect(remaining).toHaveBeenCalledTimes(2);
@@ -131,5 +135,25 @@ describe('windowSizeChangeStore', () => {
 
         expect(mockedAddEventListener).toHaveBeenCalledTimes(2);
         expect(getSnapshot()).toBe(false);
+    });
+});
+
+// The hook is mocked in every consumer test, so this is the one place the real adapter over the store is verified.
+describe('useIsWindowSizeChanging', () => {
+    it('follows the store through a width change and its settling', () => {
+        const {result, unmount} = renderHook(() => useIsWindowSizeChanging());
+        expect(result.current).toBe(false);
+
+        act(() => {
+            emitDimensionsChange(initialWindow.width + 100);
+        });
+        expect(result.current).toBe(true);
+
+        act(() => {
+            jest.advanceTimersByTime(WINDOW_SIZE_CHANGE_DURATION_MS);
+        });
+        expect(result.current).toBe(false);
+
+        unmount();
     });
 });

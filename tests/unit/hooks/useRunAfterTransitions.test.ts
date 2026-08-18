@@ -1,26 +1,22 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import useRunAfterTransitions from '@hooks/useRunAfterTransitions';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import createTransitionTrackerHarness from '../../utils/TransitionTrackerTestUtils';
+
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(),
 }));
 
+const transitionTracker = createTransitionTrackerHarness();
+const {firePendingCallbacks, cancel} = transitionTracker;
 const mockedRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
-
-// Captures the callbacks handed to `runAfterTransitions` so tests can fire them on demand, and stubs a cancel handle.
-let pendingCallbacks: Array<() => void | Promise<void>> = [];
-const cancel = jest.fn();
 
 beforeEach(() => {
     jest.clearAllMocks();
-    pendingCallbacks = [];
-    mockedRunAfterTransitions.mockImplementation(({callback}) => {
-        pendingCallbacks.push(callback);
-        return {cancel};
-    });
+    transitionTracker.install();
 });
 
 describe('useRunAfterTransitions', () => {
@@ -42,11 +38,7 @@ describe('useRunAfterTransitions', () => {
     it('turns true once the scheduled callback fires', () => {
         const {result} = renderHook(() => useRunAfterTransitions(true));
 
-        act(() => {
-            for (const callback of pendingCallbacks) {
-                callback();
-            }
-        });
+        firePendingCallbacks();
 
         expect(result.current).toBe(true);
     });
@@ -71,11 +63,7 @@ describe('useRunAfterTransitions', () => {
 
     it('does not flip back to false once active, even if ready later flips back to false', () => {
         const {result, rerender} = renderHook(({ready}) => useRunAfterTransitions(ready), {initialProps: {ready: true}});
-        act(() => {
-            for (const callback of pendingCallbacks) {
-                callback();
-            }
-        });
+        firePendingCallbacks();
         expect(result.current).toBe(true);
 
         rerender({ready: false});

@@ -1,36 +1,22 @@
-import {act, renderHook} from '@testing-library/react-native';
+import {renderHook} from '@testing-library/react-native';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
 
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 
+import createTransitionTrackerHarness from '../../utils/TransitionTrackerTestUtils';
+
 jest.mock('@libs/Navigation/TransitionTracker', () => ({
     runAfterTransitions: jest.fn(),
 }));
 
+const transitionTracker = createTransitionTrackerHarness();
+const {firePendingCallbacks, cancel} = transitionTracker;
 const mockedRunAfterTransitions = jest.mocked(TransitionTracker.runAfterTransitions);
-
-// Captures the callbacks handed to `runAfterTransitions` so tests can fire them on demand, and stubs a cancel handle.
-let pendingCallbacks: Array<() => void | Promise<void>> = [];
-const cancel = jest.fn();
-
-function firePendingCallbacks() {
-    act(() => {
-        const callbacks = pendingCallbacks;
-        pendingCallbacks = [];
-        for (const callback of callbacks) {
-            callback();
-        }
-    });
-}
 
 beforeEach(() => {
     jest.clearAllMocks();
-    pendingCallbacks = [];
-    mockedRunAfterTransitions.mockImplementation(({callback}) => {
-        pendingCallbacks.push(callback);
-        return {cancel};
-    });
+    transitionTracker.install();
 });
 
 describe('useDeferVisibleUntilFocusTransitionEnd', () => {
@@ -54,7 +40,7 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
         rerender({isActive: true});
 
         expect(mockedRunAfterTransitions).toHaveBeenCalledWith(expect.objectContaining({waitForUpcomingTransition: true}));
-        expect(pendingCallbacks).toHaveLength(1);
+        expect(transitionTracker.getPendingCallbackCount()).toBe(1);
     });
 
     it('hides immediately when isActive flips to false', () => {
@@ -79,7 +65,6 @@ describe('useDeferVisibleUntilFocusTransitionEnd', () => {
         const {result, rerender} = renderHook(({isActive}) => useDeferVisibleUntilFocusTransitionEnd(isActive), {initialProps: {isActive: true}});
 
         rerender({isActive: false});
-        pendingCallbacks = [];
         rerender({isActive: true});
 
         expect(result.current).toBe(false);
