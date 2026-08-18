@@ -169,8 +169,19 @@ function TransactionPreviewContent({
                 currentUserAccountID,
                 originalTransaction,
                 convertToDisplayString,
+                preferredLocale,
             }),
-        [transactionPreviewCommonArguments, shouldShowRBR, violationMessage, reportActions, originalTransaction, convertToDisplayString, currentUserAccountID, currentUserEmail],
+        [
+            transactionPreviewCommonArguments,
+            shouldShowRBR,
+            violationMessage,
+            reportActions,
+            originalTransaction,
+            convertToDisplayString,
+            currentUserAccountID,
+            currentUserEmail,
+            preferredLocale,
+        ],
     );
     const getTranslatedText = (item: TranslationPathOrText) => (item.translationPath ? translate(item.translationPath) : (item.text ?? ''));
 

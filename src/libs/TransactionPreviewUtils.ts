@@ -1,6 +1,7 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
@@ -15,6 +16,7 @@ import type {ActionErrorsByTransaction, TransactionDetails} from './ReportUtils'
 
 import {setReviewDuplicatesKey} from './actions/Transaction';
 import {isCategoryMissing} from './CategoryUtils';
+import DateUtils from './DateUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
 import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
@@ -24,6 +26,7 @@ import {
     compareDuplicateTransactionFields,
     getAmount,
     getExpenseTypeTranslationKey,
+    getFormattedCreated,
     getTransactionType,
     hasMissingSmartscanFields,
     hasNoticeTypeViolation,
@@ -31,6 +34,7 @@ import {
     hasViolation,
     hasWarningTypeViolation,
     isAmountMissing,
+    isCreatedMissing,
     isDistanceRequest,
     isFetchingWaypointsFromServer,
     isManagedCardTransaction,
@@ -211,6 +215,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserAccountID,
     originalTransaction,
     convertToDisplayString,
+    preferredLocale,
 }: {
     iouReport: OnyxEntry<OnyxTypes.Report>;
     iouReportOwnerLogin: string | undefined;
@@ -227,6 +232,7 @@ function getTransactionPreviewTextAndTranslationPaths({
     currentUserAccountID: number;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'];
+    preferredLocale: Locale;
 }) {
     const isFetchingWaypoints = isFetchingWaypointsFromServer(transaction);
     const isTransactionOnHold = isOnHold(transaction);
@@ -322,6 +328,12 @@ function getTransactionPreviewTextAndTranslationPaths({
     }
 
     RBRMessage ??= {text: ''};
+
+    if (!isCreatedMissing(transaction)) {
+        const created = getFormattedCreated(transaction);
+        const date = DateUtils.formatTransactionListDate(created, preferredLocale);
+        previewHeaderText.unshift({text: date}, dotSeparator);
+    }
 
     if (isPending(transaction)) {
         previewHeaderText.push(dotSeparator, {translationPath: 'iou.pending'});

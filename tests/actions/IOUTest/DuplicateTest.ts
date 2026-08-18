@@ -1660,7 +1660,6 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 conciergeChat,
-
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
                 transaction: {...mockTransaction, amount: mockTransaction.amount * -1},
