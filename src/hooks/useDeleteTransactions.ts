@@ -312,6 +312,7 @@ function useDeleteTransactions({report, reportActions, policy}: UseDeleteTransac
 
                 updateSplitTransactions({
                     getCurrencyDecimals,
+                    getCurrencySymbol,
                     allTransactionsList: allTransactions,
                     allReportsList: allReports,
                     allReportActionsList: allReportActions,
