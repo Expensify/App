@@ -308,7 +308,7 @@ const translations = {
         showMore: 'Show more',
         showLess: 'Show less',
         plusMore: ({count}: {count: number}) => `+${count} more`,
-        merchant: 'Merchant',
+        merchant: 'Merchant name',
         googleThisMerchant: ({merchant}: {merchant: string}) => `Google ${merchant}`,
         searchOnGoogle: ({merchant}: {merchant: string}) => `Search ${merchant} on Google`,
         change: 'Change',
