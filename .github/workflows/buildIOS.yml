@@ -120,7 +120,7 @@ jobs:
       - name: Resolve react-native artifact version
         id: resolve-rn-artifacts
         run: |
-          VERSION=$(bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --package=react-hybrid --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
+          VERSION=$(bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
           echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Cache react-native artifacts
