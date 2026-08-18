@@ -22,6 +22,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation from '@libs/Navigation/Navigation';
+import Parser from '@libs/Parser';
 import * as PolicyUtils from '@libs/PolicyUtils';
 import {getOriginalMessage, getReportAction, isActionOfType, isWhisperAction} from '@libs/ReportActionsUtils';
 // Testing only so it's okay to import computeReportName
@@ -30,6 +31,7 @@ import {buildReportNameFromParticipantNames, computeReportName as computeReportN
 import type {OptionData} from '@libs/ReportUtils';
 import {
     areAllRequestsBeingSmartScanned,
+    buildEditedCommentWithAttachment,
     buildOptimisticAnnounceChat,
     buildOptimisticApprovedReportAction,
     buildOptimisticCancelPaymentReportAction,
@@ -653,6 +655,38 @@ describe('ReportUtils', () => {
             };
 
             expect(getIOUReportActionDisplayMessage(translateLocal, paidElsewhereReportAction, convertToDisplayString, undefined, iouReport)).toBe(translateLocal('iou.paidElsewhere'));
+        });
+
+        it('should return marked as paid when the invoice sender copies a settled elsewhere payment (missing invoice bank account)', async () => {
+            // Given a settled invoice report owned by the current user (the sender) on a policy with no invoice bank account.
+            // This is the exact condition that used to flip the copy path to "paid . Add a bank account to receive your payment."
+            const invoiceReportID = '9876543210';
+            const invoicePolicyID = 333;
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${invoicePolicyID}`, createRandomPolicy(invoicePolicyID, CONST.POLICY.TYPE.TEAM));
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${invoiceReportID}`, {
+                ...createExpenseReport(Number(invoiceReportID)),
+                type: CONST.REPORT.TYPE.INVOICE,
+                policyID: invoicePolicyID.toString(),
+                ownerAccountID: currentUserAccountID,
+                statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+                stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+            });
+
+            const invoicePaidElsewhereReportAction = {
+                ...createRandomReportAction(47),
+                actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                reportID: invoiceReportID,
+                originalMessage: {
+                    IOUReportID: invoiceReportID,
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                },
+            };
+
+            // Then the copied message matches what is displayed ("marked as paid"), not the broken empty-amount string.
+            expect(getIOUReportActionDisplayMessage(translateLocal, invoicePaidElsewhereReportAction, convertToDisplayString, undefined, iouReport)).toBe(
+                translateLocal('iou.paidElsewhere'),
+            );
         });
     });
 
@@ -3857,6 +3891,104 @@ describe('ReportUtils', () => {
             expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
         });
 
+        describe('when the outstanding child expense is all on hold', () => {
+            const expenseReportID = '7201';
+            const transactionThreadReportID = '7202';
+            const transactionID = '7201';
+            const moneyRequestActionID = 'mr_7201';
+            const HOLD_ACTION_ID = 'hold_7201';
+            const otherUserAccountID = 99;
+
+            // Seeds an all-held expense report awaiting the current user, plus the money-request action and the thread's
+            // HOLD action (whose actor is the holder), so the derivation can resolve who placed the hold.
+            const seedHeldChildExpense = async (holderAccountID: number, expenseReportOverrides: Partial<Report> = {}) => {
+                const expenseReport = {
+                    ...LHNTestUtils.getFakeReport(),
+                    reportID: expenseReportID,
+                    policyID: '1',
+                    ownerAccountID: otherUserAccountID,
+                    managerID: currentUserAccountID,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    ...expenseReportOverrides,
+                };
+
+                const policyExpenseChat = {
+                    ...createPolicyExpenseChat(201, true),
+                    policyID: '1',
+                    ownerAccountID: currentUserAccountID,
+                    hasOutstandingChildRequest: true,
+                    iouReportID: expenseReportID,
+                };
+
+                const heldTransaction = {
+                    ...createRandomTransaction(7201),
+                    transactionID,
+                    reportID: expenseReportID,
+                    status: CONST.TRANSACTION.STATUS.POSTED,
+                    comment: {hold: HOLD_ACTION_ID},
+                };
+
+                const moneyRequestAction: ReportAction = {
+                    reportActionID: moneyRequestActionID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: otherUserAccountID,
+                    childReportID: transactionThreadReportID,
+                    originalMessage: {
+                        IOUTransactionID: transactionID,
+                        type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                        amount: 100,
+                        currency: 'USD',
+                    },
+                };
+
+                const holdAction: ReportAction = {
+                    reportActionID: HOLD_ACTION_ID,
+                    actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+                    created: '2024-01-01 00:00:00.000',
+                    actorAccountID: holderAccountID,
+                };
+
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}1`, {reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_YES});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReportID}`, expenseReport);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, heldTransaction);
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {[moneyRequestActionID]: moneyRequestAction});
+                await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {[HOLD_ACTION_ID]: holdAction});
+                await waitForBatchedUpdates();
+
+                return policyExpenseChat;
+            };
+
+            it('does not require attention when another user placed the hold', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(otherUserAccountID);
+
+                // An all-held report can't move to its next state, so it isn't a to-do when someone else placed the hold.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+            });
+
+            it('still requires attention when the current user placed the hold', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID);
+
+                // Only the person who placed the hold can remove it, so the report stays in their to-do queue.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(true);
+            });
+
+            it('does not require attention for an open report the current user owns and placed the hold on', async () => {
+                const policyExpenseChat = await seedHeldChildExpense(currentUserAccountID, {
+                    ownerAccountID: currentUserAccountID,
+                    stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                });
+
+                // Only the owner can hold on an open report, and that owner is the one who submits, so the hold placer
+                // exception never applies there. This holds on the fallback path too, where the chat carries an
+                // outstanding-child flag but no report preview action is loaded yet, so there is no action badge.
+                expect(requiresAttentionFromCurrentUser(policyExpenseChat, currentUserEmail, currentUserAccountID)).toBe(false);
+            });
+        });
+
         it('returns true for expense report awaiting user payment/reimbursement', async () => {
             const report = {
                 ...LHNTestUtils.getFakeReport(),
@@ -6563,6 +6695,42 @@ describe('ReportUtils', () => {
 
         it('returns nothing to re-append once the attachment has synced', () => {
             expect(getUploadingAttachmentHtmlFromComment(syncedImageHtml)).toBeUndefined();
+        });
+
+        describe('buildEditedCommentWithAttachment', () => {
+            const attachmentTag = '<video src="blob:local" data-optimistic-src="blob:local">clip.mp4</video>';
+
+            it('separates the attachment from the text that was kept', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', attachmentTag)).toBe(`Hello edited<br /><br />${attachmentTag}`);
+            });
+
+            it('leaves no separator when the edit removed all of the text', () => {
+                expect(buildEditedCommentWithAttachment('', attachmentTag)).toBe(attachmentTag);
+            });
+
+            it('returns the comment untouched when nothing is uploading', () => {
+                expect(buildEditedCommentWithAttachment('Hello edited', undefined)).toBe('Hello edited');
+            });
+        });
+
+        describe('video attachments', () => {
+            const videoSource = 'blob:https://dev.new.expensify.com:8082/uuid-video';
+            const uploadingVideoHtml = `Hello<br /><br /><video src="${videoSource}" data-optimistic-src="${videoSource}" data-expensify-source="${videoSource}" data-name="clip.mp4">clip.mp4</video>`;
+
+            it('re-appends the whole video element, not just its opening tag', () => {
+                const tag = getUploadingAttachmentHtmlFromComment(uploadingVideoHtml);
+
+                expect(tag).toContain('</video>');
+                expect(tag).toContain('>clip.mp4<');
+            });
+
+            it('survives a second edit, because the stored element still parses back to a reference', () => {
+                const storedAfterFirstEdit = `Hello edited<br /><br />${getUploadingAttachmentHtmlFromComment(uploadingVideoHtml)}`;
+                const secondEditDraft = Parser.htmlToMarkdown(storedAfterFirstEdit).trim();
+
+                expect(secondEditDraft).toContain(videoSource);
+                expect(isUploadingAttachmentRemovedFromDraft(secondEditDraft, storedAfterFirstEdit)).toBe(false);
+            });
         });
 
         it('does not swap in an attachment owned by a different report action', () => {
@@ -16225,7 +16393,7 @@ describe('ReportUtils', () => {
         });
     });
 
-    it('should surface a GBR for admin with held expenses requiring approval or payment and avoid showing an RBR', async () => {
+    it('should surface a GBR for the admin who placed the hold on an all-held report requiring approval, and avoid showing an RBR', async () => {
         await Onyx.clear();
 
         const adminAccountID = currentUserAccountID;
@@ -16234,6 +16402,8 @@ describe('ReportUtils', () => {
         const expenseReportID = 'expense-hold';
         const transactionID = 'transaction-hold';
         const holdReportActionID = 'hold-action';
+        const transactionThreadReportID = 'transaction-thread-hold';
+        const moneyRequestActionID = 'money-request-action-hold';
 
         const policy1: Policy = {
             id: policyID,
@@ -16298,6 +16468,30 @@ describe('ReportUtils', () => {
             childReportID: expenseReportID,
         };
 
+        // The current user (admin) placed the hold, so the all-held report stays in their to-do queue (GBR) - only the
+        // person who placed a hold can unhold it. The money-request action links the held transaction to the thread
+        // that carries the HOLD action, so the derivation can resolve who placed the hold.
+        const moneyRequestAction: ReportAction = {
+            reportActionID: moneyRequestActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
+            created: '2024-01-01 00:00:00.000',
+            actorAccountID: employeeAccountID,
+            childReportID: transactionThreadReportID,
+            originalMessage: {
+                IOUTransactionID: transactionID,
+                type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                amount: 12345,
+                currency: CONST.CURRENCY.USD,
+            },
+        };
+
+        const holdAction: ReportAction = {
+            reportActionID: holdReportActionID,
+            actionName: CONST.REPORT.ACTIONS.TYPE.HOLD,
+            created: '2024-01-01 00:00:00.000',
+            actorAccountID: adminAccountID,
+        };
+
         const transactionViolationsKey = `${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${transaction.transactionID}` as OnyxKey;
         const transactionViolationsCollection: OnyxCollection<TransactionViolation[]> = {
             [transactionViolationsKey]: [
@@ -16315,6 +16509,12 @@ describe('ReportUtils', () => {
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport),
             Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport.reportID}`, {
                 [reportPreviewAction.reportActionID]: reportPreviewAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReportID}`, {
+                [moneyRequestAction.reportActionID]: moneyRequestAction,
+            }),
+            Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${transactionThreadReportID}`, {
+                [holdAction.reportActionID]: holdAction,
             }),
             Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction),
             Onyx.merge(transactionViolationsKey, transactionViolationsCollection[transactionViolationsKey]),
@@ -16335,6 +16535,7 @@ describe('ReportUtils', () => {
             draftComment: '',
             isReportArchived: undefined,
             conciergeReportID: undefined,
+            currentUserAccountID: adminAccountID,
         });
 
         expect(reason).toBe(CONST.REPORT_IN_LHN_REASONS.HAS_GBR);
