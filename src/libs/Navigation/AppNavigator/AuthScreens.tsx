@@ -70,6 +70,7 @@ import MultifactorAuthenticationModalNavigator from './Navigators/MultifactorAut
 import OnboardingModalNavigator from './Navigators/OnboardingModalNavigator';
 import SubmitPlanWelcomeModalNavigator from './Navigators/SubmitPlanWelcomeModalNavigator';
 import TestToolsModalNavigator from './Navigators/TestToolsModalNavigator';
+import SubmitIntentDeeplinkHandler from './SubmitIntentDeeplinkHandler';
 import TestDriveDemoNavigator from './TestDriveDemoNavigator';
 import ThreeDSAuthHandler from './ThreeDSAuthHandler';
 import useModalCardStyleInterpolator from './useModalCardStyleInterpolator';
@@ -164,6 +165,7 @@ function AuthScreens() {
     return (
         <>
             <AuthScreensInitHandler />
+            <SubmitIntentDeeplinkHandler />
             <ThreeDSAuthHandler />
             <UserStatusHandler />
             <SupportalPermissionDeniedModal />
