@@ -3169,12 +3169,8 @@ function getAddExpenseDropdownOptions({
     lastDistanceExpenseType,
     currentUserAccountID,
 }: GetAddExpenseDropdownOptionsParams): Array<DropdownOption<ValueOf<typeof CONST.REPORT.ADD_EXPENSE_OPTIONS>>> {
-    // The iouReport being added to may belong to a different policy than the chat surrounding it is rendered in
-    // (e.g. a Teachers Unite expense report preview shown inside a non-Teachers-Unite chat), so check the
-    // iouReport's own policy rather than the surrounding `policy`.
     const isReportTeachersUnite = isTeachersUnitePolicyID(getReportOrDraftReport(iouReportID)?.policyID ?? policy?.id);
 
-    // Teachers Unite doesn't support reimbursement, so members can only add an expense via Split expense.
     if (isReportTeachersUnite) {
         return [
             {
@@ -10618,8 +10614,6 @@ function getMoneyRequestOptions(
     }
 
     if (canRequestMoney(report, policy, otherParticipants, currentUserAccountID)) {
-        // Teachers Unite doesn't support reimbursement, so members can only add an expense via Split expense:
-        // don't show Create Expense or Track distance (Track) for TU reports.
         if (!isTeachersUniteReportValue) {
             options = [...options, CONST.IOU.TYPE.SUBMIT];
             if (!filterDeprecatedTypes) {
