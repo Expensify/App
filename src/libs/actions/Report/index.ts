@@ -444,6 +444,7 @@ type AddAttachmentWithCommentParams = {
     delegateAccountID: number | undefined;
     sidePanelContext?: SidePanelContext;
     conciergeReportID: string | undefined;
+    conciergeThreadReportID?: string;
 };
 
 type MergeReportsProps = {
@@ -1290,6 +1291,7 @@ function addAttachmentWithComment({
     delegateAccountID,
     sidePanelContext,
     conciergeReportID,
+    conciergeThreadReportID,
 }: AddAttachmentWithCommentParams) {
     if (!report?.reportID) {
         return;
@@ -1316,6 +1318,7 @@ function addAttachmentWithComment({
             delegateAccountID,
             sidePanelContext,
             conciergeReportID,
+            conciergeThreadReportID,
         });
         handlePlaySound();
         return;

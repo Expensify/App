@@ -88,6 +88,10 @@ function useComposerSubmit(reportID: string) {
             clearAgentZeroProcessingIndicator(reportID, CONST.ACCOUNT_ID.CONCIERGE);
         }
 
+        // Concierge answers each question in its own thread. The side panel renders its own pinned report,
+        // so it stays in the DM rather than being sent to a thread it cannot show.
+        const shouldRespondInThread = reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD);
+
         if (attachmentFileRef.current) {
             addAttachmentWithComment({
                 report: targetReport,
@@ -102,6 +106,9 @@ function useComposerSubmit(reportID: string) {
                 delegateAccountID,
                 sidePanelContext,
                 conciergeReportID,
+
+                // A send with several attachments posts one message per attachment, so it stays in the DM.
+                conciergeThreadReportID: shouldRespondInThread && !Array.isArray(attachmentFileRef.current) ? generateReportID() : undefined,
             });
             attachmentFileRef.current = null;
             return;
@@ -197,10 +204,7 @@ function useComposerSubmit(reportID: string) {
             reportActionID: optimisticReportActionID,
             delegateAccountID,
             conciergeReportID,
-
-            // Concierge answers each question in its own thread. The side panel renders its own pinned report,
-            // so it stays in the DM rather than being sent to a thread it cannot show.
-            conciergeThreadReportID: reportID === conciergeReportID && !isInSidePanel && isBetaEnabled(CONST.BETAS.CONCIERGE_RESPOND_IN_THREAD) ? generateReportID() : undefined,
+            conciergeThreadReportID: shouldRespondInThread ? generateReportID() : undefined,
         });
     };
 
