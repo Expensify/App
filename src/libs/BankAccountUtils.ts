@@ -146,7 +146,7 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined, cu
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
         }
-        if (isConnectedViaPlaid(accountData)) {
+        if (!isConnectedViaPlaid(accountData)) {
             return {
                 requiresPlaidHandler: true,
                 labelKey: 'walletPage.bankAccountStatus.active',
