@@ -15,6 +15,7 @@ import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
+import {cleanupDatabaseSizeTracking, requestDatabaseSizeRemeasurement} from './databaseSizeTracker';
 import {setGlobalSpanAttribute} from './globalSpanAttributes';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
@@ -56,6 +57,7 @@ Onyx.connectWithoutView({
         }
         policies = value;
         sendPoliciesContext();
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -66,6 +68,7 @@ Onyx.connectWithoutView({
             return;
         }
         sendReportsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -76,6 +79,7 @@ Onyx.connectWithoutView({
             return;
         }
         sendPersonalDetailsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -86,6 +90,7 @@ Onyx.connectWithoutView({
             return;
         }
         sendTransactionsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -208,6 +213,7 @@ function initializeTelemetryTrackers() {
 function cleanupTelemetryTrackers() {
     cleanupMemoryTracking();
     cleanupCrashDiagnostics();
+    cleanupDatabaseSizeTracking();
 }
 
 export {initializeTelemetryTrackers, cleanupTelemetryTrackers};

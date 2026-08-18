@@ -2178,6 +2178,11 @@ const CONST = {
             REPORT_CREATION: 'report_creation',
             API_RESPONSE: 'api_response',
         },
+        DB_SIZE_SOURCE: {
+            SQLITE: 'sqlite',
+            INDEXED_DB: 'indexed_db',
+            UNAVAILABLE: 'unavailable',
+        },
         BUILD_TYPE_HYBRID_APP: 'hybrid_app',
         BUILD_TYPE_STANDALONE: 'standalone',
         // Span names
@@ -2259,6 +2264,8 @@ const CONST = {
         ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW: 'personal_details_count_raw',
         ATTRIBUTE_POLICIES_COUNT_RAW: 'policies_count_raw',
         ATTRIBUTE_TRANSACTIONS_COUNT_RAW: 'transactions_count_raw',
+        ATTRIBUTE_DB_SIZE_BYTES: 'db_size_bytes',
+        ATTRIBUTE_DB_SIZE_SOURCE: 'db_size_source',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
