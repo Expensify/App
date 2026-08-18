@@ -73,6 +73,7 @@ function ChatMessageContent({action, policyID, reportID, originalReportID, displ
             <AttachmentContext.Provider value={attachmentContextValue}>
                 {isEditingInline ? (
                     <ReportActionItemMessageEdit
+                        key={action.reportActionID}
                         action={action}
                         reportID={reportID}
                         originalReportID={originalReportID}
