@@ -56,6 +56,9 @@ type MoneyRequestReportViewProps = {
     /** The report */
     report: OnyxEntry<OnyxTypes.Report>;
 
+    /** Report ID from the route, known before the report itself loads */
+    reportIDFromRoute: string | undefined;
+
     /** Loading state for report */
     reportLoadingState: OnyxEntry<OnyxTypes.ReportLoadingState>;
 
@@ -110,7 +113,7 @@ function InitialLoadingSkeleton({styles, onLayout}: {styles: ThemeStyles; onLayo
     );
 }
 
-function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
+function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, shouldDisplayReportFooter, backToRoute, onLayout}: MoneyRequestReportViewProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
 
@@ -207,7 +210,8 @@ function MoneyRequestReportView({report, reportLoadingState, shouldDisplayReport
 
     const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
     const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
-    useMarkOpenReportEndOnSkeleton(reportID, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
+    // Route id, not report?.reportID: these skeletons render before the report lands in Onyx.
+    useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {
         return <InitialLoadingSkeleton styles={styles} />;
