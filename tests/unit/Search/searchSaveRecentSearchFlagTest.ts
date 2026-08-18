@@ -4,6 +4,9 @@ import {buildSearchQueryJSON} from '@libs/SearchQueryUtils';
 
 import CONST from '@src/CONST';
 
+import * as fs from 'fs';
+import * as path from 'path';
+
 jest.mock('@libs/API', () => ({
     makeRequestWithSideEffects: jest.fn(),
     waitForWrites: jest.fn(),
@@ -173,5 +176,31 @@ describe('search shouldSaveRecentSearch flag', () => {
 
         expect(mockedMakeRequestWithSideEffects.mock.calls).toHaveLength(2);
         expect(getLastRequestJsonQuery()).toEqual(expect.objectContaining({shouldCalculateTotals: true, shouldSaveRecentSearch: true}));
+    });
+
+    // The original bug was a wiring problem: programmatic callers looked identical to user submits.
+    // Guard the wiring statically so a future caller cannot re-flag a programmatic path unnoticed.
+    describe('call-site wiring', () => {
+        function collectSourceFiles(directory: string, collected: string[] = []): string[] {
+            for (const entry of fs.readdirSync(directory, {withFileTypes: true})) {
+                const fullPath = path.join(directory, entry.name);
+                if (entry.isDirectory()) {
+                    collectSourceFiles(fullPath, collected);
+                } else if (/\.tsx?$/.test(entry.name)) {
+                    collected.push(fullPath);
+                }
+            }
+            return collected;
+        }
+
+        it('only useSearchPageSetup passes shouldSaveRecentSearch: true', () => {
+            const sourceRoot = path.resolve(__dirname, '../../../src');
+            // The action file serializes the flag into the payload, so it legitimately contains the literal.
+            const definitionSite = path.join(sourceRoot, 'libs/actions/Search.ts');
+            const flaggedCallSites = collectSourceFiles(sourceRoot).filter(
+                (filePath) => filePath !== definitionSite && /shouldSaveRecentSearch:\s*true/.test(fs.readFileSync(filePath, 'utf8')),
+            );
+            expect(flaggedCallSites).toEqual([path.join(sourceRoot, 'hooks/useSearchPageSetup.ts')]);
+        });
     });
 });
