@@ -335,7 +335,6 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
-            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             // Ships as a warning while the synchronous read is still being introduced; promoted to an error once the first wave of conversions lands.
             'rulesdir/no-onyx-get-in-render': 'warn',
             // Companion to the rule above, which deliberately allows module scope. A module body is not a render body, but it is not
