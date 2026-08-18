@@ -2433,8 +2433,7 @@ const staticStyles = (theme: ThemeColors) =>
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
                 paddingRight: variables.avatarChatSpacing,
-                // Tighten the left gap so the text sits closer to the action button
-                paddingLeft: variables.avatarChatSpacing - 7,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
