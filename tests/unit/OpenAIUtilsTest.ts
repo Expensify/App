@@ -9,6 +9,8 @@ import type * as OpenAIModule from 'openai';
 const mockResponsesCreate = jest.fn();
 const mockConversationsCreate = jest.fn();
 const mockConversationItemsCreate = jest.fn();
+const mockConversationItemsList = jest.fn();
+const mockConversationItemsDelete = jest.fn();
 
 jest.mock('openai', () => {
     const actual = jest.requireActual<typeof OpenAIModule>('openai');
@@ -18,7 +20,10 @@ jest.mock('openai', () => {
         default: Object.assign(
             jest.fn().mockImplementation(() => ({
                 responses: {create: mockResponsesCreate},
-                conversations: {create: mockConversationsCreate, items: {create: mockConversationItemsCreate}},
+                conversations: {
+                    create: mockConversationsCreate,
+                    items: {create: mockConversationItemsCreate, list: mockConversationItemsList, delete: mockConversationItemsDelete},
+                },
             })),
             {APIError: actual.default.APIError},
         ),
@@ -119,6 +124,52 @@ describe('OpenAIUtils', () => {
             await openAI.addConversationItems('conv_1', items);
 
             expect(mockConversationItemsCreate).toHaveBeenCalledWith('conv_1', {items});
+        });
+    });
+
+    describe('listConversationItems', () => {
+        it('follows pagination and returns every item in order', async () => {
+            // The real client returns an async iterable that pages transparently, so the whole point of the
+            // method is that callers get one flat array rather than a first page.
+            mockConversationItemsList.mockReturnValueOnce({
+                async *[Symbol.asyncIterator]() {
+                    yield {id: 'item_1'};
+                    yield {id: 'item_2'};
+                    yield {id: 'item_3'};
+                },
+            });
+
+            const items = await openAI.listConversationItems('conv_1');
+
+            expect(items.map((item) => item.id)).toEqual(['item_1', 'item_2', 'item_3']);
+            expect(mockConversationItemsList).toHaveBeenCalledWith('conv_1');
+        });
+
+        it('returns an empty array for a conversation with no items', async () => {
+            mockConversationItemsList.mockReturnValueOnce({
+                // eslint-disable-next-line @typescript-eslint/no-empty-function
+                async *[Symbol.asyncIterator]() {},
+            });
+
+            await expect(openAI.listConversationItems('conv_1')).resolves.toEqual([]);
+        });
+    });
+
+    describe('deleteConversationItem', () => {
+        it('passes the item ID first and the conversation as an option, matching the API signature', async () => {
+            // This is the only method that destroys data, and the argument order is the easy thing to get
+            // backwards: swapping them would delete nothing and fail silently.
+            mockConversationItemsDelete.mockResolvedValueOnce({});
+
+            await openAI.deleteConversationItem('conv_1', 'item_1');
+
+            expect(mockConversationItemsDelete).toHaveBeenCalledWith('item_1', {conversation_id: 'conv_1'});
+        });
+
+        it('surfaces a failed delete rather than swallowing it', async () => {
+            mockConversationItemsDelete.mockRejectedValueOnce(new Error('item not found'));
+
+            await expect(openAI.deleteConversationItem('conv_1', 'item_1')).rejects.toThrow('item not found');
         });
     });
 

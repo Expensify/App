@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import isBotUser from '@github/libs/isBotUser';
-import isProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/isProposal';
 
 /**
  * Harvests real ProposalPolice cases out of Expensify/App into candidate fixtures for the offline

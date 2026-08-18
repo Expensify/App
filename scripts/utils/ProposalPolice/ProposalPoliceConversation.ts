@@ -1,5 +1,5 @@
 import isBotUser from '@github/libs/isBotUser';
-import isProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/isProposal';
 
 import {buildDuplicateCheckSeedItem} from '@prompts/proposalPolice/input';
 
@@ -10,13 +10,18 @@ import type {ResponseInputItem} from 'openai/resources/responses/responses';
  * The subset of a GitHub issue comment's fields this module needs. Deliberately narrower than
  * Octokit's full comment schema so callers (and tests) don't need to fabricate every field GitHub returns.
  */
+/* eslint-disable @typescript-eslint/naming-convention -- these match GitHub's REST API field names */
 type ProposalComment = {
     id: number;
     body?: string;
     user: {login?: string; type?: string} | null;
-    // eslint-disable-next-line @typescript-eslint/naming-convention -- matches GitHub's REST API field name
     created_at: string;
+    /** Linked in the withdrawal notice, so a contributor can read the proposal theirs duplicated. */
+    html_url: string;
+    /** The GraphQL ID, which is what `minimizeComment` takes. */
+    node_id: string;
 };
+/* eslint-enable @typescript-eslint/naming-convention */
 
 /**
  * Matches the hidden marker ProposalPolice stashes in its tracking comment on an issue, capturing the OpenAI Conversation ID.
@@ -43,7 +48,7 @@ function buildTrackingCommentBody(conversationID: string): string {
  */
 function findTrackedConversationID(comments: ProposalComment[]): string | undefined {
     for (const comment of comments) {
-        if (!comment.user || !isBotUser(comment.user.login ?? '', comment.user.type ?? '')) {
+        if (!isBotUser(comment.user?.login ?? '', comment.user?.type ?? '')) {
             continue;
         }
         const match = comment.body?.match(CONVERSATION_MARKER_REGEX);
@@ -60,10 +65,7 @@ function findTrackedConversationID(comments: ProposalComment[]): string | undefi
  */
 function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): ResponseInputItem[] {
     return comments
-        .filter(
-            (comment) =>
-                isProposal(comment.body) && !(comment.user && isBotUser(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt,
-        )
+        .filter((comment) => isProposal(comment.body) && !isBotUser(comment.user?.login ?? '', comment.user?.type ?? '') && new Date(comment.created_at).getTime() < beforeCreatedAt)
         .map((comment) => buildDuplicateCheckSeedItem(comment.body ?? '', comment.id, comment.user?.login ?? ''));
 }
 
@@ -73,7 +75,24 @@ function buildSeedItems(comments: ProposalComment[], beforeCreatedAt: number): R
  */
 function findConversationItemIDForComment(items: ConversationItem[], commentID: number): string | undefined {
     const tag = `comment_id="${commentID}"`;
-    return items.find((item) => item.type === 'message' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
+    return items.find((item) => item.type === 'message' && item.role === 'user' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
+}
+
+/**
+ * The model's own duplicate-check verdicts, which the Responses API persists alongside the proposals when
+ * a request names a conversation. Only the proposals are worth keeping: a verdict is a JSON score naming a
+ * comment ID, so left in place they pile up and go on describing proposals that have since been withdrawn
+ * or edited.
+ */
+function findVerdictItemIDs(items: ConversationItem[]): string[] {
+    const verdictItemIDs: string[] = [];
+    for (const item of items) {
+        if (item.type !== 'message' || item.role !== 'assistant' || !item.id) {
+            continue;
+        }
+        verdictItemIDs.push(item.id);
+    }
+    return verdictItemIDs;
 }
 
 /**
@@ -87,5 +106,14 @@ function chunkArray<T>(items: T[], size: number): T[][] {
     return chunks;
 }
 
-export {CONVERSATION_MARKER_REGEX, MAX_ITEMS_PER_CONVERSATION_REQUEST, buildTrackingCommentBody, findTrackedConversationID, buildSeedItems, findConversationItemIDForComment, chunkArray};
+export {
+    CONVERSATION_MARKER_REGEX,
+    MAX_ITEMS_PER_CONVERSATION_REQUEST,
+    buildTrackingCommentBody,
+    findTrackedConversationID,
+    buildSeedItems,
+    findConversationItemIDForComment,
+    findVerdictItemIDs,
+    chunkArray,
+};
 export type {ProposalComment};

@@ -1,12 +1,13 @@
 import CONST from '@github/libs/CONST';
 import GithubUtils from '@github/libs/GithubUtils';
 import isBotUser from '@github/libs/isBotUser';
-import isProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/isProposal';
 
 import {buildCommentIntentInput, buildDuplicateCheckInput, buildDuplicateCheckSeedItem, buildEditCheckInput} from '@prompts/proposalPolice/input';
 import {buildCommentIntentInstructions, buildDuplicateCheckInstructions, buildEditCheckInstructions} from '@prompts/proposalPolice/instructions';
 import {
     buildDuplicateCheckNoticeMessage,
+    buildJobClaimReminderMessage,
     buildSubstantiveEditMessage,
     buildTemplateReminderMessage,
     DUPLICATE_CHECK_WITHDRAW_MESSAGE,
@@ -30,6 +31,7 @@ import {
     chunkArray,
     findConversationItemIDForComment,
     findTrackedConversationID,
+    findVerdictItemIDs,
     MAX_ITEMS_PER_CONVERSATION_REQUEST,
 } from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
@@ -182,14 +184,20 @@ async function run() {
                 return;
             }
 
+            // Surfaced as a run annotation, not just a log line, so every comment this feature acts on is
+            // visible from the Actions list while we're still learning how the classifier behaves in the wild.
+            core.notice(`ProposalPolice classified comment ${commentID} by ${newProposalAuthor} as ${intent}`);
+
             if (intent === CONST.INTENT.SPAM) {
                 console.log('Comment claims this issue without offering any technical content, minimizing it as spam.', commentID);
                 await GithubUtils.minimizeCommentAsSpam(payload.comment.node_id);
             }
 
-            // Point the author at the template either way, so someone whose comment was collapsed still learns why
+            // Point the author at the template either way, so someone whose comment was collapsed still learns
+            // why. A spam comment proposed nothing, so it gets copy that doesn't thank them for a proposal.
             console.log('ProposalPolice™ commenting on issue...');
-            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, buildTemplateReminderMessage(newProposalAuthor));
+            const reminder = intent === CONST.INTENT.SPAM ? buildJobClaimReminderMessage(newProposalAuthor) : buildTemplateReminderMessage(newProposalAuthor);
+            await GithubUtils.createComment(CONST.APP_REPO, issueNumber, reminder);
             return;
         }
 
@@ -238,6 +246,14 @@ async function run() {
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
             core.endGroup();
 
+            // Naming a conversation persists the model's reply into it alongside the proposal. Only proposals
+            // belong in that history, so drop the verdicts before they accumulate and start describing
+            // proposals that have since been withdrawn or edited.
+            const conversationItems = await openAI.listConversationItems(conversationID);
+            for (const verdictItemID of findVerdictItemIDs(conversationItems)) {
+                await openAI.deleteConversationItem(conversationID, verdictItemID);
+            }
+
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
 
             // The reported match must still be a live proposal on this issue by someone else. The model can
@@ -272,7 +288,7 @@ async function run() {
                 // The duplicate-check call already appended this proposal to the Conversation. Leaving it
                 // there would let a later proposal match this withdrawn copy instead of the still-live
                 // original, and the guard above would then wave that later proposal through.
-                const withdrawnItemID = findConversationItemIDForComment(await openAI.listConversationItems(conversationID), commentID);
+                const withdrawnItemID = findConversationItemIDForComment(conversationItems, commentID);
                 if (withdrawnItemID) {
                     await openAI.deleteConversationItem(conversationID, withdrawnItemID);
                 }
@@ -296,10 +312,12 @@ async function run() {
     // A comment we already bannered must never be bannered again, which is the only thing the edit check
     // decides, so skip it. The proposal text can still have changed though, and without this the
     // Conversation would keep serving every future duplicate check the copy stored before this edit.
-    if (isCommentEditedEvent(payload) && payload.comment.body.trim().includes(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
+    // `startsWith` rather than `includes`, matching the ^-anchored regex used to strip it below: a comment
+    // that merely quotes the banner further down has not been flagged, and stripping would leave it in place.
+    if (isCommentEditedEvent(payload) && payload.comment.body.trim().startsWith(SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
         console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
         // Store the proposal itself, not the banner a previous run prepended to it
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.trim().replace(SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
         return;
     }
 

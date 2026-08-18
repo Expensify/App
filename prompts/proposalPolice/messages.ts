@@ -22,6 +22,14 @@ function buildTemplateReminderMessage(proposalAuthor: string | undefined): strin
     return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
 }
 
+/**
+ * For a comment that claimed the job without proposing anything. It has no proposal to update, so the
+ * reminder above would thank the author for work they didn't do.
+ */
+function buildJobClaimReminderMessage(commentAuthor: string | undefined): string {
+    return `⚠️ @${commentAuthor} Thanks for your interest. To be considered for this job, please post a proposal following the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1) (note the mandatory sections). Comments claiming the job without one are not reviewed.`;
+}
+
 function buildSubstantiveEditMessage(updatedTimestamp: string): string {
     return `${SUBSTANTIVE_EDIT_MESSAGE_PREFIX} This proposal was **edited** at ${updatedTimestamp}.`;
 }
@@ -35,6 +43,7 @@ export {
     SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
     SUBSTANTIVE_EDIT_MESSAGE_REGEX,
     buildTemplateReminderMessage,
+    buildJobClaimReminderMessage,
     buildSubstantiveEditMessage,
     buildDuplicateCheckNoticeMessage,
 };

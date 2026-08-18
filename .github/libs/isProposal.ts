@@ -8,7 +8,7 @@ function isProposal(body: string | null | undefined): boolean {
         return false;
     }
     const lowerCaseBody = body.toLowerCase();
-    return body.includes(CONST.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
+    return lowerCaseBody.includes(CONST.PROPOSAL_KEYWORD.toLowerCase()) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST.PROPOSAL_HEADER_B);
 }
 
 export default isProposal;

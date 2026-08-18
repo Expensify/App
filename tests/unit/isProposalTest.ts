@@ -1,7 +1,7 @@
 /**
  * @jest-environment node
  */
-import isProposal from '@github/libs/ProposalUtils';
+import isProposal from '@github/libs/isProposal';
 
 const ROOT_CAUSE_HEADER = '### What is the root cause of that problem?';
 const SOLUTION_HEADER = '### What changes do you think we should make in order to solve the problem?';
@@ -38,8 +38,15 @@ describe('isProposal', () => {
         expect(isProposal('## Proposal\nI think we should fix the login system. It is not working properly right now.')).toBe(false);
     });
 
-    it('requires the keyword to be capitalized, so ordinary prose about a proposal does not qualify', () => {
-        expect(isProposal(buildProposal('## proposal', ROOT_CAUSE_HEADER, 'cause', SOLUTION_HEADER, 'fix'))).toBe(false);
+    it('matches the keyword case-insensitively, like the section headers beside it', () => {
+        // A contributor who lowercases the heading has still followed the template. Requiring a capital P
+        // sent them to the intent classifier and then publicly told them to follow the template they used.
+        expect(isProposal(buildProposal('## proposal', ROOT_CAUSE_HEADER, 'cause', SOLUTION_HEADER, 'fix'))).toBe(true);
+        expect(isProposal(buildProposal('## PROPOSAL', ROOT_CAUSE_HEADER, 'cause', SOLUTION_HEADER, 'fix'))).toBe(true);
+    });
+
+    it('still rejects prose that mentions a proposal without the mandatory sections', () => {
+        expect(isProposal('I read the proposal above and I think the root cause is wrong.')).toBe(false);
     });
 
     it('matches the section headers case-insensitively', () => {

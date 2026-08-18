@@ -6,7 +6,7 @@ import {Str} from 'expensify-common';
 export default Str.dedent(`
     DUPLICATE PROPOSAL DETECTION:
 
-    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with comment_id and author attributes). Ignore every section except ROOT CAUSE and SOLUTION.
+    The proposal under review is the one in the LAST message of this conversation. Every earlier message is a prior proposal. Each is tagged with comment_id and author attributes. Compare the proposal under review against every prior proposal, ignoring every section except ROOT CAUSE and SOLUTION.
 
     Never report a prior proposal whose author attribute matches the new proposal's author. A contributor revising their own thinking in a later comment is not a duplicate. Score only the proposals by other authors.
 

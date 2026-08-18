@@ -2,27 +2,18 @@
 /**
  * @jest-environment node
  */
-import {buildSeedItems, buildTrackingCommentBody, chunkArray, findTrackedConversationID} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
-import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
+import {
+    buildSeedItems,
+    buildTrackingCommentBody,
+    chunkArray,
+    findConversationItemIDForComment,
+    findTrackedConversationID,
+    findVerdictItemIDs,
+} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
-const VALID_PROPOSAL_BODY = [
-    '## Proposal',
-    '',
-    '### What is the root cause of that problem?',
-    'Some root cause',
-    '',
-    '### What changes do you think we should make in order to solve the problem?',
-    'Some solution',
-].join('\n');
+import type {ConversationItem} from 'openai/resources/conversations/items';
 
-function makeComment(overrides: Partial<{id: number; body: string; login: string; type: string; created_at: string}> = {}): ProposalComment {
-    return {
-        id: overrides.id ?? 1,
-        body: overrides.body ?? VALID_PROPOSAL_BODY,
-        user: {login: overrides.login ?? 'contributor', type: overrides.type ?? 'User'},
-        created_at: overrides.created_at ?? '2026-01-01T00:00:00Z',
-    };
-}
+import {makeComment} from '../utils/proposalPoliceFixtures';
 
 describe('ProposalPoliceConversation', () => {
     describe('buildTrackingCommentBody / findTrackedConversationID', () => {
@@ -77,6 +68,41 @@ describe('ProposalPoliceConversation', () => {
             expect(items.at(0)).toMatchObject({content: expect.stringContaining('author="first-author"')});
             // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
             expect(items.at(1)).toMatchObject({content: expect.stringContaining('author="second-author"')});
+        });
+    });
+
+    describe('findConversationItemIDForComment / findVerdictItemIDs', () => {
+        function message(itemID: string, role: 'user' | 'assistant', text: string): ConversationItem {
+            return {id: itemID, type: 'message', role, status: 'completed', content: [{type: 'input_text', text}]};
+        }
+
+        const items: ConversationItem[] = [
+            message('item_a', 'user', '<proposal comment_id="11" author="first-author">\nfirst\n</proposal>'),
+            message('item_verdict', 'assistant', '{"similarity":95,"duplicateCommentID":11}'),
+            message('item_b', 'user', '<proposal comment_id="12" author="second-author">\nsecond\n</proposal>'),
+        ];
+
+        it('finds the item holding a given comment', () => {
+            expect(findConversationItemIDForComment(items, 11)).toBe('item_a');
+            expect(findConversationItemIDForComment(items, 12)).toBe('item_b');
+        });
+
+        it('returns undefined for a comment with nothing stored', () => {
+            expect(findConversationItemIDForComment(items, 999)).toBeUndefined();
+        });
+
+        it('never matches a verdict that happens to name the comment ID', () => {
+            // The verdict above contains `duplicateCommentID: 11`, so a match on text alone would delete the
+            // model's answer instead of the proposal it refers to.
+            expect(findConversationItemIDForComment(items.slice(1, 2), 11)).toBeUndefined();
+        });
+
+        it("finds the model's verdicts and nothing else", () => {
+            expect(findVerdictItemIDs(items)).toEqual(['item_verdict']);
+        });
+
+        it('finds no verdicts in a conversation of proposals alone', () => {
+            expect(findVerdictItemIDs([...items.slice(0, 1), ...items.slice(2, 3)])).toEqual([]);
         });
     });
 

@@ -5,7 +5,13 @@
 import run, {DUPLICATE_SIMILARITY_THRESHOLD, PROPOSAL_POLICE_MODEL} from '@github/actions/javascript/proposalPoliceComment/proposalPoliceComment';
 import GithubUtils from '@github/libs/GithubUtils';
 
-import {buildSubstantiveEditMessage, buildTemplateReminderMessage, DUPLICATE_CHECK_WITHDRAW_MESSAGE, SUBSTANTIVE_EDIT_MESSAGE_PREFIX} from '@prompts/proposalPolice/messages';
+import {
+    buildJobClaimReminderMessage,
+    buildSubstantiveEditMessage,
+    buildTemplateReminderMessage,
+    DUPLICATE_CHECK_WITHDRAW_MESSAGE,
+    SUBSTANTIVE_EDIT_MESSAGE_PREFIX,
+} from '@prompts/proposalPolice/messages';
 
 import OpenAIUtils from '@scripts/utils/OpenAIUtils';
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
@@ -14,15 +20,7 @@ import type {ConversationItem} from 'openai/resources/conversations/items';
 
 import {context} from '@actions/github';
 
-const VALID_PROPOSAL_BODY = [
-    '## Proposal',
-    '',
-    '### What is the root cause of that problem?',
-    'Some root cause',
-    '',
-    '### What changes do you think we should make in order to solve the problem?',
-    'Some solution',
-].join('\n');
+import {makeComment, VALID_PROPOSAL_BODY} from '../utils/proposalPoliceFixtures';
 
 // Self-contained (creates its own jest.fn()s rather than referencing outer variables) since imports
 // (including this mocked module's consumers) are hoisted above regular statements by the module system.
@@ -61,30 +59,17 @@ const mockMinimizeCommentAsSpam = MockedGithubUtils.minimizeCommentAsSpam;
 // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/no-explicit-any
 const mockUpdateComment = MockedGithubUtils.octokit.issues.updateComment as any as jest.Mock;
 
-type CommentOverrides = Partial<{id: number; body: string; login: string; type: string; created_at: string; html_url: string; node_id: string}>;
-
-function makeComment(overrides: CommentOverrides = {}): ProposalComment & {html_url: string; node_id: string} {
-    return {
-        id: overrides.id ?? 1,
-        body: overrides.body ?? VALID_PROPOSAL_BODY,
-        user: {login: overrides.login ?? 'contributor', type: overrides.type ?? 'User'},
-        created_at: overrides.created_at ?? '2026-01-01T00:00:00Z',
-        html_url: overrides.html_url ?? 'https://github.com/Expensify/App/issues/1#issuecomment-1',
-        node_id: overrides.node_id ?? `IC_node_${overrides.id ?? 1}`,
-    };
-}
-
 /**
  * `GithubUtils.getAllCommentDetails` really returns Octokit's full comment schema, but this suite only
  * ever reads the fields captured by `ProposalComment`, so its test fixtures omit the rest (avatar URLs,
  * node IDs, etc.) — hence the cast to bridge the narrower fixture shape to the mock's real return type.
  */
-function mockComments(comments: Array<ProposalComment & {html_url: string; node_id: string}>) {
+function mockComments(comments: ProposalComment[]) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
     mockGetAllCommentDetails.mockResolvedValue(comments as unknown as Awaited<ReturnType<typeof GithubUtils.getAllCommentDetails>>);
 }
 
-function setPayload(overrides: {action: 'created' | 'edited'; comment?: ProposalComment & {html_url: string; node_id: string}; changes?: {body?: {from?: string}}}) {
+function setPayload(overrides: {action: 'created' | 'edited'; comment?: ProposalComment; changes?: {body?: {from?: string}}}) {
     context.payload = {
         action: overrides.action,
         issue: {number: 1, state: 'open', labels: [{name: 'Help Wanted'}]},
@@ -211,7 +196,8 @@ describe('proposalPoliceComment', () => {
         await run();
 
         expect(mockMinimizeCommentAsSpam).toHaveBeenCalledWith('IC_node_77');
-        expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildTemplateReminderMessage('contributor'));
+        // Copy for a claim on the job, not the proposal reminder: they proposed nothing to update
+        expect(mockCreateComment).toHaveBeenCalledWith('App', 1, buildJobClaimReminderMessage('contributor'));
         // Minimizing collapses the comment; the body is never rewritten
         expect(mockUpdateComment).not.toHaveBeenCalled();
     });

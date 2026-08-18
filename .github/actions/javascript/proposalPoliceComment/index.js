@@ -39537,7 +39537,7 @@ exports.DUPLICATE_SIMILARITY_THRESHOLD = exports.PROPOSAL_POLICE_MODEL = void 0;
 const CONST_1 = __importDefault(__nccwpck_require__(29873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(19296));
 const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
-const ProposalUtils_1 = __importDefault(__nccwpck_require__(79816));
+const isProposal_1 = __importDefault(__nccwpck_require__(82008));
 const input_1 = __nccwpck_require__(46166);
 const instructions_1 = __nccwpck_require__(87405);
 const messages_1 = __nccwpck_require__(13913);
@@ -39586,7 +39586,7 @@ async function refreshStoredProposal(openAI, issueNumber, commentID, author, pro
     if (staleItemID) {
         await openAI.deleteConversationItem(trackedConversationID, staleItemID);
     }
-    if (!(0, ProposalUtils_1.default)(proposalBody)) {
+    if (!(0, isProposal_1.default)(proposalBody)) {
         console.log('Comment is no longer a proposal, so it is not being recorded for duplicate checks.', commentID);
         return;
     }
@@ -39629,7 +39629,7 @@ async function run() {
     // that merely mentions the word "Proposal" would otherwise come back as a substantial edit and get
     // the bot's banner prepended. Either side being a proposal is enough: an edit can add the template
     // to a comment that lacked it, or strip it from one that had it.
-    if (isCommentEditedEvent(payload) && !(0, ProposalUtils_1.default)(payload.changes.body?.from) && !(0, ProposalUtils_1.default)(payload.comment?.body)) {
+    if (isCommentEditedEvent(payload) && !(0, isProposal_1.default)(payload.changes.body?.from) && !(0, isProposal_1.default)(payload.comment?.body)) {
         console.log('Edited comment is not a proposal, skipping the edit check.');
         return;
     }
@@ -39651,7 +39651,7 @@ async function run() {
         const newProposalAuthor = payload.comment.user.login;
         // Whether a comment follows the template is a definition, not a judgment, so it's decided here
         // rather than by the model. Only what's left over needs classifying, which is a judgment call.
-        if (!(0, ProposalUtils_1.default)(newProposalBody)) {
+        if (!(0, isProposal_1.default)(newProposalBody)) {
             console.log('Comment does not follow the proposal template. Classifying what it is trying to do...');
             const intentResponse = await openAI.promptResponses({
                 instructions: (0, instructions_1.buildCommentIntentInstructions)(),
@@ -39669,13 +39669,18 @@ async function run() {
                 console.log('Comment is not an attempt to claim or solve this issue, leaving it alone.');
                 return;
             }
+            // Surfaced as a run annotation, not just a log line, so every comment this feature acts on is
+            // visible from the Actions list while we're still learning how the classifier behaves in the wild.
+            core.notice(`ProposalPolice classified comment ${commentID} by ${newProposalAuthor} as ${intent}`);
             if (intent === CONST_1.default.INTENT.SPAM) {
                 console.log('Comment claims this issue without offering any technical content, minimizing it as spam.', commentID);
                 await GithubUtils_1.default.minimizeCommentAsSpam(payload.comment.node_id);
             }
-            // Point the author at the template either way, so someone whose comment was collapsed still learns why
+            // Point the author at the template either way, so someone whose comment was collapsed still learns
+            // why. A spam comment proposed nothing, so it gets copy that doesn't thank them for a proposal.
             console.log('ProposalPolice™ commenting on issue...');
-            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, (0, messages_1.buildTemplateReminderMessage)(newProposalAuthor));
+            const reminder = intent === CONST_1.default.INTENT.SPAM ? (0, messages_1.buildJobClaimReminderMessage)(newProposalAuthor) : (0, messages_1.buildTemplateReminderMessage)(newProposalAuthor);
+            await GithubUtils_1.default.createComment(CONST_1.default.APP_REPO, issueNumber, reminder);
             return;
         }
         console.log('Starting DUPLICATE PROPOSAL DETECTION Check');
@@ -39718,13 +39723,20 @@ async function run() {
             core.startGroup('Parsed Duplicate Check Response');
             console.log('parsedDuplicateCheckResponse: ', parsedDuplicateCheckResponse);
             core.endGroup();
+            // Naming a conversation persists the model's reply into it alongside the proposal. Only proposals
+            // belong in that history, so drop the verdicts before they accumulate and start describing
+            // proposals that have since been withdrawn or edited.
+            const conversationItems = await openAI.listConversationItems(conversationID);
+            for (const verdictItemID of (0, ProposalPoliceConversation_1.findVerdictItemIDs)(conversationItems)) {
+                await openAI.deleteConversationItem(conversationID, verdictItemID);
+            }
             const similarityPercentage = parsedDuplicateCheckResponse?.similarity ?? 0;
             // The reported match must still be a live proposal on this issue by someone else. The model can
             // name a comment that has since been withdrawn or edited into a different solution, it can invent
             // an ID outright, and it can ignore the instruction to skip the author's own prior proposals.
             // Withdrawing on any of those would destroy a contributor's legitimate work, so an unresolvable
             // match is treated as "not a duplicate" rather than trusted.
-            const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && comment.user?.login !== newProposalAuthor && (0, ProposalUtils_1.default)(comment.body));
+            const originalProposal = commentsResponse.find((comment) => comment.id === parsedDuplicateCheckResponse?.duplicateCommentID && comment.id !== commentID && comment.user?.login !== newProposalAuthor && (0, isProposal_1.default)(comment.body));
             if (similarityPercentage >= DUPLICATE_SIMILARITY_THRESHOLD && !originalProposal) {
                 console.log(`Reported duplicate of comment ${parsedDuplicateCheckResponse?.duplicateCommentID} scored ${similarityPercentage}% but is no longer a live proposal, so keeping this one.`);
             }
@@ -39744,7 +39756,7 @@ async function run() {
                 // The duplicate-check call already appended this proposal to the Conversation. Leaving it
                 // there would let a later proposal match this withdrawn copy instead of the still-live
                 // original, and the guard above would then wave that later proposal through.
-                const withdrawnItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(await openAI.listConversationItems(conversationID), commentID);
+                const withdrawnItemID = (0, ProposalPoliceConversation_1.findConversationItemIDForComment)(conversationItems, commentID);
                 if (withdrawnItemID) {
                     await openAI.deleteConversationItem(conversationID, withdrawnItemID);
                 }
@@ -39766,10 +39778,12 @@ async function run() {
     // A comment we already bannered must never be bannered again, which is the only thing the edit check
     // decides, so skip it. The proposal text can still have changed though, and without this the
     // Conversation would keep serving every future duplicate check the copy stored before this edit.
-    if (isCommentEditedEvent(payload) && payload.comment.body.trim().includes(messages_1.SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
+    // `startsWith` rather than `includes`, matching the ^-anchored regex used to strip it below: a comment
+    // that merely quotes the banner further down has not been flagged, and stripping would leave it in place.
+    if (isCommentEditedEvent(payload) && payload.comment.body.trim().startsWith(messages_1.SUBSTANTIVE_EDIT_MESSAGE_PREFIX)) {
         console.log('Comment was already edited by proposal-police once, so only refreshing its recorded copy.\n', payload.comment.body);
         // Store the proposal itself, not the banner a previous run prepended to it
-        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.replace(messages_1.SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
+        await refreshStoredProposal(openAI, issueNumber, commentID, payload.comment.user.login, payload.comment.body.trim().replace(messages_1.SUBSTANTIVE_EDIT_MESSAGE_REGEX, ''));
         return;
     }
     const response = await openAI.promptResponses({
@@ -40360,31 +40374,6 @@ exports["default"] = GithubUtils;
 
 /***/ }),
 
-/***/ 79816:
-/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
-
-"use strict";
-
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-Object.defineProperty(exports, "__esModule", ({ value: true }));
-const CONST_1 = __importDefault(__nccwpck_require__(29873));
-/**
- * Checks if a comment body matches the criteria for a Proposal.
- */
-function isProposal(body) {
-    if (!body) {
-        return false;
-    }
-    const lowerCaseBody = body.toLowerCase();
-    return body.includes(CONST_1.default.PROPOSAL_KEYWORD) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
-}
-exports["default"] = isProposal;
-
-
-/***/ }),
-
 /***/ 37887:
 /***/ ((__unused_webpack_module, exports) => {
 
@@ -40403,6 +40392,31 @@ function isBotUser(login, actorType) {
     return KNOWN_BOT_USERS.has(login);
 }
 exports["default"] = isBotUser;
+
+
+/***/ }),
+
+/***/ 82008:
+/***/ (function(__unused_webpack_module, exports, __nccwpck_require__) {
+
+"use strict";
+
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", ({ value: true }));
+const CONST_1 = __importDefault(__nccwpck_require__(29873));
+/**
+ * Checks if a comment body matches the criteria for a Proposal.
+ */
+function isProposal(body) {
+    if (!body) {
+        return false;
+    }
+    const lowerCaseBody = body.toLowerCase();
+    return lowerCaseBody.includes(CONST_1.default.PROPOSAL_KEYWORD.toLowerCase()) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_A) && lowerCaseBody.includes(CONST_1.default.PROPOSAL_HEADER_B);
+}
+exports["default"] = isProposal;
 
 
 /***/ }),
@@ -40608,7 +40622,7 @@ const expensify_common_1 = __nccwpck_require__(64851);
 exports["default"] = expensify_common_1.Str.dedent(`
     DUPLICATE PROPOSAL DETECTION:
 
-    Compare the new proposal against every prior proposal already in this conversation (each was posted as its own message tagged with comment_id and author attributes). Ignore every section except ROOT CAUSE and SOLUTION.
+    The proposal under review is the one in the LAST message of this conversation. Every earlier message is a prior proposal. Each is tagged with comment_id and author attributes. Compare the proposal under review against every prior proposal, ignoring every section except ROOT CAUSE and SOLUTION.
 
     Never report a prior proposal whose author attribute matches the new proposal's author. A contributor revising their own thinking in a later comment is not a duplicate. Score only the proposals by other authors.
 
@@ -40706,12 +40720,13 @@ exports.buildEditCheckInput = buildEditCheckInput;
 exports.buildDuplicateCheckInput = buildDuplicateCheckInput;
 exports.buildDuplicateCheckSeedItem = buildDuplicateCheckSeedItem;
 /**
- * Escapes angle brackets in untrusted comment/proposal text before it's interpolated into our
- * XML-style wrapper tags, so a comment containing a literal `</new_proposal>` (or similar) can't be
- * mistaken by the model for the end of our own wrapper.
+ * Escapes the characters that carry meaning in our XML-style wrapper tags, before untrusted
+ * comment/proposal text is interpolated into them. Angle brackets so a body containing a literal
+ * `</proposal>` can't be mistaken for the end of our own wrapper, and quotes so neither a body nor a
+ * login can close an attribute and forge a `comment_id` or `author` the model would then believe.
  */
 function escapeForXMLWrapper(text) {
-    return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+    return text.replaceAll('<', '&lt;').replaceAll('>', '&gt;').replaceAll('"', '&quot;');
 }
 /**
  * Build the user input for a comment-intent request (a newly created comment).
@@ -40726,20 +40741,23 @@ function buildEditCheckInput(previousBody, editedBody) {
     return ['<edit>', `<original>\n${escapeForXMLWrapper(previousBody ?? '')}\n</original>`, `<edited>\n${escapeForXMLWrapper(editedBody)}\n</edited>`, '</edit>'].join('\n');
 }
 /**
- * Build the user input for a duplicate-check request: the new proposal, tagged with its comment ID
- * so the model can report back which prior proposal (if any) it duplicates.
+ * Build the user input for a duplicate-check request. The request is sent against the issue's
+ * Conversation, so this text is persisted there and becomes one of the prior proposals a later request
+ * compares against. It therefore uses the same tag as a seeded proposal: the model is told the last
+ * message is the one under review, which keeps history uniform instead of leaving it strewn with
+ * messages that each claim to be the new proposal.
  */
-function buildDuplicateCheckInput(newProposalBody, commentID, author) {
-    return `<new_proposal comment_id="${commentID}" author="${escapeForXMLWrapper(author)}">\n${escapeForXMLWrapper(newProposalBody)}\n</new_proposal>`;
+function buildDuplicateCheckInput(proposalBody, commentID, author) {
+    return `<proposal comment_id="${commentID}" author="${escapeForXMLWrapper(author)}">\n${escapeForXMLWrapper(proposalBody)}\n</proposal>`;
 }
 /**
- * Build a conversation item representing a prior proposal, used only to seed a duplicate-check
- * conversation with proposals that predate it.
+ * Build a conversation item representing a prior proposal, used to seed a duplicate-check conversation
+ * with proposals that predate it and to re-record one whose comment was edited.
  */
 function buildDuplicateCheckSeedItem(proposalBody, commentID, author) {
     return {
         role: 'user',
-        content: `<proposal comment_id="${commentID}" author="${escapeForXMLWrapper(author)}">\n${escapeForXMLWrapper(proposalBody)}\n</proposal>`,
+        content: buildDuplicateCheckInput(proposalBody, commentID, author),
     };
 }
 
@@ -40824,6 +40842,7 @@ function buildDuplicateCheckInstructions() {
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.SUBSTANTIVE_EDIT_MESSAGE_REGEX = exports.SUBSTANTIVE_EDIT_MESSAGE_PREFIX = exports.DUPLICATE_CHECK_WITHDRAW_MESSAGE = void 0;
 exports.buildTemplateReminderMessage = buildTemplateReminderMessage;
+exports.buildJobClaimReminderMessage = buildJobClaimReminderMessage;
 exports.buildSubstantiveEditMessage = buildSubstantiveEditMessage;
 exports.buildDuplicateCheckNoticeMessage = buildDuplicateCheckNoticeMessage;
 const DUPLICATE_CHECK_WITHDRAW_MESSAGE = '#### 🚫 Duplicated proposal withdrawn by 🤖 ProposalPolice.';
@@ -40843,6 +40862,13 @@ const SUBSTANTIVE_EDIT_MESSAGE_REGEX = /^🚨 Edited by \*\*proposal-police\*\*:
 exports.SUBSTANTIVE_EDIT_MESSAGE_REGEX = SUBSTANTIVE_EDIT_MESSAGE_REGEX;
 function buildTemplateReminderMessage(proposalAuthor) {
     return `⚠️ @${proposalAuthor} Thanks for your proposal. Please update it to follow the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1), as proposals are only reviewed if they follow that format (note the mandatory sections).`;
+}
+/**
+ * For a comment that claimed the job without proposing anything. It has no proposal to update, so the
+ * reminder above would thank the author for work they didn't do.
+ */
+function buildJobClaimReminderMessage(commentAuthor) {
+    return `⚠️ @${commentAuthor} Thanks for your interest. To be considered for this job, please post a proposal following the [proposal template](https://github.com/Expensify/App/blob/main/contributingGuides/PROPOSAL_TEMPLATE.md?plain=1) (note the mandatory sections). Comments claiming the job without one are not reviewed.`;
 }
 function buildSubstantiveEditMessage(updatedTimestamp) {
     return `${SUBSTANTIVE_EDIT_MESSAGE_PREFIX} This proposal was **edited** at ${updatedTimestamp}.`;
@@ -40928,27 +40954,27 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT = {
 };
 exports.DUPLICATE_CHECK_RESPONSE_FORMAT = DUPLICATE_CHECK_RESPONSE_FORMAT;
 function isCommentIntentResponse(value) {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('intent' in value)) {
         return false;
     }
     const { intent } = value;
     return intent === CONST_1.default.INTENT.NOT_AN_ATTEMPT || intent === CONST_1.default.INTENT.GENUINE_ATTEMPT || intent === CONST_1.default.INTENT.SPAM;
 }
 function isEditCheckResponse(value) {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('action' in value)) {
         return false;
     }
     const { action } = value;
     return action === CONST_1.default.NO_ACTION || action === CONST_1.default.ACTION_EDIT;
 }
 function isDuplicateCheckResponse(value) {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('similarity' in value) || !('duplicateCommentID' in value)) {
         return false;
     }
     const { similarity, duplicateCommentID } = value;
     // Require the declared 0-100 integer scale, so a rescaled score (e.g. 0.95 on a 0-1 scale) is rejected
     // outright rather than silently comparing below the duplicate threshold and reading as "not a duplicate".
-    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
+    return typeof similarity === 'number' && Number.isInteger(similarity) && similarity >= 0 && similarity <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
 }
 
 
@@ -41144,10 +41170,12 @@ exports.buildTrackingCommentBody = buildTrackingCommentBody;
 exports.findTrackedConversationID = findTrackedConversationID;
 exports.buildSeedItems = buildSeedItems;
 exports.findConversationItemIDForComment = findConversationItemIDForComment;
+exports.findVerdictItemIDs = findVerdictItemIDs;
 exports.chunkArray = chunkArray;
 const isBotUser_1 = __importDefault(__nccwpck_require__(37887));
-const ProposalUtils_1 = __importDefault(__nccwpck_require__(79816));
+const isProposal_1 = __importDefault(__nccwpck_require__(82008));
 const input_1 = __nccwpck_require__(46166);
+/* eslint-enable @typescript-eslint/naming-convention */
 /**
  * Matches the hidden marker ProposalPolice stashes in its tracking comment on an issue, capturing the OpenAI Conversation ID.
  */
@@ -41172,7 +41200,7 @@ function buildTrackingCommentBody(conversationID) {
  */
 function findTrackedConversationID(comments) {
     for (const comment of comments) {
-        if (!comment.user || !(0, isBotUser_1.default)(comment.user.login ?? '', comment.user.type ?? '')) {
+        if (!(0, isBotUser_1.default)(comment.user?.login ?? '', comment.user?.type ?? '')) {
             continue;
         }
         const match = comment.body?.match(CONVERSATION_MARKER_REGEX);
@@ -41188,7 +41216,7 @@ function findTrackedConversationID(comments) {
  */
 function buildSeedItems(comments, beforeCreatedAt) {
     return comments
-        .filter((comment) => (0, ProposalUtils_1.default)(comment.body) && !(comment.user && (0, isBotUser_1.default)(comment.user.login ?? '', comment.user.type ?? '')) && new Date(comment.created_at).getTime() < beforeCreatedAt)
+        .filter((comment) => (0, isProposal_1.default)(comment.body) && !(0, isBotUser_1.default)(comment.user?.login ?? '', comment.user?.type ?? '') && new Date(comment.created_at).getTime() < beforeCreatedAt)
         .map((comment) => (0, input_1.buildDuplicateCheckSeedItem)(comment.body ?? '', comment.id, comment.user?.login ?? ''));
 }
 /**
@@ -41197,7 +41225,23 @@ function buildSeedItems(comments, beforeCreatedAt) {
  */
 function findConversationItemIDForComment(items, commentID) {
     const tag = `comment_id="${commentID}"`;
-    return items.find((item) => item.type === 'message' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
+    return items.find((item) => item.type === 'message' && item.role === 'user' && item.content.some((part) => 'text' in part && part.text.includes(tag)))?.id;
+}
+/**
+ * The model's own duplicate-check verdicts, which the Responses API persists alongside the proposals when
+ * a request names a conversation. Only the proposals are worth keeping: a verdict is a JSON score naming a
+ * comment ID, so left in place they pile up and go on describing proposals that have since been withdrawn
+ * or edited.
+ */
+function findVerdictItemIDs(items) {
+    const verdictItemIDs = [];
+    for (const item of items) {
+        if (item.type !== 'message' || item.role !== 'assistant' || !item.id) {
+            continue;
+        }
+        verdictItemIDs.push(item.id);
+    }
+    return verdictItemIDs;
 }
 /**
  * Split an array into chunks of at most `size` items.

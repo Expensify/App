@@ -75,29 +75,29 @@ const DUPLICATE_CHECK_RESPONSE_FORMAT: ResponseFormatTextJSONSchemaConfig = {
 };
 
 function isCommentIntentResponse(value: unknown): value is CommentIntentResponse {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('intent' in value)) {
         return false;
     }
-    const {intent} = value as Partial<CommentIntentResponse>;
+    const {intent} = value;
     return intent === CONST.INTENT.NOT_AN_ATTEMPT || intent === CONST.INTENT.GENUINE_ATTEMPT || intent === CONST.INTENT.SPAM;
 }
 
 function isEditCheckResponse(value: unknown): value is EditCheckResponse {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('action' in value)) {
         return false;
     }
-    const {action} = value as Partial<EditCheckResponse>;
+    const {action} = value;
     return action === CONST.NO_ACTION || action === CONST.ACTION_EDIT;
 }
 
 function isDuplicateCheckResponse(value: unknown): value is DuplicateCheckResponse {
-    if (typeof value !== 'object' || value === null) {
+    if (typeof value !== 'object' || value === null || !('similarity' in value) || !('duplicateCommentID' in value)) {
         return false;
     }
-    const {similarity, duplicateCommentID} = value as Partial<DuplicateCheckResponse>;
+    const {similarity, duplicateCommentID} = value;
     // Require the declared 0-100 integer scale, so a rescaled score (e.g. 0.95 on a 0-1 scale) is rejected
     // outright rather than silently comparing below the duplicate threshold and reading as "not a duplicate".
-    return Number.isInteger(similarity) && (similarity ?? -1) >= 0 && (similarity ?? -1) <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
+    return typeof similarity === 'number' && Number.isInteger(similarity) && similarity >= 0 && similarity <= 100 && (duplicateCommentID === null || typeof duplicateCommentID === 'number');
 }
 
 export {COMMENT_INTENT_RESPONSE_FORMAT, EDIT_CHECK_RESPONSE_FORMAT, DUPLICATE_CHECK_RESPONSE_FORMAT, isCommentIntentResponse, isEditCheckResponse, isDuplicateCheckResponse};
