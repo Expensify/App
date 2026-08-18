@@ -18,6 +18,7 @@ import PressableWithSecondaryInteraction from '@components/PressableWithSecondar
 import RadioButton from '@components/RadioButton';
 import RenderHTML from '@components/RenderHTML';
 import ReportActionAvatars from '@components/ReportActionAvatars';
+import {useSurfaceBackgroundColor} from '@components/SurfaceBackgroundColorContext';
 import Text from '@components/Text';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
 import getContextMenuAccessibilityHint from '@components/utils/getContextMenuAccessibilityHint';
@@ -314,6 +315,9 @@ type MenuItemBaseProps = ForwardedFSClassProps &
         /** Should we remove the hover background color of the menu item */
         shouldRemoveHoverBackground?: boolean;
 
+        /** The background color the row sits on. The hover color is derived one product step darker (defaults to appBG) */
+        backgroundColor?: string;
+
         rightIconAccountID?: number | string;
 
         iconAccountID?: number;
@@ -577,6 +581,7 @@ function MenuItem({
     shouldGreyOutWhenDisabled = true,
     shouldRemoveBackground = false,
     shouldRemoveHoverBackground = false,
+    backgroundColor,
     shouldUseDefaultCursorWhenDisabled = false,
     shouldShowLoadingSpinnerIcon = false,
     isAnonymousAction = false,
@@ -634,6 +639,7 @@ function MenuItem({
     const {translate} = useLocalize();
     const theme = useTheme();
     const styles = useThemeStyles();
+    const surfaceBackgroundColor = useSurfaceBackgroundColor();
     const StyleUtils = useStyleUtils();
     const combinedStyle = [styles.popoverMenuItem, style];
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
@@ -888,7 +894,13 @@ function MenuItem({
                                             StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || isHovered, false, success, disabled, interactive), true),
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
-                                        isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
+                                        isHovered &&
+                                            interactive &&
+                                            !focused &&
+                                            !pressed &&
+                                            !shouldRemoveBackground &&
+                                            !shouldRemoveHoverBackground &&
+                                            StyleUtils.getRowHoverBackgroundColorStyle(backgroundColor ?? surfaceBackgroundColor ?? theme.appBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
