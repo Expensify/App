@@ -11,6 +11,7 @@ import RenderHTML from '@components/RenderHTML';
 
 import useActiveAdminPolicies from '@hooks/useActiveAdminPolicies';
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLastWorkspaceNumber from '@hooks/useLastWorkspaceNumber';
@@ -118,6 +119,7 @@ function SettlementButton({
     const icons = useMemoizedLazyExpensifyIcons(['CheckCircle', 'ThumbsUp', 'Bank', 'Cash', 'Wallet', 'Building', 'User', 'ArrowRight']);
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const expenseReportPolicy = usePolicy(iouReport?.policyID);
@@ -517,6 +519,7 @@ function SettlementButton({
                 confirmApproval();
             } else {
                 approveMoneyRequest({
+                    getCurrencyDecimals,
                     expenseReport: iouReport,
                     expenseReportPolicy,
                     currentUserAccountIDParam: accountID,

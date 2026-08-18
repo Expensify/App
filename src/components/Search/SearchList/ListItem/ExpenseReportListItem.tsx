@@ -1,3 +1,4 @@
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {
@@ -108,12 +109,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
-    const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
-    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {selector: isActionLoadingSelector});
+    const [isActionLoading] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`, {
+        selector: isActionLoadingSelector,
+    });
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const currentUserDetails = useCurrentUserPersonalDetails();
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
@@ -122,7 +125,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [parentPolicy] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [parentReport] = originalUseOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
-    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
+        selector: personalDetailsLoginSelector(reportItem.ownerAccountID),
+    });
 
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
@@ -235,7 +240,9 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // hydrate into the live collection, rule/category changes still push violation updates that must
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
-    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
+    const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {
+        selector: transactionViolationsByIDsSelector(snapshotTransactionIDs),
+    });
     const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
         useReportPaymentContext({
             chatReportPolicyID: chatReport?.policyID,
@@ -243,6 +250,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
@@ -301,6 +309,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         consumeIgnoreNextSearchSubmitPress,
         showConfirmModal,
         translate,
+        getCurrencyDecimals,
         currentUserAccountID,
         currentUserLogin,
         introSelected,
@@ -329,7 +338,11 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             isSelected && styles.activeComponentBG,
             styles.mh0,
             isPendingDelete && styles.cursorDisabled,
-            isLargeScreenWidth ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {vertical: variables.tableRowPaddingVertical}) : styles.noBorderRadius,
+            isLargeScreenWidth
+                ? StyleUtils.getSearchTableRowPressableStyle(!!isLastItem, isSelected, {
+                      vertical: variables.tableRowPaddingVertical,
+                  })
+                : styles.noBorderRadius,
             !isLargeScreenWidth && isFirstItem && [styles.tableTopRadius, styles.overflowHidden],
             !isLargeScreenWidth && isLastItem && [styles.tableBottomRadius, styles.overflowHidden],
         ],
@@ -427,7 +440,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     ]);
 
     // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
-    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString});
+    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, dateFnsLocale, convertToDisplayString});
 
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
@@ -474,25 +487,26 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isSelected={isSelected}
                         />
                     )}
-                    <ExpenseReportListItemRow
-                        item={liveReportItem}
-                        columns={columns}
-                        reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
-                        showTooltip={showTooltip}
-                        canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={handleSelectionButtonPress}
-                        onButtonPress={handleOnButtonPress}
-                        chatReport={chatReport}
-                        isSelectAllChecked={isSelected}
-                        isIndeterminate={false}
-                        isDisabledCheckbox={isDisabledCheckbox}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        isPendingDelete={isPendingDelete}
-                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                        isMarkAsDone={shouldUseMarkAsDoneCopy}
-                    />
+                    <AvatarTooltipsProvider isEnabled={showTooltip}>
+                        <ExpenseReportListItemRow
+                            item={liveReportItem}
+                            columns={columns}
+                            reportActions={reportActions}
+                            isActionLoading={isActionLoading ?? isLoading}
+                            canSelectMultiple={canSelectMultiple}
+                            onCheckboxPress={handleSelectionButtonPress}
+                            onButtonPress={handleOnButtonPress}
+                            chatReport={chatReport}
+                            isSelectAllChecked={isSelected}
+                            isIndeterminate={false}
+                            isDisabledCheckbox={isDisabledCheckbox}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            isPendingDelete={isPendingDelete}
+                            shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                            isMarkAsDone={shouldUseMarkAsDoneCopy}
+                        />
+                    </AvatarTooltipsProvider>
                     {getDescription}
                 </View>
             )}

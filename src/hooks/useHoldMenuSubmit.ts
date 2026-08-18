@@ -15,6 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 
+import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
 import useDelegateAccountID from './useDelegateAccountID';
 import useOnyx from './useOnyx';
@@ -48,6 +49,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
     const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const currentUserDetails = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const delegateAccountID = useDelegateAccountID();
 
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -68,6 +70,7 @@ function useHoldMenuSubmit({moneyRequestReport, chatReport, paymentType, methodI
             const currentMoneyRequestReport = getReportOrDraftReport(moneyRequestReport?.reportID) ?? moneyRequestReport;
             const currentChatReport = getReportOrDraftReport(chatReport?.reportID) ?? chatReport;
             payMoneyRequest({
+                getCurrencyDecimals,
                 paymentType,
                 chatReport: currentChatReport,
                 iouReport: currentMoneyRequestReport,

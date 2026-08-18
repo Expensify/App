@@ -1,0 +1,92 @@
+diff --git a/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.mts b/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.mts
+index 9215119..88fa896 100644
+--- a/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.mts
++++ b/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.mts
+@@ -298,6 +298,41 @@ interface SeatbeltConfig {
+      * ```
+      */
+     disable?: boolean;
++    /**
++     * When `true`, seatbelt validates error counts (still reporting increases)
++     * but never writes the seatbelt file. Keeps the worktree clean in local /
++     * editor runs; expect an authoritative updater (e.g. post-merge CI) to run
++     * with `readOnly: false`.
++     *
++     * Unlike `frozen`, does not turn decreases into errors. If both are set,
++     * `frozen` messaging is preserved and no write occurs.
++     *
++     * `SEATBELT_INCREASE` overrides this so intentional loosening is persisted.
++     *
++     * Defaults to `false`.
++     *
++     * Set via `SEATBELT_READ_ONLY` env var:
++     *
++     * ```bash
++     * SEATBELT_READ_ONLY=1 eslint
++     * ```
++     *
++     * Or in ESLint config:
++     *
++     * ```js
++     * // in eslint.config.js
++     * const config = [
++     *   {
++     *     settings: {
++     *       seatbelt: {
++     *         readOnly: !process.env.CI,
++     *       }
++     *     }
++     *   }
++     * ]
++     * ```
++     */
++    readOnly?: boolean;
+     /**
+      * Suppress seatbelt's informational warning messages (e.g. "tend the garden",
+      * "thank you for fixing"). When enabled, seatbelt still downgrades errors to
+diff --git a/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.ts b/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.ts
+index 9215119..88fa896 100644
+--- a/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.ts
++++ b/node_modules/eslint-seatbelt/dist/SeatbeltConfig-CvuyHBlj.d.ts
+@@ -298,6 +298,41 @@ interface SeatbeltConfig {
+      * ```
+      */
+     disable?: boolean;
++    /**
++     * When `true`, seatbelt validates error counts (still reporting increases)
++     * but never writes the seatbelt file. Keeps the worktree clean in local /
++     * editor runs; expect an authoritative updater (e.g. post-merge CI) to run
++     * with `readOnly: false`.
++     *
++     * Unlike `frozen`, does not turn decreases into errors. If both are set,
++     * `frozen` messaging is preserved and no write occurs.
++     *
++     * `SEATBELT_INCREASE` overrides this so intentional loosening is persisted.
++     *
++     * Defaults to `false`.
++     *
++     * Set via `SEATBELT_READ_ONLY` env var:
++     *
++     * ```bash
++     * SEATBELT_READ_ONLY=1 eslint
++     * ```
++     *
++     * Or in ESLint config:
++     *
++     * ```js
++     * // in eslint.config.js
++     * const config = [
++     *   {
++     *     settings: {
++     *       seatbelt: {
++     *         readOnly: !process.env.CI,
++     *       }
++     *     }
++     *   }
++     * ]
++     * ```
++     */
++    readOnly?: boolean;
+     /**
+      * Suppress seatbelt's informational warning messages (e.g. "tend the garden",
+      * "thank you for fixing"). When enabled, seatbelt still downgrades errors to

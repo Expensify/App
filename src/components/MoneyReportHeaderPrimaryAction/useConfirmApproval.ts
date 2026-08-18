@@ -1,5 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
@@ -21,6 +22,7 @@ import {personalDetailsLoginSelector} from '@selectors/PersonalDetails';
 
 function useConfirmApproval(reportID: string | undefined, startApprovedAnimation: () => void) {
     const {accountID, email} = useCurrentUserPersonalDetails();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -53,6 +55,7 @@ function useConfirmApproval(reportID: string | undefined, startApprovedAnimation
             startApprovedAnimation();
         }
         approveMoneyRequest({
+            getCurrencyDecimals,
             expenseReport: moneyRequestReport,
             expenseReportPolicy: policy,
             currentUserAccountIDParam: accountID,

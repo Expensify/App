@@ -15,6 +15,7 @@ import type {OnyxEntry} from 'react-native-onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
@@ -348,6 +349,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem,
@@ -373,6 +375,7 @@ describe('handleActionButtonPress', () => {
     test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: mockReportItemWithHold,
             goToItem: jest.fn(),
@@ -398,6 +401,7 @@ describe('handleActionButtonPress', () => {
         const goToItem = jest.fn(() => {});
         handleActionButtonPress({
             conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             hash: searchHash,
             item: updatedMockReportItem,
             goToItem,
@@ -439,6 +443,7 @@ describe('handleBulkPayItemSelected', () => {
         bankAccountList: undefined,
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
+        isOffline: false,
     };
 
     beforeEach(async () => {
@@ -660,5 +665,30 @@ describe('handleBulkPayItemSelected', () => {
 
         expect(baseParams.triggerKYCFlow).toHaveBeenCalled();
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+    });
+
+    it('should defer to confirmPayment (offline modal) and never navigate to KYC/verify-account when offline, even for a bank-funded payment type', async () => {
+        const policy = {
+            ...createRandomPolicy(Number(policyID)),
+            id: policyID,
+            ownerAccountID,
+        } as Policy;
+
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+
+        handleBulkPayItemSelected({
+            ...baseParams,
+            policy,
+            amountOwed: 0,
+            // VBBA + unvalidated user would normally route to account verification / KYC; offline must short-circuit that.
+            isUserValidated: false,
+            isOffline: true,
+            item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
+        });
+
+        expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 });
