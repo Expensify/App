@@ -360,7 +360,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns "set" for both amount and merchant', () => {
-                const expectedResult = 'set the amount to $18.00 and the merchant to "Taco Bell"';
+                const expectedResult = 'set the amount to $18.00 and the merchant name to "Taco Bell"';
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -452,7 +452,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")';
+                const expectedResult = 'changed the amount to $18.00 (previously $12.55) and the merchant name to "Taco Bell" (previously "Big Belly")';
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -487,7 +487,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55) and the merchant to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
+                    'changed the amount to $18.00 (previously $12.55) and the merchant name to "Taco Bell" (previously "Big Belly")\nset the category to "Benefits"\nremoved the description (previously "this is for the shuttle")';
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -520,7 +520,7 @@ describe('ModifiedExpenseMessage', () => {
 
             it('returns the correct text message', () => {
                 const expectedResult =
-                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant to "Taco Bell" (previously "Big Belly")';
+                    'changed the amount to $18.00 (previously $12.55), the description to "I bought it on the way" (previously "from the business trip"), and the merchant name to "Taco Bell" (previously "Big Belly")';
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -546,7 +546,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the merchant (previously "Big Belly")`;
+                const expectedResult = `removed the merchant name (previously "Big Belly")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -572,7 +572,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "KFC"`;
+                const expectedResult = `set the merchant name to "KFC"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -598,7 +598,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "KFC"`;
+                const expectedResult = `set the merchant name to "KFC"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -624,7 +624,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct "removed" text message', () => {
-                const expectedResult = `removed the merchant (previously "Old Merchant")`;
+                const expectedResult = `removed the merchant name (previously "Old Merchant")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -650,7 +650,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct "changed" text message', () => {
-                const expectedResult = `changed the merchant to "New Merchant" (previously "Old Merchant")`;
+                const expectedResult = `changed the merchant name to "New Merchant" (previously "Old Merchant")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -678,7 +678,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "mini shore") and the merchant (previously "Big Belly")`;
+                const expectedResult = `removed the description (previously "mini shore") and the merchant name (previously "Big Belly")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -708,7 +708,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the description (previously "mini shore"), the merchant (previously "Big Belly"), and the category (previously "Benefits")`;
+                const expectedResult = `removed the description (previously "mini shore"), the merchant name (previously "Big Belly"), and the category (previously "Benefits")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -734,7 +734,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "Big Belly"`;
+                const expectedResult = `set the merchant name to "Big Belly"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -762,7 +762,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "mini shore" and the merchant to "Big Belly"`;
+                const expectedResult = `set the description to "mini shore" and the merchant name to "Big Belly"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -792,7 +792,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the description to "mini shore", the merchant to "Big Belly", and the category to "Benefits"`;
+                const expectedResult = `set the description to "mini shore", the merchant name to "Big Belly", and the category to "Benefits"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1680,7 +1680,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `set the merchant to "Big Belly"`;
+                const expectedResult = `set the merchant name to "Big Belly"`;
 
                 const result = getForReportAction({
                     convertToDisplayString,
@@ -1706,7 +1706,7 @@ describe('ModifiedExpenseMessage', () => {
             };
 
             it('returns the correct text message', () => {
-                const expectedResult = `removed the merchant (previously "Big Belly")`;
+                const expectedResult = `removed the merchant name (previously "Big Belly")`;
 
                 const result = getForReportAction({
                     convertToDisplayString,

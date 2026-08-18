@@ -327,7 +327,7 @@ describe('TimeExpenseConfirmationTest', () => {
             if (merchantRow) {
                 expect(merchantRow).toBeDefined();
             } else {
-                const merchantInput = screen.getByLabelText('Merchant');
+                const merchantInput = screen.getByLabelText('Merchant name');
                 expect(merchantInput).toBeDefined();
             }
 
