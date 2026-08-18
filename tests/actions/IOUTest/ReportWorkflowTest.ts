@@ -292,6 +292,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
+                            betas: [CONST.BETAS.ASAP_SUBMIT],
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -406,6 +407,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
+                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -437,6 +439,118 @@ describe('actions/IOU/ReportWorkflow', () => {
             const submittedAction = Object.values(submittedReportActions ?? {}).find((action) => isSubmittedAction(action));
             expect(submittedAction).toBeTruthy();
             expect(submittedAction && getOriginalMessage(submittedAction)?.amount).toBe(10000);
+
+            mockFetch?.resume?.();
+        });
+
+        it('does not split held expenses onto a new report for a DEW policy, and skips optimistic report state updates', async () => {
+            // Given an open expense report on a DEW policy with two expenses, one of which is held
+            const policyID = generatePolicyID();
+            const policy: Policy = {
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                id: policyID,
+                role: CONST.POLICY.ROLE.ADMIN,
+                owner: CARLOS_EMAIL,
+                outputCurrency: CONST.CURRENCY.USD,
+                isPolicyExpenseChatEnabled: true,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            };
+
+            const chatReport: Report = {
+                ...createRandomReport(456, CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT),
+                reportID: '456',
+                isOwnPolicyExpenseChat: true,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                iouReportID: '123',
+                policyID,
+                type: CONST.REPORT.TYPE.CHAT,
+            };
+
+            const expenseReport: Report = {
+                ...createRandomReport(123, undefined),
+                reportID: '123',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                ownerAccountID: CARLOS_ACCOUNT_ID,
+                policyID,
+                parentReportID: chatReport.reportID,
+                chatReportID: chatReport.reportID,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                currency: CONST.CURRENCY.USD,
+                total: 16000,
+                unheldTotal: 16000,
+                reimbursableTotal: 16000,
+                unheldReimbursableTotal: 16000,
+                nonReimbursableTotal: 0,
+                unheldNonReimbursableTotal: 0,
+            };
+
+            const unheldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 10000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+            const heldTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: 6000, currency: CONST.CURRENCY.USD, reportID: expenseReport.reportID},
+            });
+
+            const reportActions: ReportActions = {};
+            for (const transaction of [unheldTransaction, heldTransaction]) {
+                const iouAction = buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: transaction.amount,
+                    currency: transaction.currency,
+                    comment: '',
+                    participants: [],
+                    transactionID: transaction.transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+                reportActions[iouAction.reportActionID] = iouAction;
+            }
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, policy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`, chatReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`, expenseReport);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${unheldTransaction.transactionID}`, unheldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`, heldTransaction);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${expenseReport.reportID}`, reportActions);
+            await waitForBatchedUpdates();
+
+            // Hold one of the two expenses
+            putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
+            await waitForBatchedUpdates();
+
+            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            mockFetch?.pause?.();
+            const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                submitterLogin: CARLOS_EMAIL,
+                expenseReport: freshExpenseReport,
+                policy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: true,
+                betas: [CONST.BETAS.ASAP_SUBMIT],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+            });
+            await waitForBatchedUpdates();
+
+            // Then the DEW policy determines the actual workflow on the backend, so the report is not optimistically
+            // moved to the submitted state, and both expenses (including the held one) stay on the original report
+            const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
+            expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
+            expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
+
+            const heldTransactionAfter = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${heldTransaction.transactionID}`);
+            expect(heldTransactionAfter?.reportID).toBe(expenseReport.reportID);
+
+            const reportMetadata = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${expenseReport.reportID}`);
+            expect(reportMetadata?.pendingExpenseAction).toBe(CONST.EXPENSE_PENDING_ACTION.SUBMIT);
 
             mockFetch?.resume?.();
         });
@@ -521,6 +635,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
+                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -629,6 +744,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
+                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -950,6 +1066,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
+                                betas: [CONST.BETAS.ASAP_SUBMIT],
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -1228,6 +1345,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
+                                betas: [CONST.BETAS.ASAP_SUBMIT],
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -1403,6 +1521,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
+                            betas: [CONST.BETAS.ASAP_SUBMIT],
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -1477,6 +1596,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
+                betas: [CONST.BETAS.ASAP_SUBMIT],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
@@ -1595,6 +1715,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
+                    betas: [CONST.BETAS.ASAP_SUBMIT],
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
@@ -1658,6 +1779,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1724,6 +1846,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1775,6 +1898,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1830,6 +1954,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1901,6 +2026,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1992,6 +2118,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2085,6 +2212,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2160,6 +2288,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2231,6 +2360,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2301,6 +2431,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2365,6 +2496,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2409,6 +2541,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: 'submitter@example.com',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2669,6 +2802,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2707,6 +2841,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
+                betas: [],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,

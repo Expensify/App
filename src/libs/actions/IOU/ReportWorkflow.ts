@@ -48,6 +48,7 @@ import {
     getReportTransactions,
     getUnheldReimbursableTotal,
     hasHeldExpenses as hasHeldExpensesReportUtils,
+    hasOnlyHeldExpenses,
     hasOnlyNonReimbursableTransactions,
     hasOutstandingChildRequest,
     isArchivedReport,
@@ -127,6 +128,7 @@ type SubmitReportFunctionParams = {
     hasViolations: boolean;
     isTrackIntentUser: boolean | undefined;
     isASAPSubmitBetaEnabled: boolean;
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
     userBillingGracePeriodEnds: OnyxCollection<OnyxTypes.BillingGraceEndPeriod>;
     amountOwed: OnyxEntry<number>;
     onSubmitted?: () => void;
@@ -1301,6 +1303,7 @@ function submitReport({
     currentUserEmailParam,
     hasViolations,
     isASAPSubmitBetaEnabled,
+    betas,
     userBillingGracePeriodEnds,
     amountOwed,
     onSubmitted,
@@ -1340,7 +1343,7 @@ function submitReport({
     const heldTransactions = reportTransactions.filter((transaction) => isOnHold(transaction));
     const hasHeldExpenses = heldTransactions.length > 0;
 
-    if (reportTransactions.length > 0 && heldTransactions.length === reportTransactions.length) {
+    if (hasOnlyHeldExpenses(reportTransactions)) {
         return;
     }
 
@@ -1582,7 +1585,7 @@ function submitReport({
 
     // An all-held report is already blocked from being submitted, so this only has to handle the case where at
     // least one unheld expense remains.
-    if (hasHeldExpenses && heldTransactions.length < reportTransactions.length && !isDEWPolicy && parentReport?.reportID) {
+    if (hasHeldExpenses && !isDEWPolicy && parentReport?.reportID) {
         const holdReportOnyxData = getReportFromHoldRequestsOnyxData({
             chatReport: parentReport,
             iouReport: expenseReport,
@@ -1590,7 +1593,7 @@ function submitReport({
             policy,
             createdTimestamp: getReportOriginalCreationTimestamp(expenseReport),
             isApprovalFlow: false,
-            betas: isASAPSubmitBetaEnabled ? [CONST.BETAS.ASAP_SUBMIT] : [],
+            betas,
             delegateAccountID,
             getCurrencyDecimals,
         });

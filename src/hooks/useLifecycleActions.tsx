@@ -247,6 +247,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: () => {
