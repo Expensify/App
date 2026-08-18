@@ -11,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import Onyx from 'react-native-onyx';
 
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -116,6 +116,7 @@ describe('actions/IOU/SendMoney', () => {
                     currentUserAccountID: RORY_ACCOUNT_ID,
                     recipient: {accountID: CARLOS_ACCOUNT_ID, login: CARLOS_EMAIL},
                     delegateAccountID: DELEGATE_ACCOUNT_ID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                 });
 
                 await waitForBatchedUpdates();

@@ -1,7 +1,7 @@
 ---
 title: Create and Use Agents
 description: Create personal agents in New Expensify, chat with them, and Copilot into their accounts. New agents are automatically added as full-access Copilots on your account so they can act on your behalf.
-keywords: [custom agents, agents, new agent, ai agent, agent instructions, copilot into account, new expensify]
+keywords: [custom agents, agents, new agent, ai agent, agent instructions, agent template, build custom agent, copilot into account, new expensify]
 internalScope: Audience is individual New Expensify users. Covers creating, configuring, and managing agents from the Agents page in Account settings. Does not cover Agent Rules, RuleBot, or workspace-level automation.
 ---
 
@@ -29,15 +29,30 @@ If you don't see **Agents** in your **Account** settings, the Beta isn't enabled
 
 ## How to create an Agent
 
+When you click **New agent**, the **New agent** screen opens. From here you can build an agent from scratch with **Build custom agent**, or, when starter templates are available, choose one from the **Or start with a template:** list. If no templates are available, only the **Build custom agent** option appears.
+
+**To build a custom agent from scratch:**
+
 1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
 2. Click **Agents**.
 3. Click **New agent**.
-4. Review the auto-generated profile image and display name. If needed, you can edit these later.
-5. Click **Write custom instructions** and describe what you want the agent to do.
-6. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+4. Click **Build custom agent**.
+5. Review the auto-generated profile image and display name. If needed, you can edit these later.
+6. Click **Write custom instructions** and describe what you want the agent to do.
+7. Review the note above the **Create agent** button, which explains that the agent will be added as a full-access Copilot of your account so it can act on your behalf.
+8. Click **Create agent**.
+
+**To start from a template:**
+
+1. In the navigation tabs (on the left on web, on the bottom on mobile), click **Account**.
+2. Click **Agents**.
+3. Click **New agent**.
+4. Under **Or start with a template:**, find the template you want, then click **Add**.
+5. Review the pre-filled instructions and edit them if needed.
+6. Review the auto-generated profile image and display name. If needed, you can edit these later.
 7. Click **Create agent**.
 
-After saving, the new agent appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
+After you click **Create agent**, you're taken directly to a direct message (DM) with the new agent, where its welcome message appears once it arrives. The new agent also appears in your **Agents** list with **Edit**, **Chat**, and **Copilot** buttons.
 
 ![The Agents page in Account settings, showing the New agent button and a list of created agents]({{site.url}}/assets/images/ExpensiHelp-CustomAgents-1.png){:width="100%"}
 
@@ -47,6 +62,7 @@ After saving, the new agent appears in your **Agents** list with **Edit**, **Cha
 
 After you create an agent:
 
+- You're taken directly to a DM with the agent, where its welcome message appears once it arrives.
 - A new Expensify account is created for the agent.
 - You become the agent's owner.
 - You're automatically added as a full-access Copilot on the agent's account.
@@ -185,6 +201,10 @@ For details on configuring approval workflows generally, see [Learn how to add a
 ## Why can't I see Agents in my Account settings?
 
 Agents are in **Beta** and may not be enabled on your account yet. When the feature is available, an **Agents** option appears in your **Account** settings with a **Beta** badge.
+
+## What's the difference between building a custom agent and starting from a template?
+
+**Build custom agent** opens the agent form so you can write your own instructions from scratch. Starting from a template on the **New agent** screen opens the same form with the template's instructions already filled in, which you can review and edit before creating the agent. If no templates are available, only the **Build custom agent** option appears.
 
 ## Who can edit or delete an agent?
 

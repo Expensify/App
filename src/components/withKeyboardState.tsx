@@ -50,6 +50,8 @@ function KeyboardStateProvider({children}: ChildrenProps): ReactElement | null {
         const keyboardDidHideListener = KeyboardEvents.addListener('keyboardDidHide', () => {
             setKeyboardHeight(0);
             setIsKeyboardActive(false);
+            // Sometimes 'keyboardWillHide' is not called (popover closed when keyboard is open), in this case we don't want stale keyboardActiveHeight value
+            setKeyboardActiveHeight(0);
         });
         const keyboardWillShowListener = KeyboardEvents.addListener('keyboardWillShow', (e) => {
             setIsKeyboardActive(true);

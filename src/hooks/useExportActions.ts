@@ -1,7 +1,8 @@
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
-import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusContext';
+import {useExportDownloadStatus} from '@components/MoneyReportHeaderActions/ExportDownloadStatusProvider';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 
+import {exportReceiptsToZip} from '@libs/actions/Export';
 import {openOldDotLink} from '@libs/actions/Link';
 import {exportReportToCSV, exportReportToPDF, exportToIntegration, markAsManuallyExported} from '@libs/actions/Report';
 import {getExportTemplates, queueExportSearchWithTemplate} from '@libs/actions/Search';
@@ -63,8 +64,21 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
 
     const connectedIntegration = getValidConnectedIntegration(policy);
     const connectedIntegrationFallback = getConnectedIntegration(policy);
+
+    // Archiving a workspace removes its policy from Onyx, so its output currency is no longer readable. An expense report's
+    // currency is the workspace's output currency, so keep currency-specific export options after archiving.
+    const isWorkspaceOutputCurrencyCAD = (policy?.outputCurrency ?? moneyRequestReport?.currency) === CONST.CURRENCY.CAD;
     // The export templates available to the user, pre-grouped and sorted alphabetically. The basic export is part of the default group so it's sorted alongside the other default templates.
-    const {customTemplates, defaultTemplates} = getExportTemplates(integrationsExportTemplates ?? [], csvExportLayouts ?? {}, translate, localeCompare, policy, true, true);
+    const {customTemplates, defaultTemplates} = getExportTemplates(
+        integrationsExportTemplates ?? [],
+        csvExportLayouts ?? {},
+        translate,
+        localeCompare,
+        policy,
+        true,
+        true,
+        isWorkspaceOutputCurrencyCAD,
+    );
     const isExported = isExportedUtils(reportActions, moneyRequestReport);
 
     const {showDecisionModal} = useDecisionModal();
@@ -84,6 +98,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
         'QBDSquare',
         'CertiniaSquare',
         'RilletSquare',
+        'DualEntrySquare',
         'GustoSquare',
         'ArrowRight',
     ]);
@@ -156,10 +171,9 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
             },
         },
         [CONST.REPORT.EXPORT_OPTIONS.EXPORT_TO_INTEGRATION]: {
-            text: translate('workspace.common.exportIntegrationSelected', {
-                // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-                connectionName: connectedIntegrationFallback!,
-            }),
+            // connectedIntegrationFallback is guaranteed when this export option is offered
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            text: translate('workspace.common.exportIntegrationSelected', connectedIntegrationFallback!),
             icon: getIntegrationIcon(connectedIntegration ?? connectedIntegrationFallback, expensifyIcons),
             displayInDefaultIconColor: true,
             additionalIconStyles: styles.integrationIcon,
@@ -262,6 +276,23 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 }
                 onPDFModalOpen?.();
                 exportReportToPDF({reportID: moneyRequestReport.reportID});
+            },
+        },
+        [CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS]: {
+            value: CONST.REPORT.SECONDARY_ACTIONS.DOWNLOAD_RECEIPTS,
+            text: translate('common.downloadReceipts'),
+            icon: expensifyIcons.Download,
+            sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.DOWNLOAD_RECEIPTS,
+            onSelected: () => {
+                if (isOffline) {
+                    showOfflineModal();
+                    return;
+                }
+                if (!moneyRequestReport?.reportID) {
+                    return;
+                }
+                const exportID = exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
+                trackExport(exportID);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.PRINT]: {
