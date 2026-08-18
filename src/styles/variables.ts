@@ -285,7 +285,7 @@ export default {
     modalRightDockedZIndex: 9997,
     modalLowestZIndex: 9996,
     workspaceTypeIconWidth: 34,
-    sectionMargin: 16,
+    sectionMargin: 20,
     workspaceSectionMaxWidth: 680,
     sectionIllustrationHeight: 220,
     tripsIllustrationW: 168,
