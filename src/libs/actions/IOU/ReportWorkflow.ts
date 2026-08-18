@@ -1349,10 +1349,6 @@ function submitReport({
 
     const isDEWPolicy = hasDynamicExternalWorkflow(policy);
 
-    // The held expenses are split onto a new report optimistically only when the parent chat report is available to
-    // build the new report in, and not for DEW policies, where the client makes no optimistic workflow predictions.
-    // The submitted amount excludes held expenses only in that case, keeping the submitted report action amount
-    // consistent with the optimistic state of the report.
     const shouldSplitHeldExpenses = hasHeldExpenses && !isDEWPolicy && !!parentReport?.reportID;
     const submittedTotal = shouldSplitHeldExpenses ? (expenseReport.unheldTotal ?? expenseReport.total ?? 0) : (expenseReport.total ?? 0);
 
