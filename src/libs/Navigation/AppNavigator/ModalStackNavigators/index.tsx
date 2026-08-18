@@ -199,7 +199,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SEND_FROM]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepSendFrom').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_REPORT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepReport').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_COMPANY_INFO]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepCompanyInfo').default,
-    [SCREENS.MONEY_REQUEST.HOLD]: () => require<ReactComponentModule>('../../../../pages/iou/HoldReasonPage').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON]: () => require<ReactComponentModule>('../../../../pages/iou/DynamicHoldReasonPage').default,
     [SCREENS.MONEY_REQUEST.REJECT]: () => require<ReactComponentModule>('../../../../pages/iou/RejectReasonPage').default,
     [SCREENS.MONEY_REQUEST.REPORT_REJECT]: () => require<ReactComponentModule>('../../../../pages/RejectExpenseReportPage').default,
     [SCREENS.IOU_SEND.ADD_DEBIT_CARD]: () => require<ReactComponentModule>('../../../../pages/settings/Wallet/AddDebitCardPage').default,
@@ -213,7 +213,7 @@ const MoneyRequestModalStackNavigator = createModalStackNavigator<MoneyRequestNa
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DESTINATION_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepDestination').default,
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/DynamicIOURequestStepTime').default,
     [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepSubrate').default,
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/ReceiptView').default,
+    [SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW]: () => require<ReactComponentModule>('../../../../pages/iou/request/step/IOURequestStepScan/DynamicReceiptView').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_SEARCH]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpensePage').default,
     [SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE]: () => require<ReactComponentModule>('../../../../pages/iou/SplitExpenseCreateDateRagePage').default,
@@ -640,22 +640,22 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksCompanyCardExpenseAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/DynamicQuickbooksPreferredExporterConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksTravelInvoicingConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: () =>
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksTravelBillingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_VENDOR_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportTravelVendorSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbo/export/QuickbooksExportTravelPayableAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelInvoicingConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelInvoicingPayableAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingPayableAccountSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelInvoicingJournalPostingPreferenceSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelBillingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/QuickbooksDesktopTravelBillingPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/netsuite/export/NetSuiteTravelBillingJournalPostingPreferenceSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/qbd/export/DynamicQuickbooksDesktopCompanyCardExpenseAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_COMPANY_CARD_SELECT]: () =>
@@ -747,10 +747,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroExportConfigurationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroPurchaseBillDateSelectPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroTravelInvoicingConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/XeroTravelInvoicingPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroTravelBillingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/XeroTravelBillingPayableAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_BANK_ACCOUNT_SELECT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/xero/export/DynamicXeroBankAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_NON_REIMBURSABLE_DEFAULT_CONTACT_SELECT]: () =>
@@ -859,10 +859,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctDefaultVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctNonReimbursableCreditCardAccountPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctTravelInvoicingConfigurationPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctTravelInvoicingPayableAccountSelectPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctTravelBillingConfigurationPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/export/DynamicSageIntacctTravelBillingPayableAccountSelectPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAdvancedPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/intacct/advanced/SageIntacctAutoSyncPage').default,
@@ -906,8 +906,8 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletBillPaymentAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletExpensifyCardSettlementAccountPage').default,
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: () =>
-        require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletTravelInvoicingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/rillet/advanced/RilletTravelBillingSettlementAccountPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETUP]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntrySetupPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXISTING_CONNECTIONS]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage').default,
@@ -959,10 +959,10 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/DynamicWorkspaceSettlementAccountPage').default,
     [SCREENS.WORKSPACE.EXPENSIFY_CARD_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceSettlementFrequencyPage').default,
-    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementAccountPage').default,
-    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingSettlementFrequencyPage').default,
-    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingMonthlyLimitPage').default,
-    [SCREENS.WORKSPACE.TRAVEL_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelInvoicingExportPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_ACCOUNT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingSettlementAccountPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_FREQUENCY]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingSettlementFrequencyPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_SETTINGS_MONTHLY_LIMIT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingMonthlyLimitPage').default,
+    [SCREENS.WORKSPACE.TRAVEL_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/travel/WorkspaceTravelBillingExportPage').default,
     [SCREENS.WORKSPACE.TRAVEL_MISSING_PERSONAL_DETAILS]: () => require<ReactComponentModule>('../../../../pages/Travel/TravelLegalNamePage').default,
     [SCREENS.WORKSPACE.DYNAMIC_WORKSPACE_EXPENSIFY_CARD_SELECT_FEED]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/expensifyCard/WorkspaceExpensifyCardFeedSelectorPage').default,

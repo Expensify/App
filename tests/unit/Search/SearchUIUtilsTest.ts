@@ -872,8 +872,8 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         category: '',
         comment: {comment: ''},
         created: '2024-12-21',
-        submitted: undefined,
-        approved: undefined,
+        submitted: '',
+        approved: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -938,7 +938,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2024-12-21',
         submitted: '2024-12-21 13:05:20',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1013,7 +1013,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1083,7 +1083,7 @@ const transactionsListItems = createMock<TransactionListItemType[]>([
         comment: {comment: ''},
         created: '2025-03-05',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         posted: '',
         exported: '',
         exportedTo: '',
@@ -1181,6 +1181,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         reportID: '123456789',
         reportName: 'Expense Report #123',
         exported: '',
+        submitted: '',
+        approved: '',
         exportedTo: '',
         shouldShowYear: true,
         shouldShowYearSubmitted: true,
@@ -1227,6 +1229,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 created: '2024-12-21',
                 currency: 'USD',
                 date: '2024-12-21',
+                submitted: '',
+                approved: '',
                 exported: '',
                 exportedTo: '',
                 formattedFrom: 'Admin',
@@ -1285,7 +1289,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         submitted: '2024-12-21 13:05:20',
-        approved: undefined,
+        approved: '',
         exported: '',
         exportedTo: '',
         currency: 'USD',
@@ -1360,6 +1364,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2024-12-21',
+                submitted: '2024-12-21 13:05:20',
+                approved: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'USD',
@@ -1425,7 +1431,7 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatType: undefined,
         created: '2025-03-05 16:34:27',
         submitted: '2025-03-05',
-        approved: undefined,
+        approved: '',
         exported: '',
         exportedTo: '',
         currency: 'VND',
@@ -1511,6 +1517,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1578,6 +1586,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
                 category: '',
                 comment: {comment: ''},
                 created: '2025-03-05',
+                submitted: '2025-03-05',
+                approved: '',
                 exported: '',
                 exportedTo: '',
                 currency: 'VND',
@@ -1641,6 +1651,8 @@ const transactionReportGroupListItems = createMock<Array<TransactionReportGroupL
         chatReportID: '1706144653204915',
         created: '2024-12-21 13:05:20',
         exported: '',
+        submitted: '',
+        approved: '',
         exportedTo: '',
         currency: 'USD',
         formattedFrom: 'Admin',
@@ -2796,7 +2808,7 @@ describe('SearchUIUtils', () => {
             expect(distanceTransaction).toBeDefined();
             expect(distanceTransaction?.iouRequestType).toBe(CONST.IOU.REQUEST_TYPE.DISTANCE);
 
-            const expectedPropertyCount = 56;
+            const expectedPropertyCount = 58;
             expect(Object.keys(distanceTransaction ?? {}).length).toBe(expectedPropertyCount);
         });
 
@@ -6331,6 +6343,50 @@ describe('SearchUIUtils', () => {
                 const item = sections.find((s) => s.transactionID === filterTestTxID);
                 expect(item?.category).toBe('Travel');
             });
+
+            it('should populate submitted/approved from live actions missing from the snapshot (offline submit/approve reflected in the Expenses view)', () => {
+                const submittedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${filterTestReportID}`]: {
+                            'submitted-1': {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe(submittedAt);
+                expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep submitted/approved blank for a still-Open (never submitted) report even if unrelated live actions exist', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe('');
+                expect(item?.approved).toBe('');
+            });
+
+            it('should keep submitted blank for a still-Open report even when the snapshot already has a submitted date (backend can set it before an actual submit)', () => {
+                const data = makeFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN, submitted: '2024-12-20 08:00:00'});
+                const [sections] = callGetTransactionsSections(data);
+                const item = sections.find((s) => s.transactionID === filterTestTxID);
+                expect(item?.submitted).toBe('');
+            });
         });
 
         describe('getReportSections filtering and edge cases', () => {
@@ -6686,6 +6742,426 @@ describe('SearchUIUtils', () => {
                 expect(item?.firstApproved).toBe('');
                 expect(item?.firstApproverAccountID).toBeUndefined();
                 expect(item?.formattedFirstApprover).toBe('');
+            });
+
+            it('should populate firstApprover/firstApproved from a live APPROVED action missing from the snapshot (offline approve)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(approvedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+                expect(item?.formattedFirstApprover).toBeTruthy();
+            });
+
+            it('should keep the earliest approval when both the snapshot and live actions have one', () => {
+                const snapshotApprovedAt = '2024-12-20 08:00:00';
+                const liveApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: snapshotApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: liveApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(snapshotApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(approverAccountID);
+            });
+
+            it('should clear firstApprover/firstApproved when the report was unapproved after the approval', () => {
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+                expect(item?.formattedFirstApprover).toBe('');
+            });
+
+            it('should clear firstApprover/firstApproved when a live UNAPPROVED action follows the snapshot approval (offline unapprove)', () => {
+                const approvedAt = '2024-12-20 08:00:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                            },
+                            {
+                                reportActionID: 'optimistic-unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe('');
+                expect(item?.firstApproverAccountID).toBeUndefined();
+            });
+
+            it('should use the first approval after the latest UNAPPROVED action when the report was re-approved', () => {
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData(
+                    {type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED},
+                    {},
+                    {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: {
+                            'approved-1': {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-20 08:00:00',
+                            },
+                            'unapproved-1': {
+                                reportActionID: 'unapproved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.UNAPPROVED,
+                                actorAccountID: approverAccountID,
+                                created: '2024-12-21 10:00:00',
+                            },
+                            'approved-2': {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: reApprovedAt,
+                            },
+                        },
+                    },
+                );
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.firstApproved).toBe(reApprovedAt);
+                expect(item?.firstApproverAccountID).toBe(adminAccountID);
+            });
+
+            it('should populate approved from a live APPROVED action missing from the snapshot when the report is optimistically fully approved (offline approve)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(approvedAt);
+            });
+
+            it('should keep approved blank when a live APPROVED action exists but the report is not yet optimistically fully approved (intermediate step of a multi-level workflow)', () => {
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: approvedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should use the latest live APPROVED action when multiple exist', () => {
+                const earlierApprovedAt = '2024-12-20 08:00:00';
+                const latestApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: earlierApprovedAt,
+                            },
+                            {
+                                reportActionID: 'approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: latestApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(latestApprovedAt);
+            });
+
+            it('should prefer the snapshot approved date when it is newer than the live actions', () => {
+                const snapshotApprovedAt = '2024-12-25 07:00:00';
+                const liveApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: snapshotApprovedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: liveApprovedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(snapshotApprovedAt);
+            });
+
+            it('should use the newer live APPROVED action over a stale report approved date (offline re-approve after unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const reApprovedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-approved-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: approverAccountID,
+                                created: reApprovedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe(reApprovedAt);
+            });
+
+            it('should clear the approved date for a report that is back to Outstanding while its approved date is still set (offline unapprove)', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should clear the approved date for a report that is back to Draft while its approved date is still set', () => {
+                const staleApprovedAt = '2024-12-18 07:00:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                    approved: staleApprovedAt,
+                });
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.approved).toBe('');
+            });
+
+            it('should populate submitted from a live SUBMITTED action missing from the snapshot when the report is optimistically submitted (offline submit)', () => {
+                const submittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(submittedAt);
+            });
+
+            it('should keep submitted blank when the report has never been submitted (still Open) even if a live SUBMITTED action exists', () => {
+                const submittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'stray-submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe('');
+            });
+
+            it('should keep submitted blank for a still-Open report even when the snapshot already has a submitted date (backend can set it before an actual submit)', () => {
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.OPEN, submitted: '2024-12-20 08:00:00'});
+                const [sections] = callGetReportSections(data);
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe('');
+            });
+
+            it('should prefer the snapshot submitted date when it is newer than the live actions', () => {
+                const snapshotSubmittedAt = '2024-12-25 07:00:00';
+                const liveSubmittedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    submitted: snapshotSubmittedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: liveSubmittedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(snapshotSubmittedAt);
+            });
+
+            it('should use the newer live SUBMITTED action over a stale report submitted date (offline retract and resubmit)', () => {
+                const staleSubmittedAt = '2024-12-20 08:00:00';
+                const reSubmittedAt = '2024-12-21 09:30:00';
+                const data = makeReportFilterTestData({
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                    submitted: staleSubmittedAt,
+                });
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'optimistic-submitted-2',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: reSubmittedAt,
+                                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                expect(item?.submitted).toBe(reSubmittedAt);
+            });
+
+            it('should populate submitted/approved on nested transaction rows from live actions missing from the snapshot', () => {
+                const submittedAt = '2024-12-20 08:00:00';
+                const approvedAt = '2024-12-22 09:30:00';
+                const data = makeReportFilterTestData({type: CONST.REPORT.TYPE.EXPENSE, statusNum: CONST.REPORT.STATUS_NUM.APPROVED});
+                const [sections] = callGetReportSections(data, {
+                    reportActions: {
+                        [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${rptFilterReportID}`]: [
+                            {
+                                reportActionID: 'submitted-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                                actorAccountID: adminAccountID,
+                                created: submittedAt,
+                            },
+                            {
+                                reportActionID: 'approved-1',
+                                actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+                                actorAccountID: adminAccountID,
+                                created: approvedAt,
+                            },
+                        ],
+                    },
+                });
+                const item = sections.find((s) => s.keyForList === rptFilterReportID);
+                const nestedTransaction = item?.transactions.at(0);
+                expect(nestedTransaction?.submitted).toBe(submittedAt);
+                expect(nestedTransaction?.approved).toBe(approvedAt);
             });
         });
     });
@@ -7647,6 +8123,36 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.SUBMIT);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.APPROVE);
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
+        });
+
+        it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            expect(submitItem).toBeDefined();
+            expect(submitItem?.emptyState?.buttons).toEqual([]);
         });
 
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
@@ -9202,6 +9708,46 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.topCategories).toBe(false);
+        });
+
+        test('Should set hasEligibleGroupPolicies only for group workspaces', () => {
+            const groupPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const personalPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const groupResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, groupPolicies, undefined);
+            const personalResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, personalPolicies, undefined);
+
+            expect(groupResponse.hasEligibleGroupPolicies).toBe(true);
+            expect(personalResponse.hasEligibleGroupPolicies).toBe(false);
+        });
+
+        test('Should keep deleted group workspaces eligible when they still have errors', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: {name: 'Workspace still has an error'},
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            expect(response.hasEligibleGroupPolicies).toBe(true);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {

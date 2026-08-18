@@ -582,6 +582,7 @@ const CONST = {
     },
 
     ASSIGN_CARD_BUTTON_TEST_ID: 'assignCardButtonTestID',
+    ASSIGN_CARD_CARDHOLDER_ROW_TEST_ID: 'assignCardCardholderRowTestID',
     // Sizes needed for report empty state background image handling
     EMPTY_STATE_BACKGROUND: {
         ASPECT_RATIO: 3.72,
@@ -1385,7 +1386,7 @@ const CONST = {
     ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Enable-Global-Reimbursement',
     DOMAIN_VERIFICATION_HELP_URL: 'https://help.expensify.com/articles/new-expensify/workspaces/Claim-and-Verify-a-Domain',
     SAML_HELP_URL: 'https://help.expensify.com/articles/expensify-classic/domains/Set-Up-SAML-SSO',
-    TRAVEL_INVOICING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
+    TRAVEL_BILLING_HELP_URL: 'https://help.expensify.com/articles/travel/consolidated-travel-billing/Enable-Consolidated-Travel-Billing-in-a-Workspace',
     REGISTER_FOR_WEBINAR_URL: 'https://events.zoom.us/eo/Aif1I8qCi1GZ7KnLnd1vwGPmeukSRoPjFpyFAZ2udQWn0-B86e1Z~AggLXsr32QYFjq8BlYLZ5I06Dg',
     UNLOCK_BANK_ACCOUNT_HELP_URL: 'https://help.expensify.com/articles/new-expensify/wallet-and-payments/Unlock-a-Business-Bank-Account',
     // Use Environment.getEnvironmentURL to get the complete URL with port number
@@ -2199,6 +2200,13 @@ const CONST = {
             APPLY: 'StartupData.Apply',
             RENDER: 'StartupData.Render',
         },
+        /** Phases of the Search data load. Deliberately separate span names from SPAN_STARTUP_DATA so each metric keeps its own history in Sentry. */
+        SPAN_SEARCH_DATA: {
+            QUEUE: 'SearchData.Queue',
+            WAIT: 'SearchData.Wait',
+            DOWNLOAD: 'SearchData.Download',
+            APPLY: 'SearchData.Apply',
+        },
         SPAN_NAVIGATE_TO_REPORTS: 'ManualNavigateToReports',
         SPAN_NAVIGATE_TO_REPORTS_FIRST_PAINT: 'ManualNavigateToReportsFirstPaint',
         SPAN_NAVIGATE_TO_REPORTS_CONTENT_LOAD: 'ManualNavigateToReportsContentLoad',
@@ -2299,6 +2307,7 @@ const CONST = {
         ATTRIBUTE_FAST_PATH_HANDLER: 'fast_path_handler',
         ATTRIBUTE_COMMAND: 'command',
         ATTRIBUTE_CONTENT_LENGTH: 'content_length',
+        ATTRIBUTE_REQUEST_ID: 'request_id',
         ATTRIBUTE_ATTEMPT: 'attempt',
         ATTRIBUTE_LONGEST_FRAME_MS: 'longest_frame_ms',
         ATTRIBUTE_TIMED_OUT: 'timed_out',
@@ -2946,7 +2955,7 @@ const CONST = {
         NON_REIMBURSABLE: 'nonReimbursable',
         SHOULD_AUTO_CREATE_VENDOR: 'shouldAutoCreateVendor',
         NON_REIMBURSABLE_BILL_DEFAULT_VENDOR: 'nonReimbursableBillDefaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         AUTO_SYNC: 'autoSync',
         ENABLE_NEW_CATEGORIES: 'enableNewCategories',
         MAPPINGS: {
@@ -2984,8 +2993,8 @@ const CONST = {
         REIMBURSEMENT_ACCOUNT_ID: 'reimbursementAccountID',
         COLLECTION_ACCOUNT_ID: 'collectionAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_VENDOR: 'travelInvoicingVendorID',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_VENDOR: 'travelInvoicingVendorID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     XERO_CONFIG: {
@@ -3016,7 +3025,7 @@ const CONST = {
             REPORT_FIELD: 'REPORT_FIELD',
         },
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
         DEFAULT_VENDOR: 'defaultVendor',
     },
 
@@ -3138,7 +3147,7 @@ const CONST = {
         ENTITY: 'entity',
         DIMENSION_PREFIX: 'dimension_',
         ACCOUNTING_METHOD: 'accountingMethod',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
     },
 
     SAGE_INTACCT: {
@@ -3236,8 +3245,8 @@ const CONST = {
         REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'reimbursableExpensesExportDestination',
         NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION: 'nonreimbursableExpensesExportDestination',
         DEFAULT_VENDOR: 'defaultVendor',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
-        TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE: 'travelInvoicingJournalPostingPreference',
         REIMBURSABLE_PAYABLE_ACCOUNT: 'reimbursablePayableAccount',
         PAYABLE_ACCT: 'payableAcct',
         JOURNAL_POSTING_PREFERENCE: 'journalPostingPreference',
@@ -3542,8 +3551,8 @@ const CONST = {
         BILL_PAYMENT_ACCOUNT_CODE: 'billPaymentAccountCode',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
-        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
-        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
@@ -3595,15 +3604,15 @@ const CONST = {
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
-        TRAVEL_INVOICING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
+        TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
         ACCOUNTING_METHOD: 'accountingMethod',
         AUTO_SYNC: 'autoSync',
         SYNC_REIMBURSED_REPORTS: 'syncReimbursedReports',
         BILL_PAYMENT_ACCOUNT_ID: 'billPaymentAccountID',
         SYNC_EXPENSIFY_CARD_SETTLEMENTS: 'syncExpensifyCardSettlements',
         SETTLEMENTS_BANK_ACCOUNT_ID: 'settlementsBankAccountID',
-        SYNC_TRAVEL_INVOICING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
-        TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
+        SYNC_TRAVEL_BILLING_SETTLEMENTS: 'syncTravelInvoicingSettlements',
+        TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID: 'travelInvoicingSettlementsBankAccountID',
         FIELD_MAPPING_PREFIX: 'fieldMapping_',
         CARD_PROGRAM_ACCOUNT_PREFIX: 'cardProgramAccount_',
     },
@@ -6896,7 +6905,7 @@ const CONST = {
         WITHDRAWAL_TYPE: {
             EXPENSIFY_CARD: 'expensify-card',
             REIMBURSEMENT: 'reimbursement',
-            CENTRAL_TRAVEL_INVOICING: 'central-travel-invoicing',
+            TRAVEL_BILLING: 'central-travel-invoicing',
         },
         SETTLEMENT_STATUS: {
             PENDING: 'pending',
@@ -8426,8 +8435,8 @@ const CONST = {
             EXCHANGE: 'EXCHANGE',
         },
         /**
-         * The Travel Invoicing feed type constant.
-         * This feed is used for Travel Invoicing cards which are separate from regular Expensify Cards.
+         * The Travel Billing feed type constant.
+         * This feed is used for Travel Billing cards which are separate from regular Expensify Cards.
          */
         PROGRAM_TRAVEL_US: 'TRAVEL_US',
         MONTHLY_SETTLEMENT_DATE: 'monthlySettlementDate',
@@ -9456,6 +9465,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'The Expensify Card: Proactive spend controls',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260817277076/en/The-Expensify-Visa-Commercial-Card-Brings-New-Proactive-Spend-Controls-to-14-Countries',
+                publishedDate: '2026-08-17',
+            },
+            {
                 title: 'Scoped admin roles, plus HR & AI updates',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
@@ -9466,12 +9481,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
                 publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
             },
         ],
     },
