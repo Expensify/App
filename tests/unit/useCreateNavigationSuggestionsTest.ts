@@ -340,7 +340,10 @@ describe('useCreateNavigationSuggestions', () => {
 
         expect(createNewReport).toHaveBeenCalledWith(
             expect.objectContaining({
-                ownerPersonalDetails: expect.anything(),
+                ownerPersonalDetails: expect.objectContaining({
+                    accountID: 1,
+                    login: 'test@example.com',
+                }),
                 hasViolationsParam: false,
                 isASAPSubmitBetaEnabled: true,
                 policy: submitPolicy,
