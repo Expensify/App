@@ -15,7 +15,6 @@ import {
     addMinutes,
     differenceInDays,
     eachDayOfInterval,
-    eachMonthOfInterval,
     endOfDay,
     endOfMonth,
     endOfWeek,
@@ -58,6 +57,12 @@ type MachineDateFormat =
     | typeof CONST.DATE.FNS_TIMEZONE_FORMAT_STRING;
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
+
+/**
+ * ISO 8601 offset variants at the end of a datetime string: `±HH`, `±HHMM`, `±HH:MM`.
+ * Shared by `isAlreadyZoned` and `CANCELLATION_OFFSET_PATTERN` so the same input is classified the same way across helpers.
+ */
+const ISO_OFFSET_PATTERN = /[+-]\d{2}(:?\d{2})?$/;
 
 type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
@@ -183,7 +188,7 @@ function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: strin
     }
     let parsedDatetime: Date;
     // Skip the `Z` on already-zoned strings — appending produces `...ZZ` / `...+05:00Z` (Invalid Date). Runs every minute in useNow consumers.
-    const isAlreadyZoned = datetime.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(datetime);
+    const isAlreadyZoned = datetime.endsWith('Z') || ISO_OFFSET_PATTERN.test(datetime);
     try {
         parsedDatetime = new Date(isAlreadyZoned ? datetime : `${datetime}Z`);
         parsedDatetime.toISOString();
@@ -360,6 +365,10 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
         return '';
     }
     const diffSecs = (date.getTime() - now.getTime()) / 1000;
+    // Invalid Date on either side yields NaN, which `RelativeTimeFormat.format` silently coerces to 0 and renders as "0 years ago".
+    if (!Number.isFinite(diffSecs)) {
+        return '';
+    }
     const abs = Math.abs(diffSecs);
     for (const [threshold, divisor, unit] of RELATIVE_TIME_UNITS) {
         if (abs < threshold) {
@@ -457,11 +466,8 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
  * @returns [January, February, March, April, May, June, July, August, ...]
  */
 function getMonthNames(locale: Locale): string[] {
-    const fullYear = new Date().getFullYear();
-    const monthsArray = eachMonthOfInterval({
-        start: new Date(fullYear, 0, 1), // January 1st of the current year
-        end: new Date(fullYear, 11, 31), // December 31st of the current year
-    });
+    // Fixed-year UTC mid-month dates. Month name is year-independent, so UTC + mid-month sidesteps any local-tz boundary that could shift a January-1 or December-31 endpoint into the neighbouring month on extreme timezones.
+    const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
     return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
 
@@ -791,26 +797,24 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');
 };
 
+type TwelveHourTimeObject = {hour: string; minute: string; seconds: string; milliseconds: string; period: string};
+
+const EMPTY_TWELVE_HOUR_TIME: TwelveHourTimeObject = {hour: '12', minute: '00', seconds: '00', milliseconds: '000', period: 'PM'};
+
 /**
- * param {String} dateTime in 'HH:mm:ss.SSS a' format
- * returns {Object}
+ * Parses a `hh:mm a` (or `hh:mm:ss.SSS a`) string into its parts. Returns `undefined` on empty or unparsable input so
+ * TimePicker can distinguish "no valid input" from "user selected 12:00 PM" and apply its own placeholder rather than
+ * silently commit noon. `enUS` pinning + hour-derived period keeps the German #97796 fix intact regardless of locale.
  * example {hour: '11', minute: '10', seconds: '10', milliseconds: '123', period: 'AM'}
  */
-function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): {hour: string; minute: string; seconds: string; milliseconds: string; period: string} {
+function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): TwelveHourTimeObject | undefined {
     if (!dateTime) {
-        return {
-            hour: '12',
-            minute: '00',
-            seconds: '00',
-            milliseconds: '000',
-            period: 'PM',
-        };
+        return undefined;
     }
     const parsedTime = parse(dateTime, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', new Date(), {locale: enUS});
-    // TimePicker calls this from useState initializers with no error boundary, so degrade to the empty-input placeholder rather than throw.
     if (!isValid(parsedTime)) {
         Log.warn('[DateUtils] get12HourTimeObjectFromDate: unparsable time value', {dateTime});
-        return {hour: '12', minute: '00', seconds: '00', milliseconds: '000', period: 'PM'};
+        return undefined;
     }
     return {
         hour: format(parsedTime, 'hh'),
@@ -965,7 +969,7 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
         // Dates are in the same year, differ by months
         const startPart = formatIntl(locale, 'MONTH_DAY', date1);
         const endPart = formatIntl(locale, 'MONTH_DAY', date2);
-        return startPart && endPart ? `${startPart} ${translate('common.to').toLowerCase()} ${endPart}` : '';
+        return startPart && endPart ? `${startPart} ${translate('common.to').toLocaleLowerCase(locale)} ${endPart}` : '';
     }
     // Dates differ by years, months, days
     const startPart = formatIntl(locale, 'MEDIUM_DATE', date1);
@@ -1052,7 +1056,7 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
     return `GMT${sign}${hoursNumber}${minutesNumber > 0 ? `:${minutes}` : ''}`;
 }
 
-/** Accepts ISO 8601 offset variants: `±HH:MM`, `±HHMM`, `±HH`. */
+/** Capturing counterpart to `ISO_OFFSET_PATTERN`, same accepted shapes but groups the sign, hours, and minutes for offset math. */
 const CANCELLATION_OFFSET_PATTERN = /([+-])(\d{2}):?(\d{2})?$/;
 
 /**
@@ -1061,7 +1065,7 @@ const CANCELLATION_OFFSET_PATTERN = /([+-])(\d{2}):?(\d{2})?$/;
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM, GMT+7
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM, GMT+7
  */
-function getFormattedCancellationDate(isoDateString: string, locale: Locale): string {
+function getFormattedCancellationDate(isoDateString: string, locale: Locale, now: Date = new Date()): string {
     if (!isoDateString) {
         return '';
     }
@@ -1078,7 +1082,7 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale): st
     }
     // Pre-shifted venue instant + Intl in UTC — sidesteps raw-offset rejection, can't contradict `venueTimezoneLabel`, and lets locale drive order + clock.
     const venueInstant = new Date(instant.getTime() + offsetMinutes * 60_000);
-    const nowInVenue = new Date(Date.now() + offsetMinutes * 60_000);
+    const nowInVenue = new Date(now.getTime() + offsetMinutes * 60_000);
     const datePreset = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
     const datePart = formatIntl(locale, datePreset, venueInstant, 'UTC');
     const time = formatIntl(locale, 'SHORT_TIME', venueInstant, 'UTC');
@@ -1616,4 +1620,5 @@ const DateUtils = {
 
 export default DateUtils;
 
-export type {MachineDateFormat};
+export {EMPTY_TWELVE_HOUR_TIME};
+export type {MachineDateFormat, TwelveHourTimeObject};

@@ -11,7 +11,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import DateUtils from '@libs/DateUtils';
+import DateUtils, {EMPTY_TWELVE_HOUR_TIME} from '@libs/DateUtils';
 import {canUseTouchScreen as canUseTouchScreenDeviceCapabilities} from '@libs/DeviceCapabilities';
 
 import CONST from '@src/CONST';
@@ -129,11 +129,13 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    const [hours, setHours] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).hour);
-    const [minutes, setMinutes] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).minute);
-    const [seconds, setSeconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).seconds);
-    const [milliseconds, setMilliseconds] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).milliseconds);
-    const [amPmValue, setAmPmValue] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat).period);
+    // Fall back to the placeholder when input is empty or unparsable, so a malformed defaultValue does not silently masquerade as a user-picked 12:00 PM.
+    const initialTime = DateUtils.get12HourTimeObjectFromDate(value, showFullFormat) ?? EMPTY_TWELVE_HOUR_TIME;
+    const [hours, setHours] = useState(() => initialTime.hour);
+    const [minutes, setMinutes] = useState(() => initialTime.minute);
+    const [seconds, setSeconds] = useState(() => initialTime.seconds);
+    const [milliseconds, setMilliseconds] = useState(() => initialTime.milliseconds);
+    const [amPmValue, setAmPmValue] = useState(() => initialTime.period);
 
     const [isError, setError] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');

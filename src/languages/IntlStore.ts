@@ -199,6 +199,8 @@ class IntlStore {
     /** Test-only cache seed — skips `load()`'s side effects (Onyx write, telemetry span, date-fns default) that pollute unrelated suites' mocks. Prod uses `load()`. */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
+        // Snapshot's `loaded` derives from cache membership. Without notifying, subscribers stay on the stale pre-seed value forever.
+        IntlStore.notifyListeners();
     }
 
     /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
@@ -216,7 +218,12 @@ class IntlStore {
     }
 
     private static notifyListeners() {
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale)};
+        const nextLoaded = IntlStore.cache.has(IntlStore.currentLocale);
+        // Skip when nothing derived changed, so a same-locale/same-loaded notify (fast-path re-entry, redundant load call) does not trigger unnecessary re-renders across every LocaleContext consumer.
+        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.loaded === nextLoaded) {
+            return;
+        }
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: nextLoaded};
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -228,6 +235,8 @@ class IntlStore {
             IntlStore.loadToken++;
             // Reset the flag here — the discarded load's `.then` will bail on the token check before reaching its own reset.
             setAreTranslationsLoading(false);
+            // Notify in case the snapshot's `loaded` transitioned since the last emission (e.g. seedForTests populated the cache without going through this notify path).
+            IntlStore.notifyListeners();
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];

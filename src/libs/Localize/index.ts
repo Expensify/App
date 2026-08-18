@@ -145,7 +145,7 @@ function translateLocal<TPath extends TranslationPaths>(phrase: TPath, ...parame
 }
 
 function getPreferredListFormat(): Intl.ListFormat {
-    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale() ?? CONST.LOCALES.DEFAULT);
+    return memoizedCreateConjunctionListFormat(IntlStore.getCurrentLocale());
 }
 
 /**

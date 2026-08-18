@@ -1032,8 +1032,8 @@ describe('DateUtils', () => {
         });
 
         it('get12HourTimeObjectFromDate returns English AM/PM period derived from the hour', () => {
-            expect(DateUtils.get12HourTimeObjectFromDate('02:00 PM').period).toBe('PM');
-            expect(DateUtils.get12HourTimeObjectFromDate('08:00 AM').period).toBe('AM');
+            expect(DateUtils.get12HourTimeObjectFromDate('02:00 PM')?.period).toBe('PM');
+            expect(DateUtils.get12HourTimeObjectFromDate('08:00 AM')?.period).toBe('AM');
         });
 
         it('combineDateAndTime parses the picker-emitted "hh:mm a" into the correct 24h time', () => {
@@ -1078,7 +1078,7 @@ describe('DateUtils', () => {
 
         it('get12HourTimeObjectFromDate returns the AM/PM period for a localized time string', () => {
             const localizedNoon = DateUtils.extractTime12Hour('2026-08-04 12:00:00');
-            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon).period).toBe(CONST.TIME_PERIOD.PM);
+            expect(DateUtils.get12HourTimeObjectFromDate(localizedNoon)?.period).toBe(CONST.TIME_PERIOD.PM);
             const localizedMorning = DateUtils.extractTime12Hour('2026-08-04 08:00:00');
             expect(DateUtils.get12HourTimeObjectFromDate(localizedMorning)).toEqual({hour: '08', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.AM});
         });
