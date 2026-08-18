@@ -20,7 +20,7 @@ import Navigation from '@navigation/Navigation';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {CardFeedProvider, CompanyCardFeedWithDomainID} from '@src/types/onyx/CardFeeds';
+import type {CardFeedProvider} from '@src/types/onyx/CardFeeds';
 
 import React from 'react';
 import {View} from 'react-native';

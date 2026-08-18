@@ -10,6 +10,7 @@ import {exportSearchItemsToCSV, exportToIntegrationOnSearch, getExportTemplates}
 import type * as ReportSecondaryActionUtilsModule from '@libs/ReportSecondaryActionUtils';
 
 import CONST from '@src/CONST';
+import type CONSTType from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportActions, SearchResults} from '@src/types/onyx';
 
@@ -110,7 +111,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => {
-    const actualCONST = jest.requireActual<typeof import('@src/CONST')>('@src/CONST').default;
+    const actualCONST = jest.requireActual<{default: typeof CONSTType}>('@src/CONST').default;
     return {
         __esModule: true,
         default: () => ({
