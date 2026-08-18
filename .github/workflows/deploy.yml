@@ -434,7 +434,6 @@ jobs:
     with:
       ref: ${{ needs.prep.outputs.DEPLOY_SHA }}
       variant: Release
-      # Only the shipped build needs symbolicated react-native native frames in Sentry.
       download-dsyms: 'true'
     secrets: inherit
 
