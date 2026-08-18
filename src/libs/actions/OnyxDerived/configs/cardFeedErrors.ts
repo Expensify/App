@@ -65,16 +65,14 @@ export default createOnyxDerivedValueConfig({
 
         function addErrorsForPersonalCard(card: Card) {
             // Once the card has gone without a successful sync past the grace period we stop leading the user to it: the
-            // time-sensitive task and the RBR are removed. The connection error is surfaced both as `errorFields.lastScrape`
-            // and as a server-set `card.errors` entry (the latter is what lights the Account button via
-            // `hasPaymentMethodError`), so past the threshold neither should light the RBR. This is keyed on the last
-            // successful sync rather than `isCardConnectionBroken`, because the server sets the connection error even for
-            // scrape statuses that check ignores (e.g. 434). Any actionable error kept in a separate `errorFields` entry
-            // (a failed reimbursable/start-date update) still surfaces. The error itself stays on the card so it's fixable.
+            // time-sensitive task and the RBR are removed. The connection error is a server-set `card.errors` entry, which
+            // is what lights the Account button via `hasPaymentMethodError`, so past the threshold it must not light the
+            // RBR. This is keyed on the last successful sync rather than `isCardConnectionBroken`, because the server sets
+            // the connection error even for scrape statuses that check ignores (e.g. 434). `errorFields` entries are left
+            // alone: they are written by a user-initiated action that failed (a manual sync, a reimbursable/start-date
+            // update), so they stay actionable no matter how old the connection is. The error itself stays on the card.
             const isPastDismissThreshold = isLastScrapePastDismissThreshold(card);
-            const errorFieldsForRBR =
-                isPastDismissThreshold && card.errorFields ? Object.fromEntries(Object.entries(card.errorFields).filter(([field]) => field !== 'lastScrape')) : card.errorFields;
-            const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(errorFieldsForRBR);
+            const hasCardErrors = (!isPastDismissThreshold && !isEmptyObject(card.errors)) || !isEmptyObject(card.errorFields);
             const cardErrors = {
                 ...(hasCardErrors
                     ? {

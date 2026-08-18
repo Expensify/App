@@ -239,15 +239,33 @@ describe('CardFeedErrors Derived Value', () => {
                 expect(result.personalCardsWithBrokenConnection).toEqual({});
             });
 
-            // A broken personal card surfaces its connection error via errorFields.lastScrape (this is what the card
-            // detail page reads). Past the grace period we stop leading the user to it, so that specific error must not
-            // light the Account/Wallet RBR — while the error itself is kept so the card can still be fixed.
-            it('should NOT show the RBR for a personal card past the grace period whose only error is the broken connection', () => {
+            // `errorFields.lastScrape` is only ever written when a user-initiated action fails: syncCard ("Update card")
+            // and updatePersonalCardConnection ("Fix card") both write it in their failureData. It is never the stale
+            // server connection error, which lives in `card.errors`. So it stays actionable past the grace period,
+            // otherwise a sync the user just triggered could fail with no RBR anywhere once they leave the card.
+            it('should show the RBR for a past-grace card whose manual sync just failed', () => {
                 const card = createCard({
                     cardID: CARD_IDS.card1,
                     lastScrapeResult: 403, // Broken connection
                     lastScrape: '2020-01-01 00:00:00', // Last successful scrape is well beyond the grace period
-                    errorFields: {lastScrape: {error: 'Your card connection is broken.'}}, // Kept so the card can still be fixed
+                    errorFields: {lastScrape: {error: 'Update card failed'}}, // Written by the failed manual sync
+                });
+
+                const globalCardList: CardList = {card1: card};
+
+                const result = cardFeedErrorsConfig.compute([globalCardList, {}, {}, undefined], DERIVED_VALUE_CONTEXT);
+
+                expect(result.personalCard.shouldShowRBR).toBe(true);
+                // The connection itself is still dismissed, so the time-sensitive task stays away.
+                expect(result.personalCard.isFeedConnectionBroken).toBe(false);
+            });
+
+            it('should NOT show the RBR for a past-grace card whose only error is the stale server connection error', () => {
+                const card = createCard({
+                    cardID: CARD_IDS.card1,
+                    lastScrapeResult: 403,
+                    lastScrape: '2020-01-01 00:00:00',
+                    errors: {connectionError: 'Your card connection is broken.'}, // Server-set, kept so the card stays fixable
                 });
 
                 const globalCardList: CardList = {card1: card};
