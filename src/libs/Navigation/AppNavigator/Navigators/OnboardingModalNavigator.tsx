@@ -2,6 +2,7 @@ import NoDropZone from '@components/DragAndDrop/NoDropZone';
 import FocusTrapForScreens from '@components/FocusTrap/FocusTrapForScreen';
 
 import useKeyboardShortcut from '@hooks/useKeyboardShortcut';
+import useOnboardingDeeplinkIntent from '@hooks/useOnboardingDeeplinkIntent';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -51,6 +52,7 @@ function OnboardingModalNavigator() {
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const outerViewRef = React.useRef<View>(null);
     const [account, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT);
+    const onboardingDeeplinkIntent = useOnboardingDeeplinkIntent();
     const isOnPrivateDomainAndHasAccessiblePolicies = !account?.isFromPublicDomain && account?.hasAccessibleDomainPolicies;
 
     let initialRouteName: ValueOf<typeof SCREENS.ONBOARDING> = SCREENS.ONBOARDING.PURPOSE;
@@ -61,6 +63,13 @@ function OnboardingModalNavigator() {
 
     if (account?.isFromPublicDomain) {
         initialRouteName = SCREENS.ONBOARDING.WORK_EMAIL;
+    }
+
+    // A Submit deeplink already answers the purpose question, so it enters at the step that follows it. This has to be
+    // decided here rather than by navigating afterwards: the navigator mounts straight from the deeplink URL, and once
+    // it is in the root state startOnboardingFlow can no longer change which step is showing.
+    if (onboardingDeeplinkIntent === CONST.ONBOARDING_INTENTS.SUBMIT) {
+        initialRouteName = SCREENS.ONBOARDING.PERSONAL_DETAILS;
     }
 
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {

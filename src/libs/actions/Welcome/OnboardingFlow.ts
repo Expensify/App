@@ -6,6 +6,7 @@ import type {RootNavigatorParamList} from '@libs/Navigation/types';
 
 import type {Video} from '@userActions/Report';
 
+import type {OnboardingIntent} from '@src/CONST';
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -34,6 +35,7 @@ type GetOnboardingInitialPathParamsType = {
     onboardingInitialPath: OnyxEntry<string> | null;
     onboardingValues: OnyxEntry<Onboarding>;
     isAccountValidated?: boolean;
+    onboardingDeeplinkIntent?: OnyxEntry<OnboardingIntent>;
 };
 
 type OnboardingTaskLinks = Partial<{
@@ -113,6 +115,7 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
         onboardingInitialPath,
         onboardingValues,
         isAccountValidated,
+        onboardingDeeplinkIntent,
     } = getOnboardingInitialPathParams;
     const initialPath = onboardingInitialPath ?? '';
     const state = getStateFromPath(initialPath, linkingConfig.config);
@@ -129,6 +132,15 @@ function getOnboardingInitialPath(getOnboardingInitialPathParams: GetOnboardingI
 
     if (isIndividual) {
         Onyx.set(ONYXKEYS.ONBOARDING_CUSTOM_CHOICES, [CONST.ONBOARDING_CHOICES.EMPLOYER, CONST.ONBOARDING_CHOICES.TRACK_BUSINESS, CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]);
+    }
+
+    // A Submit deeplink already answers the question the purpose step asks, so pre-select the intent and jump to the
+    // step that follows it. Personal details still have to be collected because the workspace is named after the user.
+    // From there the existing EMPLOYER path creates the Submit workspace, so the deeplink never races the onboarding
+    // flow for control of navigation.
+    if (onboardingDeeplinkIntent === CONST.ONBOARDING_INTENTS.SUBMIT) {
+        Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
+        return `/${ROUTES.ONBOARDING_PERSONAL_DETAILS.route}`;
     }
     // A validated account has no reason to be on the onboarding "add work email" screen.
     if (isUserFromPublicDomain && !onboardingValuesParam?.isMergeAccountStepCompleted && !isAccountValidated) {

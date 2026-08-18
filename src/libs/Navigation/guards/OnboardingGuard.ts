@@ -5,6 +5,7 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
+import type {OnboardingIntent} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -38,6 +39,7 @@ let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
+let onboardingDeeplinkIntent: OnyxEntry<OnboardingIntent>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
 
@@ -90,6 +92,15 @@ Onyx.connectWithoutView({
     },
 });
 
+// Without this the guard would recompute the onboarding route from progress alone and redirect a deeplinked user
+// back to the step their intent was meant to skip.
+Onyx.connectWithoutView({
+    key: ONYXKEYS.ONBOARDING_DEEPLINK_INTENT,
+    callback: (value) => {
+        onboardingDeeplinkIntent = value;
+    },
+});
+
 Onyx.connectWithoutView({
     key: ONYXKEYS.HAS_NON_PERSONAL_POLICY,
     callback: (value) => {
@@ -117,6 +128,7 @@ function getOnboardingRoute(): Route {
         onboardingInitialPath,
         onboardingValues: onboarding,
         isAccountValidated: !!account?.validated,
+        onboardingDeeplinkIntent,
     }) as Route;
 }
 

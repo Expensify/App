@@ -3,7 +3,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useOnyx from '@hooks/useOnyx';
 
 import {setSubmitMigrationModalShown} from '@userActions/User';
-import {setOnboardingPurposeSelected} from '@userActions/Welcome';
+import {setOnboardingDeeplinkIntent} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,10 +13,14 @@ import {isSupportalSessionSelector} from '@selectors/Session';
 import {useEffect, useRef} from 'react';
 
 /**
- * Creates the Submit workspace requested by an `intent=submit` onboarding deeplink.
+ * Acts on an `intent=submit` onboarding deeplink.
  *
- * Only rendered once the deeplink has been recognised, so the Onyx subscriptions behind
- * `useAutoCreateSubmitWorkspace` are never set up for ordinary sessions.
+ * Recording the intent is what drives users who still have onboarding ahead of them: the onboarding flow reads it and
+ * routes them down the EMPLOYER path, which creates the Submit workspace at the end. Users who already finished
+ * onboarding never enter that flow, so for them the workspace is created here instead.
+ *
+ * Only rendered once the deeplink has been recognised, so the Onyx subscriptions behind `useAutoCreateSubmitWorkspace`
+ * are never set up for ordinary sessions.
  */
 function ApplySubmitOnboardingIntent() {
     const {firstName, lastName} = useCurrentUserPersonalDetails();
@@ -29,24 +33,37 @@ function ApplySubmitOnboardingIntent() {
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
 
-    const hasAppliedIntent = useRef(false);
+    const hasDecided = useRef(false);
 
     useEffect(() => {
-        if (hasAppliedIntent.current || !hasLoadedApp || isOnboardingCompleted === undefined || isSupportalSession) {
+        if (isSupportalSession) {
             return;
         }
-        hasAppliedIntent.current = true;
+        setOnboardingDeeplinkIntent(CONST.ONBOARDING_INTENTS.SUBMIT);
+    }, [isSupportalSession]);
 
-        setOnboardingPurposeSelected(CONST.ONBOARDING_CHOICES.EMPLOYER);
+    useEffect(() => {
+        if (hasDecided.current || !hasLoadedApp || isOnboardingCompleted === undefined || isSupportalSession) {
+            return;
+        }
+        // Decided once and for all on this first complete read. Without that, finishing guided setup would flip
+        // isOnboardingCompleted and re-enter this branch on top of the workspace the flow just created.
+        hasDecided.current = true;
+
+        // Users who still have onboarding ahead of them get their Submit workspace from the flow itself, which reads
+        // the intent recorded above. Only users who will never enter that flow need it created here.
+        if (!isOnboardingCompleted) {
+            return;
+        }
 
         // The deeplink delivers the same outcome as the Submit plan welcome modal, so record the modal as seen to
         // stop it from opening on top of the workspace we're about to create.
         setSubmitMigrationModalShown();
 
-        // Users who already finished onboarding must not run guided setup again. When they already own a Submit
-        // workspace, useAutoCreateSubmitWorkspace skips creation and navigates to that workspace instead, which is
-        // what makes repeat clicks of the link idempotent.
-        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', !isOnboardingCompleted);
+        // Guided setup is already done, so it must not run again. When the user already owns a Submit workspace,
+        // useAutoCreateSubmitWorkspace skips creation and navigates to that workspace instead, which is what makes
+        // repeat clicks of the link idempotent.
+        autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', false);
     }, [autoCreateSubmitWorkspace, firstName, hasLoadedApp, isOnboardingCompleted, isSupportalSession, lastName]);
 
     return null;

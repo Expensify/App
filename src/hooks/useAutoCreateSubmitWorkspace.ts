@@ -5,7 +5,7 @@ import {canEditWorkspaceSettings, isGroupPolicy, isSubmitPolicy} from '@libs/Pol
 
 import {createWorkspace, generateDefaultWorkspaceName, generatePolicyID} from '@userActions/Policy/Policy';
 import {completeOnboarding} from '@userActions/Report';
-import {setOnboardingAdminsChatReportID, setOnboardingPolicyID} from '@userActions/Welcome';
+import {setOnboardingAdminsChatReportID, setOnboardingDeeplinkIntent, setOnboardingPolicyID} from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -116,6 +116,9 @@ function useAutoCreateSubmitWorkspace() {
 
             setOnboardingAdminsChatReportID();
             setOnboardingPolicyID();
+            // Both deeplink paths (the onboarding flow and the already-onboarded handler) end up here, so this is the
+            // one place that reliably retires a Submit deeplink intent once it has been honoured.
+            setOnboardingDeeplinkIntent(null);
 
             // Already-onboarded callers (the Submit plan welcome modal) can reach this point with no workspace
             // created and no onboarding policy ID when an editable Submit workspace already exists. Navigate to

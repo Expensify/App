@@ -19,6 +19,7 @@ import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedTo
 import {emailSelector} from '@selectors/Session';
 import {useCallback, useEffect} from 'react';
 
+import useOnboardingDeeplinkIntent from './useOnboardingDeeplinkIntent';
 import useOnyx from './useOnyx';
 import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
@@ -53,6 +54,7 @@ function useOnboardingFlowRouter() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
+    const onboardingDeeplinkIntent = useOnboardingDeeplinkIntent();
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const wasInvitedToNewDot = wasInvitedToNewDotSelector(introSelected);
@@ -131,6 +133,7 @@ function useOnboardingFlowRouter() {
                             onboardingInitialPath,
                             onboardingValues,
                             isAccountValidated: !!account?.validated,
+                            onboardingDeeplinkIntent,
                         });
                     });
                 }
@@ -158,6 +161,7 @@ function useOnboardingFlowRouter() {
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,
+        onboardingDeeplinkIntent,
         hasBeenAddedToNudgeMigration,
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
