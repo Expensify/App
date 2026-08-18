@@ -12,6 +12,11 @@ declare module '*.jpg' {
     export default value;
 }
 
+declare module '*.mp3' {
+    const value: number;
+    export default value;
+}
+
 declare module '*.svg' {
     import type React from 'react';
     import type {SvgProps} from 'react-native-svg';

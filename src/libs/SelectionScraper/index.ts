@@ -1,6 +1,6 @@
 import CONST from '@src/CONST';
 
-import type {ChildNode} from 'domhandler';
+import type {ChildNode, ParentNode} from 'domhandler';
 
 import render from 'dom-serializer';
 import {DataNode, Element} from 'domhandler';
@@ -11,6 +11,35 @@ import type GetCurrentSelection from './types';
 
 const markdownElements = new Set(['h1', 'strong', 'em', 'del', 'blockquote', 'q', 'code', 'pre', 'a', 'br', 'li', 'ul', 'ol', 'b', 'i', 's', 'mention-user']);
 const tagAttribute = 'data-testid';
+
+const installTransformedChildren = (parent: ParentNode, children: ChildNode[]) => {
+    const transformedParent = parent;
+    transformedParent.children = children;
+
+    for (const [index, child] of children.entries()) {
+        child.parent = transformedParent;
+        child.prev = index > 0 ? (children.at(index - 1) ?? null) : null;
+        child.next = children.at(index + 1) ?? null;
+    }
+};
+
+const installForeignObjectRenderCompatibility = (parent: ParentNode, isWithinSVG = false) => {
+    for (const child of parent.children) {
+        if (!(child instanceof Element)) {
+            continue;
+        }
+
+        const childIsWithinSVG = isWithinSVG || child.name === 'svg';
+        if (childIsWithinSVG && child.name === 'foreignobject') {
+            const lowercaseForeignObject = child.cloneNode();
+            for (const foreignObjectChild of child.children) {
+                foreignObjectChild.parent = lowercaseForeignObject;
+            }
+        }
+
+        installForeignObjectRenderCompatibility(child, childIsWithinSVG);
+    }
+};
 
 /**
  * Reads html of selection. If browser doesn't support Selection API, returns empty string.
@@ -53,7 +82,7 @@ const getHTMLOfSelection = (): string => {
         // If clonedSelection has no text content this data has no meaning to us.
         if (clonedSelection.textContent) {
             let parent: globalThis.Element | null = null;
-            let child = clonedSelection;
+            let child: globalThis.Node = clonedSelection;
 
             // If selection starts and ends within same text node we use its parentNode. This is because we can't
             // use closest function on a [Text](https://developer.mozilla.org/en-US/docs/Web/API/Text) node.
@@ -73,16 +102,16 @@ const getHTMLOfSelection = (): string => {
             if (range.commonAncestorContainer instanceof HTMLElement) {
                 parent = range.commonAncestorContainer.closest(`[${tagAttribute}]`);
             } else {
-                parent = (range.commonAncestorContainer.parentNode as HTMLElement | null)?.closest(`[${tagAttribute}]`) ?? null;
+                parent = range.commonAncestorContainer.parentElement?.closest(`[${tagAttribute}]`) ?? null;
             }
 
             // Keep traversing up to clone all parents with 'data-testid' attribute.
             while (parent) {
                 const cloned = parent.cloneNode();
                 cloned.appendChild(child);
-                child = cloned as DocumentFragment;
+                child = cloned;
 
-                parent = (parent.parentNode as HTMLElement | null)?.closest(`[${tagAttribute}]`) ?? null;
+                parent = parent.parentElement?.closest(`[${tagAttribute}]`) ?? null;
             }
 
             div.appendChild(child);
@@ -107,24 +136,25 @@ const getHTMLOfSelection = (): string => {
  * @param dom - dom htmlparser2 dom representation
  */
 const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNode => {
-    let domName;
-    let domChildren: ChildNode[] = [];
-    const domAttribs: Element['attribs'] = {};
-    let data = '';
-
     // Encoding HTML chars '< >' in the text, because any HTML will be removed in stripHTML method.
     if (dom.type.toString() === 'text' && dom instanceof DataNode) {
-        data = Str.htmlEncode(dom.data);
+        const clonedDom = dom.cloneNode();
+        clonedDom.data = Str.htmlEncode(dom.data);
         if (dom.parent instanceof Element && dom.parent?.attribs?.[tagAttribute] === 'email-with-break-opportunities') {
-            data = data.replaceAll('\u200b', '');
+            clonedDom.data = clonedDom.data.replaceAll('\u200b', '');
         }
-    } else if (dom instanceof Element) {
-        domName = dom.name;
+
+        return clonedDom;
+    }
+
+    if (dom instanceof Element) {
+        const clonedDom = dom.cloneNode();
+        clonedDom.attribs = {};
         const child = dom.children.at(0);
         if (dom.attribs?.[tagAttribute]) {
             // If it's a markdown element, rename it according to the value of data-testid, so ExpensiMark can parse it
             if (markdownElements.has(dom.attribs[tagAttribute])) {
-                domName = dom.attribs[tagAttribute];
+                clonedDom.name = dom.attribs[tagAttribute];
             }
         } else if (dom.name === 'div' && dom.children.length === 1 && isChildOfEditorElement && child) {
             // We are excluding divs that are children of our editor element and have only one child to prevent
@@ -134,36 +164,35 @@ const replaceNodes = (dom: ChildNode, isChildOfEditorElement: boolean): ChildNod
 
         // We need to preserve href attribute in order to copy links.
         if (dom.attribs?.href) {
-            domAttribs.href = dom.attribs.href;
+            clonedDom.attribs.href = dom.attribs.href;
         }
 
-        if (dom.children) {
-            domChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute]));
-        }
-    } else {
-        throw new Error(`Unknown dom type: ${dom.type}`);
+        const transformedChildren = dom.children.map((c) => replaceNodes(c, isChildOfEditorElement || !!dom.attribs?.[tagAttribute]));
+        installTransformedChildren(clonedDom, transformedChildren);
+        return clonedDom;
     }
 
-    return {
-        ...dom,
-        data,
-        name: domName,
-        attribs: domAttribs,
-        children: domChildren,
-    } as Element & DataNode;
+    throw new Error(`Unknown dom type: ${dom.type}`);
 };
 
 /**
  * Resolves the current selection to values and produces clean HTML.
  */
 const getCurrentSelection: GetCurrentSelection = () => {
-    const domRepresentation = parseDocument(getHTMLOfSelection());
-    domRepresentation.children = domRepresentation.children.map((item) => replaceNodes(item, false));
+    const parsedDom = parseDocument(getHTMLOfSelection());
+    const domRepresentation = parsedDom.cloneNode();
+    installTransformedChildren(
+        domRepresentation,
+        parsedDom.children.map((item) => replaceNodes(item, false)),
+    );
+
+    const renderView = domRepresentation.cloneNode(true);
+    installForeignObjectRenderCompatibility(renderView);
 
     // Newline characters need to be removed here because the HTML could contain both newlines and <br> tags, and when
     // <br> tags are converted later to markdown, it creates duplicate newline characters. This means that when the content
     // is pasted, there are extra newlines in the content that we want to avoid.
-    const newHtml = render(domRepresentation).replaceAll('<br>\n', '<br>');
+    const newHtml = render(renderView).replaceAll('<br>\n', '<br>');
     return newHtml || '';
 };
 
