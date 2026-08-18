@@ -1,4 +1,4 @@
-import type {TransactionGroupListItemType, TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
+import type {TransactionListItemType} from '@components/Search/SearchList/ListItem/types';
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {search} from '@libs/actions/Search';
@@ -195,6 +195,20 @@ function useSearchAutoRefetch({
     return {newTransactions};
 }
 
+function getTransactionIDFromEntry(entry: unknown) {
+    if (typeof entry !== 'object' || entry === null || !('transactionID' in entry) || typeof entry.transactionID !== 'string') {
+        return undefined;
+    }
+    return entry.transactionID;
+}
+
+function hasNestedTransactions(entry: unknown): entry is {transactions: Array<Partial<TransactionListItemType>>} {
+    if (typeof entry !== 'object' || entry === null || !('transactions' in entry)) {
+        return false;
+    }
+    return Array.isArray(entry.transactions);
+}
+
 /**
  * Helper function to extract transaction IDs from search results data.
  */
@@ -203,18 +217,21 @@ function extractTransactionIDsFromSearchResults(searchResultsData: Partial<Searc
 
     for (const item of Object.values(searchResultsData)) {
         // Check for transactionID directly on the item (TransactionListItemType)
-        if ((item as TransactionListItemType)?.transactionID) {
-            transactionIDs.push((item as TransactionListItemType).transactionID);
+        const transactionID = getTransactionIDFromEntry(item);
+        if (transactionID) {
+            transactionIDs.push(transactionID);
         }
 
         // Check for transactions array within the item (TransactionGroupListItemType)
-        if (Array.isArray((item as TransactionGroupListItemType)?.transactions)) {
-            for (const transaction of (item as TransactionGroupListItemType).transactions) {
-                if (!transaction?.transactionID) {
-                    continue;
-                }
-                transactionIDs.push(transaction.transactionID);
+        if (!hasNestedTransactions(item)) {
+            continue;
+        }
+        for (const transaction of item.transactions) {
+            const nestedTransactionID = getTransactionIDFromEntry(transaction);
+            if (!nestedTransactionID) {
+                continue;
             }
+            transactionIDs.push(nestedTransactionID);
         }
     }
 
