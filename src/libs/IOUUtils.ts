@@ -546,6 +546,15 @@ function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Re
     return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
 }
 
+/** The policyID of the workspace the user explicitly picked for this expense, taken from the transaction participants. */
+function getSelectedWorkspacePolicyID(transaction: OnyxEntry<Transaction>, action: IOUAction): string | undefined {
+    if (action === CONST.IOU.ACTION.EDIT) {
+        return undefined;
+    }
+
+    return transaction?.participants?.find((participant) => participant?.isSender)?.policyID ?? transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -653,4 +662,5 @@ export {
     resolveEarlyReportID,
     reportHasRealPolicy,
     pickReportForPolicy,
+    getSelectedWorkspacePolicyID,
 };
