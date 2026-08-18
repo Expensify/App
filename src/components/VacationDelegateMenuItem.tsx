@@ -11,6 +11,7 @@ import React from 'react';
 
 import UserAvatar from './Avatar/UserAvatar';
 import MenuItem from './MenuItem';
+import {MENU_ITEM_DESCRIPTION_VARIANT} from './MenuItem/leaves/text/MenuItemDescription';
 import OfflineWithFeedback from './OfflineWithFeedback';
 import Text from './Text';
 
@@ -50,6 +51,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
     // With a delegate set, the row shows their name with their login underneath. Without one, the field's
     // own label takes the description slot as a placeholder, so it renders at the standalone size instead.
     const description = hasVacationDelegate ? fallbackVacationDelegateLogin : translate('common.vacationDelegate');
+    const title = hasVacationDelegate ? (vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin) : undefined;
 
     const delegateRow = (
         <MenuItem.Root onPress={onPress}>
@@ -63,10 +65,10 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     </MenuItem.Leading>
                 )}
                 <MenuItem.Content>
-                    {hasVacationDelegate && <MenuItem.Title>{vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin ?? ''}</MenuItem.Title>}
+                    {!!title && <MenuItem.Title>{title}</MenuItem.Title>}
                     {!!description && (
                         <MenuItem.Description
-                            variant={hasVacationDelegate ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
+                            variant={hasVacationDelegate ? MENU_ITEM_DESCRIPTION_VARIANT.SUPPORTING : MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}
                             numberOfLines={hasVacationDelegate ? 1 : 2}
                         >
                             {description}

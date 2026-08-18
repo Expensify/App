@@ -6,6 +6,7 @@ import CompactMenuContext from '@components/CompactMenuContext';
 import DisplayNames from '@components/DisplayNames';
 import type {DisplayNameWithTooltip} from '@components/DisplayNames/types';
 import MenuItem from '@components/MenuItem';
+import {MENU_ITEM_DESCRIPTION_VARIANT} from '@components/MenuItem/leaves/text/MenuItemDescription';
 import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemEntity from '@components/MenuItem/presets/MenuItemEntity';
 import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
@@ -337,11 +338,11 @@ function Comparison() {
                 }
                 composable={
                     <>
-                        <Variant label="variant='prominent'">
+                        <Variant label="variant='placeholder'">
                             <MenuItem.Root onPress={noop}>
                                 <MenuItem.Row>
                                     <MenuItem.Content>
-                                        <MenuItem.Description variant={CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}>Vacation delegate</MenuItem.Description>
+                                        <MenuItem.Description variant={MENU_ITEM_DESCRIPTION_VARIANT.PLACEHOLDER}>Vacation delegate</MenuItem.Description>
                                     </MenuItem.Content>
                                     <MenuItem.Trailing>
                                         <MenuItem.Chevron />

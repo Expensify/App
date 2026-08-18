@@ -9519,13 +9519,6 @@ const CONST = {
         NEWDOT: 83,
         OAUTH: 86,
     },
-
-    MENU_ITEM: {
-        DESCRIPTION_VARIANT: {
-            SUPPORTING: 'supporting',
-            PROMINENT: 'prominent',
-        },
-    },
 } as const;
 
 /** Upgrade intro feature ids from UPGRADE_FEATURE_INTRO_MAPPING for Submit workspace */
