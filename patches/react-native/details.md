@@ -330,3 +330,10 @@
 - E/App issues: [#82611](https://github.com/Expensify/App/issues/82611) [#93833](https://github.com/Expensify/App/issues/93833)
 - PR introducing patch: [#84303](https://github.com/Expensify/App/pull/84303) (original 0.85.3 patch)
 - 0.86.0 migration note: RN 0.86.0 upstreamed the `getNullableViewState` + soft-log guard for `addViewAt`, `updateProps`, `updateLayout` and `removeViewAt`, which is why the 0.85.3 patch was dropped during the upgrade — but it did **not** upstream the `updateOverflowInset` guard, so that one site regressed. Only that site is re-patched here; `updatePadding` and `updateState` still use the throwing `getViewState`, matching 0.85.3 behaviour. Re-check on the RN 0.87 upgrade whether `updateOverflowInset` has been guarded upstream, and drop this patch if so.
+
+### [react-native+0.86.0+039+persist-change-bundle-location.patch](react-native+0.86.0+039+persist-change-bundle-location.patch)
+
+- Reason: Backports React Native's Android fix for persisting the host selected through `Change Bundle Location`. The setting is written to the existing `debug_http_host` preference, restored after process restarts, and removed when the host is reset. This replaces the HybridApp-specific lifecycle workaround and can be removed after upgrading to React Native 0.88 or later.
+- Upstream PR/issue: [facebook/react-native#57425](https://github.com/facebook/react-native/pull/57425) / [d2ac1904118](https://github.com/facebook/react-native/commit/d2ac190411877e7a1bc94ffac346c5fd35b65a7c)
+- E/App issue: N/A
+- PR introducing patch: https://github.com/Expensify/Mobile-Expensify/pull/14058
