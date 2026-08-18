@@ -172,6 +172,23 @@ function ThreeDotsMenu({
           }
         : {text: translate(iconTooltip), shouldRender: true};
 
+    const onModalHide = () => {
+        setRestoreFocusType(undefined);
+        const wasItemSelected = wasItemSelectedRef.current;
+        wasItemSelectedRef.current = false;
+        if (wasItemSelected) {
+            return;
+        }
+
+        // Dismissed without picking anything — Escape, click outside. `shouldEnableNewFocusManagement` hands the
+        // focus return to ComposerFocusManager, which only ever restores *inputs*, and the focus trap stands down
+        // for the same reason, so nothing puts focus back on the 3-dot trigger and it falls to <body>.
+        const anchor = resolvePopoverLauncherElement(buttonRef);
+        if (!anchor) {
+            return;
+        }
+        restoreFocusWithModality(anchor);
+    };
     return (
         <>
             <View>
@@ -206,23 +223,7 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalHide={() => {
-                    setRestoreFocusType(undefined);
-                    const wasItemSelected = wasItemSelectedRef.current;
-                    wasItemSelectedRef.current = false;
-                    if (wasItemSelected) {
-                        return;
-                    }
-
-                    // Dismissed without picking anything — Escape, click outside. `shouldEnableNewFocusManagement` hands the
-                    // focus return to ComposerFocusManager, which only ever restores *inputs*, and the focus trap stands down
-                    // for the same reason, so nothing puts focus back on the 3-dot trigger and it falls to <body>.
-                    const anchor = resolvePopoverLauncherElement(buttonRef);
-                    if (!anchor) {
-                        return;
-                    }
-                    restoreFocusWithModality(anchor);
-                }}
+                onModalHide={onModalHide}
                 isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
