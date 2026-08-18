@@ -200,9 +200,9 @@ function useInitialAssignCardStep({policyID, selectedFeed}: UseInitialAssignCard
             };
         }
 
-        const employeeList = Object.values(policy?.employeeList ?? {}).filter((employee) => !isDeletedPolicyEmployee(employee, isOffline));
-        if (employeeList.length === 1) {
-            const userEmail = Object.keys(policy?.employeeList ?? {}).at(0) ?? '';
+        const activeEmployees = Object.entries(policy?.employeeList ?? {}).filter(([, employee]) => !isDeletedPolicyEmployee(employee, isOffline));
+        if (activeEmployees.length === 1) {
+            const userEmail = activeEmployees.at(0)?.[0] ?? '';
             cardToAssign.email = userEmail;
             const personalDetails = getPersonalDetailByEmail(userEmail);
             const memberName = personalDetails?.firstName ? personalDetails.firstName : personalDetails?.login;

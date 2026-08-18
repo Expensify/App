@@ -942,8 +942,9 @@ jobs:
   autoRetestRequestForCP:
     name: File retest request for cherry-picked deploy-blocker fixes
     runs-on: blacksmith-2vcpu-ubuntu-2404
-    # Only for a cherry-pick to staging, once every platform is on staging.
-    if: ${{ github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
+    # androidSubmit/iosSubmit always skip on staging (they're prod-only), so the implicit
+    # success() check would skip this job too unless we override it with always().
+    if: ${{ always() && github.repository == 'Expensify/App' && needs.prep.outputs.DEPLOY_ENV == 'staging' && fromJSON(needs.prep.outputs.IS_CHERRY_PICK) && fromJSON(needs.checkDeploymentSuccess.outputs.IS_ALL_PLATFORMS_DEPLOYED) }}
     needs: [prep, checkDeploymentSuccess]
     steps:
       - name: Checkout

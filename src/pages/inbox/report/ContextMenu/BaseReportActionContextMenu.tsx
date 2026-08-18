@@ -29,11 +29,12 @@ import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,
+    getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
     getReportAction,
+    getTransactionThreadReportIDFromAction,
     isActionOfType,
-    isDeletedAction,
     isMemberChangeAction,
     withDEWRoutedActionsObject,
 } from '@libs/ReportActionsUtils';
@@ -164,7 +165,7 @@ function BaseReportActionContextMenu({
         'Trashcan',
     ]);
     const StyleUtils = useStyleUtils();
-    const {translate, getLocalDateFromDatetime, formatPhoneNumber} = useLocalize();
+    const {translate, getLocalDateFromDatetime, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {convertToDisplayString} = useCurrencyListActions();
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth} = useResponsiveLayout();
@@ -223,30 +224,16 @@ function BaseReportActionContextMenu({
     const parentReportAction = getReportAction(childReport?.parentReportID, childReport?.parentReportActionID);
     const {reportActions: paginatedReportActions} = usePaginatedReportActions(childReport?.reportID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const transactionThreadReportID = useMemo(
-        () => getOneTransactionThreadReportID(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
+    const transactionThreadReportAction = useMemo(
+        () => getOneTransactionThreadReportAction(childReport, childChatReport, paginatedReportActions ?? [], isOffline),
         [paginatedReportActions, isOffline, childReport, childChatReport],
     );
-
-    const [transactionThreadReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transactionThreadReportID)}`);
+    const transactionThreadReportID = getTransactionThreadReportIDFromAction(transactionThreadReportAction);
 
     const isMoneyRequestReport = useMemo(() => ReportUtilsIsMoneyRequestReport(childReport), [childReport]);
     const isInvoiceReport = useMemo(() => ReportUtilsIsInvoiceReport(childReport), [childReport]);
 
-    const requestParentReportAction = useMemo(() => {
-        if (isMoneyRequestReport || isInvoiceReport) {
-            if (transactionThreadReportID === CONST.FAKE_REPORT_ID) {
-                return Object.values(childReportActions ?? {}).find((action) => action.actionName === CONST.REPORT.ACTIONS.TYPE.IOU && !isDeletedAction(action));
-            }
-            if (!paginatedReportActions || !transactionThreadReport?.parentReportActionID) {
-                return undefined;
-            }
-            return paginatedReportActions.find((action) => action.reportActionID === transactionThreadReport.parentReportActionID);
-        }
-        return parentReportAction;
-    }, [parentReportAction, isMoneyRequestReport, isInvoiceReport, paginatedReportActions, transactionThreadReport?.parentReportActionID, transactionThreadReportID, childReportActions]);
-
-    const moneyRequestAction = transactionThreadReportID ? requestParentReportAction : parentReportAction;
+    const moneyRequestAction = transactionThreadReportAction ?? parentReportAction;
     const isChildReportArchived = useReportIsArchived(childReport?.reportID);
     const isParentReportArchived = useReportIsArchived(childReport?.parentReportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${childReport?.parentReportID}`);
@@ -406,6 +393,7 @@ function BaseReportActionContextMenu({
                             const payload: ContextMenuActionPayload = {
                                 reportActions,
                                 childReportActions,
+                                originalReportActions,
                                 // eslint-disable-next-line @typescript-eslint/non-nullable-type-assertion-style
                                 reportAction: (reportAction ?? null) as ReportAction,
                                 reportID,
@@ -432,6 +420,7 @@ function BaseReportActionContextMenu({
                                 policy,
                                 policyTags,
                                 translate,
+                                dateFnsLocale,
                                 convertToDisplayString,
                                 formatPhoneNumber,
                                 harvestReport,
@@ -462,8 +451,7 @@ function BaseReportActionContextMenu({
 
                             const {textTranslateKey} = contextAction;
                             const isKeyInActionUpdateKeys = textTranslateKey === 'reportActionContextMenu.editAction' || textTranslateKey === 'reportActionContextMenu.deleteConfirmation';
-                            const text =
-                                textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, {action: moneyRequestAction ?? reportAction}) : translate(textTranslateKey));
+                            const text = textTranslateKey && (isKeyInActionUpdateKeys ? translate(textTranslateKey, moneyRequestAction ?? reportAction) : translate(textTranslateKey));
                             const transactionPayload = textTranslateKey === 'reportActionContextMenu.copyMessage' && transaction && {transaction};
                             const isMenuAction = textTranslateKey === 'reportActionContextMenu.menu';
                             const successIcon = contextAction.successIcon ? icons[contextAction.successIcon] : undefined;

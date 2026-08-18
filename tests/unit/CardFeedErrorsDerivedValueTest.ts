@@ -66,11 +66,8 @@ function createCard(overrides: Partial<Card> = {}): Card {
 }
 
 // Helper to create workspace cards list
-function createWorkspaceCardsList(cards: Record<string, Card>, cardList?: Record<string, string>): WorkspaceCardsList {
-    return {
-        ...cards,
-        ...(cardList ? {cardList} : {}),
-    } as WorkspaceCardsList;
+function createWorkspaceCardsList(cards: Record<string, Card>): WorkspaceCardsList {
+    return cards;
 }
 
 describe('CardFeedErrors Derived Value', () => {

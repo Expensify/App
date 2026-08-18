@@ -4,6 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
@@ -48,10 +49,7 @@ function LazyFallback({tabSpanName}: LazyFallbackProps) {
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 }
@@ -115,6 +113,7 @@ function TabNavigator() {
             backBehavior="fullHistory"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
+            screenLayout={bottomTabScreenLayoutWrapper}
         >
             <Tab.Screen
                 name={SCREENS.HOME}
