@@ -85,6 +85,47 @@ type ReportActionsListContentProps = {
 type ReportActionsListProps = ReportActionsListContentProps;
 
 const PAGINATION_THRESHOLD = 0.75;
+const REPORT_ACTIONS_DRAW_DISTANCE = 500;
+
+const REPORT_ACTION_COMMENT_SIZE = {
+    SHORT: 'short',
+    MEDIUM: 'medium',
+    LONG: 'long',
+    EXTRA_LONG: 'extra-long',
+} as const;
+
+function getReportActionCommentSize(messageLength: number): string {
+    if (messageLength <= 80) {
+        return REPORT_ACTION_COMMENT_SIZE.SHORT;
+    }
+    if (messageLength <= 320) {
+        return REPORT_ACTION_COMMENT_SIZE.MEDIUM;
+    }
+    if (messageLength <= 1200) {
+        return REPORT_ACTION_COMMENT_SIZE.LONG;
+    }
+    return REPORT_ACTION_COMMENT_SIZE.EXTRA_LONG;
+}
+
+function getItemType(item: OnyxTypes.ReportAction): string {
+    if (item.actionName !== CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT) {
+        return item.actionName;
+    }
+
+    const message = getReportActionMessage(item);
+    const commentSize = getReportActionCommentSize(message?.text.length ?? 0);
+
+    if (item.isAttachmentOnly) {
+        return `${item.actionName}-attachment`;
+    }
+    if (item.isAttachmentWithText) {
+        return `${item.actionName}-attachment-${commentSize}`;
+    }
+    if (item.linkMetadata?.length) {
+        return `${item.actionName}-link-preview-${commentSize}`;
+    }
+    return `${item.actionName}-${commentSize}`;
+}
 
 /**
  * Create a unique key for each action in the list.
@@ -417,7 +458,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         const reportActionIndex = renderedVisibleReportActions.length - index - 1;
 
         return (
-            <ReportActionIndexContext.Provider value={{index, isNewest: index === listData.length - 1}}>
+            <ReportActionIndexContext.Provider value={{index, isNewest: index === listData.length - 1, isRecycling: true}}>
                 <ReportActionsListItemRenderer
                     reportAction={reportAction}
                     parentReportAction={parentReportAction}
@@ -524,7 +565,8 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     data={listData}
                     renderItem={renderItem}
                     keyExtractor={keyExtractor}
-                    drawDistance={1500}
+                    drawDistance={REPORT_ACTIONS_DRAW_DISTANCE}
+                    recycleItems
                     renderScrollComponent={renderActionSheetAwareScrollView}
                     contentContainerStyle={styles.chatContentScrollView}
                     onEndReached={loadNewerChatsAfterTransitions}
@@ -541,7 +583,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
                     onViewableItemsChanged={onViewableItemsChanged}
                     extraData={extraData}
                     key={listID}
-                    getItemType={(item) => item.actionName}
+                    getItemType={getItemType}
                     initialScrollAtEnd={initialScrollIndex === undefined}
                     initialScrollIndex={initialScrollIndex === undefined ? undefined : {index: initialScrollIndex, ...initialScrollIndexParams}}
                     alignItemsAtEnd={!shouldBeAlignedToTop}

@@ -162,9 +162,12 @@ jest.mock('@pages/inbox/report/ReportActionItemCreated', () => jest.fn(() => nul
 
 type MockLegendListProps = {
     data?: OnyxTypes.ReportAction[];
+    drawDistance?: number;
     extraData?: unknown;
+    getItemType?: (item: OnyxTypes.ReportAction) => string;
     maintainScrollAtEnd?: {animated: boolean};
     maintainScrollAtEndThreshold?: number;
+    recycleItems?: boolean;
     renderItem?: (info: {item: OnyxTypes.ReportAction; index: number}) => React.ReactElement | null;
     onStartReached?: () => void;
     onScroll?: (event: {
@@ -362,6 +365,64 @@ describe('ReportActionsList (body)', () => {
 
         expect(getCapturedListProps()?.maintainScrollAtEnd).toEqual({animated: false});
         expect(getCapturedListProps()?.maintainScrollAtEndThreshold).toBe(1);
+    });
+
+    it('limits the render buffer and enables item recycling', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        const listProps = getCapturedListProps();
+
+        expect(listProps?.drawDistance).toBe(500);
+        expect(listProps?.recycleItems).toBe(true);
+    });
+
+    it('groups comments by layout characteristics for measurement estimates', () => {
+        mockUseNetwork.mockReturnValue({isOffline: false});
+        renderReportActionsList();
+
+        const getItemType = getCapturedListProps()?.getItemType;
+        const comment = mockReportActions.at(1);
+        if (!comment) {
+            throw new Error('Expected comment report action fixture');
+        }
+
+        expect(getItemType?.(comment)).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-short`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'medium-comment',
+                message: [{type: 'COMMENT', html: 'Medium comment', text: 'a'.repeat(200)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-medium`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'long-comment',
+                message: [{type: 'COMMENT', html: 'Long comment', text: 'a'.repeat(600)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-long`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'extra-long-comment',
+                message: [{type: 'COMMENT', html: 'Extra long comment', text: 'a'.repeat(1500)}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-extra-long`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'attachment',
+                isAttachmentOnly: true,
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-attachment`);
+        expect(
+            getItemType?.({
+                ...comment,
+                reportActionID: 'link-preview',
+                linkMetadata: [{url: 'https://example.com'}],
+            }),
+        ).toBe(`${CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}-link-preview-short`);
     });
 
     it('continues loading older pages from scroll events when LegendList does not report reaching the start', () => {
