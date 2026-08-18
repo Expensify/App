@@ -1111,7 +1111,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -1124,7 +1124,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
-    let hasGroupPoliciesWithExpenseChat = false;
+    let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
     const topSpendersPolicyIDs: string[] = [];
 
@@ -1187,9 +1187,8 @@ function getSuggestedSearchesVisibility(
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
-        hasGroupPoliciesWithExpenseChat ||=
+        hasEligibleGroupPolicies ||=
             isGroupPolicyEligible &&
-            !!policy.isPolicyExpenseChatEnabled &&
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
@@ -1213,7 +1212,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
         topSpendersPolicyIDs,
     };
@@ -4843,7 +4842,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     const {
         visibility: suggestedSearchesVisibility,
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
@@ -4872,7 +4871,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                     emptyState: {
                         title: 'search.searchResults.emptySubmitResults.title',
                         subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                        buttons: hasGroupPoliciesWithExpenseChat
+                        buttons: hasEligibleGroupPolicies
                             ? [
                                   {
                                       success: true,

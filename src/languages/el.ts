@@ -1476,7 +1476,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} ενέκρινε:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `Ο/Η ${manager} ενέκρινε ${amount}`,
         payerSettled: (amount: number | string) => `πληρώθηκαν ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `πληρώθηκαν ${amount}. Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε την πληρωμή σας.`,
         automaticallyApproved: `εγκρίθηκε μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
         approvedAmount: (amount: number | string) => `εγκρίθηκε ${amount}`,
         approvedMessage: `εγκεκριμένο`,
@@ -3264,6 +3263,7 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             none: 'Κανένα',
+            otherAccountingSoftware: 'Το λογιστικό σας λογισμικό',
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
@@ -7540,6 +7540,30 @@ ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
             cancelText: 'Άκυρο',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Προσοχή!',
+            description: (connectionName) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            confirmText: 'Το κατάλαβα',
+        },
+        exportPartialModal: {
+            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                }
+                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+            },
+            confirmText: () => ({
+                one: `Εξαγωγή 1 αναφοράς`,
+                other: (count: number) => `Εξαγωγή ${count} αναφορών`,
+            }),
+            cancelText: 'Άκυρο',
+        },
         upgrade: {
             reportFields: {
                 title: 'Πεδία αναφοράς',
@@ -9324,7 +9348,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Κάρτα Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Επιστροφή χρημάτων',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
             },
             is: 'Είναι',
             action: {
