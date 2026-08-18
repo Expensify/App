@@ -77,9 +77,7 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         //   3. Before an active source hydrates, preserve a historical name or the stored ID. When no source
         //      remains, render "unavailable" if no connection knows the ID instead of leaking the raw ID.
         const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
-        const unavailableLabel = translate(
-            isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable',
-        );
+        const unavailableLabel = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
         const historicalVendorName = findVendorByID(policy, rule.vendorID)?.name;
         const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
         let vendorValue: string;
