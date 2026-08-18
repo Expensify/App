@@ -26,9 +26,9 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Whether the app was installed from somewhere other than the Play Store, i.e. a GitHub release APK a tester
- * sideloaded, or an `adb install`. The installer package name is set by whoever installed the app, so unlike the
- * version comparison below it is stable for the lifetime of the install: it cannot flip to production once the
+ * Whether the app was installed from somewhere other than the Play Store, i.e. a GitHub release.
+ * The installer package name is set by whoever installed the app, so unlike the version comparison
+ * below it is stable for the lifetime of the install: it cannot flip to production once the
  * production release catches up with the staging build's version.
  */
 function isSideloadedBuild(): boolean {
