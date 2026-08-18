@@ -3003,6 +3003,21 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: 'black',
         },
 
+        overlayPortalHost: {
+            position: Platform.OS === 'web' ? 'fixed' : 'absolute',
+            top: 0,
+            right: 0,
+            bottom: 0,
+            left: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            pointerEvents: 'box-none',
+        },
+
+        overlayCenteringTransform: {
+            transform: 'translateX(-50%)',
+        },
+
         trialReminderIllustrationContainer: {
             // Fixed brand navy used as the illustration backdrop; intentionally not theme-dependent.
             backgroundColor: colors.blue800,
