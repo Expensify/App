@@ -91,7 +91,7 @@ Bulk actions are available using the checkboxes and **Selected** menu.
 
 ## How to add or edit GL codes or payroll codes
 
-Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. These codes are not visible to members but can be exported for accounting purposes.
+Workspaces on the **Control** plan can assign optional **GL codes** and **payroll codes** to each category. Payroll codes are not visible to members. GL codes are hidden from members by default but can be shown in the category picker by enabling **Show GL codes when categorizing expenses** (see below). Both codes can be exported for accounting purposes.
 
 To edit these fields:
 
@@ -103,6 +103,21 @@ To edit these fields:
 6. Click **Save**.
 
 ![In the Workspace > Categories setting, the right-hand panel is open and the GL and Payroll code setting is highlighted.]({{site.url}}/assets/images/NewExpensify_ManageCategories_2.png){:width="100%"}
+
+---
+
+## How to show GL codes to members when categorizing expenses
+
+Workspaces on the **Control** plan that have GL codes assigned to categories can display those GL codes to members in the category picker when they create or edit an expense.
+
+1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+2. Click your **workspace name**.
+3. Click **Categories**.
+4. Click **More**.
+5. Click **Settings**.
+6. Enable **Show GL codes when categorizing expenses**.
+
+Once enabled, the GL code appears next to each category name in the category picker. This setting is only available when categories are enabled and at least one category has a GL code assigned.
 
 ---
 
@@ -191,5 +206,5 @@ Alternatively, you can enable tags on the workspace to edit the category directl
 
 ## How can members see GL codes?
 
-GL codes are not visible to members by default. If visibility is required, consider including the GL code in the category name itself.
+GL codes are hidden from members by default. On the **Control** plan, a Workspace Admin can make them visible by going to **Workspaces > [Workspace name] > Categories > More > Settings** and enabling **Show GL codes when categorizing expenses**. Once enabled, the GL code appears next to each category name in the category picker when members create or edit an expense.
 
