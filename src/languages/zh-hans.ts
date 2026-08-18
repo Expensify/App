@@ -9643,6 +9643,8 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `限时优惠：首年立享 ${discountType}% 折扣！`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `在 ${days > 0 ? `${days}天：` : ''}${hours} 小时 ${minutes} 分 ${seconds} 秒内认领`,
             },
+            travelInvoiceOverdue: {title: '您的差旅发票已逾期', subtitle: (date: string) => `请在 ${date} 前支付您的差旅发票，以继续预订差旅。`},
+            travelInvoiceOverdueLocked: {title: '差旅预订已暂停', subtitle: '您的差旅行程发票已逾期。请支付后再开始预订行程。'},
         },
         cardSection: {
             title: '付款',

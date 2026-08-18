@@ -10143,6 +10143,14 @@ const translations = {
                 title: 'Your payment info is outdated',
                 subtitle: 'Your payment is past due. Please pay your invoice.',
             },
+            travelInvoiceOverdue: {
+                title: 'Your travel invoice is past due',
+                subtitle: (date: string) => `Pay your travel invoice by ${date} to keep booking travel.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'Travel booking is paused',
+                subtitle: 'Your travel invoice is past due. Pay it to start booking travel again.',
+            },
             billingDisputePending: {
                 title: 'Your card couldn’t be charged',
                 subtitle: (amountOwed: number, cardEnding: string) =>

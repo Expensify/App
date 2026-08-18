@@ -216,6 +216,12 @@ function SearchAutocompleteList({
     } = useFilteredOptions({
         ...SEARCH_ROUTER_OPTIONS_CONFIG,
         isSearching: !!autocompleteQueryValue.trim(),
+        includeP2P: true,
+        // The empty-query state renders only recent searches and recent reports (no standalone contacts),
+        // so contacts can be deferred until the user types a query.
+        deferContactsUntilSearch: true,
+        maxRecentReports: INITIAL_MAX_RECENT_REPORTS,
+        batchSize: RECENT_REPORTS_BATCH_SIZE,
     });
 
     const isRecentSearchesDataLoaded = !isLoadingOnyxValue(recentSearchesMetadata);
