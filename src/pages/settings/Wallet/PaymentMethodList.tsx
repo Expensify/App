@@ -40,7 +40,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods} from '@libs/PaymentUtils';
 import {areAddressAndPersonalDetailsMissing} from '@libs/PersonalDetailsUtils';
 import {getDescriptionForPolicyDomainCard, getPolicyIDFromDomainName, isPolicyAdmin} from '@libs/PolicyUtils';
-import {getTravelInvoicingCard, isTravelCVVEligible} from '@libs/TravelInvoicingUtils';
+import {getTravelBillingCard, isTravelCVVEligible} from '@libs/TravelBillingUtils';
 
 import colors from '@styles/theme/colors';
 import variables from '@styles/variables';
@@ -511,14 +511,14 @@ function PaymentMethodList({
             }
 
             const travelCardGrouped: PaymentMethodItem[] = [];
-            const travelCard = getTravelInvoicingCard(cardList);
+            const travelCard = getTravelBillingCard(cardList);
             if (isTravelCVVEligible(cardList) && travelCard) {
                 travelCardGrouped.push({
                     title: translate('walletPage.travelCVV.title'),
                     description: translate('walletPage.travelCVV.subtitle'),
                     icon: expensifyIcons.LuggageWithLines,
                     iconFill: colors.productLight100,
-                    iconStyles: styles.travelInvoicingIcon,
+                    iconStyles: styles.travelBillingIcon,
                     shouldShowRightIcon: true,
                     shouldShowThreeDotsMenu: false,
                     onPress: () => Navigation.navigate(ROUTES.SETTINGS_WALLET_TRAVEL_CVV),

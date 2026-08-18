@@ -3,6 +3,7 @@ import {getButtonRole} from '@components/Button/utils';
 import {isMouseDownOnCopyableText, shouldSuppressCopyableTextPressOnMouseDown, useCopyableTextRowPress} from '@components/CopyableText/selection';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import useLiveFilteredReportActions from '@components/Search/hooks/useLiveFilteredReportActions';
 import {useSearchResultsContext, useSearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {SearchGroupBy} from '@components/Search/types';
@@ -74,6 +75,8 @@ import useLiveRowCapabilities from './useLiveRowCapabilities';
 import WeekListItemHeader from './WeekListItemHeader';
 import WithdrawalIDListItemHeader from './WithdrawalIDListItemHeader';
 import YearListItemHeader from './YearListItemHeader';
+
+const emptyChildReportIDs: string[] = [];
 
 /**
  * Non-generic implementation so OXC's React Compiler can memoize the component.
@@ -155,6 +158,9 @@ function TransactionGroupListItemImpl({
     const isActionLoadingSet = useActionLoadingReportIDs();
     const [cardFeeds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_DOMAIN_MEMBER);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const liveReportActions = useLiveFilteredReportActions(
+        isExpenseReportType ? emptyChildReportIDs : groupItem.transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID),
+    );
     const groupKey = groupItem.keyForList;
 
     let transactions: TransactionListItemType[];
@@ -176,6 +182,7 @@ function TransactionGroupListItemImpl({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportActions: liveReportActions,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         transactions = sectionData.map((transactionItem) => ({

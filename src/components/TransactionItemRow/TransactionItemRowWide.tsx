@@ -144,8 +144,8 @@ function TransactionItemRowWide({
     const expensicons = useMemoizedLazyExpensifyIcons(['ArrowRight']);
     const isDeletedTransaction = isDeletedTransactionUtil(transactionItem);
     const {policyForMovingExpensesID} = usePolicyForMovingExpenses();
-    const reportPolicyID = report?.policyID ?? transactionItem.report?.policyID;
-    const effectivePolicyID = isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : reportPolicyID;
+    const reportPolicyID = [report?.policyID, transactionItem.report?.policyID, transactionItem.policyID, transactionItem.policy?.id].find((policyID): policyID is string => !!policyID);
+    const effectivePolicyID = reportPolicyID ?? (isExpenseUnreported(transactionItem) ? policyForMovingExpensesID : undefined);
 
     const isDateColumnWide = dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
     const isSubmittedColumnWide = submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE;
@@ -241,7 +241,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.SUBMITTED, {isDateColumnWide, isSubmittedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.submitted ?? ''}
+                            date={transactionItem.submitted ?? report?.submitted ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone
@@ -255,7 +255,7 @@ function TransactionItemRowWide({
                         style={[StyleUtils.getReportTableColumnStyles(CONST.SEARCH.TABLE_COLUMNS.APPROVED, {isApprovedColumnWide})]}
                     >
                         <DateCell
-                            date={report?.approved ?? ''}
+                            date={transactionItem.approved ?? report?.approved ?? ''}
                             showTooltip={shouldShowTooltip}
                             isLargeScreenWidth
                             shouldUseLocalTimeZone

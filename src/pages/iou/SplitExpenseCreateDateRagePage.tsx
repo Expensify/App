@@ -39,7 +39,7 @@ import {View} from 'react-native';
 type SplitExpenseCreateDateRagePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_CREATE_DATE_RANGE>;
 
 function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageProps) {
-    const {getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const {currentSearchResults} = useSearchResultsContext();
@@ -73,6 +73,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
             isSelfDM(currentReport) || isSelfDM(parentReport),
             personalPolicy?.outputCurrency,
             getCurrencySymbol,
+            getCurrencyDecimals,
         );
         Navigation.goBack(backTo);
     };
