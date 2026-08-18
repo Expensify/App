@@ -5853,9 +5853,9 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },

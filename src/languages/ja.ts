@@ -5635,8 +5635,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: 'コンソリデーテッド・トラベル・ビリングの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
             cardProgramAccount: {
                 label: 'カードプログラム口座',

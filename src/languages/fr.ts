@@ -5735,9 +5735,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
             exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',

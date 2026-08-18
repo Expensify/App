@@ -286,7 +286,6 @@
 "../../src/components/ReportActionItem/MoneyReportView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/ReportActionItem/MoneyRequestReceiptView.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/components/ReportActionItem/MoneyRequestReportPreview/useReportPreviewActionDecision.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -478,7 +477,6 @@
 "../../src/hooks/usePrevious.ts"	"react-hooks/refs"	1
 "../../src/hooks/useReceiptScanDrop.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../src/hooks/useReportScrollManager/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/hooks/useReportTransactionViolations.ts"	"rulesdir/no-useOnyx-dependencies-arg"	1
 "../../src/hooks/useResetBankAccountModal.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.native.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/hooks/useResponsiveLayout/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
