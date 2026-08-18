@@ -557,11 +557,26 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
+function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
+    // OPEN is included since editing another field (e.g. merchant) optimistically flips receipt.state to OPEN,
+    // which would otherwise flicker the amount back to "$0.00" until the server confirms it's still missing.
+    return (
+        isScanRequest(transaction) &&
+        (transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED || transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.OPEN) &&
+        (transaction?.amount === 0 || transaction?.amount === undefined) &&
+        !hasValidModifiedAmount(transaction)
+    );
+}
+
 function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
+    if (isFailedScanAmountPlaceholder(transaction)) {
+        return true;
+    }
+
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && !hasValidModifiedAmount(transaction);
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -596,7 +611,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isAmountMissing(transaction, isFromExpenseReport);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -3573,6 +3588,7 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
+    isFailedScanAmountPlaceholder,
     isScanFailedTransactionMovedOnPayment,
     shouldSplitScanFailedTransactions,
     isDeletedTransaction,
