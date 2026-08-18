@@ -39,15 +39,17 @@ function isSideloadedBuild(): boolean {
  * Check the GitHub releases to see if the current build is a beta build or production build
  */
 function isBetaBuild(): IsBetaBuild {
-    // Production builds are only ever delivered by the Play Store, so a sideloaded build is always a beta build.
-    // Answering here also keeps these builds off the GitHub API, which is rate limited and can otherwise report
-    // the wrong environment when the request fails.
-    if (isSideloadedBuild()) {
-        AppUpdate.setIsAppInBeta(true);
-        return Promise.resolve(true);
-    }
-
     return new Promise((resolve) => {
+        // Production builds are only ever delivered by the Play Store, so a sideloaded build is always a beta build.
+        // Answering here also keeps these builds off the GitHub API, which is rate limited and can otherwise report
+        // the wrong environment when the request fails.
+        if (isSideloadedBuild()) {
+            AppUpdate.setIsAppInBeta(true);
+            resolve(true);
+            return;
+        }
+
+        // Fallback to previously implemented checks on Play Store builds
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
             .then((json: GithubReleaseJSON) => {
