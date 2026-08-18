@@ -68,7 +68,8 @@ function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, 
     }
 
     const activeRoute = Navigation.getActiveRouteWithoutParams();
-    const isWorkspaceSettingsTransition = WORKSPACE_ROUTE_PATTERN.test(targetRoute) && activeRoute !== targetRoute && WORKSPACE_ROUTE_PATTERN.test(activeRoute);
+    const targetRouteWithoutParams = targetRoute.replaceAll(/\?.*/g, '');
+    const isWorkspaceSettingsTransition = WORKSPACE_ROUTE_PATTERN.test(targetRouteWithoutParams) && activeRoute !== targetRouteWithoutParams && WORKSPACE_ROUTE_PATTERN.test(activeRoute);
 
     if (!isWorkspaceSettingsTransition) {
         Navigation.navigate(targetRoute);

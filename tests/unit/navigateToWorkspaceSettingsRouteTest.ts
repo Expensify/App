@@ -3,6 +3,7 @@ import navigateToWorkspaceSettingsRoute from '@components/Search/SearchRouter/na
 import Navigation from '@libs/Navigation/Navigation';
 import navigationRef from '@libs/Navigation/navigationRef';
 
+import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
@@ -89,6 +90,17 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         mockWorkspaceNavigationState('workspace-a');
 
         navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+        expect(Navigation.setParams).not.toHaveBeenCalled();
+    });
+
+    it('compares Workspace targets without query parameters while preserving them for navigation', () => {
+        const targetRoute = ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a', CONST.TAB.WORKFLOWS.APPROVALS);
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
+        mockWorkspaceNavigationState('workspace-a');
+
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-a', false);
 
         expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
         expect(Navigation.setParams).not.toHaveBeenCalled();
