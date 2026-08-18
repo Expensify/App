@@ -112,7 +112,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({
-        translate: (key: string) => (key === 'workspace.accounting.qbo' ? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
+        translate: (key: string) => (key === 'workspace.accounting.qbo' ? 'QuickBooks Online' : key),
         localeCompare: (a: string, b: string) => a && b,
         formatPhoneNumber: (phone: string) => phone,
     }),
