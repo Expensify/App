@@ -28,9 +28,11 @@ Before you can enable either program, you must have a valid payment card on file
 
 ## How to enable or disable Personal Karma
 
-Personal Karma can only be managed in a web browser. In the Expensify mobile app (iOS and Android), the **Enable Personal Karma** toggle is disabled and shows "Manage your personal karma preferences from web."
+Personal Karma can only be managed in a web browser. 
 
-1. In a web browser, go to **Account** from the navigation tabs on the left.
+On web: 
+
+1. In the navigation tabs on the left, go to **Account**.
 2. Select **Save the world**.
 3. In the **Enable Personal Karma** section, turn Personal Karma on or off.
 4. Add a payment card if prompted.
