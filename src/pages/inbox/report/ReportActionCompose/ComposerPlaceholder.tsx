@@ -49,7 +49,8 @@ function ComposerPlaceholder() {
         {
             color: theme.placeholderText,
             lineHeight: styles.textInputCompose.lineHeight,
-            paddingHorizontal: variables.avatarChatSpacing,
+            paddingRight: variables.avatarChatSpacing,
+            paddingLeft: variables.composerTextInputPaddingLeft,
             alignSelf: 'center' as const,
         },
     ];
