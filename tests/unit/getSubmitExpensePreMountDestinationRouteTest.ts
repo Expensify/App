@@ -128,6 +128,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
                 iouType: CONST.IOU.TYPE.SUBMIT,
                 isCreatingTrackExpense: false,
                 isSelfDMDestination: false,
+                isOptimisticNewChatDestination: false,
                 isMovingTransactionFromTrackExpense: true,
             }),
         ).toBeUndefined();
@@ -261,6 +262,7 @@ describe('getSubmitExpensePreMountDestinationRoute', () => {
             isCreatingTrackExpense: false,
             isSelfDMDestination: false,
             isOptimisticNewChatDestination: true,
+            isMovingTransactionFromTrackExpense: false,
         });
 
         expect(route).toEqual(ROUTES.REPORT_WITH_ID.getRoute('123', undefined, undefined, undefined, undefined, true));
