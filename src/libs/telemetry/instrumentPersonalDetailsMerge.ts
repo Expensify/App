@@ -13,19 +13,44 @@ import Onyx from 'react-native-onyx';
  * with how many keys the object already holds. Patches Onyx at startup instead of touching every
  * call site, so both local merges and server-driven updates are covered.
  *
- * Every append is then mirrored into the `personalDetailsShadow_` collection and timed the same way,
- * so the single-key and collection shapes can be compared on identical data. The mirror is
- * write-only — nothing subscribes to it, so it cannot affect app behaviour.
+ * Every write is then mirrored into the `personalDetailsShadow_` collection and timed the same way, so
+ * the single-key and collection shapes can be compared on identical data. Nothing in the app reads the
+ * mirror, so it cannot affect app behaviour.
+ *
+ * REQUIRES A COLD START: clear site data (or at least every `personalDetailsShadow_` key) before each
+ * run. The mirror is deliberately *not* pre-seeded from the existing list — it accumulates only from the
+ * writes it observes, so both shapes see the identical write sequence starting from empty. If stale
+ * mirror data survives from a previous run, every mirror write finds the member already byte-identical,
+ * `hasValueChanged` short-circuits it, and the collection posts near-zero durations against real
+ * single-key writes. That is a silent failure, so every collection sample logs `changedMembers`: pair a
+ * single-key line with a collection line only when their changed counts match.
+ *
+ * A synthetic subscriber fleet is attached to the mirror because the comparison is otherwise rigged:
+ * the single key broadcasts every write to its ~300 real subscribers, and a mirror with none would
+ * win on that alone. Each synthetic subscriber watches one member key, which is what the migration
+ * would produce. `shadowSubscribers` is logged on every line so a run is self-describing; set it to 0
+ * to measure the write path in isolation.
  */
 
 const SHADOW_KEY = ONYXKEYS.COLLECTION.PERSONAL_DETAILS_SHADOW;
 
+/**
+ * Kept in the same order of magnitude as the real `personalDetailsList` subscriber count. Grep
+ * `ONYXKEYS.PERSONAL_DETAILS_LIST` under src/ to re-check it before trusting a run.
+ */
+const SHADOW_SUBSCRIBER_COUNT = 300;
+
 let existingKeyCount = 0;
 
-/** Account IDs written to the shadow collection, so we can report its size without subscribing to it */
-const shadowAccountIDs = new Set<string>();
+/**
+ * Account ID -> serialised value last written to the mirror. A Set of IDs was not enough: knowing an ID
+ * was mirrored before says nothing about whether the incoming value differs, and Onyx short-circuits on
+ * value equality, not key presence. Keeping the value lets each sample report how many members were
+ * genuinely written (`changedMembers`) versus how many the collection path skipped for free.
+ */
+const mirroredMembers = new Map<string, string>();
 
-let hasSeededShadowCollection = false;
+const shadowConnections: Array<ReturnType<typeof Onyx.connectWithoutView>> = [];
 
 function countKeys(value: unknown): number {
     return typeof value === 'object' && value !== null ? Object.keys(value).length : 0;
@@ -36,68 +61,134 @@ function isPersonalDetailsChanges(value: unknown): value is PersonalDetailsList 
     return typeof value === 'object' && value !== null && !Array.isArray(value);
 }
 
+/**
+ * Measured writes currently in flight. Anything above zero means this sample is sharing the JS thread
+ * and the IndexedDB write queue with another sample — and if the other one is a merge to the same key,
+ * Onyx's `mergeQueue` hands both callers the *same* promise, so both "durations" end at one instant and
+ * neither is the cost of its own write.
+ */
+let inFlightWrites = 0;
+
 // console.log instead of Log.info: Log's client callback uses console.debug, which is hidden
 // behind the Verbose level in Chrome DevTools.
 function measure<T>(source: string, existingKeys: number, incomingKeys: number, extraParams: Record<string, unknown>, promise: Promise<T>): Promise<T> {
     const startTime = performance.now();
+    const concurrentWrites = inFlightWrites;
+    inFlightWrites++;
 
     return promise.finally(() => {
-        console.log('[PersonalDetailsListPerf] append', {
+        inFlightWrites--;
+        console.log('[PersonalDetailsListPerf] write', {
             source,
             existingKeys,
             incomingKeys,
             durationMs: Math.round((performance.now() - startTime) * 100) / 100,
+            // Filter on this. `false` means the sample overlapped another measured write, so its duration
+            // is contention plus possible `mergeQueue` promise-sharing, not the cost of the write it names.
+            // It does NOT judge whether the paired write did equivalent work — compare `changedMembers`
+            // between the two sources for that.
+            comparable: concurrentWrites === 0,
+            concurrentWrites,
             ...extraParams,
         });
     });
 }
 
-function mergeShadowCollection(source: string, changes: PersonalDetailsList, extraParams: Record<string, unknown>) {
+function mergeShadowCollection(source: string, changes: PersonalDetailsList, extraParams: Record<string, unknown>): Promise<unknown> {
     const accountIDs = Object.keys(changes);
 
     if (accountIDs.length === 0) {
-        return;
+        return Promise.resolve();
     }
 
     // Read before mutating, so it matches how the single-key path reports `existingKeys`
-    const existingKeys = shadowAccountIDs.size;
+    const existingKeys = mirroredMembers.size;
 
+    // `mergeCollection` cannot carry a null member, so removals go out as individual member merges.
+    // They are applied for mirror correctness but left untimed — appends are what's being measured.
     const collection: OnyxMergeCollectionInput<typeof SHADOW_KEY> = {};
+    let upsertCount = 0;
+    let changedMembers = 0;
     for (const accountID of accountIDs) {
-        collection[`${SHADOW_KEY}${accountID}`] = changes[accountID];
+        const member = changes[accountID];
 
-        if (changes[accountID] === null) {
-            shadowAccountIDs.delete(accountID);
-        } else {
-            shadowAccountIDs.add(accountID);
+        if (member === null) {
+            mirroredMembers.delete(accountID);
+            Onyx.merge(`${SHADOW_KEY}${accountID}`, null);
+            continue;
         }
+
+        // Onyx short-circuits a member whose value is unchanged, so only differing members cost anything.
+        // This is what makes a collection sample comparable to the single-key one: the single key does real
+        // work whenever *any* member differs, so the two are only equivalent if the changed counts match.
+        const serialised = JSON.stringify(member);
+        if (mirroredMembers.get(accountID) !== serialised) {
+            changedMembers++;
+        }
+        mirroredMembers.set(accountID, serialised);
+
+        collection[`${SHADOW_KEY}${accountID}`] = member;
+        upsertCount++;
     }
 
-    measure(source, existingKeys, accountIDs.length, extraParams, Onyx.mergeCollection(SHADOW_KEY, collection));
+    if (upsertCount === 0) {
+        return Promise.resolve();
+    }
+
+    return measure(source, existingKeys, upsertCount, {...extraParams, shadowSubscribers: shadowConnections.length, changedMembers}, Onyx.mergeCollection(SHADOW_KEY, collection));
 }
 
 /**
- * Mirrors an append after the single-key write settles. Running them concurrently would make the two
+ * Attached once the mirror first holds members, spread across the members written so far, so later
+ * writes land on a subscribed key as often as they would after a migration.
+ */
+function attachShadowSubscribers() {
+    const mirroredAccountIDs = [...mirroredMembers.keys()];
+
+    if (mirroredAccountIDs.length === 0 || shadowConnections.length > 0) {
+        return;
+    }
+
+    for (let i = 0; i < SHADOW_SUBSCRIBER_COUNT; i++) {
+        const accountID = mirroredAccountIDs.at(i % mirroredAccountIDs.length);
+        shadowConnections.push(
+            Onyx.connectWithoutView({
+                key: `${SHADOW_KEY}${accountID}` as const,
+                // reuseConnection: false, or identical key+config would collapse the fleet into one connection
+                reuseConnection: false,
+                // Reading the value is the point: it's what a real per-member subscriber costs
+                callback: (member) => member?.accountID,
+            }),
+        );
+    }
+}
+
+/**
+ * Every mirror write runs through this one chain. Two single-key merges to the same key inside one tick
+ * share a `mergeQueue` promise, so both `.finally` callbacks fire at the same instant — without the chain
+ * their mirrors would run concurrently and each would time the other's contention.
+ */
+let mirrorChain: Promise<unknown> = Promise.resolve();
+
+/**
+ * Mirrors a write after the single-key write settles. Running them concurrently would make the two
  * shapes fight over the same JS thread and storage, so neither measurement would mean anything.
  */
 function mirrorAfter<T>(promise: Promise<T>, changes: PersonalDetailsList, extraParams: Record<string, unknown>): Promise<T> {
     return promise.finally(() => {
-        mergeShadowCollection('collection', changes, extraParams);
+        mirrorChain = mirrorChain
+            .then(() => mergeShadowCollection('collection', changes, extraParams))
+            .then(attachShadowSubscribers)
+            .catch(() => undefined);
     });
 }
 
+// Tracks how many members the single key already holds, so each sample can be correlated with N.
+// The mirror is intentionally not seeded from this value — see the cold-start note at the top.
 Onyx.connectWithoutView({
     key: ONYXKEYS.PERSONAL_DETAILS_LIST,
     callback: (value) => {
         existingKeyCount = value ? Object.keys(value).length : 0;
-
-        // The shadow collection has to start from the same data as the single key, otherwise every
-        // measurement would compare an append to N keys against an append to an almost empty collection.
-        if (hasSeededShadowCollection || !value || existingKeyCount === 0) {
-            return;
-        }
-        hasSeededShadowCollection = true;
-        mergeShadowCollection('collection-seed', value, {});
     },
 });
 
@@ -121,7 +212,8 @@ export default function instrumentPersonalDetailsMerge() {
             return promise;
         }
 
-        const measuredPromise = measure('single-key', existingKeyCount, countKeys(changes), {}, promise);
+        const existingKeys = existingKeyCount;
+        const measuredPromise = measure('single-key', existingKeys, countKeys(changes), {}, promise);
 
         return isPersonalDetailsChanges(changes) ? mirrorAfter(measuredPromise, changes, {}) : measuredPromise;
     }) as typeof Onyx.merge;
@@ -134,8 +226,8 @@ export default function instrumentPersonalDetailsMerge() {
             return promise;
         }
 
-        // ponytail: an Onyx.update batch resolves as a whole, so durationMs covers the sibling keys too.
-        // `updatesInBatch` is logged to spot the noisy samples; measure the isolated cost inside Onyx if that is not enough.
+        // An Onyx.update batch resolves as a whole, so durationMs covers the sibling keys too.
+        // `updatesInBatch` is logged to spot the noisy samples; measure inside Onyx if that is not enough.
         const extraParams = {updatesInBatch: updates.length};
         const changes: PersonalDetailsList = {};
         for (const update of personalDetailsUpdates) {
@@ -143,7 +235,8 @@ export default function instrumentPersonalDetailsMerge() {
                 Object.assign(changes, update.value);
             }
         }
-        const measuredPromise = measure('single-key', existingKeyCount, countKeys(changes), extraParams, promise);
+        const existingKeys = existingKeyCount;
+        const measuredPromise = measure('single-key', existingKeys, countKeys(changes), extraParams, promise);
 
         return mirrorAfter(measuredPromise, changes, extraParams);
     }) as typeof Onyx.update;
