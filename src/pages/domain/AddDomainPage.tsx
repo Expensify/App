@@ -11,6 +11,7 @@ import useAutoFocusInput from '@hooks/useAutoFocusInput';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
 import {clearDraftValues} from '@libs/actions/FormActions';
@@ -19,7 +20,6 @@ import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
-import {isUserValidatedSelector} from '@src/selectors/Account';
 import {hasDomainAccessSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
@@ -35,7 +35,6 @@ function AddDomainPage() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
-    const [isUserValidated] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isUserValidatedSelector});
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -55,6 +54,9 @@ function AddDomainPage() {
     );
 
     const submittedDomainName = useRef<string | undefined>(undefined);
+
+    // The domain name only lives in form state, which the verify account page can't reach, so we resume the submit here instead of forwarding from that page.
+    const {isUserValidated, verifyAccountAndResume} = useVerifyAccountAndResume((resumeCreateDomain?: () => void) => resumeCreateDomain?.());
 
     useEffect(() => {
         if (!form?.hasCreationSucceeded) {
@@ -114,11 +116,15 @@ function AddDomainPage() {
                     style={styles.flexGrow1}
                     submitButtonText={translate('common.continue')}
                     onSubmit={({domainName}) => {
+                        const submitDomain = () => {
+                            submittedDomainName.current = domainName;
+                            createDomain(domainName);
+                        };
+
                         if (!isUserValidated) {
-                            return Navigation.navigate(ROUTES.WORKSPACES_ADD_DOMAIN_VERIFY_ACCOUNT);
+                            return verifyAccountAndResume(submitDomain);
                         }
-                        submittedDomainName.current = domainName;
-                        createDomain(domainName);
+                        submitDomain();
                     }}
                     isLoading={form?.isLoading}
                 >
