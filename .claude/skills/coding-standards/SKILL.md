@@ -53,6 +53,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [CONSISTENCY-12](rules/consistency-12-callback-named-for-action.md) — Name callbacks for what they do, not the event they handle
 - [CONSISTENCY-13](rules/consistency-13-document-props.md) — Document component props with a JSDoc block comment
 - [CONSISTENCY-14](rules/consistency-14-new-file-header.md) — Non-trivial new files start with a header description
+- [CONSISTENCY-15](rules/consistency-15-comment-intent.md) — Comments explain why, and exist wherever the code is not self-explanatory
 
 ### Clean React Patterns
 - [CLEAN-REACT-PATTERNS-0](rules/clean-react-0-compiler.md) — React Compiler compliance
