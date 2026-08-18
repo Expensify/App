@@ -540,9 +540,11 @@ const ROW_HOVER_BACKGROUND_STEP: Record<string, string> = {
     [colors.productDark100]: colors.productDark200,
     [colors.productDark200]: colors.productDark300,
     [colors.productDark300]: colors.productDark400,
+    [colors.productDark400]: colors.productDark500,
     [colors.productLight100]: colors.productLight200,
     [colors.productLight200]: colors.productLight300,
     [colors.productLight300]: colors.productLight400,
+    [colors.productLight400]: colors.productLight500,
 };
 
 function getRowHoverBackgroundColor(backgroundColor: string): string {

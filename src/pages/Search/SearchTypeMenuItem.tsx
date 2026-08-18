@@ -86,7 +86,7 @@ function SearchTypeMenuItem({title, icon, badgeText, focused = false, onPress}: 
                 styles.flexRow,
                 styles.sectionMenuItem(shouldUseNarrowLayout),
                 styles.searchTypeMenuItemPadding,
-                StyleUtils.getButtonBackgroundColorStyle(getButtonState(focused || hovered, false, false, false, true), true),
+                focused ? StyleUtils.getBackgroundColorStyle(theme.activeComponentBG) : undefined,
                 hovered && !focused && !pressed && StyleUtils.getRowHoverBackgroundColorStyle(theme.appBG),
                 // Keep the resting background on press and only dim via opacity, matching the Inbox LHN rows
                 pressed ? {opacity: variables.pressDimValue} : undefined,
