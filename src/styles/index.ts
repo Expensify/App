@@ -277,6 +277,11 @@ const compactPopoverMenuItemBaseStyle = {
     alignItems: 'center' as const,
 };
 
+// Square size and horizontal margin of the composer's attachment ("+") button, shared by
+// composerSizeButton and the concierge prompt box so its button column stays in sync.
+const COMPOSER_SIZE_BUTTON_SIZE = 32;
+const COMPOSER_SIZE_BUTTON_MARGIN = 3;
+
 const staticStyles = (theme: ThemeColors) =>
     StyleSheet.create({
         ...spacing,
@@ -2561,10 +2566,10 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
-            height: 32,
-            width: 32,
+            height: COMPOSER_SIZE_BUTTON_SIZE,
+            width: COMPOSER_SIZE_BUTTON_SIZE,
             padding: 6,
-            marginHorizontal: 3,
+            marginHorizontal: COMPOSER_SIZE_BUTTON_MARGIN,
             borderRadius: variables.componentBorderRadiusRounded,
             backgroundColor: theme.transparent,
             justifyContent: 'center',
@@ -7253,12 +7258,33 @@ const plainStyles = (theme: ThemeColors) =>
                 minHeight: variables.componentSizeMedium,
             }) satisfies ViewStyle,
 
-        conciergePromptBoxAddButton: {
-            alignItems: 'center',
+        // Fixed-width column reserving the "+" button's footprint (button + its horizontal margins) so
+        // the input width stays stable whether the button is centered or bottom-aligned.
+        conciergePromptBoxButtonColumn: {
+            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        // Absolute full-height column: on one line the spacer wraps away and the "+" centers, on many
+        // lines the spacer grows and pushes the "+" to the bottom (mirrors the chat composer).
+        conciergePromptBoxButtonStack: {
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flexWrap: 'wrap',
             justifyContent: 'center',
-            height: variables.componentSizeNormal,
-            paddingLeft: 8,
-            paddingRight: 4,
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
+        },
+
+        // Grows to fill the column so the "+" button sits at the bottom on multi-line input.
+        conciergePromptBoxButtonSpacer: {
+            flexGrow: 1,
+            flexShrink: 0,
+            minHeight: COMPOSER_SIZE_BUTTON_SIZE,
         },
 
         conciergePromptBoxDivider: {
@@ -7273,17 +7299,11 @@ const plainStyles = (theme: ThemeColors) =>
         conciergePromptBoxInput: {
             color: theme.text,
             lineHeight: variables.lineHeightXLarge,
-            paddingVertical: (variables.componentSizeNormal - variables.lineHeightXLarge) / 2,
-            minHeight: variables.componentSizeNormal,
-            maxHeight: variables.componentSizeNormal * 3,
             fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-            textAlignVertical: 'top',
-        } satisfies TextStyle,
-
-        // Font-only styles matching the input, used by the hidden mirror that measures content height.
-        conciergePromptBoxInputMeasure: {
-            lineHeight: variables.lineHeightXLarge,
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
+            // Center the (auto-height) input against the buttons, mirroring the chat composer.
+            alignSelf: 'center',
+            // MarkdownTextInput renders a default 1px border on web. Suppress it like the chat composer.
+            borderWidth: 0,
         } satisfies TextStyle,
 
         conciergePromptBoxSendButton: {
