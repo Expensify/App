@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CollapsibleHeaderOnKeyboard from '@components/CollapsibleHeaderOnKeyboard';
 import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
@@ -58,7 +58,6 @@ import {getTransactionDetails, isReportApproved, isSelfDM, isSettled as isSettle
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getActiveGroupSearchHashes} from '@libs/SearchUIUtils';
 import {computeSplitSaveErrorMessage, computeSplitWarningMessage} from '@libs/SplitExpenseUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import type {TranslationPathOrText} from '@libs/TransactionPreviewUtils';
 import {getChildTransactions, getExpenseTypeTranslationKey, getTransactionType, isDistanceRequest, isManagedCardTransaction, isPerDiemRequest} from '@libs/TransactionUtils';
 
@@ -89,7 +88,7 @@ const TAB_NAVIGATOR_HEIGHT_LANDSCAPE = variables.tabSelectorButtonHeight + varia
 
 function SplitExpensePage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const delegateAccountID = useDelegateAccountID();
 
     const {reportID, transactionID, splitExpenseTransactionID, backTo} = route.params;
@@ -104,7 +103,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
 
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
 
     const [selectedTab] = useOnyx(`${ONYXKEYS.COLLECTION.SELECTED_TAB}${CONST.TAB.SPLIT_EXPENSE_TAB_TYPE}`);
     const [draftTransaction, draftTransactionMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
@@ -218,7 +217,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         (action) => action.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
     );
     const {iouReport} = useGetIOUReportFromReportAction(iouActions.at(0));
-    const [iouReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(iouReport?.reportID)}`);
 
     const isPercentageMode = (selectedTab as string) === CONST.TAB.SPLIT.PERCENTAGE;
     const isDateMode = (selectedTab as string) === CONST.TAB.SPLIT.DATE;
@@ -294,14 +292,14 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
+        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, getCurrencyDecimals);
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
+        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, getCurrencyDecimals);
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -370,6 +368,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         }
 
         updateSplitTransactionsFromSplitExpensesFlow({
+            getCurrencyDecimals,
+            getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -394,7 +394,6 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             transactionViolations,
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
-            iouReportNextStep,
             betas,
             personalDetails,
             transactionReport: draftTransactionReport,
@@ -402,16 +401,37 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             isOffline,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
     };
 
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
+            updateSplitExpenseAmountField(
+                draftTransaction,
+                id,
+                amountInCents,
+                effectivePolicy,
+                isDraftSelfDMContext,
+                personalPolicy?.outputCurrency,
+                getCurrencySymbol,
+                getCurrencyDecimals,
+                allPolicies,
+            );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
+            updateSplitExpenseAmountField(
+                draftTransaction,
+                id,
+                amountInCents,
+                effectivePolicy,
+                isDraftSelfDMContext,
+                personalPolicy?.outputCurrency,
+                getCurrencySymbol,
+                getCurrencyDecimals,
+                allPolicies,
+            );
         }
     };
 
@@ -436,6 +456,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const date = DateUtils.formatWithUTCTimeZone(
             item.created,
             DateUtils.doesDateBelongToAPastYear(item.created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT,
+            dateFnsLocale,
         );
         previewHeaderText.unshift({text: date}, dotSeparator);
 
@@ -488,15 +509,15 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
                 />
             )}
             <Button
-                success
-                large
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 style={[styles.w100]}
-                text={translate('common.save')}
                 onPress={onSaveSplitExpense}
-                pressOnEnter
-                enterKeyEventListenerPriority={1}
                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.SAVE_BUTTON}
-            />
+            >
+                <Button.KeyboardShortcut enterKeyEventListenerPriority={1} />
+                <Button.Text>{translate('common.save')}</Button.Text>
+            </Button>
         </View>
     );
 
@@ -578,16 +599,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     };
 
     if (isLoadingDraftTransaction) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'SplitExpensePage',
-            isLoadingDraftTransaction,
-        };
-        return (
-            <FullScreenLoadingIndicator
-                style={[styles.opacity1]}
-                reasonAttributes={reasonAttributes}
-            />
-        );
+        return <FullScreenLoadingIndicator style={[styles.opacity1]} />;
     }
 
     const collapsibleHeaderOffset = isInitialSplit ? TAB_NAVIGATOR_HEIGHT_LANDSCAPE : 0;

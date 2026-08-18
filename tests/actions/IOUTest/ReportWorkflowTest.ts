@@ -37,6 +37,7 @@ import ROUTES from '@src/ROUTES';
 import type {Policy, Report, ReportNameValuePairs} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
+import type {AnyOnyxData} from '@src/types/onyx/Request';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 import type CollectionDataSet from '@src/types/utils/CollectionDataSet';
@@ -54,7 +55,16 @@ import createRandomReportAction from '../../utils/collections/reportActions';
 import {createRandomReport} from '../../utils/collections/reports';
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
-import {createGlobalFetchMock, formatPhoneNumber, getOnyxData, getRequiredOnyxUpdate, getRequiredOnyxUpdates, getRequiredWriteCall, localeCompare} from '../../utils/TestHelper';
+import {
+    createGlobalFetchMock,
+    formatPhoneNumber,
+    getCurrencyDecimalsLocal,
+    getOnyxData,
+    getRequiredOnyxUpdate,
+    getRequiredOnyxUpdates,
+    getRequiredWriteCall,
+    localeCompare,
+} from '../../utils/TestHelper';
 import {isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -200,6 +210,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -228,6 +239,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -268,8 +280,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                 )
                 .then(async () => {
                     if (expenseReport) {
-                        const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                         submitReport({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             expenseReport,
                             policy: undefined,
@@ -277,7 +289,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            expenseReportCurrentNextStepDeprecated: nextStep,
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -351,6 +362,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -379,6 +391,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -433,6 +446,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -462,6 +476,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -482,6 +497,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -511,6 +527,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -576,8 +593,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     )
                     .then(async () => {
                         if (expenseReport) {
-                            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 expenseReport,
                                 policy,
@@ -585,7 +602,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -709,6 +725,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -738,6 +755,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -758,6 +776,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(() => {
                         if (chatReport) {
                             requestMoney({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 conciergeChat: undefined,
                                 report: chatReport,
                                 participantParams: {
@@ -787,6 +806,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 personalDetails: {},
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -850,8 +870,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                     .then(async () => {
                         mockFetch?.fail?.();
                         if (expenseReport) {
-                            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                             submitReport({
+                                getCurrencyDecimals: getCurrencyDecimalsLocal,
                                 submitterLogin: undefined,
                                 expenseReport,
                                 policy: undefined,
@@ -859,7 +879,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 currentUserEmailParam: CARLOS_EMAIL,
                                 hasViolations: true,
                                 isASAPSubmitBetaEnabled: true,
-                                expenseReportCurrentNextStepDeprecated: nextStep,
                                 userBillingGracePeriodEnds: undefined,
                                 amountOwed: 0,
                                 ownerBillingGracePeriodEnd: undefined,
@@ -954,6 +973,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (chatReport) {
                         requestMoney({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             conciergeChat: undefined,
                             report: chatReport,
                             participantParams: {
@@ -983,6 +1003,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             personalDetails: {},
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1024,6 +1045,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 .then(() => {
                     if (expenseReport) {
                         submitReport({
+                            getCurrencyDecimals: getCurrencyDecimalsLocal,
                             submitterLogin: undefined,
                             expenseReport,
                             policy,
@@ -1031,7 +1053,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                             currentUserEmailParam: CARLOS_EMAIL,
                             hasViolations: true,
                             isASAPSubmitBetaEnabled: true,
-                            expenseReportCurrentNextStepDeprecated: undefined,
                             userBillingGracePeriodEnds: undefined,
                             amountOwed: 0,
                             ownerBillingGracePeriodEnd: undefined,
@@ -1097,6 +1118,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Submit with amountOwed > 0 should trigger restriction
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy,
@@ -1104,7 +1126,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: true,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 100,
                 ownerBillingGracePeriodEnd: pastDate,
@@ -1164,6 +1185,7 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             if (chatReport) {
                 requestMoney({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
                     report: chatReport,
                     participantParams: {
@@ -1192,6 +1214,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     personalDetails: {},
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
             }
             await waitForBatchedUpdates();
@@ -1210,9 +1233,9 @@ describe('actions/IOU/ReportWorkflow', () => {
 
                 jest.mocked(Navigation.navigate).mockClear();
 
-                const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
                 const ownerBillingGracePeriodEnd = Math.floor(Date.now() / 1000) - 86400 * 30;
                 submitReport({
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
                     submitterLogin: undefined,
                     expenseReport,
                     policy,
@@ -1220,7 +1243,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                     currentUserEmailParam: CARLOS_EMAIL,
                     hasViolations: false,
                     isASAPSubmitBetaEnabled: true,
-                    expenseReportCurrentNextStepDeprecated: nextStep,
                     userBillingGracePeriodEnds: undefined,
                     amountOwed: 0,
                     ownerBillingGracePeriodEnd,
@@ -1275,6 +1297,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy,
@@ -1282,7 +1305,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1340,6 +1362,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy,
@@ -1347,7 +1370,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1390,6 +1412,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1397,7 +1420,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1444,6 +1466,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
@@ -1451,7 +1474,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 hasViolations: false,
                 isTrackIntentUser: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1514,6 +1536,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
@@ -1521,7 +1544,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1605,13 +1627,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             await waitForBatchedUpdates();
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 policy,
                 currentUserAccountIDParam: submitterAccountID,
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1632,17 +1654,14 @@ describe('actions/IOU/ReportWorkflow', () => {
             }
             expect(optimisticReportValue.nextStep.actorAccountID).toBe(ruleApproverAccountID);
 
-            const nextStepKey = `${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`;
-            const optimisticDeprecatedNextStepUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', nextStepKey, Onyx.METHOD.MERGE, true);
-            const optimisticDeprecatedNextStep = optimisticDeprecatedNextStepUpdate.value;
-            if (!Array.isArray(optimisticDeprecatedNextStep.message)) {
-                throw new Error('Expected optimistic next-step messages.');
-            }
-            const strongMessage: unknown = optimisticDeprecatedNextStep.message.find((message) => isObject(message) && message.type === 'strong');
-            if (!isObject(strongMessage)) {
-                throw new Error('Expected a strong optimistic next-step message.');
-            }
-            expect(strongMessage.text).toBe(ruleApproverEmail);
+            const reportKeyForNextStep = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
+            const optimisticReportNextStepUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKeyForNextStep, Onyx.METHOD.MERGE, true);
+            const optimisticReportNextStepUpdateValue = optimisticReportNextStepUpdate.value;
+            expect(optimisticReportNextStepUpdateValue.nextStep).toEqual({
+                actorAccountID: ruleApproverAccountID,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+            });
         });
 
         it('keeps the workspace chat outstanding when an admin submits after approver changes', async () => {
@@ -1707,6 +1726,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
@@ -1714,7 +1734,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1781,6 +1800,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             // Go offline so only the optimistic update is applied
             mockFetch?.pause?.();
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
@@ -1788,7 +1808,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1851,6 +1870,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: submitterEmail,
                 expenseReport,
                 policy,
@@ -1858,7 +1878,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1920,6 +1939,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport: report,
                 policy,
@@ -1927,7 +1947,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -1983,6 +2002,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(canSubmitReport(report, submitterEmail, policy, [transaction], undefined, false, submitterEmail, submitterAccountID)).toBe(true);
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport: report,
                 policy,
@@ -1990,7 +2010,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: submitterEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2021,6 +2040,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy: {
@@ -2033,7 +2053,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: 'submitter@example.com',
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2089,7 +2108,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail);
+            submitMoneyRequestOnSearch(1, [report], [policy], submitterEmail, getCurrencyDecimalsLocal);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2140,7 +2159,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, chosenManagerEmail);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2203,7 +2222,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currency: CONST.CURRENCY.USD,
             };
 
-            submitMoneyRequestOnSearch(1, [report], [policy], undefined, undefined, chosenManagerEmail);
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal, undefined, chosenManagerEmail);
 
             expect(apiWriteSpy).toHaveBeenCalledWith(
                 'SubmitReport',
@@ -2234,7 +2253,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
         });
@@ -2251,9 +2270,55 @@ describe('actions/IOU/ReportWorkflow', () => {
                 },
             };
 
-            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined);
+            submitMoneyRequestOnSearch(1, [report], [createRandomPolicy(1)], undefined, getCurrencyDecimalsLocal);
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
+        });
+
+        it('optimistically updates the report status and adds a SUBMITTED action so search submit reflects while offline', () => {
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write onyxData to verify optimistic submit payload.
+            const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+            const report: Report = {
+                ...createRandomReport(1, undefined),
+                reportID: '1',
+                type: CONST.REPORT.TYPE.EXPENSE,
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+                total: 1000,
+                currency: CONST.CURRENCY.USD,
+            };
+            const policy: Policy = {
+                ...createRandomPolicy(1),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+
+            submitMoneyRequestOnSearch(1, [report], [policy], undefined, getCurrencyDecimalsLocal);
+
+            const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
+            expect(typeof parameters.reportActionID).toBe('string');
+            const reportActionID = String(parameters.reportActionID);
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`;
+            const reportActionsKey = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`;
+
+            const optimisticReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticReportUpdate.value).toEqual({
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            });
+
+            const optimisticActionsUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', reportActionsKey, Onyx.METHOD.MERGE, true);
+            expect(optimisticActionsUpdate.value[reportActionID]).toMatchObject({
+                actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
+                pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
+            });
+
+            const failureReportUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportKey, Onyx.METHOD.MERGE, true);
+            expect(failureReportUpdate.value).toEqual({
+                stateNum: CONST.REPORT.STATE_NUM.OPEN,
+                statusNum: CONST.REPORT.STATUS_NUM.OPEN,
+            });
+            const failureActionsUpdate = getRequiredOnyxUpdate(onyxData, 'failureData', reportActionsKey, Onyx.METHOD.MERGE, true);
+            expect(failureActionsUpdate.value[reportActionID]).toBeNull();
         });
     });
 
@@ -2285,6 +2350,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy: undefined,
@@ -2292,7 +2358,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2322,6 +2387,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             submitReport({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 submitterLogin: undefined,
                 expenseReport,
                 policy: undefined,
@@ -2329,7 +2395,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
                 ownerBillingGracePeriodEnd: undefined,
@@ -2357,7 +2422,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
             };
 
-            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
+            unapproveExpenseReport(expenseReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false, getCurrencyDecimalsLocal);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2383,7 +2448,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
             };
 
-            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, undefined, DELEGATE_EMAIL, false);
+            retractReport(expenseReport, chatReport, undefined, CARLOS_ACCOUNT_ID, CARLOS_EMAIL, false, false, DELEGATE_EMAIL, false);
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
             const calls = jest.mocked(API.write).mock.calls;
@@ -2411,13 +2476,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -2454,13 +2519,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy,
                 currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
                 currentUserEmailParam: CARLOS_EMAIL,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -2480,6 +2545,61 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(reportActionsUpdate).toBeDefined();
             const reportAction = getRequiredReportAction(reportActionsUpdate);
             expect(reportAction.delegateAccountID).toBeUndefined();
+        });
+    });
+
+    describe('approveMoneyRequest outstanding child request', () => {
+        beforeEach(() => {
+            jest.clearAllMocks();
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting API.write calls to verify optimistic/failure data.
+            jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
+        });
+
+        it('clears hasOutstandingChildRequest optimistically and restores it if the approve request fails', () => {
+            const expenseReport: Report = {
+                ...createRandomReport(1, undefined),
+                type: CONST.REPORT.TYPE.EXPENSE,
+                total: 10000,
+                currency: CONST.CURRENCY.USD,
+                statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+                stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+                // The report shows the LHN green dot before approval.
+                hasOutstandingChildRequest: true,
+            };
+            const expenseReportPolicy: Policy = {
+                ...createRandomPolicy(Number(expenseReport.policyID), CONST.POLICY.TYPE.TEAM),
+                approvalMode: CONST.POLICY.APPROVAL_MODE.BASIC,
+            };
+            const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}` as const;
+
+            approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                expenseReport,
+                expenseReportPolicy,
+                currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
+                currentUserEmailParam: CARLOS_EMAIL,
+                hasViolations: false,
+                isASAPSubmitBetaEnabled: false,
+                betas: [CONST.BETAS.ALL],
+                userBillingGracePeriodEnds: undefined,
+                amountOwed: 0,
+                ownerBillingGracePeriodEnd: undefined,
+                delegateEmail: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                ownerLogin: undefined,
+            });
+
+            // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic/failure data structure
+            const onyxData: AnyOnyxData | undefined = jest.mocked(API.write).mock.calls.at(0)?.[2];
+
+            // The green dot clears optimistically because the expense report's own flag is set to false.
+            const optimisticReport: OnyxEntry<Report> = onyxData?.optimisticData?.find((update) => update.key === reportKey)?.value;
+            expect(optimisticReport?.hasOutstandingChildRequest).toBe(false);
+
+            // If the approve request fails, the flag is restored so the green dot reappears.
+            const failureReport: OnyxEntry<Report> = onyxData?.failureData?.find((update) => update.key === reportKey)?.value;
+            expect(failureReport?.hasOutstandingChildRequest).toBe(true);
         });
     });
 
@@ -3047,7 +3167,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 type: CONST.REPORT.TYPE.EXPENSE,
             };
 
-            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
+            retractReport(expenseReport, undefined, policy, 1, 'test@example.com', false, false, undefined, false);
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             const reportKey = `${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`;
@@ -3087,7 +3207,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             };
 
             // When retracting the submitted expense report
-            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, undefined, false);
+            retractReport(expenseReport, chatReport, policy, 1, 'test@example.com', false, false, undefined, false);
 
             // Then the chat report iouReportID should be set back to the retracted expense report
             const iouReportID = await new Promise<string | undefined>((resolve) => {
@@ -3138,7 +3258,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                 policy,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                reportCurrentNextStepDeprecated: undefined,
                 isTrackIntentUser: false,
                 formatPhoneNumber: formatPhoneNumberSpy,
             });
@@ -3177,6 +3296,7 @@ describe('actions/IOU/ReportWorkflow', () => {
         });
 
         const createApproveMoneyRequestParams = (expenseReport: Report, expenseReportPolicy: OnyxEntry<Policy>) => ({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             expenseReport,
             expenseReportPolicy,
             currentUserAccountIDParam: CARLOS_ACCOUNT_ID,
@@ -3184,7 +3304,6 @@ describe('actions/IOU/ReportWorkflow', () => {
             hasViolations: false,
             isTrackIntentUser: false,
             isASAPSubmitBetaEnabled: false,
-            expenseReportCurrentNextStepDeprecated: undefined,
             betas: [CONST.BETAS.ALL],
             userBillingGracePeriodEnds: undefined,
             amountOwed: 0,
@@ -3366,13 +3485,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3420,13 +3539,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3443,16 +3562,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             expect(updatedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.SUBMITTED);
             expect(updatedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.SUBMITTED);
 
-            // Get the optimistic next step
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            // Get the report
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
 
-            // The next step message should be defined
-            expect(nextStep?.message).toBeDefined();
+            // The next step should be defined
+            expect(report?.nextStep).toBeDefined();
 
             // Since take control was invalidated by resubmission, the normal approval chain applies
             // The next step should indicate waiting for the senior manager to approve
-            const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for Senior Manager User to approve %expenses.');
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_APPROVE,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: seniorManagerAccountID,
+            });
         });
 
         it('should mention an admin to pay expenses in optimistic next step message when admin takes control and approves', async () => {
@@ -3470,13 +3592,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Admin approves the report
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3488,17 +3610,19 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            // Get the optimistic next step
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${expenseReport.reportID}`);
+            // Get the report
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
 
-            // The next step message should be defined
-            expect(nextStep?.message).toBeDefined();
+            // The next step should be defined
+            expect(report?.nextStep).toBeDefined();
 
             // Since the report is fully approved when admin takes control and approves,
-            // the next step should be about payment, which should mention "you" since the admin is the payer
-            // The message should equal "Waiting for you to pay %expenses."
-            const fullMessage = nextStep?.message?.map((part) => part.text).join('');
-            expect(fullMessage).toBe('Waiting for you to pay %expenses.');
+            // the next step should be about payment,
+            expect(report?.nextStep).toEqual({
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_PAY,
+                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
+                actorAccountID: -1,
+            });
         });
     });
 
@@ -3596,13 +3720,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report (no take control actions)
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3629,13 +3753,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3660,13 +3784,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: updatedReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3721,13 +3845,13 @@ describe('actions/IOU/ReportWorkflow', () => {
 
             // Manager approves the report
             approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: singleApproverReport,
                 expenseReportPolicy: singleApproverPolicy,
                 currentUserAccountIDParam: managerAccountID,
                 currentUserEmailParam: managerEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,
@@ -3782,13 +3906,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             })
                 .then(() => {
                     approveMoneyRequest({
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                         expenseReport: normalReport,
                         expenseReportPolicy: policy,
                         currentUserAccountIDParam: managerAccountID,
                         currentUserEmailParam: managerEmail,
                         hasViolations: false,
                         isASAPSubmitBetaEnabled: false,
-                        expenseReportCurrentNextStepDeprecated: undefined,
                         betas: [CONST.BETAS.ALL],
                         userBillingGracePeriodEnds: undefined,
                         amountOwed: 0,
@@ -3914,13 +4038,13 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
 
             const newExpenseReportID = approveMoneyRequest({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport,
                 expenseReportPolicy: policy,
                 currentUserAccountIDParam: adminAccountID,
                 currentUserEmailParam: adminEmail,
                 hasViolations: false,
                 isASAPSubmitBetaEnabled: false,
-                expenseReportCurrentNextStepDeprecated: undefined,
                 betas: [CONST.BETAS.ALL],
                 userBillingGracePeriodEnds: undefined,
                 amountOwed: 0,

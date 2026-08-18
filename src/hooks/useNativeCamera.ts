@@ -4,7 +4,6 @@ import {showCameraPermissionsAlert} from '@libs/fileDownload/FileUtils';
 import getPlatform from '@libs/getPlatform';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CameraPermission from '@pages/iou/request/step/IOURequestStepScan/CameraPermission';
 
@@ -26,9 +25,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 
 type UseNativeCameraOptions = {
-    /** Context name for telemetry reason attributes */
-    context: string;
-
     /** Additional logic to run when the screen gains focus */
     onFocusStart?: () => void;
 
@@ -36,7 +32,7 @@ type UseNativeCameraOptions = {
     onFocusCleanup?: () => void;
 };
 
-function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCameraOptions) {
+function useNativeCamera({onFocusStart, onFocusCleanup}: UseNativeCameraOptions) {
     const {translate} = useLocalize();
     const {isLoaderVisible} = useFullScreenLoaderState();
     const {setIsLoaderVisible} = useFullScreenLoaderActions();
@@ -141,12 +137,6 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         }, [isLoaderVisible, setIsLoaderVisible, onFocusStart, onFocusCleanup]),
     );
 
-    const cameraLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context,
-        cameraPermissionGranted: cameraPermissionStatus === RESULTS.GRANTED,
-        deviceAvailable: device != null,
-    };
-
     return {
         camera,
         device,
@@ -162,7 +152,6 @@ function useNativeCamera({context, onFocusStart, onFocusCleanup}: UseNativeCamer
         askForPermissions,
         tapGesture,
         cameraFocusIndicatorAnimatedStyle,
-        cameraLoadingReasonAttributes,
     };
 }
 
