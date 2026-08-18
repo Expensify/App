@@ -227,7 +227,6 @@ export default createOnyxDerivedValueConfig({
         ONYXKEYS.NVP_INTRO_SELECTED,
         ONYXKEYS.COLLECTION.REPORT_METADATA,
         ONYXKEYS.NETWORK,
-        // NVP_PREFERRED_LOCALE flips optimistically, so the first compute runs mid-download and bakes the previous language into report names. This recomputes once the chunk lands.
         ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING,
     ],
     compute: (

@@ -593,7 +593,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (isTrackExpense) {
             const optimisticChatReportID = selfDMReport?.reportID ?? generateReportID();
             submitPerDiemExpenseForSelfDM({
-                preferredLocale,
                 getCurrencyDecimals,
                 selfDMReport,
                 policy,
@@ -639,7 +638,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 participant,
             };
             const result = submitPerDiemExpenseIOUActions({
-                preferredLocale,
                 getCurrencyDecimals,
                 report,
                 participantParams: perDiemParticipantParams,

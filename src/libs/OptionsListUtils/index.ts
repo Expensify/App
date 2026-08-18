@@ -1778,7 +1778,6 @@ function createFilteredOptionList(
          * empty state (contact pickers) must leave this false.
          */
         deferContactsUntilSearch?: boolean;
-        locale?: Locale;
     },
     policyTags?: OnyxCollection<PolicyTagLists>,
     visibleReportActionsData: VisibleReportActionsDerivedValue = EMPTY_VISIBLE_REPORT_ACTIONS,
@@ -1786,7 +1785,7 @@ function createFilteredOptionList(
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
 ): OptionList {
-    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false} = options;
 
     // Contacts are expensive to build on large accounts (one option per personal detail). When a screen
     // opts into deferral and is not actively searching, skip building them entirely; the empty state
@@ -1809,9 +1808,7 @@ function createFilteredOptionList(
         visibleReportActionsData,
         isTrackIntentUser,
         conciergeReportID,
-        // Option building translates strings imperatively (translateLocal) and formats dates, so both the active locale and the
-        // date-fns locale are part of the output.
-        locale ?? IntlStore.getCurrentLocale(),
+        // Option building translates strings imperatively and formats dates, so the active locale is part of the output.
         options.preferredLocale,
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.

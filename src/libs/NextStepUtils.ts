@@ -85,9 +85,9 @@ function buildNextStepMessage(
         const etaDate = new Date(nextStep.eta.dateTime);
         eta =
             nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
-                ? // Date-only wire values parse as UTC midnight, so a local getter reads the previous day west of UTC.
-                  toLocaleOrdinal(preferredLocale, etaDate.getUTCDate())
-                : DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate);
+                ? toLocaleOrdinal(preferredLocale, etaDate.getUTCDate())
+                : // Both branches must read this UTC-midnight date-only value in UTC, else they disagree and the weekday branch renders the previous day west of UTC.
+                  DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate, 'UTC');
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 

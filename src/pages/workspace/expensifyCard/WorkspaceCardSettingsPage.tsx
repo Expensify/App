@@ -58,8 +58,8 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
     const monthlySettlementDateText =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
-            ? // Date-only wire value parses as UTC midnight, so a local getter reads the previous day west of UTC.
-              translate('workspace.expensifyCard.monthlySettlementDate', toLocaleOrdinal(preferredLocale, new Date(settings.monthlySettlementDate).getUTCDate()))
+            ? // An instant (set to `new Date()` on toggle), not a date-only wire value, so the admin's local day-of-month is the one to show.
+              translate('workspace.expensifyCard.monthlySettlementDate', toLocaleOrdinal(preferredLocale, new Date(settings.monthlySettlementDate).getDate()))
             : undefined;
 
     return (

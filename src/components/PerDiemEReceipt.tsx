@@ -6,13 +6,18 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertAmountToDisplayString} from '@libs/CurrencyUtils';
+import DateUtils from '@libs/DateUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getTransactionDetails} from '@libs/ReportUtils';
 
 import variables from '@styles/variables';
 
 import ONYXKEYS from '@src/ONYXKEYS';
+import type {Transaction} from '@src/types/onyx';
+import type Locale from '@src/types/onyx/Locale';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -37,6 +42,7 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
     return subRateComments.join(', ');
 }
 
+/** Last three comma parts of the merchant are the date range, the rest is the location. See `computePerDiemExpenseMerchant` for why that holds. */
 function getPerDiemDestination(merchant: string) {
     const merchantParts = merchant.split(', ');
     if (merchantParts.length < 3) {
@@ -45,18 +51,22 @@ function getPerDiemDestination(merchant: string) {
     return merchantParts.slice(0, merchantParts.length - 3).join(', ');
 }
 
-function getPerDiemDates(merchant: string) {
-    const merchantParts = merchant.split(', ');
-    if (merchantParts.length < 3) {
-        return merchant;
+function getPerDiemDates(transaction: OnyxEntry<Transaction>, merchant: string, locale: Locale) {
+    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    const startDate = start ? DateUtils.formatToMediumDate(start, locale) : '';
+    const endDate = end ? DateUtils.formatToMediumDate(end, locale) : '';
+    if (!startDate || !endDate) {
+        // No structured dates, so fall back to the merchant string.
+        const merchantParts = merchant.split(', ');
+        return merchantParts.length < 3 ? merchant : merchantParts.slice(-3).join(', ');
     }
-    return merchantParts.slice(-3).join(', ');
+    return `${startDate} - ${endDate}`;
 }
 
 function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate} = useLocalize();
+    const {translate, preferredLocale} = useLocalize();
     const {getCurrencySymbol, convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const icons = useMemoizedLazyExpensifyIcons(['ExpensifyWordmark']);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`);
@@ -66,7 +76,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
 
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
-    const datesDescription = getPerDiemDates(transactionMerchant ?? '');
+    const datesDescription = getPerDiemDates(transaction, transactionMerchant ?? '', preferredLocale);
     const destination = getPerDiemDestination(transactionMerchant ?? '');
     const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');

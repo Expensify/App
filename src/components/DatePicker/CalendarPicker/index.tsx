@@ -218,8 +218,7 @@ function CalendarPicker({
     };
 
     const monthNames = DateUtils.getMonthNames(preferredLocale);
-    // Narrow labels fit the 7-column grid. Short 3-letter labels get cramped in Latin locales.
-    // Paired with each column's weekday number (0 Sunday to 6 Saturday), which stays unique even when narrow labels repeat.
+    // Narrow labels fit the 7-column grid, keyed by weekday number since narrow labels can repeat.
     const weekStartsOn = DateUtils.getWeekStartsOn(preferredLocale);
     const daysOfWeek = DateUtils.getDaysOfWeekNarrow(preferredLocale).map((label, offset) => ({label, weekdayNumber: (weekStartsOn + offset) % 7}));
     useEffect(() => {

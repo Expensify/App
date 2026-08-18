@@ -454,7 +454,10 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         const percentage = adjustedPercentages.at(index) ?? 0;
 
         const date = DateUtils.formatTransactionListDate(item.created, preferredLocale);
-        previewHeaderText.unshift({text: date}, dotSeparator);
+        // Skip when empty, else the row renders a leading orphan " · " before the type label.
+        if (date) {
+            previewHeaderText.unshift({text: date}, dotSeparator);
+        }
 
         if (isCancelled) {
             previewHeaderText.push(dotSeparator, {text: translate('iou.canceled')});

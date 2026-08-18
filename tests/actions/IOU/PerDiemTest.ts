@@ -339,7 +339,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -444,7 +443,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -549,7 +547,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 parentChatReport: undefined,
                 transactionParams: mockTransactionParams,
@@ -667,7 +664,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -772,7 +768,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -854,7 +849,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
-                preferredLocale: CONST.LOCALES.EN,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -943,7 +937,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
-                preferredLocale: CONST.LOCALES.EN,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',
@@ -1046,7 +1039,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
-                preferredLocale: CONST.LOCALES.EN,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 transactionParams: mockTransactionParams,
@@ -1117,7 +1109,6 @@ describe('PerDiem', () => {
             const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
-                preferredLocale: CONST.LOCALES.EN,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
                 currentUserEmailParam: currentUserPersonalDetails.login ?? '',

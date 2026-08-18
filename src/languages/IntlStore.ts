@@ -229,12 +229,7 @@ class IntlStore {
         return IntlStore.snapshot;
     }
 
-    /**
-     * Always builds a fresh snapshot object and emits. Callers own the "did anything change?" decision, so call this
-     * only after mutating `currentLocale` or `cache`, never speculatively. Fresh identity guarantees subscribers
-     * re-render even when only the translations content changed (`seedForTests` overwriting the same locale for a
-     * hot-reload test).
-     */
+    /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
         IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale)};
         for (const listener of IntlStore.listeners) {
@@ -280,7 +275,6 @@ class IntlStore {
             })
             .catch((error: unknown) => {
                 Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
-                // Recovery exhausted: locale never resolves, boot splash intentionally stays up. Sentry surfaces the cause so the stuck splash is diagnosable.
                 Sentry.captureException(error, {
                     fingerprint: ['locale-load-failed'],
                     extra: {locale},
@@ -289,6 +283,23 @@ class IntlStore {
                 if (localeSpan && IntlStore.loadToken === token) {
                     endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
                 }
+                // The splash gate below only lifts on a non-empty cache, so without this fallback the app hangs on the boot splash forever.
+                if (IntlStore.loadToken !== token || IntlStore.cache.size > 0 || locale === LOCALES.DEFAULT) {
+                    return;
+                }
+                return retryDynamicImport(IntlStore.loaders[LOCALES.DEFAULT], `${LOCALE_RETRY_KEY_PREFIX}${LOCALES.DEFAULT}`)
+                    .then(() => {
+                        if (IntlStore.loadToken !== token) {
+                            return;
+                        }
+                        IntlStore.currentLocale = LOCALES.DEFAULT;
+                        IntlStore.notifyListeners();
+                    })
+                    .catch((fallbackError: unknown) => {
+                        // Nothing left to render, so the splash stays up by design.
+                        Log.warn('[IntlStore] default-locale fallback also failed; boot splash stays up', {locale, fallbackError});
+                        Sentry.captureException(fallbackError, {fingerprint: ['locale-load-failed'], extra: {locale: LOCALES.DEFAULT}});
+                    });
             })
             .finally(() => {
                 // At least one fully completed locale required, else a rejected first-load would open the splash to raw path strings.

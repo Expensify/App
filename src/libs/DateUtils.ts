@@ -80,6 +80,8 @@ function isWeekDay(value: number): value is WeekDay {
  * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry). Returns `null` and caches that on any
  * construction failure (bad locale on old engines, missing IANA name) so subsequent calls short-circuit instead of
  * re-throwing every render. Retries with the backward-mapped IANA name on older iOS/macOS (e.g. `Europe/Kyiv`).
+ * Key space is ~19 presets x the active locale x a few timezones, and all three args are primitives, so a small
+ * shallow-equality cache avoids a deep comparison on every formatted cell in a long transaction list.
  */
 const getIntlDateTimeFormat = memoize(
     (locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null => {
@@ -97,11 +99,21 @@ const getIntlDateTimeFormat = memoize(
                     return null;
                 }
             }
+            // Hermes implements DateTimeFormat, so the realistic failure is one bad locale tag. Retry on the default locale so dates degrade to English rather than blank.
+            if (locale !== CONST.LOCALES.DEFAULT) {
+                try {
+                    Log.warn('[DateUtils] Intl.DateTimeFormat construction failed; retrying on the default locale', {locale, formatKey, timeZone, error});
+                    return new Intl.DateTimeFormat(CONST.LOCALES.DEFAULT, options);
+                } catch (defaultLocaleError) {
+                    Log.warn('[DateUtils] Intl.DateTimeFormat default-locale retry also failed', {locale, formatKey, timeZone, defaultLocaleError});
+                    return null;
+                }
+            }
             Log.warn('[DateUtils] Intl.DateTimeFormat construction failed', {locale, formatKey, timeZone, error});
             return null;
         }
     },
-    {maxSize: 256},
+    {maxSize: 64, equality: 'shallow'},
 );
 
 /**
@@ -540,7 +552,8 @@ const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
  * → placeholder "MM/DD/YYYY"). de → "DD.MM.YYYY"; ja → "YYYY/MM/DD".
  */
 function getLocalizedDatePlaceholder(locale: Locale): string {
-    const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE');
+    // Pass the third arg explicitly: the memo key is arity-sensitive, so omitting it caches a second identical formatter.
+    const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE', undefined);
     // Field order is CLDR data we cannot derive without Intl, so fall back to the most common order rather than guessing per-locale.
     const fallback = FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? 'MM/DD/YYYY';
     if (!formatter) {
@@ -695,8 +708,13 @@ function extractTime12Hour(dateTimeString: string, isFullFormat = false): string
     if (!dateTimeString || dateTimeString === 'never') {
         return '';
     }
+    const parsed = toLocalDate(dateTimeString);
+    if (!isValid(parsed)) {
+        Log.warn('[DateUtils] extractTime12Hour: unparsable datetime', {dateTimeString});
+        return '';
+    }
     // eslint-disable-next-line rulesdir/require-locale-for-localized-date-format -- machine round-trip parsed back by `combineDateAndTime` with the same enUS pin.
-    return format(new Date(dateTimeString), isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', {locale: enUS});
+    return format(parsed, isFullFormat ? 'hh:mm:ss.SSS a' : 'hh:mm a', {locale: enUS});
 }
 
 /**
@@ -1234,7 +1252,7 @@ function getFormattedSplitDateRange(translateParam: LocaleContextProps['translat
 
 const ISO_DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
 /** DB wire timestamp: `yyyy-MM-dd HH:mm:ss[.SSS]` — no timezone, so JS `new Date()` parses it as local wall-clock. */
-const DB_WIRE_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}(\.\d+)?$/;
+const DB_WIRE_TIMESTAMP_PATTERN = /^\d{4}-\d{2}-\d{2} \d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 /** T-separated ISO without a Z or `±HH:MM` offset. ECMA-262 parses it as local wall-clock, the same trap as the DB wire timestamp above. */
 const ISO_LOCAL_DATETIME_PATTERN = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(:\d{2}(\.\d+)?)?$/;
 function isUnzonedString(date: unknown): date is string {
@@ -1255,7 +1273,13 @@ function toLocalDate(date: Date | string): Date {
     }
     // Space-separated DB timestamps: V8 accepts the shape, Hermes rejects it, so parse explicitly rather than relying on engine leniency.
     if (DB_WIRE_TIMESTAMP_PATTERN.test(date)) {
-        return parse(date, date.includes('.') ? 'yyyy-MM-dd HH:mm:ss.SSS' : 'yyyy-MM-dd HH:mm:ss', new Date());
+        let wireFormat = 'yyyy-MM-dd HH:mm';
+        if (date.includes('.')) {
+            wireFormat = 'yyyy-MM-dd HH:mm:ss.SSS';
+        } else if (date.length > 16) {
+            wireFormat = 'yyyy-MM-dd HH:mm:ss';
+        }
+        return parse(date, wireFormat, new Date());
     }
     return new Date(date);
 }
@@ -1385,6 +1409,11 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
  * falls back to UTC + warn rather than throwing — render-path callers have no error boundaries.
  */
 function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: string, formatStr: string, options?: Parameters<typeof formatInTimeZone>[3]): string {
+    // An invalid date throws in every timezone, so the UTC fallback below cannot rescue it. Bail before trying.
+    if (!isValid(new Date(date))) {
+        Log.warn('[DateUtils] formatInTimeZoneWithFallback received an invalid date', {date, timeZone});
+        return '';
+    }
     try {
         return formatInTimeZone(date, timeZone, formatStr, options);
     } catch (error) {

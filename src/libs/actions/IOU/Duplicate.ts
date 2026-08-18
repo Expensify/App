@@ -45,7 +45,6 @@ import type {CurrentUser} from '@userActions/Policy/Policy';
 import {createNewReport} from '@userActions/Report';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Attendee, Participant} from '@src/types/onyx/IOU';
@@ -737,8 +736,6 @@ function createExpenseByType({
         case CONST.SEARCH.TRANSACTION_TYPE.PER_DIEM: {
             const perDiemParams: PerDiemExpenseInformation = {
                 ...params,
-                // Runs outside React, so read the active locale from the store rather than threading it through the duplicate cascade.
-                preferredLocale: IntlStore.getCurrentLocale(),
                 transactionParams: {
                     ...(params.transactionParams ?? {}),
                     comment: transactionDetails?.comment ?? '',

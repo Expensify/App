@@ -129,7 +129,7 @@ function TimePicker({defaultValue = '', onSubmit, onInputChange = () => {}, shou
     const value = DateUtils.extractTime12Hour(defaultValue, showFullFormat);
     const canUseTouchScreen = canUseTouchScreenDeviceCapabilities();
 
-    // Parsed once on mount. The placeholder fallback keeps a malformed defaultValue from masquerading as a user-picked 12:00 PM.
+    // Parsed once on mount. An unparsable value seeds the same 12:00 PM placeholder an empty one gets, so it is not visually distinct from a deliberate noon.
     const [initialTime] = useState(() => DateUtils.get12HourTimeObjectFromDate(value, showFullFormat) ?? EMPTY_TWELVE_HOUR_TIME);
     const [hours, setHours] = useState(initialTime.hour);
     const [minutes, setMinutes] = useState(initialTime.minute);
