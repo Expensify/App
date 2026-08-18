@@ -7,19 +7,20 @@ type MergeHRProviderEntry = {
     iconUrl: string;
 };
 
+// Providers commented out below are supported by Merge but not enabled on our side yet. Uncomment them as they are rolled out.
 const MERGE_HR_PROVIDERS = {
-    'adp-decidium': {
-        displayName: 'ADP DECIDIUM',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_Decidium_Square.png',
-    },
-    'adp-run': {
-        displayName: 'ADP RUN',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_RUN_Square.png',
-    },
-    'adp-workforce-now': {
-        displayName: 'ADP Workforce Now',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_Workforce_Now_Square.png',
-    },
+    // 'adp-decidium': {
+    //     displayName: 'ADP DECIDIUM',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_Decidium_Square.png',
+    // },
+    // 'adp-run': {
+    //     displayName: 'ADP RUN',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_RUN_Square.png',
+    // },
+    // 'adp-workforce-now': {
+    //     displayName: 'ADP Workforce Now',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/ADP_Workforce_Now_Square.png',
+    // },
     bamboohr: {
         displayName: 'BambooHR',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/BambooHR_Square_Logo.jpg',
@@ -28,38 +29,38 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Breathe',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Breathe_Square_Logo_FY9Zgjm.jpg',
     },
-    'cezanne-hr': {
-        displayName: 'Cezanne HR',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Cezanne-square.png',
-    },
-    darwinbox: {
-        displayName: 'Darwinbox',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Darwinbox-square.png',
-    },
+    // 'cezanne-hr': {
+    //     displayName: 'Cezanne HR',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Cezanne-square.png',
+    // },
+    // darwinbox: {
+    //     displayName: 'Darwinbox',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Darwinbox-square.png',
+    // },
     dayforce: {
         displayName: 'Dayforce',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformDayforce.png',
     },
-    'folks-hr': {
-        displayName: 'Folks HR',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformFolks_square.png',
-    },
-    fourth: {
-        displayName: 'Fourth',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Fourth_square.png',
-    },
+    // 'folks-hr': {
+    //     displayName: 'Folks HR',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformFolks_square.png',
+    // },
+    // fourth: {
+    //     displayName: 'Fourth',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Fourth_square.png',
+    // },
     freshteam: {
         displayName: 'Freshteam',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Freshteam_Square.png',
     },
-    'generic-sftp': {
-        displayName: 'Generic SFTP',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/generic_sftp_square_mJ3x0IU.png',
-    },
-    'hailey-hr': {
-        displayName: 'Hailey HR',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformHailey_HR.png',
-    },
+    // 'generic-sftp': {
+    //     displayName: 'Generic SFTP',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/generic_sftp_square_mJ3x0IU.png',
+    // },
+    // 'hailey-hr': {
+    //     displayName: 'Hailey HR',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformHailey_HR.png',
+    // },
     hibob: {
         displayName: 'HiBob',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformHibob.png',
@@ -100,10 +101,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Keka',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/keka_square.png',
     },
-    kenjo: {
-        displayName: 'Kenjo',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformKenjo_square.png',
-    },
+    // kenjo: {
+    //     displayName: 'Kenjo',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformKenjo_square.png',
+    // },
     lucca: {
         displayName: 'Lucca',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Lucca.jpg',
@@ -112,18 +113,18 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Namely',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Namely_Square_Logo.jpg',
     },
-    'oracle-cloud-human-capital-management-hcm': {
-        displayName: 'Oracle Cloud Human Capital Management (HCM)',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Oracle_square.png',
-    },
+    // 'oracle-cloud-human-capital-management-hcm': {
+    //     displayName: 'Oracle Cloud Human Capital Management (HCM)',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Oracle_square.png',
+    // },
     paychex: {
         displayName: 'Paychex',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Paychex_Square_Logo.png',
     },
-    paycom: {
-        displayName: 'Paycom',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformPaycom.png',
-    },
+    // paycom: {
+    //     displayName: 'Paycom',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformPaycom.png',
+    // },
     paycor: {
         displayName: 'Paycor',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Platformpaycor_square.png',
@@ -140,14 +141,14 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Rippling',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Platformrippling_rR8x3bN.png',
     },
-    'sage-hr': {
-        displayName: 'Sage HR',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Sage_HR_Square_L3bw47M.png',
-    },
-    'sap-successfactors': {
-        displayName: 'SAP SuccessFactors',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/SuccessFactors_Square_Logo_BcXogF0.jpg',
-    },
+    // 'sage-hr': {
+    //     displayName: 'Sage HR',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Sage_HR_Square_L3bw47M.png',
+    // },
+    // 'sap-successfactors': {
+    //     displayName: 'SAP SuccessFactors',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/SuccessFactors_Square_Logo_BcXogF0.jpg',
+    // },
     simployer: {
         displayName: 'Simployer',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Simployer_Square.png',
@@ -168,10 +169,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'Workday',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformWorkday.png',
     },
-    zelt: {
-        displayName: 'Zelt',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformZelt.png',
-    },
+    // zelt: {
+    //     displayName: 'Zelt',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PlatformZelt.png',
+    // },
 } as const satisfies Record<string, MergeHRProviderEntry>;
 
 type MergeHRProviderSlug = keyof typeof MERGE_HR_PROVIDERS;
