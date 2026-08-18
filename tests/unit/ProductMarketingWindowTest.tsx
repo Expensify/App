@@ -7,7 +7,6 @@ import ActivityIndicator from '@components/ActivityIndicator';
 import ComposeProviders from '@components/ComposeProviders';
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import Image from '@components/Image';
-import type {ImageProps} from '@components/Image/types';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import ProductMarketingWindowManager from '@components/ProductMarketingWindow/ProductMarketingWindowManager';
@@ -241,12 +240,11 @@ describe('ProductMarketingWindowManager', () => {
         await waitForBatchedUpdatesWithAct();
 
         const image = screen.UNSAFE_getByType(Image);
-        const imageProps = image.props as ImageProps;
         expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
         expect(screen.UNSAFE_getByType(ActivityIndicator).props.color).toBe(colors.productDark900);
 
         await act(async () => {
-            imageProps.onLoadEnd?.();
+            fireEvent(image, 'onLoadEnd');
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -254,14 +252,14 @@ describe('ProductMarketingWindowManager', () => {
         expect(screen.UNSAFE_getByType(Image).props.source).toBe(August2026PromoAdminsImage);
 
         await act(async () => {
-            imageProps.onLoadStart?.();
+            fireEvent(image, 'onLoadStart');
             await waitForBatchedUpdatesWithAct();
         });
 
         expect(screen.getByTestId('ProductMarketingWindowImageLoading')).toBeTruthy();
 
         await act(async () => {
-            imageProps.onLoadEnd?.();
+            fireEvent(image, 'onLoadEnd');
             await waitForBatchedUpdatesWithAct();
         });
 
