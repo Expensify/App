@@ -1,7 +1,6 @@
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 
-import {isCurrencySupportedForGlobalReimbursement} from '@libs/actions/Policy/Policy';
 import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {formatPaymentMethods, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
@@ -19,9 +18,6 @@ import useSettlementButtonPaymentMethods from '@libs/SettlementButtonUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {AccountData} from '@src/types/onyx';
-
-import type {TupleToUnion} from 'type-fest';
 
 import {areInvoicesEnabledSelector} from '@selectors/Policy';
 import truncate from 'lodash/truncate';
@@ -33,8 +29,6 @@ import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 import useThemeStyles from './useThemeStyles';
-
-type CurrencyType = TupleToUnion<typeof CONST.DIRECT_REIMBURSEMENT_CURRENCIES>;
 
 type UseBulkPayOptionProps = {
     selectedPolicyID: string | undefined;
@@ -96,7 +90,10 @@ function useBulkPayOptions({
         const requiredAccountType = payAsBusiness ? CONST.BANK_ACCOUNT.TYPE.BUSINESS : CONST.BANK_ACCOUNT.TYPE.PERSONAL;
         return formattedPaymentMethods
             .filter((method) => {
-                const accountData = method?.accountData as AccountData;
+                if (!('bankCurrency' in method)) {
+                    return false;
+                }
+                const accountData = method.accountData;
                 const isPartiallySetup = isBankAccountPartiallySetup(accountData?.state);
                 return accountData?.type === requiredAccountType && !isPartiallySetup && matchesCurrency(method, currency);
             })
@@ -128,7 +125,7 @@ function useBulkPayOptions({
                   value: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
               }))
             : undefined;
-    const personalBankAccountList = formattedPaymentMethods.filter((ba) => (ba.accountData as AccountData)?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
+    const personalBankAccountList = formattedPaymentMethods.filter((method) => 'bankCurrency' in method && method.accountData?.type === CONST.BANK_ACCOUNT.TYPE.PERSONAL);
 
     let bulkPayButtonOptions;
     if (!selectedReportID || !selectedPolicyID) {
@@ -196,7 +193,7 @@ function useBulkPayOptions({
         }
 
         if (isInvoiceReport) {
-            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && isCurrencySupportedForGlobalReimbursement(currency as CurrencyType);
+            const showPayViaExpensifyOptions = isPayInvoiceViaExpensifyBetaEnabled && CONST.DIRECT_REIMBURSEMENT_CURRENCIES.some((supportedCurrency) => supportedCurrency === currency);
             const getInvoicesOptions = (payAsBusiness: boolean) => {
                 const addBankAccountItem = {
                     text: translate('bankAccount.addBankAccount'),

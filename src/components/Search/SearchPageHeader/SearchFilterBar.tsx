@@ -47,7 +47,7 @@ function WorkspaceDropdown({label, value, PopoverComponent, sentryLabel, onClose
 }
 
 function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
-    const feedValue = useFilterFeedValue(value as string[]);
+    const feedValue = useFilterFeedValue(Array.isArray(value) ? value : [value]);
     return (
         <DropdownButton
             label={label}
@@ -60,7 +60,7 @@ function FeedDropdown({label, value, PopoverComponent, sentryLabel, onClosePress
 }
 
 function CardDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
-    const cardValue = useFilterCardValue(value as string[]);
+    const cardValue = useFilterCardValue(Array.isArray(value) ? value : value.split(', '));
     return (
         <DropdownButton
             label={label}
@@ -86,7 +86,7 @@ function BankAccountDropdown({label, value, PopoverComponent, sentryLabel, onClo
 }
 
 function TaxRateDropdown({label, value, PopoverComponent, sentryLabel, onClosePress}: DropdownProps) {
-    const taxRateValue = useFilterTaxRateValue(value as string[]);
+    const taxRateValue = useFilterTaxRateValue(Array.isArray(value) ? value : [value]);
     return (
         <DropdownButton
             label={label}
