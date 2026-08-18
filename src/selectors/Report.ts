@@ -170,7 +170,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
-        // Coerce sentinel `0` to `undefined`. The backend ships `managerID: 0` on chat reports
+        // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing

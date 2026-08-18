@@ -25,6 +25,7 @@ import createRandomPolicy from '../utils/collections/policies';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import initCurrencyListContext from '../utils/initCurrencyListContext';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 
 const testDate = DateUtils.getDBTime();
 const currentUserAccountID = 5;
@@ -614,7 +615,7 @@ describe('canSubmitReport', () => {
 
 describe('Check valid amount for IOU/Expense request', () => {
     test('IOU amount should be positive', () => {
-        const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+        const iouReport = ReportUtils.buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
         const iouTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,
@@ -627,7 +628,15 @@ describe('Check valid amount for IOU/Expense request', () => {
     });
 
     test('Expense amount should be negative', () => {
-        const expenseReport = ReportUtils.buildOptimisticExpenseReport({chatReportID: '212', policyID: '123', payeeAccountID: 100, total: 122, currency: 'USD', betas: [CONST.BETAS.ALL]});
+        const expenseReport = ReportUtils.buildOptimisticExpenseReport({
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+            chatReportID: '212',
+            policyID: '123',
+            payeeAccountID: 100,
+            total: 122,
+            currency: 'USD',
+            betas: [CONST.BETAS.ALL],
+        });
         const expenseTransaction = TransactionUtils.buildOptimisticTransaction({
             transactionParams: {
                 amount: 100,

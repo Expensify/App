@@ -117,7 +117,7 @@ function PersonalInfo({onBackButtonPress, onSubmit, ref, backTo}: PersonalInfoPr
             stepNames={CONST.BANK_ACCOUNT.STEP_NAMES}
         >
             {isRedirecting ? (
-                <FullScreenLoadingIndicator reasonAttributes={{context: 'PersonalInfo', isRedirecting}} />
+                <FullScreenLoadingIndicator />
             ) : (
                 <CurrentPage
                     isEditing={isEditing}

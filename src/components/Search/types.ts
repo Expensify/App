@@ -5,11 +5,12 @@ import type {SelectionListStyle} from '@components/SelectionList/types';
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
 
 import type CONST from '@src/CONST';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, SearchResults, Transaction, TransactionViolation} from '@src/types/onyx';
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
+import type {OnyxCollection} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
 import type {
@@ -198,6 +199,8 @@ type SearchQueryActionsValue = {
 
 type SearchResultsContextValue = {
     currentSearchResults: SearchResults | undefined;
+    currentSearchTransactionsByReportID: Map<string, Transaction[]>;
+    currentSearchViolations: OnyxCollection<TransactionViolation[]>;
     /** Whether we're on a main to-do search and should use live Onyx data instead of snapshots */
     shouldUseLiveData: boolean;
     sortedReportIDs: ReadonlyArray<string | undefined>;

@@ -18,11 +18,12 @@ import type {ReportActions, Transaction} from '@src/types/onyx';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
-import {convertToDisplayString} from '../utils/TestHelper';
+import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const basicProps = {
-    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD'),
+    dateFnsLocale: undefined,
+    iouReport: buildOptimisticIOUReport(123, 234, 1000, '1', 'USD', getCurrencyDecimalsLocal),
     iouReportOwnerLogin: undefined,
     policy: undefined,
     transaction: buildOptimisticTransaction({
@@ -38,6 +39,7 @@ const basicProps = {
     }),
     translate: jest.fn().mockImplementation((key: string) => key),
     action: buildOptimisticIOUReportAction({
+        getCurrencyDecimals: getCurrencyDecimalsLocal,
         type: 'create',
         amount: 100,
         currency: 'USD',
@@ -51,6 +53,7 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
+    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -114,7 +117,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.cash'});
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
@@ -149,7 +152,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });
 
-        it('should display showCashOrCard in previewHeaderText', () => {
+        it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,
                 transaction: {
@@ -161,14 +164,14 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.card'}]));
-            expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
+            expect(cardTransaction.previewTypeText).toEqual({translationPath: 'common.card'});
+            expect(cashTransaction.previewTypeText).toEqual({translationPath: 'iou.cash'});
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
             const functionArgs = {...basicProps, isBillSplit: true, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.split'}]));
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.split'});
         });
 
         it('displays description when receipt is being scanned', () => {
@@ -179,13 +182,15 @@ describe('TransactionPreviewUtils', () => {
                 merchant: 'Expense',
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
+            expect(result.previewTypeText).toEqual({translationPath: 'common.receipt'});
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
             const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.pending'}]));
+            // Pending is a transaction status, so it belongs to the supporting line and must not replace the expense type.
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.pending'});
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.cash'});
         });
 
         it('handles currency and amount display during scanning correctly', () => {
@@ -226,13 +231,19 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('shows approved message when the iouReport is canceled', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
+        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
-        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {
@@ -247,7 +258,7 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
         it('should display the correct amount for a bill split transaction', () => {

@@ -1,6 +1,6 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import DestinationPicker from '@components/DestinationPicker';
 import FixedFooter from '@components/FixedFooter';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {getPerDiemCustomUnit, getPolicyByCustomUnitID, isPolicyAdmin} from '@libs/PolicyUtils';
 import {findSelfDMReportID, getPolicyExpenseChat} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import variables from '@styles/variables';
 
@@ -123,12 +122,6 @@ function DynamicIOURequestStepDestination({
     const isLoading = !isOffline && (!customUnit?.rates || isLoadingOnyxValue(policyMetadata));
     const shouldShowEmptyState = isEmptyObject(customUnit?.rates) && !isOffline && !isLoading;
     const shouldShowOfflineView = isEmptyObject(customUnit?.rates) && isOffline;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'IOURequestStepDestination',
-        isLoading,
-        isOffline,
-        hasCustomUnitRates: !isEmptyObject(customUnit?.rates),
-    };
 
     const navigateBack = () => {
         Navigation.goBack(backPath);
@@ -236,7 +229,6 @@ function DynamicIOURequestStepDestination({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {shouldShowOfflineView && <FullPageOfflineBlockingView>{null}</FullPageOfflineBlockingView>}
@@ -252,8 +244,8 @@ function DynamicIOURequestStepDestination({
                         {isPolicyAdmin(policy) && (
                             <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                                 <Button
-                                    large
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
+                                    size={CONST.BUTTON_SIZE.LARGE}
                                     style={[styles.w100]}
                                     onPress={() => {
                                         if (!policy?.id) {
@@ -269,10 +261,11 @@ function DynamicIOURequestStepDestination({
                                             Navigation.navigate(ROUTES.WORKSPACE_PER_DIEM.getRoute(policy.id, backToRoute));
                                         });
                                     }}
-                                    text={translate('workspace.perDiem.editPerDiemRates')}
-                                    pressOnEnter
                                     sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_PER_DIEM_RATES_BUTTON}
-                                />
+                                >
+                                    <Button.KeyboardShortcut />
+                                    <Button.Text>{translate('workspace.perDiem.editPerDiemRates')}</Button.Text>
+                                </Button>
                             </FixedFooter>
                         )}
                     </View>

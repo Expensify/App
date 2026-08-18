@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {DomainAdminRowData} from '@components/Tables/DomainAdminsTable';
@@ -111,22 +111,26 @@ function DomainAdminsPage({route}: DomainAdminsPageProps) {
     const headerContent = isAdmin ? (
         <View style={[styles.flexRow, styles.gap2]}>
             <Button
-                success
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADD_ADMIN.getRoute(domainAccountID))}
-                text={translate('domain.admins.addAdmin')}
-                icon={icons.Plus}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                 style={shouldDisplayButtonsInSeparateLine && [styles.flexGrow1, styles.mb3]}
-            />
+            >
+                <Button.Icon src={icons.Plus} />
+                <Button.Text>{translate('domain.admins.addAdmin')}</Button.Text>
+            </Button>
             <Button
                 onPress={() => Navigation.navigate(ROUTES.DOMAIN_ADMINS_SETTINGS.getRoute(domainAccountID))}
-                text={translate('domain.common.settings')}
-                icon={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
-                iconFill={hasSettingsErrors ? theme.danger : undefined}
-                iconHoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
                 innerStyles={[shouldDisplayButtonsInSeparateLine && styles.alignItemsCenter]}
                 style={shouldDisplayButtonsInSeparateLine ? [styles.flexGrow0, styles.mb3] : undefined}
-            />
+            >
+                <Button.Icon
+                    src={hasSettingsErrors ? icons.DotIndicator : icons.Gear}
+                    fill={hasSettingsErrors ? theme.danger : undefined}
+                    hoverFill={hasSettingsErrors ? theme.dangerHover : undefined}
+                />
+                <Button.Text>{translate('domain.common.settings')}</Button.Text>
+            </Button>
         </View>
     ) : null;
 

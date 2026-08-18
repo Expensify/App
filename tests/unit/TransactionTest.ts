@@ -13,7 +13,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {TransactionViolation} from '@src/types/onyx';
 import type {Attendee} from '@src/types/onyx/IOU';
-import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+import type {ReportCollectionDataSet, ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxData} from '@src/types/onyx/Request';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -35,7 +35,7 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 type LegacyChangeTransactionsReportProps = Omit<
     Parameters<typeof changeTransactionsReportAction>[0],
-    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions'
+    'transactions' | 'allTransactionViolation' | 'personalPolicyOutputCurrency' | 'selfDMReportActions' | 'getCurrencyDecimals'
 > & {
     allTransactions: OnyxCollection<Transaction>;
     transactionViolations?: OnyxCollection<TransactionViolation[]>;
@@ -54,7 +54,15 @@ function isCapturedOnyxData(value: unknown): value is CapturedOnyxData {
 // Wrapper mirroring the pre-refactor signature so existing test call sites compile unchanged.
 function changeTransactionsReport({allTransactions, transactionIDs, transactionViolations = {}, personalPolicyOutputCurrency, ...rest}: LegacyChangeTransactionsReportProps) {
     const transactions = transactionIDs.map((id) => allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`]).filter((transaction): transaction is Transaction => !!transaction);
-    changeTransactionsReportAction({transactionIDs, transactions, allTransactionViolation: transactionViolations, personalPolicyOutputCurrency, selfDMReportActions: undefined, ...rest});
+    changeTransactionsReportAction({
+        transactionIDs,
+        transactions,
+        allTransactionViolation: transactionViolations,
+        personalPolicyOutputCurrency,
+        selfDMReportActions: undefined,
+        getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+        ...rest,
+    });
 }
 
 function generateTransaction(values: Partial<Transaction> = {}): Transaction {
@@ -248,18 +256,14 @@ describe('Transaction', () => {
             });
             const oldIOUAction = createIOUAction(transaction);
 
-            const mockReportNextStep = {
-                type: 'neutral' as const,
-                icon: CONST.NEXT_STEP.ICONS.HOURGLASS,
-                message: [
-                    {
-                        text: 'Test next step message',
-                    },
-                ],
+            const mockReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
+                icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`, {nextStep: mockReportNextStep});
 
             const report = await getReportFromUseOnyx(FAKE_NEW_REPORT_ID);
             const allTransactions = {
@@ -273,7 +277,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
@@ -287,10 +290,10 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: mockReportNextStep, pendingFields: {nextStep: null, total: null}});
 
             mockAPIWrite.mockRestore();
         });
@@ -303,19 +306,14 @@ describe('Transaction', () => {
             });
             const oldIOUAction = createIOUAction(transaction);
 
-            const mockReportNextStep = {
-                type: 'alert' as const,
+            const mockReportNextStep: ReportNextStep = {
+                messageKey: CONST.NEXT_STEP.MESSAGE_KEY.NO_FURTHER_ACTION,
                 icon: CONST.NEXT_STEP.ICONS.CHECKMARK,
-                message: [
-                    {
-                        text: 'Alert next step message',
-                    },
-                ],
-                requiresUserAction: true,
             };
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${FAKE_OLD_REPORT_ID}`, {[oldIOUAction.reportActionID]: oldIOUAction});
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`, {nextStep: mockReportNextStep});
 
             const report = await getReportFromUseOnyx(CONST.REPORT.UNREPORTED_REPORT_ID);
             const allTransactions = {
@@ -329,7 +327,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: mockReportNextStep,
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
@@ -343,10 +340,10 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${CONST.REPORT.UNREPORTED_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_SELF_DM_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toEqual(mockReportNextStep);
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: mockReportNextStep, pendingFields: {nextStep: null, total: null}});
 
             mockAPIWrite.mockRestore();
         });
@@ -517,7 +514,6 @@ describe('Transaction', () => {
                 email: 'test@example.com',
                 newReport: report,
                 policy: undefined,
-                reportNextStep: undefined,
                 allTransactions,
                 policyTagList: undefined,
                 transactionViolations: {},
@@ -531,10 +527,10 @@ describe('Transaction', () => {
             const apiWriteCall = mockAPIWrite.mock.calls.at(0);
             const failureData = (apiWriteCall?.[2] as {failureData?: Array<{key: string; value: unknown}>})?.failureData;
 
-            const nextStepFailureData = failureData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_NEW_REPORT_ID}`);
+            const reportFailureData = failureData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_NEW_REPORT_ID}`);
 
-            expect(nextStepFailureData).toBeDefined();
-            expect(nextStepFailureData?.value).toBeNull();
+            expect(reportFailureData).toBeDefined();
+            expect(reportFailureData?.value).toEqual({nextStep: null, pendingFields: {nextStep: null, total: null}});
 
             mockAPIWrite.mockRestore();
         });
@@ -591,12 +587,13 @@ describe('Transaction', () => {
 
                 const apiWriteCall = mockAPIWrite.mock.calls.at(0);
                 const optimisticData = (apiWriteCall?.[2] as {optimisticData?: Array<{key: string; value: Partial<Report>}>})?.optimisticData;
-                const sourceNextStepUpdate = optimisticData?.find((data) => data.key === `${ONYXKEYS.COLLECTION.NEXT_STEP}${FAKE_OLD_REPORT_ID}`);
+                const sourceReportUpdate = optimisticData?.findLast((data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}`);
                 const sourceReportStateUpdate = optimisticData?.find(
                     (data) => data.key === `${ONYXKEYS.COLLECTION.REPORT}${FAKE_OLD_REPORT_ID}` && 'stateNum' in data.value && 'statusNum' in data.value,
                 );
 
-                expect(sourceNextStepUpdate).toBeDefined();
+                expect(sourceReportUpdate).toBeDefined();
+                expect(sourceReportUpdate?.value).toEqual({nextStep: {actorAccountID: 1, icon: 'hourglass', messageKey: 'waitingToAddTransactions'}, pendingFields: {nextStep: 'update'}});
                 expect(sourceReportStateUpdate?.value.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
                 expect(sourceReportStateUpdate?.value.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
             } finally {
@@ -1224,7 +1221,6 @@ describe('Transaction', () => {
                 email: 'test@gmail.com',
                 newReport: newOpenReport,
                 policy,
-                reportNextStep: undefined,
                 policyCategories,
                 allTransactions,
                 policyTagList: undefined,
@@ -1235,11 +1231,8 @@ describe('Transaction', () => {
 
             await waitForBatchedUpdates();
 
-            const nextStep = await getOnyxValue(`${ONYXKEYS.COLLECTION.NEXT_STEP}${newOpenReport.reportID}`);
-
-            const nextStepMessage = nextStep?.message?.map((part) => part.text).join('');
-
-            expect(nextStepMessage).toEqual('Waiting for You to submit %expenses.');
+            const report = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${newOpenReport.reportID}`);
+            expect(report?.nextStep?.messageKey).toEqual(CONST.NEXT_STEP.MESSAGE_KEY.WAITING_TO_SUBMIT);
         });
 
         it('should decrement source and increment destination transactionCount on cross-currency move', async () => {
@@ -1281,7 +1274,6 @@ describe('Transaction', () => {
                 email: 'test@gmail.com',
                 newReport: destinationReport,
                 policy: undefined,
-                reportNextStep: undefined,
                 policyCategories: undefined,
                 allTransactions,
                 policyTagList: undefined,

@@ -109,8 +109,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
-    const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -238,26 +238,14 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     // reflect on the badge (per-row selector, not the screen-level collection merge this slice removed).
     const snapshotTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
     const [liveViolationsForSnapshotTransactions] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(snapshotTransactionIDs)});
-    const {
-        currentUserAccountID,
-        currentUserLogin,
-        introSelected,
-        betas,
-        isSelfTourViewed,
-        activePolicy,
-        nextStep,
-        chatReportPolicy,
-        amountOwed,
-        delegateEmail,
-        delegateAccountID,
-        conciergeChat,
-    } = useReportPaymentContext({
-        reportID: reportItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
@@ -310,7 +298,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             activePolicy,
             chatReport,
             chatReportPolicy,
-            iouReportCurrentNextStepDeprecated: nextStep,
             searchData,
             chatReportActions,
             delegateEmail,
@@ -346,6 +333,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         showConfirmModal,
         translate,
         convertToDisplayString,
+        getCurrencyDecimals,
         currentUserAccountID,
         currentUserLogin,
         introSelected,
@@ -353,7 +341,6 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isSelfTourViewed,
         activePolicy,
         chatReportPolicy,
-        nextStep,
         chatReportActions,
         delegateEmail,
         delegateAccountID,
@@ -473,7 +460,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     ]);
 
     // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
-    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString});
+    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, dateFnsLocale, convertToDisplayString});
 
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (

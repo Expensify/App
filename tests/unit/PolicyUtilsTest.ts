@@ -8,6 +8,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
     canAccessSubmitWorkspaceFeatures,
+    canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
     canMemberRead,
@@ -15,6 +16,7 @@ import {
     canSendInvoiceFromWorkspace,
     findVendorByID,
     getActivePolicies,
+    getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
     getAllTaxRates,
     getAllTaxRatesNamesAndValues,
@@ -54,10 +56,12 @@ import {
     hasPolicyRulesError,
     hasPolicyWithXeroConnection,
     hasVendorFeature,
+    isArchivedPolicy,
     isMergeHRCompleteSetupNeededSelector,
     isPerDiemEnabled,
     isPolicyMemberWithoutPendingDelete,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    isTaxCodeCustomized,
     isXeroActiveMatchingSource,
     isXeroVendorMatchingActive,
     shouldShowPolicy,
@@ -361,6 +365,36 @@ describe('PolicyUtils', () => {
             expect(canMemberManageMemberWithRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(true);
             expect(canMemberAssignRole(policy, memberLogin, CONST.POLICY.ROLE.EDITOR)).toBe(false);
         });
+
+        it('denies write access to an archived policy even for admins', () => {
+            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
+
+            expect(canMemberWrite(policy, memberLogin, CONST.POLICY.POLICY_FEATURE.OVERVIEW)).toBe(false);
+        });
+
+        it('denies workspace settings edit access to an archived policy even for admins', () => {
+            const policy = {...buildPolicy(CONST.POLICY.ROLE.ADMIN), archivedDate: '2024-01-01'};
+
+            expect(canEditWorkspaceSettings(policy, memberLogin)).toBe(false);
+        });
+    });
+
+    describe('isArchivedPolicy', () => {
+        it('returns true when the policy has an archivedDate', () => {
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), archivedDate: '2024-01-01'};
+
+            expect(isArchivedPolicy(policy)).toBe(true);
+        });
+
+        it('returns false when the policy has no archivedDate', () => {
+            const policy = createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE);
+
+            expect(isArchivedPolicy(policy)).toBe(false);
+        });
+
+        it('returns false for an undefined policy', () => {
+            expect(isArchivedPolicy(undefined)).toBe(false);
+        });
     });
 
     describe('useDefaultFundID', () => {
@@ -434,6 +468,40 @@ describe('PolicyUtils', () => {
                 2,
             );
             expect(getActivePolicies(policies, undefined)).toHaveLength(1);
+        });
+
+        it('excludes archived policies while keeping the active sibling', () => {
+            const activePolicy = createMock<Policy>({...createRandomPolicy(1), name: 'active', pendingAction: null});
+            const archivedPolicy = createMock<Policy>({...createRandomPolicy(2), name: 'archived', pendingAction: null, archivedDate: '2024-01-01'});
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? activePolicy : archivedPolicy),
+                2,
+            );
+
+            const result = getActivePolicies(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(activePolicy.id);
+        });
+    });
+    describe('getActivePoliciesWithExpenseChat', () => {
+        it('excludes archived policies while keeping the active sibling', () => {
+            const activePolicy = createMock<Policy>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), name: 'active', pendingAction: null});
+            const archivedPolicy = createMock<Policy>({
+                ...createRandomPolicy(2, CONST.POLICY.TYPE.CORPORATE),
+                name: 'archived',
+                pendingAction: null,
+                archivedDate: '2024-01-01',
+            });
+            const policies = createCollection<Policy>(
+                (item) => `${ONYXKEYS.COLLECTION.POLICY}${item.id}`,
+                (index) => (index === 0 ? activePolicy : archivedPolicy),
+                2,
+            );
+
+            const result = getActivePoliciesWithExpenseChat(policies, undefined);
+            expect(result).toHaveLength(1);
+            expect(result.at(0)?.id).toBe(activePolicy.id);
         });
     });
     describe('getCustomUnitsForDuplication', () => {
@@ -1033,6 +1101,16 @@ describe('PolicyUtils', () => {
             const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
+        });
+        it('hides an archived policy by default', () => {
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            expect(result).toBe(false);
+        });
+        it('shows an archived policy when includeArchivedPolicy is true', () => {
+            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null, archivedDate: '2024-01-01'};
+            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL, true);
+            expect(result).toBe(true);
         });
     });
 
@@ -2527,6 +2605,36 @@ describe('PolicyUtils', () => {
         });
     });
 
+    describe('isTaxCodeCustomized', () => {
+        const policy: Policy = {
+            ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+            taxRates: {
+                taxes: {
+                    id_vat: {name: 'VAT', value: '20'},
+                    id_gst: {name: 'GST', value: '10', previousTaxCode: 'id_gst_prev'},
+                    id_sales: {name: 'Sales Tax', value: '8', previousTaxCode: ''},
+                },
+                name: '',
+                defaultExternalID: '',
+                defaultValue: '',
+                foreignTaxDefault: '',
+            },
+        };
+
+        it('returns false when there is no policy, tax code, or tax rate', () => {
+            expect(isTaxCodeCustomized(undefined, policy)).toEqual(false);
+            expect(isTaxCodeCustomized('', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_vat', undefined)).toEqual(false);
+            expect(isTaxCodeCustomized('id_INVALID', policy)).toEqual(false);
+        });
+
+        it('returns true only when the tax rate has a non-empty `previousTaxCode` value', () => {
+            expect(isTaxCodeCustomized('id_vat', policy)).toEqual(false);
+            expect(isTaxCodeCustomized('id_gst', policy)).toEqual(true);
+            expect(isTaxCodeCustomized('id_sales', policy)).toEqual(false);
+        });
+    });
+
     describe('canSendInvoiceFromWorkspace', () => {
         it('returns true when areInvoicesEnabled is true', () => {
             const policy = createMock<Policy>({areInvoicesEnabled: true});
@@ -3374,7 +3482,7 @@ describe('PolicyUtils', () => {
                 }),
             });
 
-        // Sentinel for "Xero connected but Integration-Server has not yet synced suppliers"
+        // Placeholder for "Xero connected but Integration-Server has not yet synced suppliers"
         // (i.e. `data.contacts` is undefined on the connection). Distinct from the populated
         // default so callers can opt into the unsynced state without colliding with the
         // default-parameter mechanic, which would otherwise replace an explicit `undefined`

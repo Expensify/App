@@ -98,7 +98,6 @@ function IOURequestStepDistance({
     const {isBetaEnabled} = usePermissions();
     const isArchived = useReportIsArchived(report?.reportID);
     const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
-    const [parentReportNextStep] = useOnyx(`${ONYXKEYS.COLLECTION.NEXT_STEP}${getNonEmptyStringOnyxID(report?.parentReportID)}`);
     const iouReportOwnerLoginSelector = useMemo(() => personalDetailsLoginSelector(parentReport?.ownerAccountID), [parentReport?.ownerAccountID]);
     const [iouReportOwnerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: iouReportOwnerLoginSelector});
     const [reportPolicyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${getNonEmptyStringOnyxID(parentReport?.policyID)}`);
@@ -530,7 +529,6 @@ function IOURequestStepDistance({
                     currentUserAccountIDParam,
                     currentUserEmailParam,
                     isASAPSubmitBetaEnabled,
-                    parentReportNextStep,
                     delegateAccountID,
                     distanceOriginalPolicy,
                     reportPolicyTags,
@@ -580,7 +578,6 @@ function IOURequestStepDistance({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        parentReportNextStep,
         delegateAccountID,
         distanceOriginalPolicy,
         reportPolicyTags,
@@ -661,7 +658,6 @@ function IOURequestStepDistance({
             currentUserAccountIDParam,
             currentUserEmailParam,
             isASAPSubmitBetaEnabled,
-            parentReportNextStep,
             delegateAccountID,
             recentWaypoints,
             distanceOriginalPolicy,
@@ -700,7 +696,6 @@ function IOURequestStepDistance({
         currentUserAccountIDParam,
         currentUserEmailParam,
         isASAPSubmitBetaEnabled,
-        parentReportNextStep,
         recentWaypoints,
         duplicateWaypointsError,
         atLeastTwoDifferentWaypointsError,

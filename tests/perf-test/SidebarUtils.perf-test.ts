@@ -75,6 +75,7 @@ describe('SidebarUtils', () => {
 
         await measureFunction(() =>
             SidebarUtils.getOptionData({
+                dateFnsLocale: undefined,
                 report,
                 reportAttributes: undefined,
                 reportNameValuePairs,

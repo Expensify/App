@@ -106,7 +106,7 @@ function TransactionGroupListItemImpl({
 
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const {currentSearchResults} = useSearchResultsContext();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -162,6 +162,7 @@ function TransactionGroupListItemImpl({
         transactions = [];
     } else {
         const [sectionData] = getSections({
+            dateFnsLocale,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: transactionsSnapshot?.data,
             currentAccountID: currentUserDetails.accountID,

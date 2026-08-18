@@ -3,6 +3,7 @@ import {fireEvent, render, screen} from '@testing-library/react-native';
 import ComposeProviders from '@components/ComposeProviders';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+import PersonalDetailsByLoginProvider from '@components/PersonalDetailsByLoginProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 
@@ -57,7 +58,7 @@ describe('HelpPage', () => {
     function renderPage() {
         return render(
             <NavigationContainer>
-                <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                <ComposeProviders components={[OnyxListItemProvider, PersonalDetailsByLoginProvider, LocaleContextProvider]}>
                     <HelpPage />
                 </ComposeProviders>
             </NavigationContainer>,
