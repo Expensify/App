@@ -1362,7 +1362,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} 已批准：`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} 已批准 ${amount}`,
         payerSettled: (amount: number | string) => `已支付 ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `已支付 ${amount}。添加一个银行账户以接收你的付款。`,
         automaticallyApproved: `通过<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">工作区规则</a>批准`,
         approvedAmount: (amount: number | string) => `已批准 ${amount}`,
         approvedMessage: `已批准`,
@@ -1633,6 +1632,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: '无法拒绝该报表。请重试。',
         },
         moveExpenses: '移动到报告',
+        moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
             sendExpense: '将你的报销发送给任何人',
@@ -2076,6 +2076,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '请安装最新版本的 Expensify',
         toGetLatestChanges: '在移动端，请下载并安装最新版本。在网页端，请刷新浏览器。',
         newAppNotAvailable: '现在更新，以后你会感谢我们的。',
+        updateAvailable: '有可用更新',
+        pleaseRefresh: '请刷新此页面以获取最新版本的 Expensify。',
+        refreshPage: '刷新页面',
     },
     initialSettingsPage: {
         about: '关于',
@@ -3082,6 +3085,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
         accounting: {
             title: '你是否使用任何会计软件？',
             none: '无',
+            otherAccountingSoftware: '你的会计软件',
         },
         interestedFeatures: {
             title: '你对哪些功能感兴趣？',
@@ -4502,6 +4506,7 @@ ${amount}，商户：${merchant} - 日期：${date}`,
             paymentsAdminAlternateText: '管理工作流付款。',
             readOnlyActionTitle: '别急……',
             readOnlyActionPrompt: '你的工作区角色可以查看这些设置，但不能编辑。',
+            noAccessActionPrompt: '您的工作区角色无权访问这些设置。如需访问，请联系管理员。',
         },
         createdForClient: {
             title: '您已为客户创建了工作区！',
@@ -5684,6 +5689,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             directFeed: '直接连接',
             whoNeedsCardAssigned: '谁需要分配一张卡？',
             chooseTheCardholder: '选择持卡人',
+            pleaseSelectACardholder: '请选择持卡人以继续',
             chooseCard: '选择一张卡片',
             chooseCardFor: (assignee: string) => `为 <strong>${assignee}</strong> 选择一张卡片。找不到需要的卡片？<concierge-link>告诉我们。</concierge-link>`,
             noActiveCards: '此信息源中没有活动卡片',
@@ -5765,6 +5771,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settlementFrequency: '结算频率',
             settlementFrequencyDescription: '选择支付 Expensify 卡余额的频率。',
             settlementFrequencyInfo: '如果你想切换为按月结算，你需要通过 Plaid 连接你的银行账户，并且拥有过去 90 天为正数的余额记录。',
+            monthlySettlementDate: (date: string) => `Expensify 卡将在每月的 ${date} 结算。`,
             applyCashbackToBill: '将返现用于抵扣我的 Expensify 账单',
             applyCashbackToBillDescription: 'Expensify 卡的返现将用于支付你的 Expensify 账单。',
             frequency: {
@@ -5823,6 +5830,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             deleteFailureMessage: '删除类别时出错，请重试',
             categoryName: '类别名称',
             requiresCategory: '成员必须为所有报销分类',
+            showCategoryGLCodes: '在分类报销时显示总账科目代码',
             needCategoryForExportToIntegration: (connectionName: string) => `要导出到 ${connectionName}，所有报销都必须先进行分类。`,
             subtitle: '更好地了解资金的支出去向。使用我们的默认类别或添加你自己的类别。',
             emptyCategories: {
@@ -6979,6 +6987,31 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
 
 ${reportName}`,
             confirmText: '是，再次导出',
+            cancelText: '取消',
+        },
+        exportDifferentCompaniesModal: {
+            title: '小心！',
+            description: (connectionName: ConnectionName) =>
+                `所选报表连接到不同的 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} 公司，因此无法一起导出。请选择连接到同一公司的报表，然后重试。`,
+            confirmText: '知道了',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `将 ${exportableCount}/${selectedCount} 份报表导出到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`只有连接到 ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} 的报表会被导出。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`只有符合导出条件的报表会被导出。`);
+                }
+                return `${reasons.join('\n\n')}\n\n将导出以下报表：`;
+            },
+            confirmText: () => ({
+                one: `导出 1 份报表`,
+                other: (count: number) => `导出 ${count} 份报表`,
+            }),
             cancelText: '取消',
         },
         upgrade: {
@@ -8678,6 +8711,7 @@ ${reportName}`,
                 travelInvoicing: '合并差旅账单',
             },
             bankAccount: {banks: '银行账户', closedBankAccounts: '已关闭的银行账户'},
+            workspace: {active: '活跃', archived: '已归档', selectAll: '全选'},
             reportField: (name: string, value: string) => `${name} 为 ${value}`,
             current: '当前',
             past: '过去',
@@ -8712,7 +8746,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify 卡',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '报销',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '合并差旅账单',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '合并差旅账单',
             },
             is: '是',
             has: {submittedViolation: '已提交违规'},
@@ -9095,7 +9129,6 @@ ${reportName}`,
         decline: '拒绝',
     },
     actionableMentionTrackExpense: {
-        submit: '提交给某人',
         submitToFriend: '提交给朋友',
         submitToEmployer: '提交给我的雇主',
         categorize: '对其分类',
