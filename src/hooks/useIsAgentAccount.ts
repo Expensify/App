@@ -13,7 +13,7 @@ function useIsAgentAccount(): boolean | undefined {
     const [personalDetail, personalDetailsMetadata] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails: OnyxEntry<PersonalDetailsList>) => {
             const detail = accountID ? personalDetails?.[accountID] : undefined;
-            return detail === undefined ? undefined : {isCustomAgent: detail?.isCustomAgent};
+            return detail ? {isCustomAgent: detail.isCustomAgent} : undefined;
         },
     });
     const [isLoadingApp, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
