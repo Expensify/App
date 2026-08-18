@@ -2426,7 +2426,6 @@ function shareTrackedExpense(trackedExpenseParams: TrackedExpenseParams) {
  */
 function trackExpense(params: CreateTrackExpenseParams) {
     const {
-        report,
         parentChatReport,
         action,
         isDraftPolicy,
@@ -2490,8 +2489,10 @@ function trackExpense(params: CreateTrackExpenseParams) {
         distanceRequestType,
         selectedRouteDistance,
     } = transactionData;
-    const isMoneyRequestReport = isMoneyRequestReportReportUtils(report);
-    const moneyRequestReportID = isMoneyRequestReport ? report?.reportID : '';
+    // In the track-expense flow the chat is always a self-DM or policy-expense chat, never a money-request report,
+    // so this is always false today; kept as a safety net in case a caller ever passes a money-request chat report.
+    const isMoneyRequestReport = isMoneyRequestReportReportUtils(parentChatReport);
+    const moneyRequestReportID = isMoneyRequestReport ? parentChatReport?.reportID : '';
     const isMovingTransactionFromTrackExpense = isMovingTransactionFromTrackExpenseIOUUtils(action);
 
     // Pass an open receipt so the distance expense will show a map with the route optimistically
@@ -2500,7 +2501,6 @@ function trackExpense(params: CreateTrackExpenseParams) {
 
     const retryParams: CreateTrackExpenseParams = {
         ...params,
-        report,
         isDraftPolicy,
         action,
         // Strip reportActionsList from retryParams to keep the serialized error JSON small.
@@ -2623,7 +2623,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
         getCurrencyDecimals,
     }) ?? {};
-    const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
+    const activeReportID = isMoneyRequestReport ? parentChatReport?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;
     const sourceTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction?.transactionID}`];
 

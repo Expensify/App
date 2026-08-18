@@ -1272,7 +1272,6 @@ describe('actions/IOU', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -1335,7 +1334,6 @@ describe('actions/IOU', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -1924,7 +1922,6 @@ describe('actions/IOU', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -2767,7 +2764,6 @@ describe('actions/IOU', () => {
                 trackExpense({
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
-                    report: {reportID: '123', policyID: 'A'},
                     parentChatReport: {reportID: '123', policyID: 'A'},
                     isDraftChatReport: false,
                     isDraftPolicy: false,
@@ -2839,7 +2835,6 @@ describe('actions/IOU', () => {
                 trackExpense({
                     getCurrencyDecimals: getCurrencyDecimalsLocal,
                     conciergeChat: undefined,
-                    report: {reportID: '123', policyID: 'A'},
                     parentChatReport: {reportID: '123', policyID: 'A'},
                     isDraftChatReport: false,
                     isDraftPolicy: false,
@@ -3090,7 +3085,6 @@ describe('actions/IOU', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: {reportID: '123', policyID: 'A'},
                 parentChatReport: {reportID: '123', policyID: 'A'},
                 isDraftPolicy: false,
                 isDraftChatReport: false,

@@ -711,9 +711,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         const optimisticSelfDMReportID = selfDMReport?.reportID ?? generateReportID();
-        // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
-        // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
-        const trackReport = isSelfDMDestination ? undefined : report;
         const policyExpenseChatReportActions = getAllPolicyExpenseChatReportActions(allReports, allReportActions);
         let submittedCommand: string = WRITE_COMMANDS.TRACK_EXPENSE;
         if (isCategorizingTrackExpense) {
@@ -742,7 +739,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
 
             trackExpenseIOUActions({
                 getCurrencyDecimals,
-                report: trackReport,
+                // When the destination resolved to the current user/self-DM, force the self-DM as the chat (clearing any
+                // non-self route report) so getTrackExpenseInformation defaults to the self-DM instead of the route report.
                 parentChatReport: isSelfDMDestination ? selfDMReport : currentChatReport,
                 isDraftPolicy,
                 isDraftChatReport: !!isDraftChatReport,

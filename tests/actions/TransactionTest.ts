@@ -228,7 +228,6 @@ describe('actions/Transaction', () => {
 
             trackExpense({
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,

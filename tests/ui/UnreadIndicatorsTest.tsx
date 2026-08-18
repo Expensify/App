@@ -856,7 +856,6 @@ describe('Unread Indicators', () => {
         trackExpense({
             conciergeChat: undefined,
             getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
-            report: selfDMReport,
             parentChatReport: selfDMReport,
             isDraftPolicy: true,
             isDraftChatReport: false,

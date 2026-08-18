@@ -269,7 +269,6 @@ describe('GoogleTagManagerTest', () => {
         trackExpense({
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
-            report: {reportID: '123'},
             parentChatReport: {reportID: '123'},
             isDraftPolicy: true,
             isDraftChatReport: false,

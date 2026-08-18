@@ -910,7 +910,6 @@ function duplicateExpenseTransaction({
                 ...(params.transactionParams ?? {}),
                 validWaypoints: waypoints,
             },
-            report: undefined,
             parentChatReport: targetReport,
             isDraftPolicy: false,
             isDraftChatReport: !!isDraftChatReport,

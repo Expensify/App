@@ -279,7 +279,6 @@ function handleMoneyRequestStepDistanceNavigation({
                     // trackExpense is a void action with no navigation params; submitWithDismissFirst owns dismiss/reveal and cleanup runs after.
                     executeWrite: (overrides) => {
                         trackExpense({
-                            report,
                             parentChatReport: report,
                             isDraftPolicy: false,
                             isDraftChatReport,

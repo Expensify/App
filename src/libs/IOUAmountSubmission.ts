@@ -353,7 +353,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
     const executeExpenseWrite = (overrides: WriteOverrides) => {
         if (isTrackExpenseSubmit) {
             trackExpense({
-                report,
                 parentChatReport: report,
                 isDraftPolicy: false,
                 isDraftChatReport: !!isDraftChatReport,

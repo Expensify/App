@@ -369,7 +369,6 @@ function SubmitDetailsPage({
             if (isSelfDM(report)) {
                 trackExpense({
                     getCurrencyDecimals,
-                    report: report ?? {reportID: reportOrAccountID},
                     parentChatReport: report ?? {reportID: reportOrAccountID},
                     isDraftPolicy: false,
                     isDraftChatReport: !!reportDraft,

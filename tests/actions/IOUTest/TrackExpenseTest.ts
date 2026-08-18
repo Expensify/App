@@ -186,7 +186,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -313,7 +312,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -420,7 +418,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -527,7 +524,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -577,7 +573,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -677,7 +672,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -727,7 +721,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -830,7 +823,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -879,7 +871,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -980,7 +971,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -1030,7 +1020,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -1151,7 +1140,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -1201,7 +1189,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: ownPolicyExpenseChat,
                 parentChatReport: ownPolicyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -1280,7 +1267,6 @@ describe('actions/IOU/TrackExpense', () => {
             return {
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report,
                 parentChatReport: report,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -1541,7 +1527,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -1639,7 +1624,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: policyExpenseChat,
                 parentChatReport: policyExpenseChat,
                 isDraftPolicy: false,
                 isDraftChatReport: false,
@@ -2370,7 +2354,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
@@ -2680,7 +2663,6 @@ describe('actions/IOU/TrackExpense', () => {
             trackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 conciergeChat: undefined,
-                report: selfDMReport,
                 parentChatReport: selfDMReport,
                 isDraftPolicy: true,
                 isDraftChatReport: false,
