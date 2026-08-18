@@ -187,8 +187,8 @@ describe('Vendor matching on merchant rules', () => {
             const missing = withCodingRules(buildXeroPolicy({}), {rule1: buildVendorRule('xc1')});
             expect(buildTableData(missing).at(0)?.ruleDescription).toContain('Update supplier to "Supplier unavailable"');
 
-            const unhydrated = withCodingRules(buildXeroPolicy(undefined), {rule1: buildVendorRule('xc1')});
-            expect(buildTableData(unhydrated).at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
+            const notHydrated = withCodingRules(buildXeroPolicy(undefined), {rule1: buildVendorRule('xc1')});
+            expect(buildTableData(notHydrated).at(0)?.ruleDescription).toContain('Update supplier to "xc1"');
         });
     });
 
@@ -246,8 +246,8 @@ describe('Vendor matching on merchant rules', () => {
             const missing = buildXeroPolicy({});
             expect(describeRule(missing, 'xc1')).toContain('Update supplier to "Supplier unavailable"');
 
-            const unhydrated = buildXeroPolicy(undefined);
-            expect(describeRule(unhydrated, 'xc1')).toContain('Update supplier to "xc1"');
+            const notHydrated = buildXeroPolicy(undefined);
+            expect(describeRule(notHydrated, 'xc1')).toContain('Update supplier to "xc1"');
         });
     });
 

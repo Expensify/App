@@ -17,7 +17,14 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {findVendorByID, getActiveVendorMatchingIntegration, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
+import {
+    findVendorByID,
+    getActiveVendorMatchingIntegration,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getMatchingVendorByID,
+    isMatchingVendorListLoaded,
+    isXeroActiveMatchingSource,
+} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';

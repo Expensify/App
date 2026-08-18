@@ -15,7 +15,14 @@ import {clearPolicyCodingRuleErrors} from './actions/Policy/Rules';
 import {getDecodedCategoryName} from './CategoryUtils';
 import Parser from './Parser';
 import {getMccGroupDisplayName} from './PolicyRulesUtils';
-import {findVendorByID, getActiveVendorMatchingIntegration, getCommaSeparatedTagNameWithSanitizedColons, getMatchingVendorByID, isMatchingVendorListLoaded, isXeroActiveMatchingSource} from './PolicyUtils';
+import {
+    findVendorByID,
+    getActiveVendorMatchingIntegration,
+    getCommaSeparatedTagNameWithSanitizedColons,
+    getMatchingVendorByID,
+    isMatchingVendorListLoaded,
+    isXeroActiveMatchingSource,
+} from './PolicyUtils';
 
 const MERCHANT_TYPE_RULE_KEY_PREFIX = 'mcc-group:';
 
