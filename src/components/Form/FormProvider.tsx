@@ -154,6 +154,7 @@ function FormProvider({
     shouldUseStrictHtmlTagValidation = false,
     shouldPreventDefaultFocusOnPressSubmit = false,
     shouldHideFixErrorsAlert = false,
+    shouldHideServerError = false,
     keyboardSubmitBehavior = CONST.KEYBOARD_SUBMIT_BEHAVIOR.DISMISS_THEN_SUBMIT,
     onBeforeSubmit,
     shouldShowLoadingImmediatelyOnPress = true,
@@ -186,7 +187,7 @@ function FormProvider({
     // Cancel any in-flight blur transition callback on unmount so it doesn't fire after the form is gone.
     useEffect(() => () => blurTransitionHandle.current?.cancel(), []);
 
-    const errorMessage = formState ? getLatestErrorMessage(formState) : undefined;
+    const errorMessage = formState && !shouldHideServerError ? getLatestErrorMessage(formState) : undefined;
     const isGeneralAlertVisible = ((!isEmptyObject(errors) || !isEmptyObject(formState?.errorFields)) && !shouldHideFixErrorsAlert) || !!errorMessage;
     const firstFieldErrorMessage = useMemo(() => {
         for (const errorMsg of Object.values(errors)) {

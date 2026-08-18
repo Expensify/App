@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useVerifyAccountAndResume from '@hooks/useVerifyAccountAndResume';
 
 import {createDomain, resetCreateDomainForm, setCreateDomainAlreadyHaveAccessError} from '@libs/actions/Domain';
-import {clearDraftValues} from '@libs/actions/FormActions';
+import {clearDraftValues, clearErrors} from '@libs/actions/FormActions';
 import Navigation from '@libs/Navigation/Navigation';
 import {getFieldRequiredErrors, isPublicDomain} from '@libs/ValidationUtils';
 
@@ -25,7 +25,7 @@ import {accountIDSelector} from '@src/selectors/Session';
 import INPUT_IDS from '@src/types/form/CreateDomainForm';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 
 function AddDomainPage() {
     const styles = useThemeStyles();
@@ -74,7 +74,7 @@ function AddDomainPage() {
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         const domainAccountID = form?.domainAccountID;
         if (!domainAccountID) {
             return;
@@ -90,6 +90,7 @@ function AddDomainPage() {
             return;
         }
 
+        clearErrors(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
     }, [form?.domainAccountID, allDomains, currentUserAccountID, myDomainSecurityGroups]);
 
@@ -117,6 +118,8 @@ function AddDomainPage() {
                     validate={validate}
                     style={styles.flexGrow1}
                     submitButtonText={translate('common.continue')}
+                    // Same generic BE error for both access cases; hidden until resolved below.
+                    shouldHideServerError={!!form?.domainAccountID}
                     onSubmit={({domainName}) => {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
