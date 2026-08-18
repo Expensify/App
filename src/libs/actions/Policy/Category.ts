@@ -18,6 +18,7 @@ import type {
     SetPolicyCategoryReceiptsAndItemizedReceiptRequiredParams,
     SetPolicyCategoryReceiptsRequiredParams,
     SetPolicyCategoryTaxParams,
+    SetPolicyShowCategoryGLCodesParams,
     SetWorkspaceCategoryDescriptionHintParams,
     UpdatePolicyCategoryGLCodeParams,
 } from '@libs/API/parameters';
@@ -1209,7 +1210,8 @@ function setPolicyCategoryGLCode(policyID: string, categoryName: string, glCode:
     API.write(WRITE_COMMANDS.UPDATE_POLICY_CATEGORY_GL_CODE, parameters, onyxData);
 }
 
-function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean) {
+/** Pass shouldRecomputeViolations = false when tag Required changes in the same save: each recompute SETs violations from the pre-save snapshot, so two overwrite each other. */
+function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: boolean, shouldRecomputeViolations = true) {
     const policyID = policyData.policy?.id;
     const policyOptimisticData: Partial<Policy> = {
         requiresCategory,
@@ -1258,7 +1260,9 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
         ],
     };
 
-    pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    if (shouldRecomputeViolations) {
+        pushTransactionViolationsOnyxData(onyxData, policyData, policyOptimisticData);
+    }
 
     const parameters = {
         policyID,
@@ -1266,6 +1270,66 @@ function setWorkspaceRequiresCategory(policyData: PolicyData, requiresCategory: 
     };
 
     API.write(WRITE_COMMANDS.SET_WORKSPACE_REQUIRES_CATEGORY, parameters, onyxData);
+}
+
+function setPolicyShowCategoryGLCodes(policyID: string | undefined, showCategoryGLCodes: boolean) {
+    if (!policyID) {
+        return;
+    }
+
+    const onyxData: OnyxData<typeof ONYXKEYS.COLLECTION.POLICY> = {
+        optimisticData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showCategoryGLCodes,
+                    errorFields: {
+                        showCategoryGLCodes: null,
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                    },
+                },
+            },
+        ],
+        successData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    errorFields: {
+                        showCategoryGLCodes: null,
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: null,
+                    },
+                },
+            },
+        ],
+        failureData: [
+            {
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: `${ONYXKEYS.COLLECTION.POLICY}${policyID}`,
+                value: {
+                    showCategoryGLCodes: !showCategoryGLCodes,
+                    errorFields: {
+                        showCategoryGLCodes: ErrorUtils.getMicroSecondOnyxErrorWithTranslationKey('workspace.categories.updateFailureMessage'),
+                    },
+                    pendingFields: {
+                        showCategoryGLCodes: null,
+                    },
+                },
+            },
+        ],
+    };
+
+    const parameters: SetPolicyShowCategoryGLCodesParams = {
+        policyID,
+        enabled: showCategoryGLCodes,
+    };
+
+    API.write(WRITE_COMMANDS.SET_POLICY_SHOW_CATEGORY_GL_CODES, parameters, onyxData);
 }
 
 function clearCategoryErrors(policyID: string, categoryName: string, policyCategories: PolicyCategories = {}) {
@@ -1928,4 +1992,5 @@ export {
     setWorkspaceCategoryDescriptionHint,
     setWorkspaceCategoryEnabled,
     setWorkspaceRequiresCategory,
+    setPolicyShowCategoryGLCodes,
 };

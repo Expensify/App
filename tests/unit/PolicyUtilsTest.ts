@@ -7,7 +7,6 @@ import DateUtils from '@libs/DateUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {
     arePolicyRulesEnabled,
-    canAccessSubmitWorkspaceFeatures,
     canEditWorkspaceSettings,
     canMemberAssignRole,
     canMemberManageMemberWithRole,
@@ -78,8 +77,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {PersonalDetailsList, Policy, PolicyEmployeeList, PolicyTagLists, Report, Transaction} from '@src/types/onyx';
 import type {Connections, QBONonReimbursableExportAccountType, SageIntacctExportConfig} from '@src/types/onyx/Policy';
+import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
 
-import type {OnyxCollection, OnyxEntry, OnyxMultiSetInput} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -94,6 +94,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 import wrapOnyxWithWaitForBatchedUpdates from '../utils/wrapOnyxWithWaitForBatchedUpdates';
 
 const CARLOS_EMAIL = 'cmartins@expensifail.com';
+
 function toLocaleDigitMock(dot: string): string {
     return dot;
 }
@@ -684,7 +685,9 @@ describe('PolicyUtils', () => {
     });
     describe('getRateDisplayValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = getRateDisplayValue('invalid' as unknown as number, toLocaleDigitMock);
+            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid string is the scenario under test.
+            const rate = getRateDisplayValue('invalid' as unknown as Parameters<typeof getRateDisplayValue>[0], toLocaleDigitMock);
             expect(rate).toEqual('');
         });
 
@@ -774,7 +777,9 @@ describe('PolicyUtils', () => {
 
     describe('getUnitRateValue', () => {
         it('should return an empty string for NaN', () => {
-            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as number});
+            // This deliberately malformed string exercises the runtime NaN guard while preserving the production return type.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The invalid rate is the scenario under test.
+            const rate = getUnitRateValue(toLocaleDigitMock, {rate: 'invalid' as unknown as NonNullable<Parameters<typeof getUnitRateValue>[1]>['rate']});
             expect(rate).toEqual('');
         });
 
@@ -886,10 +891,11 @@ describe('PolicyUtils', () => {
                     category: '',
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet({
+                const transactionData: TransactionCollectionDataSet = {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                } as unknown as OnyxMultiSetInput);
+                };
+                await Onyx.multiSet({...transactionData});
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover1AccountID);
             });
             it('should return default approver if rule approver is submitter and prevent self approval is enabled', async () => {
@@ -945,10 +951,11 @@ describe('PolicyUtils', () => {
                     created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                     reportID: expenseReport.reportID,
                 };
-                await Onyx.multiSet({
+                const transactionData: TransactionCollectionDataSet = {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                } as unknown as OnyxMultiSetInput);
+                };
+                await Onyx.multiSet({...transactionData});
                 expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(categoryApprover2AccountID);
             });
             it('should return the first rule approver who is not the current submitter', async () => {
@@ -990,11 +997,12 @@ describe('PolicyUtils', () => {
                     created: testDate,
                 };
 
-                await Onyx.multiSet({
+                const transactionData: TransactionCollectionDataSet = {
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
                     [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction3.transactionID}`]: transaction3,
-                } as unknown as OnyxMultiSetInput);
+                };
+                await Onyx.multiSet({...transactionData});
 
                 expect(getSubmitToAccountID(policy, expenseReport, categoryApprover1Email)).toBe(tagApprover1AccountID);
             });
@@ -1028,10 +1036,11 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet({
+                    const transactionData: TransactionCollectionDataSet = {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    } as unknown as OnyxMultiSetInput);
+                    };
+                    await Onyx.multiSet({...transactionData});
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover1AccountID);
                 });
                 it('should return the tag approver of the first transaction sorted by created if we have many transaction tags match with the tag approver rule', async () => {
@@ -1063,10 +1072,11 @@ describe('PolicyUtils', () => {
                         created: DateUtils.subtractMillisecondsFromDateTime(testDate, 1),
                         reportID: expenseReport.reportID,
                     };
-                    await Onyx.multiSet({
+                    const transactionData: TransactionCollectionDataSet = {
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction1.transactionID}`]: transaction1,
                         [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction2.transactionID}`]: transaction2,
-                    } as unknown as OnyxMultiSetInput);
+                    };
+                    await Onyx.multiSet({...transactionData});
                     expect(getSubmitToAccountID(policy, expenseReport, employeeEmail)).toBe(tagApprover2AccountID);
                 });
             });
@@ -1152,24 +1162,25 @@ describe('PolicyUtils', () => {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 role: '',
             };
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- The empty role deliberately models malformed persisted policy data.
+            const result = shouldShowPolicy(policy as unknown as Parameters<typeof shouldShowPolicy>[0], false, CARLOS_EMAIL);
             // The result should be false since it is an archived paid policy.
             expect(result).toBe(false);
         });
         it('should return true', () => {
             // Given a paid policy.
-            const policy = {...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null};
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            const policy = createMock<OnyxEntry<Policy>>({...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE), pendingAction: null});
+            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
             // The result should be true, since it is an active paid policy.
             expect(result).toBe(true);
         });
         it('should return false', () => {
             // Given a control workspace which is pending delete.
-            const policy = {
+            const policy = createMock<OnyxEntry<Policy>>({
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-            };
-            const result = shouldShowPolicy(policy as OnyxEntry<Policy>, false, CARLOS_EMAIL);
+            });
+            const result = shouldShowPolicy(policy, false, CARLOS_EMAIL);
             // The result should be false since it is a policy which is pending deletion.
             expect(result).toEqual(false);
         });
@@ -1282,12 +1293,11 @@ describe('PolicyUtils', () => {
             await waitForBatchedUpdatesWithAct();
         });
 
-        it('returns false if policy is not paid group policy', async () => {
+        it('returns false if policy is personal', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.PERSONAL),
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.USER},
                 },
@@ -1299,13 +1309,12 @@ describe('PolicyUtils', () => {
             expect(result).toBe(false);
         });
 
-        it('returns true if policy is paid group policy and the manager is the payer', async () => {
+        it('returns true if policy is group and the manager is the payer', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                isPolicyExpenseChatEnabled: true,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1322,7 +1331,6 @@ describe('PolicyUtils', () => {
 
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                isPolicyExpenseChatEnabled: true,
                 role: CONST.POLICY.ROLE.ADMIN,
                 employeeList: {
                     [approverEmail]: {email: approverEmail, role: CONST.POLICY.ROLE.USER},
@@ -1335,13 +1343,12 @@ describe('PolicyUtils', () => {
             expect(result).toBe(true);
         });
 
-        it('returns false if policies are not policyExpenseChatEnabled', async () => {
+        it('returns true if policy is submit workspace', async () => {
             const currentUserLogin = employeeEmail;
 
             const newPolicy = {
-                ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
+                ...createRandomPolicy(1, CONST.POLICY.TYPE.SUBMIT),
                 reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
-                isPolicyExpenseChatEnabled: false,
                 employeeList: {
                     [currentUserLogin]: {email: currentUserLogin, role: CONST.POLICY.ROLE.ADMIN},
                 },
@@ -1350,14 +1357,13 @@ describe('PolicyUtils', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
-            expect(result).toBe(false);
+            expect(result).toBe(true);
         });
 
         it('returns false if policy is pending delete', async () => {
             const currentUserLogin = employeeEmail;
             const newPolicy = {
                 ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
-                isPolicyExpenseChatEnabled: true,
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
             };
             const result = isWorkspaceEligibleForReportChange(currentUserLogin, newPolicy);
@@ -1572,35 +1578,35 @@ describe('PolicyUtils', () => {
 
     describe('isPolicyMemberWithoutPendingDelete', () => {
         it('should return true if the policy member is not pending delete', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
             expect(result).toBe(true);
         });
 
         it('should return false if the policy member is pending delete', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER, pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete(employeeEmail, policy);
             expect(result).toBe(false);
         });
 
         it('should return false if the policy member is not found', () => {
-            const policy = {
+            const policy = createMock<Policy>({
                 id: '1',
                 employeeList: {
                     [employeeEmail]: {email: employeeEmail, role: CONST.POLICY.ROLE.USER},
                 },
-            };
-            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy as unknown as Policy);
+            });
+            const result = isPolicyMemberWithoutPendingDelete('fakeEmail', policy);
             expect(result).toBe(false);
         });
     });
@@ -3454,7 +3460,12 @@ describe('PolicyUtils', () => {
 
         it('handles undefined and empty inputs gracefully', () => {
             expect(getExpensifyTeamExclusions(undefined, undefined, 'customer@acme.com')).toEqual({});
-            expect(getExpensifyTeamExclusions(null as unknown as OnyxEntry<PersonalDetailsList>, null as unknown as OnyxCollection<Policy>, 'customer@acme.com')).toEqual({});
+            // The null values deliberately exercise the runtime guard for malformed Onyx data.
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+            const nullPersonalDetails = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[0];
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Null is the malformed-input scenario under test.
+            const nullPolicies = null as unknown as Parameters<typeof getExpensifyTeamExclusions>[1];
+            expect(getExpensifyTeamExclusions(nullPersonalDetails, nullPolicies, 'customer@acme.com')).toEqual({});
             expect(getExpensifyTeamExclusions({}, {}, 'customer@acme.com')).toEqual({});
         });
 
@@ -3485,27 +3496,6 @@ describe('PolicyUtils', () => {
 
         it('returns false when report owner account ID is undefined', () => {
             expect(isSubmitterApproveBlockedOnSubmitWorkspace(submitPolicy, undefined, submitterAccountID)).toBe(false);
-        });
-    });
-
-    describe('canAccessSubmitWorkspaceFeatures', () => {
-        const submitPolicyForAccessTest: Policy = {...createRandomPolicy(99001, CONST.POLICY.TYPE.SUBMIT), id: 'policy-submit-access-test'};
-        const teamPolicyForAccessTest: Policy = {...createRandomPolicy(99002, CONST.POLICY.TYPE.TEAM), id: 'policy-team-access-test'};
-
-        it('returns true when policy is Submit and SUBMIT_2026 beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, true)).toBe(true);
-        });
-
-        it('returns false when policy is Submit and SUBMIT_2026 beta is disabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(submitPolicyForAccessTest, false)).toBe(false);
-        });
-
-        it('returns false when policy is not Submit even if beta is enabled', () => {
-            expect(canAccessSubmitWorkspaceFeatures(teamPolicyForAccessTest, true)).toBe(false);
-        });
-
-        it('returns false when policy is undefined', () => {
-            expect(canAccessSubmitWorkspaceFeatures(undefined, true)).toBe(false);
         });
     });
 
@@ -3620,15 +3610,23 @@ describe('PolicyUtils', () => {
                 expect(hasVendorFeature(buildXeroPolicy(undefined, {isConfigured: false}), true)).toBe(false);
             });
 
-            it('returns false when beta is disabled, even with Credit Card export configured', () => {
-                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(false);
+            it('returns true when beta is disabled and QBO non-reimbursable export is Credit Card because QBO (R1) is generally available', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.CREDIT_CARD), false)).toBe(true);
             });
 
-            it('returns false when beta is disabled, even with Intacct CC Charge export configured', () => {
+            it('returns true when beta is disabled and QBO non-reimbursable export is Debit Card because QBO (R1) is generally available', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.DEBIT_CARD), false)).toBe(true);
+            });
+
+            it('returns false when beta is disabled and QBO non-reimbursable export is Vendor Bill because GA did not widen the export mode gate', () => {
+                expect(hasVendorFeature(buildQBOPolicy(CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL), false)).toBe(false);
+            });
+
+            it('returns false when beta is disabled and Intacct CC Charge export is configured because Intacct (R2) is still pre-GA', () => {
                 expect(hasVendorFeature(buildIntacctPolicy(CONST.SAGE_INTACCT_NON_REIMBURSABLE_EXPENSE_TYPE.CREDIT_CARD_CHARGE), false)).toBe(false);
             });
 
-            it('returns false when beta is disabled, even with Xero connected', () => {
+            it('returns false when beta is disabled and Xero is connected because Xero (R3) is still pre-GA', () => {
                 expect(hasVendorFeature(buildXeroPolicy(), false)).toBe(false);
             });
 
