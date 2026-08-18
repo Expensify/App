@@ -1749,6 +1749,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'Η αναφορά δεν μπόρεσε να απορριφθεί. Παρακαλούμε προσπαθήστε ξανά.',
         },
         moveExpenses: 'Μετακίνηση στην αναφορά',
+        moveExpensesMaxTransactionsError: `Οι αναφορές περιορίζονται σε ${CONST.REPORT.MAX_TRANSACTIONS} έξοδα. Μετακινήστε ορισμένα σε άλλη αναφορά.`,
         moveExpensesError:
             'Δεν μπορείτε να μετακινήσετε έξοδα ημερήσιας αποζημίωσης σε αναφορές άλλων χώρων εργασίας, επειδή οι τιμές ημερήσιας αποζημίωσης μπορεί να διαφέρουν μεταξύ των χώρων εργασίας.',
         submitReportTo: {
@@ -1761,6 +1762,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 `Επιλέξτε μια επιλογή για να αλλάξετε τον εγκριτή για αυτήν την αναφορά. (Ενημερώστε τις <a href="${workflowSettingLink}">ρυθμίσεις χώρου εργασίας</a> σας για να το αλλάξετε μόνιμα για όλες τις αναφορές.)`,
             changedApproverMessage: (managerID: number) => `άλλαξε τον εγκρίνοντα σε <mention-user accountID="${managerID}"/>`,
             reassignedApproverMessage: (managerID: number) => `ανέθεσε εκ νέου τον εγκρίνοντα στον/στην <mention-user accountID="${managerID}"/> μέσω ενημέρωσης ροής εργασίας`,
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για εσάς (τον/την αναπληρωτή/τριά τους για διακοπές), επειδή δεν είστε μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά σας εστάλη αντί για τον αναπληρωτή διακοπών σας <mention-user>@${delegate}</mention-user> επειδή δεν είναι μέλος της πολιτικής αυτής της αναφοράς`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> αντί για τον/την αναπληρωτή/τρια αδείας τους <mention-user>@${delegate}</mention-user>, επειδή δεν είναι μέλος του κανονισμού αυτής της αναφοράς`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στην <mention-user>@${originalManager}</mention-user> για έγκριση, επειδή δεν μπορείτε να εγκρίνετε τις δικές σας αναφορές`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Αυτή η αναφορά σας στάλθηκε για έγκριση, επειδή ο εκπρόσωπός σας για άδεια, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του αναφορές`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Αυτή η αναφορά στάλθηκε στον/στη <mention-user>@${originalManager}</mention-user> για έγκριση, καθώς ο/η αναπληρωτής/-τριάς του/της, <mention-user>@${delegate}</mention-user>, δεν μπορεί να εγκρίνει τις δικές του/της αναφορές`,
             actions: {
                 addApprover: 'Προσθήκη εγκρίνων',
                 addApproverSubtitle: 'Προσθέστε έναν επιπλέον εγκρίνοντα στην υπάρχουσα ροή έγκρισης.',
@@ -2198,6 +2211,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Παρακαλούμε εγκαταστήστε την πιο πρόσφατη έκδοση του Expensify',
         toGetLatestChanges: 'Σε κινητό, κάντε λήψη και εγκαταστήστε την πιο πρόσφατη έκδοση. Σε web, ανανεώστε το πρόγραμμα περιήγησής σας.',
         newAppNotAvailable: 'Ενημερώστε τώρα και θα μας ευχαριστήσετε αργότερα.',
+        updateAvailable: 'Διαθέσιμη ενημέρωση',
+        pleaseRefresh: 'Παρακαλούμε ανανεώστε αυτή τη σελίδα για να λάβετε την πιο πρόσφατη έκδοση του Expensify.',
+        refreshPage: 'Ανανεώστε τη σελίδα',
     },
     initialSettingsPage: {
         about: 'Πληροφορίες',
@@ -4743,6 +4759,7 @@ ${amount} για ${merchant} - ${date}`,
             travelInvoicingPayableAccount: 'Λογαριασμός πληρωτέων ταξιδιών',
             deleteTravelInvoicingError: 'Η εταιρεία σας έχει ακόμα ενεργοποιημένη τη συγκεντρωτική χρέωση ταξιδιών.',
             vendors: 'Προμηθευτές',
+            noAccessActionPrompt: 'Ο ρόλος σας σε αυτόν τον χώρο εργασίας δεν έχει πρόσβαση σε αυτές τις ρυθμίσεις. Ζητήστε από έναν διαχειριστή να σας δώσει πρόσβαση, αν τη χρειάζεστε.',
         },
         createdForClient: {
             title: 'Δημιουργήσατε έναν χώρο εργασίας για τον πελάτη σας!',
@@ -6021,6 +6038,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             directFeed: 'Άμεση ροή',
             whoNeedsCardAssigned: 'Ποιος χρειάζεται να του ανατεθεί κάρτα;',
             chooseTheCardholder: 'Επιλέξτε τον κατόχο κάρτας',
+            pleaseSelectACardholder: 'Παρακαλώ επιλέξτε έναν κάτοχο κάρτας για να συνεχίσετε',
             chooseCard: 'Επιλέξτε μια κάρτα',
             chooseCardFor: (assignee: string) =>
                 `Επιλέξτε μια κάρτα για τον/την <strong>${assignee}</strong>. Δεν μπορείτε να βρείτε την κάρτα που αναζητάτε; <concierge-link>Ενημερώστε μας.</concierge-link>`,
@@ -6106,6 +6124,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             settlementFrequencyDescription: 'Επιλέξτε πόσο συχνά θα εξοφλείτε το υπόλοιπο της Κάρτας Expensify.',
             settlementFrequencyInfo:
                 'Αν θέλετε να μεταβείτε σε μηνιαίο διακανονισμό, θα πρέπει να συνδέσετε τον τραπεζικό σας λογαριασμό μέσω Plaid και να έχετε θετικό ιστορικό υπολοίπου 90 ημερών.',
+            monthlySettlementDate: (date: string) => `Οι Κάρτες Expensify θα εκκαθαρίζονται στις ${date} κάθε μήνα.`,
             applyCashbackToBill: 'Εφαρμογή επιστροφής μετρητών στον λογαριασμό μου στο Expensify',
             applyCashbackToBillDescription: 'Η επιστροφή μετρητών από την Κάρτα Expensify θα χρησιμοποιηθεί για την πληρωμή του λογαριασμού σας στην Expensify.',
             frequency: {
@@ -6169,6 +6188,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
             emptyCategories: {
@@ -9269,6 +9289,7 @@ ${reportName}`,
                 banks: 'Τραπεζικοί λογαριασμοί',
                 closedBankAccounts: 'Κλειστοί τραπεζικοί λογαριασμοί',
             },
+            workspace: {active: 'Ενεργός', archived: 'Αρχειοθετημένο', selectAll: 'Επιλογή όλων'},
             reportField: (name: string, value: string) => `${name} είναι ${value}`,
             current: 'Τρέχον',
             past: 'Παρελθόν',
@@ -9698,7 +9719,6 @@ ${reportName}`,
         decline: 'Απόρριψη',
     },
     actionableMentionTrackExpense: {
-        submit: 'Υποβάλετέ το σε κάποιον',
         categorize: 'Κατηγοριοποιήστε το',
         share: 'Κοινοποιήστε το στον λογιστή μου',
         nothing: 'Τίποτα προς το παρόν',
