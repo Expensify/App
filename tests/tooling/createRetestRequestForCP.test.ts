@@ -2,23 +2,50 @@ import {describe, expect, it} from 'bun:test';
 
 import CONST from '@github/libs/CONST';
 
-import {buildRetestPayload, getCherryPickSourceSHAs, getLinkedIssueNumbers, getRetestMarker} from '@scripts/createRetestRequestForCP';
+import {buildRetestPayload, getCherryPicks, getLinkedIssueNumbers, getRetestMarker, getSlackMention} from '@scripts/createRetestRequestForCP';
 import type {RetestHit} from '@scripts/createRetestRequestForCP';
 
 describe('createRetestRequestForCP', () => {
-    describe('getCherryPickSourceSHAs', () => {
-        it('pulls the source SHA out of a cherry-pick trailer', () => {
-            const message = 'Fix the thing\n\n(cherry picked from commit 1234567890abcdef1234567890abcdef12345678)';
-            expect(getCherryPickSourceSHAs([message])).toEqual(['1234567890abcdef1234567890abcdef12345678']);
+    describe('getCherryPicks', () => {
+        it('pulls the source SHA and the requester out of the trailers', () => {
+            const message = 'Fix the thing\n\n(cherry picked from commit 1234567890abcdef1234567890abcdef12345678)\n\n(cherry-picked to staging by Julesssss)';
+            expect(getCherryPicks([message])).toEqual([{sourceSHA: '1234567890abcdef1234567890abcdef12345678', actor: 'Julesssss'}]);
         });
 
-        it('collects a SHA from each commit and dedupes repeats', () => {
-            const messages = ['(cherry picked from commit aaaaaaa)', '(cherry picked from commit bbbbbbb)', '(cherry picked from commit aaaaaaa)'];
-            expect(getCherryPickSourceSHAs(messages)).toEqual(['aaaaaaa', 'bbbbbbb']);
+        it('keeps each cherry-pick with its own requester and dedupes repeats', () => {
+            const messages = [
+                '(cherry picked from commit aaaaaaa)\n\n(cherry-picked to staging by mountiny)',
+                '(cherry picked from commit bbbbbbb)\n\n(cherry-picked to staging by Julesssss)',
+                '(cherry picked from commit aaaaaaa)\n\n(cherry-picked to staging by someoneElse)',
+            ];
+            expect(getCherryPicks(messages)).toEqual([
+                {sourceSHA: 'aaaaaaa', actor: 'mountiny'},
+                {sourceSHA: 'bbbbbbb', actor: 'Julesssss'},
+            ]);
+        });
+
+        it('still returns the SHA when the requester trailer is missing', () => {
+            expect(getCherryPicks(['(cherry picked from commit aaaaaaa)'])).toEqual([{sourceSHA: 'aaaaaaa', actor: ''}]);
         });
 
         it('returns nothing when no commit was cherry-picked', () => {
-            expect(getCherryPickSourceSHAs(['Merge pull request #1 from foo/bar', 'Update version to 1.2.3-4'])).toEqual([]);
+            expect(getCherryPicks(['Merge pull request #1 from foo/bar', 'Update version to 1.2.3-4'])).toEqual([]);
+        });
+    });
+
+    describe('getSlackMention', () => {
+        const slackIDs = new Map([['jasperhuangg', 'U01N2A6GYJH']]);
+
+        it('wraps a known login so Slack renders a clickable mention', () => {
+            expect(getSlackMention('jasperhuangg', slackIDs)).toBe('<@U01N2A6GYJH>');
+        });
+
+        it('falls back to the plain login for people outside the whitelist', () => {
+            expect(getSlackMention('some-oss-contributor', slackIDs)).toBe('some-oss-contributor');
+        });
+
+        it('sends N/A when there is no login at all', () => {
+            expect(getSlackMention('', slackIDs)).toBe('N/A');
         });
     });
 
@@ -46,6 +73,7 @@ describe('createRetestRequestForCP', () => {
             prAuthor: 'octocat',
             blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`],
             prTitle: 'Fix crash on staging',
+            author: '<@U01N2A6GYJH>',
         };
 
         it('maps a hit to the exact Slack workflow variables', () => {
@@ -56,6 +84,7 @@ describe('createRetestRequestForCP', () => {
                 ghIssueLink: `${CONST.APP_REPO_URL}/issues/42`,
                 adhocLink: 'N/A',
                 requesterName: 'octocat',
+                author: '<@U01N2A6GYJH>',
                 cpLink: `${CONST.APP_REPO_URL}/pull/123`,
                 platforms: 'Android, iOS, Web',
             });
