@@ -245,8 +245,12 @@ describe('Vendor matching on merchant rules', () => {
             expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), true)).toBe(true);
         });
 
-        it('is hidden when the beta is off', () => {
-            expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), false)).toBe(false);
+        it('is visible on QBO when the beta is off because QBO (R1) is generally available', () => {
+            expect(hasVendorFeature(buildQBOPolicy([{id: 'v-1', name: 'Acme Co', currency: 'USD'}]), false)).toBe(true);
+        });
+
+        it('is hidden on Xero when the beta is off because Xero (R3) is still pre-GA', () => {
+            expect(hasVendorFeature(buildXeroPolicy({xc1: {id: 'xc1', name: 'Acme Xero', email: 'acme@example.com'}}), false)).toBe(false);
         });
 
         it('is hidden when no vendor integration is connected', () => {
