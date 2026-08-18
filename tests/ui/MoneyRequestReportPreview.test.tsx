@@ -239,15 +239,14 @@ const renderPage = ({isWhisper = false, isHovered = false}: Partial<MoneyRequest
     );
 };
 
-const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) => {
+const getTransactionDisplayAmountAndHeaderText = (transaction: Transaction) => {
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    // The date leads the supporting line, which can also carry the category and the report status.
-    const transactionSupportingText = new RegExp(`^${date}`);
-    const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
+    const cashOrCard = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
+    const transactionHeaderText = `${date} ${CONST.DOT_SEPARATOR} ${cashOrCard}`;
     const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
-    return {transactionSupportingText, transactionTypeText, transactionDisplayAmount};
+    return {transactionHeaderText, transactionDisplayAmount};
 };
 
 const setCurrentWidth = () => {
@@ -338,11 +337,10 @@ describe('MoneyRequestReportPreview', () => {
         expect(screen.getByText(getReportName(mockIOUReport))).toBeOnTheScreen();
 
         for (const transaction of arrayOfTransactions) {
-            const {transactionDisplayAmount, transactionSupportingText, transactionTypeText} = getTransactionDisplayAmountAndMetadataText(transaction);
+            const {transactionDisplayAmount, transactionHeaderText} = getTransactionDisplayAmountAndHeaderText(transaction);
 
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThan(0);
-            expect(screen.getAllByText(transactionSupportingText)).toHaveLength(arrayOfTransactions.length);
-            expect(screen.getAllByText(transactionTypeText)).toHaveLength(arrayOfTransactions.length);
+            expect(screen.getAllByText(transactionHeaderText)).toHaveLength(arrayOfTransactions.length);
             expect(screen.getAllByText(transaction.merchant)).toHaveLength(arrayOfTransactions.length);
         }
     });
