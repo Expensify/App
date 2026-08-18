@@ -45,6 +45,7 @@ function CardNameStep({route}: CardNameStepProps) {
         setAssignCardStepAndData({
             cardToAssign: {
                 customCardName: values.name,
+                isCustomCardNameEdited: true,
             },
             isEditing: false,
         });

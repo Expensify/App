@@ -123,6 +123,7 @@ type UpdateSplitTransactionsParams = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /**
@@ -206,6 +207,7 @@ function updateSplitTransactions({
     isTrackIntentUser,
     formatPhoneNumber,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -641,7 +643,14 @@ function updateSplitTransactions({
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
                 taxCode: originalTransactionTaxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -686,7 +695,14 @@ function updateSplitTransactions({
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
                 taxCode: originalTransactionTaxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -881,6 +897,8 @@ function updateSplitTransactions({
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
