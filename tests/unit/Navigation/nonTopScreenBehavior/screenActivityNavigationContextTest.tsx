@@ -1,6 +1,6 @@
 import {act, render, screen} from '@testing-library/react-native';
 
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 
@@ -65,30 +65,30 @@ function getInnerActivityWrapper() {
     throw new Error('Inner screen was not wrapped with ScreenActivityWrapper');
 }
 
-function findDisplayContentsView(node: ReturnType<typeof screen.getByTestId>): ReturnType<typeof screen.getByTestId> | undefined {
+function findAlwaysPaintedView(node: ReturnType<typeof screen.getByTestId>): ReturnType<typeof screen.getByTestId> | undefined {
     for (const child of node.children) {
         if (typeof child === 'string') {
             continue;
         }
-        if (child.type === DisplayContentsView) {
+        if (child.type === AlwaysPaintedView) {
             return child;
         }
-        const nestedDisplayContentsView = findDisplayContentsView(child);
-        if (nestedDisplayContentsView) {
-            return nestedDisplayContentsView;
+        const nestedAlwaysPaintedView = findAlwaysPaintedView(child);
+        if (nestedAlwaysPaintedView) {
+            return nestedAlwaysPaintedView;
         }
     }
     return undefined;
 }
 
-// The cover state is read from the wrapper's own DisplayContentsView, because a stack hides its non-top screens
+// The cover state is read from the wrapper's own AlwaysPaintedView, because a stack hides its non-top screens
 // from accessibility on its own and an assertion on the rendered content would pass without the wrapper doing
 // anything.
 function getInnerScreenCoveredState() {
-    const displayContentsView = findDisplayContentsView(getInnerActivityWrapper());
-    const inert: unknown = displayContentsView?.props.inert;
+    const alwaysPaintedView = findAlwaysPaintedView(getInnerActivityWrapper());
+    const inert: unknown = alwaysPaintedView?.props.inert;
     if (typeof inert !== 'boolean') {
-        throw new Error('ScreenActivityWrapper did not render DisplayContentsView with an inert state');
+        throw new Error('ScreenActivityWrapper did not render AlwaysPaintedView with an inert state');
     }
     return inert;
 }

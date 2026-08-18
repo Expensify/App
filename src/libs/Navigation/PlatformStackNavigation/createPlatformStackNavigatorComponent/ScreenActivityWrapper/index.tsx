@@ -1,4 +1,4 @@
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 
@@ -10,7 +10,7 @@ import useScreenActivityState from './useScreenActivityState';
 /**
  * Deprioritizes rendering of a covered screen with React <Activity>. Unlike react-freeze, a hidden Activity keeps
  * processing updates at background priority and runs effect cleanups, so a modal that is still dismissing when the
- * screen gets covered always finishes its close chain. DisplayContentsView keeps the hidden content painted, so a
+ * screen gets covered always finishes its close chain. AlwaysPaintedView keeps the hidden content painted, so a
  * covered screen that is still shown (for example dimmed under the RHP overlay) does not disappear, and it takes
  * that content out of accessibility and touch handling while it is covered.
  *
@@ -24,9 +24,9 @@ function ScreenActivityWrapper({isScreenBlurred, children}: NonTopScreenWrapperP
 
     return (
         <Activity mode={mode}>
-            <DisplayContentsView inert={isScreenCovered}>
+            <AlwaysPaintedView inert={isScreenCovered}>
                 <DevStrictModeMountGate>{children}</DevStrictModeMountGate>
-            </DisplayContentsView>
+            </AlwaysPaintedView>
         </Activity>
     );
 }

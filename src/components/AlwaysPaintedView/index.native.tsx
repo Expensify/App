@@ -6,16 +6,16 @@ import type {ViewStyle} from 'react-native';
 import {NativeComponentRegistry, View} from 'react-native';
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
-import type DisplayContentsViewProps from './types';
+import type AlwaysPaintedViewProps from './types';
 
-type NativeDisplayContentsViewProps = PropsWithChildren<{style: ViewStyle}>;
-type ViewConfigProvider = Parameters<typeof NativeComponentRegistry.get<NativeDisplayContentsViewProps>>[1];
+type NativeAlwaysPaintedViewProps = PropsWithChildren<{style: ViewStyle}>;
+type ViewConfigProvider = Parameters<typeof NativeComponentRegistry.get<NativeAlwaysPaintedViewProps>>[1];
 type StyleAttribute = true | {readonly diff?: (a: unknown, b: unknown) => boolean; readonly process?: (value: unknown) => unknown};
 
 // The style already carries the value React would set while hiding the view, so hiding it dirties no Yoga node.
 const DISPLAY_CONTENTS: ViewStyle = {display: 'contents'};
 
-function getDisplayContentsViewConfig(): ReturnType<ViewConfigProvider> {
+function getAlwaysPaintedViewConfig(): ReturnType<ViewConfigProvider> {
     const styleAttributes: Record<string, StyleAttribute> = {
         ...ReactNativeStyleAttributes,
         display: {
@@ -37,7 +37,7 @@ function getDisplayContentsViewConfig(): ReturnType<ViewConfigProvider> {
  * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.85.3.
  * Re-verify after upgrades.
  */
-const NativeDisplayContentsView = NativeComponentRegistry.get<NativeDisplayContentsViewProps>('DisplayContentsView', getDisplayContentsViewConfig);
+const NativeAlwaysPaintedView = NativeComponentRegistry.get<NativeAlwaysPaintedViewProps>('AlwaysPaintedView', getAlwaysPaintedViewConfig);
 
 /**
  * Native implementation that renders with `display: 'contents'` so wrapper nodes don't hide the navigation
@@ -47,11 +47,11 @@ const NativeDisplayContentsView = NativeComponentRegistry.get<NativeDisplayConte
  * needs a node of its own. That node is the one that fills the screen, and it only exists for callers that pass
  * the prop. The flags have to be part of the rendered output, because a hidden Activity runs no effects.
  */
-function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
+function AlwaysPaintedView({inert, children}: AlwaysPaintedViewProps) {
     const styles = useThemeStyles();
 
     return (
-        <NativeDisplayContentsView style={DISPLAY_CONTENTS}>
+        <NativeAlwaysPaintedView style={DISPLAY_CONTENTS}>
             {inert === undefined ? (
                 children
             ) : (
@@ -63,9 +63,9 @@ function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
                     {children}
                 </View>
             )}
-        </NativeDisplayContentsView>
+        </NativeAlwaysPaintedView>
     );
 }
 
-export {getDisplayContentsViewConfig};
-export default DisplayContentsView;
+export {getAlwaysPaintedViewConfig};
+export default AlwaysPaintedView;

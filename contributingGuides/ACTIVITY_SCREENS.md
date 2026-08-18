@@ -4,7 +4,7 @@ A covered screen (one below the top of a stack navigator) can opt into being wra
 
 ## The lifecycle model (read this before opting a screen in)
 
-In this wrapper, `DisplayContentsView` keeps the screen painted in both Activity modes. Its lifecycle still changes:
+In this wrapper, `AlwaysPaintedView` keeps the screen painted in both Activity modes. Its lifecycle still changes:
 
 - **On hide**: React runs the cleanup of every effect in the subtree and detaches element refs, but state, ref values, and the fiber tree survive.
 - **While hidden**: the screen keeps re-rendering at background priority, but effects do not run, so torn-down subscriptions stay down and events fired in this window are lost.

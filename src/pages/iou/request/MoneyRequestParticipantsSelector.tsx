@@ -1,4 +1,4 @@
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 import type {SelectionListWithSectionsHandle} from '@components/SelectionList/SelectionListWithSections/types';
 
 import useDeferVisibleUntilFocusTransitionEnd from '@hooks/useDeferVisibleUntilFocusTransitionEnd';
@@ -103,7 +103,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <DisplayContentsView inert={!isActivityVisible}>
+            <AlwaysPaintedView inert={!isActivityVisible}>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}
@@ -124,7 +124,7 @@ function MoneyRequestParticipantsSelector({
                     onRestrictedParticipantSelected={onRestrictedParticipantSelected}
                     onCloseParticipantPicker={onCloseParticipantPicker}
                 />
-            </DisplayContentsView>
+            </AlwaysPaintedView>
         </Activity>
     );
 }

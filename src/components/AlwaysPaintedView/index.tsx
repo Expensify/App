@@ -1,6 +1,6 @@
 import {useRef} from 'react';
 
-import type DisplayContentsViewProps from './types';
+import type AlwaysPaintedViewProps from './types';
 
 /**
  * Refuses every write to 'display' on the element. React hides a host element with
@@ -38,7 +38,7 @@ function pinDisplayToContents(element: HTMLDivElement) {
  * It is a plain div because react-native-web's View neither accepts `display: contents` nor declares `inert`. The
  * attribute goes on that same div, so `inert` needs no extra node here, unlike on native.
  */
-function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
+function AlwaysPaintedView({inert, children}: AlwaysPaintedViewProps) {
     const pinnedElementRef = useRef<HTMLDivElement | null>(null);
 
     const attachDisplayContentsEnforcer = (element: HTMLDivElement | null) => {
@@ -59,4 +59,4 @@ function DisplayContentsView({inert, children}: DisplayContentsViewProps) {
     );
 }
 
-export default DisplayContentsView;
+export default AlwaysPaintedView;

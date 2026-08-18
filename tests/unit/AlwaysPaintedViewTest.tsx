@@ -1,7 +1,7 @@
 import type {RenderAPI} from '@testing-library/react-native';
 import {render as renderNative} from '@testing-library/react-native';
 
-import DisplayContentsViewNative, {getDisplayContentsViewConfig} from '@components/DisplayContentsView/index.native';
+import AlwaysPaintedViewNative, {getAlwaysPaintedViewConfig} from '@components/AlwaysPaintedView/index.native';
 
 import type {ActivityProps, ComponentType, PropsWithChildren, ReactNode} from 'react';
 import type {Root} from 'react-dom/client';
@@ -16,19 +16,19 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
     flex1: {flex: 1},
 }));
 
-type WebDisplayContentsViewProps = PropsWithChildren<{inert?: boolean}>;
+type WebAlwaysPaintedViewProps = PropsWithChildren<{inert?: boolean}>;
 
-type CreateAttributePayload = (props: Record<string, unknown>, validAttributes: ReturnType<typeof getDisplayContentsViewConfig>['validAttributes']) => Record<string, unknown> | null;
+type CreateAttributePayload = (props: Record<string, unknown>, validAttributes: ReturnType<typeof getAlwaysPaintedViewConfig>['validAttributes']) => Record<string, unknown> | null;
 
-const DisplayContentsViewWeb = jest.requireActual<{default: ComponentType<WebDisplayContentsViewProps>}>('@components/DisplayContentsView/index.tsx').default;
+const AlwaysPaintedViewWeb = jest.requireActual<{default: ComponentType<WebAlwaysPaintedViewProps>}>('@components/AlwaysPaintedView/index.tsx').default;
 const {create: createAttributePayload} = jest.requireActual<{create: CreateAttributePayload}>('react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactNativeAttributePayload');
 
 function ActivityProbe({mode}: {mode: ActivityProps['mode']}) {
     return (
         <Activity mode={mode}>
-            <DisplayContentsViewWeb>
+            <AlwaysPaintedViewWeb>
                 <span data-testid="content" />
-            </DisplayContentsViewWeb>
+            </AlwaysPaintedViewWeb>
         </Activity>
     );
 }
@@ -47,7 +47,7 @@ function mountWebRoot() {
         getHostElement: () => {
             const element = container.querySelector<HTMLSpanElement>('[data-testid="content"]')?.parentElement;
             if (!element) {
-                throw new Error('DisplayContentsView did not render a DOM element');
+                throw new Error('AlwaysPaintedView did not render a DOM element');
             }
             return element;
         },
@@ -63,20 +63,20 @@ function mountWebRoot() {
 function getNativeNodes(toJSON: RenderAPI['toJSON']) {
     const host = toJSON();
     if (!host || Array.isArray(host)) {
-        throw new Error('DisplayContentsView did not render a native host node');
+        throw new Error('AlwaysPaintedView did not render a native host node');
     }
 
     const child = host.children?.[0];
     if (!child || typeof child === 'string') {
-        throw new Error('DisplayContentsView did not render a child node');
+        throw new Error('AlwaysPaintedView did not render a child node');
     }
 
     return {child, host};
 }
 
-describe('DisplayContentsView', () => {
+describe('AlwaysPaintedView', () => {
     it('rewrites every display value to contents and leaves the other styles alone', () => {
-        const {validAttributes} = getDisplayContentsViewConfig();
+        const {validAttributes} = getAlwaysPaintedViewConfig();
 
         expect(createAttributePayload({style: {display: 'none'}}, validAttributes)).toEqual({display: 'contents'});
         expect(createAttributePayload({style: {display: 'flex'}}, validAttributes)).toEqual({display: 'contents'});
@@ -106,9 +106,9 @@ describe('DisplayContentsView', () => {
         const {render, getHostElement, unmount} = mountWebRoot();
 
         render(
-            <DisplayContentsViewWeb>
+            <AlwaysPaintedViewWeb>
                 <span data-testid="content" />
-            </DisplayContentsViewWeb>,
+            </AlwaysPaintedViewWeb>,
         );
         const element = getHostElement();
 
@@ -129,9 +129,9 @@ describe('DisplayContentsView', () => {
 
         const renderInert = (inert: boolean) =>
             render(
-                <DisplayContentsViewWeb inert={inert}>
+                <AlwaysPaintedViewWeb inert={inert}>
                     <span data-testid="content" />
-                </DisplayContentsViewWeb>,
+                </AlwaysPaintedViewWeb>,
             );
 
         renderInert(true);
@@ -147,9 +147,9 @@ describe('DisplayContentsView', () => {
     it('keeps the native host layout-neutral and takes its content out of touch handling while it is covered', () => {
         const {host, child} = getNativeNodes(
             renderNative(
-                <DisplayContentsViewNative inert>
+                <AlwaysPaintedViewNative inert>
                     <View testID="content" />
-                </DisplayContentsViewNative>,
+                </AlwaysPaintedViewNative>,
             ).toJSON,
         );
 
@@ -162,9 +162,9 @@ describe('DisplayContentsView', () => {
     it('lets touches pass through around the native content while it is not covered', () => {
         const {child} = getNativeNodes(
             renderNative(
-                <DisplayContentsViewNative inert={false}>
+                <AlwaysPaintedViewNative inert={false}>
                     <View testID="content" />
-                </DisplayContentsViewNative>,
+                </AlwaysPaintedViewNative>,
             ).toJSON,
         );
 
@@ -176,9 +176,9 @@ describe('DisplayContentsView', () => {
     it('renders no node for inert on native when a caller leaves the prop out', () => {
         const {child} = getNativeNodes(
             renderNative(
-                <DisplayContentsViewNative>
+                <AlwaysPaintedViewNative>
                     <View testID="content" />
-                </DisplayContentsViewNative>,
+                </AlwaysPaintedViewNative>,
             ).toJSON,
         );
 

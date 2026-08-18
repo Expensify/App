@@ -1,4 +1,4 @@
-import DisplayContentsView from '@components/DisplayContentsView';
+import AlwaysPaintedView from '@components/AlwaysPaintedView';
 
 import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigatorComponent/nonTopScreenWrapperTypes';
 
@@ -40,7 +40,7 @@ function ScreenFreezeWrapper({isScreenBlurred, children}: NonTopScreenWrapperPro
 
     return (
         <Freeze freeze={frozen}>
-            <DisplayContentsView>{children}</DisplayContentsView>
+            <AlwaysPaintedView>{children}</AlwaysPaintedView>
         </Freeze>
     );
 }
