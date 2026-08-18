@@ -5,21 +5,23 @@ import FocusTrapForModal from '@components/FocusTrap/FocusTrapForModal/index.web
 import {hasLauncher, markActivePopoverLauncherDeactivated, pickLauncher, setActivePopoverLauncher} from '@libs/LauncherStack';
 import sharedTrapStack from '@libs/sharedTrapStack';
 
+import type {FocusTrapProps} from 'focus-trap-react';
+
 import React from 'react';
 
 jest.mock('@libs/LauncherStack', () => ({
     setActivePopoverLauncher: jest.fn(),
     markActivePopoverLauncherDeactivated: jest.fn(),
-    // Still on the stack by default — i.e. the trap closed without a forward navigation consuming its launcher.
+    // Still on the stack by default, i.e. the trap closed without a forward navigation consuming its launcher.
     hasLauncher: jest.fn(() => true),
     pickLauncher: jest.fn(() => null),
 }));
 
-let capturedOptions: {onActivate?: () => void; onPostDeactivate?: () => void} | null = null;
+let capturedOptions: FocusTrapProps['focusTrapOptions'] | null = null;
 
 jest.mock('focus-trap-react', () => ({
-    FocusTrap: ({focusTrapOptions, children}: {focusTrapOptions: unknown; children: React.ReactNode}) => {
-        capturedOptions = focusTrapOptions as typeof capturedOptions;
+    FocusTrap: ({focusTrapOptions, children}: Pick<FocusTrapProps, 'focusTrapOptions' | 'children'>) => {
+        capturedOptions = focusTrapOptions;
         return children;
     },
 }));

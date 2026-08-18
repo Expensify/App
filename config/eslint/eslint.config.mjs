@@ -335,7 +335,6 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
-            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -706,6 +705,18 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See scripts/tsconfig.json.
+        files: ['scripts/lint.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
                 projectService: false,
             },
         },

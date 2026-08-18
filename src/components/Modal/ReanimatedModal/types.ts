@@ -152,7 +152,7 @@ type ReanimatedModalProps = ViewProps &
         shouldReturnFocus?: boolean;
 
         /**
-         * The element that opened this modal — a popover's anchor. Used only when nothing held focus at activation time,
+         * The element that opened this modal, a popover's anchor. Used only when nothing held focus at activation time,
          * which is the case for triggers that blur themselves to avoid a focus ring (the FAB, the composer "+").
          */
         launcherRef?: RefObject<View | Text | HTMLElement | null>;
