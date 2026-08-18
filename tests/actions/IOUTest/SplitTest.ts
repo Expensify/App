@@ -10084,6 +10084,8 @@ const buildSplitFlowParams = async ({withExistingSplitChildren = false} = {}) =>
         delegateAccountID: undefined,
         isTrackIntentUser: false,
         getCurrencyDecimals: getCurrencyDecimalsLocal,
+        formatPhoneNumber,
+        getCurrencySymbol: getCurrencySymbolLocal,
     };
 
     return {expenseReport, iouAction, params};
