@@ -231,10 +231,6 @@ function setSidebarLoaded() {
     Onyx.set(ONYXKEYS.RAM_ONLY_IS_SIDEBAR_LOADED, true);
 }
 
-function setAppLoading(isLoading: boolean) {
-    Onyx.set(ONYXKEYS.IS_LOADING_APP, isLoading);
-}
-
 /**
  * Saves the current navigation path to lastVisitedPath before app goes to background
  */
@@ -998,7 +994,6 @@ export {
     setSidebarLoaded,
     setUpPoliciesAndNavigate,
     openApp,
-    setAppLoading,
     reconnectApp,
     loadPostDataForOpenOrReconnect,
     triggerFullReconnect,
