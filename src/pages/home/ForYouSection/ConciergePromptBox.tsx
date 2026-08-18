@@ -228,6 +228,4 @@ function ConciergePromptBox() {
     );
 }
 
-ConciergePromptBox.displayName = 'ConciergePromptBox';
-
 export default ConciergePromptBox;

@@ -59,6 +59,4 @@ function TimeSensitiveGroup({items}: TimeSensitiveGroupProps) {
     );
 }
 
-TimeSensitiveGroup.displayName = 'TimeSensitiveGroup';
-
 export default TimeSensitiveGroup;
