@@ -159,6 +159,7 @@ export default {
         usesIcon = false,
         policyTags,
         policy,
+        currentUserAccountID,
         currentUserLogin,
         reportAttributes,
     }: LocalNotificationModifiedExpensePushParams) {
@@ -172,6 +173,7 @@ export default {
             movedFromReport,
             movedToReport,
             policyTags,
+            currentUserAccountID,
             currentUserLogin,
             reportAttributes,
         });
