@@ -3,6 +3,7 @@ import * as AppUpdate from '@libs/actions/AppUpdate';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import DeviceInfo from 'react-native-device-info';
 import Onyx from 'react-native-onyx';
 import semver from 'semver';
 
@@ -25,9 +26,27 @@ Onyx.connectWithoutView({
 });
 
 /**
+ * Whether the app was installed from somewhere other than the Play Store, i.e. a GitHub release APK a tester
+ * sideloaded, or an `adb install`. The installer package name is set by whoever installed the app, so unlike the
+ * version comparison below it is stable for the lifetime of the install: it cannot flip to production once the
+ * production release catches up with the staging build's version.
+ */
+function isSideloadedBuild(): boolean {
+    return DeviceInfo.getInstallerPackageNameSync() !== CONST.ANDROID_PLAY_STORE_INSTALLER_PACKAGE_NAME;
+}
+
+/**
  * Check the GitHub releases to see if the current build is a beta build or production build
  */
 function isBetaBuild(): IsBetaBuild {
+    // Production builds are only ever delivered by the Play Store, so a sideloaded build is always a beta build.
+    // Answering here also keeps these builds off the GitHub API, which is rate limited and can otherwise report
+    // the wrong environment when the request fails.
+    if (isSideloadedBuild()) {
+        AppUpdate.setIsAppInBeta(true);
+        return Promise.resolve(true);
+    }
+
     return new Promise((resolve) => {
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
