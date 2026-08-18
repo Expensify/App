@@ -49,9 +49,8 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
                     onSecondaryButtonPress={goToDomainsList}
                     shouldShowButton
                     buttonText={translate('domain.domainAlreadyExists.requestAccess')}
-                    onButtonPress={() => {
-                        goToDomainsList();
-                    }}
+                    onButtonPress={() => {}}
+                    isButtonDisabled
                 />
             </ScreenWrapper>
         </DomainNameOrNotFoundWrapper>
