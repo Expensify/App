@@ -94,7 +94,6 @@ function SearchChangeApproverPage() {
     const {isOffline} = useNetwork();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
-    const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [userBillingGracePeriodEnds] = useOnyx(ONYXKEYS.COLLECTION.SHARED_NVP_PRIVATE_USER_BILLING_GRACE_PERIOD_END);
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
@@ -179,11 +178,6 @@ function SearchChangeApproverPage() {
             return;
         }
 
-        if (isDelegateAccessRestricted) {
-            showDelegateNoAccessModal();
-            return;
-        }
-
         for (const selectedReport of selectedReports) {
             const policy = allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReport.policyID}`];
             const report = selectedReport.reportID ? onyxReports?.[selectedReport.reportID] : undefined;
@@ -198,6 +192,10 @@ function SearchChangeApproverPage() {
             // report stays waiting on them, so approve it as well to actually bypass the remaining approvers.
             if (report.managerID !== currentUserDetails.accountID) {
                 continue;
+            }
+
+            if (isDelegateAccessRestricted) {
+                return;
             }
 
             approveMoneyRequest({
