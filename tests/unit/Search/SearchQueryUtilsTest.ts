@@ -24,6 +24,7 @@ import {
     getFilterDisplayValue,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasSubmittedViolationFilter,
     getDateFilterRange,
     getKeywordQueryWithCurrentSearchContext,
     getLastRouteByName,
@@ -3812,6 +3813,30 @@ describe('SearchQueryUtils', () => {
 
             expect(result.value).toBeUndefined();
             expect(result.isNegated).toBe(false);
+        });
+    });
+
+    describe('queryHasSubmittedViolationFilter', () => {
+        test('returns true for a positive has:submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(true);
+        });
+
+        test('returns false when the has filter is negated', () => {
+            const queryJSON = buildSearchQueryJSON(`type:expense -has:${CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION}`);
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false when the query has no submitted-violation filter', () => {
+            const queryJSON = buildSearchQueryJSON('type:expense groupBy:from');
+
+            expect(queryHasSubmittedViolationFilter(queryJSON)).toBe(false);
+        });
+
+        test('returns false for an undefined queryJSON', () => {
+            expect(queryHasSubmittedViolationFilter(undefined)).toBe(false);
         });
     });
 

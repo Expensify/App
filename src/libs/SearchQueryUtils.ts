@@ -459,6 +459,15 @@ function getFilterFromQuery(queryJSON: SearchQueryJSON | undefined, filterKey: S
 }
 
 /**
+ * Whether the query includes a positive `has:submitted-violation` filter.
+ * Grouped CSV export uses this so Violations is included even when the query has no saved `columns`.
+ */
+function queryHasSubmittedViolationFilter(queryJSON: SearchQueryJSON | undefined): boolean {
+    const hasFilter = getFilterFromQuery(queryJSON, CONST.SEARCH.SYNTAX_FILTER_KEYS.HAS);
+    return !hasFilter.isNegated && !!hasFilter.value?.includes(CONST.SEARCH.HAS_VALUES.SUBMITTED_VIOLATION);
+}
+
+/**
  * @private
  * Returns an updated filter value for some query filters.
  * - for `AMOUNT` it formats value to "backend" amount
@@ -2651,6 +2660,7 @@ export {
     removeNegation,
     getFilterFormValues,
     getFilterFromQuery,
+    queryHasSubmittedViolationFilter,
 };
 
 export type {BuildUserReadableQueryStringParams};

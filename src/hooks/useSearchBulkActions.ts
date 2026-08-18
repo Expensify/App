@@ -65,9 +65,25 @@ import {
     isSelfDM,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getFilterFromQuery, isDefaultExpensesQuery, serializeQueryJSONForBackend} from '@libs/SearchQueryUtils';
+import {
+    buildSearchQueryJSON,
+    buildSearchQueryString,
+    getFilterFromQuery,
+    isDefaultExpensesQuery,
+    queryHasSubmittedViolationFilter,
+    serializeQueryJSONForBackend,
+} from '@libs/SearchQueryUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
-import {getColumnsToShow, getSearchColumnTranslationKey, getSelectedGroupFilterEntry, getValidGroupBy, isGroupEntry, navigateToSearchRHP, shouldShowDeleteOption} from '@libs/SearchUIUtils';
+import {
+    getColumnsToShow,
+    getSearchColumnTranslationKey,
+    getSelectedGroupFilterEntry,
+    getValidGroupBy,
+    insertColumnBeforeTotalAmount,
+    isGroupEntry,
+    navigateToSearchRHP,
+    shouldShowDeleteOption,
+} from '@libs/SearchUIUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
 import playSound, {SOUNDS} from '@libs/Sound';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
@@ -895,6 +911,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 const expenseColumns: SearchColumnType[] = (visibleColumns ?? []).filter((column) => expensePermittedColumns.includes(column));
 
                 columnsToExport = [CONST.SEARCH.TABLE_COLUMNS.TYPE, ...(expenseColumns.length > 0 ? expenseColumns : Object.values(CONST.SEARCH.TYPE_DEFAULT_COLUMNS.EXPENSE))];
+                // Grouped export skips getColumnsToShow(), so inject Violations when the query asks for it
+                // (e.g. Violations by submitter, which has groupBy but no saved columns).
+                if (queryHasSubmittedViolationFilter(queryJSON)) {
+                    insertColumnBeforeTotalAmount(columnsToExport, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
+                }
+                console.log('columnsToExport', columnsToExport);
             } else {
                 columnsToExport = getColumnsToShow({
                     currentAccountID: accountID,

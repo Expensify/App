@@ -9869,6 +9869,70 @@ describe('SearchUIUtils', () => {
             expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
         });
 
+        test('Should hide Violations by submitter for migrated Control workspaces when category data is not supplied', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
+        test('Should show Violations by submitter for migrated Control workspaces with Classic category rules', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+            const policyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Travel: {name: 'Travel', enabled: true, maxExpenseAmount: 50000},
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false, false, policyCategories);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(true);
+        });
+
+        test('Should hide Violations by submitter for migrated Control workspaces with no category rules', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.CORPORATE,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    areRulesEnabled: undefined,
+                    employeeList: {
+                        'employee1@policy.com': {email: 'employee1@policy.com'},
+                        'employee2@policy.com': {email: 'employee2@policy.com'},
+                    },
+                }),
+            };
+            const policyCategories: OnyxCollection<OnyxTypes.PolicyCategories> = {
+                [`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`]: {
+                    Travel: {name: 'Travel', enabled: true},
+                },
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined, false, false, policyCategories);
+            expect(response.visibility[CONST.SEARCH.SEARCH_KEYS.VIOLATIONS_BY_SUBMITTER]).toBe(false);
+        });
+
         test('Should hide Violations by submitter when the workspace has fewer than 2 members', () => {
             const policies: OnyxCollection<OnyxTypes.Policy> = {
                 [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({

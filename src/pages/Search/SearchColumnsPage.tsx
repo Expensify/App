@@ -5,7 +5,7 @@ import useOnyx from '@hooks/useOnyx';
 
 import Navigation from '@libs/Navigation/Navigation';
 import {buildQueryStringFromFilterFormValues, getCurrentSearchQueryJSON} from '@libs/SearchQueryUtils';
-import {getCustomColumnDefault, getCustomColumns} from '@libs/SearchUIUtils';
+import {getCustomColumnDefault, getCustomColumns, insertColumnBeforeTotalAmount} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -13,21 +13,6 @@ import ROUTES from '@src/ROUTES';
 import type {SearchAdvancedFiltersForm} from '@src/types/form';
 
 import React from 'react';
-
-/** Inserts `columnId` immediately before the total-amount column, or appends it if that column is missing. */
-function insertColumnBeforeTotalAmount(columns: SearchCustomColumnIds[], columnId: SearchCustomColumnIds) {
-    if (columns.includes(columnId)) {
-        return;
-    }
-
-    const totalAmountIndex = columns.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
-    if (totalAmountIndex === -1) {
-        columns.push(columnId);
-        return;
-    }
-
-    columns.splice(totalAmountIndex, 0, columnId);
-}
 
 function SearchColumnsPage() {
     const [searchAdvancedFiltersForm] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);

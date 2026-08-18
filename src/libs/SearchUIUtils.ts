@@ -1140,6 +1140,9 @@ function isPolicyEligibleForSpendOverTime(policy: OnyxTypes.Policy, currentUserE
  * `hasReportAwaitingApproval` seeds the approve suggestion so a user who is the manager of a report awaiting their
  * approval sees it even when they are not part of the policy's approval workflow (e.g. an approver chosen manually on
  * a single report). The workflow-config checks below only cover standing approvers, which is not enough on their own.
+ *
+ * @param policyCategories - Needed for migrated Control workspaces where `areRulesEnabled` is undefined; the Violations
+ * by submitter insight then falls back to Classic category rules via `arePolicyRulesEnabled`.
  */
 function getSuggestedSearchesVisibility(
     currentUserEmail: string | undefined,
@@ -1148,6 +1151,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>,
 ): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
@@ -1209,7 +1213,11 @@ function getSuggestedSearchesVisibility(
         const isEligibleForTopSpendersSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor || isUserApprover) && memberCount >= 2;
         const isEligibleForTopCategoriesSuggestion = isGroupPolicyEligible && policy.areCategoriesEnabled === true;
         const isEligibleForTopMerchantsSuggestion = isGroupPolicyEligible;
-        const isEligibleForViolationsBySubmitterSuggestion = isGroupPolicyEligible && (isAdmin || isAuditor) && arePolicyRulesEnabled(policy) && memberCount >= 2;
+        const isEligibleForViolationsBySubmitterSuggestion =
+            isGroupPolicyEligible &&
+            (isAdmin || isAuditor) &&
+            arePolicyRulesEnabled(policy, policy.id ? policyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policy.id}`] : undefined) &&
+            memberCount >= 2;
 
         shouldShowSubmitSuggestion ||= isEligibleForSubmitSuggestion;
         shouldShowPaySuggestion ||= isEligibleForPaySuggestion;
@@ -4528,6 +4536,23 @@ function isSearchResultsEmpty(searchResults: SearchResults, groupBy?: SearchGrou
     );
 }
 
+/**
+ * Inserts `columnId` immediately before the total-amount column, or appends it if that column is missing.
+ */
+function insertColumnBeforeTotalAmount<T extends SearchColumnType>(columns: T[], columnId: T) {
+    if (columns.includes(columnId)) {
+        return;
+    }
+
+    const totalAmountIndex = columns.findIndex((column) => column === CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
+    if (totalAmountIndex === -1) {
+        columns.push(columnId);
+        return;
+    }
+
+    columns.splice(totalAmountIndex, 0, columnId);
+}
+
 function getCustomColumns(value?: SearchDataTypes | SearchGroupBy): SearchCustomColumnIds[] {
     switch (value) {
         case CONST.SEARCH.DATA_TYPES.EXPENSE:
@@ -4864,6 +4889,7 @@ type TypeMenuSectionsParams = {
     draftTransactionIDs: string[] | undefined;
     isTrackIntentUser: boolean;
     hasReportAwaitingApproval?: boolean;
+    policyCategories?: OnyxCollection<OnyxTypes.PolicyCategories>;
 };
 
 function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuSection[] {
@@ -4880,6 +4906,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         draftTransactionIDs,
         isTrackIntentUser,
         hasReportAwaitingApproval = false,
+        policyCategories,
     } = params;
     const typeMenuSections: SearchTypeMenuSection[] = [];
 
@@ -4888,7 +4915,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
         hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
-    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
+    } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser, policyCategories);
     const suggestedSearches = getSuggestedSearches(currentUserAccountID, defaultCardFeed?.id, shouldShowExpensifyCard, topSpendersPolicyIDs, activeExpensifyCardFeedID);
     const hasAnyPolicyWithWorkflowsEnabled = Object.values(policies ?? {}).some((policy) => policy?.areWorkflowsEnabled);
     const isTrackIntentWithWorkflowsDisabled = isTrackIntentUser && !hasAnyPolicyWithWorkflowsEnabled;
@@ -6651,13 +6678,8 @@ function getColumnsToShow({
     }
 
     if (customResult) {
-        if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS] && !customResult.includes(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS)) {
-            const totalAmountIndex = customResult.indexOf(CONST.SEARCH.TABLE_COLUMNS.TOTAL_AMOUNT);
-            if (totalAmountIndex === -1) {
-                customResult.push(CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
-            } else {
-                customResult.splice(totalAmountIndex, 0, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
-            }
+        if (columns[CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS]) {
+            insertColumnBeforeTotalAmount(customResult, CONST.SEARCH.TABLE_COLUMNS.VIOLATIONS);
         }
         return customResult;
     }
@@ -7059,6 +7081,7 @@ export {
     getWithdrawalStatusOptions,
     getWithdrawalStatusDisplayText,
     getColumnsToShow,
+    insertColumnBeforeTotalAmount,
     getHasOptions,
     getSubmittedViolationsForTransaction,
     getSettlementStatus,
