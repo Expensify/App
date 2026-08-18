@@ -82,7 +82,7 @@ function init(args: Args): Promise<void> {
                 }
                 callSocketEventCallbacks('state_change', {previous: previousState, current: currentState});
             },
-            onError: (message: string) => callSocketEventCallbacks('error', {type: CONST.ERROR.WEB_SOCKET_ERROR, data: {message}}),
+            onError: (message, code) => callSocketEventCallbacks('error', {type: CONST.ERROR.WEB_SOCKET_ERROR, data: {code: Number(code) || undefined, message}}),
             onAuthorizer: (channelName: string, socketId: string) => authenticatePusher(socketId, channelName) as Promise<PusherAuthorizerResult>,
         });
         socket.connect();
