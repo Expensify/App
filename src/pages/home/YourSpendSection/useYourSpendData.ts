@@ -41,18 +41,18 @@ type YourSpendCardRow = {
     total: number | undefined;
     currency: string | undefined;
 
-    // Fraction (0–1) of the card's unapproved expense limit. `undefined` when no
-    // limit is configured or for third-party rows; suppresses the limit indicator.
+    // Fraction (0 to 1) of the card's unapproved expense limit. `undefined` when no
+    // limit is configured or for third-party rows. Suppresses the limit indicator.
     spentFraction: number | undefined;
 
     kind: YourSpendCardKind;
     bank: CardFeedWithNumber;
 
-    // Set for employer-feed third-party cards; `undefined` for personal Plaid cards.
+    // Set for employer-feed third-party cards. `undefined` for personal Plaid cards.
     fundID: string | undefined;
 
     // `isPersonalCard` semantics (no `fundID`, `fundID === '0'`, or CSV bank). Personal
-    // cards render the bare bank artwork; employer-feed cards key the icon by `feed|domainID`.
+    // cards render the bare bank artwork. Employer-feed cards key the icon by `feed|domainID`.
     isPersonal: boolean;
 };
 
@@ -97,9 +97,9 @@ type UseYourSpendDataReturn = {
     cardRows: YourSpendCardRow[];
     awaitingApprovalQuery: string;
     repaidLast30DaysQuery: string;
-    // True while a queued or in-flight change would move this specific total — offline,
-    // and after reconnect until the change is acknowledged — so its row renders greyed
-    // out instead of showing a value we know may be wrong.
+    // True while a queued or in-flight change would move this specific total, both offline
+    // and after reconnect until the change is acknowledged. Its row renders greyed out
+    // instead of showing a value we know may be wrong.
     isApprovalStale: boolean;
     isPaymentStale: boolean;
 };
@@ -107,7 +107,7 @@ type UseYourSpendDataReturn = {
 // Offline queue commands that move each "Your spend" total. Read from the action
 // queue rather than inferred from a report's status, because a report can pass
 // through several states offline (e.g. approve then pay) and only its final status
-// would otherwise survive — dropping the earlier action's stale signal.
+// would otherwise survive, dropping the earlier action's stale signal.
 const YOUR_SPEND_APPROVAL_COMMANDS = new Set<string>([
     WRITE_COMMANDS.SUBMIT_REPORT,
     WRITE_COMMANDS.RETRACT_REPORT,
@@ -125,7 +125,7 @@ const YOUR_SPEND_PAYMENT_COMMANDS = new Set<string>([
 // report total client-side without marking `pendingFields.total` (only cross-currency edits
 // do), which is why these must be read from the queue rather than from the report. Expense
 // creation is included because on an auto-submit workspace a new expense lands directly in an
-// OUTSTANDING report, growing the "Awaiting approval" total; when it lands in an OPEN report
+// OUTSTANDING report, growing the "Awaiting approval" total. When it lands in an OPEN report
 // instead, its reportID isn't in the submitted set so the bucketing below is a no-op.
 const YOUR_SPEND_AMOUNT_COMMANDS = new Set<string>([
     WRITE_COMMANDS.UPDATE_MONEY_REQUEST_AMOUNT_AND_CURRENCY,
@@ -135,6 +135,8 @@ const YOUR_SPEND_AMOUNT_COMMANDS = new Set<string>([
     WRITE_COMMANDS.REQUEST_MONEY,
     WRITE_COMMANDS.CREATE_DISTANCE_REQUEST,
     WRITE_COMMANDS.CREATE_PER_DIEM_REQUEST,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE,
+    WRITE_COMMANDS.UPDATE_MONEY_REQUEST_DISTANCE_RATE,
 ]);
 
 function isYourSpendCommand(command: string): boolean {
@@ -150,20 +152,20 @@ type YourSpendPendingBuckets = {
 
 // The reports the user owns, split by the query scope each queued command must be checked
 // against, plus the totals a report-level pending total change would move. State transitions
-// are read from the queue; amount changes keep a report in the same bucket, so the report's
+// are read from the queue. Amount changes keep a report in the same bucket, so the report's
 // current status classifies them.
 //
 // Reduced to primitives (sorted ID signatures, not per-report maps) because this is
 // the output Onyx deep-equals on every change to the REPORT collection.
 type YourSpendReportsSignature = {
-    // Owned reports on paid group workspaces — the scope of the "Awaiting approval" query.
+    // Owned reports on paid group workspaces. This is the scope of the "Awaiting approval" query.
     approvalScopeReportIDs: string;
-    // All owned reports — the "Repaid last 30 days" query has no policy filter, so
+    // All owned reports. The "Repaid last 30 days" query has no policy filter, so
     // repayments on IOU reports outside any workspace count too.
     paymentScopeReportIDs: string;
     // Owned OUTSTANDING (state & status SUBMITTED) reports on paid group workspaces. Drives the
-    // search-refire key and gates the cached "Awaiting approval" total; folded into this signature
-    // so the REPORT collection is scanned once per change rather than by a second selector.
+    // search-refire key and gates the cached "Awaiting approval" total. It is folded into this
+    // signature so the REPORT collection is scanned once per change rather than by a second selector.
     outstandingReportIDs: string;
     // Status subsets used to bucket queued amount-affecting commands by the total they'd move.
     submittedReportIDs: string;
@@ -244,7 +246,7 @@ function projectQueuedSpendRequests(requests: AnyRequest[] | undefined): QueuedS
         if (!command || !isYourSpendCommand(command)) {
             continue;
         }
-        // Report-level commands carry `reportID`; money-request commands (e.g. pay) carry `iouReportID`.
+        // Report-level commands carry `reportID`. Money-request commands (e.g. pay) carry `iouReportID`.
         const rawReportID = request.data?.reportID ?? request.data?.iouReportID;
         projected.push({command, reportID: typeof rawReportID === 'string' ? rawReportID : undefined});
     }
@@ -252,7 +254,7 @@ function projectQueuedSpendRequests(requests: AnyRequest[] | undefined): QueuedS
 }
 
 // The request currently being sent is moved out of PERSISTED_REQUESTS while in flight,
-// but its total change hasn't been acknowledged yet — it must keep its row greyed.
+// but its total change hasn't been acknowledged yet, so it must keep its row greyed.
 function projectOngoingSpendRequest(request: OnyxEntry<AnyRequest>): QueuedSpendRequest[] {
     return projectQueuedSpendRequests(request ? [request] : undefined);
 }
@@ -269,8 +271,8 @@ function toReportIDSet(signature: string): Set<string> {
 // State transitions (submit / retract / approve / unapprove / pay / cancel) are read
 // from the action queue: every queued command persists until it is sent, so a report
 // that was approved and then paid keeps BOTH signals. Each command is scoped to the
-// reports its query can actually contain — approval commands to paid-group reports,
-// payment commands to any owned report (the repaid query has no policy filter).
+// reports its query can actually contain. Approval commands are scoped to paid-group
+// reports, and payment commands to any owned report (the repaid query has no policy filter).
 // Amount changes (edit / delete / reject) don't move a report between buckets, so
 // they're bucketed by the report's current status (see getYourSpendReportsSignature).
 function getYourSpendPendingBuckets(reportsSignature: YourSpendReportsSignature, queuedRequests: QueuedSpendRequest[] | undefined): YourSpendPendingBuckets {
@@ -283,7 +285,7 @@ function getYourSpendPendingBuckets(reportsSignature: YourSpendReportsSignature,
         if (YOUR_SPEND_AMOUNT_COMMANDS.has(command)) {
             if (!reportID) {
                 // DeleteMoneyRequest carries only a transactionID. Expenses can't be deleted
-                // from paid reports, so conservatively grey the approval total — but only
+                // from paid reports, so conservatively grey the approval total, but only
                 // while an awaiting-approval report exists that the delete could be from.
                 buckets.approval ||= submitted.size > 0;
             } else if (submitted.has(reportID)) {
@@ -309,7 +311,7 @@ type FrozenSpendRow = {
 };
 
 // The totals come from server-computed search snapshots we cannot refresh offline, so a row
-// must not appear, disappear or change value while offline — it may only grey out. Local report
+// must not appear, disappear or change value while offline. It may only grey out. Local report
 // mutations would otherwise move the row's state (e.g. approving the last outstanding report
 // empties the OUTSTANDING signature and hides the row), producing inconsistent behaviour that
 // depends on which snapshot happened to be cached. Replay the last settled online result for the
@@ -375,7 +377,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     // snapshots until those changes are acknowledged, so we grey only the affected
     // total to signal it may be stale rather than showing a value we know might be
     // wrong. This covers the whole offline session and the queue flush after
-    // reconnecting — the grey must not clear before the totals actually refresh.
+    // reconnecting, so the grey must not clear before the totals actually refresh.
     //
     // Also carries the OUTSTANDING (awaiting approval) report IDs: the home query results are
     // cached snapshots that are not patched when a report's state changes, so without this the
@@ -414,7 +416,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
         [expensifyCards, thirdPartyCards],
     );
 
-    // Stable signature for the search-firing effect — re-fires on card-set changes
+    // Stable signature for the search-firing effect. Re-fires on card-set changes
     // but not on unrelated `cardList` mutations.
     const displayableCardIDsKey = displayableCards
         .map(({card}) => card.cardID)
@@ -461,7 +463,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
     };
     const [cardSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT, {selector: cardSnapshotsSelector});
 
-    // Per-card READY totals cache; see the approval/payment cache below for the mechanic.
+    // Per-card READY totals cache. See the approval/payment cache below for the mechanic.
     const [cachedCardTotals, setCachedCardTotals] = useState<Record<number, YourSpendRowTotals>>({});
 
     const cardCacheUpdates: Record<number, YourSpendRowTotals> = {};
@@ -495,7 +497,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const snapshotKey = hash !== undefined ? `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}` : undefined;
                 const snapshot = snapshotKey ? cardSnapshots?.[snapshotKey] : undefined;
 
-                // Snapshot loaded but count wiped by the Search screen — fall back to cached READY totals.
+                // Snapshot loaded but count wiped by the Search screen, so fall back to cached READY totals.
                 const countIsMissing = snapshot !== undefined && (snapshot.count === undefined || snapshot.count === null);
                 const cached = cachedCardTotals[card.cardID];
                 const shouldUseCached = countIsMissing && cached !== undefined;
@@ -508,7 +510,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
                 const currency = snapshot?.count ? snapshot.currency : cached?.currency;
 
                 // Fallback for third-party cards with empty `lastFourPAN` and digits in `cardName`
-                // (e.g. "CREDIT CARD...1234"; no-space names fall through to ""). Ternary so
+                // (e.g. "CREDIT CARD...1234". No-space names fall through to ""). Ternary so
                 // empty-string `lastFourPAN` also falls through.
                 const lastFour = card.lastFourPAN ? card.lastFourPAN : lastFourNumbersFromCardName(card.cardName);
                 if (!lastFour) {
@@ -581,7 +583,7 @@ function useYourSpendData(): UseYourSpendDataReturn {
 
     // Only bridge a wiped/missing count with the cached total while the user still owns an
     // OUTSTANDING report. An empty signature means nothing is awaiting approval, so the row
-    // must hide immediately after approving the last expense — a zero-result search returns
+    // must hide immediately after approving the last expense. A zero-result search returns
     // no count, which would otherwise keep the stale cached total on screen.
     const shouldUseCachedApproval =
         approvalRowStateRaw === YOUR_SPEND_ROW_STATE.HIDDEN_EMPTY &&
