@@ -31,39 +31,16 @@ const isUserCancelled = (err: unknown) => {
 };
 
 /**
- * Downloads the file to the Documents directory, which the iOS Files app shows to the user
- * as the app's folder because file sharing is enabled. Only files the user asked to download
- * belong there; internal files must go to a directory the Files app does not expose.
+ * Downloads the file to the given directory. Files the user asked to download go to Documents,
+ * which the iOS Files app shows to the user as the app's folder because file sharing is enabled.
+ * Files that only need a temporary local copy (e.g. for saving to Photos) go to the cache
+ * directory, which the Files app never exposes.
  */
-function downloadFile(fileUrl: string, fileName: string) {
-    const dirs = RNFetchBlob.fs.dirs;
-
+function downloadFile(fileUrl: string, fileName: string, directory: string) {
     return RNFetchBlob.config({
         fileCache: true,
-        path: `${dirs.DocumentDir}/${fileName}`,
+        path: `${directory}/${fileName}`,
     }).fetch('GET', fileUrl);
-}
-
-/**
- * Downloads the file to the cache directory, for flows that only need a temporary local
- * copy (e.g. saving to Photos or handing off to the share sheet). Unlike Documents, the
- * cache directory is never shown to the user in the iOS Files app.
- */
-function downloadFileToCache(fileUrl: string, fileName: string) {
-    const dirs = RNFetchBlob.fs.dirs;
-
-    return RNFetchBlob.config({
-        fileCache: true,
-        path: `${dirs.CacheDir}/${fileName}`,
-    }).fetch('GET', fileUrl);
-}
-
-/**
- * Presents the iOS share sheet so the user can save the file to the Files app,
- * then removes the local copy.
- */
-function shareFileToFilesApp(localPath: string) {
-    return Share.open({url: localPath, failOnCancel: false, saveToFiles: true}).then(() => RNFS.unlink(localPath));
 }
 
 const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?: string, formData?: FormData, onDownloadFailed?: () => void, appendTimestamp = true) => {
@@ -91,7 +68,12 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             const expensifyDir = `${RNFS.CachesDirectoryPath}/Expensify`;
             const localPath = `${expensifyDir}/${finalFileName}`;
             return RNFS.mkdir(expensifyDir).then(() => {
-                return RNFS.writeFile(localPath, fileData, 'utf8').then(() => shareFileToFilesApp(localPath));
+                return (
+                    RNFS.writeFile(localPath, fileData, 'utf8')
+                        // The share sheet lets the user save the file to the Files app; the staged copy is removed afterwards
+                        .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
+                        .then(() => RNFS.unlink(localPath))
+                );
             });
         })
         .catch((error) => {
@@ -123,7 +105,7 @@ function downloadVideo(fileUrl: string, fileName: string): Promise<PhotoIdentifi
         let cameraRollAsset: PhotoIdentifier;
 
         // Because CameraRoll doesn't allow direct downloads of video with remote URIs, we first download to the cache, then copy to photo lib and unlink the temporary file.
-        downloadFileToCache(fileUrl, fileName)
+        downloadFile(fileUrl, fileName, RNFetchBlob.fs.dirs.CacheDir)
             .then((attachment) => {
                 tempPathUri = attachment.data as string | null;
                 if (!tempPathUri) {
@@ -169,7 +151,7 @@ const fileDownload: FileDownload = (translate, fileUrl, fileName, successMessage
                     break;
                 }
 
-                fileDownloadPromise = downloadFile(fileUrl, attachmentName);
+                fileDownloadPromise = downloadFile(fileUrl, attachmentName, RNFetchBlob.fs.dirs.DocumentDir);
                 break;
         }
 

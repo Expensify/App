@@ -1,3 +1,5 @@
+# react-native-nitro-sqlite patches
+
 ### [react-native-nitro-sqlite+9.6.0+001+dont-mask-original-error-on-rollback-failure.patch](react-native-nitro-sqlite+9.6.0+001+dont-mask-original-error-on-rollback-failure.patch)
 
 - Reason:
@@ -22,7 +24,10 @@
     The library stores SQLite databases in the iOS Documents directory, which is exposed to users
     via the Files app when file sharing is enabled. This patch stores databases in
     Library/Application Support instead (persistent, backed up, never user-visible) and migrates
-    databases created by older app versions out of Documents on first launch.
+    databases created by older app versions out of Documents on first launch. The database and its
+    -wal/-shm journal files are copied as a set before the originals are deleted, and if the copy
+    fails the database keeps being opened from Documents and the migration retries on the next
+    launch, so committed writes are never separated from their WAL.
     ```
 
 - Upstream PR/issue: https://github.com/margelo/react-native-nitro-sqlite/issues/289

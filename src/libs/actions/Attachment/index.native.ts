@@ -24,6 +24,8 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
         const destPath = `${ATTACHMENT_DIR}/${fileName}`;
 
         try {
+            // The OS can purge Caches wholesale, so the directory may need recreating
+            await RNFS.mkdir(ATTACHMENT_DIR);
             await RNFS.copyFile(uri, destPath);
             await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
                 attachmentID,
@@ -58,6 +60,8 @@ async function cacheAttachment({attachmentID, uri, mimeType}: CacheAttachmentPro
 
         const fileName = `${attachmentID}.${attachmentFileExtension}`;
         const filePath = `${ATTACHMENT_DIR}/${fileName}`;
+        // The OS can purge Caches wholesale, so the directory may need recreating
+        await RNFS.mkdir(ATTACHMENT_DIR);
         await RNFetchBlob.config({path: filePath}).fetch('GET', uri);
 
         await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}${attachmentID}`, {
@@ -80,7 +84,13 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
 
     const localSource = attachment?.source;
     if (localSource) {
-        return localSource;
+        // The OS can purge Caches while the Onyx record survives, so verify the file still
+        // exists; if it was purged, fall back to the current source and re-cache it
+        const localFileExists = await RNFS.exists(localSource);
+        if (localFileExists) {
+            return localSource;
+        }
+        cacheAttachment({attachmentID, uri: currentSource});
     }
 
     return currentSource;
