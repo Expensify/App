@@ -54,7 +54,7 @@ These alerts appear when:
 - There is potential risk, such as suspected Expensify Card fraud on an active card
 - An action must be taken within a short window, such as a limited-time offer or early adoption discount
 
-Expensify Card fraud alerts are only shown for active cards. Deactivated or closed cards do not trigger these alerts.
+Expensify Card alerts are only shown for active cards. Deactivated or closed cards do not trigger these alerts.
 
 If there are no urgent issues, this section will not appear.
 
