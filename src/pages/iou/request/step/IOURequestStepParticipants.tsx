@@ -1,5 +1,6 @@
 import FormHelpMessage from '@components/FormHelpMessage';
 
+import useCommuterExclusionGuard from '@hooks/useCommuterExclusionGuard';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useParticipantSubmission from '@hooks/useParticipantSubmission';
@@ -9,7 +10,15 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getIsWorkspacesOnlyForTransaction, isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils, navigateToStartMoneyRequestStep} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {endSpan} from '@libs/telemetry/activeSpans';
-import {getRequestType, isFromCreditCardImport, isPerDiemRequest, isTimeRequest as isTimeRequestUtil} from '@libs/TransactionUtils';
+import {
+    getRequestType,
+    isFromCreditCardImport,
+    isManualDistanceRequest,
+    isOdometerDistanceRequest,
+    isPerDiemRequest,
+    isSplitChildTransaction,
+    isTimeRequest as isTimeRequestUtil,
+} from '@libs/TransactionUtils';
 
 import MoneyRequestParticipantsSelector from '@pages/iou/request/MoneyRequestParticipantsSelector';
 
@@ -80,6 +89,10 @@ function IOURequestStepParticipants({
         isMovingTransactionFromTrackExpense,
         isFocused,
     });
+    const blockManualOrOdometerDistanceRequestIfNeeded = useCommuterExclusionGuard({
+        isManualDistanceRequest: isManualDistanceRequest(initialTransaction),
+        isOdometerDistanceRequest: isOdometerDistanceRequest(initialTransaction),
+    });
 
     const hasEndedSpan = useRef(false);
     useEffect(() => {
@@ -126,9 +139,13 @@ function IOURequestStepParticipants({
         navigateToStartMoneyRequestStep(iouRequestType, iouTypeValue, initialTransactionID, reportID, action);
     };
 
+    // Split expenses can only be submitted to a workspace, so restrict the recipient list to workspaces.
     // In new flow - the amount step is skipped, so we need to include the recents for all the cases.
     // Submit-only implies workspaces-only (we still hide individuals/recents in the Submit-to-employer picker).
-    const isWorkspacesOnly = isWorkspacesOnlyFromRoute || (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
+    const isWorkspacesOnly =
+        isWorkspacesOnlyFromRoute ||
+        (action === CONST.IOU.ACTION.SUBMIT && isSplitChildTransaction(initialTransaction)) ||
+        (isNewManualExpenseFlowEnabled ? false : getIsWorkspacesOnlyForTransaction(initialTransaction, iouRequestType));
     const selectedParticipant = isSplitRequest ? undefined : participants?.find((participant) => participant.selected && !participant.isSender);
     // Participants with a reportID are found in the list and highlighted via initiallySelectedReportID.
     // Those without one (e.g. users to invite who don't have an account yet) must be passed explicitly
@@ -163,6 +180,7 @@ function IOURequestStepParticipants({
                 shouldExcludeP2P={(initialTransaction?.amount ?? 0) < 0}
                 initiallySelectedReportID={selectedParticipant?.reportID}
                 shouldMoveSelectedToTop
+                shouldBlockParticipantSelection={blockManualOrOdometerDistanceRequestIfNeeded}
             />
         </StepScreenWrapper>
     );

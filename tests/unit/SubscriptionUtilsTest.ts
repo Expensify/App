@@ -4,6 +4,8 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {
     calculateRemainingFreeTrialDays,
+    calculateRemainingTrialSeconds,
+    calculateTrialDayNumber,
     canCancelSubscription,
     doesUserHavePaymentCardAdded,
     getEarlyDiscountInfo,
@@ -1284,16 +1286,21 @@ describe('SubscriptionUtils', () => {
             },
         };
 
-        const translate = jest.fn((key: string, ...parameters: unknown[]) => {
-            const remainingDays = parameters.at(0) as number | undefined;
-            if (key === 'subscription.billingBanner.trialStarted.title' && remainingDays !== undefined) {
+        const translateImplementation: LocalizedTranslate = (key, ...parameters) => {
+            const remainingDays = parameters.at(0);
+            if (key === 'subscription.billingBanner.trialStarted.title' && typeof remainingDays === 'number') {
                 return `trialStarted:${remainingDays}`;
             }
             if (key === 'subscription.billingBanner.preTrial.title') {
                 return 'preTrial';
             }
             return key;
-        }) as unknown as LocalizedTranslate;
+        };
+        const translateMock = jest.fn();
+        const translate: LocalizedTranslate = (key, ...parameters) => {
+            translateMock(key, ...parameters);
+            return translateImplementation(key, ...parameters);
+        };
 
         beforeEach(() => {
             jest.clearAllMocks();
@@ -1301,7 +1308,7 @@ describe('SubscriptionUtils', () => {
 
         it('returns undefined when the user has no owned paid workspace', () => {
             expect(getFreeTrialText(accountID, translate, {}, undefined, undefined, undefined)).toBeUndefined();
-            expect(translate).not.toHaveBeenCalled();
+            expect(translateMock).not.toHaveBeenCalled();
         });
 
         it('returns pre-trial billing copy when the trial has not started and has not ended', () => {
@@ -1312,7 +1319,7 @@ describe('SubscriptionUtils', () => {
             };
 
             expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial)).toBe('preTrial');
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.preTrial.title');
         });
 
         it('returns trial-started copy with remaining days when the user is currently on a free trial', () => {
@@ -1325,7 +1332,7 @@ describe('SubscriptionUtils', () => {
             const expectedRemainingDays = calculateRemainingFreeTrialDays(lastDayFreeTrial);
             const result = getFreeTrialText(accountID, translate, ownedPaidPolicies, introSelected, firstDayFreeTrial, lastDayFreeTrial);
 
-            expect(translate).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
+            expect(translateMock).toHaveBeenCalledWith('subscription.billingBanner.trialStarted.title', expectedRemainingDays);
             expect(result).toBe(`trialStarted:${expectedRemainingDays}`);
         });
 
@@ -1334,7 +1341,7 @@ describe('SubscriptionUtils', () => {
             const lastDayFreeTrial = formatDate(subDays(new Date(), 2), CONST.DATE.FNS_DATE_TIME_FORMAT_STRING);
 
             expect(getFreeTrialText(accountID, translate, ownedPaidPolicies, undefined, firstDayFreeTrial, lastDayFreeTrial)).toBeUndefined();
-            expect(translate).not.toHaveBeenCalled();
+            expect(translateMock).not.toHaveBeenCalled();
         });
     });
 
@@ -1449,6 +1456,72 @@ describe('SubscriptionUtils', () => {
 
         it('should return false when empty policies collection is passed', () => {
             expect(shouldCalculateBillNewDot(testUserAccountID, true, {})).toBeFalsy();
+        });
+    });
+
+    // Helper to format a Date as UTC string in the format the functions expect (yyyy-MM-dd HH:mm:ss)
+    function formatUTC(date: Date): string {
+        return date
+            .toISOString()
+            .replace('T', ' ')
+            .replace(/\.\d+Z$/, '');
+    }
+
+    describe('calculateTrialDayNumber', () => {
+        it('should return 0 when firstDayFreeTrial is undefined', () => {
+            expect(calculateTrialDayNumber(undefined)).toBe(0);
+        });
+
+        it('should return 0 when firstDayFreeTrial is in the future', () => {
+            const futureDate = formatUTC(addDays(new Date(), 2));
+            expect(calculateTrialDayNumber(futureDate)).toBe(0);
+        });
+
+        it('should return 1 on the first day of the trial', () => {
+            const today = formatUTC(new Date());
+            expect(calculateTrialDayNumber(today)).toBe(1);
+        });
+
+        it('should return the correct day number during the trial', () => {
+            const fiveDaysAgo = formatUTC(subDays(new Date(), 4));
+            expect(calculateTrialDayNumber(fiveDaysAgo)).toBe(5);
+        });
+
+        it('should return the correct day number for day 28', () => {
+            const day28 = formatUTC(subDays(new Date(), 27));
+            expect(calculateTrialDayNumber(day28)).toBe(28);
+        });
+    });
+
+    describe('calculateRemainingTrialSeconds', () => {
+        it('should return 0 when lastDayFreeTrial is undefined', () => {
+            expect(calculateRemainingTrialSeconds(undefined)).toBe(0);
+        });
+
+        it('should return 0 when the trial has already ended', () => {
+            const pastDate = formatUTC(subDays(new Date(), 1));
+            expect(calculateRemainingTrialSeconds(pastDate)).toBe(0);
+        });
+
+        it('should return a positive number when the trial is still active', () => {
+            const futureDate = formatUTC(addDays(new Date(), 1));
+            expect(calculateRemainingTrialSeconds(futureDate)).toBeGreaterThan(0);
+        });
+
+        it('should return approximately 3600 seconds when trial ends in 1 hour', () => {
+            const oneHourFromNow = formatUTC(new Date(Date.now() + 3600 * 1000));
+            const remaining = calculateRemainingTrialSeconds(oneHourFromNow);
+            // Allow 5 seconds tolerance for test execution time
+            expect(remaining).toBeGreaterThanOrEqual(3595);
+            expect(remaining).toBeLessThanOrEqual(3600);
+        });
+
+        it('should return approximately 86400 seconds when trial ends in 24 hours', () => {
+            const oneDayFromNow = formatUTC(new Date(Date.now() + 86400 * 1000));
+            const remaining = calculateRemainingTrialSeconds(oneDayFromNow);
+            // Allow 5 seconds tolerance for test execution time
+            expect(remaining).toBeGreaterThanOrEqual(86395);
+            expect(remaining).toBeLessThanOrEqual(86400);
         });
     });
 

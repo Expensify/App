@@ -12,7 +12,7 @@ const POLICY_ID = 'policy1';
 const EXPORT_NAME = 'Test Template';
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     queueExportSearchWithTemplate: jest.fn(() => 'mock-export-id'),
 }));
 
@@ -27,7 +27,7 @@ jest.mock('@libs/actions/Link', () => ({
     openOldDotLink: jest.fn(),
 }));
 
-jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusContext', () => ({
+jest.mock('@components/MoneyReportHeaderActions/ExportDownloadStatusProvider', () => ({
     useExportDownloadStatus: () => ({trackExport: mockTrackExport}),
 }));
 

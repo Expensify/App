@@ -38,7 +38,6 @@ function SearchAddApproverPage() {
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const [allReportNextSteps] = useOnyx(ONYXKEYS.COLLECTION.NEXT_STEP);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {selectedReports} = useSearchSelectionContext();
@@ -139,19 +138,18 @@ function SearchAddApproverPage() {
                 }
 
                 const hasViolations = hasViolationsReportUtils(report.reportID, transactionViolations, currentUserDetails.accountID, currentUserDetails.email ?? '');
-                const reportNextStep = allReportNextSteps?.[`${ONYXKEYS.COLLECTION.NEXT_STEP}${selectedReport.reportID}`];
-                addReportApprover(
+                addReportApprover({
                     report,
-                    selectedApproverEmail,
-                    Number(employeeAccountID),
-                    currentUserDetails.accountID,
-                    currentUserDetails.email ?? '',
+                    newApproverEmail: selectedApproverEmail,
+                    newApproverAccountID: Number(employeeAccountID),
+                    accountID: currentUserDetails.accountID,
+                    email: currentUserDetails.email ?? '',
                     policy,
                     hasViolations,
                     isASAPSubmitBetaEnabled,
-                    reportNextStep,
                     isTrackIntentUser,
-                );
+                    formatPhoneNumber,
+                });
             }
 
             // Note: This clears both reports and transactions
@@ -187,7 +185,7 @@ function SearchAddApproverPage() {
     }, [selectedReports.length]);
 
     if (isLoading) {
-        return <FullScreenLoadingIndicator reasonAttributes={{context: 'SearchAddApproverPage'}} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -202,7 +200,6 @@ function SearchAddApproverPage() {
             }
             isLoadingReportData={false}
             policy={allPolicies?.[`${ONYXKEYS.COLLECTION.POLICY}${selectedReports.at(0)?.policyID}`]}
-            initiallyFocusedOptionKey={selectedApproverEmail}
             shouldShowNotFoundViewLink={false}
             shouldShowNotFoundView={false}
             allApprovers={allApprovers}

@@ -37366,11 +37366,12 @@ const removeLeadingZero=value=>{const strValue=value.toString()
 if(0<value&&value<1&&strValue.startsWith("0"))return strValue.slice(1)
 if(-1<value&&value<0&&strValue[1]==="0")return strValue[0]+strValue.slice(2)
 return strValue}
+const hasScriptsEventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
 const hasScripts=node=>{if(node.name==="script"&&node.children.length!==0)return true
-if(node.name==="a"){const hasJsLinks=Object.entries(node.attributes).some((([attrKey,attrValue])=>(attrKey==="href"||attrKey.endsWith(":href"))&&attrValue!=null&&attrValue.trimStart().startsWith("javascript:")))
-if(hasJsLinks)return true}const eventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
-return eventAttrs.some((attr=>node.attributes[attr]!=null))}
+if(node.name==="a"){const hasJsLinks=Object.entries(node.attributes).some((([attrKey,attrValue])=>(attrKey==="href"||attrKey.endsWith(":href"))&&attrValue!=null&&attrValue.trimStart().toLowerCase().startsWith("javascript:")))
+if(hasJsLinks)return true}return hasScriptsEventAttrs.some((attr=>node.attributes[attr]!=null))}
 const includesUrlReference=body=>new RegExp(regReferencesUrl).test(body)
+const includesCssVarReference=body=>/var\s*\(\s*--/.test(body)
 const findReferences=(attribute,value)=>{const results=[]
 if(referencesProps.has(attribute)){const matches=value.matchAll(regReferencesUrl)
 for(const match of matches)results.push(match[2])}if(attribute==="href"||attribute.endsWith(":href")){const match=regReferencesHref.exec(value)
@@ -37459,8 +37460,8 @@ const description$E='rounds numeric values to the fixed precision, removes defau
 const regNumericValues$3=/^([-+]?\d*\.?\d+([eE][-+]?\d+)?)(px|pt|pc|mm|cm|m|in|ft|em|ex|%)?$/
 const absoluteLengths$1={cm:96/2.54,mm:96/25.4,in:96,pt:4/3,pc:16,px:1}
 const fn$E=(_root,params)=>{const{floatPrecision:floatPrecision=3,leadingZero:leadingZero=true,defaultPx:defaultPx=true,convertToPx:convertToPx=true}=params
-return{element:{enter:node=>{if(node.attributes.viewBox!=null){const nums=node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g)
-node.attributes.viewBox=nums.map((value=>{const num=Number(value)
+return{element:{enter:node=>{if(node.attributes.viewBox!=null){const numbers=node.attributes.viewBox.trim().split(/(?:\s,?|,)\s*/g)
+node.attributes.viewBox=numbers.map((value=>{const num=Number(value)
 return Number.isNaN(num)?value:Number(num.toFixed(floatPrecision))})).join(" ")}for(const[name,value]of Object.entries(node.attributes)){if(name==="version")continue
 const match=regNumericValues$3.exec(value)
 if(match){let num=Number(Number(match[1]).toFixed(floatPrecision))
@@ -37489,10 +37490,10 @@ if(currentColor&&maskCounter===0){let matched
 matched=typeof currentColor==="string"?val===currentColor:currentColor instanceof RegExp?currentColor.exec(val)!=null:val!=="none"
 matched&&(val="currentColor")}if(names2hex){const colorName=val.toLowerCase()
 colorsNames[colorName]!=null&&(val=colorsNames[colorName])}if(rgb2hex){const match=val.match(regRGB)
-if(match!=null){const nums=match.slice(1,4).map((m=>{let n
+if(match!=null){const numbers=match.slice(1,4).map((m=>{let n
 n=m.indexOf("%")>-1?Math.round(parseFloat(m)*2.55):Number(m)
 return Math.max(0,Math.min(n,255))}))
-val=convertRgbToHex(nums)}}convertCase&&!includesUrlReference(val)&&val!=="currentColor"&&(convertCase==="lower"?val=val.toLowerCase():convertCase==="upper"&&(val=val.toUpperCase()))
+val=convertRgbToHex(numbers)}}!convertCase||includesUrlReference(val)||includesCssVarReference(val)||val==="currentColor"||(convertCase==="lower"?val=val.toLowerCase():convertCase==="upper"&&(val=val.toUpperCase()))
 if(shorthex){const match=regHEX.exec(val)
 match!=null&&(val="#"+match[0][1]+match[0][3]+match[0][5])}if(shortname){const colorName=val.toLowerCase()
 colorsShortNames[colorName]!=null&&(val=colorsShortNames[colorName])}node.attributes[name]=val}},exit:node=>{node.name==="mask"&&maskCounter--}}}}
@@ -37530,7 +37531,7 @@ if(keepRoleAttr&&name==="role")continue
 if(name==="xmlns")continue
 if(name.includes(":")){const[prefix]=name.split(":")
 if(prefix!=="xml"&&prefix!=="xlink")continue}unknownAttrs&&allowedAttributes&&allowedAttributes.has(name)===false&&delete node.attributes[name]
-defaultAttrs&&node.attributes.id==null&&attributesDefaults&&attributesDefaults.get(name)===value&&computedParentStyle?.[name]==null&&delete node.attributes[name]
+defaultAttrs&&node.attributes.id==null&&attributesDefaults&&attributesDefaults.get(name)===value&&(computedParentStyle?.[name]!=null||stylesheet.rules.some((rule=>includesAttrSelector(rule.selector,name)))||delete node.attributes[name])
 if(uselessOverrides&&node.attributes.id==null){const style=computedParentStyle?.[name]
 presentationNonInheritableGroupAttrs.has(name)===false&&style!=null&&style.type==="static"&&style.value===value&&delete node.attributes[name]}}}}}}
 var removeUnknownsAndDefaults=Object.freeze({__proto__:null,description:description$C,fn:fn$C,name:name$C})
@@ -37630,8 +37631,7 @@ continue}if(command==null)return pathData
 let newCursor=i
 let number=null
 if(command==="A"||command==="a"){const position=args.length
-position!==0&&position!==1||c!=="+"&&c!=="-"&&([newCursor,number]=readNumber(string,i))
-position!==2&&position!==5&&position!==6||([newCursor,number]=readNumber(string,i))
+position!==0&&position!==1&&position!==2&&position!==5&&position!==6||([newCursor,number]=readNumber(string,i))
 if(position===3||position===4){c==="0"&&(number=0)
 c==="1"&&(number=1)}}else[newCursor,number]=readNumber(string,i)
 if(number==null)return pathData
@@ -37639,7 +37639,8 @@ args.push(number)
 canHaveComma=true
 hadComma=false
 i=newCursor
-if(args.length===argsCount){pathData.push({command:command,args:args})
+if(args.length===argsCount){if(command==="A"||command==="a"){args[0]=Math.abs(args[0])
+args[1]=Math.abs(args[1])}pathData.push({command:command,args:args})
 command==="M"&&(command="L")
 command==="m"&&(command="l")
 args=[]}}return pathData}
@@ -37683,10 +37684,7 @@ const value=node.attributes[attr]
 const id=value.slice(1)
 let refs=referencesById.get(id)
 if(!refs){refs=[]
-referencesById.set(id,refs)}refs.push({node:node,parentNode:parentNode})}const computedStyle=computeStyle(stylesheet,node)
-if(isHidden&&computedStyle.visibility&&computedStyle.visibility.type==="static"&&computedStyle.visibility.value==="hidden"&&querySelector(node,"[visibility=visible]")==null){removeElement(node,parentNode)
-return}if(displayNone&&computedStyle.display&&computedStyle.display.type==="static"&&computedStyle.display.value==="none"&&node.name!=="marker"){removeElement(node,parentNode)
-return}if(circleR0&&node.name==="circle"&&node.children.length===0&&node.attributes.r==="0"){removeElement(node,parentNode)
+referencesById.set(id,refs)}refs.push({node:node,parentNode:parentNode})}if(circleR0&&node.name==="circle"&&node.children.length===0&&node.attributes.r==="0"){removeElement(node,parentNode)
 return}if(ellipseRX0&&node.name==="ellipse"&&node.children.length===0&&node.attributes.rx==="0"){removeElement(node,parentNode)
 return}if(ellipseRY0&&node.name==="ellipse"&&node.children.length===0&&node.attributes.ry==="0"){removeElement(node,parentNode)
 return}if(rectWidth0&&node.name==="rect"&&node.children.length===0&&node.attributes.width==="0"){removeElement(node,parentNode)
@@ -37695,13 +37693,16 @@ return}if(patternWidth0&&node.name==="pattern"&&node.attributes.width==="0"){rem
 return}if(patternHeight0&&node.name==="pattern"&&node.attributes.height==="0"){removeElement(node,parentNode)
 return}if(imageWidth0&&node.name==="image"&&node.attributes.width==="0"){removeElement(node,parentNode)
 return}if(imageHeight0&&node.name==="image"&&node.attributes.height==="0"){removeElement(node,parentNode)
+return}if(polylineEmptyPoints&&node.name==="polyline"&&node.attributes.points==null){removeElement(node,parentNode)
+return}if(polygonEmptyPoints&&node.name==="polygon"&&node.attributes.points==null){removeElement(node,parentNode)
+return}const computedStyle=computeStyle(stylesheet,node)
+if(isHidden&&computedStyle.visibility&&computedStyle.visibility.type==="static"&&computedStyle.visibility.value==="hidden"&&querySelector(node,"[visibility=visible]")==null){removeElement(node,parentNode)
+return}if(displayNone&&computedStyle.display&&computedStyle.display.type==="static"&&computedStyle.display.value==="none"&&node.name!=="marker"){removeElement(node,parentNode)
 return}if(pathEmptyD&&node.name==="path"){if(node.attributes.d==null){removeElement(node,parentNode)
 return}const pathData=parsePathData(node.attributes.d)
 if(pathData.length===0){removeElement(node,parentNode)
 return}if(pathData.length===1&&computedStyle["marker-start"]==null&&computedStyle["marker-end"]==null){removeElement(node,parentNode)
-return}}if(polylineEmptyPoints&&node.name==="polyline"&&node.attributes.points==null){removeElement(node,parentNode)
-return}if(polygonEmptyPoints&&node.name==="polygon"&&node.attributes.points==null){removeElement(node,parentNode)
-return}for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
+return}}for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
 for(const id of ids)allReferences.add(id)}}},root:{exit:()=>{for(const id of removedDefIds){const refs=referencesById.get(id)
 if(refs)for(const{node:node,parentNode:parentNode}of refs)detachNodeFromParent(node,parentNode)}if(!deoptimized)for(const[nonRenderedNode,nonRenderedParent]of nonRenderedNodes.entries())canRemoveNonRenderingNode(nonRenderedNode)&&detachNodeFromParent(nonRenderedNode,nonRenderedParent)
 for(const[node,parentNode]of allDefs.entries())node.children.length===0&&detachNodeFromParent(node,parentNode)}}}}
@@ -38316,12 +38317,13 @@ if(makeArcs){arcThreshold=makeArcs.threshold
 arcTolerance=makeArcs.tolerance}const hasMarkerMid=computedStyle["marker-mid"]!=null
 const maybeHasStroke=computedStyle.stroke&&(computedStyle.stroke.type==="dynamic"||computedStyle.stroke.value!=="none")
 const maybeHasLinecap=computedStyle["stroke-linecap"]&&(computedStyle["stroke-linecap"].type==="dynamic"||computedStyle["stroke-linecap"].value!=="butt")
-const maybeHasStrokeAndLinecap=maybeHasStroke&&maybeHasLinecap
 const isSafeToUseZ=!maybeHasStroke||computedStyle["stroke-linecap"]?.type==="static"&&computedStyle["stroke-linecap"].value==="round"&&computedStyle["stroke-linejoin"]?.type==="static"&&computedStyle["stroke-linejoin"].value==="round"
+const isSafeToRemove=(isFirstDraw,safeIfNotFirstDraw)=>{if(!maybeHasStroke)return true
+return isFirstDraw?!maybeHasLinecap:safeIfNotFirstDraw}
 let data=path2js(node)
 if(data.length){const includesVertices=data.some((item=>item.command!=="m"&&item.command!=="M"))
 convertToRelative(data)
-data=filters(data,newParams,{isSafeToUseZ:isSafeToUseZ,maybeHasStrokeAndLinecap:maybeHasStrokeAndLinecap,hasMarkerMid:hasMarkerMid})
+data=filters(data,newParams,{isSafeToUseZ:isSafeToUseZ,isSafeToRemove:isSafeToRemove,hasMarkerMid:hasMarkerMid})
 utilizeAbsolute&&(data=convertToMixed(data,newParams))
 const hasMarker=node.attributes["marker-start"]!=null||node.attributes["marker-end"]!=null
 const isMarkersOnlyPath=hasMarker&&includesVertices&&data.every((item=>item.command==="m"||item.command==="M"))
@@ -38335,25 +38337,25 @@ let{command:command,args:args}=pathItem
 if(command==="m"){cursor[0]+=args[0]
 cursor[1]+=args[1]
 start[0]=cursor[0]
-start[1]=cursor[1]}if(command==="M"){i!==0&&(command="m")
+start[1]=cursor[1]}else if(command==="M"){i!==0&&(command="m")
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
 cursor[1]+=args[1]
 start[0]=cursor[0]
-start[1]=cursor[1]}if(command==="l"){cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="L"){command="l"
+start[1]=cursor[1]}else if(command==="l"){cursor[0]+=args[0]
+cursor[1]+=args[1]}else if(command==="L"){command="l"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
-cursor[1]+=args[1]}command==="h"&&(cursor[0]+=args[0])
-if(command==="H"){command="h"
+cursor[1]+=args[1]}else if(command==="h")cursor[0]+=args[0]
+else if(command==="H"){command="h"
 args[0]-=cursor[0]
-cursor[0]+=args[0]}command==="v"&&(cursor[1]+=args[0])
-if(command==="V"){command="v"
+cursor[0]+=args[0]}else if(command==="v")cursor[1]+=args[0]
+else if(command==="V"){command="v"
 args[0]-=cursor[1]
-cursor[1]+=args[0]}if(command==="c"){cursor[0]+=args[4]
-cursor[1]+=args[5]}if(command==="C"){command="c"
+cursor[1]+=args[0]}else if(command==="c"){cursor[0]+=args[4]
+cursor[1]+=args[5]}else if(command==="C"){command="c"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
@@ -38361,37 +38363,37 @@ args[3]-=cursor[1]
 args[4]-=cursor[0]
 args[5]-=cursor[1]
 cursor[0]+=args[4]
-cursor[1]+=args[5]}if(command==="s"){cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="S"){command="s"
+cursor[1]+=args[5]}else if(command==="s"){cursor[0]+=args[2]
+cursor[1]+=args[3]}else if(command==="S"){command="s"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
 args[3]-=cursor[1]
 cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="q"){cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="Q"){command="q"
+cursor[1]+=args[3]}else if(command==="q"){cursor[0]+=args[2]
+cursor[1]+=args[3]}else if(command==="Q"){command="q"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 args[2]-=cursor[0]
 args[3]-=cursor[1]
 cursor[0]+=args[2]
-cursor[1]+=args[3]}if(command==="t"){cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="T"){command="t"
+cursor[1]+=args[3]}else if(command==="t"){cursor[0]+=args[0]
+cursor[1]+=args[1]}else if(command==="T"){command="t"
 args[0]-=cursor[0]
 args[1]-=cursor[1]
 cursor[0]+=args[0]
-cursor[1]+=args[1]}if(command==="a"){cursor[0]+=args[5]
-cursor[1]+=args[6]}if(command==="A"){command="a"
+cursor[1]+=args[1]}else if(command==="a"){cursor[0]+=args[5]
+cursor[1]+=args[6]}else if(command==="A"){command="a"
 args[5]-=cursor[0]
 args[6]-=cursor[1]
 cursor[0]+=args[5]
-cursor[1]+=args[6]}if(command==="Z"||command==="z"){cursor[0]=start[0]
+cursor[1]+=args[6]}else if(command==="Z"||command==="z"){cursor[0]=start[0]
 cursor[1]=start[1]}pathItem.command=command
 pathItem.args=args
 pathItem.base=prevCoords
 pathItem.coords=[cursor[0],cursor[1]]
 prevCoords=pathItem.coords}return pathData}
-function filters(path,params,{isSafeToUseZ:isSafeToUseZ,maybeHasStrokeAndLinecap:maybeHasStrokeAndLinecap,hasMarkerMid:hasMarkerMid}){const stringify=data2Path.bind(null,params)
+function filters(path,params,{isSafeToUseZ:isSafeToUseZ,isSafeToRemove:isSafeToRemove,hasMarkerMid:hasMarkerMid}){const stringify=data2Path.bind(null,params)
 const relSubpoint=[0,0]
 const pathBase=[0,0]
 let prev={}
@@ -38473,9 +38475,9 @@ if(!(Math.abs(sagitta-sagittaNew)<error))break
 data[0]=radius
 data[1]=radius}if(params.straightCurves)if(command==="c"&&isCurveStraightLine(data)||command==="s"&&isCurveStraightLine(sdata)){next&&next.command=="s"&&makeLonghand(next,data)
 command="l"
-data=data.slice(-2)}else if(command==="q"&&isCurveStraightLine(data)){next&&next.command=="t"&&makeLonghand(next,data)
-command="l"
-data=data.slice(-2)}else if(command==="t"&&prev.command!=="q"&&prev.command!=="t"){command="l"
+data=data.slice(-2)}else if(command==="q"&&isCurveStraightLine(data)||command==="t"&&prev.command!=="q"&&prev.command!=="t"){command=="q"&&next&&next.command=="t"&&makeLonghand(next,data)
+if(command=="t"&&next&&next.command=="t"){next.command="q"
+next.args.unshift(2*item.coords[0]-item.base[0]-item.coords[0],2*item.coords[1]-item.base[1]-item.coords[1])}command="l"
 data=data.slice(-2)}else if(command==="a"&&(data[0]===0||data[1]===0||sagitta!==void 0&&sagitta<error)){command="l"
 data=data.slice(-2)}if(params.convertToQ&&command=="c"){const x1=0.75*(item.base[0]+data[0])-0.25*item.base[0]
 const x2=0.75*(item.base[0]+data[2])-0.25*(item.base[0]+data[4])
@@ -38501,13 +38503,13 @@ data=data.slice(2)}}else if(command==="q")if(prev.command==="q"&&Math.abs(data[0
 data=data.slice(2)}else if(prev.command==="t"){const predictedControlPoint=reflectPoint(qControlPoint,item.base)
 const realControlPoint=[data[0]+item.base[0],data[1]+item.base[1]]
 if(Math.abs(predictedControlPoint[0]-realControlPoint[0])<error&&Math.abs(predictedControlPoint[1]-realControlPoint[1])<error){command="t"
-data=data.slice(2)}}if(params.removeUseless&&!maybeHasStrokeAndLinecap){if((command==="l"||command==="h"||command==="v"||command==="q"||command==="t"||command==="c"||command==="s")&&data.every((function(i){return i===0}))){path[index]=prev
+data=data.slice(2)}}if(params.removeUseless&&isSafeToRemove(prev.command=="m"||prev.command=="M",true)){if((command==="l"||command==="h"||command==="v"||command==="q"||command==="t"||command==="c"||command==="s")&&data.every((function(i){return i===0}))){path[index]=prev
 return false}if(command==="a"&&data[5]===0&&data[6]===0){path[index]=prev
 return false}}if(params.convertToZ&&(isSafeToUseZ||next?.command==="Z"||next?.command==="z")&&(command==="l"||command==="h"||command==="v")&&Math.abs(pathBase[0]-item.coords[0])<error&&Math.abs(pathBase[1]-item.coords[1])<error){command="z"
 data=[]}item.command=command
 item.args=data}else{relSubpoint[0]=pathBase[0]
 relSubpoint[1]=pathBase[1]
-if(prev.command==="Z"||prev.command==="z")return false}if((command==="Z"||command==="z")&&params.removeUseless&&isSafeToUseZ&&Math.abs(item.base[0]-item.coords[0])<error/10&&Math.abs(item.base[1]-item.coords[1])<error/10)return false
+if(prev.command==="Z"||prev.command==="z")return false}if((command==="Z"||command==="z")&&params.removeUseless&&isSafeToRemove(prev.command=="m"||prev.command=="M",isSafeToUseZ)&&Math.abs(item.base[0]-item.coords[0])<error/10&&Math.abs(item.base[1]-item.coords[1])<error/10)return false
 prevQControlPoint=command==="q"?[data[0]+item.base[0],data[1]+item.base[1]]:command==="t"?qControlPoint?reflectPoint(qControlPoint,item.base):item.coords:void 0
 prev=item
 return true}))
@@ -38615,12 +38617,19 @@ var removeEmptyAttrs=Object.freeze({__proto__:null,description:description$p,fn:
 const name$o="removeEmptyContainers"
 const description$o="removes empty container elements"
 const fn$o=root=>{const stylesheet=collectStylesheet(root)
-return{element:{exit:(node,parentNode)=>{if(node.name==="svg"||!elemsGroups.container.has(node.name)||node.children.length!==0)return
+const removedIds=new Set
+const usesById=new Map
+return{element:{enter:(node,parentNode)=>{if(node.name==="use")for(const[name,value]of Object.entries(node.attributes)){const ids=findReferences(name,value)
+for(const id of ids){let references=usesById.get(id)
+if(references===void 0){references=[]
+usesById.set(id,references)}references.push({node:node,parent:parentNode})}}},exit:(node,parentNode)=>{if(node.name==="svg"||!elemsGroups.container.has(node.name)||node.children.length!==0)return
 if(node.name==="pattern"&&Object.keys(node.attributes).length!==0)return
 if(node.name==="mask"&&node.attributes.id!=null)return
 if(parentNode.type==="element"&&parentNode.name==="switch")return
 if(node.name==="g"&&(node.attributes.filter!=null||computeStyle(stylesheet,node).filter))return
-detachNodeFromParent(node,parentNode)}}}}
+detachNodeFromParent(node,parentNode)
+node.attributes.id&&removedIds.add(node.attributes.id)}},root:{exit:()=>{for(const id of removedIds){const uses=usesById.get(id)
+if(uses)for(const use of uses)detachNodeFromParent(use.node,use.parent)}}}}}
 var removeEmptyContainers=Object.freeze({__proto__:null,description:description$o,fn:fn$o,name:name$o})
 const name$n="mergePaths"
 const description$n="merges multiple paths in one if possible"
@@ -38629,7 +38638,7 @@ if(style?.type==="static")return includesUrlReference(style.value)
 return false}const fn$n=(root,params)=>{const{force:force=false,floatPrecision:floatPrecision=3,noSpaceAfterFlags:noSpaceAfterFlags=false}=params
 const stylesheet=collectStylesheet(root)
 return{element:{enter:node=>{if(node.children.length<=1)return
-const elementsToRemove=[]
+const elementsToRemove=new Set
 let prevChild=node.children[0]
 let prevPathData=null
 const updatePreviousPath=(child,pathData)=>{js2path(child,pathData,{floatPrecision:floatPrecision,noSpaceAfterFlags:noSpaceAfterFlags})
@@ -38652,11 +38661,11 @@ continue}const hasPrevPath=prevPathData!=null
 const currentPathData=path2js(child)
 prevPathData=prevPathData??path2js(prevChild)
 if(force||!intersects(prevPathData,currentPathData)){prevPathData.push(...currentPathData)
-elementsToRemove.push(child)
+elementsToRemove.add(child)
 continue}hasPrevPath&&updatePreviousPath(prevChild,prevPathData)
 prevChild=child
 prevPathData=null}prevPathData&&prevChild.type==="element"&&updatePreviousPath(prevChild,prevPathData)
-node.children=node.children.filter((child=>!elementsToRemove.includes(child)))}}}}
+node.children=node.children.filter((child=>!elementsToRemove.has(child)))}}}}
 var mergePaths=Object.freeze({__proto__:null,description:description$n,fn:fn$n,name:name$n})
 const name$m="removeUnusedNS"
 const description$m="removes unused namespaces declaration"
@@ -38857,7 +38866,9 @@ node.attributes[name]=parts.join("; ")}}}}}
 var prefixIds=Object.freeze({__proto__:null,description:description$d,fn:fn$d,name:name$d})
 const name$c="removeAttributesBySelector"
 const description$c="removes attributes of elements that match a css selector"
-const fn$c=(root,params)=>{const selectors=Array.isArray(params.selectors)?params.selectors:[params]
+const ENOATTRS$1='Warning: The plugin "removeAttributesBySelector" is missing parameters.\nIt should have a list of "selectors", or one "selector" and one "attributes".\nWithout either, the plugin is a noop.'
+const fn$c=(root,params)=>{if(!Array.isArray(params.selectors)&&(!params.selector||!params.attributes)){console.warn(ENOATTRS$1)
+return null}const selectors=Array.isArray(params.selectors)?params.selectors:[params]
 for(const{selector:selector,attributes:attributes}of selectors){const nodes=querySelectorAll(root,selector)
 for(const node of nodes)if(node.type==="element")if(Array.isArray(attributes))for(const name of attributes)delete node.attributes[name]
 else delete node.attributes[attributes]}return{}}
@@ -38888,7 +38899,7 @@ delete node.attributes.width
 delete node.attributes.height}}}})
 var removeDimensions=Object.freeze({__proto__:null,description:description$a,fn:fn$a,name:name$a})
 const name$9="removeElementsByAttr"
-const description$9="removes arbitrary elements by ID or className (disabled by default)"
+const description$9="removes arbitrary elements by ID or className"
 const fn$9=(root,params)=>{const ids=params.id==null?[]:Array.isArray(params.id)?params.id:[params.id]
 const classes=params.class==null?[]:Array.isArray(params.class)?params.class:[params.class]
 return{element:{enter:(node,parentNode)=>{node.attributes.id!=null&&ids.length!==0&&ids.includes(node.attributes.id)&&detachNodeFromParent(node,parentNode)
@@ -38897,7 +38908,7 @@ for(const item of classes)if(classList.includes(item)){detachNodeFromParent(node
 break}}}}}}
 var removeElementsByAttr=Object.freeze({__proto__:null,description:description$9,fn:fn$9,name:name$9})
 const name$8="removeOffCanvasPaths"
-const description$8="removes elements that are drawn outside of the viewBox (disabled by default)"
+const description$8="removes elements that are drawn outside of the viewBox"
 const fn$8=()=>{let viewBoxData=null
 return{element:{enter:(node,parentNode)=>{if(node.name==="svg"&&parentNode.type==="root"){let viewBox=""
 node.attributes.viewBox!=null?viewBox=node.attributes.viewBox:node.attributes.height!=null&&node.attributes.width!=null&&(viewBox=`0 0 ${node.attributes.width} ${node.attributes.height}`)
@@ -38919,21 +38930,31 @@ const viewBoxPathData=[{command:"M",args:[left,top]},{command:"h",args:[width]},
 intersects(viewBoxPathData,pathData)===false&&detachNodeFromParent(node,parentNode)}}}}}
 var removeOffCanvasPaths=Object.freeze({__proto__:null,description:description$8,fn:fn$8,name:name$8})
 const name$7="removeRasterImages"
-const description$7="removes raster images (disabled by default)"
+const description$7="removes raster images"
 const fn$7=()=>({element:{enter:(node,parentNode)=>{node.name==="image"&&node.attributes["xlink:href"]!=null&&/(\.|image\/)(jpe?g|png|gif)/.test(node.attributes["xlink:href"])&&detachNodeFromParent(node,parentNode)}}})
 var removeRasterImages=Object.freeze({__proto__:null,description:description$7,fn:fn$7,name:name$7})
 const name$6="removeScripts"
-const description$6="removes scripts (disabled by default)"
+const description$6="removes scripts"
 const eventAttrs=[...attrsGroups.animationEvent,...attrsGroups.documentEvent,...attrsGroups.documentElementEvent,...attrsGroups.globalEvent,...attrsGroups.graphicalEvent]
-const fn$6=()=>({element:{enter:(node,parentNode)=>{if(node.name==="script"){detachNodeFromParent(node,parentNode)
-return}for(const attr of eventAttrs)node.attributes[attr]!=null&&delete node.attributes[attr]},exit:(node,parentNode)=>{if(node.name!=="a")return
-for(const attr of Object.keys(node.attributes))if(attr==="href"||attr.endsWith(":href")){if(node.attributes[attr]==null||!node.attributes[attr].trimStart().startsWith("javascript:"))continue
+const SCRIPT_NAMESPACES=["http://www.w3.org/2000/svg","http://www.w3.org/1999/xhtml"]
+function isNamespaceAwareElem(elem,targetElem,prefixes,targetNamespaces){if(elem===targetElem)return true
+if(elem.includes(":")){const[prefix,effectiveTag]=elem.split(":",2)
+if(targetElem===effectiveTag){const namespaces=prefixes.get(prefix)
+const namespace=namespaces[namespaces.length-1]
+return targetNamespaces.includes(namespace)}}return false}const fn$6=()=>{const prefixes=new Map
+return{element:{enter:(node,parentNode)=>{for(const[k,v]of Object.entries(node.attributes)){if(!k.startsWith("xmlns:"))continue
+const prefix=k.slice(6)
+prefixes.has(prefix)?prefixes.get(prefix).push(v):prefixes.set(prefix,[v])}if(isNamespaceAwareElem(node.name,"script",prefixes,SCRIPT_NAMESPACES)){detachNodeFromParent(node,parentNode)
+return}for(const attr of eventAttrs)node.attributes[attr]!=null&&delete node.attributes[attr]},exit:(node,parentNode)=>{for(const k of Object.keys(node.attributes)){if(!k.startsWith("xmlns:"))continue
+const prefix=k.slice(6)
+prefixes.get(prefix).pop()}if(node.name!=="a")return
+for(const attr of Object.keys(node.attributes))if(attr==="href"||attr.endsWith(":href")){if(node.attributes[attr]==null||!node.attributes[attr].trimStart().toLowerCase().startsWith("javascript:"))continue
 const index=parentNode.children.indexOf(node)
 const usefulChildren=node.children.filter((child=>child.type!=="text"))
-parentNode.children.splice(index,1,...usefulChildren)}}}})
+parentNode.children.splice(index,1,...usefulChildren)}}}}}
 var removeScripts=Object.freeze({__proto__:null,description:description$6,fn:fn$6,name:name$6})
 const name$5="removeStyleElement"
-const description$5="removes <style> element (disabled by default)"
+const description$5="removes <style> element"
 const fn$5=()=>({element:{enter:(node,parentNode)=>{node.name==="style"&&detachNodeFromParent(node,parentNode)}}})
 var removeStyleElement=Object.freeze({__proto__:null,description:description$5,fn:fn$5,name:name$5})
 const name$4="removeTitle"
@@ -38944,8 +38965,8 @@ const name$3="removeViewBox"
 const description$3="removes viewBox attribute when possible"
 const viewBoxElems=new Set(["pattern","svg","symbol"])
 const fn$3=()=>({element:{enter:(node,parentNode)=>{if(viewBoxElems.has(node.name)&&node.attributes.viewBox!=null&&node.attributes.width!=null&&node.attributes.height!=null){if(node.name==="svg"&&parentNode.type!=="root")return
-const nums=node.attributes.viewBox.split(/[ ,]+/g)
-nums[0]==="0"&&nums[1]==="0"&&node.attributes.width.replace(/px$/,"")===nums[2]&&node.attributes.height.replace(/px$/,"")===nums[3]&&delete node.attributes.viewBox}}}})
+const numbers=node.attributes.viewBox.split(/[ ,]+/g)
+numbers[0]==="0"&&numbers[1]==="0"&&node.attributes.width.replace(/px$/,"")===numbers[2]&&node.attributes.height.replace(/px$/,"")===numbers[3]&&delete node.attributes.viewBox}}}})
 var removeViewBox=Object.freeze({__proto__:null,description:description$3,fn:fn$3,name:name$3})
 const name$2="removeXlink"
 const description$2="remove xlink namespace and replaces attributes with the SVG 2 equivalent where applicable"
@@ -38991,7 +39012,7 @@ continue}if(overriddenPrefixes.includes(prefix)){const index=overriddenPrefixes.
 overriddenPrefixes.splice(index,1)}}}}}}}
 var removeXlink=Object.freeze({__proto__:null,description:description$2,fn:fn$2,name:name$2})
 const name$1="removeXMLNS"
-const description$1="removes xmlns attribute (for inline svg, disabled by default)"
+const description$1="removes xmlns attribute (for inline svg)"
 const fn$1=()=>({element:{enter:node=>{node.name==="svg"&&delete node.attributes.xmlns}}})
 var removeXMLNS=Object.freeze({__proto__:null,description:description$1,fn:fn$1,name:name$1})
 const name="reusePaths"
@@ -39151,7 +39172,7 @@ for(const[name,value]of Object.entries(node.attributes)){attrs+=" "+name
 if(value!==void 0){const encodedValue=value.toString().replace(config.regValEntities,config.encodeEntity)
 attrs+=config.attrStart+encodedValue+config.attrEnd}}return attrs}
 const stringifyText=(node,config,state)=>createIndent(config,state)+config.textStart+node.value.replace(config.regEntities,config.encodeEntity)+(state.textContext?"":config.textEnd)
-const VERSION="4.0.0"
+const VERSION="4.0.2"
 const pluginsMap=new Map
 for(const plugin of builtinPlugins)pluginsMap.set(plugin.name,plugin)
 function getPlugin(name){if(name==="removeScriptElement"){console.warn("Warning: removeScriptElement has been renamed to removeScripts, please update your SVGO config")

@@ -8,6 +8,7 @@ import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hook
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import usePolicy from '@hooks/usePolicy';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -19,6 +20,7 @@ import variables from '@styles/variables';
 import ROUTES from '@src/ROUTES';
 
 import React from 'react';
+import {View} from 'react-native';
 
 type RulesAgentsTabProps = {
     policyID: string;
@@ -30,6 +32,7 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {isOffline} = useNetwork();
     const policy = usePolicy(policyID);
     const illustrations = useMemoizedLazyIllustrations(['AgentsIceCream']);
@@ -85,24 +88,26 @@ function RulesAgentsTab({policyID, canWriteRules, showReadOnlyModal}: RulesAgent
     return (
         <ScrollView
             style={[styles.flex1, styles.mnh0]}
-            contentContainerStyle={styles.flexGrow1}
+            contentContainerStyle={[styles.flexGrow1, styles.w100]}
             addBottomSafeAreaPadding
         >
-            <Section
-                isCentralPane
-                renderTitle={renderTitle}
-                renderSubtitle={renderSubtitle}
-                containerStyles={styles.mh5}
-            >
-                <AgentRulesList
-                    policyID={policyID}
-                    rules={visibleRules}
-                    canWriteRules={canWriteRules}
-                    showReadOnlyModal={showReadOnlyModal}
-                    listContainerStyle={[styles.mt6, styles.gap2]}
-                    menuItemWrapperStyle={styles.justifyContentCenter}
-                />
-            </Section>
+            <View style={[styles.w100, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection]}>
+                <Section
+                    isCentralPane
+                    renderTitle={renderTitle}
+                    renderSubtitle={renderSubtitle}
+                    containerStyles={styles.mh5}
+                >
+                    <AgentRulesList
+                        policyID={policyID}
+                        rules={visibleRules}
+                        canWriteRules={canWriteRules}
+                        showReadOnlyModal={showReadOnlyModal}
+                        listContainerStyle={[styles.mt6, styles.gap2]}
+                        menuItemWrapperStyle={styles.justifyContentCenter}
+                    />
+                </Section>
+            </View>
         </ScrollView>
     );
 }

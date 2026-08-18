@@ -35,6 +35,10 @@ Before you begin:
 
 When the transfer is complete, you'll see a confirmation message that you're now the Workspace owner.
 
+![The Workspace Members page with the Owner highlighted]({{site.url}}/assets/images/ExpensiHelp-Transfer-Workspace-Ownership-1.png){:width="100%"}
+
+![The member detail panel for the current Workspace owner (opened from Workspaces > [workspace name] > Members) with the "Transfer owner" button visible]({{site.url}}/assets/images/ExpensiHelp-Transfer-Workspace-Ownership-2.png){:width="100%"}
+
 ---
 
 ## What happens after you transfer Workspace ownership
