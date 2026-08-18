@@ -22,12 +22,6 @@ type NavigationRouteWithState = {
     };
 };
 
-function getWorkspaceRouteSuffix(route: string): string | undefined {
-    const normalizedRoute = route.replace(/\?.*$/, '');
-    const match = normalizedRoute.match(WORKSPACE_ROUTE_PATTERN);
-    return match?.[1] ?? '';
-}
-
 function findWorkspaceSidebarRoute(route: NavigationRouteWithState | undefined): {sidebarRoute: NavigationRouteWithState; splitStateKey?: string} | undefined {
     if (!route) {
         return undefined;
@@ -74,8 +68,7 @@ function navigateToWorkspaceSettingsRoute(targetRoute: Route, policyID: string, 
     }
 
     const activeRoute = Navigation.getActiveRouteWithoutParams();
-    const targetSuffix = getWorkspaceRouteSuffix(targetRoute);
-    const isWorkspaceSettingsTransition = targetSuffix !== undefined && activeRoute !== targetRoute && WORKSPACE_ROUTE_PATTERN.test(activeRoute);
+    const isWorkspaceSettingsTransition = WORKSPACE_ROUTE_PATTERN.test(targetRoute) && activeRoute !== targetRoute && WORKSPACE_ROUTE_PATTERN.test(activeRoute);
 
     if (!isWorkspaceSettingsTransition) {
         Navigation.navigate(targetRoute);

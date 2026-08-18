@@ -83,6 +83,17 @@ describe('navigateToWorkspaceSettingsRoute', () => {
         expect(Navigation.setParams).not.toHaveBeenCalled();
     });
 
+    it('navigates directly when the target page is not a Workspace setting', () => {
+        const targetRoute = ROUTES.HOME;
+        jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-a'));
+        mockWorkspaceNavigationState('workspace-a');
+
+        navigateToWorkspaceSettingsRoute(targetRoute, 'workspace-b', false);
+
+        expect(Navigation.navigate).toHaveBeenCalledWith(targetRoute);
+        expect(Navigation.setParams).not.toHaveBeenCalled();
+    });
+
     it('updates the sidebar policy before replacing a different Workspace page', () => {
         const targetRoute = ROUTES.WORKSPACE_MEMBERS.getRoute('workspace-b');
         jest.mocked(Navigation.getActiveRouteWithoutParams).mockReturnValue(ROUTES.WORKSPACE_WORKFLOWS.getRoute('workspace-a'));
