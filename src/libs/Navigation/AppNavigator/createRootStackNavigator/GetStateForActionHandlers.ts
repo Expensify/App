@@ -449,7 +449,8 @@ function handleReplaceFullscreenUnderRHP(
         }
         const staleTabState = existingTabState ? markFocusedTabRouteForRemount(updatedTabState, existingTabState) : updatedTabState;
 
-        const updatedTabRoute = {...existingTabRoute, state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
+        // Drop consumed deep-link hints before remounting, or React Navigation can replay the old target over the new state.
+        const updatedTabRoute = {...withSanitizedDeepLinkParams(existingTabRoute, undefined), state: staleTabState} as StackNavigationState<ParamListBase>['routes'][number];
         // Save original route so handleRemoveFullscreenUnderRHP can fully restore it on cancel.
         // In the cold-start fallback the tab navigator has no nested state yet, so saving the raw
         // route would leave it stateless and the dismiss-restore path (removePreInsertedFullscreenIfNeeded)
