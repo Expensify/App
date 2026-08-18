@@ -415,7 +415,7 @@ describe('WorkspaceTravelBillingSection', () => {
             expect(payButton).toBeNull();
         });
 
-        it('should show confirmation modal and call payTravelInvoicingSpend on confirm', async () => {
+        it('should show confirmation modal and call payTravelBillingSpend on confirm', async () => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, mockPolicy);
                 await Onyx.merge(cardSettingsKey, {
@@ -453,7 +453,7 @@ describe('WorkspaceTravelBillingSection', () => {
             }
             await waitForBatchedUpdatesWithAct();
 
-            expect(payTravelBillingSpend).toHaveBeenCalledWith(WORKSPACE_ACCOUNT_ID, 5000);
+            expect(payTravelBillingSpend).toHaveBeenCalledWith(POLICY_ID, WORKSPACE_ACCOUNT_ID, 5000);
         });
 
         it('should hide Pay Balance button and show queued message when settlement is pending', async () => {
