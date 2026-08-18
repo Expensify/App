@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import MoneyRequestAmountInput from '@components/MoneyRequestAmountInput';
 import type {MoneyRequestAmountInputProps} from '@components/MoneyRequestAmountInput';
 import type {NumberWithSymbolFormRef} from '@components/NumberWithSymbolForm';
@@ -256,18 +256,17 @@ function MoneyRequestAmountForm({
                     />
                 ) : (
                     <Button
-                        success
-                        // Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked.
-                        allowBubble={!isEditing}
-                        pressOnEnter
-                        medium={isExtraSmallScreenHeight}
-                        large={!isExtraSmallScreenHeight}
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        size={isExtraSmallScreenHeight ? CONST.BUTTON_SIZE.MEDIUM : CONST.BUTTON_SIZE.LARGE}
                         style={[styles.w100, canUseTouchScreen ? styles.mt5 : styles.mt0]}
                         onPress={() => submitAndNavigateToNextPage()}
-                        text={buttonText}
                         testID="next-button"
                         sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.AMOUNT_NEXT_BUTTON}
-                    />
+                    >
+                        {/* Prevent bubbling on edit amount Page to prevent double page submission when two CTA are stacked. */}
+                        <Button.KeyboardShortcut allowBubble={!isEditing} />
+                        <Button.Text>{buttonText}</Button.Text>
+                    </Button>
                 )}
             </View>
         ),

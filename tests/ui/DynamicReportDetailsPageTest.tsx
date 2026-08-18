@@ -25,6 +25,7 @@ import Onyx from 'react-native-onyx';
 import createRandomReportAction from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
+import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -61,8 +62,8 @@ jest.mock('@react-navigation/native', () => {
 jest.mock('@libs/Navigation/helpers/isReportTopmostSplitNavigator');
 const mockIsReportTopmostSplitNavigator = jest.mocked(isReportTopmostSplitNavigator);
 
-const navigationMock = {} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation'];
-const getRouteMock = (reportID: string) => ({params: {reportID}}) as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route'];
+const navigationMock = createMock<PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']>({});
+const getRouteMock = (reportID: string) => createMock<PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']>({params: {reportID}});
 
 describe('DynamicReportDetailsPage', () => {
     beforeAll(() => {
@@ -129,7 +130,7 @@ describe('DynamicReportDetailsPage', () => {
             </OnyxListItemProvider>,
         );
         await waitForBatchedUpdatesWithAct();
-        const submitText = translateLocal('actionableMentionTrackExpense.submit');
+        const submitText = translateLocal('actionableMentionTrackExpense.submitToEmployer');
         await screen.findByText(submitText);
 
         // Categorize and share are temporarily disabled
