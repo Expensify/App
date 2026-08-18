@@ -108,6 +108,19 @@ describe('betaChecker (android)', () => {
             await expect(getOnyxValue(ONYXKEYS.IS_BETA)).resolves.toBe(false);
         });
 
+        it.each([[true], [false]])('keeps the last saved verdict of %s when the response carries no usable tag', async (lastSavedVerdict) => {
+            // A rate limited response has no tag_name, and a malformed one may not be a valid semver. Neither says
+            // anything about this build, so reporting production would flip a staging tester mid-session.
+            global.fetch = jest.fn().mockResolvedValue({json: () => Promise.resolve({})});
+            await Onyx.set(ONYXKEYS.IS_BETA, lastSavedVerdict);
+            await waitForBatchedUpdates();
+
+            await expect(betaChecker.isBetaBuild()).resolves.toBe(lastSavedVerdict);
+
+            await waitForBatchedUpdates();
+            await expect(getOnyxValue(ONYXKEYS.IS_BETA)).resolves.toBe(lastSavedVerdict);
+        });
+
         it.each([[true], [false]])('falls back to the last saved verdict of %s when the request fails', async (lastSavedVerdict) => {
             global.fetch = jest.fn().mockRejectedValue(new Error('offline'));
             await Onyx.set(ONYXKEYS.IS_BETA, lastSavedVerdict);

@@ -58,9 +58,12 @@ function isBetaBuild(): IsBetaBuild {
             .then((res) => res.json())
             .then((json: GithubReleaseJSON) => {
                 const productionVersion = json.tag_name;
-                if (!productionVersion) {
-                    AppUpdate.setIsAppInBeta(false);
-                    resolve(false);
+
+                // A rate limited or malformed response carries no usable tag. That tells us nothing about this
+                // build, so keep the last saved verdict rather than reporting production.
+                if (!productionVersion || !semver.valid(productionVersion)) {
+                    resolve(isLastSavedBeta);
+                    return;
                 }
 
                 // If the current version we are running is greater than the production version, we are on a beta version of Android
