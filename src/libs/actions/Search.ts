@@ -129,6 +129,24 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
 }
 
+/**
+ * Returns the chat report to pay with. When the chat isn't loaded, builds a fallback from the known IDs so the
+ * payment isn't blocked; isFallbackChatReport tells payMoneyRequest to skip the optimistic chat updates.
+ */
+function getChatReportWithFallback(
+    loadedChatReport: OnyxEntry<Report>,
+    fallbackChatReportID: string | undefined,
+    fallbackPolicyID: string | undefined,
+): {chatReport: OnyxEntry<Report>; isFallbackChatReport: boolean} {
+    if (loadedChatReport) {
+        return {chatReport: loadedChatReport, isFallbackChatReport: false};
+    }
+    if (!fallbackChatReportID) {
+        return {chatReport: undefined, isFallbackChatReport: false};
+    }
+    return {chatReport: {reportID: fallbackChatReportID, policyID: fallbackPolicyID}, isFallbackChatReport: true};
+}
+
 function getReportFromSearchSnapshot(reportID: string | undefined, searchData: SearchResultDataType | undefined, allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
     if (!reportID) {
         return undefined;
@@ -2183,6 +2201,7 @@ export {
     setSearchContext,
     deleteSavedSearch,
     getSearchPayOnyxData,
+    getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,

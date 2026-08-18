@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
-import {getSearchPayOnyxData} from '@libs/actions/Search';
+import {getChatReportWithFallback, getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Log from '@libs/Log';
 import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
@@ -150,8 +150,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
         // built from the known IDs and let the server fill in the chat data.
         const fallbackChatReportID = iouReport?.chatReportID ?? iouReport?.parentReportID;
-        const fallbackChatReport = fallbackChatReportID ? {reportID: fallbackChatReportID, policyID: iouReport?.policyID ?? policyID} : undefined;
-        const chatReportForPayment = chatReport ?? fallbackChatReport;
+        const fallbackPolicyID = iouReport?.policyID ?? policyID;
+        const {chatReport: chatReportForPayment, isFallbackChatReport} = getChatReportWithFallback(chatReport, fallbackChatReportID, fallbackPolicyID);
         if (!chatReportForPayment) {
             Log.info('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID});
             return;
@@ -161,7 +161,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             getCurrencyDecimals,
             paymentType: type,
             chatReport: chatReportForPayment,
-            isFallbackChatReport: !chatReport,
+            isFallbackChatReport,
             iouReport,
             introSelected,
             currentUserAccountID,

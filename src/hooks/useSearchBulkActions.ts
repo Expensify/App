@@ -25,6 +25,7 @@ import {
     getPolicyFromSearchSnapshot,
     getReportFromSearchSnapshot,
     getReportType,
+    getChatReportWithFallback,
     getSearchApproveOnyxData,
     getSearchPayOnyxData,
     getTotalFormattedAmount,
@@ -1400,23 +1401,22 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 }
 
                 const isItemInvoice = isInvoiceReport(iouReport);
-                let chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
-                let isFallbackChatReport = false;
-                if (!chatReport) {
-                    // The chat report is only needed for optimistic chat updates, so when it isn't loaded, pay with a fallback
-                    // built from the known IDs and let the server fill in the chat data.
-                    // Invoices are the exception. They genuinely need the invoice room data such as receiver type and pay-as-business.
-                    const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
-                    if (isItemInvoice || !fallbackChatReportID) {
-                        Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
-                            reportID: item.reportID,
-                            chatReportID: fallbackChatReportID,
-                            isItemInvoice,
-                        });
-                        continue;
-                    }
-                    chatReport = {reportID: fallbackChatReportID, policyID: item.policyID ?? iouReport.policyID};
-                    isFallbackChatReport = true;
+                const fallbackChatReportID = item.chatReportID ?? iouReport.chatReportID ?? iouReport.parentReportID;
+                const fallbackPolicyID = iouReport.policyID ?? item.policyID;
+                const {chatReport, isFallbackChatReport} = getChatReportWithFallback(
+                    getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports),
+                    fallbackChatReportID,
+                    fallbackPolicyID,
+                );
+                // The fallback covers money requests only. Invoices genuinely need the invoice room data such as
+                // receiver type and pay-as-business, so skip them when the chat isn't loaded.
+                if (!chatReport || (isItemInvoice && isFallbackChatReport)) {
+                    Log.info('[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx', false, {
+                        reportID: item.reportID,
+                        chatReportID: fallbackChatReportID,
+                        isItemInvoice,
+                    });
+                    continue;
                 }
 
                 const rawPaymentMethod = paymentMethod ?? getLastPolicyPaymentMethod(item.policyID, personalPolicyID, lastPaymentMethods, undefined, isIOUReportUtil(item.reportID));
