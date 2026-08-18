@@ -1,24 +1,44 @@
-import {renderScrollComponent as renderActionSheetAwareScrollView} from '@components/ActionSheetAwareScrollView';
-import type {ActionListRef} from '@components/FlashList/types';
-import ReportActionsSkeletonView from '@components/ReportActionsSkeletonView';
+import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
+import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+import type {OnyxEntry} from 'react-native-onyx';
 
-import useEmitComposerScrollEvents from '@hooks/useEmitComposerScrollEvents';
-import useEnvironment from '@hooks/useEnvironment';
-import useLinkedMessageOfflineLoading from '@hooks/useLinkedMessageOfflineLoading';
-import useLocalize from '@hooks/useLocalize';
-import useMarkAsRead from '@hooks/useMarkAsRead';
-import useNetwork from '@hooks/useNetwork';
-import useOnyx from '@hooks/useOnyx';
-import useReportActionsScroll from '@hooks/useReportActionsScroll';
-import useResponsiveLayout from '@hooks/useResponsiveLayout';
-import useThemeStyles from '@hooks/useThemeStyles';
-import useUnreadMarker from '@hooks/useUnreadMarker';
+import {LegendList} from '@legendapp/list/react-native';
+import {useRoute} from '@react-navigation/native';
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
 
-import {isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
-import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
-import TransitionTracker from '@libs/Navigation/TransitionTracker';
+import type {ActionListRef} from './src/components/FlashList/types';
+import type {PlatformStackRouteProp} from './src/libs/Navigation/PlatformStackNavigation/types';
+import type {ReportsSplitNavigatorParamList} from './src/libs/Navigation/types';
+import type SCREENS from './src/SCREENS';
+import type * as OnyxTypes from './src/types/onyx';
+
+import FloatingMessageCounter from './FloatingMessageCounter';
+import ReportActionIndexContext from './ReportActionIndexContext';
+import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
+import ReportActionsListHeader from './ReportActionsListHeader';
+import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
+import ReportActionsListPaddingView from './ReportActionsListPaddingView';
+import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
+import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+import {renderScrollComponent as renderActionSheetAwareScrollView} from './src/components/ActionSheetAwareScrollView';
+import ReportActionsSkeletonView from './src/components/ReportActionsSkeletonView';
+import CONST from './src/CONST';
+import useEmitComposerScrollEvents from './src/hooks/useEmitComposerScrollEvents';
+import useEnvironment from './src/hooks/useEnvironment';
+import useLinkedMessageOfflineLoading from './src/hooks/useLinkedMessageOfflineLoading';
+import useLocalize from './src/hooks/useLocalize';
+import useMarkAsRead from './src/hooks/useMarkAsRead';
+import useNetwork from './src/hooks/useNetwork';
+import useOnyx from './src/hooks/useOnyx';
+import useReportActionsScroll from './src/hooks/useReportActionsScroll';
+import useResponsiveLayout from './src/hooks/useResponsiveLayout';
+import useThemeStyles from './src/hooks/useThemeStyles';
+import useUnreadMarker from './src/hooks/useUnreadMarker';
+import {isConsecutiveChronosAutomaticTimerAction} from './src/libs/ChronosUtils';
+import getNonEmptyStringOnyxID from './src/libs/getNonEmptyStringOnyxID';
+import isSearchTopmostFullScreenRoute from './src/libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
+import TransitionTracker from './src/libs/Navigation/TransitionTracker';
 import {
     getFirstVisibleReportActionID,
     getReportActionHtml,
@@ -28,7 +48,7 @@ import {
     isNewerReportAction,
     isReversedTransaction,
     isTransactionThread,
-} from '@libs/ReportActionsUtils';
+} from './src/libs/ReportActionsUtils';
 import {
     chatIncludesChronosWithID,
     isArchivedNonExpenseReport,
@@ -40,38 +60,13 @@ import {
     isIOUReport,
     isTaskReport,
     shouldShowMarkAsDone,
-} from '@libs/ReportUtils';
-import markOpenReportEnd from '@libs/telemetry/markOpenReportEnd';
-
-import type {ReportsSplitNavigatorParamList} from '@navigation/types';
-
-import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
-import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
-import {useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
-
-import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type SCREENS from '@src/SCREENS';
-import {getStableReportSelector} from '@src/selectors/Report';
-import type * as OnyxTypes from '@src/types/onyx';
-
-import type {LegendListRef, LegendListRenderItemProps} from '@legendapp/list/react-native';
-import type {LayoutChangeEvent, NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-
-import {LegendList} from '@legendapp/list/react-native';
-import {useRoute} from '@react-navigation/native';
-import {isTrackIntentUserSelector} from '@selectors/Onboarding';
-import React, {useEffect, useImperativeHandle, useRef, useState} from 'react';
-
-import FloatingMessageCounter from './FloatingMessageCounter';
-import ReportActionIndexContext from './ReportActionIndexContext';
-import {useReportActionsListActions, useReportActionsListState} from './ReportActionsListContext';
-import ReportActionsListHeader from './ReportActionsListHeader';
-import ReportActionsListItemRenderer from './ReportActionsListItemRenderer';
-import ReportActionsListPaddingView from './ReportActionsListPaddingView';
-import ReportActionsSkeletonGuard from './ReportActionsSkeletonGuard';
-import ShowPreviousMessagesButton from './ShowPreviousMessagesButton';
+} from './src/libs/ReportUtils';
+import markOpenReportEnd from './src/libs/telemetry/markOpenReportEnd';
+import ONYXKEYS from './src/ONYXKEYS';
+import {useActionListContext, useActionListRef} from './src/pages/inbox/ActionListContext';
+import {useConciergeDraft, useConciergeDraftActions} from './src/pages/inbox/ConciergeDraftContext';
+import {useConciergeSessionState} from './src/pages/inbox/ConciergeSessionContext';
+import {getStableReportSelector} from './src/selectors/Report';
 import useFollowActionBadgeTarget from './useFollowActionBadgeTarget';
 
 type ReportActionsListContentProps = {
@@ -384,7 +379,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        actionBadge: reportAttributes?.actionBadge,
         renderedVisibleReportActions: listData,
         scrollToActionBadgeTarget,
     });
