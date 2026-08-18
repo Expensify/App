@@ -154,15 +154,15 @@ async function getSlackIDsByGithubLogin(): Promise<Map<string, string>> {
 }
 
 /**
- * Format a GitHub login the way Slack renders a clickable mention.
+ * Give Slack the raw member ID for a GitHub login.
+ * The retest workflow wraps this into a mention itself, so sending anything pre-formatted would break it.
  * People outside the whitelist (open source contributors) keep their plain login so QA can still identify them.
  */
-function getSlackMention(githubLogin: string, slackIDsByGithubLogin: Map<string, string>): string {
+function getSlackAuthor(githubLogin: string, slackIDsByGithubLogin: Map<string, string>): string {
     if (!githubLogin) {
         return EMPTY;
     }
-    const slackID = slackIDsByGithubLogin.get(githubLogin);
-    return slackID ? `<@${slackID}>` : githubLogin;
+    return slackIDsByGithubLogin.get(githubLogin) ?? githubLogin;
 }
 
 /** Pull every App issue number linked anywhere in a PR body. */
@@ -293,7 +293,7 @@ async function run(): Promise<void> {
             prAuthor: pull.user?.login ?? '',
             blockerIssueURLs,
             prTitle: pull.title,
-            author: getSlackMention(cherryPickActorByPR.get(prNumber) ?? '', slackIDsByGithubLogin),
+            author: getSlackAuthor(cherryPickActorByPR.get(prNumber) ?? '', slackIDsByGithubLogin),
         });
     }
 
@@ -322,5 +322,5 @@ if (require.main === module) {
 }
 
 export default run;
-export {getCherryPicks, getLinkedIssueNumbers, buildRetestPayload, getRetestMarker, getSlackMention};
+export {getCherryPicks, getLinkedIssueNumbers, buildRetestPayload, getRetestMarker, getSlackAuthor};
 export type {RetestHit};

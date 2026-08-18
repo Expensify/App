@@ -2,7 +2,7 @@ import {describe, expect, it} from 'bun:test';
 
 import CONST from '@github/libs/CONST';
 
-import {buildRetestPayload, getCherryPicks, getLinkedIssueNumbers, getRetestMarker, getSlackMention} from '@scripts/createRetestRequestForCP';
+import {buildRetestPayload, getCherryPicks, getLinkedIssueNumbers, getRetestMarker, getSlackAuthor} from '@scripts/createRetestRequestForCP';
 import type {RetestHit} from '@scripts/createRetestRequestForCP';
 
 describe('createRetestRequestForCP', () => {
@@ -33,19 +33,19 @@ describe('createRetestRequestForCP', () => {
         });
     });
 
-    describe('getSlackMention', () => {
+    describe('getSlackAuthor', () => {
         const slackIDs = new Map([['jasperhuangg', 'U01N2A6GYJH']]);
 
-        it('wraps a known login so Slack renders a clickable mention', () => {
-            expect(getSlackMention('jasperhuangg', slackIDs)).toBe('<@U01N2A6GYJH>');
+        it('sends the raw member ID, since the retest workflow builds the mention itself', () => {
+            expect(getSlackAuthor('jasperhuangg', slackIDs)).toBe('U01N2A6GYJH');
         });
 
         it('falls back to the plain login for people outside the whitelist', () => {
-            expect(getSlackMention('some-oss-contributor', slackIDs)).toBe('some-oss-contributor');
+            expect(getSlackAuthor('some-oss-contributor', slackIDs)).toBe('some-oss-contributor');
         });
 
         it('sends N/A when there is no login at all', () => {
-            expect(getSlackMention('', slackIDs)).toBe('N/A');
+            expect(getSlackAuthor('', slackIDs)).toBe('N/A');
         });
     });
 
@@ -73,7 +73,7 @@ describe('createRetestRequestForCP', () => {
             prAuthor: 'octocat',
             blockerIssueURLs: [`${CONST.APP_REPO_URL}/issues/42`],
             prTitle: 'Fix crash on staging',
-            author: '<@U01N2A6GYJH>',
+            author: 'U01N2A6GYJH',
         };
 
         it('maps a hit to the exact Slack workflow variables', () => {
@@ -84,7 +84,7 @@ describe('createRetestRequestForCP', () => {
                 ghIssueLink: `${CONST.APP_REPO_URL}/issues/42`,
                 adhocLink: 'N/A',
                 requesterName: 'octocat',
-                author: '<@U01N2A6GYJH>',
+                author: 'U01N2A6GYJH',
                 cpLink: `${CONST.APP_REPO_URL}/pull/123`,
                 platforms: 'Android, iOS, Web',
             });
