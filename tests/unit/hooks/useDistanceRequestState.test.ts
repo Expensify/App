@@ -4,6 +4,8 @@ import useDistanceRequestState from '@components/MoneyRequestConfirmationList/ho
 
 import type * as OnyxTypes from '@src/types/onyx';
 
+import createMock from '../../utils/createMock';
+
 jest.mock('@libs/DistanceRequestUtils', () => ({
     __esModule: true,
     default: {
@@ -32,7 +34,7 @@ jest.mock('@libs/TransactionUtils', () => ({
 type Params = Parameters<typeof useDistanceRequestState>[0];
 
 const baseParams: Params = {
-    transaction: {transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}} as unknown as OnyxTypes.Transaction,
+    transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {routeDistanceMeters: 10}}}),
     policy: undefined,
     policyID: 'policy1',
     policyForMovingExpenses: undefined,
@@ -97,7 +99,7 @@ describe('useDistanceRequestState', () => {
         const {result} = renderHook(() =>
             useDistanceRequestState({
                 ...baseParams,
-                transaction: {transactionID: 'txn1', comment: {customUnit: {}}} as unknown as OnyxTypes.Transaction,
+                transaction: createMock<OnyxTypes.Transaction>({transactionID: 'txn1', comment: {customUnit: {}}}),
             }),
         );
         expect(result.current.hasRoute).toBe(false);
