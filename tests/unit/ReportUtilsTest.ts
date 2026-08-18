@@ -218,7 +218,6 @@ import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {
     BankAccountList,
     Beta,
@@ -5570,7 +5569,7 @@ describe('ReportUtils', () => {
             changeMoneyRequestHoldStatus(reportAction, iouTransaction, false, currentUserEmail, currentUserAccountID, undefined, false, undefined);
 
             // Then navigation should be called with the correct parameters
-            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), 'mock-route' as Route));
+            expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), 'mock-route'));
         });
     });
 

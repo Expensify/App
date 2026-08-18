@@ -8,7 +8,6 @@ import BaseReportActionContextMenu from '@pages/inbox/report/ContextMenu/BaseRep
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {Route} from '@src/ROUTES';
 import type {PersonalDetailsList, ReportAction} from '@src/types/onyx';
 
 import React from 'react';
@@ -399,7 +398,7 @@ describe('BaseReportActionContextMenu hold/unhold action', () => {
         });
 
         expect(mockNavigate).toHaveBeenCalledTimes(1);
-        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), mockGetActiveRoute() as Route));
+        expect(mockNavigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, childReportID), mockGetActiveRoute()));
     });
 
     it('calls unholdRequest when pressing the unhold action', async () => {
