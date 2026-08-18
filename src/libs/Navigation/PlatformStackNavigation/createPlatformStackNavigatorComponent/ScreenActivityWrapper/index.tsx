@@ -4,7 +4,7 @@ import type NonTopScreenWrapperProps from '@libs/Navigation/PlatformStackNavigat
 
 import React, {Activity} from 'react';
 
-import StrictModeMountGate from './StrictModeMountGate';
+import DevStrictModeMountGate from './StrictModeMountGate';
 import useScreenActivityState from './useScreenActivityState';
 
 /**
@@ -25,7 +25,7 @@ function ScreenActivityWrapper({isScreenBlurred, children}: NonTopScreenWrapperP
     return (
         <Activity mode={mode}>
             <DisplayContentsView inert={isScreenCovered}>
-                <StrictModeMountGate>{children}</StrictModeMountGate>
+                <DevStrictModeMountGate>{children}</DevStrictModeMountGate>
             </DisplayContentsView>
         </Activity>
     );

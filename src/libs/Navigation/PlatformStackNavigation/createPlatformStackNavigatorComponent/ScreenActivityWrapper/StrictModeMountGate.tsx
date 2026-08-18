@@ -30,5 +30,7 @@ function StrictModeMountGatePassThrough({children}: StrictModeMountGateProps) {
     return children;
 }
 
+const DevStrictModeMountGate = __DEV__ && CONFIG.USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV ? StrictModeMountGate : StrictModeMountGatePassThrough;
+
 export {StrictModeMountGate};
-export default __DEV__ && CONFIG.USE_ACTIVITY_SCREEN_STRICT_MODE_IN_DEV ? StrictModeMountGate : StrictModeMountGatePassThrough;
+export default DevStrictModeMountGate;
