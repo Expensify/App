@@ -6,7 +6,7 @@ import Log from '@libs/Log';
 import Navigation from '@libs/Navigation/Navigation';
 
 import CONFIG from '@src/CONFIG';
-import type {OnboardingAccounting, OnboardingIntent} from '@src/CONST';
+import type {OnboardingAccounting} from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -50,14 +50,6 @@ function checkServerDataReady() {
 
 function setOnboardingPurposeSelected(value: OnboardingPurpose) {
     Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, value ?? null);
-}
-
-/**
- * Records the onboarding outcome requested by the deeplink this session was opened with, so the onboarding flow can
- * route straight to it. Cleared once acted on, and by the Onyx wipe on sign-out.
- */
-function setOnboardingDeeplinkIntent(value: OnboardingIntent | null) {
-    Onyx.set(ONYXKEYS.ONBOARDING_DEEPLINK_INTENT, value);
 }
 
 function setOnboardingCompanySize(value: OnboardingCompanySize) {
@@ -225,7 +217,6 @@ export {
     onServerDataReady,
     dismissProductTraining,
     setOnboardingPurposeSelected,
-    setOnboardingDeeplinkIntent,
     updateOnboardingLastVisitedPath,
     resetAllChecks,
     setOnboardingAdminsChatReportID,

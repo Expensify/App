@@ -5,7 +5,6 @@ import {isOnboardingFlowName} from '@libs/Navigation/helpers/isNavigatorName';
 import {getOnboardingInitialPath} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
-import type {OnboardingIntent} from '@src/CONST';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,7 +38,6 @@ let hybridApp: {isSingleNewDotEntry?: boolean} | undefined;
 let onboardingPurposeSelected: OnyxEntry<OnboardingPurpose>;
 let onboardingCompanySize: OnyxEntry<OnboardingCompanySize>;
 let onboardingInitialPath: OnyxEntry<string>;
-let onboardingDeeplinkIntent: OnyxEntry<OnboardingIntent>;
 let hasNonPersonalPolicy: OnyxEntry<boolean>;
 let wasInvitedToNewDot: boolean | undefined;
 
@@ -89,14 +87,6 @@ Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_LAST_VISITED_PATH,
     callback: (value) => {
         onboardingInitialPath = value;
-    },
-});
-
-// A Submit deeplink creates the workspace outright, so the guard must not pull the user into onboarding on the way.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.ONBOARDING_DEEPLINK_INTENT,
-    callback: (value) => {
-        onboardingDeeplinkIntent = value;
     },
 });
 
@@ -186,7 +176,6 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
-        const hasSubmitDeeplinkIntent = onboardingDeeplinkIntent === CONST.ONBOARDING_INTENTS.SUBMIT;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
@@ -220,7 +209,6 @@ const OnboardingGuard: NavigationGuard = {
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
             isNavigatingWithReplace ||
-            hasSubmitDeeplinkIntent ||
             context.isSupportalSession ||
             // Copilots should not be pushed through onboarding on behalf of the account they are accessing
             isActingAsDelegateSelector(account);
@@ -251,7 +239,6 @@ const OnboardingGuard: NavigationGuard = {
             isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
-            hasSubmitDeeplinkIntent,
         });
 
         return {

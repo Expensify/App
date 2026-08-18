@@ -1,7 +1,7 @@
 import type {ValueOf} from 'type-fest';
 
 import type CONST from './CONST';
-import type {OnboardingAccounting, OnboardingIntent} from './CONST';
+import type {OnboardingAccounting} from './CONST';
 import type {TranslationPaths} from './languages/types';
 import type {OnboardingFeatureMapItem} from './libs/actions/Welcome/OnboardingFeatures';
 import type {OnboardingCompanySize} from './libs/actions/Welcome/OnboardingFlow';
@@ -547,9 +547,6 @@ const ONYXKEYS = {
 
     /** Onboarding customized choices to display to the user based on their profile when signing up */
     ONBOARDING_CUSTOM_CHOICES: 'onboardingCustomChoices',
-
-    /** Onboarding outcome requested by the deeplink this session was opened with, e.g. `onboarding?intent=submit` */
-    ONBOARDING_DEEPLINK_INTENT: 'onboardingDeeplinkIntent',
 
     /** Onboarding error message translation key to be displayed to the user */
     ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY: 'onboardingErrorMessageTranslationKey',
@@ -1713,7 +1710,6 @@ type OnyxValuesMapping = {
     [ONYXKEYS.ONBOARDING_COMPANY_SIZE]: OnboardingCompanySize;
     [ONYXKEYS.ONBOARDING_PERSONAL_TRACK_GOAL]: string;
     [ONYXKEYS.ONBOARDING_CUSTOM_CHOICES]: OnyxTypes.OnboardingPurpose[] | [];
-    [ONYXKEYS.ONBOARDING_DEEPLINK_INTENT]: OnboardingIntent;
     [ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY]: TranslationPaths;
     [ONYXKEYS.ONBOARDING_POLICY_ID]: string;
     [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: string;
