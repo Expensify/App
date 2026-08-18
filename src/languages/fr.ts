@@ -7963,6 +7963,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     'Les dépenses sont approuvées pour les devises autorisées qui ne dépassent pas un montant maximal, ou lorsque le commerçant ou le type de commerçant correspond.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Autorisé ${shownCount > 1 ? 'devises' : 'devise'} : ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} de plus` : ''}`,
+                defaultRulesCannotBeDeleted: 'Les règles par défaut ne peuvent pas être supprimées',
             },
             agentRules: {
                 title: 'Règles d’agent',

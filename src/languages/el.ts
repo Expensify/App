@@ -8346,6 +8346,7 @@ ${reportName}`,
                     [CONST.SPEND_RULES.CATEGORIES.TRANSIT_AND_RIDESHARE]: 'Δημόσιες συγκοινωνίες και υπηρεσίες κοινής μετακίνησης',
                     [CONST.SPEND_RULES.CATEGORIES.TRAVEL_AGENCIES]: 'Ταξιδιωτικά πρακτορεία',
                 },
+                defaultRulesCannotBeDeleted: 'Οι προεπιλεγμένοι κανόνες δεν μπορούν να διαγραφούν',
             },
             agentRules: {
                 title: 'Κανόνες αντιπροσώπου',
