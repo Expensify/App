@@ -137,18 +137,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
 
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
-                    {},
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
+                    reportErrors: {},
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -169,18 +169,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -196,18 +196,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    true,
-                    {},
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: true,
+                    reportErrors: {},
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_VIOLATIONS);
         });
@@ -240,18 +240,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const reportErrors = getAllReportErrors(MOCK_REPORT, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -272,18 +272,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -316,18 +316,18 @@ describe('SidebarUtils', () => {
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
             const {reportAction} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    MOCK_REPORT,
-                    chatReportR14932,
-                    MOCK_REPORT_ACTIONS,
-                    false,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: MOCK_REPORT,
+                    chatReport: chatReportR14932,
+                    reportActions: MOCK_REPORT_ACTIONS,
+                    hasViolations: false,
                     reportErrors,
-                    MOCK_TRANSACTIONS,
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
-                    MOCK_TRANSACTION_VIOLATIONS,
-                    isReportArchived.current,
-                ) ?? {};
+                    transactions: MOCK_TRANSACTIONS,
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                    isReportArchived: isReportArchived.current,
+                }) ?? {};
 
             expect(reportAction).toMatchObject<ReportAction>(MOCK_REPORT_ACTION);
         });
@@ -342,18 +342,18 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).toBeNull();
         });
@@ -461,18 +461,18 @@ describe('SidebarUtils', () => {
 
             // Simulate how components determined if a report is archived by using this hook
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).toBeNull();
         });
@@ -550,18 +550,18 @@ describe('SidebarUtils', () => {
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(chatReport?.reportID));
             const reportErrors = getAllReportErrors(chatReport, MOCK_REPORT_ACTIONS, MOCK_TRANSACTIONS, CURRENT_USER_ACCOUNT_ID);
 
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
-                chatReport,
-                MOCK_REPORT_ACTIONS,
-                false,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
                 reportErrors,
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             // Then: RBR should appear on the chat for the expense report
             expect(result).not.toBeNull();
@@ -629,18 +629,18 @@ describe('SidebarUtils', () => {
             });
 
             const {result: isReportArchived} = renderHook(() => useReportIsArchived(MOCK_REPORT?.reportID));
-            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                chatReportR14932,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                MOCK_TRANSACTION_VIOLATIONS,
-                isReportArchived.current,
-            );
+            const result = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: chatReportR14932,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: MOCK_TRANSACTION_VIOLATIONS,
+                isReportArchived: isReportArchived.current,
+            });
 
             expect(result).not.toBeNull();
             expect(result?.reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
@@ -723,18 +723,18 @@ describe('SidebarUtils', () => {
             expect(requiresAttention?.reason).toBe(CONST.REQUIRES_ATTENTION_REASONS.HAS_CHILD_REPORT_AWAITING_ACTION);
 
             const {reason} =
-                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                    policyExpenseChat,
-                    policyExpenseChat,
-                    {} as OnyxEntry<ReportActions>,
-                    true,
-                    {},
-                    {[transactionKey]: transaction},
-                    false,
-                    CURRENT_USER_ACCOUNT_ID,
+                SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                    report: policyExpenseChat,
+                    chatReport: policyExpenseChat,
+                    reportActions: {} as OnyxEntry<ReportActions>,
+                    hasViolations: true,
+                    reportErrors: {},
+                    transactions: {[transactionKey]: transaction},
+                    isOffline: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                     transactionViolations,
-                    false,
-                ) ?? {};
+                    isReportArchived: false,
+                }) ?? {};
 
             expect(reason).toBe(CONST.RBR_REASONS.HAS_TRANSACTION_THREAD_VIOLATIONS);
         });
@@ -797,18 +797,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=false — the pending-delete action is skipped, leaving the live one as the single thread.
-            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_CHAT_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                false,
-                CURRENT_USER_ACCOUNT_ID,
-                {},
-                false,
-            );
+            const onlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: MOCK_CHAT_REPORT,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: false,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: {},
+                isReportArchived: false,
+            });
 
             expect(onlineResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
         });
@@ -870,18 +870,18 @@ describe('SidebarUtils', () => {
             };
 
             // When: called with isOffline=true — the pending-delete action is included, making 2 IOU actions.
-            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                MOCK_REPORT,
-                MOCK_CHAT_REPORT,
-                MOCK_REPORT_ACTIONS,
-                false,
-                {},
-                MOCK_TRANSACTIONS,
-                true,
-                CURRENT_USER_ACCOUNT_ID,
-                {},
-                false,
-            );
+            const offlineResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: MOCK_REPORT,
+                chatReport: MOCK_CHAT_REPORT,
+                reportActions: MOCK_REPORT_ACTIONS,
+                hasViolations: false,
+                reportErrors: {},
+                transactions: MOCK_TRANSACTIONS,
+                isOffline: true,
+                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                transactionViolations: {},
+                isReportArchived: false,
+            });
 
             // Then: no single transaction thread is identified, so the receipt error is not surfaced via that path.
             expect(offlineResult).toBeNull();
@@ -949,36 +949,36 @@ describe('SidebarUtils', () => {
             const reportErrors = {someError: 'Some error occurred'};
 
             // When: the passed currentUserAccountID matches the action's actor, the smartscan action is flagged as requiring attention.
-            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                chatReport,
+            const matchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
                 reportActions,
-                false,
+                hasViolations: false,
                 reportErrors,
                 transactions,
-                false,
-                actorAccountID,
-                {},
-                false,
+                isOffline: false,
+                currentUserAccountID: actorAccountID,
+                transactionViolations: {},
+                isReportArchived: false,
                 reports,
-            );
+            });
             expect(matchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
             expect(matchingResult?.reportAction?.reportActionID).toBe(reportPreviewAction.reportActionID);
 
             // When: the passed currentUserAccountID does NOT match, the action is not attributed to the current user, so no smartscan action is returned.
-            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
-                chatReport,
+            const nonMatchingResult = SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
+                report: chatReport,
                 chatReport,
                 reportActions,
-                false,
+                hasViolations: false,
                 reportErrors,
                 transactions,
-                false,
-                actorAccountID + 1,
-                {},
-                false,
+                isOffline: false,
+                currentUserAccountID: actorAccountID + 1,
+                transactionViolations: {},
+                isReportArchived: false,
                 reports,
-            );
+            });
             expect(nonMatchingResult?.reason).toBe(CONST.RBR_REASONS.HAS_ERRORS);
             expect(nonMatchingResult?.reportAction).toBeUndefined();
         });
