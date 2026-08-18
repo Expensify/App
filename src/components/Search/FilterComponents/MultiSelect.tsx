@@ -12,7 +12,6 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import moveInitialSelectionToTop from '@libs/SelectionListOrderUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Icon} from '@src/types/onyx/OnyxCommon';
@@ -55,6 +54,7 @@ function MultiSelect<T extends string>({
     value,
     items,
     isSearchable,
+    isNegatable,
     searchPlaceholder,
     selectionListTextInputStyle,
     selectionListStyle,
@@ -118,19 +118,17 @@ function MultiSelect<T extends string>({
         disableAutoFocus: !autoFocus,
     };
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'MultiSelectDataLoading'};
-
     return (
         <ListFilterView
             itemCount={listData.length}
             isSearchable={isSearchable}
+            isNegatable={isNegatable}
         >
             {loading ? (
                 <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
                         color={theme.spinner}
-                        reasonAttributes={reasonAttributes}
                     />
                 </View>
             ) : (

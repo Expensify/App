@@ -1,4 +1,3 @@
-import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import usePressLoading from '@hooks/usePressLoading';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -93,9 +92,6 @@ type FormAlertWithSubmitButtonProps = WithSentryLabel & {
 
     /** Prevents the button from triggering blur on mouse down. */
     shouldPreventDefaultFocusOnPress?: boolean;
-
-    /** Whether to display the submit button and footer in one row in landscape mode */
-    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode?: boolean;
 };
 
 function FormAlertWithSubmitButton({
@@ -121,18 +117,11 @@ function FormAlertWithSubmitButton({
     shouldBlendOpacity = false,
     addButtonBottomPadding = true,
     shouldPreventDefaultFocusOnPress = false,
-    shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode = false,
     shouldShowLoadingImmediatelyOnPress = true,
     sentryLabel,
 }: FormAlertWithSubmitButtonProps) {
     const styles = useThemeStyles();
-    const isInLandscapeMode = useIsInLandscapeMode();
-    const shouldDisplayButtonAndFooterInOneRow = isInLandscapeMode && shouldDisplaySubmitButtonAndFooterInOneRowInLandscapeMode;
-    const style = [
-        !shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding && !shouldDisplayButtonAndFooterInOneRow ? styles.mb3 : undefined,
-        shouldDisplayButtonAndFooterInOneRow ? styles.flex1 : {},
-        buttonStyles,
-    ];
+    const style = [!shouldRenderFooterAboveSubmit && footerContent && addButtonBottomPadding ? styles.mb3 : {}, buttonStyles];
 
     const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading});
 
@@ -160,7 +149,7 @@ function FormAlertWithSubmitButton({
             errorMessageStyle={errorMessageStyle}
         >
             {(isOffline: boolean | undefined) => (
-                <View style={shouldDisplayButtonAndFooterInOneRow ? [styles.flexRow, styles.gap3] : undefined}>
+                <View>
                     {shouldRenderFooterAboveSubmit && footerContent}
                     {isOffline && !enabledWhenOffline ? (
                         <Button
