@@ -44,6 +44,7 @@ import DistanceRequestUtils from '@libs/DistanceRequestUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {
     getIsWorkspacesOnlyForTransaction,
+    getSelectedWorkspacePolicyID,
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
@@ -54,6 +55,7 @@ import {
     shouldShowReceiptEmptyState,
     shouldUseTransactionDraft,
 } from '@libs/IOUUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -84,7 +86,7 @@ import {removeDraftTransaction, replaceDefaultDraftTransaction} from '@userActio
 import CONST from '@src/CONST';
 import type {IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
@@ -178,9 +180,7 @@ function IOURequestStepConfirmation({
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
     const isCreatingTrackExpense = action === CONST.IOU.ACTION.CREATE && iouType === CONST.IOU.TYPE.TRACK;
 
-    const selectedWorkspacePolicyID =
-        initialTransaction?.participants?.find((participant) => participant?.isSender)?.policyID ??
-        initialTransaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+    const selectedWorkspacePolicyID = getSelectedWorkspacePolicyID(initialTransaction, action);
     // A workspace with submissions (delayed submission) disabled has no autoReporting, so the new flow seeds the
     // expense onto the self-DM, whose report carries the placeholder '_FAKE_' policy. After selecting that workspace
     // chat via the in-place "To" picker, the route report is still that self-DM; its fake policyID must not shadow
@@ -727,7 +727,18 @@ function IOURequestStepConfirmation({
                 Navigation.goBack();
                 return;
             }
-            Navigation.goBack(ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport));
+            Navigation.goBack(
+                createDynamicRoute(
+                    DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE.getRoute(),
+                    createDynamicRoute(
+                        DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
+                        createDynamicRoute(
+                            DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path,
+                            ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, initialTransactionID, reportID, backToReport),
+                        ),
+                    ),
+                ),
+            );
             return;
         }
 

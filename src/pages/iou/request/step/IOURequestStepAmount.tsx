@@ -73,7 +73,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -226,6 +226,7 @@ function IOURequestStepAmount({
         suppressDiscardPrompt();
         submitAmount({
             getCurrencyDecimals,
+            getCurrencySymbol,
             translate,
             dateFnsLocale,
             report,
