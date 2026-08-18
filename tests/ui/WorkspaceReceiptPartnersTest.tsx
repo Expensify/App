@@ -86,7 +86,7 @@ employeePersonalDetails[3] = {
 
 const renderInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE]) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
@@ -105,7 +105,7 @@ const renderInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof
 
 const renderEditInvitePage = (initialParams: WorkspaceSplitNavigatorParamList[typeof SCREENS.WORKSPACE.DYNAMIC_RECEIPT_PARTNERS_INVITE_EDIT]) =>
     render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider, CurrentReportIDContextProvider, PersonalDetailsByLoginProvider]}>
             <PortalProvider>
                 <ModalProvider>
                     <NavigationContainer>
