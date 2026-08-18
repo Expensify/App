@@ -1284,7 +1284,7 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                const expectedResult = `marked the expense as "billable", marked the expense as "reimbursable", set the category to "Travel", and merchant name to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });
@@ -1369,7 +1369,7 @@ describe('ModifiedExpenseMessage', () => {
                     currentUserLogin: CURRENT_USER_LOGIN,
                 });
 
-                const expectedResult = `set the category to "Travel" and merchant to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
+                const expectedResult = `set the category to "Travel" and merchant name to "McDonald's" via <a href="${environmentURL}/workspaces/1234/rules">workspace rules</a>`;
 
                 expect(result).toEqual(expectedResult);
             });
@@ -1453,7 +1453,7 @@ describe('ModifiedExpenseMessage', () => {
 
                 expect(result).toContain(CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL);
                 expect(result).toContain('workspace rules</a>');
-                expect(result).toContain('set the category to "Travel" and merchant to "McDonald\'s"');
+                expect(result).toContain('set the category to "Travel" and merchant name to "McDonald\'s"');
             });
         });
 
