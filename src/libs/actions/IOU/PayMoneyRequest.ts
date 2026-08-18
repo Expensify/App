@@ -706,28 +706,12 @@ function cancelPayment(
     notifyNewAction(expenseReport.reportID, undefined, true);
 }
 
-/**
- * Fetches whether the backend can still cancel the report's bank reimbursement and stores it in Onyx,
- * so the Cancel payment option is only offered when the cancellation can actually succeed.
- */
-function getReportCancelReimbursementStatus(reportID: string | undefined) {
-    if (!reportID) {
-        return;
-    }
+/** The answer expires as soon as the credit posts, so it is returned to the caller instead of being cached. */
+function getReportCancelReimbursementStatus(reportID: string): Promise<OnyxTypes.ReportCancelReimbursementStatus | undefined> {
     const params: GetReportCancelReimbursementStatusParams = {reportID};
 
-    // The response carries raw data instead of onyxData, so we have to read it here and write it to Onyx ourselves.
     // eslint-disable-next-line rulesdir/no-api-side-effects-method
-    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_REPORT_CANCEL_REIMBURSEMENT_STATUS, params).then((response) => {
-        const status = response?.reimbursementCancellableStatus;
-        if (!status) {
-            return;
-        }
-        Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${reportID}`, {
-            canCancel: !!status.canCancel,
-            isWaitingForCreditToPost: !!status.isWaitingForCreditToPost,
-        });
-    });
+    return API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.GET_REPORT_CANCEL_REIMBURSEMENT_STATUS, params).then((response) => response?.reimbursementCancellableStatus);
 }
 
 /**

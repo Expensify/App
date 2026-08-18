@@ -1,33 +1,41 @@
-import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isExpenseReport} from '@libs/ReportUtils';
 
 import {getReportCancelReimbursementStatus} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportCancelReimbursementStatus} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
-import {useEffect} from 'react';
+import {useEffect, useState} from 'react';
 
-import useOnyx from './useOnyx';
+import useNetwork from './useNetwork';
 
-/**
- * Fetches and subscribes to whether the backend can still cancel the report's bank reimbursement.
- * The status is refreshed whenever the report becomes reimbursed.
- */
-export default function useReportCancelReimbursementStatus(report: OnyxEntry<Report>): OnyxEntry<ReportCancelReimbursementStatus> {
-    const reportID = report?.reportID;
-    const isReimbursedExpenseReport = isExpenseReport(report) && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const [reportCancelReimbursementStatus] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${getNonEmptyStringOnyxID(reportID)}`);
+/** The answer is only valid for the state it was fetched for, so it is dropped when the report or the connection changes. */
+export default function useReportCancelReimbursementStatus(report: OnyxEntry<Report>): ReportCancelReimbursementStatus | undefined {
+    const {isOffline} = useNetwork();
+    // Auth only allows cancelling in BILLING + REIMBURSED, so there is nothing to ask about in any other state.
+    const isReimbursementSubmitted = isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.BILLING && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+    const statusKey = isReimbursementSubmitted && !isOffline ? report?.reportID : undefined;
+    const [fetchedStatus, setFetchedStatus] = useState<{key: string; status: ReportCancelReimbursementStatus | undefined}>();
 
     useEffect(() => {
-        if (!reportID || !isReimbursedExpenseReport) {
+        if (!statusKey) {
             return;
         }
-        getReportCancelReimbursementStatus(reportID);
-    }, [reportID, isReimbursedExpenseReport]);
 
-    return reportCancelReimbursementStatus;
+        let isCurrentRequest = true;
+        getReportCancelReimbursementStatus(statusKey).then((status) => {
+            if (!isCurrentRequest) {
+                return;
+            }
+            setFetchedStatus({key: statusKey, status});
+        });
+
+        return () => {
+            isCurrentRequest = false;
+        };
+    }, [statusKey]);
+
+    return fetchedStatus?.key === statusKey ? fetchedStatus?.status : undefined;
 }

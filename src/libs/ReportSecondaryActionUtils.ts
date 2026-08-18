@@ -16,6 +16,8 @@ import type {
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
+import {fromZonedTime} from 'date-fns-tz';
+
 import {areTransactionsEligibleForMerge} from './MergeTransactionUtils';
 import {
     arePaymentsEnabled as arePaymentsEnabledUtils,
@@ -406,7 +408,7 @@ function isCancelPaymentAction(
     reportTransactions: Transaction[],
     bankAccountList: OnyxEntry<BankAccountList>,
     policy?: Policy,
-    reimbursementCancellableStatus?: OnyxEntry<ReportCancelReimbursementStatus>,
+    reimbursementCancellableStatus?: ReportCancelReimbursementStatus,
 ): boolean {
     const isExpenseReport = isExpenseReportUtils(report);
 
@@ -427,29 +429,37 @@ function isCancelPaymentAction(
     const allActionsArray = Object.values(allReportActions);
     const payActions = allActionsArray.filter((action): action is ReportAction => !!action && isPayAction(action));
 
-    // Until the pay action is loaded we can't tell a bank payment from an elsewhere payment, so don't offer a cancellation the backend may reject
-    if (payActions.length === 0) {
-        return false;
-    }
-
     // Check if payment was made via bank account (not elsewhere)
-    const isPaidViaBankAccount = payActions.every((action) => {
-        const originalMessage = getOriginalMessage(action);
-        return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
-    });
+    // If no pay actions exist, we can't determine the payment type, so we assume it was NOT a bank payment
+    const isPaidViaBankAccount =
+        payActions.length > 0 &&
+        payActions.every((action) => {
+            const originalMessage = getOriginalMessage(action);
+            return originalMessage && 'paymentType' in originalMessage && originalMessage.paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
+        });
 
-    // For reports marked as paid elsewhere, show cancel button
+    // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
         return true;
     }
 
-    // A bank reimbursement is only cancellable while the money hasn't moved. The report state can't tell us that
-    // (e.g. fast ACH posts the credit immediately), so we rely on the backend's answer from GetReportCancelReimbursementStatus.
-    // The stored answer can go stale after a successful cancellation, so it only applies while the report is still reimbursed.
-    const isReimbursed = report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const isBankPaymentCancellable = !!reimbursementCancellableStatus?.canCancel;
+    const hasDailyNachaCutoffPassed = payActions.some((action) => {
+        const now = new Date();
+        const paymentDatetime = fromZonedTime(action.created, 'UTC');
+        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+        return nowUTC.getTime() > cutoffTimeUTC.getTime();
+    });
 
-    return (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || (isReimbursed && isPaidViaBankAccount && isBankPaymentCancellable);
+    // A queued payment only goes out in the daily batch, so it stays cancellable until the cutoff.
+    if (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) {
+        return !hasDailyNachaCutoffPassed;
+    }
+
+    // Only Auth knows whether the money has moved (fast ACH posts the credit right away), and it only allows cancelling in BILLING + REIMBURSED.
+    const isReimbursementSubmitted = report.stateNum === CONST.REPORT.STATE_NUM.BILLING && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
+
+    return isPaidViaBankAccount && isReimbursementSubmitted && !!reimbursementCancellableStatus?.canCancel;
 }
 
 function isReceivedPaymentAction(report: Report, reportTransactions: Transaction[] = [], reportActions: ReportAction[] = [], policy?: Policy): boolean {
@@ -949,7 +959,7 @@ function getSecondaryReportActions({
     isChatReportArchived?: boolean;
     parentReport?: OnyxEntry<Report>;
     isProduction: boolean;
-    reimbursementCancellableStatus?: OnyxEntry<ReportCancelReimbursementStatus>;
+    reimbursementCancellableStatus?: ReportCancelReimbursementStatus;
     /** TODO: Should be a required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;
 }): Array<ValueOf<typeof CONST.REPORT.SECONDARY_ACTIONS>> {

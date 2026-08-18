@@ -1,7 +1,5 @@
 import {renderHook} from '@testing-library/react-native';
 
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-
 import useReportCancelReimbursementStatus from '@hooks/useReportCancelReimbursementStatus';
 
 import {getReportCancelReimbursementStatus} from '@userActions/IOU/PayMoneyRequest';
@@ -14,15 +12,19 @@ import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
+let mockIsOffline = false;
+
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
-    getReportCancelReimbursementStatus: jest.fn(),
+    getReportCancelReimbursementStatus: jest.fn(() => Promise.resolve({canCancel: true, isWaitingForCreditToPost: false})),
 }));
+
+jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
 const mockGetReportCancelReimbursementStatus = jest.mocked(getReportCancelReimbursementStatus);
 
 const REPORT_ID = '1';
 
-const reimbursedReport = {
+const submittedReimbursement = {
     reportID: REPORT_ID,
     type: CONST.REPORT.TYPE.EXPENSE,
     stateNum: CONST.REPORT.STATE_NUM.BILLING,
@@ -30,15 +32,10 @@ const reimbursedReport = {
 } as Report;
 
 const approvedReport = {
-    reportID: REPORT_ID,
-    type: CONST.REPORT.TYPE.EXPENSE,
+    ...submittedReimbursement,
     stateNum: CONST.REPORT.STATE_NUM.APPROVED,
     statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
 } as Report;
-
-const wrapper = ({children}: {children: React.ReactNode}) => {
-    return <OnyxListItemProvider>{children}</OnyxListItemProvider>;
-};
 
 describe('useReportCancelReimbursementStatus', () => {
     beforeAll(() => {
@@ -46,27 +43,46 @@ describe('useReportCancelReimbursementStatus', () => {
         return waitForBatchedUpdates();
     });
 
-    beforeEach(async () => {
+    beforeEach(() => {
         jest.clearAllMocks();
-        await Onyx.clear();
-        return waitForBatchedUpdates();
+        mockIsOffline = false;
+        mockGetReportCancelReimbursementStatus.mockResolvedValue({canCancel: true, isWaitingForCreditToPost: false});
     });
 
-    it('fetches and returns the status for a reimbursed expense report', async () => {
-        await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_CANCEL_REIMBURSEMENT_STATUS}${REPORT_ID}`, {canCancel: false, isWaitingForCreditToPost: false});
-        await waitForBatchedUpdates();
-
-        const {result} = renderHook(() => useReportCancelReimbursementStatus(reimbursedReport), {wrapper});
+    it('returns the status the backend reports for a submitted reimbursement', async () => {
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
         await waitForBatchedUpdates();
 
         expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalledWith(REPORT_ID);
-        expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
+        expect(result.current).toEqual({canCancel: true, isWaitingForCreditToPost: false});
     });
 
-    it('does not fetch for a report that is not reimbursed', async () => {
-        renderHook(() => useReportCancelReimbursementStatus(approvedReport), {wrapper});
+    it('does not ask the backend for a report that is not a submitted reimbursement', async () => {
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(approvedReport));
         await waitForBatchedUpdates();
 
         expect(mockGetReportCancelReimbursementStatus).not.toHaveBeenCalled();
+        expect(result.current).toBeUndefined();
+    });
+
+    it('does not ask the backend while offline', async () => {
+        mockIsOffline = true;
+
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+
+        expect(mockGetReportCancelReimbursementStatus).not.toHaveBeenCalled();
+        expect(result.current).toBeUndefined();
+    });
+
+    it('drops the status when the report leaves the submitted state', async () => {
+        const {result, rerender} = renderHook((currentReport: Report) => useReportCancelReimbursementStatus(currentReport), {initialProps: submittedReimbursement});
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({canCancel: true, isWaitingForCreditToPost: false});
+
+        rerender(approvedReport);
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBeUndefined();
     });
 });
