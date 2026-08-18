@@ -2254,6 +2254,11 @@ const CONST = {
         ATTRIBUTE_SEND_MESSAGE_SOURCE: 'send_message_source',
         ATTRIBUTE_REPORT_ACTION_COUNT: 'report_action_count',
         ATTRIBUTE_MONEY_REQUEST_PREVIEW_COUNT: 'money_request_preview_count',
+        // Exact account-size counts attached to every span
+        ATTRIBUTE_REPORTS_COUNT_RAW: 'reports_count_raw',
+        ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW: 'personal_details_count_raw',
+        ATTRIBUTE_POLICIES_COUNT_RAW: 'policies_count_raw',
+        ATTRIBUTE_TRANSACTIONS_COUNT_RAW: 'transactions_count_raw',
         ATTRIBUTE_CANCELED: 'canceled',
         ATTRIBUTE_CANCELED_BY_SKELETON: 'canceled_by_skeleton',
         ATTRIBUTE_ROUTE_FROM: 'route_from',
