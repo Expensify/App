@@ -32,15 +32,25 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
 import enhanceParameters from '@libs/Network/enhanceParameters';
+import {getIsOffline} from '@libs/NetworkState';
 import {rand64} from '@libs/NumberUtils';
 import {getActivePaymentType} from '@libs/PaymentUtils';
 import Permissions from '@libs/Permissions';
 import {getKnownAccountIDByLogin} from '@libs/PersonalDetailsUtils';
-import {getAccountIDForSubmitManagerEmail, getSubmitReportManagerAccountID, getValidConnectedIntegration, isDelayedSubmissionEnabled, isSubmitPolicy} from '@libs/PolicyUtils';
+import {
+    getAccountIDForSubmitManagerEmail,
+    getSubmitReportManagerAccountID,
+    getValidConnectedIntegration,
+    hasDynamicExternalWorkflow,
+    isDelayedSubmissionEnabled,
+    isSubmitAndClose,
+    isSubmitPolicy,
+} from '@libs/PolicyUtils';
 import type {OptimisticExportIntegrationAction} from '@libs/ReportUtils';
 import {
     buildOptimisticExportIntegrationAction,
     buildOptimisticIOUReportAction,
+    buildOptimisticSubmittedReportAction,
     generateReportID,
     getApprovalChain,
     getParsedComment,
@@ -56,6 +66,7 @@ import {buildSearchQueryJSON, buildSearchQueryString, serializeQueryJSONForBacke
 import type {SearchKey} from '@libs/SearchUIUtils';
 import {isTransactionGroupListItemType} from '@libs/SearchUIUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
+import {cancelSpan, endSpan, startSpan} from '@libs/telemetry/activeSpans';
 import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -77,6 +88,7 @@ import type {
     ReportActions,
     SaveSearch,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -95,7 +107,6 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
-import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -229,6 +240,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
@@ -268,6 +280,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    allViolations,
     conciergeChat,
     getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
@@ -355,6 +368,7 @@ function handleActionButtonPress({
                 delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                allViolations,
                 getCurrencyDecimals,
             });
             return;
@@ -374,12 +388,34 @@ function handleActionButtonPress({
             if (isSubmitPolicy(policyForSubmit) && openReportSubmitToPopover) {
                 openReportSubmitToPopover({
                     onSubmitWithManagerEmail: (managerEmail, managerAccountID) => {
-                        submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey, managerEmail, managerAccountID);
+                        submitMoneyRequestOnSearch(
+                            hash,
+                            [snapshotReport],
+                            [policyForSubmit],
+                            submitterLogin,
+                            getCurrencyDecimals,
+                            currentSearchKey,
+                            managerEmail,
+                            managerAccountID,
+                            currentUserAccountID,
+                            delegateEmail,
+                        );
                     },
                 });
                 return;
             }
-            submitMoneyRequestOnSearch(hash, [snapshotReport], [policyForSubmit], submitterLogin, currentSearchKey);
+            submitMoneyRequestOnSearch(
+                hash,
+                [snapshotReport],
+                [policyForSubmit],
+                submitterLogin,
+                getCurrencyDecimals,
+                currentSearchKey,
+                undefined,
+                undefined,
+                currentUserAccountID,
+                delegateEmail,
+            );
             return;
         }
         case CONST.SEARCH.ACTION_TYPES.EXPORT_TO_ACCOUNTING: {
@@ -632,6 +668,7 @@ type GetApproveActionCallbackParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -652,6 +689,7 @@ function getApproveActionCallback({
     delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
+    allViolations,
     getCurrencyDecimals,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -659,8 +697,7 @@ function getApproveActionCallback({
     }
 
     const reportPolicy = policy ?? snapshotPolicy;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- using deprecated getAllTransactionViolations until #66512 migrates this call
-    const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
+    const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
@@ -1181,7 +1218,30 @@ function search({
         return startRequest().catch(handleSearchError);
     }
 
-    return waitForWrites(READ_COMMANDS.SEARCH).then(startRequest).catch(handleSearchError);
+    // A search can sit behind the whole write queue here. That wait happens before the request is dispatched, so none of the
+    // SearchData spans around the fetch can see it. The dedupe above guarantees one in-flight search per key, so the key is a safe span id.
+    const queueSpanId = `${CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE}_${dedupeKey}`;
+    startSpan(queueSpanId, {
+        name: CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE,
+        op: CONST.TELEMETRY.SPAN_SEARCH_DATA.QUEUE,
+        forceTransaction: true,
+        attributes: {
+            [CONST.TELEMETRY.ATTRIBUTE_COMMAND]: READ_COMMANDS.SEARCH,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_TYPE]: queryJSON.type,
+            [CONST.TELEMETRY.ATTRIBUTE_SEARCH_VIEW]: queryJSON.view,
+        },
+    });
+
+    return waitForWrites(READ_COMMANDS.SEARCH)
+        .then(() => {
+            endSpan(queueSpanId);
+            return startRequest();
+        })
+        .catch((error: unknown) => {
+            // No-op once the wait resolved and the span already ended. This only covers a rejection before that.
+            cancelSpan(queueSpanId);
+            return handleSearchError(error);
+        });
 }
 
 /**
@@ -1258,13 +1318,30 @@ function submitMoneyRequestOnSearch(
     reportList: Report[],
     policy: Policy[],
     submitterLogin: string | undefined,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     currentSearchKey?: SearchKey,
     managerEmail?: string,
     managerAccountID?: number,
+    currentUserAccountID?: number,
+    delegateEmail?: string,
 ) {
     const firstReport = (reportList.at(0) ?? {}) as Report;
     const firstPolicy = policy.at(0);
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE>> = [
+    const isDEWPolicy = hasDynamicExternalWorkflow(firstPolicy);
+    const isSubmitAndClosePolicy = isSubmitAndClose(firstPolicy);
+    // DEW policies resolve the workflow on the backend, so skip the optimistic status and only add the action offline
+    const shouldAddOptimisticSubmitAction = !isDEWPolicy || getIsOffline();
+    const adminAccountID = firstPolicy?.role === CONST.POLICY.ROLE.ADMIN ? currentUserAccountID : undefined;
+    const optimisticSubmittedReportAction = buildOptimisticSubmittedReportAction(
+        firstReport?.total ?? 0,
+        firstReport.currency ?? '',
+        firstReport.reportID,
+        adminAccountID,
+        firstPolicy?.approvalMode,
+        delegateEmail,
+        getCurrencyDecimals,
+    );
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -1272,13 +1349,38 @@ function submitMoneyRequestOnSearch(
         },
     ];
 
-    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+    if (shouldAddOptimisticSubmitAction) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstReport.reportID}`,
+            value: {[optimisticSubmittedReportAction.reportActionID]: optimisticSubmittedReportAction as ReportAction},
+        });
+    }
+    if (!isDEWPolicy) {
+        optimisticData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${firstReport.reportID}`,
+            value: isSubmitAndClosePolicy
+                ? {stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.CLOSED}
+                : {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED},
+        });
+    }
+
+    const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.SNAPSHOT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
             value: Object.fromEntries(reportList.map((report) => [`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${report?.reportID}`, {isActionLoading: false}])),
         },
     ];
+
+    if (shouldAddOptimisticSubmitAction) {
+        successData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstReport.reportID}`,
+            value: {[optimisticSubmittedReportAction.reportActionID]: {pendingAction: null}},
+        });
+    }
 
     // If we are on the 'Submit' suggested search, remove the report from the view once the action is taken, don't wait for the view to be re-fetched via Search
     if (currentSearchKey === CONST.SEARCH.SEARCH_KEYS.SUBMIT) {
@@ -1291,7 +1393,7 @@ function submitMoneyRequestOnSearch(
         });
     }
 
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT>> = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE_COLLECTION,
             key: ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE,
@@ -1311,6 +1413,21 @@ function submitMoneyRequestOnSearch(
         },
     ];
 
+    if (shouldAddOptimisticSubmitAction) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${firstReport.reportID}`,
+            value: {[optimisticSubmittedReportAction.reportActionID]: null},
+        });
+    }
+    if (!isDEWPolicy) {
+        failureData.push({
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.REPORT}${firstReport.reportID}`,
+            value: {stateNum: firstReport.stateNum ?? CONST.REPORT.STATE_NUM.OPEN, statusNum: firstReport.statusNum ?? CONST.REPORT.STATUS_NUM.OPEN},
+        });
+    }
+
     const trimmedManagerEmail = managerEmail?.trim();
     const managerIDFromChain = getKnownAccountIDByLogin(getApprovalChain(firstPolicy, firstReport, submitterLogin).at(0));
     const managerAccountIDFromEmail = trimmedManagerEmail ? getAccountIDForSubmitManagerEmail(trimmedManagerEmail, firstPolicy?.employeeList) : undefined;
@@ -1320,7 +1437,7 @@ function submitMoneyRequestOnSearch(
     const parameters: SubmitReportParams = {
         reportID: firstReport.reportID,
         managerAccountID: resolvedManagerAccountID,
-        reportActionID: rand64(),
+        reportActionID: optimisticSubmittedReportAction.reportActionID,
         ...(trimmedManagerEmail ? {managerEmail: trimmedManagerEmail} : {}),
     };
 

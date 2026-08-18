@@ -12,7 +12,6 @@ import type {ValueOf} from 'type-fest';
 
 import {SafeString} from 'expensify-common';
 
-import {getCurrencyUnit} from './CurrencyUtils';
 import Navigation from './Navigation/Navigation';
 import {isGroupPolicy} from './PolicyUtils';
 import {getOriginalMessage, isMoneyRequestAction} from './ReportActionsUtils';
@@ -74,20 +73,20 @@ function navigateToParticipantPage(iouType: ValueOf<typeof CONST.IOU.TYPE>, tran
  * @param total - IOU total amount in backend format (cents, no matter the currency)
  * @param currency - Used to know how many decimal places are valid when splitting the total
  * @param isDefaultUser - Whether we are calculating the amount for the remainder holder
- * @param useFloorToLastRounding - `false` (default, legacy behavior) or `true` to floor all and put full remainder on the default user
- * @param getCurrencyDecimals - Currency lookup supplied by React consumers. Falls back during staged migration.
+ * @param useFloorToLastRounding - `false` (legacy behavior) or `true` to floor all and put full remainder on the default user
+ * @param getCurrencyDecimals - Currency lookup supplied by React consumers.
  */
 function calculateAmount(
     numberOfSplits: number,
     total: number,
     currency: string,
-    isDefaultUser = false,
-    useFloorToLastRounding = false,
-    getCurrencyDecimals?: CurrencyListActionsContextType['getCurrencyDecimals'],
+    isDefaultUser: boolean,
+    useFloorToLastRounding: boolean,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): number {
     // Since the backend can maximum store 2 decimal places, any currency with more than 2 decimals
     // has to be capped to 2 decimal places
-    const currencyUnit = Math.min(100, getCurrencyDecimals ? 10 ** getCurrencyDecimals(currency) : getCurrencyUnit(currency));
+    const currencyUnit = Math.min(100, 10 ** getCurrencyDecimals(currency));
     const totalInCurrencySubunit = (total / 100) * currencyUnit;
     const totalParticipants = numberOfSplits + 1;
 
@@ -547,6 +546,15 @@ function pickReportForPolicy(...reports: Array<OnyxEntry<Report>>): OnyxEntry<Re
     return reports.find((report) => reportHasRealPolicy(report)) ?? reports.find((report) => !!report);
 }
 
+/** The policyID of the workspace the user explicitly picked for this expense, taken from the transaction participants. */
+function getSelectedWorkspacePolicyID(transaction: OnyxEntry<Transaction>, action: IOUAction): string | undefined {
+    if (action === CONST.IOU.ACTION.EDIT) {
+        return undefined;
+    }
+
+    return transaction?.participants?.find((participant) => participant?.isSender)?.policyID ?? transaction?.participants?.find((participant) => participant?.isPolicyExpenseChat)?.policyID;
+}
+
 /** Resolves which Report should receive a money-request: the picked transaction report when usable, undefined to force a new optimistic IOU, otherwise the route report. */
 function resolveReportForMoneyRequest({
     transaction,
@@ -654,4 +662,5 @@ export {
     resolveEarlyReportID,
     reportHasRealPolicy,
     pickReportForPolicy,
+    getSelectedWorkspacePolicyID,
 };
