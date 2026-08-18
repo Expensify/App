@@ -178,7 +178,6 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    report: fakeReport,
                     isDraftPolicy: false,
                     participantParams: expect.objectContaining({
                         payeeEmail: 'test@example.com',
@@ -923,7 +922,6 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    report: baseParams.report,
                     isDraftPolicy: false,
                     // Action is nav-free — UI owns navigation; draft + optimistic IDs are threaded in.
                     existingTransaction: baseParams.transaction,
@@ -1106,7 +1104,6 @@ describe('MoneyRequest', () => {
 
             expect(TrackExpense.trackExpense).toHaveBeenCalledWith(
                 expect.objectContaining({
-                    report: baseParams.report,
                     isDraftPolicy: false,
                     participantParams: expect.objectContaining({
                         payeeEmail: baseParams.currentUserLogin,

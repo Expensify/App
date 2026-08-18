@@ -1660,6 +1660,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 conciergeChat,
+                isDraftChatReport: false,
                 dateFnsLocale: undefined,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
                 participantsPolicyTags: {},
@@ -2238,6 +2239,7 @@ describe('actions/Duplicate', () => {
             await Onyx.clear();
 
             duplicateExpenseTransaction({
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,

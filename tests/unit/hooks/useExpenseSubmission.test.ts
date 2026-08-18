@@ -460,8 +460,9 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
 
             expect(mockTrackExpenseAction).toHaveBeenCalledTimes(1);
             expect(mockRequestMoneyAction).not.toHaveBeenCalled();
-            // The self-DM is forced as the chat target (route report is cleared) so the action defaults to the self-DM.
-            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({report: undefined}));
+            // The self-DM is forced as the chat target: parentChatReport resolves to the self-DM (undefined here, as none
+            // exists in Onyx) instead of the route report, so getTrackExpenseInformation defaults to the self-DM.
+            expect(mockTrackExpenseAction).toHaveBeenCalledWith(expect.objectContaining({parentChatReport: undefined}));
         });
     });
 
