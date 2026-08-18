@@ -91,8 +91,7 @@ function MoneyRequestReportPreview({
     const handleOrderedTransactionsChange = useCallback((orderedTransactions: Transaction[]) => {
         orderedTransactionsRef.current = orderedTransactions;
     }, []);
-    // Seeds the expense view's prev/next arrows. Uses the rendered order, not collection order, or the arrows walk a
-    // sequence that is not on screen. Offline-deleted rows stay visible here but their threads are gone, so they are excluded.
+    // Rendered order, not collection order, or the arrows walk a sequence that is not on screen. Deleted rows have no thread.
     // A deferred press retries when this changes; the actions can be missing right after a cache clear.
     const [iouReportActionCount] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: reportActionCountSelector,
@@ -101,12 +100,9 @@ function MoneyRequestReportPreview({
     const [isLoadingInitialIOUReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${getNonEmptyStringOnyxID(iouReportID)}`, {
         selector: isLoadingInitialReportActionsSelector,
     });
-    // A press whose thread could not be resolved yet, replayed once the report's actions load. The route it was made
-    // on is how we know it is still wanted: the preview stays mounted behind an RHP, and "View" goes through a
-    // different handler, so neither unmount nor this handler can be relied on to cancel it.
+    // Replayed once the report's actions load. The route it was made on is how we know it is still wanted.
     const pendingExpenseTransactionRef = useRef<{transaction: Transaction; originRoute: string} | null>(null);
-    // Lets a later press or unmount cancel the cascade. Carries the release for what the press staged, because the
-    // timer is otherwise the only thing that would hand those globals back.
+    // Carries its own release: the timer is otherwise the only thing that hands the staged globals back.
     const cascadeTimerRef = useRef<{timer: ReturnType<typeof setTimeout>; release: () => void} | null>(null);
     const transactionsWithReceipts = getTransactionsWithReceipts(iouReportID, allReportTransactions);
     const hasNonReimbursableTransactions = hasNonReimbursableTransactionsTransactionUtils(allReportTransactions);
@@ -200,16 +196,13 @@ function MoneyRequestReportPreview({
 
     const transactionPreviewContainerStyles = [styles.h100, reportPreviewStyles.transactionPreviewCarouselStyle];
 
-    // Resolve the target transaction thread report. Prefer the IOU action's childReportID, then the
-    // transaction's own thread id, and finally create the thread inline so the press never lands on a dead route.
+    // Falls back through the IOU action, the transaction's own thread, then creating one, so a press never lands on a dead route.
     const resolveChildReportID = useCallback(
         (transaction: Transaction) => {
             const transactionIOUAction = getIOUActionForReportID(transaction.reportID, transaction.transactionID);
             let childReportID = transactionIOUAction?.childReportID ?? transaction.transactionThreadReportID;
             if (childReportID) {
-                // The thread already exists, but it may not be present in OnyxDB. Seed its
-                // optimistic report shell + parent linkage so navigating to it renders the expense instead of a
-                // blank/not-found screen.
+                // The thread exists but may not be cached, so seed a shell or it renders as not-found.
                 setOptimisticTransactionThread(childReportID, iouReport?.reportID ?? transaction.reportID, transactionIOUAction?.reportActionID, iouReport?.policyID ?? policyID);
             } else if (transactionIOUAction?.reportActionID) {
                 const transactionID = isMoneyRequestAction(transactionIOUAction) ? getOriginalMessage(transactionIOUAction)?.IOUTransactionID : undefined;
@@ -221,12 +214,13 @@ function MoneyRequestReportPreview({
                         betas,
                         iouReport,
                         iouReportAction: transactionIOUAction,
+                        personalDetails: personalDetailsList,
                     })?.reportID;
                 }
             }
             return childReportID;
         },
-        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, policyID],
+        [betas, currentUserAccountID, currentUserEmail, introSelected, iouReport, personalDetailsList, policyID],
     );
 
     const navigateToExpense = useCallback(
@@ -236,18 +230,14 @@ function MoneyRequestReportPreview({
                 op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
             });
 
-            // Read once per press. The cascade's abort compares this exact array against what is seeded, so it has to
-            // be the same reference throughout this call.
+            // Read once per press: the abort compares this exact array by reference.
             const openableTransactionIDs = (orderedTransactionsRef.current.length > 0 ? orderedTransactionsRef.current : transactions)
                 .filter((pressedTransaction) => !isTransactionPendingDelete(pressedTransaction))
                 .map((pressedTransaction) => pressedTransaction.transactionID);
 
             if (isSmallScreenWidth && iouReportID) {
-                // Report first, expense on top, so back returns to the report and then the chat.
-                //
-                // The expense must stay in the RHP and never become a split-navigator screen. removeScreenByKey only
-                // filters the root navigator, so the split-save flow could not remove a nested thread, and the delete
-                // flow's goBack could land on a second copy of the report.
+                // Report first, expense on top, so back returns to the report and then the chat. The expense must stay
+                // in the RHP: removeScreenByKey only filters the root navigator, so a nested thread could never be removed.
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute());
                 Navigation.navigate(reportRoute);
                 setActiveTransactionIDs(openableTransactionIDs).then(() => {
@@ -350,36 +340,34 @@ function MoneyRequestReportPreview({
             const childReportID = resolveChildReportID(transaction);
             if (childReportID) {
                 if (!isIOUActionLoaded && iouReportID) {
-                    // The thread came from the transaction rather than a loaded IOU action, so the report's actions are
-                    // absent. Offline the shell would have no parent action to render, so open the report instead. Online,
-                    // fetch them: the arrows resolve siblings through those actions and would otherwise mint dead threads.
+                    // The report's actions are absent. Offline the shell has no parent action to render; online, fetch them
+                    // or the arrows mint dead threads.
                     if (isOffline) {
                         openReportFromPreview();
                         return;
                     }
-                    openReport({reportID: iouReportID, introSelected, betas});
+                    openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!iouReportActionCount});
                 }
                 navigateToExpense(childReportID);
                 return;
             }
 
-            // The IOU action isn't loaded, so fetch and open the expense once it settles rather than losing the press.
-            // Offline the fetch can never land, so fall through to the cached parent report instead of a dead tap.
+            // Fetch and open once it settles. Offline the fetch never lands, so fall through to the cached parent report.
             if (!isIOUActionLoaded && iouReportID && !isOffline) {
                 pendingExpenseTransactionRef.current = {transaction, originRoute: Navigation.getActiveRoute()};
-                openReport({reportID: iouReportID, introSelected, betas});
+                openReport({reportID: iouReportID, introSelected, betas, currentUserAccountID, hasReportActions: !!iouReportActionCount});
                 return;
             }
 
             openReportFromPreview();
         },
-        [betas, introSelected, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
+        [betas, currentUserAccountID, introSelected, iouReportActionCount, iouReportID, isOffline, navigateToExpense, openReportFromPreview, resolveChildReportID, transactions.length],
     );
 
     // Completes a deferred expense press once the IOU report's actions have loaded.
     useEffect(() => {
         const pendingPress = pendingExpenseTransactionRef.current;
-        // Hold while the fetch is in flight; the loading flip re-runs this effect even if the action count never changes.
+        // Hold while the fetch is in flight; the loading flip re-runs this effect.
         if (!pendingPress || isLoadingInitialIOUReportActions) {
             return;
         }
@@ -395,15 +383,12 @@ function MoneyRequestReportPreview({
             navigateToExpense(childReportID);
             return;
         }
-        // The fetch has settled (guarded above) and the expense still has no resolvable thread, so open the parent
-        // report. This must not depend on the action count: a refetch that legitimately returns none would otherwise
-        // leave the press armed forever and the tap dead.
+        // Settled with no thread, so open the parent. Must not depend on the action count, or an empty result leaves the tap dead.
         pendingExpenseTransactionRef.current = null;
         openReportFromPreview();
     }, [iouReportActionCount, isFocused, isLoadingInitialIOUReportActions, navigateToExpense, openReportFromPreview, resolveChildReportID]);
 
-    // A pending cascade must not navigate after unmount, and its staged width hint and sibling IDs are global, so
-    // they have to be handed back here too.
+    // A pending cascade must not navigate after unmount, and its staged globals must be handed back.
     useEffect(
         () => () => {
             if (!cascadeTimerRef.current) {

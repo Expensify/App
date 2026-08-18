@@ -503,7 +503,7 @@ describe('MoneyRequestReportPreview', () => {
         };
 
         const pressSecondTransaction = async () => {
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockSecondTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockSecondTransaction);
             fireEvent.press(screen.getByText(transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
         };
@@ -721,7 +721,7 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
 
             // Press the first card — it defers, waiting on the report's actions.
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
             const [firstCard] = screen.getAllByText(transactionDisplayAmount);
             fireEvent.press(firstCard);
             await waitForBatchedUpdatesWithAct();
@@ -775,7 +775,7 @@ describe('MoneyRequestReportPreview', () => {
 
             // Issue #26939: deleting an expense offline must leave the preview VISIBLE (greyed out) rather than
             // collapsing it. v2 only makes that row non-navigable — it must not disappear, so both cards still render.
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThanOrEqual(2);
         });
 
@@ -794,7 +794,7 @@ describe('MoneyRequestReportPreview', () => {
             );
 
             await renderAndPopulateCarousel();
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
             const [liveRow] = screen.getAllByText(transactionDisplayAmount);
             fireEvent.press(liveRow);
             await waitForBatchedUpdatesWithAct();
@@ -1055,7 +1055,7 @@ describe('MoneyRequestReportPreview', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndMetadataText(olderTransaction).transactionDisplayAmount));
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndHeaderText(olderTransaction).transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
             expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith([olderTransaction.transactionID, newerTransaction.transactionID]);
@@ -1076,7 +1076,7 @@ describe('MoneyRequestReportPreview', () => {
             });
             await waitForBatchedUpdatesWithAct();
 
-            const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
+            const {transactionDisplayAmount} = getTransactionDisplayAmountAndHeaderText(mockTransaction);
             fireEvent.press(screen.getByText(transactionDisplayAmount));
             await waitForBatchedUpdatesWithAct();
 
