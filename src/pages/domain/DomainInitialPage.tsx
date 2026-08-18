@@ -34,12 +34,12 @@ import {Str} from 'expensify-common';
 import React, {useCallback, useEffect} from 'react';
 import {View} from 'react-native';
 
-import getDomainMenuItems from './getDomainMenuItems';
+import getDomainMenuItems, {DOMAIN_MENU_ICON_NAMES} from './getDomainMenuItems';
 
 type DomainInitialPageProps = PlatformStackScreenProps<DomainSplitNavigatorParamList, typeof SCREENS.DOMAIN.INITIAL>;
 
 function DomainInitialPage({route}: DomainInitialPageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['UserLock', 'UserShield', 'User', 'Users']);
+    const icons = useMemoizedLazyExpensifyIcons(DOMAIN_MENU_ICON_NAMES);
     const styles = useThemeStyles();
     const waitForNavigate = useWaitForNavigation();
     const {singleExecution, isExecuting} = useSingleExecution();

@@ -10,7 +10,9 @@ import SCREENS from '@src/SCREENS';
 import type DomainErrors from '@src/types/onyx/DomainErrors';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import type {ValueOf} from 'type-fest';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
+const DOMAIN_MENU_ICON_NAMES = ['UserLock', 'UserShield', 'User', 'Users'] as const;
 
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
@@ -31,7 +33,7 @@ type DomainMenuItem = {
     screenName: DomainTopLevelScreens;
 };
 
-type DomainMenuIconMap = Record<'User' | 'UserShield' | 'Users' | 'UserLock', IconAsset>;
+type DomainMenuIconMap = Record<TupleToUnion<typeof DOMAIN_MENU_ICON_NAMES>, IconAsset>;
 
 type GetDomainMenuItemsParams = {
     /** Account ID of the Domain whose routes are being built. */
@@ -80,3 +82,4 @@ function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMen
 }
 
 export default getDomainMenuItems;
+export {DOMAIN_MENU_ICON_NAMES};
