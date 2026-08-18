@@ -371,9 +371,9 @@ const tocbotOptions = {
     activeLinkClass: 'tocbot-active-link',
 
     // `overflow-x: hidden` on `html, body` in _main.scss makes `overflow-y` compute to `auto`, so
-    // `body` owns the page's scrollport. tocbot scrolls with `window.scrollTo`, which does nothing
-    // on a page whose scroller is not the documentElement, so `onClick` uses `scrollIntoView`
-    // instead: it scrolls whichever ancestor is scrollable and honours its `scroll-padding-top`.
+    // `body` is the element that scrolls the page. tocbot scrolls with `window.scrollTo`, which does
+    // nothing when the documentElement is not the scrolling element, so `onClick` uses
+    // `scrollIntoView`: it scrolls whichever ancestor scrolls and honours its `scroll-padding-top`.
     scrollSmooth: false,
 
     onClick: (e) => {
