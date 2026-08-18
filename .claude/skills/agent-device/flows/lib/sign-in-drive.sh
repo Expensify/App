@@ -34,9 +34,9 @@ if ! declare -F human >/dev/null; then
 fi
 
 # --- selector constants (one source of truth for .ad fallback, classifiers, waits) ---
-readonly SEL_LOGIN_FIELD='id="username" || role="textfield" label="Phone or email" || label="Phone or email"'
+readonly SEL_LOGIN_FIELD='id="username" || role="textbox" label="Phone or email" || label="Phone or email"'
 # Mirrors the fill selector in sign-in.ad. Waiting on SEL_LOGIN_FIELD only proves the field exists, and the macro fills it requiring editable=true, so the replay could start against a field that had rendered but was not yet interactive.
-readonly SEL_LOGIN_FIELD_EDITABLE='id="username" editable=true || role="textfield" label="Phone or email" editable=true || label="Phone or email" editable=true'
+readonly SEL_LOGIN_FIELD_EDITABLE='id="username" editable=true || role="textbox" label="Phone or email" editable=true || label="Phone or email" editable=true'
 readonly SEL_CONTINUE='role="button" label="Continue" || label="Continue"'
 readonly SEL_NAME_FIELD='label="First name" || label="Full name" || role="textfield"'
 # Web wait-union markers. Apostrophe-free substrings dodge the straight-vs-curly
