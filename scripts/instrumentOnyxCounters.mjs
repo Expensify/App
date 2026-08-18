@@ -172,13 +172,18 @@ ${END}
 
 const wrap = (body) => `${HIT} try { const __s = globalThis.__onyxStats && globalThis.__onyxStats._s; if (__s) { ${body} } } catch (e) {}`;
 
+// One entry per hook, each listing every signature the anchor is known to have. The first one present wins,
+// so the same instrument works across Onyx versions that added or dropped a parameter.
 const ANCHORS = [
     {
-        signature: 'function keyChanged(key, value, canUpdateSubscriber = () => true, isProcessingCollectionUpdate = false) {',
+        signatures: [
+            'function keyChanged(key, value, canUpdateSubscriber = () => true, isProcessingCollectionUpdate = false) {',
+            'function keyChanged(key, value, canUpdateSubscriber = () => true) {',
+        ],
         inject: wrap("__s.totalKeyChanged++; __s.keyChanged.set(key, (__s.keyChanged.get(key) || 0) + 1); __s.push('key', key);"),
     },
     {
-        signature: 'function keysChanged(collectionKey, partialCollection, partialPreviousCollection) {',
+        signatures: ['function keysChanged(collectionKey, partialCollection, partialPreviousCollection) {'],
         inject: wrap(
             '__s.totalKeysChanged++; __s.keysChanged.set(collectionKey, (__s.keysChanged.get(collectionKey) || 0) + 1); ' +
                 'const __mk = Object.keys(partialCollection || {}); __s.totalMembers += __mk.length; ' +
@@ -229,9 +234,16 @@ function install(checkout) {
         return 'already instrumented';
     }
 
-    for (const {signature, inject} of ANCHORS) {
-        if (!text.includes(signature)) {
-            throw new Error(`anchor not found in ${file}:\n  ${signature}`);
+    for (const {signatures, inject} of ANCHORS) {
+        let signature;
+        for (const candidate of signatures) {
+            if (text.includes(candidate)) {
+                signature = candidate;
+                break;
+            }
+        }
+        if (!signature) {
+            throw new Error(`anchor not found in ${file}, tried:\n  ${signatures.join('\n  ')}`);
         }
         text = text.replace(signature, `${signature}\n    ${inject}`);
     }
