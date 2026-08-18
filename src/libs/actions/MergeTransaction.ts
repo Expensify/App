@@ -287,6 +287,8 @@ function getOnyxTargetTransactionData({
     delegateAccountID,
     reportPolicyTags,
     isTrackIntentUser,
+    getCurrencyDecimals,
+    getCurrencySymbol,
 }: {
     targetTransaction: Transaction;
     targetTransactionViolations: OnyxEntry<TransactionViolations>;
@@ -303,6 +305,8 @@ function getOnyxTargetTransactionData({
     delegateAccountID: number | undefined;
     reportPolicyTags: OnyxEntry<PolicyTagLists>;
     isTrackIntentUser: boolean | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 }) {
     let data: UpdateMoneyRequestData<UpdateMoneyRequestDataKeys>;
     const isUnreportedExpense = !mergeTransaction.reportID || mergeTransaction.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -330,6 +334,7 @@ function getOnyxTargetTransactionData({
             filteredTransactionChanges,
             policy,
             delegateAccountID,
+            {getCurrencyDecimals, getCurrencySymbol},
             undefined,
             shouldBuildOptimisticModifiedExpenseReportAction,
         );
@@ -351,6 +356,8 @@ function getOnyxTargetTransactionData({
             isASAPSubmitBetaEnabled,
             delegateAccountID,
             isTrackIntentUser,
+            getCurrencyDecimals,
+            getCurrencySymbol,
         });
     }
 
@@ -411,6 +418,7 @@ type MergeTransactionRequestParams = {
     sourceTransactionThreadReportActions: OnyxEntry<ReportActions>;
     sourceIOUAction: OnyxEntry<ReportAction>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 /**
  * Merges two transactions by updating the target transaction with selected fields and deleting the source transaction.
@@ -444,6 +452,7 @@ function mergeTransactionRequest({
     sourceTransactionThreadReportActions,
     sourceIOUAction,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: MergeTransactionRequestParams) {
     // For both unreported expenses and expense reports, negate the display amount when storing
     // This preserves the user's chosen sign while following the storage convention
@@ -494,6 +503,8 @@ function mergeTransactionRequest({
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     });
 
     // Optimistic delete the source transaction and also delete its report if it was a single expense report
