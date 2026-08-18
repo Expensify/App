@@ -298,6 +298,7 @@ function SubmitDetailsPage({
         isCreatingTrackExpense,
         isSelfDMDestination: isSelfDM(report),
         isLookingAroundUser,
+        isMovingTransactionFromTrackExpense: false,
     });
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {
