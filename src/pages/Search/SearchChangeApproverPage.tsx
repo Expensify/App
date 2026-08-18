@@ -190,12 +190,8 @@ function SearchChangeApproverPage() {
 
             // Taking control only makes the current user the final approver. When they already are the manager, the
             // report stays waiting on them, so approve it as well to actually bypass the remaining approvers.
-            if (report.managerID !== currentUserDetails.accountID) {
+            if (report.managerID !== currentUserDetails.accountID || isDelegateAccessRestricted) {
                 continue;
-            }
-
-            if (isDelegateAccessRestricted) {
-                return;
             }
 
             approveMoneyRequest({
