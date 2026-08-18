@@ -1,6 +1,3 @@
-/**
- * Builds the ordered Domain menu items with their routes and indicator states.
- */
 import {hasDomainAdminsErrors, hasDomainGroupsErrors, hasDomainMembersErrors} from '@libs/DomainUtils';
 
 import type DOMAIN_TO_RHP from '@navigation/linkingConfig/RELATIONS/DOMAIN_TO_RHP';
@@ -18,21 +15,38 @@ import type {ValueOf} from 'type-fest';
 type DomainTopLevelScreens = keyof typeof DOMAIN_TO_RHP;
 
 type DomainMenuItem = {
+    /** Translation key used as the menu item label. */
     translationKey: TranslationPaths;
+
+    /** Icon displayed next to the menu item label. */
     icon: IconAsset;
+
+    /** Route opened when the menu item is selected. */
     route: Route;
+
+    /** Error indicator for the corresponding Domain section. */
     brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
+
+    /** Screen used to determine whether the menu item is focused. */
     screenName: DomainTopLevelScreens;
 };
 
 type DomainMenuIconMap = Record<'User' | 'UserShield' | 'Users' | 'UserLock', IconAsset>;
 
 type GetDomainMenuItemsParams = {
+    /** Account ID of the Domain whose routes are being built. */
     domainAccountID: number;
+
+    /** Errors used to show indicators on the affected Domain sections. */
     domainErrors?: DomainErrors;
+
+    /** Icons used by the Domain menu items. */
     icons: DomainMenuIconMap;
 };
 
+/**
+ * Menu order is significant because it controls the on-screen layout. Callers attach navigation actions so those actions can retain page-specific lifecycle handling.
+ */
 function getDomainMenuItems({domainAccountID, domainErrors, icons}: GetDomainMenuItemsParams): DomainMenuItem[] {
     return [
         {
