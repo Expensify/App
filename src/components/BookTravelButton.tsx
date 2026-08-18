@@ -31,7 +31,7 @@ import {emailSelector} from '@selectors/Session';
 import {Str} from 'expensify-common';
 import React, {useEffect, useRef, useState} from 'react';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import DotIndicatorMessage from './DotIndicatorMessage';
 import RenderHTML from './RenderHTML';
 
@@ -226,15 +226,16 @@ function BookTravelButton({
                 />
             )}
             <Button
-                text={text}
                 onPress={bookATrip}
                 accessibilityLabel={translate('travel.bookTravel')}
                 style={large ? styles.w100 : undefined}
                 isDisabled={!activePolicyID}
-                success
-                large={large}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={large ? CONST.BUTTON_SIZE.LARGE : undefined}
                 sentryLabel={sentryLabel}
-            />
+            >
+                <Button.Text>{text}</Button.Text>
+            </Button>
             {shouldRenderErrorMessageBelowButton && !!errorMessage && (
                 <DotIndicatorMessage
                     style={[styles.mb1, styles.pt3]}

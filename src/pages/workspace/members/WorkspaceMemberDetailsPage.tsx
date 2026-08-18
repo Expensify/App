@@ -352,11 +352,12 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
                             {isSelectedMemberOwner && isCurrentUserAdmin && !isCurrentUserOwner ? (
                                 shouldRenderTransferOwnerButton(fundList) && (
                                     <ButtonDisabledWhenOffline
-                                        text={translate('workspace.people.transferOwner')}
                                         onPress={startChangeOwnershipFlow}
-                                        icon={icons.Transfer}
                                         style={styles.mb5}
-                                    />
+                                    >
+                                        <Button.Icon src={icons.Transfer} />
+                                        <Button.Text>{translate('workspace.people.transferOwner')}</Button.Text>
+                                    </ButtonDisabledWhenOffline>
                                 )
                             ) : (
                                 <Button

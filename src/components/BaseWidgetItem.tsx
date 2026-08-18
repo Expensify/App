@@ -10,9 +10,9 @@ import type IconAsset from '@src/types/utils/IconAsset';
 import React from 'react';
 import {View} from 'react-native';
 
-import type {ButtonProps} from './Button';
+import type {ButtonProps} from './ButtonComposed';
 
-import Button from './Button';
+import Button from './ButtonComposed';
 import Icon from './Icon';
 import {PressableWithoutFeedback} from './Pressable';
 import Text from './Text';
@@ -72,14 +72,15 @@ function BaseWidgetItem({icon, iconBackgroundColor, title, subtitle, ctaText, on
                         <Text style={styles.widgetItemTitle}>{title}</Text>
                     </View>
                     <Button
-                        text={ctaText}
                         onPress={onCtaPress}
-                        small
+                        size={CONST.BUTTON_SIZE.SMALL}
                         style={styles.widgetItemButton}
-                        // Prop spreading allows parent components to pass additional button styling props (e.g., danger: true, success: true)
+                        // Prop spreading allows parent components to pass additional button styling props (e.g., variant: CONST.BUTTON_VARIANT.DANGER or CONST.BUTTON_VARIANT.SUCCESS)
 
                         {...buttonProps}
-                    />
+                    >
+                        <Button.Text>{ctaText}</Button.Text>
+                    </Button>
                 </View>
             )}
         </PressableWithoutFeedback>

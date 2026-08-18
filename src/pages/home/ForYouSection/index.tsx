@@ -103,7 +103,7 @@ function ForYouSection() {
                     iconFill: colors.tangerine500,
                     translationKey: 'homePage.forYouSection.reviewExpenses' as const,
                     handler: reviewExpenses,
-                    buttonProps: {danger: true} as const,
+                    buttonProps: {variant: CONST.BUTTON_VARIANT.DANGER} as const,
                 },
                 {
                     key: 'submit',
@@ -171,7 +171,7 @@ function ForYouSection() {
                     title={translate(translationKey, {count})}
                     ctaText={translate('homePage.forYouSection.begin')}
                     onCtaPress={handler}
-                    buttonProps={buttonProps ?? {success: true}}
+                    buttonProps={buttonProps ?? {variant: CONST.BUTTON_VARIANT.SUCCESS}}
                 />
             ))}
         </View>

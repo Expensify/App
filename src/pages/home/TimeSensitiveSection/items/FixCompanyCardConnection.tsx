@@ -104,7 +104,7 @@ function FixCompanyCardConnection({card, policyID, policyName}: FixCompanyCardCo
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={() => Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(policyID))}
-            buttonProps={{danger: true}}
+            buttonProps={{variant: CONST.BUTTON_VARIANT.DANGER}}
         />
     );
 }

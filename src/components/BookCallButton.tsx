@@ -16,7 +16,7 @@ import React from 'react';
 import {View} from 'react-native';
 
 import Avatar from './Avatar';
-import Button from './Button';
+import Button from './ButtonComposed';
 import Text from './Text';
 
 type BookCallButtonProps = {
@@ -52,17 +52,15 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
         sentryLabel: CONST.SENTRY_LABEL.ACCOUNT_MANAGER_BOOK_CALL.BUTTON,
         accessibilityLabel: label,
         isNested,
-        medium: true as const,
         style,
     };
 
     if (!avatarAccountID) {
         return (
-            <Button
-                text={label}
-                icon={icons.Phone}
-                {...commonProps}
-            />
+            <Button {...commonProps}>
+                <Button.Icon src={icons.Phone} />
+                <Button.Text>{label}</Button.Text>
+            </Button>
         );
     }
 
