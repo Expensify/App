@@ -98,6 +98,7 @@ function BaseSelectListItem<TItem extends ListItem>({
                                 styles.lh16,
                                 isAlternateTextMultilineSupported ? styles.preWrap : styles.pre,
                                 isAlternateTextMultilineSupported ? {maxWidth: alternateTextMaxWidth} : null,
+                                isMultilineSupported ? {paddingLeft} : null,
                             ]}
                             numberOfLines={isAlternateTextMultilineSupported ? alternateTextNumberOfLines : 1}
                         />
