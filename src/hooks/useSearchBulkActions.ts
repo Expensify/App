@@ -1399,7 +1399,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     continue;
                 }
 
-                const isItemInvoice = isInvoiceReport(item.reportID);
+                const isItemInvoice = isInvoiceReport(iouReport);
                 let chatReport = getChatReportForBulkPay(iouReport, item.chatReportID, searchData, allReports);
                 let isFallbackChatReport = false;
                 if (!chatReport) {
@@ -1431,7 +1431,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     reportID: item.reportID,
                     amount: item.amount,
                     paymentType: resolvedPaymentType,
-                    ...(isInvoiceReport(item.reportID)
+                    ...(isItemInvoice
                         ? getPayMoneyOnSearchInvoiceParams(
                               item.policyID,
                               additionalData?.payAsBusiness ?? isBusinessInvoiceRoom(item.chatReportID),
