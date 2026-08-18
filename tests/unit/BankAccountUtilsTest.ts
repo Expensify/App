@@ -390,7 +390,7 @@ describe('BankAccountUtils', () => {
                     requiresPlaidHandler: true,
                     labelKey: 'walletPage.bankAccountStatus.active',
                     messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
-                    actionKey: 'walletPage.bankAccountStatus.fix',
+                    actionKey: 'common.actionBadge.fix',
                     tone: 'danger',
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 });
