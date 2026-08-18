@@ -85,6 +85,8 @@ export default function () {
         ],
     });
 
+    import('@libs/registerPaginationConfig');
+
     // Must be imported after Onyx.init() and outside the React lifecycle so that push notification
     // handlers are registered before any push arrives, including Android headless/background wake-ups.
     import('@libs/Notification/PushNotification/subscribeToPushNotifications');
