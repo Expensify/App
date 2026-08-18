@@ -10,6 +10,7 @@ import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
+import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
@@ -54,7 +55,8 @@ function useOnboardingFlowRouter() {
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [onboardingInitialPath] = useOnyx(ONYXKEYS.ONBOARDING_LAST_VISITED_PATH);
-    const onboardingDeeplinkIntent = useOnboardingDeeplinkIntent();
+    // A Submit deeplink creates the workspace outright, so there is nothing left for onboarding to ask.
+    const hasSubmitDeeplinkIntent = useOnboardingDeeplinkIntent() === CONST.ONBOARDING_INTENTS.SUBMIT;
     const [hasNonPersonalPolicy] = useOnyx(ONYXKEYS.HAS_NON_PERSONAL_POLICY);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const wasInvitedToNewDot = wasInvitedToNewDotSelector(introSelected);
@@ -77,6 +79,10 @@ function useOnboardingFlowRouter() {
                 // Re-read the active route here too: on a cold-launch deep link the render-time check can run before navigation
                 // is ready, so the render-time isVisitingSecureLink may be stale when this transition callback fires.
                 if (getIsVisitingSecureLink()) {
+                    return;
+                }
+
+                if (hasSubmitDeeplinkIntent) {
                     return;
                 }
 
@@ -133,7 +139,6 @@ function useOnboardingFlowRouter() {
                             onboardingInitialPath,
                             onboardingValues,
                             isAccountValidated: !!account?.validated,
-                            onboardingDeeplinkIntent,
                         });
                     });
                 }
@@ -161,7 +166,7 @@ function useOnboardingFlowRouter() {
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,
-        onboardingDeeplinkIntent,
+        hasSubmitDeeplinkIntent,
         hasBeenAddedToNudgeMigration,
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
@@ -171,8 +176,9 @@ function useOnboardingFlowRouter() {
     ]);
 
     return {
-        // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report.
-        isOnboardingCompleted: isVisitingSecureLink ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report,
+        // and for Submit deeplink visitors so it is not mounted over the workspace being created for them.
+        isOnboardingCompleted: isVisitingSecureLink || hasSubmitDeeplinkIntent ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };

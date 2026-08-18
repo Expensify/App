@@ -92,8 +92,7 @@ Onyx.connectWithoutView({
     },
 });
 
-// Without this the guard would recompute the onboarding route from progress alone and redirect a deeplinked user
-// back to the step their intent was meant to skip.
+// A Submit deeplink creates the workspace outright, so the guard must not pull the user into onboarding on the way.
 Onyx.connectWithoutView({
     key: ONYXKEYS.ONBOARDING_DEEPLINK_INTENT,
     callback: (value) => {
@@ -128,7 +127,6 @@ function getOnboardingRoute(): Route {
         onboardingInitialPath,
         onboardingValues: onboarding,
         isAccountValidated: !!account?.validated,
-        onboardingDeeplinkIntent,
     }) as Route;
 }
 
@@ -188,6 +186,7 @@ const OnboardingGuard: NavigationGuard = {
         const isMigratedUser = tryNewDot?.hasBeenAddedToNudgeMigration ?? false;
         const isSingleEntry = hybridApp?.isSingleNewDotEntry ?? false;
         const isFirstTimeHybridAppTransition = (CONFIG.IS_HYBRID_APP && tryNewDot?.isHybridAppOnboardingCompleted !== true) ?? false;
+        const hasSubmitDeeplinkIntent = onboardingDeeplinkIntent === CONST.ONBOARDING_INTENTS.SUBMIT;
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
 
@@ -221,6 +220,7 @@ const OnboardingGuard: NavigationGuard = {
             isSingleEntry ||
             isFirstTimeHybridAppTransition ||
             isNavigatingWithReplace ||
+            hasSubmitDeeplinkIntent ||
             context.isSupportalSession ||
             // Copilots should not be pushed through onboarding on behalf of the account they are accessing
             isActingAsDelegateSelector(account);
@@ -251,6 +251,7 @@ const OnboardingGuard: NavigationGuard = {
             isFirstTimeHybridAppTransition,
             isInvitedOrGroupMember,
             isNavigatingWithReplace,
+            hasSubmitDeeplinkIntent,
         });
 
         return {

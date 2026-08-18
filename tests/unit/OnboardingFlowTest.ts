@@ -43,20 +43,6 @@ describe('OnboardingFlow', () => {
             expect(path).toBe('/onboarding/personal-details');
         });
 
-        it('should skip ahead to personal details for a Submit deeplink, past the step it would otherwise land on', () => {
-            const params: GetOnboardingInitialPathParamsType = {
-                isUserFromPublicDomain: true,
-                hasAccessiblePolicies: false,
-                currentOnboardingPurposeSelected: undefined,
-                currentOnboardingCompanySize: undefined,
-                onboardingInitialPath: '',
-                onboardingValues: undefined,
-                onboardingDeeplinkIntent: CONST.ONBOARDING_INTENTS.SUBMIT,
-            };
-            const path = getOnboardingInitialPath(params);
-            expect(path).toBe('/onboarding/personal-details');
-        });
-
         it('should return the correct path for SMB', () => {
             const params: GetOnboardingInitialPathParamsType = {
                 isUserFromPublicDomain: true,
