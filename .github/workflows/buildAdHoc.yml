@@ -94,6 +94,8 @@ jobs:
       mobile-expensify-ref: ${{ inputs.MOBILE_EXPENSIFY_REF }}
       pull-request-number: ${{ inputs.APP_PR_NUMBER }}
       force-native-build: ${{ inputs.FORCE_NATIVE_BUILD }}
+      # AdHoc builds report crashes to Sentry too (SEND_CRASH_REPORTS=true, inherited from .env.staging).
+      download-dsyms: 'true'
     secrets: inherit
 
   buildWeb:

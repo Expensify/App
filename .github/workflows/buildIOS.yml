@@ -119,6 +119,24 @@ jobs:
       - name: Install New Expensify Gems
         run: bundle install
 
+      - name: Resolve react-native artifact version
+        id: resolve-rn-artifacts
+        # Dry-run of the same resolver pod install calls, just to get a cache key. Downloads nothing.
+        run: |
+          VERSION=$(bun scripts/artifacts-utils/resolve-artifacts.ts --platform=ios --package=react-hybrid --hybrid=true --new-dot-root="$GITHUB_WORKSPACE" | jq -r '.version // "source"')
+          echo "VERSION=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Cache react-native artifacts
+        # v5.0.1
+        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+        with:
+          # The debug+release tarballs are tens of MB; with dSYMs (download-dsyms input) each config's
+          # pair is ~100MB. This is the resolver's own download cache (patched_ios_artifacts.rb's
+          # CACHE_ROOT) - keyed by resolved version so pod install skips re-downloading on a hit,
+          # whether or not our own pod install below runs.
+          path: ~/Library/Caches/Expensify/react-native-artifacts
+          key: ${{ runner.os }}-rn-artifacts-react-hybrid-${{ steps.resolve-rn-artifacts.outputs.VERSION }}
+
       - name: Cache Pod dependencies
         # v5.0.1
         uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
