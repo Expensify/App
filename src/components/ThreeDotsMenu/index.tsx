@@ -16,8 +16,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import {isMobile} from '@libs/Browser';
-import resolvePopoverLauncherElement from '@libs/resolvePopoverLauncherElement';
-import restoreFocusWithModality from '@libs/restoreFocusWithModality';
 
 import type {AnchorPosition} from '@styles/index';
 import variables from '@styles/variables';
@@ -69,8 +67,6 @@ function ThreeDotsMenu({
     const [restoreFocusType, setRestoreFocusType] = useState<BaseModalProps['restoreFocusType']>();
     const [position, setPosition] = useState<AnchorPosition>();
     const buttonRef = useRef<View>(null);
-    // Selecting an item hands the focus restore to that item's own action, so only a plain dismiss refocuses the anchor.
-    const wasItemSelectedRef = useRef(false);
     const {translate} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['ThreeDots']);
     const isBehindModal = modal?.willAlertModalBecomeVisible && !modal?.isPopover && !shouldOverlay;
@@ -172,23 +168,6 @@ function ThreeDotsMenu({
           }
         : {text: translate(iconTooltip), shouldRender: true};
 
-    const onModalHide = () => {
-        setRestoreFocusType(undefined);
-        const wasItemSelected = wasItemSelectedRef.current;
-        wasItemSelectedRef.current = false;
-        if (wasItemSelected) {
-            return;
-        }
-
-        // Dismissed without picking anything — Escape, click outside. `shouldEnableNewFocusManagement` hands the
-        // focus return to ComposerFocusManager, which only ever restores *inputs*, and the focus trap stands down
-        // for the same reason, so nothing puts focus back on the 3-dot trigger and it falls to <body>.
-        const anchor = resolvePopoverLauncherElement(buttonRef);
-        if (!anchor) {
-            return;
-        }
-        restoreFocusWithModality(anchor);
-    };
     return (
         <>
             <View>
@@ -223,12 +202,11 @@ function ThreeDotsMenu({
             </View>
             <PopoverMenu
                 onClose={hidePopoverMenu}
-                onModalHide={onModalHide}
+                onModalHide={() => setRestoreFocusType(undefined)}
                 isVisible={isPopupMenuVisible && !isBehindModal && isContainerFocused}
                 anchorPosition={position ?? anchorPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
                 onItemSelected={(item) => {
-                    wasItemSelectedRef.current = true;
                     setRestoreFocusType(CONST.MODAL.RESTORE_FOCUS_TYPE.PRESERVE);
                     hidePopoverMenu(item);
                 }}
@@ -237,6 +215,8 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                // The button blurs itself before opening and is not a text input, so ComposerFocusManager has nothing to restore — the trap has to return focus.
+                shouldReturnFocus
                 restoreFocusType={restoreFocusType}
                 enableEdgeToEdgeBottomSafeAreaPadding
             />
