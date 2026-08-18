@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 
@@ -108,7 +108,7 @@ export default function ReportParticipantsTable({ref, headerComponent, members, 
         />
     );
 
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, <Table.FilterBar label={translate('selectionList.findMember')} />);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, <Table.FilterBar label={translate('selectionList.findMember')} />);
 
     return (
         <Table
@@ -125,8 +125,8 @@ export default function ReportParticipantsTable({ref, headerComponent, members, 
             isItemInSearch={isItemInSearch}
             keyExtractor={(item) => item.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

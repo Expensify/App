@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -119,7 +119,7 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
     };
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findWorkspace')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<WorkspaceRowData>) => {
         return (
@@ -153,9 +153,9 @@ export default function WorkspaceListTable({ref, workspaces, headerComponent, on
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="workspaces"
             title={translate('common.workspaces')}
-            headerComponent={tableHeaderComponent}
             keyExtractor={(row, index) => `${row.policyID}-${index}`}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.EmptyState
                 titleStyles={styles.pt2}

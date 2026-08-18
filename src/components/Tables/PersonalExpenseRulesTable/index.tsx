@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -96,7 +96,7 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
     };
 
     const searchBarComponent = <Table.FilterBar label={translate('expenseRulesPage.findRule')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -111,8 +111,8 @@ export default function PersonalExpenseRulesTable({headerComponent, personalExpe
             renderItem={renderPersonalExpenseRuleItem}
             onRowSelectionChange={onRowSelectionChange}
             keyExtractor={(rule) => rule.keyForList}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('expenseRulesPage.emptyRules.title')}
                 subtitle={translate('expenseRulesPage.emptyRules.subtitle')}

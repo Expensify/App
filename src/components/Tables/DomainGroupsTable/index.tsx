@@ -87,8 +87,8 @@ export default function DomainGroupsTable({domainAccountID, groups}: DomainGroup
             initialSortColumn="name"
             title={translate('domain.groups.title')}
             keyExtractor={(item) => item.keyForList}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

@@ -37,8 +37,8 @@ type TableBodyListProps = TableBodyProps & {
  * is supplied. Single source of truth for that condition, mirrored by the early `return null` below and read by
  * `Table`.
  */
-function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined, headerComponent?: unknown): boolean {
-    return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent || !!headerComponent;
+function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined, listHeaderElement?: unknown): boolean {
+    return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent || !!listHeaderElement;
 }
 
 /**
@@ -84,7 +84,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
         columns,
         selectionEnabled,
         shouldUseNarrowTableLayout,
-        headerComponent,
+        listHeaderElement,
         tableHeaderElement,
         emptyStateElement,
         noResultsStateElement,
@@ -181,7 +181,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const pageHeaderElement = tableListMetadata.hasPageHeader ? (
         <View>
             {renderListComponent(ListHeaderComponent)}
-            {headerComponent}
+            {listHeaderElement}
         </View>
     ) : null;
 
@@ -367,7 +367,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
 function TableBody(props: TableBodyProps) {
     const {translate} = useLocalize();
-    const {activeSearchString, hasActiveFilters, hasSearchString, headerComponent, isEmptyResult, listProps, originalDataLength} = useTableContext<TableData>();
+    const {activeSearchString, hasActiveFilters, hasSearchString, listHeaderElement, isEmptyResult, listProps, originalDataLength} = useTableContext<TableData>();
     let emptyMessage = '';
 
     if (hasSearchString) {
@@ -379,7 +379,7 @@ function TableBody(props: TableBodyProps) {
     useDebouncedAccessibilityAnnouncement(emptyMessage, isEmptyResult, activeSearchString);
 
     // Keep the body mounted when a page header or list empty state must remain visible without rows.
-    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, headerComponent)) {
+    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps, listHeaderElement)) {
         return null;
     }
 

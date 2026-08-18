@@ -2,7 +2,7 @@ import BlockingView from '@components/BlockingViews/BlockingView';
 import Button from '@components/ButtonComposed';
 import CardFeedIcon from '@components/CardFeedIcon';
 import ScrollView from '@components/ScrollView';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
@@ -405,9 +405,9 @@ function WorkspaceCompanyCardsTable({
             selectedKeys={validSelectedCardKeys}
             onRowSelectionChange={setSelectedCardKeys}
             title={translate('workspace.common.companyCards')}
-            headerComponent={showCards ? composeTableHeaderComponent(headerButtonsComponent, tableControlsComponent) : undefined}
             ListEmptyComponent={shouldShowPendingUnassignmentLoading ? <Table.LoadingState /> : undefined}
         >
+            <Table.ListHeader>{showCards ? composeTableListHeader(headerButtonsComponent, tableControlsComponent) : undefined}</Table.ListHeader>
             {!showCards && headerButtonsComponent}
 
             {isLoading && <Table.LoadingState />}

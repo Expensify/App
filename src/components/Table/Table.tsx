@@ -34,6 +34,7 @@ import {doesBodyRenderWhenEmpty} from './TableBody';
 import TableContext from './TableContext';
 import TableEmptyState from './TableEmptyStates/TableEmptyState';
 import TableNoResultsState from './TableEmptyStates/TableNoResultsState';
+import TableListHeader from './TableListHeader';
 import TableSemanticContainer from './TableSemanticContainer';
 
 type TableHeaderComponent = React.JSXElementConstructor<TableHeaderProps> & {
@@ -41,14 +42,18 @@ type TableHeaderComponent = React.JSXElementConstructor<TableHeaderProps> & {
 };
 
 type ExtractedTableChildren = {
+    listHeaderElement?: React.ReactNode;
     tableHeaderElement?: ReactElement<TableHeaderProps>;
     emptyStateElement?: ReactElement;
     noResultsStateElement?: ReactElement;
-    renderedChildren: React.ReactNode[];
 };
 
 function isTableHeaderElement(child: React.ReactNode): child is ReactElement<TableHeaderProps> {
     return React.isValidElement<TableHeaderProps>(child) && typeof child.type !== 'string' && (child.type as TableHeaderComponent).type === 'header';
+}
+
+function isTableListHeaderElement(child: React.ReactNode): child is ReactElement<{children?: React.ReactNode}> {
+    return React.isValidElement(child) && child.type === TableListHeader;
 }
 
 /**
@@ -225,7 +230,6 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     isItemInSearch,
     initialSortColumn,
     narrowLayoutSortColumn,
-    headerComponent,
     children,
     selectionEnabled,
     shouldEnableSelectionInNarrowPaneModal,
@@ -293,31 +297,37 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     const originalDataLength = data?.length ?? 0;
     const isEmptyResult = processedData.length === 0 && originalDataLength > 0;
 
-    const hasPageHeader = !!headerComponent || !!listProps.ListHeaderComponent;
+    // Extract marker and state elements before deciding which children stay inline so ListHeader/Header declaration order does not matter.
+    const childrenArray = React.Children.map(children, (child) => child) ?? [];
+    const {listHeaderElement, tableHeaderElement, emptyStateElement, noResultsStateElement} = childrenArray.reduce<ExtractedTableChildren>((extractedChildren, child) => {
+        const isListHeader = isTableListHeaderElement(child);
+        const isHeader = isTableHeaderElement(child);
+        const isEmptyState = React.isValidElement(child) && child.type === TableEmptyState;
+        const isNoResultsState = React.isValidElement(child) && child.type === TableNoResultsState;
 
-    // Pull recognized elements from the direct children so Table can choose their internal render
-    // location without changing the compound interface. The declared column header and empty-state
-    // elements move into TableBody only for the page-header layout.
-    const {tableHeaderElement, emptyStateElement, noResultsStateElement, renderedChildren} = (React.Children.map(children, (child) => child) ?? []).reduce<ExtractedTableChildren>(
-        (extractedChildren, child) => {
-            const isHeader = isTableHeaderElement(child);
-            const isEmptyState = React.isValidElement(child) && child.type === TableEmptyState;
-            const isNoResultsState = React.isValidElement(child) && child.type === TableNoResultsState;
-            const shouldRelocateChild = hasPageHeader && (isHeader || isEmptyState || isNoResultsState);
+        return {
+            listHeaderElement: extractedChildren.listHeaderElement ?? (isListHeader ? child.props.children : undefined),
+            tableHeaderElement: extractedChildren.tableHeaderElement ?? (isHeader ? child : undefined),
+            emptyStateElement: extractedChildren.emptyStateElement ?? (isEmptyState ? child : undefined),
+            noResultsStateElement: extractedChildren.noResultsStateElement ?? (isNoResultsState ? child : undefined),
+        };
+    }, {});
+    const hasPageHeader = !!listHeaderElement || !!listProps.ListHeaderComponent;
+    const renderedChildren = childrenArray.filter((child) => {
+        if (isTableListHeaderElement(child)) {
+            return false;
+        }
 
-            return {
-                tableHeaderElement: extractedChildren.tableHeaderElement ?? (isHeader ? child : undefined),
-                emptyStateElement: extractedChildren.emptyStateElement ?? (isEmptyState ? child : undefined),
-                noResultsStateElement: extractedChildren.noResultsStateElement ?? (isNoResultsState ? child : undefined),
-                renderedChildren: shouldRelocateChild ? extractedChildren.renderedChildren : [...extractedChildren.renderedChildren, child],
-            };
-        },
-        {renderedChildren: []},
-    );
+        if (!hasPageHeader) {
+            return true;
+        }
+
+        return !isTableHeaderElement(child) && !(React.isValidElement(child) && (child.type === TableEmptyState || child.type === TableNoResultsState));
+    });
     const shouldRenderStickyHeader = processedData.length > 0 && !!tableHeaderElement && hasPageHeader && !(shouldUseNarrowTableLayout && !title);
 
     const tableListMetadata = getTableListMetadata({
-        headerComponent,
+        listHeaderElement,
         listHeaderComponent: listProps.ListHeaderComponent,
         shouldRenderStickyHeader,
     });
@@ -365,7 +375,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const contextValue: TableContextValue<DataType, ColumnKey, FilterKey> = {
         title,
-        headerComponent,
+        listHeaderElement,
         tableHeaderElement,
         emptyStateElement,
         noResultsStateElement,
@@ -403,7 +413,7 @@ function Table<DataType extends TableData, ColumnKey extends string = string, Fi
 
     // In the normal inline semantic layout, an empty body with a list slot still needs its enclosing table wrapper.
     // Page-header tables use TableBody's persistent full-layout wrapper as their semantic table ancestor.
-    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, headerComponent);
+    const rendersBodyWhenEmpty = doesBodyRenderWhenEmpty(listProps, listHeaderElement);
 
     return (
         <TableContext.Provider value={contextValue as unknown as TableContextValue<TableData, string, string>}>

@@ -1,6 +1,6 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react-native';
 
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableHandle} from '@components/Table';
 import Text from '@components/Text';
 
@@ -686,15 +686,18 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.Header testID="declared-table-header" />
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>,
             );
 
             expect(Table.Header.type).toBe('header');
             expect(within(screen.getByTestId('flash-list')).getByTestId('declared-table-header')).toBeTruthy();
+            expect(screen.getAllByTestId('table-header-component')).toHaveLength(1);
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toBeUndefined();
 
@@ -703,7 +706,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.stickyHeaderIndices).toEqual([0]);
         });
 
-        it('should render headerComponent and keep row indexes aligned with data rows', () => {
+        it('should render ListHeader and keep row indexes aligned with data rows', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
                 <View testID={`row-${item.id}`}>
@@ -718,8 +721,10 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -732,7 +737,7 @@ describe('Table', () => {
             expect(mockFlashListProps.at(-1)?.data).toHaveLength(props.data.length + 1);
         });
 
-        it('should compose ListHeaderComponent and headerComponent as the persistent list header', () => {
+        it('should compose ListHeaderComponent and ListHeader as the persistent list header', () => {
             const props = createDefaultProps();
             const renderItem = ({item, index}: ListRenderItemInfo<TestItem>) => (
                 <View testID={`row-${item.id}`}>
@@ -747,9 +752,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                     ListHeaderComponent={<Text testID="table-list-header-component">List header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -835,9 +842,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page controls</Text>}
                     title="Members"
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -880,9 +889,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page controls</Text>}
                     title="Members"
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>,
             );
@@ -905,12 +916,14 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text>Page controls</Text>}
                     title="Members"
                     selectionEnabled
                     selectedKeys={[]}
                     onRowSelectionChange={jest.fn()}
                 >
+                    <Table.ListHeader>
+                        <Text>Page controls</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -984,17 +997,15 @@ describe('Table', () => {
                     renderItem={renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={
-                        <>
-                            <Text testID="table-header-component">Page controls</Text>
-                            <Table.FilterBar label="Search" />
-                        </>
-                    }
                     title="Members"
                     selectionEnabled
                     selectedKeys={[]}
                     onRowSelectionChange={jest.fn()}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page controls</Text>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>
@@ -1072,8 +1083,10 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={<Table.FilterBar label="Search" />}
                 >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>,
             );
@@ -1114,8 +1127,10 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={composeTableHeaderComponent(shouldShowOptionalHeader && <Text testID="optional-header">Optional header</Text>, <Table.FilterBar label="Search" />)}
                 >
+                    <Table.ListHeader>
+                        {composeTableListHeader(shouldShowOptionalHeader && <Text testID="optional-header">Optional header</Text>, <Table.FilterBar label="Search" />)}
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>
             );
@@ -1158,9 +1173,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>
@@ -1213,13 +1230,11 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={
-                        <>
-                            <Text testID="table-header-component">Page header</Text>
-                            <Table.FilterBar label="Search" />
-                        </>
-                    }
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.NoResultsState />
                     <Table.Header />
                     <Table.Body />
@@ -1274,8 +1289,10 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>
@@ -1305,9 +1322,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>
@@ -1342,8 +1361,10 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     {shouldShowTableHeader && <Table.Header />}
                     <Table.Body />
                 </Table>
@@ -1425,8 +1446,10 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -1488,9 +1511,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                     ListEmptyComponent={EmptyState}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>,
             );
@@ -1533,9 +1558,11 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
                     <Table.EmptyState title="No items yet" />
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header />
                     <Table.Body />
                 </Table>,
@@ -1557,8 +1584,8 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={composeTableHeaderComponent(undefined, <Table.FilterBar label="Search" />)}
                 >
+                    <Table.ListHeader>{composeTableListHeader(undefined, <Table.FilterBar label="Search" />)}</Table.ListHeader>
                     <Table.EmptyState title="No items yet" />
                     <Table.Body />
                 </Table>,
@@ -1586,8 +1613,10 @@ describe('Table', () => {
                     columns={props.columns}
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.EmptyState title="No items yet" />
                     <Table.Body contentContainerStyle={{minHeight: 600, paddingBottom: 12}} />
                 </Table>,
@@ -1635,16 +1664,14 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={
-                        <>
-                            <Text testID="table-header-component">Page header</Text>
-                            <Table.FilterBar label="Search" />
-                        </>
-                    }
                     onEndReached={onEndReached}
                     onStartReached={onStartReached}
                     onViewableItemsChanged={onViewableItemsChanged}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.NoResultsState />
                     <Table.Header />
                     <Table.Body />
@@ -1725,13 +1752,11 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={
-                        <>
-                            <Text testID="table-header-component">Page header</Text>
-                            {shouldShowSearch && <Table.FilterBar label="Search" />}
-                        </>
-                    }
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                        {shouldShowSearch && <Table.FilterBar label="Search" />}
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>
             );
@@ -1766,15 +1791,13 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={
-                        <>
-                            <Text testID="table-header-component">Page header</Text>
-                            <Table.FilterBar label="Search" />
-                        </>
-                    }
                     ListFooterComponent={<Text testID="list-footer">Disclaimer</Text>}
                     ListFooterComponentStyle={listFooterComponentStyle}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.NoResultsState />
                     <Table.Header />
                     <Table.Body
@@ -1894,7 +1917,7 @@ describe('Table', () => {
             expect(screen.queryByTestId('row-3')).toBeNull();
         });
 
-        it('should preserve headerComponent search state while filtering data', () => {
+        it('should preserve ListHeader search state while filtering data', () => {
             const props = createDefaultProps();
 
             render(
@@ -1904,8 +1927,10 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     isItemInSearch={props.isItemInSearch}
-                    headerComponent={<Table.FilterBar label="Search" />}
                 >
+                    <Table.ListHeader>
+                        <Table.FilterBar label="Search" />
+                    </Table.ListHeader>
                     <Table.Body />
                 </Table>,
             );
@@ -2142,8 +2167,10 @@ describe('Table', () => {
                     renderItem={props.renderItem}
                     keyExtractor={props.keyExtractor}
                     compareItems={props.compareItems}
-                    headerComponent={<Text testID="table-header-component">Page header</Text>}
                 >
+                    <Table.ListHeader>
+                        <Text testID="table-header-component">Page header</Text>
+                    </Table.ListHeader>
                     <Table.Header testID="declared-table-header" />
                     <Table.Body />
                 </Table>,

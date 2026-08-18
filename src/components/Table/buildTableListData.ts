@@ -15,13 +15,13 @@ type TableListMetadata = {
 };
 
 type TableListMetadataParams<DataType extends TableData> = {
-    headerComponent?: React.ReactElement;
+    listHeaderElement?: React.ReactNode;
     listHeaderComponent?: SharedListProps<DataType>['ListHeaderComponent'];
     shouldRenderStickyHeader: boolean;
 };
 
-function getTableListMetadata<DataType extends TableData>({headerComponent, listHeaderComponent, shouldRenderStickyHeader}: TableListMetadataParams<DataType>): TableListMetadata {
-    const hasPageHeader = !!listHeaderComponent || !!headerComponent;
+function getTableListMetadata<DataType extends TableData>({listHeaderElement, listHeaderComponent, shouldRenderStickyHeader}: TableListMetadataParams<DataType>): TableListMetadata {
+    const hasPageHeader = !!listHeaderComponent || !!listHeaderElement;
     const syntheticRowsBeforeData = shouldRenderStickyHeader ? 1 : 0;
 
     return {

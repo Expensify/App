@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
@@ -114,7 +114,7 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
     );
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.perDiem.findPerDiemRate')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -130,8 +130,8 @@ export default function WorkspacePerDiemTable({perDiemData, selectionEnabled, se
             initialSortColumn="destination"
             narrowLayoutSortColumn="destination"
             title={translate('common.perDiem')}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

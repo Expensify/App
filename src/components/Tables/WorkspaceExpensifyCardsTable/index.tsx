@@ -1,5 +1,5 @@
 import FormHelpMessage from '@components/FormHelpMessage';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
@@ -245,7 +245,7 @@ export default function WorkspaceExpensifyCardsTable({
             )}
         </View>
     );
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, cardListLabelsContent, <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, cardListLabelsContent, <Table.FilterBar label={translate('workspace.expensifyCard.findCard')} />);
 
     return (
         <Table
@@ -263,8 +263,8 @@ export default function WorkspaceExpensifyCardsTable({
             onRowSelectionChange={onRowSelectionChange}
             ListFooterComponent={listFooterComponent}
             ListFooterComponentStyle={listFooterComponentStyle}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body contentContainerStyle={listContentContainerStyle} />

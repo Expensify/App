@@ -1,4 +1,4 @@
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableRenderRowProps} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
@@ -104,7 +104,7 @@ function WorkspaceCategoryRulesTableImpl({
     const renderItem = ({item, index}: ListRenderItemInfo<CategoryRulesTableItem>) => renderRow({item, rowIndex: index, shouldUseNarrowTableLayout});
 
     const searchBarComponent = <Table.FilterBar label={findRuleLabel} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -120,8 +120,8 @@ function WorkspaceCategoryRulesTableImpl({
             initialSortColumn="condition"
             narrowLayoutSortColumn="condition"
             title={tableTitle}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

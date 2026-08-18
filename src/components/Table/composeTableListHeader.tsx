@@ -2,7 +2,7 @@ import type {ReactElement, ReactNode} from 'react';
 
 import React from 'react';
 
-function composeTableHeaderComponent(...components: ReactNode[]): ReactElement | undefined {
+function composeTableListHeader(...components: ReactNode[]): ReactElement | undefined {
     if (!components.some(Boolean)) {
         return undefined;
     }
@@ -12,4 +12,4 @@ function composeTableHeaderComponent(...components: ReactNode[]): ReactElement |
     return React.createElement(React.Fragment, null, ...components);
 }
 
-export default composeTableHeaderComponent;
+export default composeTableListHeader;

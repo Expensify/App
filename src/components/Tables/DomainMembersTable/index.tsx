@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, FilterConfig, IsItemInFilterCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import {useTableContext} from '@components/Table/TableContext';
 
 import useDomainHighlightOnReturn from '@hooks/useDomainHighlightOnReturn';
@@ -141,7 +141,7 @@ export default function DomainMembersTable({
     );
 
     const shouldShowTableControls = !isEmpty;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')} /> : undefined);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, shouldShowTableControls ? <Table.FilterBar label={translate('domain.members.findMember')} /> : undefined);
 
     return (
         <Table
@@ -159,8 +159,8 @@ export default function DomainMembersTable({
             onRowSelectionChange={onRowSelectionChange}
             filters={filterConfig}
             isItemInFilter={isItemInFilter}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             {!isEmpty && (
                 <DomainMembersGroupFilterSync
                     shouldShowGroupFilter={shouldShowGroupFilter}

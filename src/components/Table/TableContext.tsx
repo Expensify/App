@@ -22,8 +22,8 @@ type TableContextValue<DataType extends TableData, ColumnKey extends string = st
     /** The title of the table when shown on smaller screens. */
     title?: string;
 
-    /** Content rendered as the FlashList header so it scrolls with the table rows. */
-    headerComponent?: React.ReactElement;
+    /** Declarative content rendered as the FlashList header so it scrolls with the table rows. */
+    listHeaderElement?: React.ReactNode;
 
     /** Declarative column-header child relocated into the table list when page content is present. */
     tableHeaderElement?: React.ReactElement<TableHeaderProps>;

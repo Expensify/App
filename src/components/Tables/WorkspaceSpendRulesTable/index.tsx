@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {TableEmptyStateProps} from '@components/Table/TableEmptyStates/TableEmptyState';
 
 import useLocalize from '@hooks/useLocalize';
@@ -101,7 +101,7 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
     );
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.rules.spendRules.findRule')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -117,8 +117,8 @@ function WorkspaceSpendRulesTable({rulesData, selectionEnabled, selectedKeys, em
             initialSortColumn="card"
             narrowLayoutSortColumn="card"
             title={translate('workspace.rules.tabs.cardRestrictions')}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState {...emptyState} />
             <Table.NoResultsState />
             <Table.Header />

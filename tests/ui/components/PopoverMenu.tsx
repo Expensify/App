@@ -391,31 +391,6 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         return onClose;
     }
 
-    function CallerDrivenRestoreFocusHarness({nextRestoreFocusType, onSelected}: {nextRestoreFocusType: RestoreFocusType; onSelected: () => void}) {
-        const [isVisible, setIsVisible] = React.useState(true);
-        const [restoreFocusType, setRestoreFocusType] = React.useState<RestoreFocusType>();
-
-        return (
-            <PopoverMenu
-                isVisible={isVisible}
-                restoreFocusType={restoreFocusType}
-                menuItems={[
-                    {
-                        text: 'Caller option',
-                        onSelected,
-                    },
-                ]}
-                onItemSelected={() => {
-                    setRestoreFocusType(nextRestoreFocusType);
-                    setIsVisible(false);
-                }}
-                onClose={() => {}}
-                anchorPosition={anchorPosition}
-                anchorRef={anchorRef}
-            />
-        );
-    }
-
     it('commits DELETE focus policy before close and invokes marked action after hide', () => {
         const order: string[] = [];
         const onSelected = jest.fn(() => order.push('selected'));
@@ -506,14 +481,31 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         'keeps caller-driven restoreFocusType updates visible to the close lifecycle: %s',
         (nextRestoreFocusType) => {
             const onSelected = jest.fn();
+            const menuItems: PopoverMenuItem[] = [{text: 'Caller option', onSelected}];
 
-            render(
-                <CallerDrivenRestoreFocusHarness
-                    nextRestoreFocusType={nextRestoreFocusType}
-                    onSelected={onSelected}
+            const {rerender} = render(
+                <PopoverMenu
+                    isVisible
+                    menuItems={menuItems}
+                    onItemSelected={() => {}}
+                    onClose={() => {}}
+                    anchorPosition={anchorPosition}
+                    anchorRef={anchorRef}
                 />,
             );
             fireEvent.press(screen.getByTestId('PopoverMenuItem-Caller option'));
+
+            rerender(
+                <PopoverMenu
+                    isVisible={false}
+                    restoreFocusType={nextRestoreFocusType}
+                    menuItems={menuItems}
+                    onItemSelected={() => {}}
+                    onClose={() => {}}
+                    anchorPosition={anchorPosition}
+                    anchorRef={anchorRef}
+                />,
+            );
 
             expect(getLatestMeasuredPopoverProps().restoreFocusType).toBe(nextRestoreFocusType);
             expect(onSelected).toHaveBeenCalledTimes(1);

@@ -1,6 +1,6 @@
 import RenderHTML from '@components/RenderHTML';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -108,7 +108,7 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
     }
 
     const searchBarComponent = <Table.FilterBar label={translate('agentsPage.findAgent')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -121,11 +121,11 @@ export default function AgentsTable({ref, agents, headerComponent, canSelectAgen
             initialSortColumn="agent"
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
-            headerComponent={tableHeaderComponent}
             selectionEnabled={canSelectAgents}
             selectedKeys={selectedKeys}
             onRowSelectionChange={onRowSelectionChange}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 headerMedia={illustrations.TvScreenRobot}
                 headerStyles={styles.emptyStateCardIllustrationContainer}

@@ -1,4 +1,4 @@
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
@@ -148,7 +148,7 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
     );
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.distanceRates.findRate')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -164,8 +164,8 @@ function WorkspaceDistanceRatesTable({ratesData, policyID, selectionEnabled, sel
             initialSortColumn="name"
             narrowLayoutSortColumn="name"
             title={translate('workspace.common.distanceRates')}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.distanceRates.emptyRates.title')}
                 subtitle={translate('workspace.distanceRates.emptyRates.subtitle')}

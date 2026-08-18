@@ -1,6 +1,6 @@
 import type {EmptyStateButton} from '@components/EmptyStateComponent/types';
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -148,7 +148,7 @@ export default function WorkspaceCategoriesTable({
     );
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.categories.findCategory')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     return (
         <Table
@@ -164,8 +164,8 @@ export default function WorkspaceCategoriesTable({
             selectedKeys={selectedKeys}
             keyExtractor={(category) => category.keyForList}
             onRowSelectionChange={onRowSelectionChange}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 title={translate('workspace.categories.emptyCategories.title')}
                 subtitleText={emptyStateSubtitleText}

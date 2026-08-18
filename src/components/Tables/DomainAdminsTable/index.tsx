@@ -87,8 +87,8 @@ export default function DomainAdminsTable({domainAccountID, admins}: DomainAdmin
             initialSortColumn="admin"
             title={translate('domain.admins.title')}
             keyExtractor={(item) => item.keyForList}
-            headerComponent={tableHeaderComponent}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.NoResultsState />
             <Table.Header />
             <Table.Body />

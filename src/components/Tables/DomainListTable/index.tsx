@@ -1,5 +1,5 @@
 import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn} from '@components/Table';
-import Table, {composeTableHeaderComponent} from '@components/Table';
+import Table, {composeTableListHeader} from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -75,7 +75,7 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
     };
 
     const searchBarComponent = <Table.FilterBar label={translate('workspace.common.findDomain')} />;
-    const tableHeaderComponent = composeTableHeaderComponent(headerComponent, searchBarComponent);
+    const tableHeaderComponent = composeTableListHeader(headerComponent, searchBarComponent);
 
     const renderTableItem = ({item, index}: ListRenderItemInfo<DomainRowData>) => {
         return (
@@ -104,9 +104,9 @@ export default function DomainListTable({domains, headerComponent}: DomainListTa
             isItemInSearch={isTableItemInSearch}
             initialSortColumn="domains"
             title={translate('common.domains')}
-            headerComponent={tableHeaderComponent}
             keyExtractor={(row, index) => `${row.domainAccountID}-${index}`}
         >
+            <Table.ListHeader>{tableHeaderComponent}</Table.ListHeader>
             <Table.EmptyState
                 headerMedia={illustrations.EarthWithControls}
                 headerContentStyles={styles.emptyDomainListStaticIllustrationStyle}
