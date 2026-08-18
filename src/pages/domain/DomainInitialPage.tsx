@@ -164,7 +164,6 @@ function DomainInitialPage({route}: DomainInitialPageProps) {
                                 highlighted={!!item?.highlighted}
                                 focused={!!(item.screenName && activeRoute?.startsWith(item.screenName))}
                                 badgeText={item.badgeText}
-                                role={CONST.ROLE.TAB}
                                 shouldIconUseAutoWidthStyle
                             />
                         ))}

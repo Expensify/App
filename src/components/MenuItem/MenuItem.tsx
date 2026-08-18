@@ -888,8 +888,6 @@ function MenuItem({
                                         ...(Array.isArray(wrapperStyle) ? wrapperStyle : [wrapperStyle]),
                                         shouldGreyOutWhenDisabled && disabled && styles.buttonOpacityDisabled,
                                         isHovered && interactive && !focused && !pressed && !shouldRemoveBackground && !shouldRemoveHoverBackground && styles.hoveredComponentBG,
-                                        // Nav rows (role=tab) use product300 for the selected state
-                                        role === CONST.ROLE.TAB && focused && !pressed && !shouldRemoveBackground && StyleUtils.getBackgroundColorStyle(theme.navItemSelectedBG),
                                     ] as StyleProp<ViewStyle>
                                 }
                                 disabledStyle={shouldUseDefaultCursorWhenDisabled && [styles.cursorDefault]}
