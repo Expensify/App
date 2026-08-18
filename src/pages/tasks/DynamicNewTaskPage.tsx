@@ -215,7 +215,9 @@ function DynamicNewTaskPage() {
                                             ) : (
                                                 <MenuItem.Title>{assignee.displayName}</MenuItem.Title>
                                             ))}
-                                        <MenuItem.Description variant={assignee?.displayName ? 'supporting' : 'standalone'}>
+                                        <MenuItem.Description
+                                            variant={assignee?.displayName ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
+                                        >
                                             {assignee?.displayName ? formatPhoneNumber(assignee?.subtitle) : translate('task.assignee')}
                                         </MenuItem.Description>
                                     </MenuItem.Content>
@@ -253,7 +255,9 @@ function DynamicNewTaskPage() {
                                             ) : (
                                                 <MenuItem.Title>{shareDestination.displayName}</MenuItem.Title>
                                             ))}
-                                        <MenuItem.Description variant={shareDestination?.displayName ? 'supporting' : 'standalone'}>
+                                        <MenuItem.Description
+                                            variant={shareDestination?.displayName ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
+                                        >
                                             {shareDestination?.displayName ? (shareDestination.subtitle ?? '') : translate('common.share')}
                                         </MenuItem.Description>
                                     </MenuItem.Content>

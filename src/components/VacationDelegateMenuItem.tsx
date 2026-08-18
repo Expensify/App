@@ -66,7 +66,7 @@ function VacationDelegateMenuItem({vacationDelegate, errors, pendingAction, onCl
                     {hasVacationDelegate && <MenuItem.Title>{vacationDelegatePersonalDetails?.displayName ?? fallbackVacationDelegateLogin ?? ''}</MenuItem.Title>}
                     {!!description && (
                         <MenuItem.Description
-                            variant={hasVacationDelegate ? 'supporting' : 'standalone'}
+                            variant={hasVacationDelegate ? CONST.MENU_ITEM.DESCRIPTION_VARIANT.SUPPORTING : CONST.MENU_ITEM.DESCRIPTION_VARIANT.PROMINENT}
                             numberOfLines={hasVacationDelegate ? 1 : 2}
                         >
                             {description}
