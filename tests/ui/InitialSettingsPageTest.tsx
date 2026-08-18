@@ -250,6 +250,20 @@ describe('InitialSettingsPage - agent account', () => {
         });
     });
 
+    it('shows Subscription for an outstanding balance without an active subscription', async () => {
+        await setupUser('user@expensify.com');
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED, 100);
+        });
+
+        renderPage();
+        await waitForBatchedUpdatesWithAct();
+
+        await waitFor(() => {
+            expect(getMenuItemTitles().slice(0, 3)).toEqual(['Profile', 'Subscription', 'Wallet']);
+        });
+    });
+
     it('hides Agents for agent account when CUSTOM_AGENT beta is enabled', async () => {
         mockUsePermissions.mockReturnValue({isBetaEnabled: (beta: string) => beta === CONST.BETAS.CUSTOM_AGENT});
         await setupUser('testbot_123@expensify.ai', true);
