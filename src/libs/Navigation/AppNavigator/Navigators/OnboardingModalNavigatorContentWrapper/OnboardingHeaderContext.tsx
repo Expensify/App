@@ -77,4 +77,3 @@ function OnboardingStickyHeader() {
 }
 
 export {OnboardingHeaderContextProvider, OnboardingStickyHeader, useOnboardingHeaderConfig};
-export type {OnboardingHeaderConfig};

@@ -62,4 +62,3 @@ function CaretBackHeader({onBackButtonPress, shouldShowBackButton = true, label}
 CaretBackHeader.displayName = 'CaretBackHeader';
 
 export default CaretBackHeader;
-export type {CaretBackHeaderProps};
