@@ -1325,7 +1325,20 @@ function addAttachmentWithComment({
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    addActions({report, notifyReportID, ancestors, timezoneParam: timezone, currentUserAccountID, text, file: attachments?.at(0), isInSidePanel, delegateAccountID, conciergeReportID});
+    // Only a lone attachment threads, since each of several attachments posts its own message.
+    addActions({
+        report,
+        notifyReportID,
+        ancestors,
+        timezoneParam: timezone,
+        currentUserAccountID,
+        text,
+        file: attachments?.at(0),
+        isInSidePanel,
+        delegateAccountID,
+        conciergeReportID,
+        conciergeThreadReportID: attachments.length === 1 ? conciergeThreadReportID : undefined,
+    });
 
     // Remaining: attachment-only actions (no text duplication)
     for (let i = 1; i < attachments?.length; i += 1) {
