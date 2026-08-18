@@ -1385,6 +1385,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
 
             const {options: preFilteredOptions} = getValidOptions(
@@ -1402,12 +1403,22 @@ describe('OptionsListUtils', () => {
                     searchString,
                 },
                 translateLocal,
+                formatPhoneNumber,
             );
 
             // The contact must survive getValidOptions' pre-filter so the final filter can return it.
             expect(preFilteredOptions.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: 'contact1003@example.com'})]));
 
-            const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const filteredOptions = filterAndOrderOptions(
+                preFilteredOptions,
+                searchString,
+                COUNTRY_CODE,
+                loginList,
+                CURRENT_USER_EMAIL,
+                CURRENT_USER_ACCOUNT_ID,
+                personalDetails,
+                formatPhoneNumber,
+            );
 
             expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
         });
@@ -1842,6 +1853,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const eagerList = hydrateAllPersonalDetails(lazyList);
             return {eagerList, lazyList};
@@ -1863,8 +1875,30 @@ describe('OptionsListUtils', () => {
 
             // When both lists go through getValidOptions with a top-N cap that exercises the heap
             const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then the surviving contacts are hydrated (createOption ran for them) and match the eager results exactly
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
@@ -1879,8 +1913,30 @@ describe('OptionsListUtils', () => {
 
             // When both lists go through getValidOptions with a search string (contact filtering reads text/login/participantsList)
             const config = {dateFnsLocale: undefined, searchString: 'spider', personalDetails: PERSONAL_DETAILS};
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then filtering and ordering are unchanged and the hydrated results match
             expect(lazyResults.personalDetails).toEqual(eagerResults.personalDetails);
@@ -1947,8 +2003,9 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {dateFnsLocale: undefined, searchString, includeP2P: true},
                 translateLocal,
+                formatPhoneNumber,
             );
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, formatPhoneNumber);
 
             // Then the report must survive both filtering stages
             expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
@@ -2011,8 +2068,30 @@ describe('OptionsListUtils', () => {
 
             // When both lists go through getValidOptions with a custom exclusion (filter reads shell.login)
             const config = {dateFnsLocale: undefined, excludeLogins: {'peterparker@expensify.com': true}, personalDetails: PERSONAL_DETAILS};
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then the excluded contact is dropped from both and the remaining results match
             expect(lazyResults.personalDetails.some((option) => option.login === 'peterparker@expensify.com')).toBe(false);
@@ -2026,6 +2105,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
 
             // When it goes through getValidOptions
@@ -2039,6 +2119,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 {dateFnsLocale: undefined},
                 translateLocal,
+                formatPhoneNumber,
             );
 
             // Then no contacts are produced and nothing throws
@@ -2064,6 +2145,7 @@ describe('OptionsListUtils', () => {
                     personalDetails: PERSONAL_DETAILS,
                 },
                 translateLocal,
+                formatPhoneNumber,
             );
 
             // Then every surviving contact has the properties SelectionList rendering and selection rely on,
@@ -2087,8 +2169,30 @@ describe('OptionsListUtils', () => {
             // When both lists go through getValidOptions with search + maxElements together
             // (filter selects matches, then the heap keeps only the top-N survivors to hydrate)
             const config = {dateFnsLocale: undefined, searchString: 'man', maxElements: 3, personalDetails: PERSONAL_DETAILS};
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: lazyResults} = getValidOptions(lazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then filtering, ranking, and hydration match the eager path
             expect(lazyResults.personalDetails.length).toBeGreaterThan(0);
@@ -2104,11 +2208,13 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             const cachedLazyList = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             const eagerList = hydrateAllPersonalDetails(firstLazyList);
 
@@ -2129,9 +2235,42 @@ describe('OptionsListUtils', () => {
 
             // When both the fresh and cached lazy lists go through getValidOptions
             const config = {dateFnsLocale: undefined, maxElements: 3, personalDetails: PERSONAL_DETAILS};
-            const {options: firstResults} = getValidOptions(firstLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: cachedResults} = getValidOptions(cachedLazyList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: eagerResults} = getValidOptions(eagerList, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: firstResults} = getValidOptions(
+                firstLazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: cachedResults} = getValidOptions(
+                cachedLazyList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: eagerResults} = getValidOptions(
+                eagerList,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then hydration from the cached clone matches the fresh lazy build and the eager path
             expect(cachedResults.personalDetails).toEqual(firstResults.personalDetails);
@@ -2155,6 +2294,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const shell = lazyList.personalDetails.find((option) => option.reportID === dmReportID);
             expect(shell).toBeDefined();
@@ -2244,8 +2384,30 @@ describe('OptionsListUtils', () => {
 
             // When both mixed lists are filtered for the device contact
             const config = {dateFnsLocale: undefined, searchString: 'Device Contact Jane', personalDetails: PERSONAL_DETAILS};
-            const {options: eagerResults} = getValidOptions(eagerWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: lazyResults} = getValidOptions(lazyWithContacts, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: eagerResults} = getValidOptions(
+                eagerWithContacts,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: lazyResults} = getValidOptions(
+                lazyWithContacts,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
 
             // Then the device contact survives hydrate unchanged, lazy shells hydrate, and results match eager
             expect(lazyResults.personalDetails.some((option) => option.login === deviceContactLogin)).toBe(true);
@@ -2308,6 +2470,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const shell = list.personalDetails.at(0);
             expect(shell).toBeDefined();
@@ -2343,6 +2506,7 @@ describe('OptionsListUtils', () => {
                     reportAttributesDerived: PARITY_ATTRIBUTES,
                     policyTags: undefined,
                     visibleReportActionsData: {},
+                    formatPhoneNumber,
                 }),
                 isHydrated: true,
             };
@@ -2380,6 +2544,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: PARITY_REPORT_ID,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const shell = list.personalDetails.at(0);
             expect(shell).toBeDefined();
@@ -2402,6 +2567,7 @@ describe('OptionsListUtils', () => {
                 reportAttributesDerived: PARITY_ATTRIBUTES,
                 policyTags: undefined,
                 visibleReportActionsData: {},
+                formatPhoneNumber,
             });
 
             expect(hydrated).toEqual({item: PARITY_PERSONAL_DETAIL, ...withConcierge, isHydrated: true});
@@ -2421,11 +2587,13 @@ describe('OptionsListUtils', () => {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             const second = createFilteredOptionList(PERSONAL_DETAILS, REPORTS, MOCK_REPORT_ATTRIBUTES_DERIVED, EMPTY_PRIVATE_IS_ARCHIVED_MAP, allPolicies, {
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             });
             expect(first.personalDetails.length).toBeGreaterThan(0);
             expect(second.personalDetails.length).toBe(first.personalDetails.length);
@@ -2433,8 +2601,30 @@ describe('OptionsListUtils', () => {
             // When both are run through getValidOptions (the first pass builds, the second must not)
             const config = {dateFnsLocale: undefined, personalDetails: PERSONAL_DETAILS};
             const firstBuilds = first.personalDetails.map(buildIdentity);
-            const {options: firstResults} = getValidOptions(first, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
-            const {options: secondResults} = getValidOptions(second, allPolicies, {}, loginList, CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL, undefined, config, translateLocal);
+            const {options: firstResults} = getValidOptions(
+                first,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
+            const {options: secondResults} = getValidOptions(
+                second,
+                allPolicies,
+                {},
+                loginList,
+                CURRENT_USER_ACCOUNT_ID,
+                CURRENT_USER_EMAIL,
+                undefined,
+                config,
+                translateLocal,
+                formatPhoneNumber,
+            );
             const secondBuilds = second.personalDetails.map(buildIdentity);
 
             // Then every contact on the second pass reused the first pass's build.
@@ -2458,6 +2648,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const shell = list.personalDetails.at(0);
             expect(shell).toBeDefined();
@@ -2497,6 +2688,7 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 isSearching: true,
+                formatPhoneNumber,
             });
             const option = list.personalDetails.at(0);
             expect(option).toBeDefined();

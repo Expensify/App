@@ -1919,7 +1919,6 @@ function createFilteredOptionList(
         conciergeReportID,
         // Option building translates strings and formats dates, so both the active locale and the
         // date-fns locale are part of the output.
-        locale ?? IntlStore.getCurrentLocale(),
         formatPhoneNumber,
         activeLocale,
         options.dateFnsLocale,
