@@ -294,7 +294,6 @@
 "../../src/components/ReportActionItem/TaskPreview.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TaskView.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
-"../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"no-restricted-imports"	1
 "../../src/components/ReportActionItem/TransactionPreview/TransactionPreviewContent.tsx"	"rulesdir/no-raw-typography"	1
 "../../src/components/ReportActionItem/receiptHoverUtils/index.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/components/RoomHeaderAvatars.tsx"	"no-restricted-syntax"	2
@@ -986,7 +985,6 @@
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/DynamicConfirmationPage.tsx"	"react-hooks/refs"	12
-"../../src/pages/TransactionDuplicate/Review.tsx"	"no-restricted-imports"	1
 "../../src/pages/TransactionDuplicate/ReviewFields.tsx"	"@typescript-eslint/no-deprecated/fontSize"	1
 "../../src/pages/TransactionMerge/DynamicConfirmationPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/TransactionMerge/DynamicDetailsReviewPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -1019,7 +1017,6 @@
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/inbox/report/ContextMenu/PopoverReportActionContextMenu.tsx"	"react-hooks/refs"	28
 "../../src/pages/inbox/report/LinkPreviewer.tsx"	"@typescript-eslint/no-deprecated/fontSize"	3
-"../../src/pages/inbox/report/ListBoundaryLoader.tsx"	"react-hooks/set-state-in-effect"	1
 "../../src/pages/inbox/report/ReactionList/HeaderReactionList.tsx"	"no-restricted-syntax"	1
 "../../src/pages/inbox/report/ReportActionCompose/AttachmentPickerWithMenuItems.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/inbox/report/ReportActionCompose/ComposerWithSuggestions.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	5
@@ -1442,9 +1439,6 @@
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
 "../../tests/unit/cleanupAndNavigateAfterExpenseCreateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/components/HTMLEngineProvider/VictoryChartAttributesParsers.test.ts"	"rulesdir/no-raw-typography"	1
-"../../tests/unit/components/reportDetails/DynamicReportDetailsPageTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/compoundParamsKeyTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../tests/unit/deferredLayoutWriteTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/hooks/useTimeSensitiveCards.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"no-restricted-imports"	1
