@@ -28,6 +28,10 @@ import type {CardFeedErrors, CardFeedErrorState} from '@src/types/onyx/DerivedVa
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type SearchResults from '@src/types/onyx/SearchResults';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
+import createMock from '../../../utils/createMock';
+
 // Constants
 
 const ACCOUNT_ID = 12345;
@@ -105,7 +109,7 @@ const mockedBuildRecentCardTransactionsQuery = jest.mocked(buildRecentCardTransa
 
 // useOnyx mock
 
-const onyxData: Record<string, unknown> = {};
+const onyxData: Record<string, unknown> & Partial<Record<typeof ONYXKEYS.COLLECTION.SNAPSHOT, OnyxCollection<SearchResults>>> = {};
 
 const mockUseOnyx = jest.fn((key: string, options?: {selector?: (v: unknown) => unknown}) => {
     const value = onyxData[key];
@@ -192,14 +196,19 @@ function setupCardSnapshot(cardID: number, results: SearchResults | undefined) {
     }
     const hash = buildSearchQueryJSON(cardQuery)?.hash;
     if (!onyxData[ONYXKEYS.COLLECTION.SNAPSHOT]) {
-        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = {};
+        const snapshotCollection: OnyxCollection<SearchResults> = {};
+        onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = snapshotCollection;
+        snapshotCollection[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+        return;
     }
-    (onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] as Record<string, unknown>)[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    const snapshotCollection = onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] ?? {};
+    snapshotCollection[`${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`] = results;
+    onyxData[ONYXKEYS.COLLECTION.SNAPSHOT] = snapshotCollection;
 }
 
 /** Builds a fully-populated `CardFeedErrors` value for `onyxData[ONYXKEYS.DERIVED.CARD_FEED_ERRORS]`. */
 function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedErrors {
-    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, hasFeedErrors: false, hasWorkspaceErrors: false};
+    const defaultState: CardFeedErrorState = {shouldShowRBR: false, isFeedConnectionBroken: false, shouldPromptBrokenConnection: false, hasFeedErrors: false, hasWorkspaceErrors: false};
     return {
         cardFeedErrors: {},
         cardsWithBrokenFeedConnection: {},
@@ -215,21 +224,23 @@ function makeCardFeedErrors(overrides: Partial<CardFeedErrors> = {}): CardFeedEr
 }
 
 /** Builds third-party `Card[]` fixtures for `getDisplayableThirdPartyCards.mockReturnValue`. */
-function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: string; fundID?: string; lastScrapeResult?: number}>): Card[] {
-    return cards.map((c) => ({
-        accountID: ACCOUNT_ID,
-        bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
-        cardID: c.cardID,
-        cardName: c.cardName ?? '480801XXXXXX2554',
-        domainName: 'feed-a.exfy',
-        fraud: 'none',
-        fundID: c.fundID ?? '767578',
-        lastFourPAN: c.lastFourPAN ?? '',
-        lastScrape: '',
-        lastUpdated: '',
-        lastScrapeResult: c.lastScrapeResult,
-        state: CONST.EXPENSIFY_CARD.STATE.OPEN,
-    })) as unknown as Card[];
+function makeThirdPartyCards(cards: Array<{cardID: number; lastFourPAN?: string; cardName?: string; bank?: Card['bank']; fundID?: string; lastScrapeResult?: number}>): Card[] {
+    return cards.map((c) =>
+        createMock<Card>({
+            accountID: ACCOUNT_ID,
+            bank: c.bank ?? CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
+            cardID: c.cardID,
+            cardName: c.cardName ?? '480801XXXXXX2554',
+            domainName: 'feed-a.exfy',
+            fraud: 'none',
+            fundID: c.fundID ?? '767578',
+            lastFourPAN: c.lastFourPAN ?? '',
+            lastScrape: '',
+            lastUpdated: '',
+            lastScrapeResult: c.lastScrapeResult,
+            state: CONST.EXPENSIFY_CARD.STATE.OPEN,
+        }),
+    );
 }
 
 /** Returns a typed offline payload for `useNetwork.mockReturnValue`. */
@@ -239,7 +250,7 @@ function networkState(isOffline: boolean): ReturnType<typeof useNetwork> {
 
 /** Builds a `Card[]` payload for `getDisplayableExpensifyCards.mockReturnValue`. */
 function makeDisplayableCards(cards: Array<{cardID: number; lastFourPAN: string}>): Card[] {
-    return cards as unknown as Card[];
+    return cards.map((card) => createMock<Card>(card));
 }
 
 // Common beforeEach
@@ -750,7 +761,7 @@ describe('useYourSpendData — approval cache is keyed by query hash', () => {
         // Switch to query B (different hash), with count missing on B's snapshot — the situation
         // that would let a stale-cache reuse happen if the cache weren't keyed by hash.
         mockedBuildAwaitingApprovalQuery.mockReturnValue(APPROVAL_QUERY_B);
-        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, {search: {count: undefined}, data: {}} as unknown as SearchResults);
+        setupApprovalSnapshotForQuery(APPROVAL_QUERY_B, createMock<SearchResults>({search: {count: undefined}, data: {}}));
         rerender(undefined);
 
         // Should NOT be READY — the cache for hash A must not apply to hash B.
@@ -843,7 +854,7 @@ describe('useYourSpendData — drops the approval cache when no outstanding repo
     }
 
     // A zero-result search comes back with `count` missing (undefined), not 0.
-    const WIPED_SNAPSHOT = {search: {count: undefined}, data: {}} as unknown as SearchResults;
+    const WIPED_SNAPSHOT = createMock<SearchResults>({search: {count: undefined}, data: {}});
 
     beforeEach(() => {
         mockedIsPaidGroupPolicy.mockReturnValue(true);

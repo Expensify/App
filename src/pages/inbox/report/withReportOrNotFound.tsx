@@ -8,7 +8,6 @@ import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {canAccessReport} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -93,6 +92,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
             const [isLoadingReportData] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
+            const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
             const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
@@ -120,22 +120,14 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.
-                if (shouldShowNotFoundPage && contentShown.current && !isFocused) {
+                // We also suppress the NotFound page while a delete-transaction navigation is in flight (e.g. deleting an invoice
+                // navigates back to the invoice room without synchronously removing focus from this details RHP), mirroring ReportNotFoundGuard.
+                if (shouldShowNotFoundPage && contentShown.current && (!isFocused || !!deleteTransactionNavigateBackUrl)) {
                     return null;
                 }
 
                 if (shouldShowFullScreenLoadingIndicator) {
-                    const reasonAttributes: SkeletonSpanReasonAttributes = {
-                        context: 'withReportOrNotFound',
-                        isLoadingReportData: isLoadingReportData !== false,
-                        shouldFetchReport,
-                    };
-                    return (
-                        <FullscreenLoadingIndicator
-                            shouldUseGoBackButton
-                            reasonAttributes={reasonAttributes}
-                        />
-                    );
+                    return <FullscreenLoadingIndicator shouldUseGoBackButton />;
                 }
 
                 if (shouldShowNotFoundPage) {
