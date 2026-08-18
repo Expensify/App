@@ -3,11 +3,9 @@ import setupSentry from '@src/setup/telemetry/setupSentry';
 import type {Integration} from '@sentry/core';
 
 /**
- * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag that
- * `thirdPartyErrorFilterIntegration` writes in its own `processEvent`. Sentry runs the processors in
- * integration order, so a swap makes the filter permanently inert without any type error. The native
- * integrations index stubs both to `undefined`, so they are mocked here to observe the order
- * `setupSentry` builds.
+ * Sentry runs event processors in integration order, so registering `classCallCheckNoiseFilterIntegration`
+ * before the `thirdPartyErrorFilterIntegration` that writes the tag it reads makes it inert. The native index
+ * stubs both to `undefined`, hence the mock, which also lets us observe the order `setupSentry` builds.
  */
 jest.mock('@libs/telemetry/integrations', () => ({
     navigationIntegration: {name: 'Navigation'},

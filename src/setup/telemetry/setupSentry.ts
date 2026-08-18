@@ -26,12 +26,10 @@ import makeDebugTransport from './debugTransport';
 const EXTENSION_DENY_URLS = [/^chrome-extension:\/\//i, /^moz-extension:\/\//i, /^safari-extension:\/\//i, /^safari-web-extension:\/\//i];
 
 /**
- * Ordered pair, not two independent entries. Sentry registers each integration's `processEvent` as an event
- * processor in the order the integrations appear, and `classCallCheckNoiseFilterIntegration` reads the
- * `third_party_code` tag that `thirdPartyErrorFilterIntegration` writes in its own `processEvent`. Swapped,
- * the filter goes permanently inert and drops nothing, with no type error to catch it - so they are kept in
- * one constant that a reorder of the list below moves as a unit, and `tests/unit/setupSentryIntegrationOrderTest.ts`
- * pins the order inside the constant.
+ * Ordered pair, not two independent entries: Sentry runs each integration's `processEvent` in list order, and
+ * `classCallCheckNoiseFilterIntegration` reads the `third_party_code` tag `thirdPartyErrorFilterIntegration`
+ * writes. Swapped, the filter goes inert with no type error to catch it - hence one constant that reorders as a
+ * unit, with the order pinned by `tests/unit/setupSentryIntegrationOrderTest.ts`.
  */
 const THIRD_PARTY_NOISE_INTEGRATIONS = [thirdPartyErrorFilterIntegration, classCallCheckNoiseFilterIntegration];
 
