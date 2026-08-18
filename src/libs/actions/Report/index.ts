@@ -1555,10 +1555,11 @@ function openReport(params: OpenReportActionParams) {
     const participantAccountIDList = participants.map((p) => p.accountID).filter((id): id is number => id !== undefined);
     const existingReportName = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`]?.reportName;
     const isCreatingNewReport = !isEmptyObject(newReportObject);
-    // Whether this report has already been loaded once this session (before this call). openReport fires on
-    // every navigation into a report, not just the first open, so we only reconcile the manual unread marker
-    // when this is a genuine first load / reload (page refresh or cold start resets this RAM-only flag). On a
-    // revisit the flag is already true, so we leave the marker untouched and it doesn't suddenly disappear.
+    // Whether this report had already been loaded once this session before this call. openReport fires on
+    // every navigation into a report, not just the first open, so we use this RAM-only flag to tell the first
+    // open apart from a re-open: a manual unread marker is kept on the first open and cleared on the second
+    // (and later) open. A page refresh or cold start resets this flag, so the marker survives one more open
+    // after a reload.
     const wasReportAlreadyLoaded = !!allReportLoadingStates?.[`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`]?.hasOnceLoadedReportActions;
     const optimisticReport: Partial<Pick<Report, 'reportName'>> = (hasReportActions ?? reportActionsExist(reportID)) || !existingReportName ? {} : {reportName: existingReportName};
 
@@ -1619,11 +1620,12 @@ function openReport(params: OpenReportActionParams) {
                     notFound: null,
                 },
                 // An explicit mark-as-unread keeps its "New" marker anchored across auto-read
-                // (readNewestAction no longer clears it). Reconcile it only on a genuine first load / reload
-                // of this report — when it had not already been loaded this session. openReport also fires on
-                // every revisit (navigate-back, route change, thread rejoin); clearing on those would make the
-                // marker suddenly disappear, so we leave it untouched there and only clear on a true reload.
-                ...(wasReportAlreadyLoaded ? {} : {manuallyMarkedUnreadReportActionID: null}),
+                // (readNewestAction no longer clears it) and across the first open of the report, so the user
+                // sees the marker they created. Clear it on the second (and later) open of the report —
+                // `hasOnceLoadedReportActions` is already true by then — so the marker shows once and is then
+                // reconciled away when the user re-opens the report. A page refresh / cold start resets this
+                // RAM-only flag, so the marker survives one more open after a reload.
+                ...(wasReportAlreadyLoaded ? {manuallyMarkedUnreadReportActionID: null} : {}),
             },
         },
         {
