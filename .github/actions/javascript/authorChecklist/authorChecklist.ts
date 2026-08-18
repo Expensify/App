@@ -6,7 +6,7 @@ import * as core from '@actions/core';
 import * as github from '@actions/github';
 import escapeRegExp from 'lodash/escapeRegExp';
 
-import newComponentCategory from './categories/newComponentCategory';
+import type Category from './categories/Category';
 
 const pathToAuthorChecklist = `https://raw.githubusercontent.com/${CONST.GITHUB_OWNER}/${CONST.APP_REPO}/main/.github/PULL_REQUEST_TEMPLATE.md`;
 const checklistStartsWith = '### PR Author Checklist';
@@ -14,16 +14,31 @@ const checklistEndsWith = '\r\n### Screenshots/Videos';
 
 const prNumber = github.context.payload.pull_request?.number;
 
-const CHECKLIST_CATEGORIES = {
-    NEW_COMPONENT: newComponentCategory,
-};
+const CHECKLIST_CATEGORIES: Record<string, Category> = {};
+
+// The new-component items used to be injected here. They are now enforced by the AI reviewer's rules in
+// .claude/skills/coding-standards/rules, so authors no longer attest to them by hand. They stay listed
+// below so the cleanup pass in generateDynamicChecksAndCheckForCompletion strips them from PRs that were
+// opened while they were still being injected - otherwise those bodies keep unchecked boxes forever.
+const RETIRED_CHECKLIST_ITEMS = [
+    "I verified that similar component doesn't exist in the codebase",
+    'I verified that all props are defined accurately and each prop has a `/** comment above it */`',
+    'I verified that each file is named correctly',
+    'I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone',
+    'I verified that the only data being stored in component state is data necessary for rendering and nothing else',
+    "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
+    'For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)',
+    'I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)',
+    'I verified that all JSX used for rendering exists in the render method',
+    'I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions',
+];
 
 /**
  * Look at the contents of the pull request, and determine which checklist categories apply.
  */
 async function getChecklistCategoriesForPullRequest(): Promise<Set<string>> {
     const checks = new Set<string>();
-    if (prNumber !== undefined) {
+    if (prNumber !== undefined && Object.keys(CHECKLIST_CATEGORIES).length > 0) {
         const changedFiles = await GithubUtils.paginate(GithubUtils.octokit.pulls.listFiles, {
             owner: CONST.GITHUB_OWNER,
             repo: CONST.APP_REPO,
@@ -110,7 +125,9 @@ async function generateDynamicChecksAndCheckForCompletion() {
     }
 
     // Check if some dynamic check was added with previous commit, but is not relevant anymore
-    const allChecks = Object.values(CHECKLIST_CATEGORIES).reduce((acc: string[], category) => acc.concat(category.items), []);
+    const allChecks = Object.values(CHECKLIST_CATEGORIES)
+        .reduce((acc: string[], category) => acc.concat(category.items), [])
+        .concat(RETIRED_CHECKLIST_ITEMS);
 
     for (const check of allChecks) {
         if (!dynamicChecks.has(check)) {
