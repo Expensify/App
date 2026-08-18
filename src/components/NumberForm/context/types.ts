@@ -16,6 +16,12 @@ type SetValueOptions = {
 
 type NumberFormStateContextValue = {
     value: string;
+
+    /**
+     * The `value` prop exactly as passed to `NumberForm`, before any internal editing state. The decimals-change effect
+     * reads this the way the legacy component read its own `number` prop, so an intentionally empty field is left alone.
+     */
+    externalValue: string;
     negativeMode: NumberFormNegativeMode;
     errorText?: string;
 };

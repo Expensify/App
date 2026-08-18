@@ -59,7 +59,7 @@ function useNumberFormInputLogic({
     onKeyPress,
 }: NumberFormInputBaseProps) {
     const {fromLocaleDigit, numberFormat, toLocaleDigit} = useLocalize();
-    const {errorText, inputRef, negativeMode, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
+    const {errorText, externalValue, inputRef, negativeMode, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
 
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
@@ -93,6 +93,8 @@ function useNumberFormInputLogic({
             return;
         }
 
+        // Only handleSelectionChange clears this: on native the controlled input can emit onSelectionChange with the
+        // stale caret in the same batch as this change, and that one event has to be dropped.
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = numberWithLeadingZero;
 
@@ -107,7 +109,6 @@ function useNumberFormInputLogic({
 
                 const isForwardDelete = previousNumber.length > numberWithLeadingZero.length && forwardDeletePressedRef.current;
                 setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? numberWithLeadingZero.length : previousNumber.length, numberWithLeadingZero.length));
-                willSelectionBeUpdatedManually.current = false;
             },
         });
     };
@@ -116,14 +117,15 @@ function useNumberFormInputLogic({
         const hasDecimalsChanged = previousDecimals.current === undefined || previousDecimals.current !== decimals;
         previousDecimals.current = decimals;
 
+        // The empty check reads the value prop, not the edited value, so a field the caller keeps empty is left alone.
         // A negative sign is valid whichever way negatives are modelled: kept in the value, or stripped and tracked externally.
-        if (!hasDecimalsChanged || value === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput || shouldFlipNegative)) {
+        if (!hasDecimalsChanged || externalValue === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput || shouldFlipNegative)) {
             return;
         }
 
         // Keep the existing behavior when a currency or unit changes its decimal precision. This intentionally updates the root value from an effect.
         setNumber(stripDecimalsFromAmount(value));
-    }, [decimals, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
+    }, [decimals, externalValue, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
 
     const updateNumber = (newNumber: string) => {
         const updatedNumber = handleNegativeAmountFlipping(newNumber, shouldFlipNegative, toggleNegative);

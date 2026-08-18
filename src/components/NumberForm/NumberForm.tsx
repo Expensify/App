@@ -29,6 +29,7 @@ function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText
 
     const stateContextValue = {
         value: currentValue,
+        externalValue: value,
         negativeMode,
         errorText,
     };
