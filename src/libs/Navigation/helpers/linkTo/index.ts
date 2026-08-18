@@ -1,6 +1,3 @@
-import {getActionFromState} from '@react-navigation/core';
-import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
-import {CommonActions, findFocusedRoute} from '@react-navigation/native';
 import {getMatchingFullScreenRoute, isFullScreenName} from '@libs/Navigation/helpers/getAdaptedStateFromPath';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import normalizePath from '@libs/Navigation/helpers/normalizePath';
@@ -8,14 +5,23 @@ import {getTabState} from '@libs/Navigation/helpers/tabNavigatorUtils';
 import {linkingConfig} from '@libs/Navigation/linkingConfig';
 import type {PlatformStackNavigationState} from '@libs/Navigation/PlatformStackNavigation/types';
 import {shallowCompare} from '@libs/ObjectUtils';
+
 import getMatchingNewRoute from '@navigation/helpers/getMatchingNewRoute';
 import type {NavigationPartialRoute, ReportsSplitNavigatorParamList, RootNavigatorParamList, StackNavigationAction} from '@navigation/types';
+
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import getMinimalAction from './getMinimalAction';
+
+import type {NavigationContainerRef, NavigationState, PartialState} from '@react-navigation/native';
+
+import {getActionFromState} from '@react-navigation/core';
+import {CommonActions, findFocusedRoute} from '@react-navigation/native';
+
 import type {ActionPayloadParams, LinkToOptions} from './types';
+
+import getMinimalAction from './getMinimalAction';
 
 const defaultLinkToOptions: LinkToOptions = {
     forceReplace: false,

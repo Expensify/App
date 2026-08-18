@@ -1,6 +1,7 @@
+import CONST from '@src/CONST';
+
 import debounce from 'lodash/debounce';
 import {useCallback, useEffect, useRef, useState} from 'react';
-import CONST from '@src/CONST';
 
 /**
  * A React hook that provides a state and its debounced version.

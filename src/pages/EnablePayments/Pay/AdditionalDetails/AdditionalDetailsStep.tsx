@@ -1,6 +1,3 @@
-import {subYears} from 'date-fns';
-import React from 'react';
-import {View} from 'react-native';
 import DatePicker from '@components/DatePicker';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
@@ -12,14 +9,15 @@ import TextInput from '@components/TextInput';
 import TextLink from '@components/TextLink';
 import withCurrentUserPersonalDetails from '@components/withCurrentUserPersonalDetails';
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {extractFirstAndLastNameFromAvailableDetails} from '@libs/PersonalDetailsUtils';
-import {parsePhoneNumber} from '@libs/PhoneNumber';
 import {
     getFieldRequiredErrors,
-    isValidAddress,
+    getInvalidAddressErrorTranslationPath,
     isValidPastDate,
     isValidSSNFullNine,
     isValidSSNLastFour,
@@ -28,12 +26,21 @@ import {
     meetsMaximumAgeRequirement,
     meetsMinimumAgeRequirement,
 } from '@libs/ValidationUtils';
+
+import getWalletPersonalDetailsParams from '@pages/EnablePayments/shared/getWalletPersonalDetailsParams';
 import IdologyQuestions from '@pages/EnablePayments/shared/IdologyQuestions';
+import useWalletPhoneValidateCode from '@pages/EnablePayments/shared/useWalletPhoneValidateCode';
 import AddressFormFields from '@pages/ReimbursementAccount/AddressFormFields';
-import {setAdditionalDetailsQuestions, updatePersonalDetails} from '@userActions/Wallet';
+
+import {setAdditionalDetailsQuestions} from '@userActions/Wallet';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/AdditionalDetailStepForm';
+
+import {subYears} from 'date-fns';
+import React from 'react';
+import {View} from 'react-native';
 
 const DEFAULT_WALLET_ADDITIONAL_DETAILS = {
     errorFields: {},
@@ -75,6 +82,8 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     const maxDate = subYears(currentDate, CONST.DATE_BIRTH.MIN_AGE_FOR_PAYMENT);
     const shouldAskForFullSSN = walletAdditionalDetails?.errorCode === CONST.WALLET.ERROR.SSN;
 
+    const {submitPersonalDetails} = useWalletPhoneValidateCode();
+
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>): FormInputErrors<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS> => {
         const errors = getFieldRequiredErrors(values, STEP_FIELDS, translate);
 
@@ -86,8 +95,9 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
             }
         }
 
-        if (values.addressStreet && !isValidAddress(values.addressStreet)) {
-            errors.addressStreet = translate('bankAccount.error.addressStreet');
+        const addressStreetError = getInvalidAddressErrorTranslationPath(values.addressStreet);
+        if (values.addressStreet && addressStreetError) {
+            errors.addressStreet = translate(addressStreetError);
         }
 
         if (values.addressZipCode && !isValidZipCode(values.addressZipCode)) {
@@ -112,19 +122,7 @@ function AdditionalDetailsStep({currentUserPersonalDetails}: AdditionalDetailsSt
     };
 
     const activateWallet = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.WALLET_ADDITIONAL_DETAILS>) => {
-        const personalDetails = {
-            phoneNumber: (values.phoneNumber && parsePhoneNumber(values.phoneNumber, {regionCode: CONST.COUNTRY.US}).number?.significant) ?? '',
-            legalFirstName: values.legalFirstName ?? '',
-            legalLastName: values.legalLastName ?? '',
-            addressStreet: values.addressStreet ?? '',
-            addressCity: values.addressCity ?? '',
-            addressState: values.addressState ?? '',
-            addressZip: values.addressZipCode ?? '',
-            dob: values.dob ?? '',
-            ssn: values.ssn ?? '',
-        };
-        // Attempt to set the personal details
-        updatePersonalDetails(personalDetails);
+        submitPersonalDetails(getWalletPersonalDetailsParams(values));
     };
 
     if (walletAdditionalDetails?.questions && walletAdditionalDetails.questions.length > 0) {

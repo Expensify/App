@@ -1,16 +1,22 @@
-import {Str} from 'expensify-common';
-import React, {useMemo} from 'react';
-import {View} from 'react-native';
 import Avatar from '@components/Avatar';
 import TextWithTooltip from '@components/TextWithTooltip';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {areEmailsFromSamePrivateDomain} from '@libs/LoginUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
-import SelectableListItem from './SelectableListItem';
+
+import {Str} from 'expensify-common';
+import React, {useMemo} from 'react';
+import {View} from 'react-native';
+
 import type {ListItem, UserSelectionListItemProps} from './types';
+
+import SelectableListItem from './SelectableListItem';
 
 /**
  * A compact single-line row with avatar, display name, and handle side by side. Used for
@@ -34,7 +40,7 @@ function UserSelectionListItem<TItem extends ListItem>({
 }: UserSelectionListItemProps<TItem>) {
     const styles = useThemeStyles();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {formatPhoneNumber} = useLocalize();
+    const {formatPhoneNumber, translate} = useLocalize();
 
     const userHandle = useMemo(() => {
         const login = item.login ?? '';
@@ -52,8 +58,9 @@ function UserSelectionListItem<TItem extends ListItem>({
         return getDisplayNameForParticipant({
             accountID: item.accountID ?? CONST.DEFAULT_NUMBER_ID,
             formatPhoneNumber,
+            translate,
         });
-    }, [formatPhoneNumber, item.accountID]);
+    }, [formatPhoneNumber, item.accountID, translate]);
 
     return (
         <SelectableListItem
@@ -81,7 +88,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <View style={styles.mentionSuggestionsAvatarContainer}>
                         <Avatar
                             source={item.icons.at(0)?.source}
-                            size={CONST.AVATAR_SIZE.SMALLER}
+                            size={CONST.AVATAR_SIZE.X_SMALL}
                             name={item.icons.at(0)?.name}
                             avatarID={item.icons.at(0)?.id}
                             type={item.icons.at(0)?.type ?? CONST.ICON_TYPE_AVATAR}
@@ -94,7 +101,7 @@ function UserSelectionListItem<TItem extends ListItem>({
                     <TextWithTooltip
                         shouldShowTooltip={showTooltip}
                         text={userDisplayName}
-                        style={[styles.flexShrink0, styles.optionDisplayName, isFocusVisible ? styles.sidebarLinkActiveText : styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
+                        style={[styles.flexShrink0, styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre]}
                     />
                     {!!userHandle && (
                         <TextWithTooltip

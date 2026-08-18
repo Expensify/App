@@ -1,19 +1,26 @@
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import AddReactionBubble from '@components/Reactions/AddReactionBubble';
 import EmojiReactionBubble from '@components/Reactions/EmojiReactionBubble';
 import Tooltip from '@components/Tooltip';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
+
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback} from 'react';
+import {View} from 'react-native';
+
 import type {BaseQuickEmojiReactionsProps} from './types';
 
 function BaseQuickEmojiReactions({

@@ -1,4 +1,5 @@
 import {getCountryCode, normalizeCountryCode} from '@libs/CountryUtils';
+
 import type {Address} from '@src/types/onyx/PrivatePersonalDetails';
 
 describe('CountryUtils', () => {

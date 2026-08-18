@@ -1,10 +1,16 @@
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import * as Session from '@libs/actions/Session';
+
+import SignUpWelcomeForm from '@pages/signin/SignUpWelcomeForm';
+
+import ONYXKEYS from '@src/ONYXKEYS';
+
 import React from 'react';
 import Onyx from 'react-native-onyx';
-import OnyxListItemProvider from '@components/OnyxListItemProvider';
-import * as Session from '@libs/actions/Session';
-import SignUpWelcomeForm from '@pages/signin/SignUpWelcomeForm';
-import ONYXKEYS from '@src/ONYXKEYS';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@hooks/useLocalize', () =>
@@ -101,7 +107,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(undefined, true);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, true);
     });
 
     it('passes hasSMSMarketingConsent=false to signUpUser when checkbox is unchecked and Join is pressed', async () => {
@@ -111,7 +117,7 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(undefined, false);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false);
     });
 
     it('passes hasSMSMarketingConsent=false when checkbox is checked then unchecked', async () => {
@@ -123,7 +129,7 @@ describe('SignUpWelcomeForm', () => {
         fireEvent.press(screen.getByLabelText('I agree to receive marketing texts from Expensify'));
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(undefined, false);
+        expect(signUpUserSpy).toHaveBeenCalledWith(PHONE_LOGIN, undefined, false);
     });
 
     it('omits the consent param when signing up with an email', async () => {
@@ -133,6 +139,6 @@ describe('SignUpWelcomeForm', () => {
 
         fireEvent.press(screen.getByText('Join'));
 
-        expect(signUpUserSpy).toHaveBeenCalledWith(undefined, undefined);
+        expect(signUpUserSpy).toHaveBeenCalledWith(EMAIL_LOGIN, undefined, undefined);
     });
 });

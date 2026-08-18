@@ -5,7 +5,22 @@ on:
   pull_request:
     types: [opened, synchronize]
     branches-ignore: [staging, production]
-    paths: ['**.js', '**.ts', '**.tsx', '**.json', '**.mjs', '**.cjs', 'config/.editorconfig', 'config/eslint/**', 'scripts/lint.sh', 'scripts/lintChanged.sh', '.watchmanconfig', '.imgbotconfig']
+    paths:
+      [
+        '**.js',
+        '**.ts',
+        '**.tsx',
+        '**.json',
+        '**.mjs',
+        '**.cjs',
+        'config/.editorconfig',
+        'config/eslint/**',
+        'scripts/lint.ts',
+        'scripts/lintChanged.sh',
+        '.watchmanconfig',
+        '.imgbotconfig',
+        '.github/workflows/lint.yml',
+      ]
 
 concurrency:
   group: ${{ github.ref == 'refs/heads/main' && format('{0}-{1}', github.ref, github.sha) || github.ref }}-lint
@@ -15,10 +30,12 @@ jobs:
   lint:
     name: ESLint check
     if: ${{ github.event.head_commit.author.name != 'OSBotify' || github.event_name == 'push' }}
-    runs-on: blacksmith-4vcpu-ubuntu-2404
+    # A cold-cache run loads the full TypeScript program into every worker (~12GB each), plus any extra
+    # tsconfig project a file is mapped to. 2 workers need more than the 32GB an 8vcpu runner has.
+    runs-on: blacksmith-16vcpu-ubuntu-2404
     steps:
       - name: Checkout
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        uses: useblacksmith/checkout@1c9394c220d293645707b625ba9d79685f093a8f # v1
         with:
           # Only use the elevated OSBotify token on the post-merge `workflow_call` run
           # (so the auto-commit step below can push to the protected `main` branch).
@@ -29,24 +46,42 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Remove E/App version from package-lock.json
+      # Extract only the lint-affecting dependencies: eslint packages, the parser chain
+      # (espree/acorn) whose bumps can silently change parse results, plus
+      # typescript/ts-api-utils since a TS bump can change type-aware lint results.
+      # The cache key hashes this slice so a cold full re-lint happens only when
+      # the lint config or a lint dependency changes -- not on every dep bump.
+      - name: Extract lint-related deps from package-lock.json
         shell: bash
-        run: jq 'del(.version, .packages[""].version)' package-lock.json > normalized-package-lock.json
+        run: |
+          jq '{packages: (.packages | to_entries | map(select(.key | test("eslint|espree|acorn|^node_modules/(typescript|ts-api-utils)$"))) | from_entries)}' package-lock.json > lint-deps-lock.json
+
+      # The setupNode sticky disk persists all of node_modules between runs, including
+      # node_modules/.cache/eslint. Clear it so the restore step below is the only cache
+      # source -- a restore miss doesn't delete pre-existing files, so without this a
+      # config change would silently reuse the stale cache carried over by the disk.
+      - name: Clear ESLint cache carried over by the node_modules sticky disk
+        shell: bash
+        run: rm -rf node_modules/.cache/eslint
 
       - name: Restore ESLint cache
         # v5.0.1
         uses: actions/cache/restore@9255dc7a253b0ccc959486e2bca901246202afeb
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-${{ github.sha }}
           restore-keys: |
-            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-
-            ${{ runner.os }}-eslint-
+            ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-
 
       # ESLint's cache doesn't track cross-file TypeScript dependencies, which can cause stale errors.
       # If lint fails, we clear the cache and retry to rule out false positives.
       # See: https://typescript-eslint.io/troubleshooting/faqs/eslint/#can-i-use-eslints---cache-with-typescript-eslint
       - name: Lint JavaScript and Typescript with ESLint
+        env:
+          # See the runs-on comment: each worker needs ~12GB of heap on a cold cache, so run
+          # 2 workers with a 14GB cap instead of ESLint's defaults (4 workers, 8GB cap).
+          ESLINT_CONCURRENCY: 2
+          NODE_OPTIONS: --max_old_space_size=14336
         run: |
           if ! npm run lint; then
             echo "Lint failed, clearing cache and retrying..."
@@ -60,7 +95,7 @@ jobs:
         if: always()
         with:
           path: node_modules/.cache/eslint
-          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'normalized-package-lock.json') }}-${{ github.sha }}
+          key: ${{ runner.os }}-eslint-${{ hashFiles('eslint.config.mjs', 'config/eslint/**', 'lint-deps-lock.json') }}-${{ github.sha }}
 
       # If lint tightened the seatbelt baseline (i.e. fewer baselined errors than last time),
       # commit the updated TSV back to `main` as OSBotify. Only runs under `workflow_call`

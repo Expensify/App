@@ -1,5 +1,7 @@
 import {renderHook} from '@testing-library/react-native';
+
 import useTwoFactorAuthRoute from '@hooks/useTwoFactorAuthRoute';
+
 import type {Route} from '@src/ROUTES';
 
 const mockUseOnyx = jest.fn();

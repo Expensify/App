@@ -1,11 +1,5 @@
-import {useIsFocused} from '@react-navigation/core';
-import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
-import type {Ref} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import BlockingView from '@components/BlockingViews/BlockingView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
 import type {FormOnyxValues} from '@components/Form/types';
@@ -16,6 +10,7 @@ import RoomNameInput from '@components/RoomNameInput';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
+
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -23,19 +18,30 @@ import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useSafeAreaInsets from '@hooks/useSafeAreaInsets';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearRoomIDToHighlightOnRoomsPage, setRoomIDToHighlightOnRoomsPage} from '@libs/actions/Policy/Room';
 import {addErrorMessage} from '@libs/ErrorUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getActivePolicies} from '@libs/PolicyUtils';
 import {buildOptimisticChatReport, getCommentLength, getParsedComment, isPolicyAdmin} from '@libs/ReportUtils';
 import {isExistingRoomName, isReservedRoomName, isValidRoomNameWithoutLimits} from '@libs/ValidationUtils';
+
 import variables from '@styles/variables';
+
 import {addPolicyReport, clearNewRoomFormError, setNewRoomFormLoading} from '@userActions/Report';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NewRoomForm';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
+
+import type {Ref} from 'react';
+import type {ValueOf} from 'type-fest';
+
+import {useIsFocused} from '@react-navigation/core';
+import React, {useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
 
 function EmptyWorkspaceView() {
     const styles = useThemeStyles();
@@ -54,12 +60,13 @@ function EmptyWorkspaceView() {
                 addBottomSafeAreaPadding
             />
             <Button
-                success
-                large
-                text={translate('footer.learnMore')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.LARGE}
                 onPress={() => Navigation.navigate(ROUTES.WORKSPACES_LIST.getRoute(Navigation.getActiveRoute()))}
                 style={[styles.mh5, bottomSafeAreaPaddingStyle]}
-            />
+            >
+                <Button.Text>{translate('footer.learnMore')}</Button.Text>
+            </Button>
         </>
     );
 }
@@ -159,12 +166,8 @@ function WorkspaceNewRoomPage({ref, policyID: lockedPolicyID}: WorkspaceNewRoomP
         }
 
         setNewRoomFormLoading();
-        InteractionManager.runAfterInteractions(() => {
-            requestAnimationFrame(() => {
-                addPolicyReport(policyReport);
-                Navigation.dismissModalWithReport({reportID: policyReport.reportID});
-            });
-        });
+        addPolicyReport(policyReport);
+        Navigation.dismissModalWithReport({reportID: policyReport.reportID});
     };
 
     useEffect(() => {

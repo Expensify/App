@@ -1,23 +1,32 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getTagLists} from '@libs/PolicyUtils';
+
 import variables from '@styles/variables';
+
+import CONST from '@src/CONST';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React from 'react';
+import {View} from 'react-native';
+
+import type {AmountDisplay, CompactState, DistanceData, ErrorState, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
+
 import ClassificationFields from './fieldGroups/ClassificationFields';
 import computeFieldVisibility, {hasBelowShowMore} from './fieldGroups/fieldVisibility';
 import SettingsFields from './fieldGroups/SettingsFields';
 import TransactionDetailsFields from './fieldGroups/TransactionDetailsFields';
-import type {AmountDisplay, CompactState, DistanceData, DistanceFlags, ErrorState, ExpenseMode, RequiredFlags, ToggleHandlers, VisibilityFlags} from './fieldGroupTypes';
 import useFooterDerivedFlags from './hooks/useFooterDerivedFlags';
 import useFooterTagVisibility from './hooks/useFooterTagVisibility';
 
@@ -30,12 +39,6 @@ type ConfirmationFieldListProps = {
 
     /** Selected participants (drives ReportField presentation) */
     selectedParticipants: Participant[];
-
-    /** What kind of expense the surface is confirming */
-    expenseMode: ExpenseMode;
-
-    /** Distance-mode discriminators (only meaningful when expenseMode.isDistance) */
-    distanceFlags: DistanceFlags;
 
     /** Distance-rate metadata */
     distanceData: DistanceData;
@@ -57,17 +60,12 @@ type ConfirmationFieldListProps = {
 
     /** Compact-mode bookkeeping */
     compactState: CompactState;
-
-    /** Triggers submit from inline inputs */
-    onSubmitForm?: () => void;
 };
 
 function ConfirmationFieldList({
     policy,
     policyTags,
     selectedParticipants,
-    expenseMode,
-    distanceFlags,
     distanceData,
     amountDisplay,
     requiredFlags,
@@ -75,13 +73,12 @@ function ConfirmationFieldList({
     errorState,
     toggleHandlers,
     compactState,
-    onSubmitForm,
 }: ConfirmationFieldListProps) {
     const styles = useThemeStyles();
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Sparkles', 'DownArrow']);
-    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat} = useConfirmationFields();
+    const {action, iouType, transactionID, isReadOnly, isPolicyExpenseChat, isDistanceRequest, isPerDiemRequest, isTimeRequest, isTypeInvoice} = useConfirmationFields();
     const policyTagLists = getTagLists(policyTags);
 
     const flags = useFooterDerivedFlags({
@@ -92,10 +89,10 @@ function ConfirmationFieldList({
         policyTagLists,
         isPolicyExpenseChat,
         isReadOnly,
-        isDistanceRequest: expenseMode.isDistance,
-        isPerDiemRequest: expenseMode.isPerDiem,
-        isTimeRequest: expenseMode.isTime,
-        isTypeInvoice: expenseMode.isInvoice,
+        isDistanceRequest,
+        isPerDiemRequest,
+        isTimeRequest,
+        isTypeInvoice,
         shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
     });
 
@@ -109,7 +106,7 @@ function ConfirmationFieldList({
     const fieldVisibility = computeFieldVisibility({
         shouldShowSmartScanFields: visibilityFlags.shouldShowSmartScanFields,
         shouldShowAmountField: visibilityFlags.shouldShowAmountField,
-        isDistanceRequest: expenseMode.isDistance,
+        isDistanceRequest,
         shouldShowMerchant: visibilityFlags.shouldShowMerchant,
         shouldShowTimeRequestFields: flags.shouldShowTimeRequestFields,
         shouldShowCategories: visibilityFlags.shouldShowCategories,
@@ -141,7 +138,6 @@ function ConfirmationFieldList({
 
             <TransactionDetailsFields
                 policy={policy}
-                distanceFlags={distanceFlags}
                 amountDisplay={amountDisplay}
                 distanceData={distanceData}
                 requiredFlags={requiredFlags}
@@ -151,7 +147,6 @@ function ConfirmationFieldList({
                 iouCurrencyCode={flags.iouCurrencyCode}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
-                onSubmitForm={onSubmitForm}
                 isParticipantPickerVisible={visibilityFlags.isParticipantPickerVisible}
             />
 
@@ -175,7 +170,6 @@ function ConfirmationFieldList({
                 selectedParticipants={selectedParticipants}
                 shouldShowBillable={flags.shouldShowBillable}
                 shouldShowReimbursable={flags.shouldShowReimbursable}
-                isPerDiemRequest={expenseMode.isPerDiem}
                 toggleHandlers={toggleHandlers}
                 isCompactMode={compactState.isCompactMode}
                 fieldVisibility={fieldVisibility}
@@ -185,14 +179,14 @@ function ConfirmationFieldList({
                 <View style={[styles.mt3, styles.alignItemsCenter, styles.pRelative, styles.mh5]}>
                     <View style={[styles.dividerLine, styles.pAbsolute, styles.w100, styles.justifyContentCenter, {transform: [{translateY: -0.5}]}]} />
                     <Button
-                        text={translate('common.showMore')}
                         onPress={() => compactState.setShowMoreFields(true)}
-                        small
-                        shouldShowRightIcon
-                        iconRight={icons.DownArrow}
-                        innerStyles={[styles.hoveredComponentBG, styles.ph4, styles.pv2]}
-                        textStyles={styles.buttonSmallText}
-                    />
+                        size={CONST.BUTTON_SIZE.SMALL}
+                        // pl3 + Button.Text's built-in ph1 = 16; right stays 8 from the SMALL default, as legacy Button
+                        innerStyles={[styles.hoveredComponentBG, styles.pv2, styles.pl3]}
+                    >
+                        <Button.Text>{translate('common.showMore')}</Button.Text>
+                        <Button.Icon src={icons.DownArrow} />
+                    </Button>
                 </View>
             )}
         </View>

@@ -11536,11 +11536,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", ({ value: true }));
-/* eslint-disable @typescript-eslint/naming-convention */
-const core = __importStar(__nccwpck_require__(2186));
 const CONST_1 = __importDefault(__nccwpck_require__(9873));
 const GithubUtils_1 = __importDefault(__nccwpck_require__(9296));
 const isEmptyObject_1 = __nccwpck_require__(6497);
+/* eslint-disable @typescript-eslint/naming-convention */
+const core = __importStar(__nccwpck_require__(2186));
 const run = function () {
     const issueNumber = Number(core.getInput('ISSUE_NUMBER', { required: true }));
     console.log(`Fetching issue number ${issueNumber}`);

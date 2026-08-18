@@ -1,17 +1,22 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import SelectionList from '@components/SelectionList';
 import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
 import type {ListItem} from '@components/SelectionList/ListItem/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import type {OnyxFormKey} from '@src/ONYXKEYS';
+
+import type {ValueOf} from 'type-fest';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import RuleNotFoundPageWrapper from './RuleNotFoundPageWrapper';
 
 type BooleanFilterItem = ListItem & {
@@ -51,7 +56,7 @@ function RuleBooleanBase({fieldID, titleKey, formID, onSelect, onBack, hash, use
     const formValue = (form as Record<string, boolean | string | undefined>)?.[fieldID];
 
     let selectedItem = null;
-    if (formValue !== undefined) {
+    if (formValue !== undefined && formValue !== '') {
         // Handle both string ('true'/'false') and boolean (true/false) values
         const isTruthy = useStringValues ? formValue === 'true' : formValue === true;
         const booleanValue = isTruthy ? CONST.SEARCH.BOOLEAN.YES : CONST.SEARCH.BOOLEAN.NO;

@@ -1,8 +1,9 @@
 import type {RotationDegrees} from 'react-fast-pdf';
 import type {StyleProp, ViewStyle} from 'react-native';
+
 import type {AttachmentViewProps} from '..';
 
-type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isFocused' | 'onToggleKeyboard'> & {
+type AttachmentViewPdfProps = Pick<AttachmentViewProps, 'file' | 'onPress' | 'isFocused' | 'onToggleKeyboard' | 'isUsedInAttachmentModal'> & {
     encryptedSourceUrl: string;
     onLoadComplete: (path: string) => void;
 

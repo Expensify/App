@@ -1,14 +1,19 @@
-import React from 'react';
-import {View} from 'react-native';
 import RenderHTML from '@components/RenderHTML';
 import Text from '@components/Text';
+
 import useLocalize from '@hooks/useLocalize';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import type {LockAccountOnyxKey} from '@libs/actions/User';
 import Navigation from '@libs/Navigation/Navigation';
+
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 import type Response from '@src/types/onyx/Response';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import LockAccountPageBase from './LockAccountPageBase';
 
 function LockAccountPage() {

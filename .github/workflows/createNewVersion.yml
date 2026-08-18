@@ -39,22 +39,20 @@ on:
         description: Private key for OSBotify GitHub App
         required: true
 
+concurrency:
+  group: createNewVersion
+  cancel-in-progress: false
+  queue: max
+
 jobs:
   createNewVersion:
     runs-on: blacksmith-6vcpu-macos-latest
     outputs:
       NEW_VERSION: ${{ steps.bumpVersion.outputs.NEW_VERSION }}
     steps:
-      # v3.2.4
-      - name: Run turnstyle
-        uses: softprops/turnstyle@4415445a6780f85c074f0e4334cf8e65bae3ad45
-        with:
-          poll-interval-seconds: 10
-        env:
-          GITHUB_TOKEN: ${{ github.token }}
-
       - name: Check out
-        uses: useblacksmith/checkout@c9796daa2a4bdebdab5bd16be2c09a70cd4e1121 # v1
+        # Upstream checkout on macOS - Blacksmith's git-mirror cache can't work there (see workflows/README.md)
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           ref: main
           submodules: true
@@ -95,7 +93,7 @@ jobs:
 
           # Store the commit hash before checkout to ensure we cherry-pick the right commit
           DETACHED_COMMIT=$(git rev-parse HEAD)
-          
+
           # Cherry-pick the version bump commit onto main, to safely handle case where new commits exist on main
           git checkout main && git pull origin main
           git cherry-pick "$DETACHED_COMMIT"
@@ -127,32 +125,32 @@ jobs:
         run: |
           git add Mobile-Expensify
           git commit -m "Update Mobile-Expensify submodule version to ${{ steps.bumpVersion.outputs.NEW_VERSION }}"
-          
+
           MAX_RETRIES=5
           RETRY_DELAY=2
-          
+
           for i in $(seq 1 $MAX_RETRIES); do
             if git push origin main; then
               echo "::notice::Successfully pushed E/App changes on attempt $i"
               exit 0
             fi
-            
+
             echo "::warning::Push attempt $i failed, retrying in ${RETRY_DELAY}s..."
             sleep $RETRY_DELAY
             RETRY_DELAY=$((RETRY_DELAY * 2))
-            
+
             if ! git fetch origin main; then
               echo "::error::Unable to fetch main on attempt $i"
               continue
             fi
-            
+
             if ! git rebase origin/main; then
               echo "::warning::Rebase failed on attempt $i, aborting and retrying..."
               git rebase --abort || true
               continue
             fi
           done
-          
+
           echo "::error::E/App push failed after $MAX_RETRIES attempts"
           echo "::error::CRITICAL: Mobile-Expensify has version ${{ steps.bumpVersion.outputs.NEW_VERSION }} but E/App does not!"
           echo "::error::Manual intervention required - run the syncVersions workflow to fix"
@@ -162,7 +160,7 @@ jobs:
         run: |
           APP_VERSION=$(jq -r .version package.json)
           ME_VERSION=$(jq -r .meta.version Mobile-Expensify/app/config/config.json)
-          
+
           if [ "$APP_VERSION" != "$ME_VERSION" ]; then
             echo "::error::Version mismatch detected after push!"
             echo "::error::E/App version: $APP_VERSION"

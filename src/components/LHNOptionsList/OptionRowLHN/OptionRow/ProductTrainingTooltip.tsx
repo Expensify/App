@@ -1,16 +1,22 @@
-import React from 'react';
-import type {ReactElement} from 'react';
 import {useLHNTooltipContext} from '@components/LHNOptionsList/LHNTooltipContext';
 import useLHNRowProductTrainingTooltip from '@components/LHNOptionsList/OptionRowLHN/useLHNRowProductTrainingTooltip';
 import {useSession} from '@components/OnyxListItemProvider';
 import EducationalTooltip from '@components/Tooltip/EducationalTooltip';
+
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {isAdminRoom, isChatUsedForOnboarding as isChatUsedForOnboardingReportUtils, isConciergeChatReport} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import type {ReactElement} from 'react';
+
+import React from 'react';
 
 type ProductTrainingTooltipProps = {
     /** Option data, drives onboarding eligibility checks for the educational tooltip. */

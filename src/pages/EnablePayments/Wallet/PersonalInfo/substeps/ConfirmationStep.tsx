@@ -1,18 +1,23 @@
-import React, {useMemo} from 'react';
 import CommonConfirmationStep from '@components/SubStepForms/ConfirmationStep';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import type {SubStepProps} from '@hooks/useSubStep/types';
+import type {SubPageProps} from '@hooks/useSubPage/types';
+
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
+
 import getSubstepValues from '@pages/EnablePayments/Wallet/utils/getSubstepValues';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import INPUT_IDS from '@src/types/form/WalletAdditionalDetailsForm';
 
+import React, {useMemo} from 'react';
+
 const PERSONAL_INFO_STEP_KEYS = INPUT_IDS.PERSONAL_INFO_STEP;
 const PERSONAL_INFO_STEP_INDEXES = CONST.WALLET.SUBSTEP_INDEXES.PERSONAL_INFO;
 
-function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
+function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
     const {translate} = useLocalize();
 
     const [walletAdditionalDetails] = useOnyx(ONYXKEYS.WALLET_ADDITIONAL_DETAILS);
@@ -26,6 +31,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
 
     const summaryItems = [
         {
+            id: 'legal-name',
             description: translate('personalInfoStep.legalName'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.FIRST_NAME]} ${values[PERSONAL_INFO_STEP_KEYS.LAST_NAME]}`,
             shouldShowRightIcon: true,
@@ -34,6 +40,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'date-of-birth',
             description: translate('common.dob'),
             title: values[PERSONAL_INFO_STEP_KEYS.DOB],
             shouldShowRightIcon: true,
@@ -42,6 +49,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'address',
             description: translate('personalInfoStep.address'),
             title: `${values[PERSONAL_INFO_STEP_KEYS.STREET]}, ${values[PERSONAL_INFO_STEP_KEYS.CITY]}, ${values[PERSONAL_INFO_STEP_KEYS.STATE]} ${values[PERSONAL_INFO_STEP_KEYS.ZIP_CODE]}`,
             shouldShowRightIcon: true,
@@ -50,6 +58,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'phone-number',
             description: translate('common.phoneNumber'),
             title: values[PERSONAL_INFO_STEP_KEYS.PHONE_NUMBER],
             shouldShowRightIcon: true,
@@ -58,6 +67,7 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubStepProps) {
             },
         },
         {
+            id: 'ssn',
             description: translate(shouldAskForFullSSN ? 'common.ssnFull9' : 'personalInfoStep.last4SSN'),
             title: values[PERSONAL_INFO_STEP_KEYS.SSN_LAST_4],
             shouldShowRightIcon: true,

@@ -1,4 +1,5 @@
 import type {Route} from '@src/ROUTES';
+
 import getDynamicRouteQueryParams from './getDynamicRouteQueryParams';
 import splitPathAndQuery from './splitPathAndQuery';
 

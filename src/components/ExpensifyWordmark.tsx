@@ -1,16 +1,22 @@
-import React from 'react';
-import type {StyleProp, ViewStyle} from 'react-native';
-import {View} from 'react-native';
 import AdHocLogo from '@assets/images/expensify-logo--adhoc.svg';
 import DevLogo from '@assets/images/expensify-logo--dev.svg';
 import ProductionLogo from '@assets/images/expensify-logo--prod.svg';
 import StagingLogo from '@assets/images/expensify-logo--staging.svg';
+
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useStyleUtils from '@hooks/useStyleUtils';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import type {StyleProp, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ImageSVG from './ImageSVG';
 
 type ExpensifyWordmarkProps = {

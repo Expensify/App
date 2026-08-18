@@ -1,5 +1,6 @@
 import type CONST from '@src/CONST';
 import type {FileObject} from '@src/types/utils/Attachment';
+
 import type AccountData from './AccountData';
 import type {BankName} from './Bank';
 import type * as OnyxCommon from './OnyxCommon';
@@ -37,6 +38,12 @@ type BankAccountAdditionalData = {
     corpay?: {
         /** Powerform files */
         achAuthorizationForm?: FileObject[];
+    };
+
+    /** Verification statuses returned by the backend, mirroring how Classic determines status */
+    verifications?: {
+        /** Present once the account is set up with Corpay for Global Reimbursement */
+        corpay?: Record<string, unknown>;
     };
 
     /** First name of the bank account owner (OldDot field name) */

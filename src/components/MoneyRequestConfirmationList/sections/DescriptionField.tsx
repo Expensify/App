@@ -1,24 +1,35 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {OnyxEntry} from 'react-native-onyx';
 import MentionReportContext from '@components/HTMLEngineProvider/HTMLRenderers/MentionReportRenderer/MentionReportContext';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {useConfirmationFields} from '@components/MoneyRequestConfirmationFields/context';
 import {ShowContextMenuActionsContext, ShowContextMenuStateContext} from '@components/ShowContextMenuContext';
 import TextInput from '@components/TextInput';
+
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {setMoneyRequestDescription} from '@libs/actions/IOU/MoneyRequest';
+import {canUseTouchScreen} from '@libs/DeviceCapabilities';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
+
 import variables from '@styles/variables';
+
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
+
 import CONST from '@src/CONST';
 import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type * as OnyxTypes from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useRef} from 'react';
+import {View} from 'react-native';
+
 import {descriptionStateSelector} from './selectors';
 import useTransactionSelector from './useTransactionSelector';
 
@@ -33,7 +44,6 @@ type DescriptionFieldProps = {
     reportID: string;
     reportActionID: string | undefined;
     policy: OnyxEntry<OnyxTypes.Policy>;
-    onSubmitForm?: () => void;
 };
 
 function DescriptionField({
@@ -47,11 +57,14 @@ function DescriptionField({
     reportID,
     reportActionID,
     policy,
-    onSubmitForm,
 }: DescriptionFieldProps) {
-    const {isEditingSplitBill} = useConfirmationFields();
+    const {isEditingSplitBill, scrollFocusedInputIntoView, onSubmitForm} = useConfirmationFields();
     const styles = useThemeStyles();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
+    // Ref on the field's outer container (the bordered box), so scrolling brings the whole field — including its
+    // top border and label — into view rather than just the inner text area.
+    const fieldContainerRef = useRef<View>(null);
 
     const [splitDraftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
 
@@ -77,6 +90,12 @@ function DescriptionField({
 
     const mentionReportContextValue = {currentReportID: reportID, exactlyMatch: true};
 
+    // This is a multi-line input, so Enter must insert a new line. On touch devices that's the only way to add one,
+    // so we never let Enter submit there (otherwise it's impossible to type a multi-line description — see #94258).
+    // On hardware-keyboard setups Shift+Enter still inserts a new line, so we keep Enter-to-confirm, matching the
+    // dedicated description step page (which gets `blurAndSubmit` from InputWrapper for the same reason).
+    const canUseHardwareKeyboard = !canUseTouchScreen();
+
     const handleDescriptionInputChange = (newDescription: string) => {
         if (!transactionID) {
             return;
@@ -87,7 +106,7 @@ function DescriptionField({
         // Trimming is deferred to submission time, not during keystrokes, to avoid
         // silently stripping trailing spaces as the user types.
         if (isEditingSplitBill) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {comment: newDescription}, getCurrencyDecimals, getCurrencySymbol);
             return;
         }
 
@@ -100,13 +119,17 @@ function DescriptionField({
                 <ShowContextMenuActionsContext.Provider value={contextMenuActionsValue}>
                     <MentionReportContext.Provider value={mentionReportContextValue}>
                         {isNewManualExpenseFlowEnabled && !isReadOnly ? (
-                            <View style={[styles.mh4, styles.mv2]}>
+                            <View
+                                ref={fieldContainerRef}
+                                style={[styles.mh4, styles.mv2]}
+                            >
                                 <TextInput
                                     value={iouComment ?? ''}
                                     readOnly={didConfirm}
                                     onChangeText={handleDescriptionInputChange}
-                                    submitBehavior="blurAndSubmit"
-                                    onSubmitEditing={onSubmitForm}
+                                    onFocus={() => scrollFocusedInputIntoView?.(fieldContainerRef.current)}
+                                    submitBehavior={canUseHardwareKeyboard ? 'blurAndSubmit' : 'newline'}
+                                    onSubmitEditing={canUseHardwareKeyboard ? onSubmitForm : undefined}
                                     label={translate('common.description')}
                                     accessibilityLabel={translate('common.description')}
                                     autoGrowHeight
@@ -127,9 +150,7 @@ function DescriptionField({
                                         return;
                                     }
 
-                                    Navigation.navigate(
-                                        ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, Navigation.getActiveRoute(), reportActionID),
-                                    );
+                                    Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESCRIPTION.getRoute(action, iouType, transactionID, reportID, reportActionID)));
                                 }}
                                 style={[styles.moneyRequestMenuItem]}
                                 titleStyle={styles.flex1}

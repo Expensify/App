@@ -1,13 +1,14 @@
-import React from 'react';
-import {useCurrencyListActions, useCurrencyListState} from '@components/CurrencyListContextProvider';
 import type {SearchFilterCommonProps} from '@components/Search/types';
+
+import {useCurrencyListActions, useCurrencyListState} from '@hooks/useCurrencyList';
+
 import {getCurrencyOptions} from '@libs/SearchUIUtils';
+
+import React from 'react';
+
 import MultiSelect from './MultiSelect';
 
-type CurrencySelectorProps = SearchFilterCommonProps & {
-    value: string[] | undefined;
-    onChange: (item: string[]) => void;
-};
+type CurrencySelectorProps = SearchFilterCommonProps<string[] | undefined>;
 
 function CurrencySelector({value = [], selectionListTextInputStyle, selectionListStyle, autoFocus, footer, onChange}: CurrencySelectorProps) {
     const {currencyList} = useCurrencyListState();
@@ -21,6 +22,7 @@ function CurrencySelector({value = [], selectionListTextInputStyle, selectionLis
             items={currencyOptions}
             autoFocus={autoFocus}
             isSearchable
+            isNegatable
             selectionListTextInputStyle={selectionListTextInputStyle}
             selectionListStyle={selectionListStyle}
             footer={footer}

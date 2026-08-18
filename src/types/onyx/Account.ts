@@ -1,5 +1,7 @@
-import type {ValueOf} from 'type-fest';
 import type CONST from '@src/CONST';
+
+import type {ValueOf} from 'type-fest';
+
 import type DismissedReferralBanners from './DismissedReferralBanners';
 import type * as OnyxCommon from './OnyxCommon';
 
@@ -108,16 +110,22 @@ type Account = {
     adminsRoomReportID?: string;
 
     /** The Account ID of the account manager */
-    accountManagerAccountID?: string;
+    accountManagerAccountID?: number;
 
     /** The Report ID of the account manager */
     accountManagerReportID?: string;
+
+    /** The calendar link of the account manager */
+    accountManagerCalendarLink?: string;
 
     /** The account ID of the partner manager */
     partnerManagerAccountID?: number;
 
     /** The email of the partner manager */
     partnerManagerEmail?: string;
+
+    /** The calendar link of the partner manager */
+    partnerManagerCalendarLink?: string;
 
     /** The message to be displayed when code requested */
     message?: string;

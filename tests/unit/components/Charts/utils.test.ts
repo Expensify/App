@@ -7,8 +7,7 @@ import {
     effectiveWidth,
     findSliceAtPosition,
     getAdditionalOffset,
-    getNiceLowerBound,
-    getNiceUpperBound,
+    getNiceYAxisTicks,
     isAngleInSlice,
     isCursorInSkewedLabel,
     isCursorOverChartLabel,
@@ -20,7 +19,7 @@ import {
     rotatedLabelYOffset,
     truncateLabel,
 } from '@components/Charts/utils';
-import VictoryTheme, {DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
+import VictoryTheme, {CHART_Y_SCALE_HEIGHT, DIAGONAL_ANGLE_RADIAN_THRESHOLD, LABEL_ROTATIONS, SIN_45} from '@components/Charts/VictoryTheme';
 
 const LINE_HEIGHT = 16;
 
@@ -667,66 +666,48 @@ describe('calculateMinDomainPadding', () => {
     });
 });
 
-describe('getNiceUpperBound', () => {
-    it('returns rawMax unchanged when range is zero', () => {
-        expect(getNiceUpperBound(0, 5)).toBe(0);
-        expect(getNiceUpperBound(100, 5, 100)).toBe(100);
+// Bar chart domain padding constants, mirrored from BarChartContent.
+const BAR_PAD_TOP = 32;
+const BAR_PAD_BOTTOM = 1;
+
+describe('getNiceYAxisTicks', () => {
+    it('expands a flat series by ±1 and runs D3 nice/ticks so results are always nice values', () => {
+        expect(getNiceYAxisTicks(-1, -1, 5)).toEqual([-2, -1.5, -1, -0.5, 0]);
     });
 
-    it('returns rawMax unchanged when tickCount <= 1', () => {
-        expect(getNiceUpperBound(100, 1)).toBe(100);
-        expect(getNiceUpperBound(90, 0)).toBe(90);
+    it('produces nice ticks even when the singular value is not itself nice', () => {
+        expect(getNiceYAxisTicks(-3.7, -3.7, 5)).toEqual([-4.5, -4, -3.5, -3]);
     });
 
-    it('rounds up to next step boundary when rawMax is already on a step', () => {
-        // range=100, step=20 → ceil(100/20)*20=100
-        expect(getNiceUpperBound(100, 5)).toBe(100);
+    it('treats flat positive series as range [0, value] using bar chart padding', () => {
+        expect(getNiceYAxisTicks(3, 3, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 1, 2, 3]);
     });
 
-    it('rounds up when rawMax falls between step boundaries', () => {
-        // range=90, step=20 → ceil(90/20)*20=ceil(4.5)*20=5*20=100
-        expect(getNiceUpperBound(90, 5)).toBe(100);
+    it('returns correct ticks for varied positive data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(90, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
-    it('scales correctly for larger values', () => {
-        // range=1000, step=200 → ceil(1000/200)*200=1000
-        expect(getNiceUpperBound(1000, 5)).toBe(1000);
-        // range=900, step=200 → ceil(900/200)*200=ceil(4.5)*200=1000
-        expect(getNiceUpperBound(900, 5)).toBe(1000);
+    it('clamps positive rawDataMin to 0 so the y-axis floor matches Victory', () => {
+        expect(getNiceYAxisTicks(90, 10, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 20, 40, 60, 80, 100]);
     });
 
-    it('uses rawMin to compute the range when negative values are present', () => {
-        // rawMax=100, rawMin=-100 → range=200, roughStep=50, magnitude=10, normalized=5 → step=50
-        // ceil(100/50)*50=100
-        expect(getNiceUpperBound(100, 5, -100)).toBe(100);
-    });
-});
-
-describe('getNiceLowerBound', () => {
-    it('returns rawMin unchanged for non-negative values', () => {
-        expect(getNiceLowerBound(0, 5)).toBe(0);
-        expect(getNiceLowerBound(10, 5)).toBe(10);
-        expect(getNiceLowerBound(100, 5)).toBe(100);
+    it('returns correct ticks for a high positive-only range with bar chart padding', () => {
+        expect(getNiceYAxisTicks(9000, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 2000, 4000, 6000, 8000, 10000]);
     });
 
-    it('returns rawMin unchanged when range is zero or tickCount <= 1', () => {
-        expect(getNiceLowerBound(-100, 1, 0)).toBe(-100);
-        expect(getNiceLowerBound(-100, 5, -100)).toBe(-100);
+    it('includes the next nice tick when data max sits near a tick boundary with bar chart padding', () => {
+        expect(getNiceYAxisTicks(795, 0, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([0, 200, 400, 600, 800, 1000]);
     });
 
-    it('returns rawMin unchanged when rawMin is already on a step boundary', () => {
-        // range=100, step=20 → floor(-100/20)*20=-5*20=-100
-        expect(getNiceLowerBound(-100, 5, 0)).toBe(-100);
+    it('returns correct ticks for mixed positive and negative data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(100, -50, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-50, 0, 50, 100]);
     });
 
-    it('rounds down when rawMin falls between step boundaries', () => {
-        // range=90, step=20 → floor(-90/20)*20=floor(-4.5)*20=-5*20=-100
-        expect(getNiceLowerBound(-90, 5, 0)).toBe(-100);
+    it('returns correct ticks for varied negative data with bar chart padding', () => {
+        expect(getNiceYAxisTicks(-10, -90, 5, BAR_PAD_TOP, BAR_PAD_BOTTOM, CHART_Y_SCALE_HEIGHT)).toEqual([-100, -80, -60, -40, -20, 0]);
     });
 
-    it('uses rawMax to compute the range for mixed positive/negative data', () => {
-        // rawMin=-50, rawMax=100 → range=150, roughStep=37.5, magnitude=10, normalized=3.75 >= 2 → step=20
-        // floor(-50/20)*20=floor(-2.5)*20=-3*20=-60
-        expect(getNiceLowerBound(-50, 5, 100)).toBe(-60);
+    it('rounds intermediate ticks to eliminate floating-point noise', () => {
+        expect(getNiceYAxisTicks(0, -1.11, 5)).toEqual([-1.2, -1, -0.8, -0.6, -0.4, -0.2, 0]);
     });
 });

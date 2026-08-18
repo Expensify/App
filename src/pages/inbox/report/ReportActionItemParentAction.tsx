@@ -1,20 +1,27 @@
-import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
-import React, {useCallback} from 'react';
-import {View} from 'react-native';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
+
 import useAncestors from '@hooks/useAncestors';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useOnyx from '@hooks/useOnyx';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {getOriginalMessage, isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {shouldExcludeAncestorReportAction} from '@libs/ReportUtils';
+
 import {navigateToConciergeChatAndDeleteReport} from '@userActions/Report';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report, ReportAction, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import React from 'react';
+import {View} from 'react-native';
+
 import AncestorReportActionItem from './AncestorReportActionItem';
 import AnimatedEmptyStateBackground from './AnimatedEmptyStateBackground';
 import RepliesDivider from './RepliesDivider';
@@ -70,14 +77,14 @@ function ReportActionItemParentAction({
     const [conciergePersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: conciergePersonalDetailSelector});
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
 
-    const getLinkedTransactionRouteError = useCallback((transaction: OnyxEntry<Transaction>) => {
-        return transaction?.errorFields?.route;
-    }, []);
+    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {
+        selector: (transaction: OnyxEntry<Transaction>) => {
+            return transaction?.errorFields?.route;
+        },
+    });
 
-    const [linkedTransactionRouteError] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`, {selector: getLinkedTransactionRouteError});
-
-    const ancestorReportNameValuePairsSelector = useCallback(
-        (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
+    const [ancestorsReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS, {
+        selector: (allReportNameValuePairs: OnyxCollection<ReportNameValuePairs>) => {
             if (!allReportNameValuePairs) {
                 return {};
             }
@@ -88,16 +95,7 @@ function ReportActionItemParentAction({
             }
             return ancestorReportNameValuePairs;
         },
-        [ancestors],
-    );
-
-    const [ancestorsReportNameValuePairs] = useOnyx(
-        ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS,
-        {
-            selector: ancestorReportNameValuePairsSelector,
-        },
-        [ancestors],
-    );
+    });
 
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);

@@ -1,17 +1,18 @@
-import type {OnyxUpdate} from 'react-native-onyx';
-import Onyx from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
 import {write} from '@libs/API';
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import {getCommandURL} from '@libs/ApiUtils';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
+
 import {openLink} from '@userActions/Link';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {FinancialForceConnectionConfig} from '@src/types/onyx/Policy';
+import type {FinancialForceConnectionConfig, FinancialForceFFAExportStatus, FinancialForceReportExportStatus} from '@src/types/onyx/Policy';
 
-type FinancialForceFFAExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.IN_PROGRESS;
-type FinancialForceReportExportStatus = typeof CONST.CERTINIA_EXPORT_STATUS.APPROVED | typeof CONST.CERTINIA_EXPORT_STATUS.SUBMITTED;
+import type {OnyxUpdate} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
 
 function prepareOnyxDataForFinancialForceCodingUpdate<K extends keyof FinancialForceConnectionConfig['coding']>(
     policyID: string,
@@ -512,7 +513,7 @@ function updateFinancialForceParentTagMapping(
         parentTagMapping,
         previousValue ?? undefined,
     );
-    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, parentTagMapping}, {optimisticData, failureData, successData});
+    write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_PARENT_TAG_MAPPING, {policyID, mappingType: parentTagMapping}, {optimisticData, failureData, successData});
 }
 
 function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, previousValue?: boolean) {
@@ -520,13 +521,8 @@ function updateFinancialForceSyncMilestones(policyID: string, enabled: boolean, 
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_SYNC_MILESTONES, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: ValueOf<typeof CONST.CERTINIA_EXPORT_STATUS> | null) {
-    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(
-        policyID,
-        CONST.CERTINIA_CONFIG.REPORT_EXPORT_STATUS,
-        status,
-        previousStatus ?? undefined,
-    );
+function updateFinancialForceReportExportStatus(policyID: string, status: FinancialForceReportExportStatus, previousStatus: FinancialForceConnectionConfig['export']['exportStatus'] | null) {
+    const {optimisticData, failureData, successData} = prepareOnyxDataForFinancialForceExportUpdate(policyID, CONST.CERTINIA_CONFIG.EXPORT_STATUS, status, previousStatus ?? undefined);
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_REPORT_EXPORT_STATUS, {policyID, exportStatus: status}, {optimisticData, failureData, successData});
 }
 
@@ -540,7 +536,8 @@ function updateFinancialForceExportForeignCurrency(policyID: string, enabled: bo
     write(WRITE_COMMANDS.UPDATE_FINANCIAL_FORCE_EXPORT_FOREIGN_CURRENCY, {policyID, enabled}, {optimisticData, failureData, successData});
 }
 
-function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null) {
+function updateFinancialForceCompany(policyID: string, companyID: string, previousCompanyID: string | null, hasPSA: boolean) {
+    const companyField = hasPSA ? CONST.CERTINIA_CONFIG.COMPANY_ID : CONST.CERTINIA_CONFIG.COMPANY;
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.POLICY>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -549,14 +546,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
-                            credentials: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID,
-                            },
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID}} : {[CONST.CERTINIA_CONFIG.COMPANY]: companyID}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
+                                [companyField]: CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                         },
                     },
@@ -573,14 +568,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
-                            credentials: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: previousCompanyID ?? null,
-                            },
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: previousCompanyID ?? null}} : {[CONST.CERTINIA_CONFIG.COMPANY]: previousCompanyID ?? null}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
+                                [companyField]: getMicroSecondOnyxErrorWithTranslationKey('common.genericErrorMessage'),
                             },
                         },
                     },
@@ -597,11 +590,12 @@ function updateFinancialForceCompany(policyID: string, companyID: string, previo
                 connections: {
                     [CONST.POLICY.CONNECTIONS.NAME.CERTINIA]: {
                         config: {
+                            ...(hasPSA ? {export: {[CONST.CERTINIA_CONFIG.COMPANY_ID]: companyID}} : {[CONST.CERTINIA_CONFIG.COMPANY]: companyID}),
                             pendingFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                             errorFields: {
-                                [CONST.CERTINIA_CONFIG.COMPANY_ID]: null,
+                                [companyField]: null,
                             },
                         },
                     },

@@ -1,17 +1,26 @@
-import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
-import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
-import {emailSelector} from '@selectors/Session';
-import {useEffect} from 'react';
+import {useInitialURLState} from '@components/InitialURLContextProvider';
+
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {isLoggingInAsNewUser} from '@libs/SessionUtils';
+import {hasSecureLinkKey} from '@libs/Url';
+
+import {completeHybridAppOnboarding} from '@userActions/Welcome';
 import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import {isSingleNewDotEntrySelector} from '@selectors/HybridApp';
+import {hasCompletedGuidedSetupFlowSelector, tryNewDotOnyxSelector, wasInvitedToNewDotSelector} from '@selectors/Onboarding';
+import {emailSelector} from '@selectors/Session';
+import {useCallback, useEffect} from 'react';
+
 import useOnyx from './useOnyx';
+import useShouldSuppressPromotionalUI from './useShouldSuppressPromotionalUI';
 
 /**
  * Hook to handle redirection to the onboarding flow based on the user's onboarding status
@@ -21,10 +30,18 @@ import useOnyx from './useOnyx';
 function useOnboardingFlowRouter() {
     const currentUrl = getCurrentUrl();
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
+    const shouldSuppressPromotionalUI = useShouldSuppressPromotionalUI();
     const [onboardingValues, isOnboardingCompletedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING);
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const isLoggingInAsNewSessionUser = isLoggingInAsNewUser(currentUrl, sessionEmail);
+    // A user arriving via a Submit-via-PDF secure access link should land directly on the shared report, not onboarding.
+    // The signal must survive the whole session and not depend on navigation timing, so we read the captured deep-link URL
+    // (set on cold launch and on warm url events for secure links) alongside the web URL and the active route. getCurrentUrl()
+    // is empty on native, and getActiveRoute() serializes the secureKey query param on every platform via getPathFromState.
+    const {initialURL} = useInitialURLState();
+    const getIsVisitingSecureLink = useCallback(() => hasSecureLinkKey(getCurrentUrl()) || hasSecureLinkKey(Navigation.getActiveRoute()) || hasSecureLinkKey(initialURL), [initialURL]);
+    const isVisitingSecureLink = getIsVisitingSecureLink();
     const [tryNewDot, tryNewDotMetadata] = useOnyx(ONYXKEYS.NVP_TRY_NEW_DOT, {
         selector: tryNewDotOnyxSelector,
     });
@@ -54,6 +71,13 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
+                // Skip onboarding when arriving via a Submit-via-PDF secure access link so the user lands directly on the shared report.
+                // Re-read the active route here too: on a cold-launch deep link the render-time check can run before navigation
+                // is ready, so the render-time isVisitingSecureLink may be stale when this transition callback fires.
+                if (getIsVisitingSecureLink()) {
+                    return;
+                }
+
                 if (isLoadingApp !== false || isOnboardingLoading) {
                     return;
                 }
@@ -72,26 +96,32 @@ function useOnboardingFlowRouter() {
                         return;
                     }
 
-                    // When user is transitioning from OldDot to NewDot, we usually show the explanation modal
+                    // Make sure hybrid app onboarding is completed and will not start startOnboardingFlow for users that switched from OldDot.
                     if (isHybridAppOnboardingCompleted === false) {
-                        Navigation.navigate(ROUTES.EXPLANATION_MODAL_ROOT);
+                        completeHybridAppOnboarding();
+                        return;
                     }
                 }
 
                 const isMigratedUser = hasBeenAddedToNudgeMigration ?? false;
                 // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
                 const isInvitedOrGroupMember = (hasNonPersonalPolicy || wasInvitedToNewDot) ?? false;
-                if (isMigratedUser || isInvitedOrGroupMember) {
+                if (isMigratedUser || isInvitedOrGroupMember || shouldSuppressPromotionalUI) {
+                    return;
+                }
+
+                // Test builds skip the onboarding UI entirely; the flag is absent from production env files.
+                // Gate only the auto-entry into onboarding here so unrelated behaviour (e.g. hybrid-app transitions above) is unaffected.
+                if (CONFIG.SKIP_ONBOARDING) {
                     return;
                 }
 
                 // Explicitly start the onboarding flow when onboarding is not completed.
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
-                // waitForProtectedRoutes ensures navigation is ready, which is critical during fresh login.
-                // Skip when HybridApp explanation modal is active (OldDot-transitioning users).
-                if (isOnboardingCompleted === false && !(CONFIG.IS_HYBRID_APP && isHybridAppOnboardingCompleted === false)) {
-                    Navigation.waitForProtectedRoutes().then(() => {
+                // isNavigationReady ensures navigation is ready, which is critical during fresh login.
+                if (isOnboardingCompleted === false) {
+                    Navigation.isNavigationReady().then(() => {
                         startOnboardingFlow({
                             onboardingValuesParam: onboardingValues ?? undefined,
                             isUserFromPublicDomain: !!account?.isFromPublicDomain,
@@ -132,10 +162,13 @@ function useOnboardingFlowRouter() {
         hasNonPersonalPolicy,
         wasInvitedToNewDot,
         isOnboardingCompleted,
+        shouldSuppressPromotionalUI,
+        getIsVisitingSecureLink,
     ]);
 
     return {
-        isOnboardingCompleted: hasCompletedGuidedSetupFlowSelector(onboardingValues),
+        // Treat the flow as completed for secure-link visitors so the onboarding modal is not mounted over the report.
+        isOnboardingCompleted: isVisitingSecureLink ? true : hasCompletedGuidedSetupFlowSelector(onboardingValues),
         isHybridAppOnboardingCompleted,
         isOnboardingLoading: !!onboardingValues?.isLoading,
     };

@@ -1,11 +1,22 @@
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
-import type {TupleToUnion, ValueOf} from 'type-fest';
 import {getOriginalMessage, isClosedAction} from '@libs/ReportActionsUtils';
-import {canShowReportRecipientLocalTime, getPolicyIDsWithEmptyReportsForAccount, isChatRoom, isClosedReport, isOpenExpenseReport, isPolicyExpenseChat, isThread} from '@libs/ReportUtils';
-import type {ArchivedReportsIDSet} from '@libs/SearchUIUtils';
+import {
+    canShowReportRecipientLocalTime,
+    getPolicyIDsWithEmptyReportsForAccount,
+    isArchivedReport,
+    isChatRoom,
+    isClosedReport,
+    isOpenExpenseReport,
+    isPolicyExpenseChat,
+    isThread,
+} from '@libs/ReportUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, Report, ReportActions, Transaction} from '@src/types/onyx';
+import type {OutstandingReportsByPolicyIDDerivedValue, PersonalDetailsList, Report, ReportActions, ReportNameValuePairs, Transaction} from '@src/types/onyx';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+import type {TupleToUnion, ValueOf} from 'type-fest';
+
 import {getLastClosedReportAction} from './ReportAction';
 
 type OpenExpenseReportIDMap = Record<string, true>;
@@ -32,6 +43,10 @@ function getReportOwnerAccountID(report: OnyxEntry<Report>) {
     return report?.ownerAccountID;
 }
 
+function getReportParentReportID(report: OnyxEntry<Report>) {
+    return report?.parentReportID;
+}
+
 const policyIDsWithEmptyReportsSelector =
     (accountID: number | undefined, transactionsByReportID: Record<string, Transaction[]>, hasDismissedEmptyReportsConfirmation: boolean) => (reports: OnyxCollection<Report>) => {
         if (hasDismissedEmptyReportsConfirmation || !accountID) {
@@ -41,7 +56,7 @@ const policyIDsWithEmptyReportsSelector =
     };
 
 const policyChatRoomsSelector =
-    (policyID: string | undefined, archivedReportsIdSet: ArchivedReportsIDSet) =>
+    (policyID: string | undefined, reportNameValuePairs: OnyxCollection<ReportNameValuePairs>) =>
     (reports: OnyxCollection<Report>): Report[] => {
         if (!policyID || !reports) {
             return [];
@@ -61,13 +76,47 @@ const policyChatRoomsSelector =
             if (isClosedReport(report)) {
                 continue;
             }
-            if (archivedReportsIdSet.has(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`)) {
+            if (isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report.reportID}`])) {
                 continue;
             }
             list.push(report);
         }
         return list;
     };
+
+/**
+ * Selects archived report NVPs for the current report and possible "Move expense" destination reports.
+ * This limits updates to data used to determine whether each destination report is archived.
+ */
+const createMoveExpenseReportNVPSelector = (outstandingReportsByPolicyID: OnyxEntry<OutstandingReportsByPolicyIDDerivedValue>, currentReportID: string | undefined) => {
+    const moveExpenseReportIDs = new Set<string>();
+    if (currentReportID) {
+        moveExpenseReportIDs.add(currentReportID);
+    }
+    for (const outstandingReports of Object.values(outstandingReportsByPolicyID ?? {})) {
+        for (const outstandingReport of Object.values(outstandingReports ?? {})) {
+            if (outstandingReport?.reportID) {
+                moveExpenseReportIDs.add(outstandingReport.reportID);
+            }
+        }
+    }
+
+    return (reportNameValuePairs: OnyxCollection<ReportNameValuePairs>): OnyxCollection<ReportNameValuePairs> => {
+        const moveExpenseReportNVPs: OnyxCollection<ReportNameValuePairs> = {};
+
+        for (const reportID of moveExpenseReportIDs) {
+            const key = `${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${reportID}` as const;
+            const reportNVP = reportNameValuePairs?.[key];
+            if (!isArchivedReport(reportNVP)) {
+                continue;
+            }
+
+            moveExpenseReportNVPs[key] = {private_isArchived: reportNVP?.private_isArchived};
+        }
+
+        return moveExpenseReportNVPs;
+    };
+};
 
 function openExpenseReportIDsSelector(reports: OnyxCollection<Report>): OpenExpenseReportIDMap {
     if (!reports) {
@@ -122,7 +171,27 @@ type StableReport = Omit<Report, TupleToUnion<ExcludedFields>>;
  *
  * When adding a new `Report` field: include it in the return object below; only add to
  * `ExcludedFields` if it updates on every message/read and the subtree does not read it.
+ *
+ * Onyx merge replaces arrays wholesale even when their content is identical (arrays are
+ * non-mergeable leaf values compared by reference), so `report.permissions` can arrive with a new
+ * reference on every report push. Intern the array by content so the projection keeps a stable
+ * reference and downstream shallow-equality (snapshot cache, memoized subtrees) holds.
+ * The cache is bounded: values are combinations of the few CONST.REPORT.PERMISSIONS members.
  */
+const stablePermissionsByContent = new Map<string, Report['permissions']>();
+function getStablePermissions(permissions: Report['permissions']): Report['permissions'] {
+    if (!permissions) {
+        return permissions;
+    }
+    const contentKey = permissions.join(',');
+    const cached = stablePermissionsByContent.get(contentKey);
+    if (cached) {
+        return cached;
+    }
+    stablePermissionsByContent.set(contentKey, permissions);
+    return permissions;
+}
+
 function getStableReportSelector(report: OnyxEntry<Report>) {
     if (!report?.reportID) {
         return undefined;
@@ -133,6 +202,13 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         created: report.created,
         submitted: report.submitted,
         approved: report.approved,
+        submitterUserID: report.submitterUserID,
+        submitterPayrollID: report.submitterPayrollID,
+        orderDealNumbers: report.orderDealNumbers,
+        debitedAmount: report.debitedAmount,
+        debitedCurrency: report.debitedCurrency,
+        creditedAmount: report.creditedAmount,
+        creditedCurrency: report.creditedCurrency,
         chatType: report.chatType,
         hasOutstandingChildRequest: report.hasOutstandingChildRequest,
         hasOutstandingChildTask: report.hasOutstandingChildTask,
@@ -156,7 +232,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         transactionCount: report.transactionCount,
         parentReportID: report.parentReportID,
         parentReportActionID: report.parentReportActionID,
-        // Coerce sentinel `0` to `undefined`. The backend ships `managerID: 0` on chat reports
+        // Coerce placeholder `0` to `undefined`. The backend ships `managerID: 0` on chat reports
         // without a manager, and a later push removes the key entirely; treating both as
         // `undefined` keeps the projection stable through that reconciliation.
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
@@ -166,6 +242,8 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         total: report.total,
         unheldTotal: report.unheldTotal,
         unheldNonReimbursableTotal: report.unheldNonReimbursableTotal,
+        reimbursableTotal: report.reimbursableTotal,
+        unheldReimbursableTotal: report.unheldReimbursableTotal,
         currency: report.currency,
         errorFields: report.errorFields,
         errors: report.errors,
@@ -180,7 +258,7 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
         nonReimbursableTotal: report.nonReimbursableTotal,
         privateNotes: report.privateNotes,
         fieldList: report.fieldList,
-        permissions: report.permissions,
+        permissions: getStablePermissions(report.permissions),
         tripData: report.tripData,
         welcomeMessage: report.welcomeMessage,
         nextStep: report.nextStep,
@@ -189,16 +267,23 @@ function getStableReportSelector(report: OnyxEntry<Report>) {
     } satisfies Record<keyof StableReport, unknown> & StableReport;
 }
 
+function isDraftReportSelector(draft: OnyxEntry<Report>): boolean {
+    return !!draft;
+}
+
 export {
     getArchiveReason,
     getReportChatType,
     getReportOwnerAccountID,
+    getReportParentReportID,
     getReportPolicyID,
     policyIDsWithEmptyReportsSelector,
     canShowReportRecipientLocalTimeSelector,
     policyChatRoomsSelector,
+    createMoveExpenseReportNVPSelector,
     openExpenseReportIDsSelector,
     getStableReportSelector,
+    isDraftReportSelector,
 };
 
 export type {StableReport};

@@ -1,9 +1,3 @@
-import {useRoute} from '@react-navigation/native';
-import {emailSelector} from '@selectors/Session';
-import React, {useEffect, useMemo} from 'react';
-// eslint-disable-next-line no-restricted-imports
-import {InteractionManager, View} from 'react-native';
-import type {ValueOf} from 'type-fest';
 import ConfirmationPage from '@components/ConfirmationPage';
 import type {ConfirmationPageProps} from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -11,24 +5,37 @@ import LottieAnimations from '@components/LottieAnimations';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import TextLink from '@components/TextLink';
+
 import useEnvironment from '@hooks/useEnvironment';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
+
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
+import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
 import {shouldHideOldAppRedirect} from '@libs/TryNewDotUtils';
+
 import {closeReactNativeApp} from '@userActions/HybridApp';
 import {openOldDotLink} from '@userActions/Link';
+
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isTrackingSelector} from '@src/selectors/GPSDraftDetails';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
+
+import type {ValueOf} from 'type-fest';
+
+import {useRoute} from '@react-navigation/native';
+import {emailSelector} from '@selectors/Session';
+import React, {useEffect, useMemo} from 'react';
+import {View} from 'react-native';
 
 function MergeResultPage() {
     const styles = useThemeStyles();
@@ -67,7 +74,13 @@ function MergeResultPage() {
                 heading: translate('mergeAccountsPage.mergeFailureGenericHeading'),
                 descriptionComponent: (
                     <View style={[styles.renderHTML, styles.w100, styles.flexRow]}>
-                        <RenderHTML html={translate('mergeAccountsPage.mergeFailureUncreatedAccountDescription', login, `${environmentURL}/${ROUTES.SETTINGS_CONTACT_METHODS.route}`)} />
+                        <RenderHTML
+                            html={translate(
+                                'mergeAccountsPage.mergeFailureUncreatedAccountDescription',
+                                login,
+                                `${environmentURL}/${createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path)}`,
+                            )}
+                        />
                     </View>
                 ),
                 onButtonPress: () => Navigation.goBack(ROUTES.SETTINGS_SECURITY),
@@ -197,9 +210,13 @@ function MergeResultPage() {
             return;
         }
 
-        InteractionManager.runAfterInteractions(() => {
-            Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+        const handle = TransitionTracker.runAfterTransitions({
+            callback: () => {
+                Navigation.removeScreenFromNavigationState(SCREENS.SETTINGS.MERGE_ACCOUNTS.ACCOUNT_DETAILS);
+            },
+            waitForUpcomingTransition: true,
         });
+        return () => handle.cancel();
     }, [result]);
 
     const {

@@ -1,8 +1,14 @@
 import {act, renderHook} from '@testing-library/react-native';
-import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
 import type Navigation from '@libs/Navigation/Navigation';
+
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
+
 import CONST from '@src/CONST';
+
+import type {NativeScrollEvent, NativeSyntheticEvent} from 'react-native';
+
+import createMock from '../utils/createMock';
 
 jest.mock('@react-navigation/native', () => {
     const actualNav = jest.requireActual<typeof Navigation>('@react-navigation/native');
@@ -14,9 +20,9 @@ jest.mock('@react-navigation/native', () => {
 
 const reportID = '12345';
 const onUnreadActionVisibleMockFn = jest.fn();
-const emptyScrollEventMock = {
+const emptyScrollEventMock = createMock<NativeSyntheticEvent<NativeScrollEvent>>({
     nativeEvent: {layoutMeasurement: {height: 0, width: 0}, contentSize: {width: 100, height: 100}, contentOffset: {x: 0, y: 0}},
-} as NativeSyntheticEvent<NativeScrollEvent>;
+});
 
 describe('useReportUnreadMessageScrollTracking', () => {
     describe('on init and without any scrolling', () => {

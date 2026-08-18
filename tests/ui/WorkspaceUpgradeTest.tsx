@@ -1,29 +1,40 @@
-import {NavigationContainer} from '@react-navigation/native';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+
 import ComposeProviders from '@components/ComposeProviders';
 import HTMLEngineProvider from '@components/HTMLEngineProvider';
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
 import {WRITE_COMMANDS} from '@libs/API/types';
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
+import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import {waitForIdle} from '@libs/Network/SequentialQueue';
+
 import type {SettingsNavigatorParamList} from '@navigation/types';
+
 import WorkspaceUpgradePage from '@pages/workspace/upgrade/WorkspaceUpgradePage';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Policy} from '@src/types/onyx';
+
+import type React from 'react';
+import type ReactNative from 'react-native';
+
+import {NavigationContainer} from '@react-navigation/native';
+import Onyx from 'react-native-onyx';
+
 import * as LHNTestUtils from '../utils/LHNTestUtils';
 import * as TestHelper from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -113,9 +124,8 @@ describe('WorkspaceUpgrade', () => {
     it('should upgrade a Submit workspace to Corporate when unlocking a Control-tier rules feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
-        // Given a Submit workspace and the Submit 2026 beta enabled
+        // Given a Submit workspace
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
 
@@ -136,12 +146,11 @@ describe('WorkspaceUpgrade', () => {
         await waitForBatchedUpdates();
     });
 
-    it('should upgrade a Submit workspace to Collect when unlocking a Collect-tier feature', async () => {
+    it('should show Collect pricing and upgrade a Submit workspace when unlocking a Collect-tier feature', async () => {
         const policy: Policy = {...LHNTestUtils.getFakePolicy(), type: CONST.POLICY.TYPE.SUBMIT};
 
-        // Given a Submit workspace and the Submit 2026 beta enabled
+        // Given a Submit workspace
         await act(async () => {
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
         });
 
@@ -150,6 +159,13 @@ describe('WorkspaceUpgrade', () => {
             policyID: policy.id,
             featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.travelSubmit.alias,
         });
+
+        // Then the Team (Collect) annual price is shown
+        const teamPrice = convertToShortDisplayString(
+            CONST.SUBSCRIPTION_PRICES[CONST.PAYMENT_CARD_CURRENCY.USD][CONST.POLICY.TYPE.TEAM][CONST.SUBSCRIPTION.TYPE.ANNUAL],
+            CONST.PAYMENT_CARD_CURRENCY.USD,
+        );
+        expect(await screen.findByText(teamPrice, {exact: false})).toBeTruthy();
 
         // When the workspace is upgraded by clicking on the Upgrade button
         fireEvent.press(screen.getByTestId('upgrade-button'));
@@ -213,6 +229,48 @@ describe('WorkspaceUpgrade', () => {
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
+
+    it.each([ROUTES.WORKSPACE_COMPANY_CARDS.getRoute('1'), ROUTES.WORKSPACE_COMPANY_CARDS_SELECT_FEED.getRoute('1')])(
+        'should resume the add-card flow nested under %s after acknowledging the company cards upgrade',
+        async (backTo) => {
+            // Given an already-upgraded (Corporate) policy so the confirmation screen is shown
+            const policy: Policy = {...LHNTestUtils.getFakePolicy('1'), type: CONST.POLICY.TYPE.CORPORATE};
+            await act(async () => {
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy.id}`, policy);
+            });
+
+            const goBackSpy = jest.spyOn(Navigation, 'goBack').mockImplementation(() => {});
+            const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
+
+            // And the company cards upgrade page is opened with an add-card entry page as backTo
+            const {unmount} = renderPage(SCREENS.WORKSPACE.UPGRADE, {
+                policyID: policy.id,
+                featureName: CONST.UPGRADE_FEATURE_INTRO_MAPPING.companyCards.alias,
+                backTo,
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            // Locate the confirmation button before asserting so its async lookup can't interleave with the press.
+            const gotItButton = await screen.findByText(TestHelper.translateLocal('workspace.upgrade.completed.gotIt'));
+
+            // Ignore any navigation triggered during mount/setup. We only care about the effect of the tap itself.
+            navigateSpy.mockClear();
+            goBackSpy.mockClear();
+
+            // When the user acknowledges the upgrade by tapping "Got it, thanks"
+            fireEvent.press(gotItButton);
+
+            // Then it synchronously replaces the upgrade route with the add-card flow nested under backTo, and does not leave via goBack.
+            // Assert right after the (synchronous) press, without awaiting, so unrelated async navigation can't land in the spies.
+            expect(navigateSpy).toHaveBeenCalledWith(`${backTo}/${DYNAMIC_ROUTES.WORKSPACE_COMPANY_CARDS_ADD_NEW.path}`, {forceReplace: true});
+            expect(goBackSpy).not.toHaveBeenCalled();
+
+            goBackSpy.mockRestore();
+            navigateSpy.mockRestore();
+            unmount();
+            await waitForBatchedUpdatesWithAct();
+        },
+    );
 
     it("should show the upgrade corporate plan price is in the user's local currency", async () => {
         // Team policy which the user can upgrade to corporate

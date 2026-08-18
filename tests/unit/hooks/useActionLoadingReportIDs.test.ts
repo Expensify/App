@@ -1,7 +1,11 @@
 import {renderHook, waitFor} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
+
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 describe('useActionLoadingReportIDs', () => {

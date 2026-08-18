@@ -1,12 +1,16 @@
+import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
+import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
+import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
+
+import useThemeStyles from '@hooks/useThemeStyles';
+
+import CONST from '@src/CONST';
+
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 import Animated, {Keyframe} from 'react-native-reanimated';
 import {scheduleOnRN} from 'react-native-worklets';
-import type ReanimatedModalProps from '@components/Modal/ReanimatedModal/types';
-import type {ContainerProps} from '@components/Modal/ReanimatedModal/types';
-import {getModalInAnimation, getModalOutAnimation} from '@components/Modal/ReanimatedModal/utils';
-import useThemeStyles from '@hooks/useThemeStyles';
-import CONST from '@src/CONST';
+
 import GestureHandler from './GestureHandler';
 
 function Container({

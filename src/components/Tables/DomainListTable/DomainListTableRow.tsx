@@ -1,19 +1,26 @@
-import React from 'react';
-import {View} from 'react-native';
 import Badge from '@components/Badge';
 import Icon from '@components/Icon';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
+import {getCellAccessibilityProps, shouldUseTableSemantics} from '@components/Table/tableAccessibility';
 import TableRow from '@components/Table/TableRow';
 import TextWithTooltip from '@components/TextWithTooltip';
 import ThreeDotsMenu from '@components/ThreeDotsMenu';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {clearDomainErrors} from '@libs/actions/Domain';
 import Navigation from '@libs/Navigation/Navigation';
+
 import variables from '@styles/variables';
+
 import ROUTES from '@src/ROUTES';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import type {DomainRowData} from '.';
 
 type DomainListTableRowProps = {
@@ -29,6 +36,8 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Globe', 'ArrowRight']);
+
+    const isTableSemanticsEnabled = shouldUseTableSemantics(shouldUseNarrowTableLayout);
 
     const threeDotMenuItems: PopoverMenuItem[] = [];
 
@@ -81,7 +90,6 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
             onPress={item.action}
             disabled={item.disabled}
             accessibilityLabel={accessibilityLabel}
-            skeletonReasonAttributes={{context: 'domainTableRow'}}
             offlineWithFeedback={{
                 errors: item.errors,
                 pendingAction: item.pendingAction,
@@ -90,7 +98,10 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
         >
             {({hovered}) => (
                 <>
-                    <View style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}>
+                    <View
+                        style={[styles.flex1, styles.flexRow, styles.gap3, styles.alignItemsCenter]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         <Icon
                             src={icons.Globe}
                             fill={theme.icon}
@@ -104,7 +115,10 @@ export default function DomainListTableRow({item, rowIndex, shouldUseNarrowTable
                             {item.isAdmin && VerifiedDomainBadge}
                         </View>
                     </View>
-                    <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}>
+                    <View
+                        style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentEnd, styles.gap3]}
+                        {...getCellAccessibilityProps(isTableSemanticsEnabled)}
+                    >
                         {threeDotMenuItems.length > 0 && (
                             <ThreeDotsMenu
                                 isNested

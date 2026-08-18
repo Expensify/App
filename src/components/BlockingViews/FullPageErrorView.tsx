@@ -1,9 +1,15 @@
-import React from 'react';
-import {View} from 'react-native';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
+import type {TranslationPaths} from '@src/languages/types';
+
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import BlockingView from './BlockingView';
 import ForceFullScreenView from './ForceFullScreenView';
 
@@ -30,9 +36,26 @@ type FullPageErrorViewProps = {
     subtitleStyle?: StyleProp<TextStyle>;
 
     containerStyle?: StyleProp<ViewStyle>;
+
+    /** Translation key for an optional CTA button rendered below the subtitle */
+    buttonTranslationKey?: TranslationPaths;
+
+    /** Function to call when pressing the CTA button. The button only renders when this and `buttonTranslationKey` are both provided */
+    onButtonPress?: () => void;
 };
 
-function FullPageErrorView({testID, children = null, shouldShow = false, title = '', subtitle = '', shouldForceFullScreen = false, subtitleStyle, containerStyle}: FullPageErrorViewProps) {
+function FullPageErrorView({
+    testID,
+    children = null,
+    shouldShow = false,
+    title = '',
+    subtitle = '',
+    shouldForceFullScreen = false,
+    subtitleStyle,
+    containerStyle,
+    buttonTranslationKey,
+    onButtonPress,
+}: FullPageErrorViewProps) {
     const styles = useThemeStyles();
     const illustrations = useMemoizedLazyIllustrations(['BrokenMagnifyingGlass']);
 
@@ -48,9 +71,12 @@ function FullPageErrorView({testID, children = null, shouldShow = false, title =
                         iconWidth={variables.errorPageIconWidth}
                         iconHeight={variables.errorPageIconHeight}
                         title={title}
+                        titleStyles={[styles.mt0, styles.mb2]}
                         subtitle={subtitle}
                         subtitleStyle={subtitleStyle}
-                        containerStyle={containerStyle}
+                        containerStyle={[styles.gap5, containerStyle]}
+                        buttonTranslationKey={buttonTranslationKey}
+                        onButtonPress={onButtonPress}
                     />
                 </View>
             </ForceFullScreenView>

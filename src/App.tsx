@@ -1,4 +1,5 @@
 import {PortalProvider} from '@gorhom/portal';
+import {setWasmUrl} from '@lottiefiles/dotlottie-react';
 import * as Sentry from '@sentry/react-native';
 import {maybeCompleteAuthSession} from 'expo-web-browser';
 import React from 'react';
@@ -6,11 +7,14 @@ import {LogBox, View} from 'react-native';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 import {PickerStateProvider} from 'react-native-picker-select';
 import {SafeAreaProvider} from 'react-native-safe-area-context';
+
 import '../wdyr';
 import {ActionSheetAwareScrollViewProvider} from './components/ActionSheetAwareScrollView';
 import ActiveElementRoleProvider from './components/ActiveElementRoleProvider';
+import {AvatarTooltipsProvider} from './components/Avatar/tooltips/AvatarTooltipContext';
 import ColorSchemeWrapper from './components/ColorSchemeWrapper';
 import ComposeProviders from './components/ComposeProviders';
+import {CurrencyListContextProvider} from './components/CurrencyListContextProvider';
 import {CurrentUserPersonalDetailsProvider} from './components/CurrentUserPersonalDetailsProvider';
 import CustomStatusBarAndBackground from './components/CustomStatusBarAndBackground';
 import CustomStatusBarAndBackgroundContextProvider from './components/CustomStatusBarAndBackground/CustomStatusBarAndBackgroundContextProvider';
@@ -54,6 +58,10 @@ import {SplashScreenStateContextProvider} from './SplashScreenStateContext';
 // This is needed to close pop-up window during logout for users logged in via SSO
 maybeCompleteAuthSession();
 
+// On web, dotlottie-web fetches its WASM binary from a third-party CDN (jsdelivr/unpkg) at runtime,
+// which is blocked by our Content Security Policy. Point it at the Expensify CDN proxy instead.
+setWasmUrl(CONST.DOTLOTTIE_WASM_URL);
+
 LogBox.ignoreLogs([
     // Basically it means that if the app goes in the background and back to foreground on Android,
     // the timer is lost. Currently Expensify is using a 30 minutes interval to refresh personal details.
@@ -95,6 +103,7 @@ function App() {
                                         OnyxListItemProvider,
                                         CurrentUserPersonalDetailsProvider,
                                         LocaleContextProvider,
+                                        CurrencyListContextProvider,
                                         ThemeProvider,
                                         ThemeStylesProvider,
                                         ThemeIllustrationsProvider,
@@ -119,6 +128,7 @@ function App() {
                                         ModalProvider,
                                         SidePanelContextProvider,
                                         EditingCellProvider,
+                                        AvatarTooltipsProvider,
                                     ]}
                                 >
                                     <CustomStatusBarAndBackground />

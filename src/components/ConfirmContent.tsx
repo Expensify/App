@@ -1,21 +1,28 @@
-import type {ReactNode} from 'react';
-import React from 'react';
-import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
-import {View} from 'react-native';
+import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
+
+import React from 'react';
+import {View} from 'react-native';
+
 import ActivityIndicator from './ActivityIndicator';
 import Button from './Button';
 import Header from './Header';
 import Icon from './Icon';
 import ImageSVG from './ImageSVG';
 import {PressableWithoutFeedback} from './Pressable';
+import ScrollView from './ScrollView';
 import Text from './Text';
 import Tooltip from './Tooltip';
 
@@ -37,6 +44,9 @@ type ConfirmContentProps = {
 
     /** Modal content text/element */
     prompt?: string | ReactNode;
+
+    /** Subtitle shown between the title and the prompt. Stays fixed above the prompt when the prompt is scrollable. */
+    subtitle?: string | ReactNode;
 
     /** Whether we should use the success button color */
     success?: boolean;
@@ -86,6 +96,9 @@ type ConfirmContentProps = {
     /** Styles for prompt */
     promptStyles?: StyleProp<TextStyle>;
 
+    /** Styles for subtitle */
+    subtitleStyles?: StyleProp<TextStyle>;
+
     /** Styles for view */
     contentStyles?: StyleProp<ViewStyle>;
 
@@ -110,6 +123,9 @@ type ConfirmContentProps = {
     /** Whether to show a loading indicator next to the title */
     isTitleLoading?: boolean;
 
+    /** Whether the prompt should be scrollable when it is taller than the screen (e.g. a long list of items) */
+    shouldEnablePromptScroll?: boolean;
+
     /** Force the confirm button to use the success style even when no cancel button is shown */
     shouldUseSuccessStyleForConfirm?: boolean;
 };
@@ -121,6 +137,8 @@ function ConfirmContent({
     confirmText = '',
     cancelText = '',
     prompt = '',
+    subtitle,
+    subtitleStyles,
     success = true,
     danger = false,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -145,6 +163,7 @@ function ConfirmContent({
     isVisible,
     isConfirmLoading,
     isTitleLoading = false,
+    shouldEnablePromptScroll = false,
     shouldUseSuccessStyleForConfirm = false,
 }: ConfirmContentProps) {
     const styles = useThemeStyles();
@@ -152,8 +171,16 @@ function ConfirmContent({
     const theme = useTheme();
     const {isOffline} = useNetwork();
     const icons = useMemoizedLazyExpensifyIcons(['Close']);
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true});
 
     const isCentered = shouldCenterContent;
+
+    const promptContent = typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt;
+    // Rendered outside the (optionally scrollable) prompt so it stays fixed above the prompt.
+    let subtitleContent: ReactNode = subtitle;
+    if (typeof subtitle === 'string') {
+        subtitleContent = <Text style={[styles.mb4, subtitleStyles, isCentered ? styles.textAlignCenter : {}]}>{subtitle}</Text>;
+    }
 
     return (
         <>
@@ -170,7 +197,7 @@ function ConfirmContent({
                 </View>
             )}
 
-            <View style={[styles.m5, contentStyles]}>
+            <View style={[styles.m5, contentStyles, bottomSafeAreaPaddingStyle]}>
                 {shouldShowDismissIcon && (
                     <View style={styles.alignItemsEnd}>
                         <Tooltip text={translate('common.close')}>
@@ -205,14 +232,10 @@ function ConfirmContent({
                             title={title}
                             textStyles={titleStyles}
                         />
-                        {isTitleLoading && (
-                            <ActivityIndicator
-                                size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL}
-                                reasonAttributes={{context: 'ConfirmContent-titleLoading'}}
-                            />
-                        )}
+                        {isTitleLoading && <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.SMALL} />}
                     </View>
-                    {typeof prompt === 'string' ? <Text style={[promptStyles, isCentered ? styles.textAlignCenter : {}]}>{prompt}</Text> : prompt}
+                    {subtitleContent}
+                    {shouldEnablePromptScroll ? <ScrollView style={styles.confirmModalPromptScrollable}>{promptContent}</ScrollView> : promptContent}
                 </View>
 
                 {shouldStackButtons ? (

@@ -1,5 +1,6 @@
 import colors from '@styles/theme/colors';
 import type {ThemeColors} from '@styles/theme/types';
+
 import darkTheme from './dark';
 
 const darkContrastTheme = {
@@ -18,6 +19,7 @@ const darkContrastTheme = {
     ourMentionBG: colors.green100,
     ourMentionText: colors.green700,
     receiptPlaceholderPlus: colors.green800,
+    isHighContrast: true,
 } satisfies ThemeColors;
 
 export default darkContrastTheme;

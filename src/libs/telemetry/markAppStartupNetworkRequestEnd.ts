@@ -1,10 +1,12 @@
-import APP_STARTUP_NETWORK_REQUEST from '@libs/AppStartupNetworkRequest';
+import isStartupNetworkRequest from '@libs/AppStartupNetworkRequest';
+
 import CONST from '@src/CONST';
+
 import {endSpanWithAttributes} from './activeSpans';
 
 /** End the span for the app startup network request. */
 function markAppStartupNetworkRequestEnd(command: string | undefined): void {
-    if (!command || !APP_STARTUP_NETWORK_REQUEST.has(command)) {
+    if (!isStartupNetworkRequest(command)) {
         return;
     }
 

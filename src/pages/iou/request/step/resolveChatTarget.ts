@@ -1,10 +1,12 @@
-import type {OnyxEntry} from 'react-native-onyx';
 import {resolveOptimisticChatReportID} from '@libs/IOUUtils';
 import {getChatByParticipants, getReportOrDraftReport, isDeprecatedGroupDM, isGroupChat, isMoneyRequestReport, isPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 type ChatTarget = {
     /** Existing report onyx entry to navigate to directly; undefined when the nav target is the optimistic ID. */

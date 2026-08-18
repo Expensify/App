@@ -1,12 +1,16 @@
 import {renderHook} from '@testing-library/react-native';
-import React from 'react';
+
 import {SearchSelectionActionsContext, SearchSelectionContext} from '@components/Search/SearchContext';
 import {useRowSelection, useSelectionCounts} from '@components/Search/SearchSelectionProvider';
 import type {SearchSelectionActionsValue, SearchSelectionContextValue, SelectedTransactions} from '@components/Search/types';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 const baseSelectionContext = {
     currentSelectedTransactionReportID: undefined,
+    excludedTransactions: {},
     selectedTransactionIDs: [],
     selectedReports: [],
     shouldTurnOffSelectionMode: false,
@@ -17,6 +21,7 @@ const baseSelectionContext = {
 const noopSelectionActions: SearchSelectionActionsValue = {
     setCurrentSelectedTransactionReportID: () => {},
     setSelectedTransactions: () => {},
+    applySelection: () => {},
     setSelectedReports: () => {},
     removeTransaction: () => {},
     clearSelectedTransactions: () => {},
@@ -59,13 +64,15 @@ function renderWithSelection<T>(hook: () => T, selectionValue: SearchSelectionCo
 function renderRowSelection({
     keyForList,
     selectedTransactions,
+    excludedTransactions = {},
     areAllMatchingItemsSelected,
 }: {
     keyForList: string | undefined;
     selectedTransactions: SelectedTransactions;
+    excludedTransactions?: SelectedTransactions;
     areAllMatchingItemsSelected: boolean;
 }): {isSelected: boolean} {
-    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions});
+    return renderWithSelection(() => useRowSelection(keyForList), {...baseSelectionContext, areAllMatchingItemsSelected, selectedTransactions, excludedTransactions});
 }
 
 function renderSelectionCounts(selectedTransactions: SelectedTransactions): {selected: number} {
@@ -80,6 +87,17 @@ describe('useRowSelection', () => {
 
     it('marks the row selected when areAllMatchingItemsSelected is true even if the key is absent', () => {
         expect(renderRowSelection({keyForList: 'tx_not_in_map', selectedTransactions: {}, areAllMatchingItemsSelected: true}).isSelected).toBe(true);
+    });
+
+    it('does not mark an excluded row selected when areAllMatchingItemsSelected is true', () => {
+        expect(
+            renderRowSelection({
+                keyForList: 'tx_1',
+                selectedTransactions: {},
+                excludedTransactions: buildSelected('tx_1'),
+                areAllMatchingItemsSelected: true,
+            }).isSelected,
+        ).toBe(false);
     });
 
     it('returns not-selected when keyForList is undefined', () => {

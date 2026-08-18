@@ -1,15 +1,20 @@
-import React, {useContext} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import ConfirmationPage from '@components/ConfirmationPage';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import {KYCWallContext} from '@components/KYCWall/KYCWallContext';
 import LottieAnimations from '@components/LottieAnimations';
+
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+
 import {continueSetup} from '@userActions/PaymentMethods';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {UserWallet} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import React, {useContext} from 'react';
 
 type ActivateStepProps = {
     /** The user's wallet */

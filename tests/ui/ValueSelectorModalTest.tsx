@@ -1,7 +1,9 @@
 import {render} from '@testing-library/react-native';
-import React from 'react';
+
 import ValueSelectionList from '@components/ValuePicker/ValueSelectionList';
 import ValueSelectorModal from '@components/ValuePicker/ValueSelectorModal';
+
+import React from 'react';
 
 jest.mock('@components/HeaderWithBackButton', () => jest.fn(() => null));
 jest.mock('@components/Modal', () => jest.fn(({children}: {children: React.ReactNode}) => children));

@@ -1,6 +1,8 @@
 import EncryptionPasskeys from '@assets/images/simple-illustrations/simple-illustration__encryption-passkeys.svg';
+
 import LottieAnimations from '@components/LottieAnimations';
 import type {MultifactorAuthenticationPrompt} from '@components/MultifactorAuthentication/config/types';
+
 import VALUES from '@libs/MultifactorAuthentication/VALUES';
 
 /**

@@ -1,13 +1,17 @@
-import {useCallback, useMemo} from 'react';
-import type {OnyxEntry} from 'react-native-onyx';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isMoneyRequestAction} from '@libs/ReportActionsUtils';
 import {canEditMoneyRequest, isSelfDM} from '@libs/ReportUtils';
 import {areRequiredFieldsEmpty} from '@libs/TransactionUtils';
+
 import type {IOUAction, IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {OnyxInputOrEntry, Report, ReportAction, ReportActions, Transaction} from '@src/types/onyx';
+
+import type {OnyxEntry} from 'react-native-onyx';
+
+import {useMemo} from 'react';
+
 import useEnvironment from './useEnvironment';
 import useOnyx from './useOnyx';
 
@@ -26,6 +30,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${report?.policyID}`);
     const [iouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
+    const [iouReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(transaction?.reportID)}`);
 
     const reportActionsReportID = useMemo(() => {
         let actionsReportID;
@@ -35,21 +40,12 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         return actionsReportID;
     }, [isEditing, iouType, report?.reportID, report?.parentReportID]);
 
-    const getReportActionSelector = useCallback(
-        (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
+    const [reportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`, {
+        selector: (reportActions: OnyxEntry<ReportActions>): OnyxEntry<ReportAction> => {
             // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
             return reportActions?.[`${report?.parentReportActionID || reportActionID}`];
         },
-        [report?.parentReportActionID, reportActionID],
-    );
-
-    const [reportAction] = useOnyx(
-        `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportActionsReportID}`,
-        {
-            selector: getReportActionSelector,
-        },
-        [getReportActionSelector],
-    );
+    });
 
     const {isProduction} = useEnvironment();
 
@@ -64,7 +60,7 @@ const useShowNotFoundPageInIOUStep = (action: IOUAction, iouType: IOUType, repor
         } else if (isSplitExpense) {
             shouldShowNotFoundPage = !canEditSplitExpense;
         } else {
-            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy);
+            shouldShowNotFoundPage = !isMoneyRequestAction(reportAction) || !canEditMoneyRequest(reportAction, transaction, false, iouReport, policy, iouReportActions);
         }
     }
 

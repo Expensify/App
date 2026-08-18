@@ -1,16 +1,21 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {View} from 'react-native';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
 import useLocalize from '@hooks/useLocalize';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getBrowser} from '@libs/Browser';
+
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {View} from 'react-native';
+
 import PDFInfoMessage from './PDFInfoMessage';
 
 type PDFPasswordFormProps = {
@@ -135,13 +140,14 @@ function PDFPasswordForm({isFocused, isPasswordInvalid = false, shouldShowLoadin
             <Button
                 // Keep focus on the TextInput effectively keeping keyboard open
                 onMouseDown={(e) => e.preventDefault()}
-                text={translate('common.confirm')}
                 onPress={submitPassword}
                 style={styles.mt4}
                 isLoading={shouldShowLoadingIndicator}
-                pressOnEnter
-                large
-            />
+                size={CONST.BUTTON_SIZE.LARGE}
+            >
+                <Button.KeyboardShortcut />
+                <Button.Text>{translate('common.confirm')}</Button.Text>
+            </Button>
         </ScrollView>
     ) : (
         <View style={[styles.flex1, styles.justifyContentCenter]}>

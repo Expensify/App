@@ -1,11 +1,15 @@
-import type * as NativeNavigation from '@react-navigation/native';
 import {render, screen} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import OnyxListItemProvider from '@src/components/OnyxListItemProvider';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import TimeSensitiveSection from '@src/pages/home/TimeSensitiveSection';
 import useTimeSensitiveAddPaymentCard from '@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard';
+
+import type * as NativeNavigation from '@react-navigation/native';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdates from '../../../../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation');
@@ -22,6 +26,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
         EnvelopeOpenStar: () => null,
     })),
 }));
+
+jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddBankAccount', () =>
+    jest.fn(() => ({
+        shouldShowAddBankAccount: false,
+    })),
+);
 
 jest.mock('@src/pages/home/TimeSensitiveSection/hooks/useTimeSensitiveAddPaymentCard', () =>
     jest.fn(() => ({
@@ -66,6 +76,7 @@ describe('TimeSensitiveSection - ValidateAccount', () => {
     });
 
     beforeEach(async () => {
+        jest.clearAllMocks();
         mockedUseTimeSensitiveAddPaymentCard.mockReturnValue({
             shouldShowAddPaymentCard: false,
         });

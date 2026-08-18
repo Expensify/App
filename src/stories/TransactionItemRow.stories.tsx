@@ -1,12 +1,16 @@
-import type {Meta, StoryFn} from '@storybook/react-webpack5';
-import React from 'react';
 import ScreenWrapper from '@components/ScreenWrapper';
 import type {SearchColumnType} from '@components/Search/types';
 import ThemeProvider from '@components/ThemeProvider';
 import ThemeStylesProvider from '@components/ThemeStylesContextProvider';
 import TransactionItemRow from '@components/TransactionItemRow';
+
 import CONST from '@src/CONST';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import type {Meta, StoryFn} from 'storybook-react-rsbuild';
+
+import React from 'react';
+
 import {transactionWithOptionalSearchFields} from './objects/Transaction';
 
 type TransactionItemRowStory = StoryFn<typeof TransactionItemRow>;

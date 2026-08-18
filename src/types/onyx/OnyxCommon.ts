@@ -1,7 +1,9 @@
-import type {ValueOf} from 'type-fest';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
+
+import type {ValueOf} from 'type-fest';
 
 /** Pending onyx actions */
 type PendingAction = ValueOf<typeof CONST.RED_BRICK_ROAD_PENDING_ACTION> | null;

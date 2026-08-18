@@ -1,11 +1,15 @@
-import {AppRegistry} from 'react-native';
 import CacheAPI from '@libs/CacheAPI';
 import checkForUpdates from '@libs/checkForUpdates';
 import DateUtils from '@libs/DateUtils';
 import Visibility from '@libs/Visibility';
+
 import Config from '@src/CONFIG';
-import pkg from '../../../package.json';
+
+import {AppRegistry} from 'react-native';
+
 import type PlatformSpecificUpdater from './types';
+
+import pkg from '../../../package.json';
 
 /**
  * Download the latest app version from the server, and if it is different than the current one,

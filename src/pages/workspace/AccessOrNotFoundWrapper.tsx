@@ -1,16 +1,15 @@
-/* eslint-disable rulesdir/no-negated-variables */
-import {useIsFocused} from '@react-navigation/native';
-import React, {useEffect} from 'react';
-import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {FullPageNotFoundViewProps} from '@components/BlockingViews/FullPageNotFoundView';
 import FullscreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsWorkspacesTabFocused from '@hooks/useIsWorkspacesTabFocused';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+
 import {openWorkspace} from '@libs/actions/Policy/Policy';
 import {isValidMoneyRequestType} from '@libs/IOUUtils';
 import goBackFromWorkspaceSettingPages from '@libs/Navigation/helpers/goBackFromWorkspaceSettingPages';
@@ -27,8 +26,9 @@ import {
 } from '@libs/PolicyUtils';
 import type {PolicyFeature, PolicyFeatureAccess} from '@libs/PolicyUtils';
 import {canCreateRequest} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+
 import NotFoundPage from '@pages/ErrorPage/NotFoundPage';
+
 import type {IOUType} from '@src/CONST';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -39,6 +39,12 @@ import type {PolicyFeatureName} from '@src/types/onyx/Policy';
 import type Policy from '@src/types/onyx/Policy';
 import callOrReturn from '@src/types/utils/callOrReturn';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
+
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
+
+/* eslint-disable rulesdir/no-negated-variables */
+import {useIsFocused} from '@react-navigation/native';
+import React, {useEffect} from 'react';
 
 const ACCESS_VARIANTS = {
     [CONST.POLICY.ACCESS_VARIANTS.PAID]: (policy: OnyxEntry<Policy>) => isGroupPolicy(policy),
@@ -166,7 +172,9 @@ function AccessOrNotFoundWrapper({
     const [isLoadingReportData = true] = useOnyx(ONYXKEYS.IS_LOADING_REPORT_DATA);
     const {login = ''} = useCurrentUserPersonalDetails();
     const {isRestrictedToPreferredPolicy} = usePreferredPolicy();
+    const {isBetaEnabled} = usePermissions();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
+    const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isPolicyIDInRoute = !!policyID?.length;
     const isMoneyRequest = !!iouType && isValidMoneyRequestType(iouType);
     const isFromGlobalCreate = !!reportID && isEmptyObject(report?.reportID);
@@ -187,7 +195,10 @@ function AccessOrNotFoundWrapper({
     const isPolicyEmpty = !Object.entries(policy ?? {}).length || !policy?.id;
     const shouldShowFullScreenLoadingIndicator = !isMoneyRequest && (isLoadingReportData !== false || !!policy?.isLoading) && isPolicyEmpty;
 
-    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName) : true;
+    // Pass categories so that migrated corporate policies with only Classic category rules (areRulesEnabled === undefined) are correctly treated as enabled.
+    // Collect workspaces can only access Rules when the rulesRevamp beta is enabled.
+    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
+    const isFeatureEnabled = featureName ? isPolicyFeatureEnabledUtil(policy, featureName, policyCategories, isRulesRevampEnabled) : true;
 
     const {isOffline} = useNetwork();
 
@@ -216,8 +227,10 @@ function AccessOrNotFoundWrapper({
     // We only update the feature state if it isn't pending.
     // This is because the feature state changes several times during the creation of a workspace, while we are waiting for a response from the backend.
     // Without this, we can be unexpectedly navigated to the More Features page.
+    const shouldRedirectToMoreFeatures = isFocused && !isEmptyObject(policy) && !isFeatureEnabled && !(pendingField && !isOffline) && !shouldShowNotFoundPage;
+
     useEffect(() => {
-        if (!isFocused || isEmptyObject(policy) || isFeatureEnabled || (pendingField && !isOffline && !isFeatureEnabled) || shouldShowNotFoundPage) {
+        if (!shouldRedirectToMoreFeatures) {
             return;
         }
 
@@ -227,7 +240,7 @@ function AccessOrNotFoundWrapper({
         });
         // We don't need to run the effect on policyID change as we only use it to get the route to navigate to.
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [pendingField, isOffline, isFeatureEnabled, shouldShowNotFoundPage, isFocused]);
+    }, [shouldRedirectToMoreFeatures]);
 
     useEffect(() => {
         if (isLoadingReportData || !isPolicyNotAccessible) {
@@ -237,12 +250,12 @@ function AccessOrNotFoundWrapper({
     }, [isLoadingReportData, isPolicyNotAccessible]);
 
     if (shouldShowFullScreenLoadingIndicator) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'AccessOrNotFoundWrapper',
-            isLoadingReportData,
-            isPolicyEmpty: !Object.entries(policy ?? {}).length || !policy?.id,
-        };
-        return <FullscreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullscreenLoadingIndicator />;
+    }
+    // The feature linked to this page is disabled, so the redirect effect above will navigate to the More Features page.
+    // Render a loader instead of the page's children so the disabled page is never shown for a frame (avoids a visible flash).
+    if (shouldRedirectToMoreFeatures) {
+        return <FullscreenLoadingIndicator shouldUseGoBackButton />;
     }
     if (shouldShowNotFoundPage) {
         return (

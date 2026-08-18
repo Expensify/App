@@ -1,8 +1,12 @@
-import {useEffect, useRef} from 'react';
 import {getBaseTheme, getContrastTheme} from '@styles/theme/utils';
+
 import {setHighContrastIntent, updateTheme} from '@userActions/User';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+
+import {useEffect, useRef} from 'react';
+
 import useOnyx from './useOnyx';
 
 /**

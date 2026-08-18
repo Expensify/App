@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-import Onyx from 'react-native-onyx';
-import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
 import {getReportFromHoldRequestsOnyxData, putOnHold, putTransactionsOnHold, unholdRequest} from '@libs/actions/IOU/Hold';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -8,6 +5,7 @@ import type * as PolicyUtils from '@libs/PolicyUtils';
 import {getReportActionMessage, getSortedReportActions} from '@libs/ReportActionsUtils';
 import {buildOptimisticIOUReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import CONST from '@src/CONST';
 import IntlStore from '@src/languages/IntlStore';
 import OnyxUpdateManager from '@src/libs/actions/OnyxUpdateManager';
@@ -18,9 +16,18 @@ import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type ReportAction from '@src/types/onyx/ReportAction';
 import type {ReportActions, ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
 import type {TransactionCollectionDataSet} from '@src/types/onyx/Transaction';
-import createRandomPolicy from '../../utils/collections/policies';
+
+import type {OnyxEntry, OnyxInputValue} from 'react-native-onyx';
+
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+import Onyx from 'react-native-onyx';
+
 import type {MockFetch} from '../../utils/TestHelper';
-import {getGlobalFetchMock} from '../../utils/TestHelper';
+
+import createRandomPolicy from '../../utils/collections/policies';
+import createMock from '../../utils/createMock';
+import {createGlobalFetchMock, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const topMostReportID = '23423423';
@@ -66,6 +73,7 @@ const RORY_ACCOUNT_ID = 3;
 OnyxUpdateManager();
 
 describe('actions/IOU/Hold', () => {
+    let mockFetch: MockFetch;
     beforeAll(() => {
         Onyx.init({
             keys: ONYXKEYS,
@@ -79,11 +87,10 @@ describe('actions/IOU/Hold', () => {
         return waitForBatchedUpdates();
     });
 
-    let mockFetch: MockFetch;
     beforeEach(() => {
         jest.clearAllTimers();
-        global.fetch = getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = createGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -93,7 +100,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putOnHold', () => {
         test("should update the transaction thread report's lastVisibleActionCreated to the optimistically added hold comment report action created timestamp", () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -112,6 +119,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -127,7 +135,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -156,7 +164,7 @@ describe('actions/IOU/Hold', () => {
         });
 
         test('should create transaction thread optimistically when initialReportID is undefined', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -174,6 +182,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const actions: OnyxInputValue<ReportActions> = {[iouAction.reportActionID]: iouAction};
             const reportCollectionDataSet: ReportCollectionDataSet = {
@@ -188,7 +197,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When an expense is put on hold without existing transaction thread (undefined initialReportID)
-                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, undefined, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -210,7 +219,7 @@ describe('actions/IOU/Hold', () => {
 
     describe('putTransactionsOnHold', () => {
         test('should call putOnHold for each transaction ID', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -233,6 +242,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -241,6 +251,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -266,7 +277,17 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     // When multiple transactions are put on hold
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putTransactionsOnHold(
+                        [transaction1.transactionID, transaction2.transactionID],
+                        comment,
+                        iouReport.reportID,
+                        false,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        undefined,
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -298,11 +319,11 @@ describe('actions/IOU/Hold', () => {
                         });
                     });
                 })
-                .then(() => mockFetch?.resume?.());
+                .then(() => mockFetch.resume());
         });
 
         test('should invoke navigation for each transaction when isOffline is true', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 300, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction1 = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -324,6 +345,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction1.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const iouAction2: ReportAction = buildOptimisticIOUReportAction({
                 type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
@@ -332,6 +354,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction2.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread1 = buildTransactionThread(iouAction1, iouReport, RORY_ACCOUNT_ID);
             const transactionThread2 = buildTransactionThread(iouAction2, iouReport, RORY_ACCOUNT_ID);
@@ -358,20 +381,30 @@ describe('actions/IOU/Hold', () => {
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
                     // When transactions are put on hold while offline (isOffline: true)
-                    putTransactionsOnHold([transaction1.transactionID, transaction2.transactionID], comment, iouReport.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putTransactionsOnHold(
+                        [transaction1.transactionID, transaction2.transactionID],
+                        comment,
+                        iouReport.reportID,
+                        true,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        undefined,
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // Navigation should be called once for each transaction (putOnHold called for each)
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(2);
-                    return mockFetch?.resume?.();
+                    return mockFetch.resume();
                 });
         });
     });
 
     describe('putOnHold with isOffline', () => {
         test('should pass isOffline to getDisplayedReportID affecting which reportID is used for navigation', () => {
-            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD');
+            const iouReport = buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal);
             const transaction = buildOptimisticTransaction({
                 transactionParams: {
                     amount: 100,
@@ -386,6 +419,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -403,7 +437,7 @@ describe('actions/IOU/Hold', () => {
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -411,7 +445,7 @@ describe('actions/IOU/Hold', () => {
                     expect(Navigation.setNavigationActionToMicrotaskQueue).toHaveBeenCalledTimes(1);
 
                     jest.mocked(Navigation.setNavigationActionToMicrotaskQueue).mockClear();
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, true, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -428,7 +462,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -449,6 +483,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -463,14 +498,22 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     // When an expense is unhold
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
-                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-                    ]);
+                    unholdRequest(
+                        transaction.transactionID,
+                        transactionThread.reportID,
+                        policy,
+                        false,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -503,7 +546,7 @@ describe('actions/IOU/Hold', () => {
                 ...createRandomPolicy(Number(policyID)),
             };
             const iouReport: Report = {
-                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD'),
+                ...buildOptimisticIOUReport(1, 2, 100, '1', 'USD', getCurrencyDecimalsLocal),
                 policyID,
             };
             const transaction = buildOptimisticTransaction({
@@ -524,6 +567,7 @@ describe('actions/IOU/Hold', () => {
                 comment: '',
                 participants: [],
                 transactionID: transaction.transactionID,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
             });
             const transactionThread = buildTransactionThread(iouAction, iouReport, RORY_ACCOUNT_ID);
 
@@ -538,15 +582,23 @@ describe('actions/IOU/Hold', () => {
             return waitForBatchedUpdates()
                 .then(() => Onyx.multiSet({...reportCollectionDataSet, ...transactionCollectionDataSet, ...actionCollectionDataSet}))
                 .then(() => {
-                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, []);
+                    putOnHold(transaction.transactionID, comment, transactionThread.reportID, false, RORY_EMAIL, RORY_ACCOUNT_ID, undefined, false, undefined);
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
                     mockFetch.fail();
-                    mockFetch?.resume?.();
-                    unholdRequest(transaction.transactionID, transactionThread.reportID, policy, false, RORY_EMAIL, RORY_ACCOUNT_ID, [
-                        {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true},
-                    ]);
+                    mockFetch.resume();
+                    unholdRequest(
+                        transaction.transactionID,
+                        transactionThread.reportID,
+                        policy,
+                        false,
+                        RORY_EMAIL,
+                        RORY_ACCOUNT_ID,
+                        [{name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION, showInReview: true}],
+                        false,
+                        undefined,
+                    );
                     return waitForBatchedUpdates();
                 })
                 .then(() => {
@@ -580,20 +632,30 @@ describe('actions/IOU/Hold', () => {
             };
         };
 
-        const buildScenario = (overrides: {total: number; nonReimbursableTotal: number; unheldTotal?: number; unheldNonReimbursableTotal?: number; heldAmount?: number}) => {
-            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD');
+        const buildScenario = (overrides: {
+            total: number;
+            nonReimbursableTotal: number;
+            unheldTotal?: number;
+            unheldNonReimbursableTotal?: number;
+            reimbursableTotal?: number;
+            unheldReimbursableTotal?: number;
+            heldAmount?: number;
+        }) => {
+            const baseIouReport = buildOptimisticIOUReport(1, 2, overrides.total, '99', 'USD', getCurrencyDecimalsLocal);
             const iouReport: Report = {
                 ...baseIouReport,
                 total: overrides.total,
                 nonReimbursableTotal: overrides.nonReimbursableTotal,
                 unheldTotal: overrides.unheldTotal,
                 unheldNonReimbursableTotal: overrides.unheldNonReimbursableTotal,
+                reimbursableTotal: overrides.reimbursableTotal ?? overrides.total - overrides.nonReimbursableTotal,
+                unheldReimbursableTotal: overrides.unheldReimbursableTotal ?? (overrides.unheldTotal ?? 0) - (overrides.unheldNonReimbursableTotal ?? 0),
             };
-            const chatReport: Report = {
+            const chatReport = createMock<Report>({
                 reportID: '99',
                 iouReportID: iouReport.reportID,
                 lastVisibleActionCreated: '2026-01-01 00:00:00.000',
-            } as Report;
+            });
 
             const heldAmount = overrides.heldAmount ?? 0;
             const heldTransaction = heldAmount > 0 ? buildHeldTransaction(iouReport.reportID, heldAmount) : undefined;
@@ -605,6 +667,7 @@ describe('actions/IOU/Hold', () => {
                       comment: '',
                       participants: [],
                       transactionID: heldTransaction.transactionID,
+                      getCurrencyDecimals: getCurrencyDecimalsLocal,
                   })
                 : undefined;
 
@@ -641,11 +704,13 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
-                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30});
+                    expect(totalsUpdate?.value).toEqual({total: 200, nonReimbursableTotal: 30, reimbursableTotal: 170});
                 });
         });
 
@@ -666,16 +731,18 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const restorationEntries = result.failureData.filter(
                         (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
                     );
                     const totalsRestore = restorationEntries.find((entry) => {
-                        const value = entry.value as Partial<Report> | undefined;
-                        return value?.total !== undefined || value?.nonReimbursableTotal !== undefined;
+                        const value = entry.value;
+                        return isObject(value) && (hasDefinedProperty(value, 'total') || hasDefinedProperty(value, 'nonReimbursableTotal'));
                     });
-                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50});
+                    expect(totalsRestore?.value).toEqual({total: 300, nonReimbursableTotal: 50, reimbursableTotal: 250});
                 });
         });
 
@@ -696,11 +763,17 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
-                        const value = entry.value as Partial<Report> | undefined;
-                        return entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && (value?.total !== undefined || value?.nonReimbursableTotal !== undefined);
+                        const value = entry.value;
+                        return (
+                            entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` &&
+                            isObject(value) &&
+                            (hasDefinedProperty(value, 'total') || hasDefinedProperty(value, 'nonReimbursableTotal'))
+                        );
                     });
                     expect(totalsUpdates).toEqual([]);
                 });
@@ -723,13 +796,232 @@ describe('actions/IOU/Hold', () => {
                         iouReport,
                         recipient: {accountID: 1},
                         policy: undefined,
+                        delegateAccountID: undefined,
                         betas: [],
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
-                        const value = entry.value as Partial<Report> | undefined;
-                        return entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` && (value?.total !== undefined || value?.nonReimbursableTotal !== undefined);
+                        const value = entry.value;
+                        return (
+                            entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}` &&
+                            isObject(value) &&
+                            (hasDefinedProperty(value, 'total') || hasDefinedProperty(value, 'nonReimbursableTotal'))
+                        );
                     });
                     expect(totalsUpdates).toEqual([]);
+                });
+        });
+
+        const buildScanFailedTransaction = (reportID: string, amount: number) => {
+            const transaction = buildOptimisticTransaction({
+                transactionParams: {amount, currency: 'USD', reportID},
+            });
+            return {
+                ...transaction,
+                merchant: CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT,
+                iouRequestType: CONST.IOU.REQUEST_TYPE.SCAN,
+                receipt: {state: CONST.IOU.RECEIPT_STATE.SCAN_FAILED, source: 'receipt.jpg'},
+            };
+        };
+
+        const buildScanFailedScenario = (iouReportOverrides: Partial<Report>, scanFailedAmount: number, validAmount: number) => {
+            const baseIouReport = buildOptimisticIOUReport(1, 2, iouReportOverrides.total ?? 0, '99', 'USD', getCurrencyDecimalsLocal);
+            const iouReport: Report = {
+                ...baseIouReport,
+                ...iouReportOverrides,
+            };
+            const chatReport: Report = {
+                reportID: '99',
+                iouReportID: iouReport.reportID,
+                chatType: CONST.REPORT.CHAT_TYPE.POLICY_EXPENSE_CHAT,
+                lastVisibleActionCreated: '2026-01-01 00:00:00.000',
+            } as Report;
+
+            const scanFailedTransaction = buildScanFailedTransaction(iouReport.reportID, scanFailedAmount);
+            const validTransaction = buildOptimisticTransaction({
+                transactionParams: {amount: validAmount, currency: 'USD', reportID: iouReport.reportID, merchant: 'Valid merchant'},
+            });
+
+            const buildIouAction = (transactionID: string, amount: number) =>
+                buildOptimisticIOUReportAction({
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount,
+                    currency: 'USD',
+                    comment: '',
+                    participants: [],
+                    transactionID,
+                    getCurrencyDecimals: getCurrencyDecimalsLocal,
+                });
+            const scanFailedIouAction = buildIouAction(scanFailedTransaction.transactionID, scanFailedTransaction.amount);
+            const validIouAction = buildIouAction(validTransaction.transactionID, validTransaction.amount);
+
+            const reportCollection: ReportCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`]: iouReport,
+                [`${ONYXKEYS.COLLECTION.REPORT}${chatReport.reportID}`]: chatReport,
+            };
+            const transactionCollection: TransactionCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: scanFailedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`]: validTransaction,
+            };
+            const actionCollection: ReportActionsCollectionDataSet = {
+                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${iouReport.reportID}`]: {
+                    [scanFailedIouAction.reportActionID]: scanFailedIouAction,
+                    [validIouAction.reportActionID]: validIouAction,
+                },
+            };
+
+            return {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection};
+        };
+
+        // The backend only moves a scan-failed expense out when it has neither a merchant nor an amount, so the moved
+        // expense contributes nothing to either report's totals.
+        const buildMixedExpenseReportScenario = (scanFailedAmount = 0) =>
+            buildScanFailedScenario(
+                {
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    total: -3000,
+                    nonReimbursableTotal: 0,
+                    reimbursableTotal: -3000,
+                    unheldTotal: -3000,
+                    unheldNonReimbursableTotal: 0,
+                    unheldReimbursableTotal: -3000,
+                },
+                scanFailedAmount,
+                -3000,
+            );
+
+        test('should move only the scan-failed transactions and leave the totals of the report they came from untouched', () => {
+            const {chatReport, iouReport, scanFailedTransaction, validTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(transactionUpdate?.value).toEqual({
+                        [`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`]: {reportID: result.optimisticHoldReportID},
+                    });
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${validTransaction.transactionID}`);
+
+                    const newReportUpdate = result.optimisticData.find(
+                        (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`,
+                    );
+                    expect(newReportUpdate?.value).toEqual(
+                        expect.objectContaining({
+                            // The expense-report sign flip turns the empty total into -0
+                            total: -0,
+                            unheldTotal: 0,
+                            unheldNonReimbursableTotal: 0,
+                            unheldReimbursableTotal: 0,
+                        }),
+                    );
+
+                    const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
+                    expect(totalsUpdate).toBeUndefined();
+                });
+        });
+
+        test('should drop the optimistic report on success because the backend creates its own report', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    expect(result.successData).toEqual(
+                        expect.arrayContaining([
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null}),
+                            expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${result.optimisticHoldReportID}`, value: null}),
+                        ]),
+                    );
+                });
+        });
+
+        test('should keep the optimistic report on success when only held transactions are moved', () => {
+            const {chatReport, iouReport, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+
+                    expect(result.successData).not.toEqual(
+                        expect.arrayContaining([expect.objectContaining({key: `${ONYXKEYS.COLLECTION.REPORT}${result.optimisticHoldReportID}`, value: null})]),
+                    );
+                });
+        });
+
+        test('should not move scan-failed transactions when shouldMoveScanFailedTransactions is disabled', () => {
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario();
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
+                });
+        });
+
+        test('should not move a scan-failed transaction that has an amount, because the backend leaves it in the report', () => {
+            const {chatReport, iouReport, scanFailedTransaction, reportCollection, transactionCollection, actionCollection} = buildMixedExpenseReportScenario(-5000);
+
+            return waitForBatchedUpdates()
+                .then(() => Onyx.multiSet({...reportCollection, ...transactionCollection, ...actionCollection}))
+                .then(() => {
+                    const result = getReportFromHoldRequestsOnyxData({
+                        chatReport,
+                        iouReport,
+                        recipient: {accountID: 1},
+                        policy: undefined,
+                        betas: [],
+                        delegateAccountID: undefined,
+                        getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        shouldMoveHeldTransactions: false,
+                        shouldMoveScanFailedTransactions: true,
+                    });
+
+                    const transactionUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE_COLLECTION && entry.key === ONYXKEYS.COLLECTION.TRANSACTION);
+                    expect(Object.keys(transactionUpdate?.value ?? {})).not.toContain(`${ONYXKEYS.COLLECTION.TRANSACTION}${scanFailedTransaction.transactionID}`);
                 });
         });
     });

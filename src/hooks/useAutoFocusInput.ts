@@ -1,7 +1,3 @@
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {useCallback, useEffect, useRef, useState} from 'react';
-import type {RefObject} from 'react';
-import type {TextInput} from 'react-native';
 import Accessibility from '@libs/Accessibility';
 import ComposerFocusManager from '@libs/ComposerFocusManager';
 import {moveSelectionToEnd, scrollToBottom} from '@libs/InputUtils';
@@ -11,9 +7,17 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import type {RootNavigatorParamList} from '@libs/Navigation/types';
 import {shouldSkipAutoFocusDueToExistingFocus} from '@libs/NavigationFocusReturn';
 import {Priorities, resetCycle, tryClaim} from '@libs/ScreenFocusArbiter';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {useSplashScreenState} from '@src/SplashScreenStateContext';
+
+import type {RefObject} from 'react';
+import type {TextInput} from 'react-native';
+
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useCallback, useEffect, useRef, useState} from 'react';
+
 import useIsInLandscapeMode from './useIsInLandscapeMode';
 import useOnyx from './useOnyx';
 import useSidePanelState from './useSidePanelState';

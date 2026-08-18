@@ -1,6 +1,8 @@
 import getActiveTabName from '@libs/Navigation/helpers/getActiveTabName';
 import type {NavigationRoute} from '@libs/Navigation/types';
+
 import NAVIGATORS from '@src/NAVIGATORS';
+
 import useRootNavigationState from './useRootNavigationState';
 
 /**

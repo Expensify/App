@@ -1,33 +1,39 @@
-import React, {useEffect} from 'react';
-import {View} from 'react-native';
+import BookCallButton from '@components/BookCallButton';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemList from '@components/MenuItemList';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
 import Section from '@components/Section';
 import Text from '@components/Text';
+
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useIsPaidPolicyAdmin from '@hooks/useIsPaidPolicyAdmin';
 import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOpenConciergeAnywhere from '@hooks/useOpenConciergeAnywhere';
+import usePersonalDetailByLogin from '@hooks/usePersonalDetailByLogin';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeIllustrations from '@hooks/useThemeIllustrations';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {openHelpPage} from '@libs/actions/Help';
 import {openExternalLink} from '@libs/actions/Link';
 import {navigateToAndOpenReportWithAccountIDs} from '@libs/actions/Report';
 import Navigation from '@libs/Navigation/Navigation';
-import {getPersonalDetailByEmail} from '@libs/PersonalDetailsUtils';
+
 import colors from '@styles/theme/colors';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasSeenTourSelector} from '@src/selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@src/selectors/Onboarding';
+
+import React, {useEffect} from 'react';
+import {View} from 'react-native';
 
 function HelpPage() {
     const icons = useMemoizedLazyExpensifyIcons(['ConciergeAvatar', 'NewWindow', 'Monitor']);
-    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'LifeRing', 'TopiaryDollarSign']);
+    const illustrations = useMemoizedLazyIllustrations(['Chalkboard', 'TopiaryDollarSign']);
     const themeIllustrations = useThemeIllustrations();
     const {translate} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -38,13 +44,18 @@ function HelpPage() {
     const isApprovedAccountant = !!account?.isApprovedAccountant;
     const accountManagerDetails = account?.accountManagerAccountID ? personalDetails?.[account.accountManagerAccountID] : null;
     const partnerManagerDetails = account?.partnerManagerAccountID ? personalDetails?.[account.partnerManagerAccountID] : null;
-    const guideDetails = account?.guideDetails?.email ? getPersonalDetailByEmail(account.guideDetails.email) : null;
+    const guideDetails = usePersonalDetailByLogin(account?.guideDetails?.email);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const {openConciergeAnywhere} = useOpenConciergeAnywhere();
 
+    // Remove the row's accessibility grouping so native (iOS/Android) screen readers can announce the nested
+    // Book a call button as its own element; on web this prop is a no-op and the button is reached via keyboard Tab instead
+    const shouldBeAccessibleWithBookCallButton = (calendarLink: string | undefined) => !calendarLink;
+
+    const partnerManagerCalendarLink = account?.partnerManagerCalendarLink;
     const partnerManagerItem = partnerManagerDetails
         ? {
               key: partnerManagerDetails.login,
@@ -52,13 +63,31 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.partnerManagerDescription') : undefined,
               icon: partnerManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([partnerManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
-              shouldShowRightIcon: true,
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [partnerManagerDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
+              shouldShowRightIcon: !partnerManagerCalendarLink,
+              shouldShowRightComponent: !!partnerManagerCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(partnerManagerCalendarLink),
+              rightComponent: partnerManagerCalendarLink ? (
+                  <BookCallButton
+                      calendarLink={partnerManagerCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.PARTNER_MANAGER,
           }
         : null;
 
+    const guideCalendarLink = account?.guideDetails?.calendarLink;
     const guideItem = guideDetails
         ? {
               key: guideDetails.login,
@@ -66,13 +95,31 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountExecutiveDescription') : undefined,
               icon: guideDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([guideDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
-              shouldShowRightIcon: true,
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [guideDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
+              shouldShowRightIcon: !guideCalendarLink,
+              shouldShowRightComponent: !!guideCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(guideCalendarLink),
+              rightComponent: guideCalendarLink ? (
+                  <BookCallButton
+                      calendarLink={guideCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.GUIDE,
           }
         : null;
 
+    const accountManagerCalendarLink = account?.accountManagerCalendarLink;
     const accountManagerItem = accountManagerDetails
         ? {
               key: accountManagerDetails.login,
@@ -80,8 +127,25 @@ function HelpPage() {
               description: isApprovedAccountant ? translate('initialSettingsPage.helpPage.accountManagerDescription') : undefined,
               icon: accountManagerDetails.avatar,
               iconType: CONST.ICON_TYPE_AVATAR,
-              onPress: () => navigateToAndOpenReportWithAccountIDs([accountManagerDetails.accountID], currentUserAccountID, introSelected, isSelfTourViewed, betas, personalDetails),
-              shouldShowRightIcon: true,
+              onPress: () =>
+                  navigateToAndOpenReportWithAccountIDs(
+                      [accountManagerDetails.accountID],
+                      currentUserAccountID,
+                      introSelected,
+                      guidedSetupAndTourStatus?.isSelfTourViewed,
+                      guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                      betas,
+                      personalDetails,
+                  ),
+              shouldShowRightIcon: !accountManagerCalendarLink,
+              shouldShowRightComponent: !!accountManagerCalendarLink,
+              shouldBeAccessible: shouldBeAccessibleWithBookCallButton(accountManagerCalendarLink),
+              rightComponent: accountManagerCalendarLink ? (
+                  <BookCallButton
+                      calendarLink={accountManagerCalendarLink}
+                      isNested
+                  />
+              ) : undefined,
               wrapperStyle: [styles.sectionMenuItemTopDescription],
               sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.ACCOUNT_MANAGER,
           }
@@ -95,7 +159,7 @@ function HelpPage() {
         description: hasActiveItem ? undefined : translate('initialSettingsPage.helpPage.conciergeChatDescription'),
         icon: icons.ConciergeAvatar,
         iconType: CONST.ICON_TYPE_AVATAR,
-        onPress: openConciergeAnywhere,
+        onPress: () => openConciergeAnywhere(),
         shouldShowRightIcon: true,
         wrapperStyle: [styles.sectionMenuItemTopDescription],
         sentryLabel: CONST.SENTRY_LABEL.SETTINGS_HELP.CONCIERGE_CHAT,
@@ -130,7 +194,6 @@ function HelpPage() {
         >
             <HeaderWithBackButton
                 title={translate('common.help')}
-                icon={illustrations.LifeRing}
                 shouldUseHeadlineHeader
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter

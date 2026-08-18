@@ -1,13 +1,19 @@
 import {renderHook} from '@testing-library/react-native';
-import Onyx from 'react-native-onyx';
+
 import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+
 import usePolicy from '@hooks/usePolicy';
+
 import {isPolicyAdmin} from '@libs/PolicyUtils';
 import {getOriginalMessage, isCardIssuedAction} from '@libs/ReportActionsUtils';
+
 import CONST from '@src/CONST';
 import useGetExpensifyCardFromReportAction from '@src/hooks/useGetExpensifyCardFromReportAction';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Card, ReportAction} from '@src/types/onyx';
+
+import Onyx from 'react-native-onyx';
+
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Mock the dependencies
@@ -19,12 +25,12 @@ jest.mock('@components/OnyxListItemProvider', () => ({
 }));
 jest.mock('@hooks/usePolicy');
 
-const mockUsePolicy = usePolicy as jest.MockedFunction<typeof usePolicy>;
-const mockIsPolicyAdmin = isPolicyAdmin as jest.MockedFunction<typeof isPolicyAdmin>;
-const mockGetOriginalMessage = getOriginalMessage as jest.MockedFunction<typeof getOriginalMessage>;
-const mockIsCardIssuedAction = isCardIssuedAction as jest.MockedFunction<typeof isCardIssuedAction>;
-const mockUseCardList = useCardList as jest.MockedFunction<typeof useCardList>;
-const mockUseWorkspaceCardList = useWorkspaceCardList as jest.MockedFunction<typeof useWorkspaceCardList>;
+const mockUsePolicy = jest.mocked(usePolicy);
+const mockIsPolicyAdmin = jest.mocked(isPolicyAdmin);
+const mockGetOriginalMessage = jest.mocked(getOriginalMessage);
+const mockIsCardIssuedAction = jest.mocked(isCardIssuedAction);
+const mockUseCardList = jest.mocked(useCardList);
+const mockUseWorkspaceCardList = jest.mocked(useWorkspaceCardList);
 
 describe('useGetExpensifyCardFromReportAction', () => {
     const mockCard: Card = {

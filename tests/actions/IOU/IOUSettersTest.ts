@@ -1,4 +1,3 @@
-import Onyx from 'react-native-onyx';
 import {
     setMoneyRequestAmount,
     setMoneyRequestBillable,
@@ -12,10 +11,15 @@ import {
     setMoneyRequestTaxRate,
 } from '@libs/actions/IOU/MoneyRequest';
 import {resetSplitShares, setSplitShares} from '@libs/actions/IOU/Split';
+
 import ONYXKEYS from '@src/ONYXKEYS';
 import type Transaction from '@src/types/onyx/Transaction';
+
+import Onyx from 'react-native-onyx';
+
 import createRandomTransaction from '../../utils/collections/transaction';
 import getOnyxValue from '../../utils/getOnyxValue';
+import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 const TRANSACTION_ID = 'test-txn-1';
@@ -266,7 +270,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID);
+            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
@@ -280,7 +284,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, false);
+            setSplitShares(transaction, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, getCurrencyDecimalsLocal, false);
             await waitForBatchedUpdates();
 
             const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);
@@ -294,7 +298,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            setSplitShares(transaction, 8000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, false);
+            setSplitShares(transaction, 8000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, getCurrencyDecimalsLocal, false);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
@@ -302,7 +306,7 @@ describe('IOU setter functions', () => {
         });
 
         it('should do nothing when transaction is null', async () => {
-            setSplitShares(undefined, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID);
+            setSplitShares(undefined, 10000, 'USD', [USER_ACCOUNT_ID, PARTICIPANT_ACCOUNT_ID], USER_ACCOUNT_ID, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
@@ -328,7 +332,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID);
+            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID, getCurrencyDecimalsLocal);
             await waitForBatchedUpdates();
 
             const draft = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${TRANSACTION_ID}`);
@@ -349,7 +353,7 @@ describe('IOU setter functions', () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, transaction);
             await waitForBatchedUpdates();
 
-            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID, false);
+            resetSplitShares(transaction, 8000, 'USD', USER_ACCOUNT_ID, getCurrencyDecimalsLocal, false);
             await waitForBatchedUpdates();
 
             const updated = await getOnyxValue(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`);

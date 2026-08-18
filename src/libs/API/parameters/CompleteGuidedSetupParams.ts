@@ -1,4 +1,5 @@
 import type {OnboardingCompanySize} from '@libs/actions/Welcome/OnboardingFlow';
+
 import type {OnboardingAccounting} from '@src/CONST';
 import type {OnboardingPurpose} from '@src/types/onyx';
 
@@ -11,6 +12,7 @@ type CompleteGuidedSetupParams = {
     paymentSelected?: string;
     companySize?: OnboardingCompanySize;
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
     policyID?: string;
     selfDMReportID?: string;
     selfDMCreatedReportActionID?: string;

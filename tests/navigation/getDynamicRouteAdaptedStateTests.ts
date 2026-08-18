@@ -1,6 +1,7 @@
-import type {NavigationState, PartialState} from '@react-navigation/native';
 import getDynamicRouteAdaptedState from '@libs/Navigation/helpers/dynamicRoutesUtils/getDynamicRouteAdaptedState';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+
+import type {NavigationState, PartialState} from '@react-navigation/native';
 
 jest.mock('@react-navigation/native', () => ({
     getStateFromPath: jest.fn(),
@@ -21,6 +22,7 @@ jest.mock('@libs/Navigation/linkingConfig/config', () => ({
         DynCrossStack: {path: 'suffix-cross'},
     },
     screensWithOnyxTabNavigator: new Set(),
+    dynamicTabPatternToTabPaths: new Map(),
 }));
 
 jest.mock('@src/ROUTES', () => ({
@@ -42,7 +44,7 @@ jest.mock('@libs/Navigation/helpers/dynamicRoutesUtils/getStateForDynamicRoute',
 jest.mock('@libs/Navigation/helpers/getStateFromPath', () => jest.fn());
 
 describe('getDynamicRouteAdaptedState', () => {
-    const mockGetStateFromPath = getStateFromPath as jest.Mock;
+    const mockGetStateFromPath = jest.mocked(getStateFromPath);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -180,6 +182,7 @@ describe('getDynamicRouteAdaptedState', () => {
     it('should return state unchanged when getStateFromPath returns undefined for base path', () => {
         const initialState = makeRhpState('ModalStack', 'DynScreenA', '/base/suffix-a');
 
+        // @ts-expect-error -- deliberately exercise the consumer's defensive handling of an absent mocked state.
         mockGetStateFromPath.mockReturnValue(undefined);
 
         const result = getDynamicRouteAdaptedState(initialState, '/base/suffix-a');

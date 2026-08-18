@@ -1,15 +1,21 @@
 import {cleanup, render, screen} from '@testing-library/react-native';
-import React from 'react';
+
 import ReceiptAlternativeMethods from '@components/ReceiptAlternativeMethods';
+
 import useHasLoggedIntoMobileApp from '@hooks/useHasLoggedIntoMobileApp';
 import useHasPhoneNumberLogin from '@hooks/useHasPhoneNumberLogin';
+
 import CONST from '@src/CONST';
+
+import type ReactNative from 'react-native';
+
+import React from 'react';
 
 jest.mock('@hooks/useHasLoggedIntoMobileApp');
 jest.mock('@hooks/useHasPhoneNumberLogin');
 jest.mock('@components/RenderHTML', () => {
-    const ReactMock = require('react') as typeof React;
-    const {Text} = require('react-native') as {Text: React.ComponentType<{children?: React.ReactNode}>};
+    const ReactMock = jest.requireActual<typeof React>('react');
+    const {Text} = jest.requireActual<typeof ReactNative>('react-native');
 
     return ({html}: {html: string}) => {
         const plainText = html.replaceAll(/<[^>]*>/g, '');
@@ -60,8 +66,8 @@ jest.mock('@hooks/useLocalize', () =>
         },
     })),
 );
-const mockUseHasLoggedIntoMobileApp = useHasLoggedIntoMobileApp as jest.MockedFunction<typeof useHasLoggedIntoMobileApp>;
-const mockUseHasPhoneNumberLogin = useHasPhoneNumberLogin as jest.MockedFunction<typeof useHasPhoneNumberLogin>;
+const mockUseHasLoggedIntoMobileApp = jest.mocked(useHasLoggedIntoMobileApp);
+const mockUseHasPhoneNumberLogin = jest.mocked(useHasPhoneNumberLogin);
 
 describe('ReceiptAlternativeMethods', () => {
     afterEach(() => {

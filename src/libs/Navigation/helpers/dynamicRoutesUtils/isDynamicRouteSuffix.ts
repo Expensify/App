@@ -1,5 +1,6 @@
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {DynamicRouteSuffix} from '@src/ROUTES';
+
 import {compiledOptionalParametricDynamicRoutes, compiledStrictParametricDynamicRoutes} from './compileDynamicRoutePattern';
 
 const dynamicRouteEntries = Object.values(DYNAMIC_ROUTES);

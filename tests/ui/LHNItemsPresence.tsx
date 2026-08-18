@@ -1,20 +1,27 @@
-import type * as reactNavigationNativeImport from '@react-navigation/native';
 import {act, screen} from '@testing-library/react-native';
-import type {ComponentType} from 'react';
-import Onyx from 'react-native-onyx';
-import type {OnyxMultiSetInput} from 'react-native-onyx';
-import type {ValueOf} from 'type-fest';
+
 import type {WithCurrentUserPersonalDetailsProps} from '@components/withCurrentUserPersonalDetails';
+
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import DateUtils from '@libs/DateUtils';
 import {setHasRadio} from '@libs/NetworkState';
 import {buildOptimisticExpenseReport, buildOptimisticIOUReportAction, buildTransactionThread} from '@libs/ReportUtils';
 import {buildOptimisticTransaction} from '@libs/TransactionUtils';
+
 import FontUtils from '@styles/utils/FontUtils';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {PersonalDetailsList, Report, ReportAction, ViolationName} from '@src/types/onyx';
 import type {ReportCollectionDataSet} from '@src/types/onyx/Report';
+
+import type * as reactNavigationNativeImport from '@react-navigation/native';
+import type {ComponentType} from 'react';
+import type {OnyxMultiSetInput} from 'react-native-onyx';
+import type {ValueOf} from 'type-fest';
+
+import Onyx from 'react-native-onyx';
+
 import {chatReportR14932} from '../../__mocks__/reportData/reports';
 import createRandomReportAction from '../utils/collections/reportActions';
 import getOnyxValue from '../utils/getOnyxValue';
@@ -65,15 +72,19 @@ jest.mock('@components/withCurrentUserPersonalDetails', () => {
     // Lazy loading of LHNTestUtils
     const lazyLoadLHNTestUtils = () => require<LazyLoadLHNTestUtils>('../utils/LHNTestUtils');
 
-    return <TProps extends WithCurrentUserPersonalDetailsProps>(Component: ComponentType<TProps>) => {
-        function WrappedComponent(props: Omit<TProps, keyof WithCurrentUserPersonalDetailsProps>) {
+    return <TOuterProps,>(Component: ComponentType<TOuterProps & WithCurrentUserPersonalDetailsProps>): ComponentType<TOuterProps> => {
+        function WrappedComponent(props: TOuterProps) {
             const currentUserAccountID = 1;
             const LHNTestUtilsMock = lazyLoadLHNTestUtils(); // Load LHNTestUtils here
+            const currentUserPersonalDetails = LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID];
+            if (!currentUserPersonalDetails) {
+                throw new Error('Expected current user personal details fixture');
+            }
 
             return (
                 <Component
-                    {...(props as TProps)}
-                    currentUserPersonalDetails={LHNTestUtilsMock.fakePersonalDetails[currentUserAccountID]}
+                    {...props}
+                    currentUserPersonalDetails={currentUserPersonalDetails}
                 />
             );
         }
@@ -426,10 +437,13 @@ describe('SidebarLinksData', () => {
         it('should display the unread report in the focus mode with the bold text', async () => {
             // Given the SidebarLinks are rendered.
             LHNTestUtils.getDefaultRenderedSidebarLinks();
+            // The last action must be by another user (account 2) so the report is genuinely unread.
+            // A report whose last action is the current user's own is treated as read (see isUnread in ReportUtils).
+            const OTHER_USER_ACCOUNT_ID = 2;
             const report: Report = {
                 ...createReport(undefined, undefined, undefined, undefined, undefined, true),
                 lastMessageText: 'fake last message',
-                lastActorAccountID: TEST_USER_ACCOUNT_ID,
+                lastActorAccountID: OTHER_USER_ACCOUNT_ID,
             };
 
             await initializeState({
@@ -601,6 +615,7 @@ describe('SidebarLinksData', () => {
             LHNTestUtils.getDefaultRenderedSidebarLinks();
             const expenseReport = buildOptimisticExpenseReport({
                 chatReportID: chatReportR14932.reportID,
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 policyID: '123',
                 payeeAccountID: 100,
                 total: 122,
@@ -615,6 +630,7 @@ describe('SidebarLinksData', () => {
                 },
             });
             const expenseCreatedAction = buildOptimisticIOUReportAction({
+                getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 type: 'create',
                 amount: 100,
                 currency: 'USD',

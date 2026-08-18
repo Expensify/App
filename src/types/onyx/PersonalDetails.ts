@@ -1,6 +1,10 @@
-import type {TupleToUnion} from 'type-fest';
+import type {LetterAvatarSchemeKey} from '@libs/Avatars/letterAvatarPalette';
 import type {AvatarSource} from '@libs/UserAvatarUtils';
+
 import type TIMEZONES from '@src/TIMEZONES';
+
+import type {TupleToUnion} from 'type-fest';
+
 import type * as OnyxCommon from './OnyxCommon';
 
 /** Selectable timezones */
@@ -44,6 +48,13 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
     /** Is current user validated */
     validated?: boolean;
 
+    /**
+     * True when this account was merged away. A merged-away account is served with the `MERGED_`
+     * prefix stripped from its login, so it can collide with the live account's login — use this
+     * flag to prefer the live entry.
+     */
+    isClosed?: boolean;
+
     /** Phone number of the current user from their personal details   */
     phoneNumber?: string;
 
@@ -55,6 +66,12 @@ type PersonalDetails = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Avatar original file name with extension */
     originalFileName?: string;
+
+    /** Letter-avatar color scheme, only set when the user picks a color */
+    avatarStyle?: {
+        /** Color-scheme key, e.g. "blue100" */
+        color: LetterAvatarSchemeKey;
+    };
 
     /** Flag to set when Avatar uploading */
     avatarUploading?: boolean;

@@ -1,21 +1,26 @@
-import {useEffect} from 'react';
 import useEnvironment from '@hooks/useEnvironment';
+
 import {getQuickbooksOnlineSetupLink} from '@libs/actions/connections/QuickbooksOnline';
-import * as Link from '@userActions/Link';
-import * as PolicyAction from '@userActions/Policy/Policy';
+
+import {openLink} from '@userActions/Link';
+
 import type {ConnectToQuickbooksOnlineFlowProps} from './types';
 
-function ConnectToQuickbooksOnlineFlow({policyID}: ConnectToQuickbooksOnlineFlowProps) {
+import BaseConnectToQuickbooksOnlineFlow from './BaseConnectToQuickbooksOnlineFlow';
+
+function ConnectToQuickbooksOnlineFlow({policyID, isIntuitEnterpriseSuite}: ConnectToQuickbooksOnlineFlowProps) {
     const {environmentURL} = useEnvironment();
 
-    useEffect(() => {
-        // Since QBO doesn't support Taxes, we should disable them from the LHN when connecting to QBO
-        PolicyAction.enablePolicyTaxes(policyID, false);
-        Link.openLink(getQuickbooksOnlineSetupLink(policyID), environmentURL);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, []);
-
-    return null;
+    return (
+        <BaseConnectToQuickbooksOnlineFlow
+            policyID={policyID}
+            isIntuitEnterpriseSuite={isIntuitEnterpriseSuite}
+            onConnect={(isSandbox) => {
+                // On web the setup opens OldDot in a new browser tab.
+                openLink(getQuickbooksOnlineSetupLink(policyID, isIntuitEnterpriseSuite, isSandbox), environmentURL);
+            }}
+        />
+    );
 }
 
 export default ConnectToQuickbooksOnlineFlow;

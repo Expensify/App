@@ -1,5 +1,6 @@
-import {Linking} from 'react-native';
 import saveLastRoute from '@libs/saveLastRoute';
+
+import {Linking} from 'react-native';
 
 function goToSettings() {
     Linking.openSettings();

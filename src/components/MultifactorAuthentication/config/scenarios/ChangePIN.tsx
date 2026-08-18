@@ -1,15 +1,19 @@
-import React from 'react';
 import {DefaultSuccessScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen';
 import createScreenWithDefaults from '@components/MultifactorAuthentication/components/OutcomeScreen/createScreenWithDefaults';
 import {DefaultClientFailureScreen, DefaultServerFailureScreen} from '@components/MultifactorAuthentication/components/OutcomeScreen/FailureScreen/defaultScreens';
 import type {MultifactorAuthenticationScenarioCustomConfig} from '@components/MultifactorAuthentication/config/types';
 import {useMultifactorAuthenticationState} from '@components/MultifactorAuthentication/Context';
+
 import {changePINForCard} from '@libs/actions/MultifactorAuthentication';
 import Navigation from '@libs/Navigation/Navigation';
+
 // eslint-disable-next-line no-restricted-imports
 import spacing from '@styles/utils/spacing';
 import variables from '@styles/variables';
+
 import CONST from '@src/CONST';
+
+import React from 'react';
 
 /**
  * Payload type for the CHANGE_PIN scenario.

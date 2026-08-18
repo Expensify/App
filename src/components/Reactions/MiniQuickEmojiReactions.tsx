@@ -1,23 +1,31 @@
-import React, {useCallback, useRef} from 'react';
-import {View} from 'react-native';
 import type {Emoji} from '@assets/emojis/types';
+
 import BaseMiniContextMenuItem from '@components/BaseMiniContextMenuItem';
 import Icon from '@components/Icon';
 import Text from '@components/Text';
+
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
+
 import {getLocalizedEmojiName, getPreferredEmojiCode} from '@libs/EmojiUtils';
 import getButtonState from '@libs/getButtonState';
+
 import variables from '@styles/variables';
+
 import {emojiPickerRef, showEmojiPicker} from '@userActions/EmojiPickerAction';
 import {callFunctionIfActionIsAllowed} from '@userActions/Session';
+
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportActionReactions} from '@src/types/onyx';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
+
+import React, {useCallback, useRef} from 'react';
+import {View} from 'react-native';
+
 import type {BaseQuickEmojiReactionsProps} from './QuickEmojiReactions/types';
 
 type MiniQuickEmojiReactionsProps = BaseQuickEmojiReactionsProps & {

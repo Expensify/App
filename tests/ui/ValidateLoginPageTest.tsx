@@ -1,25 +1,48 @@
-import {NavigationContainer} from '@react-navigation/native';
-import {act, render, screen} from '@testing-library/react-native';
-import React from 'react';
-import Onyx from 'react-native-onyx';
+import {act, fireEvent, render, screen} from '@testing-library/react-native';
+
+import {LocaleContextProvider} from '@components/LocaleContextProvider';
+
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {PublicScreensParamList} from '@libs/Navigation/types';
+
 import ValidateLoginPage from '@pages/ValidateLoginPage/index.web';
+
+import {beginSignIn, handleExitToNavigation} from '@userActions/Session';
+
 import CONST from '@src/CONST';
+import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
+
+import {NavigationContainer} from '@react-navigation/native';
+import React from 'react';
+import Onyx from 'react-native-onyx';
+
+import {translateLocal} from '../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 // Controllable deferred so tests can assert the *ordering* guarantee (navigate only after
 // protected routes are available) — not just the final args.
 const mockWaitForProtectedRoutes = {resolve: () => {}};
 
+// Controllable deferred for isNavigationReady() so tests can resolve it on demand — and, for the
+// stale-callback guard, resolve it *after* the page unmounts to prove the reset is skipped.
+const mockIsNavigationReady = {resolve: () => {}};
+
+// Standalone fn so assertions don't access `navigationRef.reset` unbound (unbound-method lint rule).
+const mockNavigationReset = jest.fn();
+
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
     goBack: jest.fn(),
-    isNavigationReady: jest.fn(() => Promise.resolve()),
+    isNavigationReady: jest.fn(
+        () =>
+            new Promise<void>((resolve) => {
+                mockIsNavigationReady.resolve = resolve;
+            }),
+    ),
     waitForProtectedRoutes: jest.fn(
         () =>
             new Promise<void>((resolve) => {
@@ -29,21 +52,40 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
     isActiveRoute: jest.fn(() => false),
+    // Dereference inside the closure (not at factory time) — the factory runs before the const below
+    // is initialized, so capturing `mockNavigationReset` directly would freeze `undefined`.
+    navigationRef: {
+        reset: (...args: unknown[]) => {
+            mockNavigationReset(...args);
+        },
+        isReady: () => true,
+    },
+}));
+
+// Mock the session actions the page calls so `signInWithValidateCode` doesn't hit the API and the
+// deferred `handleExitToNavigation` handoff can be asserted.
+jest.mock('@userActions/Session', () => ({
+    initAutoAuthState: jest.fn(),
+    signInWithValidateCode: jest.fn(),
+    handleExitToNavigation: jest.fn(),
+    beginSignIn: jest.fn(),
 }));
 
 const RootStack = createPlatformStackNavigator<PublicScreensParamList>();
 
 const renderPage = (initialParams: PublicScreensParamList[typeof SCREENS.VALIDATE_LOGIN]) => {
     return render(
-        <NavigationContainer>
-            <RootStack.Navigator>
-                <RootStack.Screen
-                    name={SCREENS.VALIDATE_LOGIN}
-                    component={ValidateLoginPage}
-                    initialParams={initialParams}
-                />
-            </RootStack.Navigator>
-        </NavigationContainer>,
+        <LocaleContextProvider>
+            <NavigationContainer>
+                <RootStack.Navigator>
+                    <RootStack.Screen
+                        name={SCREENS.VALIDATE_LOGIN}
+                        component={ValidateLoginPage}
+                        initialParams={initialParams}
+                    />
+                </RootStack.Navigator>
+            </NavigationContainer>
+        </LocaleContextProvider>,
     );
 };
 
@@ -57,13 +99,14 @@ describe('ValidateLoginPage', () => {
     beforeEach(async () => {
         jest.clearAllMocks();
         mockWaitForProtectedRoutes.resolve = () => {};
+        mockIsNavigationReady.resolve = () => {};
         await act(async () => {
             await Onyx.clear();
         });
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('Should show not found view when the magic code is invalid and there is an exitTo param', async () => {
+    it('Should show not found view when the validateCode is invalid and there is an exitTo param', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 autoAuthState: CONST.AUTO_AUTH_STATE.NOT_STARTED,
@@ -90,7 +133,7 @@ describe('ValidateLoginPage', () => {
         expect(screen.queryByTestId('validate-code')).toBeNull();
     });
 
-    it('Should navigate to home only AFTER protected routes are available (separate-session magic link)', async () => {
+    it('Should navigate to home only AFTER protected routes are available (separate-session security link)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
                 authToken: 'abcd',
@@ -119,6 +162,38 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
+    it('Should hand off to exitTo (not redirect Home) for a first-time invitee opening an exitTo security link', async () => {
+        // Regression for #94549: an invited member opens `/v/<id>/<code>?exitTo=<destination>` with no
+        // cached `login` and JUST_SIGNED_IN. Before the fix `isUserClickedSignIn` matched this exactly and
+        // its focus effect force-redirected Home, clobbering the exitTo navigation. Excluding `exitTo`
+        // keeps that Home redirect from firing so `handleExitToNavigation` owns the deep-link destination.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                authToken: 'abcd',
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
+        await waitForBatchedUpdatesWithAct();
+
+        // The deferred destination handoff is registered with the exitTo route...
+        expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
+
+        // ...and even once protected routes become available, the competing Home redirect must not fire.
+        await act(async () => {
+            mockWaitForProtectedRoutes.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
+    });
+
     it('Should not navigate to home when a signed-in session opens /v/ to view the code (autoAuthState !== JUST_SIGNED_IN)', async () => {
         await act(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {
@@ -145,7 +220,7 @@ describe('ValidateLoginPage', () => {
             });
         });
 
-        // Mount first (autoAuthState NOT_STARTED → shows the magic-code screen).
+        // Mount first (autoAuthState NOT_STARTED → shows the validateCode screen).
         renderPage({accountID: '1', validateCode: '123456'});
         await waitForBatchedUpdatesWithAct();
         expect(screen.getByTestId('validate-code')).toBeOnTheScreen();
@@ -164,10 +239,10 @@ describe('ValidateLoginPage', () => {
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
     });
 
-    it('Should show the 2FA-required prompt (not an infinite loader) for a separate-session sign-in needing 2FA', async () => {
-        // Separate session: no cached `login`, signed in via the link but 2FA is required so authToken
-        // never lands. Without the fix isCompletingDirectSignIn keeps the loader up forever; instead we
-        // must surface the "2FA required" prompt and never redirect Home.
+    it('Should show the 2FA-required prompt (not an infinite loader) when 2FA is needed and no validate code is cached', async () => {
+        // Genuinely-stuck fallback: 2FA is required but there's no cached `credentials.validateCode`, so
+        // the sign-in page can't render the authenticator stage and there's nowhere to send the user.
+        // Surface the informational "2FA required" prompt and never redirect Home or loop on a loader.
         await act(async () => {
             await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
             await Onyx.set(ONYXKEYS.SESSION, {
@@ -179,6 +254,151 @@ describe('ValidateLoginPage', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('validate-login-loading')).toBeNull();
+        expect(mockNavigationReset).not.toHaveBeenCalled();
         expect(Navigation.navigate).not.toHaveBeenCalledWith(ROUTES.HOME, {forceReplace: true});
+    });
+
+    it('Should redirect to the sign-in page to enter the 2FA code when a validate code is cached', async () => {
+        // Initiating browser: the security-link attempt stored `credentials.validateCode` and 2FA is
+        // required. SignInPage reuses that code to render the authenticator-code stage, so we replace
+        // the consumed /v/ route with the sign-in page instead of the dead-end "2FA required" modal.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // Resolve the navigation-ready gate, then the effect resets the public stack to the SignInPage.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+    });
+
+    it('Should request a new code and reset to the sign-in page when "request one here" is pressed on the expired-code page', async () => {
+        // Fresh-tab repro: the validate code expired (FAILED) so ExpiredValidateCodeModal renders. Pressing
+        // "request one here" must both request a new code and surface the sign-in page. goBack no-ops from
+        // the root /v/ route, so we reset the public stack to TAB_NAVIGATOR (which hosts SignInPage).
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.FAILED,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                login: 'test@example.com',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // TextLink's tap handler calls event.preventDefault(), so pass a minimal synthetic event.
+        fireEvent.press(screen.getByText(translateLocal('validateCodeModal.requestOneHere')), {preventDefault: () => {}});
+
+        expect(beginSignIn).toHaveBeenCalledWith('test@example.com');
+
+        // Resolve the navigation-ready gate, then the press handler resets the public stack to SignInPage.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+    });
+
+    it('Should route an exitTo 2FA security link to the sign-in page AND keep the deferred exitTo navigation', async () => {
+        // exitTo deep link on a 2FA account: the user must still reach the authenticator form (not the
+        // dead-end "2FA required" modal), so we reset to the sign-in page. We also register
+        // handleExitToNavigation so that once 2FA completes and the authToken lands, the user is taken
+        // to their deep-link destination instead of being dropped on Home.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        renderPage({accountID: '1', validateCode: '123456', exitTo: 'concierge'});
+        await waitForBatchedUpdatesWithAct();
+
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).toHaveBeenCalledWith({index: 0, routes: [{name: NAVIGATORS.TAB_NAVIGATOR}]});
+        expect(handleExitToNavigation).toHaveBeenCalledWith('concierge');
+    });
+
+    it('Should NOT redirect to the sign-in page when the cached validate code is for a different link (stale code on a failed attempt)', async () => {
+        // A 2FA account can keep an old `credentials.validateCode` from an earlier attempt. A later /v/
+        // link that fails leaves that stale code in Onyx (failureData doesn't touch it) while
+        // `requiresTwoFactorAuth` lingers — so the redirect must NOT fire for a code that isn't this
+        // link's, otherwise the user lands on the 2FA stage for the stale code instead of the failed UI.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.FAILED,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '111111', // stale code cached by an earlier attempt
+            });
+        });
+
+        // The link the user just opened carries a different code.
+        renderPage({accountID: '1', validateCode: '222222'});
+        await waitForBatchedUpdatesWithAct();
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockNavigationReset).not.toHaveBeenCalled();
+    });
+
+    it('Should not reset to the sign-in page when the page unmounts before navigation is ready (stale-callback guard)', async () => {
+        // PERF-15 cleanup: if the effect tears down (deps change / unmount) before isNavigationReady()
+        // resolves, the pending callback must bail instead of resetting the stack out from under the
+        // screen that replaced it.
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.ACCOUNT, {requiresTwoFactorAuth: true});
+            await Onyx.set(ONYXKEYS.SESSION, {
+                autoAuthState: CONST.AUTO_AUTH_STATE.JUST_SIGNED_IN,
+            });
+            await Onyx.set(ONYXKEYS.CREDENTIALS, {
+                accountID: 1,
+                validateCode: '123456',
+            });
+        });
+
+        const {unmount} = renderPage({accountID: '1', validateCode: '123456'});
+        await waitForBatchedUpdatesWithAct();
+
+        // isNavigationReady() is still pending. Unmounting runs the effect cleanup (sets `ignore = true`).
+        await act(async () => {
+            unmount();
+        });
+
+        // Resolving now fires the stale callback, which must skip the reset.
+        await act(async () => {
+            mockIsNavigationReady.resolve();
+            await Promise.resolve();
+        });
+
+        expect(mockNavigationReset).not.toHaveBeenCalled();
     });
 });
