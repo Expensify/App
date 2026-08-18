@@ -7,7 +7,7 @@ import CONST from '@src/CONST';
 import {
     updateQuickbooksOnlineFxExpenseAccount,
     updateQuickbooksOnlineSyncReimbursedReports,
-    updateQuickbooksOnlineTravelInvoicingPayableAccount,
+    updateQuickbooksOnlineTravelBillingPayableAccount,
 } from '@src/libs/actions/connections/QuickbooksOnline';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Errors} from '@src/types/onyx/OnyxCommon';
@@ -198,38 +198,38 @@ describe('actions/connections/QuickbooksOnline', () => {
         });
     });
 
-    describe('updateQuickbooksOnlineTravelInvoicingPayableAccount', () => {
+    describe('updateQuickbooksOnlineTravelBillingPayableAccount', () => {
         beforeEach(() => {
             writeSpy.mockClear();
         });
 
-        it('writes the UpdateQuickbooksOnlineTravelInvoicingPayableAccount command with the account ID', () => {
-            updateQuickbooksOnlineTravelInvoicingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+        it('writes the UpdateQuickbooksOnlineTravelBillingPayableAccount command with the account ID', () => {
+            updateQuickbooksOnlineTravelBillingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             const {command, params} = getFirstWriteCall();
-            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT);
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT);
 
             expect(params).toEqual(
                 expect.objectContaining({
                     policyID: MOCK_POLICY_ID,
                     settingValue: MOCK_ACCOUNT_ID,
-                    idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT),
+                    idempotencyKey: String(CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT),
                 }),
             );
         });
 
         it('updates travelInvoicingPayableAccountID optimistically and reverts to the old value on failure', () => {
-            updateQuickbooksOnlineTravelInvoicingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
+            updateQuickbooksOnlineTravelBillingPayableAccount(MOCK_POLICY_ID, MOCK_ACCOUNT_ID, MOCK_OLD_ACCOUNT_ID);
 
             const {onyxData} = getFirstWriteCall();
             const optimisticUpdate = onyxData?.optimisticData?.at(0);
             const optimisticConfig = getRequiredQuickBooksConfig(optimisticUpdate);
-            expect(optimisticConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_ACCOUNT_ID);
-            expect(optimisticConfig.pendingFields?.[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(optimisticConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe(MOCK_ACCOUNT_ID);
+            expect(optimisticConfig.pendingFields?.[CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
 
             const failureUpdate = onyxData?.failureData?.at(0);
             const failureConfig = getRequiredQuickBooksConfig(failureUpdate);
-            expect(failureConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT]).toBe(MOCK_OLD_ACCOUNT_ID);
+            expect(failureConfig[CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT]).toBe(MOCK_OLD_ACCOUNT_ID);
         });
     });
 
