@@ -28,10 +28,6 @@ function DomainAlreadyExistsPage({route}: DomainAlreadyExistsPageProps) {
 
     const goToDomainsList = () => Navigation.goBack(ROUTES.DOMAINS_LIST.getRoute());
 
-    // TODO: the BE only sends this domain_<domainAccountID> entry because CreateDomain failed with
-    // "already exists" - the current user has no access to it, so it's not real data. Once "Request access"
-    // lands, getDomainForOnyx will start sending the requester's own pending-request state through this same
-    // key, so cleaning it up here (e.g. on unmount) could wipe that state right after the user requests access.
     return (
         <DomainNameOrNotFoundWrapper
             domainAccountID={domainAccountID}
