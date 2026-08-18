@@ -10287,6 +10287,14 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `Προσφορά περιορισμένου χρόνου: ${discountType}% έκπτωση για τον πρώτο σας χρόνο!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Διεκδικήστε μέσα σε ${days > 0 ? `${days}η :` : ''}${hours}ώ : ${minutes}λ : ${seconds}δ`,
             },
+            travelInvoiceOverdue: {
+                title: 'Το τιμολόγιο του ταξιδιού σας είναι ληξιπρόθεσμο',
+                subtitle: (date: string) => `Πληρώστε το τιμολόγιο ταξιδιού σας έως ${date} για να συνεχίσετε να κλείνετε ταξίδια.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'Η κράτηση ταξιδιών έχει τεθεί σε παύση',
+                subtitle: 'Το τιμολόγιο ταξιδιού σας έχει λήξει. Πληρώστε το για να μπορείτε να κλείνετε ξανά ταξίδια.',
+            },
         },
         cardSection: {
             title: 'Πληρωμή',
