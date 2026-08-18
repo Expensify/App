@@ -1,0 +1,10 @@
+context platform=android
+# @desc   Sign in with the shared agent-device test account. Supports both new-account and returning-account outcomes. Caller MUST randomize EMAIL via `-e EMAIL=agent-device-testing+<9digits>@gmail.com` to avoid account flagging.
+# @pre    id="username"
+# @pre    role="button" label="Continue"
+# @post   role="button" label="Join" || role="button" label="Search"
+# @tag    auth
+# @param  EMAIL Login email. Use randomized alias format `agent-device-testing+<9digits>@gmail.com` to avoid account flagging.
+
+fill "id=\"username\" || label=\"Phone or email\" editable=true" "${EMAIL}"
+press "role=\"button\" label=\"Continue\" || label=\"Continue\""

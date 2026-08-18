@@ -117,6 +117,9 @@ autocompleteKey "key"
       / is
       / purchaseCurrency
       / purchaseAmount
+      // Both must precede `amount`, which would otherwise match their prefix.
+      / amountDebited
+      / amountReimbursed
       / amount
       / merchant
       / description
