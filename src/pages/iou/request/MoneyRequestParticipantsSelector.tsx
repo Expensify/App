@@ -103,7 +103,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <DisplayContentsView>
+            <DisplayContentsView inert={!isActivityVisible}>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}
