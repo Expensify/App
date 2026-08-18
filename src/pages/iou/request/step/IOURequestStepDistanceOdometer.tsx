@@ -395,11 +395,10 @@ function IOURequestStepDistanceOdometer({
                         odometerStart: start,
                         odometerEnd: end,
                     },
-                    policy,
-                    personalPolicy?.outputCurrency,
-                    undefined,
                     getCurrencyDecimals,
                     getCurrencySymbol,
+                    policy,
+                    personalPolicy?.outputCurrency,
                 );
                 Navigation.goBack();
                 return;

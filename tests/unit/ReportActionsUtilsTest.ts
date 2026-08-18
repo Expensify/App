@@ -53,6 +53,7 @@ import {
     getRequiresCategoryMessage,
     getRequiresTagMessage,
     getSendMoneyFlowAction,
+    getTransactionThreadReportIDFromAction,
     getUnassignedCompanyCardMessage,
     getUpdateACHAccountMessage,
     getUpdatedAutoHarvestingMessage,
@@ -593,6 +594,34 @@ describe('ReportActionsUtils', () => {
                 false,
             );
             expect(result).toEqual(linkedActionWithChildReportID);
+        });
+
+        describe('getTransactionThreadReportIDFromAction', () => {
+            it('should return the childReportID of the action', () => {
+                expect(getTransactionThreadReportIDFromAction(linkedActionWithChildReportID)).toEqual('existingChildReportID');
+            });
+
+            it('should return CONST.FAKE_REPORT_ID when the action has no childReportID, because the transaction thread is not always created optimistically', () => {
+                expect(getTransactionThreadReportIDFromAction(linkedActionWithoutChildReportID)).toEqual(CONST.FAKE_REPORT_ID);
+            });
+
+            it('should return undefined when there is no action', () => {
+                expect(getTransactionThreadReportIDFromAction(undefined)).toBeUndefined();
+            });
+
+            it('should produce the same reportID as getOneTransactionThreadReportID for the same inputs', () => {
+                // getOneTransactionThreadReportID is defined in terms of this helper, so callers that already hold the
+                // action can derive the ID from it instead of re-running the O(n) scan over the report actions.
+                const args: Parameters<typeof getOneTransactionThreadReportID> = [
+                    mockedReports[IOUReportID],
+                    mockedReports[mockChatReportID],
+                    [linkedActionWithChildReportID],
+                    false,
+                    [IOUTransactionID],
+                ];
+
+                expect(getTransactionThreadReportIDFromAction(ReportActionsUtils.getOneTransactionThreadReportAction(...args))).toEqual(getOneTransactionThreadReportID(...args));
+            });
         });
     });
 

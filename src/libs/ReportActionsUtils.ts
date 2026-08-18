@@ -2016,15 +2016,19 @@ function getOneTransactionThreadReportAction(
 }
 
 /**
+ * Resolves the transaction thread reportID from the IOU action the thread is derived from.
+ * Since we don't always create the transaction thread optimistically, we fall back to CONST.FAKE_REPORT_ID.
+ */
+function getTransactionThreadReportIDFromAction(reportAction: ReportAction<'IOU'> | undefined): string | undefined {
+    return reportAction ? (reportAction.childReportID ?? CONST.FAKE_REPORT_ID) : undefined;
+}
+
+/**
  * Gets the reportID for the transaction thread associated with a report by iterating over the reportActions and identifying the IOU report actions.
  * Returns a reportID if there is exactly one transaction thread for the report, and undefined otherwise.
  */
 function getOneTransactionThreadReportID(...args: Parameters<typeof getOneTransactionThreadReportAction>): string | undefined {
-    const reportAction = getOneTransactionThreadReportAction(...args);
-    if (reportAction) {
-        // Since we don't always create transaction thread optimistically, we return CONST.FAKE_REPORT_ID
-        return reportAction.childReportID ?? CONST.FAKE_REPORT_ID;
-    }
+    return getTransactionThreadReportIDFromAction(getOneTransactionThreadReportAction(...args));
 }
 
 /**
@@ -2760,7 +2764,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
     const displayLabel = integrationName ?? label;
     const reimbursableUrls = originalMessage.reimbursableUrls ?? [];
     const nonReimbursableUrls = originalMessage.nonReimbursableUrls ?? [];
-    const travelInvoicingUrls = originalMessage.travelInvoicingUrls ?? [];
+    const travelBillingUrls = originalMessage.travelInvoicingUrls ?? [];
     const reportID = reportAction?.reportID;
     const wasExportedAfterBase62 = (reportAction?.created ?? '') > '2022-11-14';
     const base62ReportID = getBase62ReportID(Number(reportID));
@@ -2792,7 +2796,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
             url: '',
         });
     }
-    if (reimbursableUrls.length || nonReimbursableUrls.length || travelInvoicingUrls.length) {
+    if (reimbursableUrls.length || nonReimbursableUrls.length || travelBillingUrls.length) {
         result.push({
             text: translate('report.actions.type.exportedToIntegration.automaticActionThree'),
             url: '',
@@ -2801,8 +2805,8 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
 
     const hasReimbursable = reimbursableUrls.length > 0;
     const hasNonReimbursable = nonReimbursableUrls.length > 0;
-    const hasTravelInvoicing = travelInvoicingUrls.length > 0;
-    const linkItemCount = (hasReimbursable ? 1 : 0) + (hasNonReimbursable ? 1 : 0) + (hasTravelInvoicing ? 1 : 0);
+    const hasTravelBilling = travelBillingUrls.length > 0;
+    const linkItemCount = (hasReimbursable ? 1 : 0) + (hasNonReimbursable ? 1 : 0) + (hasTravelBilling ? 1 : 0);
 
     if (reimbursableUrls.length === 1) {
         const reimbursableUrl = reimbursableUrls.at(0) ?? '';
@@ -2817,7 +2821,7 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
             url: reimbursableUrl.startsWith('https://') ? reimbursableUrl : '',
         });
     }
-    if (hasReimbursable && (hasNonReimbursable || hasTravelInvoicing) && linkItemCount === 2) {
+    if (hasReimbursable && (hasNonReimbursable || hasTravelBilling) && linkItemCount === 2) {
         result.push({
             text: translate('common.and'),
             url: '',
@@ -2866,19 +2870,19 @@ function getExportIntegrationActionFragments(translate: LocalizedTranslate, repo
         result.push({text, url});
     }
 
-    if (nonReimbursableUrls.length && travelInvoicingUrls.length) {
+    if (nonReimbursableUrls.length && travelBillingUrls.length) {
         result.push({
             text: translate('common.and'),
             url: '',
         });
     }
-    if (travelInvoicingUrls.length) {
+    if (travelBillingUrls.length) {
         const text = translate('report.actions.type.exportedToIntegration.travelCardLink');
         let url = '';
 
-        if (travelInvoicingUrls.length === 1) {
-            const travelInvoicingUrl = travelInvoicingUrls.at(0) ?? '';
-            url = travelInvoicingUrl.startsWith('https://') ? travelInvoicingUrl : '';
+        if (travelBillingUrls.length === 1) {
+            const travelBillingUrl = travelBillingUrls.at(0) ?? '';
+            url = travelBillingUrl.startsWith('https://') ? travelBillingUrl : '';
         } else if (label === CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.netsuite) {
             url = NETSUITE_NON_REIMBURSABLE_EXPENSES_URL_PREFIX;
             url += wasExportedAfterBase62 ? base62ReportID : reportID;
@@ -4989,6 +4993,7 @@ export {
     getNumberOfMoneyRequests,
     getOneTransactionThreadReportAction,
     getOneTransactionThreadReportID,
+    getTransactionThreadReportIDFromAction,
     getOriginalMessage,
     getAddedApprovalRuleMessage,
     getDeletedApprovalRuleMessage,

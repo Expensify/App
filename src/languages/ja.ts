@@ -1399,7 +1399,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} が承認しました:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} が ${amount} を承認しました`,
         payerSettled: (amount: number | string) => `${amount} を支払いました`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `${amount}を支払いました。支払いを受け取るには銀行口座を追加してください。`,
         automaticallyApproved: `<a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">ワークスペースルール</a>により承認済み`,
         approvedAmount: (amount: number | string) => `${amount} を承認しました`,
         approvedMessage: `承認済み`,
@@ -2133,6 +2132,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: '最新バージョンの Expensify をインストールしてください',
         toGetLatestChanges: 'モバイルでは最新バージョンをダウンロードしてインストールしてください。ウェブではブラウザを再読み込みしてください。',
         newAppNotAvailable: '今すぐアップデートすると、きっと後で感謝していただけます。',
+        updateAvailable: 'アップデートがあります',
+        pleaseRefresh: '最新バージョンの Expensify を利用するには、このページを再読み込みしてください。',
+        refreshPage: 'ページを更新',
     },
     initialSettingsPage: {
         about: '概要',
@@ -3164,6 +3166,7 @@ ${date} の ${merchant} への ${amount}`,
         accounting: {
             title: '会計ソフトを利用していますか？',
             none: 'なし',
+            otherAccountingSoftware: 'ご利用の会計ソフト',
         },
         interestedFeatures: {
             title: 'どの機能にご興味がありますか？',
@@ -4610,6 +4613,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             paymentsAdminAlternateText: 'ワークフローの支払いを管理します。',
             readOnlyActionTitle: 'ちょっと待ってください…',
             readOnlyActionPrompt: 'このワークスペースでのあなたのロールは、これらの設定を表示できますが、編集することはできません。',
+            noAccessActionPrompt: 'このワークスペースでのあなたのロールでは、これらの設定にアクセスできません。必要な場合は管理者に依頼してください。',
         },
         createdForClient: {
             title: 'クライアントのワークスペースを作成しました！',
@@ -5817,6 +5821,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             directFeed: 'ダイレクトフィード',
             whoNeedsCardAssigned: '誰にカードを割り当てる必要がありますか？',
             chooseTheCardholder: 'カード名義人を選択',
+            pleaseSelectACardholder: '続行するにはカード名義人を選択してください',
             chooseCard: 'カードを選択',
             chooseCardFor: (assignee: string) =>
                 `<strong>${assignee}</strong> に割り当てるカードを選択してください。お探しのカードが見つかりませんか？<concierge-link>お知らせください。</concierge-link>`,
@@ -5899,6 +5904,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settlementFrequency: '清算頻度',
             settlementFrequencyDescription: 'Expensify カードの残高を支払う頻度を選択してください。',
             settlementFrequencyInfo: '月次清算に切り替えるには、Plaid を通じて銀行口座を連携し、直近90日間の残高履歴がプラスである必要があります。',
+            monthlySettlementDate: (date: string) => `Expensify カードの精算は毎月${date}に行われます。`,
             applyCashbackToBill: 'キャッシュバックを Expensify 請求書に適用する',
             applyCashbackToBillDescription: 'Expensify カードのキャッシュバックは、Expensify 請求書の支払いに使用されます。',
             frequency: {
@@ -5959,6 +5965,7 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             deleteFailureMessage: 'カテゴリの削除中にエラーが発生しました。もう一度お試しください',
             categoryName: 'カテゴリ名',
             requiresCategory: 'メンバーはすべての経費を分類する必要があります',
+            showCategoryGLCodes: '経費を分類するときに GL コードを表示する',
             needCategoryForExportToIntegration: (connectionName: string) => `${connectionName} にエクスポートするには、すべての経費にカテゴリを指定する必要があります。`,
             subtitle: 'お金がどこで使われているかを、より分かりやすく把握しましょう。デフォルトのカテゴリを使うか、自分用のカテゴリを追加できます。',
             emptyCategories: {
@@ -7157,6 +7164,31 @@ Control プランは、アクティブメンバー1人あたり月額 $9 から�
 
 ${reportName}`,
             confirmText: 'はい、再度エクスポートします',
+            cancelText: 'キャンセル',
+        },
+        exportDifferentCompaniesModal: {
+            title: '注意！',
+            description: (connectionName: ConnectionName) =>
+                `選択したレポートは異なる ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} の会社に接続されているため、一緒にエクスポートすることはできません。同じ会社に接続されているレポートを選択して、もう一度お試しください。`,
+            confirmText: '了解',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `${exportableCount}/${selectedCount}件のレポートを${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}にエクスポートしますか？`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}に接続されているレポートのみがエクスポートされます。`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`エクスポート可能なレポートのみがエクスポートされます。`);
+                }
+                return `${reasons.join('\n\n')}\n\n以下のレポートがエクスポートされます：`;
+            },
+            confirmText: () => ({
+                one: `1件のレポートをエクスポート`,
+                other: (count: number) => `${count}件のレポートをエクスポート`,
+            }),
             cancelText: 'キャンセル',
         },
         upgrade: {
@@ -8917,6 +8949,7 @@ ${reportName}`,
                 travelInvoicing: '出張費の一括請求',
             },
             bankAccount: {banks: '銀行口座', closedBankAccounts: '解約済み銀行口座'},
+            workspace: {active: 'アクティブ', archived: 'アーカイブ済み', selectAll: 'すべて選択'},
             reportField: (name: string, value: string) => `${name} は ${value} です`,
             current: '現在',
             past: '過去',
@@ -8951,7 +8984,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Expensify カード',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: '払い戻し',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: '出張費の一括請求',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: '出張費の一括請求',
             },
             is: 'は',
             has: {submittedViolation: '違反を送信しました'},
@@ -9339,7 +9372,6 @@ ${reportName}`,
         decline: '却下',
     },
     actionableMentionTrackExpense: {
-        submit: '誰かに送信する',
         submitToFriend: '友達に送信する',
         submitToEmployer: '勤務先に送信する',
         categorize: '仕分けする',

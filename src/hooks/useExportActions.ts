@@ -296,7 +296,7 @@ function useExportActions({reportID, policy, onPDFModalOpen}: UseExportActionsPa
                 if (!moneyRequestReport?.reportID) {
                     return;
                 }
-                const exportID = exportReceiptsToZip([moneyRequestReport.reportID]);
+                const exportID = exportReceiptsToZip({reportIDs: [moneyRequestReport.reportID]});
                 trackExport(exportID);
             },
         },
