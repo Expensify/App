@@ -1600,6 +1600,11 @@ function openReport(params: OpenReportActionParams) {
                 errorFields: {
                     notFound: null,
                 },
+                // An explicit mark-as-unread keeps its "New" marker anchored across auto-read
+                // (readNewestAction no longer clears it). Clear it here, once the report has actually
+                // been re-loaded from the server, so the marker is reconciled on reload rather than
+                // persisting indefinitely.
+                manuallyMarkedUnreadReportActionID: null,
             },
         },
         {
