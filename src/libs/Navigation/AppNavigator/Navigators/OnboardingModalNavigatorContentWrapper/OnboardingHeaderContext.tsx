@@ -1,7 +1,7 @@
 import CaretBackHeader from '@components/CaretBackHeader';
 
 import {useFocusEffect} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useState} from 'react';
+import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
 
 type OnboardingHeaderConfig = {
     /** Whether the sticky onboarding header should render the back caret for the focused screen */
@@ -40,14 +40,27 @@ function OnboardingHeaderContextProvider({children}: {children: React.ReactNode}
  * Using useFocusEffect (rather than a plain effect) means the *incoming* screen re-asserts its
  * config the moment focus flips during a transition, so the sticky header always reflects the
  * focused screen and stale values from the outgoing screen don't linger.
+ *
+ * `onBackButtonPress` is read through a ref so the focus effect only re-registers when
+ * `shouldShowBackButton` (the value that actually affects rendering) changes — screens can pass a
+ * fresh inline handler each render without triggering extra re-registrations, while the caret still
+ * always invokes the latest handler.
  */
 function useOnboardingHeaderConfig({shouldShowBackButton, onBackButtonPress}: OnboardingHeaderConfig) {
     const setConfig = useContext(SetOnboardingHeaderConfigContext);
+    const onBackButtonPressRef = useRef(onBackButtonPress);
+
+    useEffect(() => {
+        onBackButtonPressRef.current = onBackButtonPress;
+    }, [onBackButtonPress]);
 
     useFocusEffect(
         useCallback(() => {
-            setConfig({shouldShowBackButton, onBackButtonPress});
-        }, [shouldShowBackButton, onBackButtonPress, setConfig]),
+            setConfig({
+                shouldShowBackButton,
+                onBackButtonPress: () => onBackButtonPressRef.current?.(),
+            });
+        }, [shouldShowBackButton, setConfig]),
     );
 }
 
