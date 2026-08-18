@@ -26,13 +26,18 @@ Onyx.connectWithoutView({
 });
 
 /**
- * Whether the app was installed from somewhere other than the Play Store, i.e. a GitHub release.
- * The installer package name is set by whoever installed the app, so unlike the version comparison
- * below it is stable for the lifetime of the install: it cannot flip to production once the
- * production release catches up with the staging build's version.
+ * Whether something other than the Play Store put this build on the device. Production builds only ever reach a
+ * device through the Play Store, so any other installer means the build was sideloaded, i.e. downloaded from a
+ * GitHub release. Unlike the version comparison below, the answer does not change once a production release catches
+ * up with the build's version — though Android does rewrite the installer if a different one later updates the app.
  */
 function isSideloadedBuild(): boolean {
-    return DeviceInfo.getInstallerPackageNameSync() !== CONST.ANDROID_PLAY_STORE_INSTALLER_PACKAGE_NAME;
+    try {
+        return DeviceInfo.getInstallerPackageNameSync() !== CONST.PLAY_STORE_INSTALLER_PACKAGE_NAME;
+    } catch {
+        // A throwing native call tells us nothing about the install, so let the version comparison decide.
+        return false;
+    }
 }
 
 /**
@@ -40,16 +45,15 @@ function isSideloadedBuild(): boolean {
  */
 function isBetaBuild(): IsBetaBuild {
     return new Promise((resolve) => {
-        // Production builds are only ever delivered by the Play Store, so a sideloaded build is always a beta build.
-        // Answering here also keeps these builds off the GitHub API, which is rate limited and can otherwise report
-        // the wrong environment when the request fails.
+        // A sideloaded build is a beta build: testers install those from GitHub prereleases. Answering here also
+        // keeps them off the rate limited GitHub API, whose failures are what flips the environment mid-testing.
         if (isSideloadedBuild()) {
             AppUpdate.setIsAppInBeta(true);
             resolve(true);
             return;
         }
 
-        // Fallback to previously implemented checks on Play Store builds
+        // Otherwise compare our version against the latest production release
         fetch(CONST.GITHUB_RELEASE_URL)
             .then((res) => res.json())
             .then((json: GithubReleaseJSON) => {
