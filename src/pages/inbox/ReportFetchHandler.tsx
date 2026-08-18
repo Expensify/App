@@ -23,6 +23,7 @@ import type {CancelHandle} from '@libs/Navigation/TransitionTracker';
 import {isSupportedInviteOnboardingChoice, isSupportedPendingInviteOnboarding} from '@libs/OnboardingUtils';
 import {getFilteredReportActionsForReportView, getIOUActionForReportID, getOneTransactionThreadReportID, isCreatedAction} from '@libs/ReportActionsUtils';
 import {
+    getOneOnOneChatParticipants,
     isChatThread,
     isHiddenForCurrentUser,
     isMoneyRequestReport,
@@ -199,7 +200,10 @@ function ReportFetchHandler() {
             return;
         }
 
-        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, betas, hasReportActions, currentUserAccountID});
+        // For a cached 1:1 DM, pass the other participant so the server can resolve a stale/optimistic
+        // reportID to the real chat (via preexistingReportID) instead of failing with "Report not found".
+        const dmParticipants = getOneOnOneChatParticipants(report, personalDetails, currentUserAccountID);
+        openReport({reportID: reportIDFromRoute, introSelected, reportActionID: reportActionIDFromRoute, participants: dmParticipants, betas, hasReportActions, currentUserAccountID});
     });
 
     const createOneTransactionThread = useEffectEvent(() => {

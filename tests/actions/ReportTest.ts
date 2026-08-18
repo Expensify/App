@@ -5217,95 +5217,25 @@ describe('actions/Report', () => {
         });
     });
 
-    describe('openReport participants self-heal', () => {
-        const CURRENT_USER_ACCOUNT_ID = 1;
-        const OTHER_USER_ACCOUNT_ID = 2;
-        const OTHER_USER_LOGIN = 'other@test.com';
-
-        beforeEach(async () => {
+    describe('openReport with participants', () => {
+        it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
             global.fetch = TestHelper.createGlobalFetchMock();
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                [OTHER_USER_ACCOUNT_ID]: {accountID: OTHER_USER_ACCOUNT_ID, login: OTHER_USER_LOGIN},
-            });
-            await waitForBatchedUpdates();
-        });
-
-        it('should include cached 1:1 DM participants in OpenReport so the server can resolve a stale optimistic reportID', async () => {
             const REPORT_ID = 'dm1';
-            const dmReport: OnyxTypes.Report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [OTHER_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, dmReport);
-            await waitForBatchedUpdates();
-
-            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
-            await waitForBatchedUpdates();
-
-            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
-                reportID: REPORT_ID,
-                emailList: OTHER_USER_LOGIN,
-                accountIDList: `${OTHER_USER_ACCOUNT_ID}`,
-            });
-        });
-
-        it('should not derive participants for reports that are not 1:1 DMs', async () => {
-            const REPORT_ID = 'room1';
-            const roomReport: OnyxTypes.Report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-                chatType: CONST.REPORT.CHAT_TYPE.POLICY_ADMINS,
-                policyID: 'policy1',
-                participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [OTHER_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, roomReport);
-            await waitForBatchedUpdates();
-
-            Report.openReport({reportID: REPORT_ID, introSelected: undefined, betas: undefined, hasReportActions: true, currentUserAccountID: CURRENT_USER_ACCOUNT_ID});
-            await waitForBatchedUpdates();
-
-            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
-                reportID: REPORT_ID,
-                emailList: '',
-                accountIDList: '',
-            });
-        });
-
-        it('should keep caller-provided participants instead of deriving them from the cached report', async () => {
-            const REPORT_ID = 'dm2';
-            const PASSED_LOGIN = 'passed@test.com';
-            const dmReport: OnyxTypes.Report = {
-                reportID: REPORT_ID,
-                type: CONST.REPORT.TYPE.CHAT,
-                participants: {
-                    [CURRENT_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                    [OTHER_USER_ACCOUNT_ID]: {notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS},
-                },
-            };
-            await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, dmReport);
-            await waitForBatchedUpdates();
 
             Report.openReport({
                 reportID: REPORT_ID,
                 introSelected: undefined,
                 betas: undefined,
                 hasReportActions: true,
-                currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                participants: [{login: PASSED_LOGIN, accountID: 3}],
+                currentUserAccountID: 1,
+                participants: [{login: 'other@test.com', accountID: 2}],
             });
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
                 reportID: REPORT_ID,
-                emailList: PASSED_LOGIN,
-                accountIDList: '3',
+                emailList: 'other@test.com',
+                accountIDList: '2',
             });
         });
     });
