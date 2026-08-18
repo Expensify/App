@@ -1,6 +1,5 @@
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
-import type * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
@@ -21,13 +20,6 @@ jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     __esModule: true,
     default: (callback: () => void) => callback(),
-}));
-const mockApproveMoneyRequest = jest.fn();
-jest.mock('@libs/actions/IOU/ReportWorkflow', () => ({
-    ...jest.requireActual<typeof ReportWorkflow>('@libs/actions/IOU/ReportWorkflow'),
-    approveMoneyRequest: (...args: Parameters<typeof ReportWorkflow.approveMoneyRequest>) => {
-        mockApproveMoneyRequest(...args);
-    },
 }));
 jest.mock('@src/libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
@@ -361,6 +353,7 @@ describe('handleActionButtonPress', () => {
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
             userBillingGracePeriodEnds: undefined,
+            onHoldMenuOpen: jest.fn(),
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -370,9 +363,8 @@ describe('handleActionButtonPress', () => {
         expect(goToItem).not.toHaveBeenCalled();
     });
 
-    // The partial/full choice is surfaced up front by ApproveActionCell's dropdown, so reaching this path means the
-    // full report was chosen. It must approve directly instead of opening the hold menu, which is now pay-only.
-    test('Should approve the full report when the report has one transaction on hold and action is approve', () => {
+    test('Should open the hold menu when the report has one transaction on hold and action is approve', () => {
+        const onHoldMenuOpen = jest.fn();
         handleActionButtonPress({
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
@@ -387,6 +379,7 @@ describe('handleActionButtonPress', () => {
             userBillingGracePeriodEnds: undefined,
             ownerBillingGracePeriodEnd: undefined,
             amountOwed: undefined,
+            onHoldMenuOpen,
             policy: snapshotPolicy as Policy,
             chatReportActions: undefined,
             currentUserAccountID: 1206,
@@ -394,7 +387,7 @@ describe('handleActionButtonPress', () => {
             isTrackIntentUser: false,
         });
 
-        expect(mockApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({full: true}));
+        expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
     });
 
     test('Should not navigate to item when the hold is removed', () => {
@@ -624,10 +617,7 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {
-            bankAccountID,
-            paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT,
-        });
+        expect(baseParams.confirmPayment).toHaveBeenCalledWith(CONST.IOU.PAYMENT_TYPE.VBBA, {bankAccountID, paymentMethod: CONST.PAYMENT_METHODS.BUSINESS_BANK_ACCOUNT});
     });
 
     it('should trigger the KYC flow when the selected business bank account is not open', async () => {
@@ -648,11 +638,7 @@ describe('handleBulkPayItemSelected', () => {
                 [bankAccountID]: {
                     bankCurrency: CONST.CURRENCY.USD,
                     bankCountry: CONST.COUNTRY.US,
-                    accountData: {
-                        bankAccountID,
-                        type: CONST.BANK_ACCOUNT.TYPE.BUSINESS,
-                        state: CONST.BANK_ACCOUNT.STATE.LOCKED,
-                    },
+                    accountData: {bankAccountID, type: CONST.BANK_ACCOUNT.TYPE.BUSINESS, state: CONST.BANK_ACCOUNT.STATE.LOCKED},
                 },
             },
             item: {

@@ -2,6 +2,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import ExpenseHeaderApprovalButton from '@components/ExpenseHeaderApprovalButton';
 import {usePaymentAnimationsContext} from '@components/PaymentAnimationsContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useOnyx from '@hooks/useOnyx';
@@ -40,6 +41,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
     const currentUserAccountID = currentUserDetails.accountID;
     const currentUserEmail = currentUserDetails.email ?? '';
     const {isBetaEnabled} = usePermissions();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
 
@@ -102,6 +104,7 @@ function ApprovePrimaryAction({reportID, chatReportID}: ApprovePrimaryActionProp
             return;
         }
         approveMoneyRequest({
+            getCurrencyDecimals,
             expenseReport: iouReport,
             expenseReportPolicy,
             currentUserAccountIDParam: currentUserAccountID,

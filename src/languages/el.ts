@@ -1645,6 +1645,7 @@ const translations: TranslationDeepObject<typeof en> = {
         keepSelected: 'Διατήρηση επιλογής',
         noDuplicatesTitle: 'Όλα έτοιμα!',
         noDuplicatesDescription: 'Δεν υπάρχουν διπλές συναλλαγές για έλεγχο εδώ.',
+        confirmApprove: 'Επιβεβαιώστε το ποσό έγκρισης',
         confirmApprovalWithHeldAmount: 'Η αναφορά περιέχει δαπάνες σε αναμονή. Θέλετε να εγκρίνετε μόνο τις σύμφωνες δαπάνες ή ολόκληρη την αναφορά;',
         confirmApprovalAllHoldAmount: 'Όλες οι δαπάνες είναι σε αναμονή. Θέλετε να εγκρίνετε ούτως ή άλλως;',
         confirmPay: 'Επιβεβαιώστε το ποσό πληρωμής',

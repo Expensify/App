@@ -21,7 +21,6 @@ import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 import actionTranslationsMap from './actionTranslationsMap';
-import ApproveActionCell from './ApproveActionCell';
 import PayActionCell from './PayActionCell';
 
 type ActionCellProps = {
@@ -79,19 +78,6 @@ function ActionCell({
             >
                 <ViewButton.Text>{text}</ViewButton.Text>
             </ViewButton>
-        );
-    }
-
-    if (action === CONST.SEARCH.ACTION_TYPES.APPROVE) {
-        return (
-            <ApproveActionCell
-                isLoading={isLoading}
-                policyID={policyID}
-                reportID={reportID}
-                hash={hash}
-                shouldDisablePointerEvents={shouldDisablePointerEvents}
-                chatReport={chatReport}
-            />
         );
     }
 
