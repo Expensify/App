@@ -1222,7 +1222,8 @@ function captureBufferTransaction(stateAfter: ReturnType<typeof navigationRef.ge
     }
     const rhpRoute = stateAfter.routes.at(-1);
     const bufferRoute = stateAfter.routes.at(-2);
-    if (rhpRoute?.name !== NAVIGATORS.RIGHT_MODAL_NAVIGATOR || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
+    const isTopModalBufferHost = rhpRoute?.name === NAVIGATORS.RIGHT_MODAL_NAVIGATOR || rhpRoute?.name === NAVIGATORS.SHARE_MODAL_NAVIGATOR;
+    if (!isTopModalBufferHost || bufferRoute?.name !== SCREENS.PRE_MOUNT_BUFFER) {
         return;
     }
 
