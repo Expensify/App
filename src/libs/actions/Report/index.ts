@@ -1744,6 +1744,11 @@ function openReport(params: OpenReportActionParams) {
                 errorFields: {
                     notFound: null,
                 },
+                // An explicit mark-as-unread keeps its "New" marker anchored across auto-read
+                // (readNewestAction no longer clears it). Clear it here, once the report has actually
+                // been re-loaded from the server, so the marker is reconciled on reload rather than
+                // persisting indefinitely.
+                manuallyMarkedUnreadReportActionID: null,
             },
         },
         {
@@ -3056,6 +3061,11 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
+                // Intentionally do NOT clear `manuallyMarkedUnreadReportActionID` here. An explicit
+                // mark-as-unread should keep its "New" marker anchored even after the report is auto-read
+                // (readNewestAction fires whenever the report is focused/visible). The marker is instead
+                // reconciled when the report is re-loaded via openReport, which returns the server's
+                // authoritative value for this field.
             },
         },
     ];
@@ -3132,6 +3142,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
 
     const reportValue = {
         lastReadTime,
+        manuallyMarkedUnreadReportActionID: reportAction?.reportActionID ?? null,
         ...(lastActorAccountID && {lastActorAccountID}),
     };
 
@@ -3158,6 +3169,7 @@ function markCommentAsUnread(reportID: string | undefined, reportActions: OnyxEn
             value: {
                 lastReadTime: report?.lastReadTime ?? null,
                 lastActorAccountID: report?.lastActorAccountID ?? null,
+                manuallyMarkedUnreadReportActionID: report?.manuallyMarkedUnreadReportActionID ?? null,
             },
         },
     ];
