@@ -222,11 +222,16 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
     if (!dateTimeString) {
         return '';
     }
-    return `${DateUtils.formatToLocalTime(dateTimeString, locale)}, ${DateUtils.formatToLocalizedShortDate(dateTimeString, locale)}`;
+    // Medium form ("Jan 5, 2026") matches the adjacent Time badges and existing per-diem UI copy. Short form is locale-ambiguous (MM/DD/YYYY vs DD/MM/YYYY vs YYYY/MM/DD).
+    return `${DateUtils.formatToLocalTime(dateTimeString, locale)}, ${DateUtils.formatToMediumDate(dateTimeString, locale)}`;
 }
 
 function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    // Both empty is the default shape for a transaction with no dates set yet. Skip the render so a lone " - " does not surface in the picker row.
+    if (!customUnitRateDate.start && !customUnitRateDate.end) {
+        return '';
+    }
     return `${formatDateTimeTo12Hour(customUnitRateDate.start, locale)} - ${formatDateTimeTo12Hour(customUnitRateDate.end, locale)}`;
 }
 

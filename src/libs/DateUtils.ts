@@ -59,10 +59,10 @@ type MachineDateFormat =
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 /**
- * ISO 8601 offset variants at the end of a datetime string: `±HH`, `±HHMM`, `±HH:MM`.
- * Shared by `isAlreadyZoned` and `CANCELLATION_OFFSET_PATTERN` so the same input is classified the same way across helpers.
+ * Offset shapes `new Date()` accepts at the end of an ISO string: `±HHMM` and `±HH:MM`. V8 and Hermes reject bare `±HH`,
+ * so this pattern requires the minutes component. Used by `isAlreadyZoned` to decide whether to append `Z`.
  */
-const ISO_OFFSET_PATTERN = /[+-]\d{2}(:?\d{2})?$/;
+const ISO_OFFSET_PATTERN = /[+-]\d{2}:?\d{2}$/;
 
 type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
@@ -974,7 +974,7 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
     // Dates differ by years, months, days
     const startPart = formatIntl(locale, 'MEDIUM_DATE', date1);
     const endPart = formatIntl(locale, 'MEDIUM_DATE', date2);
-    return startPart && endPart ? `${startPart} ${translate('common.to').toLowerCase()} ${endPart}` : '';
+    return startPart && endPart ? `${startPart} ${translate('common.to').toLocaleLowerCase(locale)} ${endPart}` : '';
 }
 
 /**
@@ -1056,7 +1056,11 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
     return `GMT${sign}${hoursNumber}${minutesNumber > 0 ? `:${minutes}` : ''}`;
 }
 
-/** Capturing counterpart to `ISO_OFFSET_PATTERN`, same accepted shapes but groups the sign, hours, and minutes for offset math. */
+/**
+ * Accepts every ISO 8601 offset shape (`±HH`, `±HHMM`, `±HH:MM`) because this helper performs the offset math itself
+ * rather than delegating to `new Date`. Groups sign, hours, and minutes for the arithmetic. Wider than
+ * `ISO_OFFSET_PATTERN` on purpose. Do not merge the two, downstream parsers differ.
+ */
 const CANCELLATION_OFFSET_PATTERN = /([+-])(\d{2}):?(\d{2})?$/;
 
 /**

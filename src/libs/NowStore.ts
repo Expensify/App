@@ -8,17 +8,13 @@ const MS_PER_MINUTE = 60_000;
 
 const listeners = new Set<() => void>();
 let intervalId: ReturnType<typeof setInterval> | null = null;
+// Seeded at module load. Refreshed by `tick` and by `subscribe`. Never advanced from `getSnapshot` so the useSyncExternalStore purity contract holds (repeated reads in one render return the same reference).
 let snapshot: Date = new Date();
 let lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
 
-/**
- * Advances `snapshot` when the wall-clock minute has moved past `lastMinute`. Returns whether the snapshot changed
- * so callers can decide to notify. Safe to call from either `getSnapshot` (StrictMode double-invokes it per render)
- * or `tick`, because the returned identity is stable within a minute.
- */
 function advanceIfStale(): boolean {
     const now = new Date();
-    // Monotonic minute index (not `getMinutes()` 0–59) — catches sleep/wake gaps that land on the same minute-of-hour (10:30 → 11:30).
+    // Monotonic minute index (not `getMinutes()` 0-59) so sleep/wake gaps that land on the same minute-of-hour (10:30 → 11:30) still count as changes.
     const currentMinute = Math.floor(now.getTime() / MS_PER_MINUTE);
     if (currentMinute === lastMinute) {
         return false;
@@ -42,6 +38,12 @@ function subscribe(listener: () => void): () => void {
     if (intervalId === null) {
         intervalId = setInterval(tick, POLL_INTERVAL_MS);
     }
+    // Refresh once at subscribe time so the first paint after a long gap (device sleep, module imported but no consumer for a while) does not remain on the stale module-import snapshot. Notify any siblings still holding the old value.
+    if (advanceIfStale()) {
+        for (const other of listeners) {
+            other();
+        }
+    }
     return () => {
         listeners.delete(listener);
         if (listeners.size === 0 && intervalId !== null) {
@@ -51,13 +53,7 @@ function subscribe(listener: () => void): () => void {
     };
 }
 
-/**
- * Advances the snapshot inline if the minute has moved, so the very first render (before `subscribe` fires) sees a
- * fresh Date rather than the module-import snapshot. The check is a single Math.floor comparison and returns the
- * same reference within a minute, so StrictMode double-invocation and per-render reads stay identity-stable.
- */
 function getSnapshot(): Date {
-    advanceIfStale();
     return snapshot;
 }
 

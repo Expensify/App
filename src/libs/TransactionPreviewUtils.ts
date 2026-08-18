@@ -332,7 +332,10 @@ function getTransactionPreviewTextAndTranslationPaths({
     if (!isCreatedMissing(transaction)) {
         const created = getFormattedCreated(transaction);
         const date = DateUtils.formatTransactionListDate(created, preferredLocale);
-        previewHeaderText.unshift({text: date}, dotSeparator);
+        // Only prepend when the formatter produced a real date. Empty string would render as a leading orphan " · " before the type label.
+        if (date) {
+            previewHeaderText.unshift({text: date}, dotSeparator);
+        }
     }
 
     if (isPending(transaction)) {

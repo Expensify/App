@@ -217,13 +217,14 @@ class IntlStore {
         return IntlStore.snapshot;
     }
 
+    /**
+     * Always builds a fresh snapshot object and emits. Callers own the "did anything change?" decision, so call this
+     * only after mutating `currentLocale` or `cache`, never speculatively. Fresh identity guarantees subscribers
+     * re-render even when only the translations content changed (`seedForTests` overwriting the same locale for a
+     * hot-reload test).
+     */
     private static notifyListeners() {
-        const nextLoaded = IntlStore.cache.has(IntlStore.currentLocale);
-        // Skip when nothing derived changed, so a same-locale/same-loaded notify (fast-path re-entry, redundant load call) does not trigger unnecessary re-renders across every LocaleContext consumer.
-        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.loaded === nextLoaded) {
-            return;
-        }
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: nextLoaded};
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale)};
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -235,8 +236,6 @@ class IntlStore {
             IntlStore.loadToken++;
             // Reset the flag here — the discarded load's `.then` will bail on the token check before reaching its own reset.
             setAreTranslationsLoading(false);
-            // Notify in case the snapshot's `loaded` transitioned since the last emission (e.g. seedForTests populated the cache without going through this notify path).
-            IntlStore.notifyListeners();
             return Promise.resolve();
         }
         const loaderPromise = IntlStore.loaders[locale];
@@ -269,13 +268,13 @@ class IntlStore {
             })
             .catch((error: unknown) => {
                 Log.warn('[IntlStore] locale chunk failed to load', {locale, error});
-                // Recovery exhausted: locale never resolves, boot splash intentionally stays up — Sentry surfaces the cause so the stuck splash is diagnosable.
+                // Recovery exhausted: locale never resolves, boot splash intentionally stays up. Sentry surfaces the cause so the stuck splash is diagnosable.
                 Sentry.captureException(error, {
                     fingerprint: ['locale-load-failed'],
                     extra: {locale},
                 });
-                if (localeSpan) {
-                    // Stamp failure so the Sentry `failed:true` filter can separate stuck-splash incidents from healthy loads.
+                // Only stamp failure on the span this call started. A superseded load's failure would otherwise attribute failed:true to the successor's span (startSpan cancelled ours and installed theirs under the same id).
+                if (localeSpan && IntlStore.loadToken === token) {
                     endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
                 }
             })
