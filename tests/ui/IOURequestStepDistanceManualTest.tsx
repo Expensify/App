@@ -1,17 +1,9 @@
-// RNTL types `ReactTestInstance.props` as `any`, so reading a queried input's `.props.value` is an
-// unavoidably unsafe access, and the jest factories that spread `requireActual` results are untyped at
-// that boundary. The type assertion builds a route whose `action`/`backTo` params are typed `never`
-// but are read at runtime by the screen under test.
-// These are the only reason for the file-wide disables; nothing here silences a production-code rule.
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-unsafe-type-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
 
 import DynamicIOURequestStepDistanceManual from '@pages/iou/request/step/DynamicIOURequestStepDistanceManual';
 
@@ -32,6 +24,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // what the guard reads. Capturing react-navigation's `usePreventRemove` flag instead does not work here:
 // `ScreenWrapper/index.tsx:216` calls that hook too and renders last, so its `false` wins.
 let mockGetHasUnsavedChanges: (() => boolean) | undefined;
+// Only the two React APIs this factory needs. A namespace import of 'react' trips no-restricted-imports,
+// and `typeof import(...)` is banned, so name them off the default import instead (types are erased).
+type ReactFactoryApi = {
+    createContext: typeof React.createContext;
+    createElement: typeof React.createElement;
+};
+
 jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
     __esModule: true,
     default: (options: {getHasUnsavedChanges: () => boolean}) => {
@@ -41,7 +40,7 @@ jest.mock('@hooks/useDiscardChangesConfirmation', () => ({
 }));
 
 jest.mock('@components/LocaleContextProvider', () => {
-    const React2 = require('react');
+    const React2 = jest.requireActual<ReactFactoryApi>('react');
 
     const defaultContextValue = {
         translate: (path: string) => path,
@@ -144,6 +143,17 @@ function createDistanceTransaction(): Transaction {
     };
 }
 
+// The route types `action`/`backTo` as `never` (unused for navigation but read at runtime by the screen
+// under test), so the params object cannot be built without one assertion.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- see comment above
+const EDIT_ROUTE_PARAMS = {
+    action: CONST.IOU.ACTION.EDIT,
+    iouType: CONST.IOU.TYPE.SUBMIT,
+    reportID: REPORT_ID,
+    transactionID: TRANSACTION_ID,
+    backTo: undefined,
+} as unknown as MoneyRequestNavigatorParamList[typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL];
+
 function renderEditMode() {
     return render(
         <OnyxListItemProvider>
@@ -152,13 +162,7 @@ function renderEditMode() {
                     route={{
                         key: 'Dynamic_Money_Request_Step_Distance_Manual-test',
                         name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE_MANUAL,
-                        params: {
-                            action: CONST.IOU.ACTION.EDIT as never,
-                            iouType: CONST.IOU.TYPE.SUBMIT,
-                            reportID: REPORT_ID,
-                            transactionID: TRANSACTION_ID,
-                            backTo: undefined as never,
-                        },
+                        params: EDIT_ROUTE_PARAMS,
                     }}
                     // @ts-expect-error minimal navigation for test
                     navigation={undefined}

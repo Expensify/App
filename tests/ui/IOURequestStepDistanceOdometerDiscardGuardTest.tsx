@@ -1,17 +1,9 @@
-// RNTL types `ReactTestInstance.props` as `any`, so `odometerInput(...).props.value` and the
-// `'value' in element.props` filter below are unavoidably unsafe reads, and the jest factories that
-// spread `requireActual` results are untyped at the boundary. The non-null assertion is on the
-// `.find()` that picks the real TextInput out of the label query, which always matches on this screen.
-// These are the only reason for the file-wide disables; nothing here silences a production-code rule.
-/* eslint-disable @typescript-eslint/no-unsafe-assignment */
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
-/* eslint-disable @typescript-eslint/no-unsafe-return */
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import {act, fireEvent, render, screen} from '@testing-library/react-native';
 
 import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersonalDetailsProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
+
+import type * as DiscardChangesNative from '@hooks/useDiscardChangesConfirmation/index.native';
 
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {MoneyRequestNavigatorParamList} from '@libs/Navigation/types';
@@ -37,6 +29,13 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 // the flag stale, because React Compiler reuses the render-time result while the closure's captured values hold.
 const preventRemoveFlags: boolean[] = [];
 
+// Only the two React APIs this factory needs. A namespace import of 'react' trips no-restricted-imports,
+// and `typeof import(...)` is banned, so name them off the default import instead (types are erased).
+type ReactFactoryApi = {
+    createContext: typeof React.createContext;
+    createElement: typeof React.createElement;
+};
+
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),
     MarkerView: jest.fn(),
@@ -44,7 +43,7 @@ jest.mock('@rnmapbox/maps', () => ({
 }));
 
 jest.mock('@components/LocaleContextProvider', () => {
-    const React2 = require('react');
+    const React2 = jest.requireActual<ReactFactoryApi>('react');
     const defaultContextValue = {
         translate: (path: string) => path,
         numberFormat: (number: number) => String(number),
@@ -67,7 +66,7 @@ jest.mock('@components/LocaleContextProvider', () => {
 });
 
 // The blink this PR fixes is iOS-only, so pin the native variant rather than whichever one module resolution picks.
-jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.requireActual('@hooks/useDiscardChangesConfirmation/index.native.ts'));
+jest.mock('@hooks/useDiscardChangesConfirmation', () => jest.requireActual<typeof DiscardChangesNative>('@hooks/useDiscardChangesConfirmation/index.native.ts'));
 
 jest.mock('@libs/actions/MapboxToken', () => ({
     init: jest.fn(),
@@ -204,7 +203,13 @@ function renderCreateOdometer() {
 }
 
 // Returns the underlying TextInput (not the floating-label <Text>) for a given odometer field label
-const odometerInput = (labelKey: string) => screen.getAllByLabelText(labelKey).find((element) => 'value' in element.props)!;
+const odometerInput = (labelKey: string) => {
+    const input = screen.getAllByLabelText(labelKey).find((element) => 'value' in element.props);
+    if (!input) {
+        throw new Error(`No editable odometer input found for ${labelKey}`);
+    }
+    return input;
+};
 
 // ScreenWrapper calls usePreventRemove as well and always passes false here, so a single armed call in the render
 // pass can only have come from the discard guard. Reading the last flag alone would depend on render order.
