@@ -1057,7 +1057,7 @@ function getSecondaryReportActions({
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, report)) {
+    if (canRejectReportAction(report, currentUserAccountID)) {
         options.push(CONST.REPORT.SECONDARY_ACTIONS.REJECT);
     }
 
@@ -1192,7 +1192,7 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REMOVE_HOLD);
     }
 
-    if (canRejectReportAction(currentUserLogin, parentReport)) {
+    if (canRejectReportAction(parentReport, currentUserAccountID)) {
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.REJECT);
     }
 

@@ -9,13 +9,15 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
 
-import IOURequestStepDistance from '@pages/iou/request/step/IOURequestStepDistance';
+import DynamicIOURequestStepDistance from '@pages/iou/request/step/DynamicIOURequestStepDistance';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import type {Route} from '@src/ROUTES';
+import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {Report, Transaction} from '@src/types/onyx';
 
@@ -125,10 +127,17 @@ jest.mock('@hooks/useEnvironment', () => () => ({environment: 'development', env
 
 jest.mock('@libs/Navigation/navigationRef', () => ({
     getCurrentRoute: jest.fn(() => ({
-        name: 'Money_Request_Step_Distance',
+        name: 'Dynamic_Money_Request_Step_Distance',
         params: {},
     })),
     getState: jest.fn(() => ({})),
+    isReady: jest.fn(() => false),
+    addListener: jest.fn(() => jest.fn()),
+}));
+
+jest.mock('@hooks/useDynamicBackPath', () => ({
+    __esModule: true,
+    default: () => 'r/1',
 }));
 
 jest.mock('@libs/Navigation/Navigation', () => {
@@ -188,13 +197,13 @@ const ACCOUNT_LOGIN = 'test@user.com';
 const REPORT_ID = 'report-1';
 const TRANSACTION_ID = 'txn-1';
 const PARTICIPANT_ACCOUNT_ID = 2;
-type IOURequestStepDistanceProps = React.ComponentProps<typeof IOURequestStepDistance>;
+type IOURequestStepDistanceProps = React.ComponentProps<typeof DynamicIOURequestStepDistance>;
 
 const mockNavigation = createMock<IOURequestStepDistanceProps['navigation']>({});
 const createRoute = (action: IOURequestStepDistanceProps['route']['params']['action']): IOURequestStepDistanceProps['route'] =>
     createMock<IOURequestStepDistanceProps['route']>({
         key: 'Money_Request_Step_Distance-test',
-        name: SCREENS.MONEY_REQUEST.STEP_DISTANCE,
+        name: SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DISTANCE,
         params: {
             action,
             iouType: CONST.IOU.TYPE.SUBMIT,
@@ -250,7 +259,7 @@ function renderEditMode() {
     return render(
         <OnyxListItemProvider>
             <CurrentUserPersonalDetailsProvider>
-                <IOURequestStepDistance
+                <DynamicIOURequestStepDistance
                     route={createRoute(CONST.IOU.ACTION.EDIT)}
                     navigation={mockNavigation}
                 />
@@ -287,7 +296,7 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -319,7 +328,7 @@ describe('IOURequestStepDistance - draft transactions coverage', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -364,7 +373,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -389,7 +398,7 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -415,19 +424,11 @@ describe('IOURequestStepDistance - submitManualDistance', () => {
             await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
         });
 
-        const baseRoute = createRoute(CONST.IOU.ACTION.CREATE);
-        const route = createMock<IOURequestStepDistanceProps['route']>({
-            ...baseRoute,
-            params: {
-                ...baseRoute.params,
-                backTo: ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
-            },
-        });
         const {unmount} = render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
-                        route={route}
+                    <DynamicIOURequestStepDistance
+                        route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
                 </CurrentUserPersonalDetailsProvider>
@@ -589,7 +590,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
                 TRANSACTION_ID,
                 REPORT_ID,
                 '0',
-                ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID),
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.EDIT, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID), 'r/1' as Route),
             ),
         );
     });
@@ -609,7 +610,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -638,7 +639,7 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         render(
             <OnyxListItemProvider>
                 <CurrentUserPersonalDetailsProvider>
-                    <IOURequestStepDistance
+                    <DynamicIOURequestStepDistance
                         route={createRoute(CONST.IOU.ACTION.CREATE)}
                         navigation={mockNavigation}
                     />
@@ -650,9 +651,15 @@ describe('IOURequestStepDistance - navigateToWaypointEditPage backTo (GH #90037)
         const startWaypoint = screen.getByAccessibilityHint(/123 Main St/);
         fireEvent.press(startWaypoint, {nativeEvent: {}, type: 'press', target: startWaypoint, currentTarget: startWaypoint});
 
-        const distanceRoute = ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID);
         expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID, '0', distanceRoute),
+            ROUTES.MONEY_REQUEST_STEP_WAYPOINT.getRoute(
+                CONST.IOU.ACTION.CREATE,
+                CONST.IOU.TYPE.SUBMIT,
+                TRANSACTION_ID,
+                REPORT_ID,
+                '0',
+                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DISTANCE.getRoute(CONST.IOU.ACTION.CREATE, CONST.IOU.TYPE.SUBMIT, TRANSACTION_ID, REPORT_ID), 'r/1' as Route),
+            ),
         );
     });
 });
