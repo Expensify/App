@@ -5723,8 +5723,11 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             billPaymentAccount: {label: 'Rechnungskonto', description: 'Wählen Sie aus, von wo Sie Rechnungen bezahlen möchten, und wir erstellen die Zahlung in Rillet.'},
             syncExpensifyCardSettlements: 'Expensify Kartenabrechnungen synchronisieren',
             settlementAccount: {label: 'Verrechnungskonto für Expensify Karte', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
-            syncTravelInvoicingSettlements: 'Abrechnungen für Reiseabrechnungen synchronisieren',
-            travelInvoicingSettlementAccount: {label: 'Abrechnungskonto für Reiseabrechnungen', description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.'},
+            syncTravelInvoicingSettlements: 'Abgerechnete konsolidierte Reisekosten synchronisieren',
+            travelInvoicingSettlementAccount: {
+                label: 'Konsolidiertes Abrechnungs­konto für Geschäftsreisen',
+                description: 'Wählen Sie Ihr Abrechnungskonto, und wir erstellen die Zahlung in Rillet.',
+            },
             exportToMultipleAccounts: 'Export in mehrere Konten konfigurieren',
             cardProgramAccount: {
                 label: 'Kartenprogramm-Konto',
@@ -10052,6 +10055,11 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) =>
                     `Fordere innerhalb von ${days > 0 ? `${days}T :` : ''}${hours}Std : ${minutes}Min : ${seconds}Sek an`,
             },
+            travelInvoiceOverdue: {
+                title: 'Ihre Reiserechnung ist überfällig',
+                subtitle: (date: string) => `Bezahlen Sie Ihre Reise-Rechnung bis zum ${date}, um weiterhin Reisen buchen zu können.`,
+            },
+            travelInvoiceOverdueLocked: {title: 'Reisebuchung ist pausiert', subtitle: 'Ihre Reiseabrechnung ist überfällig. Bezahlen Sie sie, um wieder Reisen buchen zu können.'},
         },
         cardSection: {
             title: 'Zahlung',

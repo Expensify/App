@@ -5852,9 +5852,9 @@ const translations = {
                 label: 'Expensify Card settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
-            syncTravelInvoicingSettlements: 'Sync Travel Invoicing settlements',
+            syncTravelInvoicingSettlements: 'Sync Consolidated Travel Billing settlements',
             travelInvoicingSettlementAccount: {
-                label: 'Travel Invoicing settlement account',
+                label: 'Consolidated Travel Billing settlement account',
                 description: "Choose your settlement account and we'll create the payment in Rillet.",
             },
         },
@@ -10142,6 +10142,14 @@ const translations = {
             policyOwnerUnderInvoicingOverdue: {
                 title: 'Your payment info is outdated',
                 subtitle: 'Your payment is past due. Please pay your invoice.',
+            },
+            travelInvoiceOverdue: {
+                title: 'Your travel invoice is past due',
+                subtitle: (date: string) => `Pay your travel invoice by ${date} to keep booking travel.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'Travel booking is paused',
+                subtitle: 'Your travel invoice is past due. Pay it to start booking travel again.',
             },
             billingDisputePending: {
                 title: 'Your card couldn’t be charged',
