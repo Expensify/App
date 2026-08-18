@@ -889,6 +889,12 @@ function getLastMessageTextForReport({
         lastMessageTextFromReport = Parser.htmlToText(translate('workspaceActions.forcedCorporateUpgrade'));
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
         lastMessageTextFromReport = translate('workspaceActions.downgradedWorkspace');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.addedRule');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.updatedRule');
+    } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE) {
+        lastMessageTextFromReport = translate('workspaceActions.removedRule');
     } else if (isActionableAddPaymentCard(lastReportAction)) {
         lastMessageTextFromReport = getReportActionMessageText(lastReportAction);
     } else if (lastReportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.EXPORTED_TO_INTEGRATION) {
