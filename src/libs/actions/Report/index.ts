@@ -2855,7 +2855,11 @@ function readNewestAction(reportID: string | undefined, isReportActionsLoaded: b
             key: `${ONYXKEYS.COLLECTION.REPORT}${reportID}`,
             value: {
                 lastReadTime,
-                manuallyMarkedUnreadReportActionID: null,
+                // Intentionally do NOT clear `manuallyMarkedUnreadReportActionID` here. An explicit
+                // mark-as-unread should keep its "New" marker anchored even after the report is auto-read
+                // (readNewestAction fires whenever the report is focused/visible). The marker is instead
+                // reconciled when the report is re-loaded via openReport, which returns the server's
+                // authoritative value for this field.
             },
         },
     ];

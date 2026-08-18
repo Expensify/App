@@ -5610,6 +5610,35 @@ describe('ReportActionsUtils', () => {
                 }),
             ).toBe(true);
         });
+
+        it('returns false for any action that is not the marked one while a manual mark is active (sole anchor)', () => {
+            // While a manual mark-as-unread is active the marked action is the sole anchor. Every other action
+            // must be suppressed, even an unread message from another user that would otherwise qualify.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'other-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
+
+        it('returns false for the earliest-received-offline message while a different action is marked unread', () => {
+            // The manual mark takes precedence over the earliest-received-offline branch, so a non-matching
+            // action is suppressed even when it is the earliest message received while offline.
+            const message = makeAction({actorAccountID: 99, reportActionID: 'offline-action-id', created: '2023-01-01 11:00:00.000'});
+            expect(
+                shouldDisplayNewMarkerOnReportAction({
+                    ...baseParams,
+                    message,
+                    isEarliestReceivedOfflineMessage: true,
+                    manuallyMarkedUnreadReportActionID: 'marked-action-id',
+                    isOffline: false,
+                }),
+            ).toBe(false);
+        });
     });
 
     describe('getUnreadMarkerReportAction', () => {
