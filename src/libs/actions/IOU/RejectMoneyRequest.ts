@@ -944,7 +944,7 @@ function prepareRejectMoneyRequestData({
 
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
-type RejectMoneyRequestParams = {
+type RejectMoneyRequest = {
     /** Transaction being rejected. */
     transactionID: string;
     /** Report that owns the transaction. */
@@ -981,7 +981,7 @@ function rejectMoneyRequest({
     formatPhoneNumber,
     getCurrencyDecimals,
     options,
-}: RejectMoneyRequestParams): Route | undefined {
+}: RejectMoneyRequest): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
         reportID,
