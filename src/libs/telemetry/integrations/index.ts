@@ -14,4 +14,18 @@ const reportingObserverIntegration = undefined;
 // frame would look foreign. Stub for export shape parity; filtered out of the integrations list here.
 const thirdPartyErrorFilterIntegration = undefined;
 
-export {navigationIntegration, tracingIntegration, browserProfilingIntegration, breadcrumbsIntegration, consoleIntegration, reportingObserverIntegration, thirdPartyErrorFilterIntegration};
+// The GH #93837 noise this drops is web-only (injected scripts; every event we have seen is macOS Safari) and its predicate reads the
+// `third_party_code` tag that only the web integration above sets. Stub for export shape parity; filtered out
+// of the integrations list here.
+const classCallCheckNoiseFilterIntegration = undefined;
+
+export {
+    navigationIntegration,
+    tracingIntegration,
+    browserProfilingIntegration,
+    breadcrumbsIntegration,
+    consoleIntegration,
+    reportingObserverIntegration,
+    thirdPartyErrorFilterIntegration,
+    classCallCheckNoiseFilterIntegration,
+};
