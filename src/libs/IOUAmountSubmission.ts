@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
@@ -82,6 +82,7 @@ type SubmitAmountArgs = {
     amount: string;
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
     allPersonalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
@@ -108,6 +109,8 @@ type SubmitAmountArgs = {
     ownerBillingGracePeriodEnd: OnyxEntry<number>;
     conciergeReportID: OnyxEntry<string>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
+    conciergeChat: OnyxEntry<OnyxTypes.Report>;
 };
 
 /**
@@ -320,9 +323,11 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         storedTransaction,
         policyRecentlyUsedCurrencies,
         allPersonalDetails,
+        conciergeChat,
         action,
         currentUserPersonalDetails,
         isTrackIntentUser,
+        formatPhoneNumber,
         getCurrencyDecimals,
     } = args;
     const {currentUserAccountID, currentUserEmail, existingTransactionID, isASAPSubmitBetaEnabled, newAmount: backendAmount} = ctx;
@@ -359,8 +364,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 currentUser: {accountID: currentUserAccountID, email: currentUserEmail},
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 introSelected,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 quickAction,
                 recentWaypoints,
                 betas,
@@ -403,13 +407,13 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 existingTransaction: storedTransaction,
                 draftTransactionIDs: draftTransactionIDsList,
                 isSelfTourViewed,
-                // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                conciergeChat: undefined,
+                conciergeChat,
                 personalDetails: allPersonalDetails,
                 optimisticChatReportID,
                 optimisticTransactionID,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
                 getCurrencyDecimals,
             });
         }
@@ -438,7 +442,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
 }
 
 function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext): void {
-    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency} = args;
+    const {report, policy, transaction, iouType, transactionID, reportID, backToReport, shouldSkipConfirmation, selectedCurrency, getCurrencyDecimals} = args;
     const {currentUserAccountID, isSplitBill, newAmount: backendAmount} = ctx;
 
     const participants = buildReportParticipants(args);
@@ -460,7 +464,7 @@ function submitCreateWithReport(args: SubmitAmountArgs, ctx: SubmitAmountContext
     }
     if (isSplitBill && !report?.isOwnPolicyExpenseChat && report?.participants) {
         const participantAccountIDs = Object.keys(report.participants).map((accountID) => Number(accountID));
-        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID);
+        setSplitShares(transaction, backendAmount, selectedCurrency || CONST.CURRENCY.USD, participantAccountIDs, currentUserAccountID, getCurrencyDecimals);
     }
     navigateToConfirmationAfterAssigningParticipants(transactionID, report, currentUserAccountID, iouType, reportID, backToReport);
 }
@@ -592,6 +596,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         navigateBack,
         isTrackIntentUser,
         reportPolicyTags,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     } = args;
     const {currentTransaction, allowNegative, disableOppositeConversion, isSplitBill, currentUserAccountID, currentUserEmail, isASAPSubmitBetaEnabled, newAmount} = ctx;
 
@@ -614,14 +620,14 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
     const taxAmount = convertToBackendAmount(calculateTaxAmount(taxPercentage, newAmount, decimals));
 
     if (isSplitBill) {
-        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount});
+        setDraftSplitTransaction(transactionID, splitDraftTransaction, {amount: newAmount, currency: selectedCurrency, taxCode, taxAmount}, getCurrencyDecimals, getCurrencySymbol);
         navigateBack();
         return;
     }
 
     // Reset split shares for non-split-bill edits (split-bill share recalculation is handled by the confirmation list).
     if (transaction?.splitShares) {
-        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, false);
+        resetSplitShares(transaction, newAmount, selectedCurrency, currentUserAccountID, getCurrencyDecimals, false);
     }
 
     const parentReport = report?.parentReportID ? allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${report.parentReportID}`] : undefined;
@@ -647,6 +653,8 @@ function submitEditAmount(args: SubmitAmountArgs, ctx: SubmitAmountContext): voi
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     });
     navigateBack();
 }
@@ -657,7 +665,7 @@ function submitAmount(args: SubmitAmountArgs): void {
     if (!ctx.isEditing) {
         // Edits to the amount from the splits page should reset the split shares.
         if (args.transaction?.splitShares) {
-            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, true);
+            resetSplitShares(args.transaction, ctx.newAmount, args.selectedCurrency, ctx.currentUserAccountID, args.getCurrencyDecimals, true);
         }
         submitCreateAmount(args, ctx);
         return;

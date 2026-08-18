@@ -4,6 +4,8 @@ import Avatar from '@components/Avatar';
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import PressableWithoutFocus from '@components/Pressable/PressableWithoutFocus';
@@ -100,6 +102,7 @@ function ProfilePage({route}: ProfilePageProps) {
     const reportKey = isAnonymousUserSession() || !reportID ? (`${ONYXKEYS.COLLECTION.REPORT}0` as const) : (`${ONYXKEYS.COLLECTION.REPORT}${reportID}` as const);
 
     const [report] = useOnyx(reportKey);
+    const [hasReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {selector: Boolean});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.PROFILE.path);
 
@@ -128,9 +131,13 @@ function ProfilePage({route}: ProfilePageProps) {
         }
     }
 
-    const displayName = formatPhoneNumber(
-        temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, shouldAddCurrentUserPostfix: isCurrentUser, youAfterTranslation: translate('common.you').toLowerCase(), translate}),
-    );
+    const displayName = temporaryGetDisplayNameOrDefault({
+        passedPersonalDetails: details,
+        shouldAddCurrentUserPostfix: isCurrentUser,
+        youAfterTranslation: translate('common.you').toLowerCase(),
+        translate,
+        formatPhoneNumber,
+    });
 
     const fallbackIcon = details?.fallbackIcon ?? '';
     const login = details?.login ?? '';
@@ -203,6 +210,7 @@ function ProfilePage({route}: ProfilePageProps) {
                 isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
                 hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                 betas,
+                hasReportActions,
             }),
         );
     }
@@ -284,8 +292,7 @@ function ProfilePage({route}: ProfilePageProps) {
                             {shouldShowLocalTime && <AutoUpdateTime timezone={timezone} />}
                         </View>
                         {isCurrentUser && (
-                            <MenuItem
-                                shouldShowRightIcon
+                            <MenuItemNavigation
                                 title={translate('common.editYourProfile')}
                                 icon={expensifyIcons.Pencil}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PROFILE.getRoute(Navigation.getActiveRoute()))}
@@ -298,18 +305,21 @@ function ProfilePage({route}: ProfilePageProps) {
                             >
                                 <MenuItemWithTopDescription
                                     description={translate('profilePage.customInstructions')}
-                                    title={agentPrompt?.prompt?.trim() ?? ''}
+                                    title={Str.htmlDecode(agentPrompt?.prompt?.trim() ?? '')}
+                                    shouldParseTitle
+                                    excludedMarkdownRules={['reportMentions']}
+                                    shouldTruncateTitle
+                                    characterLimit={CONST.AGENT_PROMPT_LIMIT}
                                     shouldShowRightIcon
                                     onPress={() => Navigation.navigate(ROUTES.SETTINGS_AGENTS_EDIT_PROMPT.getRoute(accountID))}
-                                    numberOfLinesTitle={2}
                                 />
                             </OfflineWithFeedback>
                         )}
                         {isOwnedAgent && (
-                            <MenuItem
+                            <MenuItemAction
                                 title={translate('profilePage.copilotIntoAccount')}
                                 icon={expensifyIcons.UserPlus}
-                                onPress={callFunctionIfActionIsAllowed(() => switchToDelegator(login))}
+                                onPress={() => switchToDelegator(login)}
                             />
                         )}
                         {shouldShowNotificationPreference && (
@@ -344,10 +354,9 @@ function ProfilePage({route}: ProfilePageProps) {
                             />
                         )}
                         {!!report?.reportID && !!isDebugModeEnabled && (
-                            <MenuItem
+                            <MenuItemNavigation
                                 title={translate('debug.debug')}
                                 icon={expensifyIcons.Bug}
-                                shouldShowRightIcon
                                 onPress={() => Navigation.navigate(ROUTES.DEBUG_REPORT.getRoute(report.reportID))}
                             />
                         )}

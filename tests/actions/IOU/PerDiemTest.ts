@@ -1,4 +1,3 @@
-import {getPolicyTags} from '@libs/actions/IOU';
 import type {PerDiemExpenseTransactionParams} from '@libs/actions/IOU/PerDiem';
 import {
     addSubrate,
@@ -15,7 +14,7 @@ import type RequestMoneyParticipantParams from '@libs/actions/IOU/types/RequestM
 import CONST from '@src/CONST';
 import DateUtils from '@src/libs/DateUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {PersonalDetailsList, RecentlyUsedTags, Report} from '@src/types/onyx';
+import type {PersonalDetailsList, PolicyTagLists, RecentlyUsedTags, Report} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 import type Transaction from '@src/types/onyx/Transaction';
 import type {TransactionCustomUnit} from '@src/types/onyx/Transaction';
@@ -29,6 +28,7 @@ import createRandomPolicy from '../../utils/collections/policies';
 import createRandomPolicyCategories from '../../utils/collections/policyCategory';
 import createRandomPolicyTags from '../../utils/collections/policyTags';
 import createRandomTransaction from '../../utils/collections/transaction';
+import createMock from '../../utils/createMock';
 import getOnyxValue from '../../utils/getOnyxValue';
 import {formatPhoneNumber, getCurrencyDecimalsLocal, getGlobalFetchMock} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
@@ -67,6 +67,7 @@ describe('PerDiem', () => {
         displayName: RORY_EMAIL,
         avatar: 'https://example.com/avatar.jpg',
     };
+    let allPolicyTags: OnyxCollection<PolicyTagLists>;
 
     beforeAll(() => {
         Onyx.init({
@@ -79,10 +80,12 @@ describe('PerDiem', () => {
         return waitForBatchedUpdates();
     });
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllTimers();
         global.fetch = getGlobalFetchMock();
-        return Onyx.clear().then(waitForBatchedUpdates);
+        await Onyx.clear();
+        await waitForBatchedUpdates();
+        allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
     });
 
     describe('computePerDiemExpenseAmount', () => {
@@ -321,10 +324,10 @@ describe('PerDiem', () => {
                     accountID: 123,
                     login: 'payee@example.com',
                 },
-            };
+            } satisfies RequestMoneyParticipantParams;
 
-            const parentChatReport = {} as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as unknown as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -333,8 +336,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -430,7 +432,7 @@ describe('PerDiem', () => {
             };
 
             // When: Call getPerDiemExpenseInformation
-            const parentChatReport = {} as OnyxEntry<Report>;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -439,8 +441,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -545,8 +546,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -635,7 +635,7 @@ describe('PerDiem', () => {
                 role: CONST.REPORT.ROLE.MEMBER,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Conference per diem',
                 currency: 'USD',
                 created: '2024-01-20',
@@ -645,17 +645,17 @@ describe('PerDiem', () => {
                 billable: false,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             // When: Call getPerDiemExpenseInformation with existing chat report
-            const parentChatReport = existingChatReport as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>(existingChatReport);
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -664,14 +664,13 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                transactionParams: mockTransactionParams,
                 participantParams,
                 recentlyUsedParams: {},
                 policyTags,
@@ -737,7 +736,7 @@ describe('PerDiem', () => {
                 quantity: 1,
             };
 
-            const mockTransactionParams = {
+            const mockTransactionParams = createMock<PerDiemExpenseTransactionParams>({
                 comment: 'Policy per diem',
                 currency: 'USD',
                 created: '2024-01-25',
@@ -747,21 +746,21 @@ describe('PerDiem', () => {
                 billable: true,
                 attendees: [],
                 reimbursable: true,
-            };
+            });
 
-            const mockParticipantParams = {
+            const mockParticipantParams = createMock<RequestMoneyParticipantParams>({
                 payeeAccountID: 456,
                 payeeEmail: 'payee@example.com',
                 participant: mockParticipant,
-            };
+            });
 
             const mockPolicyParams = {
                 policy: createRandomPolicy(2),
             };
 
             // When: Call getPerDiemExpenseInformation for policy expense chat
-            const parentChatReport = {} as OnyxEntry<Report>;
-            const participantParams = mockParticipantParams as RequestMoneyParticipantParams;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
+            const participantParams = mockParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -770,14 +769,13 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: 123,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
                 parentChatReport,
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
-                transactionParams: mockTransactionParams as PerDiemExpenseTransactionParams,
+                transactionParams: mockTransactionParams,
                 participantParams,
                 policyParams: mockPolicyParams,
                 recentlyUsedParams: {},
@@ -832,6 +830,7 @@ describe('PerDiem', () => {
                 type: CONST.POLICY.TYPE.TEAM,
             });
             await waitForBatchedUpdates();
+            allPolicyTags = await getOnyxValue(ONYXKEYS.COLLECTION.POLICY_TAGS);
 
             // When submitting a per diem expense
             const report = {
@@ -852,8 +851,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
@@ -942,8 +940,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
@@ -1029,7 +1026,7 @@ describe('PerDiem', () => {
             };
 
             // When calling getPerDiemExpenseInformation with personalDetails
-            const parentChatReport = {} as OnyxEntry<Report>;
+            const parentChatReport = createMock<OnyxEntry<Report>>({});
             const participantParams = {
                 payeeAccountID: RORY_ACCOUNT_ID,
                 payeeEmail: RORY_EMAIL,
@@ -1037,7 +1034,7 @@ describe('PerDiem', () => {
                     accountID: RORY_ACCOUNT_ID,
                     login: RORY_EMAIL,
                 },
-            } as unknown as RequestMoneyParticipantParams;
+            } satisfies RequestMoneyParticipantParams;
 
             const earlyPolicyID = getPerDiemExpensePolicyID({
                 report: parentChatReport,
@@ -1046,8 +1043,7 @@ describe('PerDiem', () => {
                 betas: [CONST.BETAS.ALL],
                 currentUserAccountIDParam: RORY_ACCOUNT_ID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             const result = getPerDiemExpenseInformation({
                 dateFnsLocale: undefined,
@@ -1118,8 +1114,7 @@ describe('PerDiem', () => {
                 betas,
                 currentUserAccountIDParam: currentUserPersonalDetails.accountID,
             });
-            // TODO: Replace getPolicyTags (https://github.com/Expensify/App/issues/72721) with useOnyx hook
-            const policyTags = getPolicyTags()?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
+            const policyTags = allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${earlyPolicyID}`] ?? {};
 
             submitPerDiemExpense({
                 dateFnsLocale: undefined,
