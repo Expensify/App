@@ -24,14 +24,6 @@
 - PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
 - PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155), [#98097](https://github.com/Expensify/App/pull/98097)
 
-### [@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch](@react-navigation+native-stack+7.14.5+001+added-interaction-manager-integration.patch)
-
-- Reason: Adds `InteractionManager` implementation to `@react-navigation/native-stack`
-- Upstream PR/issue: https://github.com/react-navigation/react-navigation/pull/11887 (closed/declined upstream; we re-implement it). Still required on v7 — `runAfterInteractions` is used across the app and relies on this. Removing it is gated on migrating those consumers to `navigation.addListener('transitionEnd', ...)`, tracked in [#71913](https://github.com/Expensify/App/issues/71913). That migration works on v7 today and is not a v8-only task — v8 just forces it, since RN deprecated `InteractionManager` in 0.82+.
-- E/App issue: [#29948](https://github.com/Expensify/App/issues/29948)
-- PR Introducing Patch: [#37891](https://github.com/Expensify/App/pull/37891)
-- PR Updating Patch: [#64155](https://github.com/Expensify/App/pull/64155) 
-
 ### [@react-navigation+native+7.1.33+001+initial.patch](@react-navigation+native+7.1.33+001+initial.patch)
 
 - Reason: Allows us to use some more advanced navigation actions without messing up the browser history
