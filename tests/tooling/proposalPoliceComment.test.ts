@@ -11,21 +11,25 @@ import {
 
 import type {ProposalComment} from '@scripts/utils/ProposalPolice/ProposalPoliceConversation';
 
+import type {Conversation} from 'openai/resources/conversations/conversations';
 import type {ConversationItem} from 'openai/resources/conversations/items';
+import type {ResponseInputItem} from 'openai/resources/responses/responses';
 
 import {makeComment, VALID_PROPOSAL_BODY} from './proposalPoliceFixtures';
 
-const mockGetAllCommentDetails = jest.fn();
-const mockCreateComment = jest.fn();
-const mockMinimizeCommentAsSpam = jest.fn();
-const mockUpdateComment = jest.fn();
+// Typed to the shape each caller actually uses. bun:test's jest.fn() is otherwise `any`, which makes every
+// use of `.mock.calls` and every argument these are handed unsafe to the type-aware lint rules.
+const mockGetAllCommentDetails = jest.fn<(issueNumber: number) => Promise<ProposalComment[]>>();
+const mockCreateComment = jest.fn<(repo: string, issueNumber: number, body: string) => Promise<void>>();
+const mockMinimizeCommentAsSpam = jest.fn<(commentNodeID: string) => Promise<void>>();
+const mockUpdateComment = jest.fn<(params: {comment_id: number; body: string}) => Promise<void>>();
 
-const mockPromptResponses = jest.fn();
-const mockCreateConversation = jest.fn();
-const mockAddConversationItems = jest.fn();
-const mockListConversationItems = jest.fn();
-const mockDeleteConversationItem = jest.fn();
-const mockParseJSONResponse = jest.fn();
+const mockPromptResponses = jest.fn<() => Promise<{text: string; responseID: string}>>();
+const mockCreateConversation = jest.fn<(items?: ResponseInputItem[]) => Promise<Conversation>>();
+const mockAddConversationItems = jest.fn<(conversationID: string, items: ResponseInputItem[]) => Promise<void>>();
+const mockListConversationItems = jest.fn<(conversationID: string) => Promise<ConversationItem[]>>();
+const mockDeleteConversationItem = jest.fn<(conversationID: string, itemID: string) => Promise<void>>();
+const mockParseJSONResponse = jest.fn<(response: string) => unknown>();
 
 // `context` is a singleton the action reads at call time, so tests mutate `context.payload` directly
 // rather than re-importing per scenario.
@@ -328,8 +332,9 @@ describe('proposalPoliceComment', () => {
         expect(mockDeleteConversationItem).toHaveBeenCalledWith('conv_existing', 'item_7');
         const [, items] = mockAddConversationItems.mock.calls.at(0) ?? [];
         expect(items).toHaveLength(1);
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
-        expect(items?.at(0)).toEqual(expect.objectContaining({content: expect.stringContaining('completely different solution')}));
+        const storedItem = items?.at(0);
+        const storedContent = storedItem && 'content' in storedItem && typeof storedItem.content === 'string' ? storedItem.content : '';
+        expect(storedContent).toContain('completely different solution');
     });
 
     it('records a comment that only became a proposal on this edit', async () => {
@@ -524,7 +529,7 @@ describe('proposalPoliceComment', () => {
         // ...but with nothing yet to compare against, and the template checked in code, no model call runs at all.
         expect(mockPromptResponses).not.toHaveBeenCalled();
         // The proposal must still be recorded directly, since skipping promptResponses also skips its auto-append-to-Conversation behavior.
-        // eslint-disable-next-line @typescript-eslint/unbound-method, @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- expect.stringContaining is typed as `any`
         expect(mockAddConversationItems).toHaveBeenCalledWith('conv_new', [expect.objectContaining({content: expect.stringContaining('comment_id="1"')})]);
     });
 
