@@ -17,7 +17,7 @@ A caller driving platform `P` resolves a macro by name:
 1. `macros/<P>/<name>.ad` when that file exists.
 2. `macros/<name>.ad` otherwise.
 
-Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
+Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. (Exception: `sign-in.ad` is fully platform-scoped - `web` and `android` only - and has no unscoped fallback; a new platform such as iOS must add its own `macros/<platform>/sign-in.ad`.) Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
 
 ## Agent decision loop (interactive)
 
