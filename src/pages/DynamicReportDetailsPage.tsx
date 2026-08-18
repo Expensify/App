@@ -35,7 +35,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
-import usePermissions from '@hooks/usePermissions';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 import useReportAttributes, {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
@@ -180,10 +179,8 @@ type CaseID = ValueOf<typeof CASES>;
 function DynamicReportDetailsPage({policy, report, route, reportMetadata, reportLoadingState}: DynamicReportDetailsPageProps) {
     const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
-    const {isBetaEnabled} = usePermissions();
     const {isRestrictedToPreferredPolicy, preferredPolicyID} = usePreferredPolicy();
     const activePolicy = useActivePolicy();
-    const canUseSubmit2026 = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const lastWorkspaceNumber = useLastWorkspaceNumber();
     const styles = useThemeStyles();
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
@@ -361,11 +358,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const iouTransactionID = isMoneyRequestAction(requestParentReportAction) ? getOriginalMessage(requestParentReportAction)?.IOUTransactionID : undefined;
     const [iouTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransactionID)}`);
     const [iouOriginalTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(iouTransaction?.comment?.originalTransactionID)}`);
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
-    const hasWorkspaceToSubmitToSelector = useMemo(
-        () => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login, isSubmit2026BetaEnabled),
-        [currentUserPersonalDetails.login, isSubmit2026BetaEnabled],
-    );
+    const hasWorkspaceToSubmitToSelector = useMemo(() => createHasWorkspaceToSubmitToSelector(currentUserPersonalDetails.login), [currentUserPersonalDetails.login]);
     const [hasWorkspaceToSubmitTo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: hasWorkspaceToSubmitToSelector});
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(iouTransactionID ? [iouTransactionID] : []);
     const {deleteTransactions, shouldOpenSplitExpenseEditFlowOnDelete} = useDeleteTransactions({
@@ -573,33 +566,16 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                     filteredPoliciesCount: filteredPoliciesInfo?.filteredPoliciesCount ?? 0,
                     firstPolicyID: filteredPoliciesInfo?.firstPolicyID,
                 };
-                if (canUseSubmit2026) {
-                    // On the Submit (submit2026) plan, "Submit to someone" splits into two destinations here too, matching the
-                    // track-expense whisper: submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
-                    const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
+                // "Submit to someone" splits into two destinations here too, matching the track-expense whisper:
+                // submit to an individual ("a friend") or a submit-enabled workspace ("my employer").
+                const defaultWorkspaceName = generateDefaultWorkspaceName(currentUserPersonalDetails.email ?? '', lastWorkspaceNumber, translate, currentUserPersonalDetails.displayName);
 
-                    // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
-                    // just like it is on the track-expense whisper.
-                    if (!isSelfDMExpenseSplit) {
-                        items.push({
-                            key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
-                            translationKey: 'actionableMentionTrackExpense.submitToFriend',
-                            icon: expensifyIcons.Send,
-                            isAnonymousAction: false,
-                            shouldShowRightIcon: true,
-                            action: () => {
-                                createDraftTransactionAndNavigateToParticipantSelector({
-                                    ...baseSubmitParams,
-                                    actionName: CONST.IOU.ACTION.SUBMIT,
-                                    submitDestination: CONST.IOU.SUBMIT_DESTINATION.FRIEND,
-                                    defaultWorkspaceName,
-                                });
-                            },
-                        });
-                    }
+                // Self-DM split expenses can only be submitted to a workspace, so the "a friend" destination is omitted here
+                // just like it is on the track-expense whisper.
+                if (!isSelfDMExpenseSplit) {
                     items.push({
-                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
-                        translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_FRIEND,
+                        translationKey: 'actionableMentionTrackExpense.submitToFriend',
                         icon: expensifyIcons.Send,
                         isAnonymousAction: false,
                         shouldShowRightIcon: true,
@@ -607,26 +583,27 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                             createDraftTransactionAndNavigateToParticipantSelector({
                                 ...baseSubmitParams,
                                 actionName: CONST.IOU.ACTION.SUBMIT,
-                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                                submitDestination: CONST.IOU.SUBMIT_DESTINATION.FRIEND,
                                 defaultWorkspaceName,
                             });
                         },
                     });
-                } else {
-                    items.push({
-                        key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT,
-                        translationKey: 'actionableMentionTrackExpense.submit',
-                        icon: expensifyIcons.Send,
-                        isAnonymousAction: false,
-                        shouldShowRightIcon: true,
-                        action: () => {
-                            createDraftTransactionAndNavigateToParticipantSelector({
-                                ...baseSubmitParams,
-                                actionName: CONST.IOU.ACTION.SUBMIT,
-                            });
-                        },
-                    });
                 }
+                items.push({
+                    key: CONST.REPORT_DETAILS_MENU_ITEM.TRACK.SUBMIT_TO_EMPLOYER,
+                    translationKey: 'actionableMentionTrackExpense.submitToEmployer',
+                    icon: expensifyIcons.Send,
+                    isAnonymousAction: false,
+                    shouldShowRightIcon: true,
+                    action: () => {
+                        createDraftTransactionAndNavigateToParticipantSelector({
+                            ...baseSubmitParams,
+                            actionName: CONST.IOU.ACTION.SUBMIT,
+                            submitDestination: CONST.IOU.SUBMIT_DESTINATION.EMPLOYER,
+                            defaultWorkspaceName,
+                        });
+                    },
+                });
             }
             if (Permissions.canUseTrackFlows()) {
                 items.push({
@@ -831,7 +808,6 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         parentReport,
         delegateEmail,
         conciergeReportID,
-        canUseSubmit2026,
         lastWorkspaceNumber,
         translate,
         currentUserPersonalDetails.displayName,
