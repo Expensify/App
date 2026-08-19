@@ -1,7 +1,7 @@
 ---
 title: Configuring Booking Restrictions
 description: Learn how travel admins can restrict travel bookings in Expensify by user, country, or legal entity.
-keywords: [booking restrictions, restrict travel, block countries, user restrictions, legal entity, expensify travel, classic, new expensify]
+keywords: [booking restrictions, restrict travel, block countries, user restrictions, legal entity, expensify travel, classic, new expensify, pilot, rollout]
 ---
 
 
@@ -69,6 +69,17 @@ There are two types of restrictions:
 ## How restrictions work
 
 Restrictions will block travelers from booking specific types of travel. If a restriction applies, the reason will be displayed to the affected users if they attempt to book a restricted travel option. 
+
+---
+
+## Use booking restrictions for a phased rollout or pilot
+
+Booking restrictions let you test Expensify Travel with a small group before rolling it out to the whole company:
+
+1. Enable Expensify Travel on your workspace.
+2. Create a user restriction that includes everyone **except** your test group. For larger companies, restrict by legal entity rather than adding users one by one.
+3. Add a reason, such as *"Expensify Travel is in a limited test. Please continue using your current travel booking process."* Restricted members see this message if they attempt to book.
+4. When testing is complete, delete the restriction. All members can book immediately.
 
 ---
 
