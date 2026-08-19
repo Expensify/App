@@ -1118,16 +1118,12 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
     return datePart >= monthStart && datePart <= monthEnd;
 }
 
-/**
- * Returns a month label, e.g. "September 2025".
- */
+/** Returns a month label, e.g. "September 2025". */
 function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
     return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
 }
 
-/**
- * Returns a compact month label, e.g. "Sep ’25".
- */
+/** Returns a compact month label, e.g. "Sep ’25". */
 function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
     return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
 }
@@ -1147,16 +1143,14 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, date
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${format(end, 'MMM d, yyyy', {locale: dateFnsLocale})}`;
 }
 
-/**
- * Returns a compact date range, e.g. "Sep 1 - 7 ’25".
- */
+/** Returns a compact date range, e.g. "Sep 1 - 7, ’25". */
 function getShortFormattedDateRangeForSearch(startDate: string, endDate: string, dateFnsLocale: DateFnsLocale | undefined): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
     if (!isSameYear(start, end)) {
-        return `${format(start, 'MMM d ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d ’yy', {locale: dateFnsLocale})}`;
+        return `${format(start, 'MMM d, ’yy', {locale: dateFnsLocale})} - ${format(end, 'MMM d, ’yy', {locale: dateFnsLocale})}`;
     }
-    const formattedEnd = isSameMonth(start, end) ? format(end, 'd ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d ’yy', {locale: dateFnsLocale});
+    const formattedEnd = isSameMonth(start, end) ? format(end, 'd, ’yy', {locale: dateFnsLocale}) : format(end, 'MMM d, ’yy', {locale: dateFnsLocale});
     return `${format(start, 'MMM d', {locale: dateFnsLocale})} - ${formattedEnd}`;
 }
 

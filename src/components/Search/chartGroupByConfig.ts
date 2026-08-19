@@ -20,7 +20,7 @@ type ChartGroupByConfig = {
     /** Name of the icon rendered next to the chart title */
     titleIconName: 'Users' | 'CreditCard' | 'Send' | 'Folder' | 'Basket' | 'Tag' | 'Calendar';
 
-    /** Returns the full label for a group (e.g. "Amazon", "November 2025") */
+    /** Returns the full label for a group */
     getLabel: (item: GroupedItem) => string;
 
     /** Returns the compact label for chart axes, or undefined to fall back to `getLabel` */
