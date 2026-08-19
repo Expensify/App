@@ -1,7 +1,7 @@
 import type {SearchQueryJSON} from '@components/Search/types';
 
 import {isExpenseReport, isOptimisticPersonalDetail} from '@libs/ReportUtils';
-import {buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
+import {buildCannedSearchQuery, buildSearchQueryJSON, buildSearchQueryString, getCurrentSearchQueryJSON, getFilterFromQuery} from '@libs/SearchQueryUtils';
 import {getSuggestedSearches, isEligibleForStatus} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -113,6 +113,30 @@ function shouldOptimisticallyUpdateSearch(
     return shouldOptimisticallyUpdateByStatus && validSearchTypes && matchesFilterQuery;
 }
 
+/**
+ * The default Spend > Expenses and Reports pages render from the canned suggested-search snapshots
+ * (`type:expense` / `type:expense_report`). Those hashes are normally added to SEARCH_QUERY_BY_HASH
+ * only as a side effect of the `search()` action when the page is actually opened (see Search.ts).
+ * If the user never opened the page before going offline, that hash is absent from the map, so the
+ * fan-out loop in `getSearchOnyxUpdate` never patches the snapshot the page reads and it stays empty.
+ *
+ * These canned queries are deterministic and don't depend on a visit, so we register their hashes here
+ * and let the existing loop patch them exactly as it would after a visit. This is cheap: the query
+ * strings are trivial to build and `buildSearchQueryJSON` is internally cached.
+ */
+function getDefaultSearchQueriesByHash(): Record<string, string> {
+    const defaultQueryStrings = [buildCannedSearchQuery(), buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT})];
+    const queriesByHash: Record<string, string> = {};
+    for (const queryString of defaultQueryStrings) {
+        const queryJSON = buildSearchQueryJSON(queryString);
+        if (!queryJSON) {
+            continue;
+        }
+        queriesByHash[queryJSON.hash] = queryString;
+    }
+    return queriesByHash;
+}
+
 function getSearchOnyxUpdate({
     participant,
     transaction,
@@ -193,6 +217,12 @@ function getSearchOnyxUpdate({
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${queryJSON.hash}` as const,
             value: {
                 search: {
+                    // `hash` is what makes an optimistically-created snapshot renderable. The Search page gates
+                    // rendering on `isSearchDataLoaded`, which requires `snapshot.search.hash === queryJSON.hash`.
+                    // When the page was visited before, `search()` already stamped this hash on the snapshot, so a
+                    // partial MERGE renders; on a never-visited page the snapshot is created by this MERGE, so it
+                    // must carry the hash itself or `isSearchDataLoaded` stays false and the page shows "Nothing to show".
+                    hash: queryJSON.hash,
                     type: queryJSON.type,
                     hasResults: true,
                     isLoading: false,
@@ -252,6 +282,8 @@ function getSearchOnyxUpdate({
                     key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${groupTransactionsQueryJSON.hash}` as const,
                     value: {
                         search: {
+                            // See the note above: the per-member snapshot must carry its own hash to be renderable when created optimistically.
+                            hash: groupTransactionsQueryJSON.hash,
                             type: groupTransactionsQueryJSON.type,
                             offset: 0,
                             hasMoreResults: false,
@@ -273,11 +305,14 @@ function getSearchOnyxUpdate({
         writeForQuery(currentSearchQueryJSON, allSnapshots[`${ONYXKEYS.COLLECTION.SNAPSHOT}${currentSearchQueryJSON.hash}`]);
     }
 
-    // 2. Fan out to every other loaded snapshot whose recorded query also matches this transaction.
+    // 2. Update every other loaded snapshot whose recorded query also matches this transaction.
     //    This catches cases like creating an expense from a chat while a `from:<me>` filter or
     //    `groupBy:from` view is loaded but not the currently active search. The hash→query map is
     //    stored in a dedicated Onyx key (not on the snapshot) so SEARCH API responses can't wipe it.
-    const queryByHash = getSearchQueryByHash();
+    //    The deterministic default canned hashes (see getDefaultSearchQueriesByHash) are merged in so the
+    //    default Spend > Expenses / Reports pages are patched even when they were never visited. Onyx-recorded
+    //    queries take precedence so a real visited entry is never shadowed by the canned default.
+    const queryByHash = {...getDefaultSearchQueriesByHash(), ...getSearchQueryByHash()};
     for (const [hashString, queryString] of Object.entries(queryByHash)) {
         if (!queryString) {
             continue;
