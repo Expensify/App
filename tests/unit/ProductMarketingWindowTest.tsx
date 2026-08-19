@@ -116,10 +116,7 @@ async function setupOnyxBaseline({isAdmin, activePolicyID = POLICY_ID}: {isAdmin
     await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
     });
-    await Onyx.merge(ONYXKEYS.SESSION, {
-        email: USER_EMAIL,
-        accountID: USER_ACCOUNT_ID,
-    });
+    await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
     if (isAdmin) {
         await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
         await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, activePolicyID);
@@ -132,9 +129,7 @@ describe('ProductMarketingWindowManager', () => {
     });
 
     beforeEach(() => {
-        mockUseResponsiveLayout.mockReturnValue({
-            ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
-        });
+        mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE});
         mockUseSafeAreaPaddings.mockReturnValue({
             paddingTop: 0,
             paddingBottom: 0,
@@ -224,10 +219,7 @@ describe('ProductMarketingWindowManager', () => {
             await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, {
                 [USER_ACCOUNT_ID]: buildPersonalDetails(USER_EMAIL, USER_ACCOUNT_ID, 'User'),
             });
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                email: USER_EMAIL,
-                accountID: USER_ACCOUNT_ID,
-            });
+            await Onyx.merge(ONYXKEYS.SESSION, {email: USER_EMAIL, accountID: USER_ACCOUNT_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, buildAdminPolicy());
             await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, POLICY_ID);
             await waitForBatchedUpdatesWithAct();
@@ -242,9 +234,7 @@ describe('ProductMarketingWindowManager', () => {
     it('renders nothing for anonymous (public room) sessions', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
-            await Onyx.merge(ONYXKEYS.SESSION, {
-                authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS,
-            });
+            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -257,9 +247,7 @@ describe('ProductMarketingWindowManager', () => {
     it('renders nothing while acting as a copilot, so a delegate cannot dismiss the owner’s announcement', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                delegatedAccess: {delegate: 'copilot@example.com'},
-            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {delegatedAccess: {delegate: 'copilot@example.com'}});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -527,10 +515,7 @@ describe('ProductMarketingWindowManager', () => {
 
     it('routes the CTA to the active admin workspace when the user administers multiple workspaces', async () => {
         await act(async () => {
-            await setupOnyxBaseline({
-                isAdmin: true,
-                activePolicyID: SECOND_POLICY_ID,
-            });
+            await setupOnyxBaseline({isAdmin: true, activePolicyID: SECOND_POLICY_ID});
             await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${SECOND_POLICY_ID}`, buildAdminPolicy(SECOND_POLICY_ID));
             await waitForBatchedUpdatesWithAct();
         });
@@ -546,10 +531,7 @@ describe('ProductMarketingWindowManager', () => {
 
     it('falls back to the first eligible admin workspace when the active workspace is not administered by the user', async () => {
         await act(async () => {
-            await setupOnyxBaseline({
-                isAdmin: true,
-                activePolicyID: 'non-admin-policy',
-            });
+            await setupOnyxBaseline({isAdmin: true, activePolicyID: 'non-admin-policy'});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -563,11 +545,7 @@ describe('ProductMarketingWindowManager', () => {
     });
 
     it('uses the fixed-width bottom-right overlay on wide layouts', async () => {
-        mockUseResponsiveLayout.mockReturnValue({
-            ...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE,
-            shouldUseNarrowLayout: false,
-            isSmallScreenWidth: false,
-        });
+        mockUseResponsiveLayout.mockReturnValue({...CONST.NAVIGATION_TESTS.DEFAULT_USE_RESPONSIVE_LAYOUT_VALUE, shouldUseNarrowLayout: false, isSmallScreenWidth: false});
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
             await waitForBatchedUpdatesWithAct();
@@ -590,15 +568,9 @@ describe('ProductMarketingWindowManager', () => {
             marginBottom: 16,
         });
         expect(screen.getByText(adminBody)).toHaveStyle({marginTop: 2});
-        expect(screen.getByTestId('ProductMarketingWindowActions')).toHaveStyle({
-            marginTop: 16,
-        });
-        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({
-            minHeight: variables.componentSizeSmall,
-        });
-        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({
-            minHeight: variables.componentSizeSmall,
-        });
+        expect(screen.getByTestId('ProductMarketingWindowActions')).toHaveStyle({marginTop: 16});
+        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeSmall});
+        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeSmall});
 
         const buttons = screen.getAllByRole('button');
         expect(buttons).toHaveLength(2);
@@ -620,16 +592,10 @@ describe('ProductMarketingWindowManager', () => {
         renderManager(undefined, themePreference);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({
-            backgroundColor,
-        });
-        expect(screen.getByText(adminHeading)).toHaveStyle({
-            color: headingColor,
-        });
+        expect(screen.getByTestId('ProductMarketingWindow')).toHaveStyle({backgroundColor});
+        expect(screen.getByText(adminHeading)).toHaveStyle({color: headingColor});
         expect(screen.getByText(adminBody)).toHaveStyle({color: bodyColor});
-        expect(screen.getByText(en.common.dismiss)).toHaveStyle({
-            color: headingColor,
-        });
+        expect(screen.getByText(en.common.dismiss)).toHaveStyle({color: headingColor});
     });
 
     it('places the narrow card above the tab bar safe area and margin', async () => {
@@ -661,12 +627,8 @@ describe('ProductMarketingWindowManager', () => {
             maxWidth: variables.productMarketingWindowMaxWidthNarrow,
             padding: 20,
         });
-        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({
-            minHeight: variables.componentSizeNormal,
-        });
-        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({
-            minHeight: variables.componentSizeNormal,
-        });
+        expect(screen.getByTestId('ProductMarketingWindowDismiss')).toHaveStyle({minHeight: variables.componentSizeNormal});
+        expect(screen.getByTestId('ProductMarketingWindowCTA')).toHaveStyle({minHeight: variables.componentSizeNormal});
     });
 
     it('uses the compact card width on extra-short landscape layouts', async () => {
@@ -701,10 +663,7 @@ describe('ProductMarketingWindowManager', () => {
     it('renders nothing while the Require 2FA page is showing', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                needsTwoFactorAuthSetup: true,
-                requiresTwoFactorAuth: false,
-            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {needsTwoFactorAuthSetup: true, requiresTwoFactorAuth: false});
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -715,10 +674,7 @@ describe('ProductMarketingWindowManager', () => {
 
         // Once 2FA is set up the requirement page goes away, so the window is free to show again.
         await act(async () => {
-            await Onyx.merge(ONYXKEYS.ACCOUNT, {
-                needsTwoFactorAuthSetup: false,
-                requiresTwoFactorAuth: true,
-            });
+            await Onyx.merge(ONYXKEYS.ACCOUNT, {needsTwoFactorAuthSetup: false, requiresTwoFactorAuth: true});
             await waitForBatchedUpdatesWithAct();
         });
 
