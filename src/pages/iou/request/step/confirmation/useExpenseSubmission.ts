@@ -990,14 +990,15 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
+        // Both split paths below hardcode shouldDeferForSearch:false in the action, so reserve the channel here when the split lands back on Search.
+        if (shouldDeferSplitForSearch) {
+            reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        }
+
         // IOUs created from a group report will have a reportID param in the route.
         // Since the user is already viewing the report, we don't need to navigate them to the report
         if (iouType === CONST.IOU.TYPE.SPLIT && !transaction?.isFromGlobalCreate) {
             if (currentUserPersonalDetails.login && !!transaction) {
-                // The action hardcodes shouldDeferForSearch:false, so reserve the channel when the split lands back on Search.
-                if (shouldDeferSplitForSearch) {
-                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                }
                 splitBill({
                     getCurrencyDecimals,
                     participants: splitParticipants,
@@ -1046,10 +1047,6 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
         if (iouType === CONST.IOU.TYPE.SPLIT) {
             if (currentUserPersonalDetails.login && !!transaction) {
                 const {optimisticSplitChatReportID, chatReportID} = resolveOptimisticSplitChatReportID(undefined, splitParticipants, currentUserPersonalDetails.accountID);
-                // The action hardcodes shouldDeferForSearch:false, so reserve the channel when the split lands back on Search.
-                if (shouldDeferSplitForSearch) {
-                    reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-                }
                 splitBillAndOpenReport({
                     getCurrencyDecimals,
                     participants: splitParticipants,
