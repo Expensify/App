@@ -106,6 +106,7 @@ function TagPickerModal({
                     hasDependentTags={hasDependentTags}
                     shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>
