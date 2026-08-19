@@ -160,7 +160,10 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                 return undefined;
         }
     };
-    const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state) : undefined;
+    // `||` not `??`: bankCurrency can be an empty string, which should fall through to additionalData.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const bankAccountCurrency = bankAccountConnectedToWorkspace?.bankCurrency || bankAccountConnectedToWorkspace?.accountData?.additionalData?.currency;
+    const bankConnectionStatus = canAccessWalletConnectionStatusFeatures ? getBankAccountConnectionStatus(state, bankAccountCurrency) : undefined;
     const bankConnectionBrickRoadIndicator = bankConnectionStatus?.brickRoadIndicator ?? (hasReimburserError ? CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR : undefined);
     const bankConnectionStatusAddon = bankConnectionStatus ? (
         <ConnectionStatusBadge
