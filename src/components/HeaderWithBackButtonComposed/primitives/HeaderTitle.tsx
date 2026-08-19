@@ -9,8 +9,6 @@ import type {StepCounterParams} from '@src/languages/params';
 import type {ReactNode} from 'react';
 import type {StyleProp, TextStyle} from 'react-native';
 
-import React from 'react';
-
 type HeaderTitleProps = {
     /** Title of the header. */
     children: string;

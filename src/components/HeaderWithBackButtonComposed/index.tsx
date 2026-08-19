@@ -28,14 +28,14 @@ import HeaderActions from './zones/HeaderActions';
 import HeaderRight from './zones/HeaderRight';
 
 /**
- * Props with no real callsite left in the codebase (confirmed by census), so this scaffolding never
+ * Props with no real call site left in the codebase (confirmed by census), so this scaffolding never
  * implements them: `shouldDisableThreeDotsButton`, `threeDotsMenuIcon`, `threeDotsMenuIconFill`,
  * `singleExecution`, `shouldNavigateToTopMostReport`, `shouldOverlay`, and `parentReport`.
  * `numberOfTitleLines` is omitted too: legacy defaults it to 1 and no caller overrides it, and
  * `HeaderTitle` hardcodes that same default.
  *
  * `shouldShowRotateButton` and `shouldShowPinButton` are also omitted, along with the props that
- * only matter when they're true (`onRotateButtonPress`, `isRotating`): every real callsite passes
+ * only matter when they're true (`onRotateButtonPress`, `isRotating`): every real call site passes
  * `false`, the same as the default, so the rotate and pin buttons never render either way.
  *
  * This `Omit` is temporary scaffolding itself: the next PR drops the whole legacy prop list, so

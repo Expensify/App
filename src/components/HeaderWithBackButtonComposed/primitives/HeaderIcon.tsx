@@ -8,8 +8,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
-
 type HeaderIconProps = {
     /** Icon displayed on the left of the title. */
     src: IconAsset;
