@@ -105,7 +105,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
      * so the row's own key alone can never reflect it. A report is checked by its rows once it has them, and
      * by its own key only while it has none.
      */
-    const {isSelectAllChecked: isSelected} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
+    const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
     const {translate, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
@@ -520,7 +520,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             onButtonPress={handleOnButtonPress}
                             chatReport={chatReport}
                             isSelectAllChecked={isSelected}
-                            isIndeterminate={false}
+                            isIndeterminate={isIndeterminate}
                             isDisabledCheckbox={isDisabledCheckbox}
                             isHovered={hovered}
                             isFocused={isFocused}

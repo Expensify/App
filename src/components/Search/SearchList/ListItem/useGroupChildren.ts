@@ -15,17 +15,14 @@ type GroupCheckboxArgs = {
     groupTransactions: TransactionListItemType[];
 };
 
-/**
- * What a group's checkbox shows. Both grouped layouts read it from here: they disagreed for a round over whether a row
- * being deleted counts, and the checkbox is what the user compares between them.
- */
+/** What a group's checkbox shows. Every surface that draws one reads it from here, so they cannot disagree. */
 function useGroupCheckboxState({groupKey, groupTransactions}: GroupCheckboxArgs): {isSelectAllChecked: boolean; isIndeterminate: boolean} {
     const {selectedTransactions, excludedTransactions, areAllMatchingItemsSelected} = useSearchSelectionContext();
 
     return getGroupCheckboxState({groupKey, children: groupTransactions, selectedTransactions, excludedTransactions, areAllMatchingItemsSelected});
 }
 
-/** The same, plus the group's rows stamped with the live selection. For the two call sites that render those rows. */
+/** The same, plus the group's rows stamped with the live selection, for the call sites that render those rows. */
 function useGroupChildren({groupKey, groupTransactions}: GroupCheckboxArgs): {
     transactions: TransactionListItemType[];
     isSelectAllChecked: boolean;

@@ -37,7 +37,7 @@ function GroupChildrenContainer({
     const isContentVisible = isExpanded || isRendered;
     const {isSelectAllChecked} = useGroupCheckboxState({groupKey: item.groupKeyForList, groupTransactions: item.transactions});
 
-    // Asked of the rows this container actually holds, so a group whose children live in a snapshot it cannot see paints nothing rather than guessing.
+    // Only the rows this container holds decide its background, so a group still waiting for its first page is not painted as selected.
     const isSelected = !!item.isSelected || (item.transactions.length > 0 && isSelectAllChecked);
 
     const animatedHighlightStyle = useAnimatedHighlightStyle({
