@@ -221,7 +221,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                         // betas is safe to pass as undefined because introSelected is undefined, so the code path
                         // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                         // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
+                        openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
                     });
                 } else {
                     callback();
@@ -230,7 +230,7 @@ function replaceOptimisticReportWithActualReport(report: Report, draftReportComm
                     // betas is safe to pass as undefined because introSelected is undefined, so the code path
                     // that uses betas is never reached. Passing it explicitly so the compiler flags this when
                     // betas becomes required. Refactor issue: https://github.com/Expensify/App/issues/66424
-                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, hasReportActions, currentUserAccountID});
+                    openReport({reportID: parentReportID, introSelected: undefined, betas: undefined, conciergeChat: undefined, hasReportActions, currentUserAccountID});
                 }
                 return;
             }
