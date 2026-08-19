@@ -499,25 +499,57 @@ class Git {
 
     /**
      * Get changed files with their status (added, modified, removed, renamed).
-     * In CI, uses the GitHub API with pagination for accuracy.
+     * In CI, uses the GitHub API for accuracy, falling back to a local git diff if it can't answer.
      * Locally, uses git diff against the provided ref.
      */
     static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
         if (IS_CI) {
-            const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
-                owner: CONST.GITHUB_OWNER,
-                repo: CONST.APP_REPO,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                pull_number: context.payload.pull_request?.number ?? 0,
-                // eslint-disable-next-line @typescript-eslint/naming-convention
-                per_page: 100,
-            });
+            try {
+                const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
+                    owner: CONST.GITHUB_OWNER,
+                    repo: CONST.APP_REPO,
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    pull_number: context.payload.pull_request?.number ?? 0,
+                    // GitHub builds every file's patch to answer this, and responds 422 ("Sorry, this diff is
+                    // taking too long to generate") when one page holds too much content. A PR that touches
+                    // several large generated files trips that at 100 per page but not at 30.
+                    // eslint-disable-next-line @typescript-eslint/naming-convention
+                    per_page: 30,
+                });
 
-            return files.map((file) => ({
-                filename: file.filename,
-                status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
-                previousFilename: file.previous_filename,
-            }));
+                return files.map((file) => ({
+                    filename: file.filename,
+                    status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+                    previousFilename: file.previous_filename,
+                }));
+            } catch (error) {
+                // A big enough diff defeats the API at any page size, and a check that can't list the changed
+                // files shouldn't take the whole PR down with it. `git diff --name-status` compares the two
+                // trees directly, so it needs only those two commits and not the history between them - which
+                // is what makes it safe in CI's shallow checkout, where a merge-base diff wouldn't be. The
+                // trade-off is that it compares against `fromRef` itself rather than the merge base, so it also
+                // reports files changed only on the base branch. That errs towards reporting too many files
+                // rather than too few, which is the safe direction for the checks built on this.
+                logWarn("Could not list this PR's changed files via the GitHub API, falling back to a local git diff.", error);
+
+                const range = toRef ? `${fromRef} ${toRef}` : fromRef;
+                const {stdout} = await exec(`git diff --name-status -M ${range}`);
+
+                const statusByCode: Record<string, ChangedFile['status']> = {A: 'added', D: 'removed', M: 'modified', T: 'modified'};
+
+                return stdout
+                    .split('\n')
+                    .filter(Boolean)
+                    .map((line) => {
+                        // Renames and copies are reported as `R100\told\tnew`; everything else as `M\tpath`.
+                        const [rawStatus, firstPath, secondPath] = line.split('\t');
+                        if (rawStatus?.startsWith('R') || rawStatus?.startsWith('C')) {
+                            return {filename: secondPath ?? '', status: 'renamed' as const, previousFilename: firstPath};
+                        }
+                        return {filename: firstPath ?? '', status: statusByCode[rawStatus ?? ''] ?? 'modified'};
+                    })
+                    .filter((file) => !!file.filename);
+            }
         }
 
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
