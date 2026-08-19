@@ -304,6 +304,7 @@ function IOURequestStepOdometerImage({
                             flash={flash}
                             hasFlash={hasFlash}
                             setFlash={setFlash}
+                            didCapturePhoto={didCapturePhoto}
                         >
                             <View style={[styles.odometerPhotoInformationContainer, isInLandscapeMode && styles.w40]}>
                                 <Icon
