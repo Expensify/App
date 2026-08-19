@@ -54,17 +54,18 @@ function getOnboardingChoices(customChoices: OnboardingPurpose[]) {
 function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, route}: BaseOnboardingPurposeProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
+    const illustrations = useMemoizedLazyIllustrations(['Abacus', 'Binoculars', 'BriefcaseHandshake', 'CalculatorMoney', 'ReceiptUpload', 'PiggyBank']);
 
     const menuIcons = useMemo(
         () => ({
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: illustrations.BriefcaseHandshake,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: illustrations.ReceiptUpload,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: illustrations.Abacus,
             [CONST.ONBOARDING_CHOICES.TRACK_BUSINESS]: illustrations.CalculatorMoney,
             [CONST.ONBOARDING_CHOICES.TRACK_PERSONAL]: illustrations.PiggyBank,
             [CONST.ONBOARDING_CHOICES.LOOKING_AROUND]: illustrations.Binoculars,
         }),
-        [illustrations.Abacus, illustrations.Binoculars, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
+        [illustrations.Abacus, illustrations.Binoculars, illustrations.BriefcaseHandshake, illustrations.CalculatorMoney, illustrations.ReceiptUpload, illustrations.PiggyBank],
     );
     const {onboardingIsMediumOrLargerScreenWidth, shouldUseNarrowLayout} = useResponsiveLayout();
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
@@ -83,6 +84,7 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [hasProvidedWorkEmail] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => !!onboarding?.isMergeAccountStepCompleted});
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
@@ -108,6 +110,14 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
             onPress: () => {
                 setOnboardingPurposeSelected(choice);
                 setOnboardingErrorMessage(null);
+
+                // The work email is what identifies the company whose workspaces the user can join, so anyone who already
+                // gave one earlier in onboarding goes straight to those workspaces instead of being asked for it twice.
+                if (choice === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                    Navigation.navigate(hasProvidedWorkEmail ? ROUTES.ONBOARDING_WORKSPACES.getRoute(route.params?.backTo) : ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                    return;
+                }
+
                 if (choice === CONST.ONBOARDING_CHOICES.MANAGE_TEAM) {
                     Navigation.navigate(ROUTES.ONBOARDING_EMPLOYEES.getRoute(route.params?.backTo));
                     return;
