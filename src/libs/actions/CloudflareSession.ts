@@ -83,13 +83,15 @@ async function beginCloudflareAuthRedirect(returnURL: string = window.location.h
     try {
         const pkce = await generatePKCEPair();
         const state = generateState();
+        // Resolved before the flow record is stored, so a failed discovery leaves nothing behind
+        const authorizeURL = await buildAuthorizeURL({state, codeChallenge: pkce.codeChallenge});
         if (generation !== sessionGeneration) {
-            // Signed out while the key material was generated — do not navigate a signed-out tab
+            // Signed out while this flow was being prepared — do not navigate a signed-out tab
             throw new Error('Cloudflare auth flow was cancelled by sign-out');
         }
         // Must be stored before the navigation — module memory does not survive the unload
         savePendingAuthFlow({state, codeVerifier: pkce.codeVerifier, returnURL, createdAt: Date.now()});
-        window.location.assign(buildAuthorizeURL({state, codeChallenge: pkce.codeChallenge}));
+        window.location.assign(authorizeURL);
     } catch (error) {
         isRedirectInFlight = false;
         throw error;

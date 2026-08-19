@@ -63,7 +63,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             }
         }
 
-        const response = await fetchWithQAAuth(`${CONFIG.QA_AUTH.API_ROOT}api/CloudflareAuthProbe`, {method: CONST.NETWORK.METHOD.POST});
+        const response = await fetchWithQAAuth(`${CONFIG.QA_AUTH.API_ROOT}${CONFIG.QA_AUTH.CHECK_PATH}`, {method: CONST.NETWORK.METHOD.POST});
         if (!response.ok) {
             return {status: 'error', detail: `HTTP ${response.status}`};
         }

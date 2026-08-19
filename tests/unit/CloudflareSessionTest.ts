@@ -35,7 +35,7 @@ jest.mock('@libs/CloudflareAccess/OAuthClient', () => ({
     __esModule: true,
     // Keep the real OAuthError class — the terminal/transient split hangs on instanceof
     ...jest.requireActual<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient'),
-    buildAuthorizeURL: jest.fn(() => AUTHORIZE_URL),
+    buildAuthorizeURL: jest.fn(() => Promise.resolve(AUTHORIZE_URL)),
     exchangeCode: jest.fn(),
     refreshTokens: jest.fn(),
 }));

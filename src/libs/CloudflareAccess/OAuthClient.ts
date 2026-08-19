@@ -7,7 +7,8 @@ import {isRecord} from '@libs/ObjectUtils';
 import CONFIG from '@src/CONFIG';
 import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
-import {getAuthorizationEndpoint, getOAuthRedirectURI, getQAOrigin, getTokenEndpoint} from './Config';
+import {getAuthServerEndpoints} from './AuthServerMetadata';
+import {getOAuthRedirectURI, getQAOrigin} from './Config';
 
 /** A hung token endpoint would otherwise hold the cross-tab refresh lock indefinitely */
 const TOKEN_ENDPOINT_TIMEOUT_MS = 10_000;
@@ -24,7 +25,8 @@ class OAuthError extends Error {
 
 /** POSTs form-encoded params to the token endpoint and validates the response into a CloudflareSession */
 async function postTokenEndpoint(body: URLSearchParams): Promise<CloudflareSession> {
-    const response = await fetch(getTokenEndpoint(), {
+    const {tokenEndpoint} = await getAuthServerEndpoints();
+    const response = await fetch(tokenEndpoint, {
         method: 'POST',
         headers: [['Content-Type', 'application/x-www-form-urlencoded']],
         body: body.toString(),
@@ -67,8 +69,9 @@ async function postTokenEndpoint(body: URLSearchParams): Promise<CloudflareSessi
 }
 
 /** Builds the authorization URL the browser navigates to */
-function buildAuthorizeURL({state, codeChallenge}: {state: string; codeChallenge: string}): string {
-    const url = new URL(getAuthorizationEndpoint());
+async function buildAuthorizeURL({state, codeChallenge}: {state: string; codeChallenge: string}): Promise<string> {
+    const {authorizationEndpoint} = await getAuthServerEndpoints();
+    const url = new URL(authorizationEndpoint);
     url.searchParams.set('response_type', 'code');
     url.searchParams.set('client_id', CONFIG.QA_AUTH.CLIENT_ID);
     url.searchParams.set('redirect_uri', getOAuthRedirectURI());

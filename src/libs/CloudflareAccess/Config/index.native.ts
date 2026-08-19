@@ -15,16 +15,8 @@ function getQAOrigin(): string {
     return '';
 }
 
-function getAuthorizationEndpoint(): string {
-    return '';
-}
-
-function getTokenEndpoint(): string {
-    return '';
-}
-
 function getOAuthRedirectURI(): string {
     return '';
 }
 
-export {getAuthorizationEndpoint, getOAuthRedirectURI, getQAOrigin, getTokenEndpoint, isQAAuthConfigured, isQAServerRequest};
+export {getOAuthRedirectURI, getQAOrigin, isQAAuthConfigured, isQAServerRequest};

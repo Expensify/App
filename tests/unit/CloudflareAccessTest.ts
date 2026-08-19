@@ -2,11 +2,8 @@
  * PKCE encoding pinned to the RFC 7636 Appendix B vector, the config security boundary
  * (isQAServerRequest), and the OAuth client's request/response contract.
  */
+import type * as AuthServerMetadataModule from '@libs/CloudflareAccess/AuthServerMetadata';
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
-
-// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
-// point the module at the web implementation under test
-jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
@@ -15,12 +12,23 @@ import Base64URL from '@src/utils/Base64URL';
 
 import {webcrypto} from 'crypto';
 
+// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
+// point the module at the web implementation under test
+jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
+
+// The OAuthClient tests exercise the request/response contract, not discovery — endpoints are injected
+jest.mock('@libs/CloudflareAccess/AuthServerMetadata', () => ({
+    __esModule: true,
+    getAuthServerEndpoints: jest.fn(),
+}));
+
 // Mutable QA config the '@src/CONFIG' mock closes over — tests tweak fields per case.
 // The `mock` prefix is what lets the hoisted jest.mock factory reference it.
 const mockQAAuth = {
     API_ROOT: 'https://qa.example.com/',
     TEAM_DOMAIN: 'team.cloudflareaccess.com',
     CLIENT_ID: 'client-123',
+    CHECK_PATH: 'api/CloudflareAuthProbe',
 };
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
@@ -41,6 +49,7 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
 const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
+const {getAuthServerEndpoints} = require<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');
 const getWebCrypto = require<{default: {getRandomValues: jest.Mock; sha256: jest.Mock}}>('@libs/CloudflareAccess/getWebCrypto').default;
 
@@ -48,6 +57,7 @@ function resetQAAuthConfig() {
     mockQAAuth.API_ROOT = 'https://qa.example.com/';
     mockQAAuth.TEAM_DOMAIN = 'team.cloudflareaccess.com';
     mockQAAuth.CLIENT_ID = 'client-123';
+    mockQAAuth.CHECK_PATH = 'api/CloudflareAuthProbe';
 }
 
 beforeEach(() => {
@@ -55,6 +65,10 @@ beforeEach(() => {
     resetQAAuthConfig();
     getWebCrypto.getRandomValues.mockImplementation((array: Uint8Array) => webcrypto.getRandomValues(array));
     getWebCrypto.sha256.mockImplementation((data: BufferSource) => webcrypto.subtle.digest('SHA-256', data));
+    jest.mocked(getAuthServerEndpoints).mockResolvedValue({
+        authorizationEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization',
+        tokenEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/token',
+    });
 });
 
 describe('pkce', () => {
@@ -130,6 +144,7 @@ describe('config', () => {
         mockQAAuth.API_ROOT = '';
         mockQAAuth.TEAM_DOMAIN = '';
         mockQAAuth.CLIENT_ID = '';
+        mockQAAuth.CHECK_PATH = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
@@ -142,6 +157,12 @@ describe('config', () => {
 
     it('treats a partial config as not configured — missing client ID', () => {
         mockQAAuth.CLIENT_ID = '';
+        expect(isQAAuthConfigured()).toBe(false);
+        expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
+    });
+
+    it('treats a partial config as not configured — missing auth check path', () => {
+        mockQAAuth.CHECK_PATH = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
@@ -245,8 +266,8 @@ describe('oAuthClient', () => {
         expect(session.expiresAt).toBeGreaterThan(Date.now());
     });
 
-    it('buildAuthorizeURL carries exactly the verified parameter set', () => {
-        const url = new URL(buildAuthorizeURL({state: 'state-1', codeChallenge: 'challenge-1'}));
+    it('buildAuthorizeURL carries exactly the verified parameter set', async () => {
+        const url = new URL(await buildAuthorizeURL({state: 'state-1', codeChallenge: 'challenge-1'}));
         expect(`${url.origin}${url.pathname}`).toBe('https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization');
         expect(Object.fromEntries(url.searchParams.entries())).toEqual(
             Object.fromEntries([
@@ -262,7 +283,7 @@ describe('oAuthClient', () => {
     });
 
     it('exchangeCode posts the verified body with a redirect_uri byte-matching the authorize request', async () => {
-        const authorizeRedirectURI = new URL(buildAuthorizeURL({state: 's', codeChallenge: 'c'})).searchParams.get('redirect_uri');
+        const authorizeRedirectURI = new URL(await buildAuthorizeURL({state: 's', codeChallenge: 'c'})).searchParams.get('redirect_uri');
         const captured = mockTokenEndpoint(200, tokenBody());
 
         await exchangeCode({code: 'code-1', codeVerifier: 'verifier-1'});
@@ -298,6 +319,107 @@ describe('oAuthClient', () => {
                 ['client_id', 'client-123'],
             ]),
         );
+    });
+});
+
+describe('authServerMetadata', () => {
+    // The real Cloudflare response shape, captured from a live team. Built from entries because the
+    // protocol uses snake_case keys, which the naming-convention lint rule forbids as literal properties.
+    const VALID_METADATA_ENTRIES: Array<[string, unknown]> = [
+        ['issuer', 'https://team.cloudflareaccess.com'],
+        ['authorization_endpoint', 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization'],
+        ['token_endpoint', 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/token'],
+        ['code_challenge_methods_supported', ['S256']],
+    ];
+
+    function metadataBody(overrides: Array<[string, unknown]> = []) {
+        return Object.fromEntries([...VALID_METADATA_ENTRIES, ...overrides]);
+    }
+
+    type MetadataFetchCall = {url: string; init: RequestInit};
+
+    function mockMetadataFetch(...bodies: Array<Record<string, unknown> | Error>) {
+        const calls: MetadataFetchCall[] = [];
+        global.fetch = jest.fn().mockImplementation((url: string, init: RequestInit) => {
+            calls.push({url, init});
+            const body = bodies.at(Math.min(calls.length, bodies.length) - 1);
+            if (body instanceof Error) {
+                return Promise.reject(body);
+            }
+            return Promise.resolve({ok: true, status: 200, json: () => Promise.resolve(body)});
+        });
+        return calls;
+    }
+
+    /** Fresh module per test — the metadata cache is module state, and the file-level mock must be bypassed */
+    function requireFreshDiscovery() {
+        jest.resetModules();
+        return jest.requireActual<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata').getAuthServerEndpoints;
+    }
+
+    it('fetches the well-known document from the QA origin, with a timeout signal, and validates it', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        const calls = mockMetadataFetch(metadataBody());
+
+        await expect(getEndpoints()).resolves.toEqual({
+            authorizationEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization',
+            tokenEndpoint: 'https://team.cloudflareaccess.com/cdn-cgi/access/oauth/token',
+        });
+
+        expect(calls.at(0)?.url).toBe('https://qa.example.com/.well-known/oauth-authorization-server');
+        expect(calls.at(0)?.init.credentials).toBe('omit');
+        expect(calls.at(0)?.init.signal).toBeInstanceOf(AbortSignal);
+    });
+
+    it('is single-flight and cached: two callers share one fetch', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        const calls = mockMetadataFetch(metadataBody());
+
+        await Promise.all([getEndpoints(), getEndpoints()]);
+        await getEndpoints();
+
+        expect(calls).toHaveLength(1);
+    });
+
+    it('clears the cache after a failure, so the next attempt retries', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        const calls = mockMetadataFetch(new TypeError('Failed to fetch'), metadataBody());
+
+        await expect(getEndpoints()).rejects.toThrow('Failed to fetch');
+        const retried = await getEndpoints();
+        expect(retried.tokenEndpoint).toContain('/token');
+
+        expect(calls).toHaveLength(2);
+    });
+
+    it('rejects a document whose issuer is not the configured team domain', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        mockMetadataFetch(metadataBody([['issuer', 'https://attacker.cloudflareaccess.com']]));
+
+        await expect(getEndpoints()).rejects.toThrow('issuer does not match');
+    });
+
+    it('rejects an endpoint that does not live on the pinned issuer, even when the issuer matches', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        mockMetadataFetch(metadataBody([['token_endpoint', 'https://attacker.com/cdn-cgi/access/oauth/token']]));
+
+        await expect(getEndpoints()).rejects.toThrow('token_endpoint does not belong to the expected issuer');
+    });
+
+    it('rejects an issuer that does not support the S256 challenge method this client uses', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        mockMetadataFetch(metadataBody([['code_challenge_methods_supported', ['plain']]]));
+
+        await expect(getEndpoints()).rejects.toThrow('S256');
+    });
+
+    it('rejects a non-2xx response as a plain transient error', async () => {
+        const getEndpoints = requireFreshDiscovery();
+        global.fetch = jest.fn().mockResolvedValue({ok: false, status: 403, json: () => Promise.resolve(null)});
+
+        const failure = getEndpoints();
+        await expect(failure).rejects.toThrow('HTTP 403');
+        await expect(failure).rejects.not.toBeInstanceOf(OAuthError);
     });
 });
 

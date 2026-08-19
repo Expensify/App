@@ -145,6 +145,9 @@ export default {
         API_ROOT: qaExpensifyURL ? addTrailingForwardSlash(qaExpensifyURL) : '',
         TEAM_DOMAIN: get(Config, 'QA_CF_TEAM_DOMAIN', ''),
         CLIENT_ID: get(Config, 'QA_CF_OAUTH_CLIENT_ID', ''),
+        // Which Access-protected endpoint the test tool calls to verify auth is a property of the
+        // environment — the dev worker exposes an echo route, another QA host will offer something else
+        CHECK_PATH: get(Config, 'QA_AUTH_CHECK_PATH', '').replace(/^\/+/, ''),
     },
     SENTRY_DSN: get(Config, 'SENTRY_DSN', 'https://7b463fb4d4402d342d1166d929a62f4e@o4510228013121536.ingest.us.sentry.io/4510228107427840'),
 } as const;

@@ -14,6 +14,7 @@ const mockQAAuth = {
     API_ROOT: 'https://qa.example.com/',
     TEAM_DOMAIN: 'team.cloudflareaccess.com',
     CLIENT_ID: 'client-123',
+    CHECK_PATH: 'api/CloudflareAuthProbe',
 };
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));

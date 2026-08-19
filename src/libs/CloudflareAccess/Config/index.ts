@@ -9,9 +9,9 @@ const TEAM_DOMAIN_SHAPE = /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
 
 /** Anything short of a complete, well-formed config and every consumer behaves as if the feature is absent */
 function isQAAuthConfigured(): boolean {
-    const {API_ROOT, TEAM_DOMAIN, CLIENT_ID} = CONFIG.QA_AUTH;
+    const {API_ROOT, TEAM_DOMAIN, CLIENT_ID, CHECK_PATH} = CONFIG.QA_AUTH;
 
-    if (!API_ROOT || !TEAM_DOMAIN || !CLIENT_ID) {
+    if (!API_ROOT || !TEAM_DOMAIN || !CLIENT_ID || !CHECK_PATH) {
         return false;
     }
 
@@ -47,17 +47,9 @@ function isQAServerRequest(url: string): boolean {
     }
 }
 
-function getAuthorizationEndpoint(): string {
-    return `https://${CONFIG.QA_AUTH.TEAM_DOMAIN}/cdn-cgi/access/oauth/authorization`;
-}
-
-function getTokenEndpoint(): string {
-    return `https://${CONFIG.QA_AUTH.TEAM_DOMAIN}/cdn-cgi/access/oauth/token`;
-}
-
 /** Must be registered as an allowed redirect URI on the Access application. Read lazily: no `window` on native. */
 function getOAuthRedirectURI(): string {
     return `${window.location.origin}/oauth/callback`;
 }
 
-export {getAuthorizationEndpoint, getOAuthRedirectURI, getQAOrigin, getTokenEndpoint, isQAAuthConfigured, isQAServerRequest};
+export {getOAuthRedirectURI, getQAOrigin, isQAAuthConfigured, isQAServerRequest};
