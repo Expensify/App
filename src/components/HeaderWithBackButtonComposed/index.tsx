@@ -28,6 +28,36 @@ import HeaderActions from './zones/HeaderActions';
 import HeaderRight from './zones/HeaderRight';
 
 /**
+ * Props with no real callsite left in the codebase (confirmed by census), so this scaffolding never
+ * implements them: `shouldDisableThreeDotsButton`, `threeDotsMenuIcon`, `threeDotsMenuIconFill`,
+ * `singleExecution`, `shouldNavigateToTopMostReport`, `shouldOverlay`, and `parentReport`.
+ * `numberOfTitleLines` is omitted too: legacy defaults it to 1 and no caller overrides it, and
+ * `HeaderTitle` hardcodes that same default.
+ *
+ * `shouldShowRotateButton` and `shouldShowPinButton` are also omitted, along with the props that
+ * only matter when they're true (`onRotateButtonPress`, `isRotating`): every real callsite passes
+ * `false`, the same as the default, so the rotate and pin buttons never render either way.
+ *
+ * This `Omit` is temporary scaffolding itself: the next PR drops the whole legacy prop list, so
+ * this type goes with it. Its only job here is to make the dead, unused props explicit.
+ */
+type ComposedHeaderWithBackButtonProps = Omit<
+    HeaderWithBackButtonProps,
+    | 'shouldDisableThreeDotsButton'
+    | 'threeDotsMenuIcon'
+    | 'threeDotsMenuIconFill'
+    | 'singleExecution'
+    | 'shouldNavigateToTopMostReport'
+    | 'shouldOverlay'
+    | 'numberOfTitleLines'
+    | 'parentReport'
+    | 'shouldShowRotateButton'
+    | 'onRotateButtonPress'
+    | 'isRotating'
+    | 'shouldShowPinButton'
+>;
+
+/**
  * Temporary shape wired to the legacy `HeaderWithBackButton` prop API, assembled from the primitives
  * in `./primitives` and `./zones`. Its purpose is to make it visible, block by block, which composed
  * piece replaces which part of the legacy render and to prove each one does so correctly, and in
@@ -77,7 +107,7 @@ function HeaderWithBackButton({
     shouldMinimizeMenuButton = false,
     openParentReportInCurrentTab = false,
     shouldSkipFocusAfterTransition = false,
-}: HeaderWithBackButtonProps) {
+}: ComposedHeaderWithBackButtonProps) {
     // Avatar-header routes skip Header, so register the dialog label here.
     useDialogLabelRegistration(shouldShowReportAvatarWithDisplay ? (report?.reportName ?? '') : '');
 
