@@ -47,8 +47,8 @@ function ConfirmationUBO({onNext, onMove, isEditing, beneficialOwnerBeingModifie
         },
         {
             id: 'ssn',
-            description: translate('beneficialOwnerInfoStep.last4SSN'),
-            title: values.ssnLast4,
+            description: translate('common.ssnFull9'),
+            title: values.ssn,
             shouldShowRightIcon: true,
             onPress: () => {
                 onMove(UBO_STEP_INDEXES.SSN);
