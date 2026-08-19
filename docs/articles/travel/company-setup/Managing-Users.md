@@ -3,6 +3,7 @@
 title: Managing Users
 description: Learn how Travel Admins can view and manage traveler profiles, groups, roles, and configuration settings in Expensify Travel.
 keywords: [manage users, travel users, traveler profile, expensify travel admin, travel groups, travel roles, legal entity, secondary approvers, travel arranger]
+internalScope: Audience is Travel Admins. Covers traveler provisioning, individual traveler profile settings, and user-level group and role assignments in Expensify Travel. Does not cover creating or managing groups, role definitions, scopes, or travel policy configuration.
 
 ---
 
@@ -25,9 +26,9 @@ Only Travel Admins can manage other users' traveler profiles, groups, roles, and
 
 ---
 
-## How users are added to Expensify Travel
+## How users are provisioned to Expensify Travel
 
-Users are automatically provisioned to Expensify Travel from your Travel-enabled Expensify workspace. Users can't be manually added directly from Expensify Travel.
+Users are automatically provisioned to Expensify Travel when they belong to the Travel-enabled Expensify workspace and have it set as their default workspace. Users can't be manually added directly from Expensify Travel.
 
 To be provisioned to Expensify Travel, a user must:
 
@@ -148,7 +149,9 @@ This is helpful when using **hard approval** rules that require explicit approva
 
 Assign users who can arrange travel for this traveler.
 
-Be sure to click **Save** after editing settings to apply your changes.
+Arrangers can book and manage travel on the traveler's behalf. The users available to assign as arrangers depend on their access in Expensify Travel.
+
+For more information about managing Travel access, see Managing Groups and Roles.
 
 ---
 
@@ -172,10 +175,6 @@ To provision them again, they must remain a member of the Travel-enabled workspa
 ## What happens if I remove a user from the Travel-enabled workspace?
 
 The user is automatically deprovisioned from Expensify Travel.
-
-## Can I manually add a user in Expensify Travel?
-
-No. Users are provisioned from the Travel-enabled Expensify workspace and can't be manually added directly from Expensify Travel.
 
 ## How do I give someone Company Admin access in Expensify Travel?
 
