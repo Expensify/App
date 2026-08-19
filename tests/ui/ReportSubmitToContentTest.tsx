@@ -75,7 +75,12 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     getSubmitToEmail: jest.fn(() => 'submitter@example.com'),
-    getMemberAccountIDsForWorkspace: jest.fn(() => ({['manager@example.com']: 2, ['submitter@example.com']: 1})),
+    getMemberAccountIDsForWorkspace: jest.fn(() => {
+        const emailToAccountID: Record<string, number> = {};
+        emailToAccountID['manager@example.com'] = 2;
+        emailToAccountID['submitter@example.com'] = 1;
+        return emailToAccountID;
+    }),
     getAccountIDForSubmitManagerEmail: jest.fn(() => 2),
 }));
 jest.mock('@libs/ReportUtils', () => ({
