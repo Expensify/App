@@ -28,7 +28,6 @@ import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import fileDownload from '@libs/fileDownload';
 import {getExportFileName} from '@libs/fileDownload/FileUtils';
 import Log from '@libs/Log';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import type {SearchFullscreenNavigatorParamList} from '@libs/Navigation/types';
@@ -58,6 +57,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
@@ -73,7 +73,7 @@ import {hasOnlyPendingCardTransactions} from '@libs/TransactionUtils';
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {
     BankAccountList,
@@ -89,6 +89,7 @@ import type {
     ReportActions,
     SaveSearch,
     Transaction,
+    TransactionViolations,
 } from '@src/types/onyx';
 import type {PaymentInformation} from '@src/types/onyx/LastPaymentMethod';
 import type {ConnectionName} from '@src/types/onyx/Policy';
@@ -107,7 +108,6 @@ import Onyx from 'react-native-onyx';
 import type {AdditionalPayOnyxData} from './IOU/PayMoneyRequest';
 import type {RejectMoneyRequestData} from './IOU/RejectMoneyRequest';
 
-import {getAllTransactionViolations} from './IOU';
 import {payMoneyRequest} from './IOU/PayMoneyRequest';
 import {prepareRejectMoneyRequestData, rejectMoneyRequest} from './IOU/RejectMoneyRequest';
 import {approveMoneyRequest} from './IOU/ReportWorkflow';
@@ -139,6 +139,24 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
     return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+}
+
+/**
+ * Returns the chat report to pay with. When the chat isn't loaded, builds a fallback from the known IDs so the
+ * payment isn't blocked; isFallbackChatReport tells payMoneyRequest to skip the optimistic chat updates.
+ */
+function getChatReportWithFallback(
+    loadedChatReport: OnyxEntry<Report>,
+    fallbackChatReportID: string | undefined,
+    fallbackPolicyID: string | undefined,
+): {chatReport: OnyxEntry<Report>; isFallbackChatReport: boolean} {
+    if (loadedChatReport) {
+        return {chatReport: loadedChatReport, isFallbackChatReport: false};
+    }
+    if (!fallbackChatReportID) {
+        return {chatReport: undefined, isFallbackChatReport: false};
+    }
+    return {chatReport: {reportID: fallbackChatReportID, policyID: fallbackPolicyID}, isFallbackChatReport: true};
 }
 
 function getReportFromSearchSnapshot(reportID: string | undefined, searchData: SearchResultDataType | undefined, allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
@@ -224,6 +242,7 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
+    onAllHeldExpensesBlock?: () => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -241,6 +260,7 @@ type HandleActionButtonPressParams = {
     delegateEmail?: string;
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
     conciergeChat: OnyxEntry<Report>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
@@ -264,6 +284,7 @@ function handleActionButtonPress({
     onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
+    onAllHeldExpensesBlock,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -280,6 +301,7 @@ function handleActionButtonPress({
     delegateEmail,
     delegateAccountID,
     isTrackIntentUser,
+    allViolations,
     conciergeChat,
     getCurrencyDecimals,
 }: HandleActionButtonPressParams) {
@@ -367,6 +389,7 @@ function handleActionButtonPress({
                 delegateAccountID,
                 isTrackIntentUser,
                 ownerLogin: submitterLogin,
+                allViolations,
                 getCurrencyDecimals,
             });
             return;
@@ -380,6 +403,10 @@ function handleActionButtonPress({
             }
             if (hasOnlyPendingCardTransactions(allReportTransactions)) {
                 onPendingCardTransactionsBlock?.();
+                return;
+            }
+            if (hasOnlyHeldExpenses(allReportTransactions)) {
+                onAllHeldExpensesBlock?.();
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
@@ -666,6 +693,7 @@ type GetApproveActionCallbackParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    allViolations: OnyxCollection<TransactionViolations>;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
@@ -686,6 +714,7 @@ function getApproveActionCallback({
     delegateAccountID,
     isTrackIntentUser,
     ownerLogin,
+    allViolations,
     getCurrencyDecimals,
 }: GetApproveActionCallbackParams) {
     if (!item.reportID) {
@@ -693,8 +722,7 @@ function getApproveActionCallback({
     }
 
     const reportPolicy = policy ?? snapshotPolicy;
-    // eslint-disable-next-line @typescript-eslint/no-deprecated -- using deprecated getAllTransactionViolations until #66512 migrates this call
-    const hasViolations = hasViolationsReportUtils(item.reportID, getAllTransactionViolations(), currentUserAccountID, currentUserLogin ?? '');
+    const hasViolations = hasViolationsReportUtils(item.reportID, allViolations, currentUserAccountID, currentUserLogin ?? '');
     const isASAPSubmitBetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.ASAP_SUBMIT, betas);
 
     approveMoneyRequest({
@@ -2069,6 +2097,7 @@ function handleBulkPayItemSelected(params: {
     setPendingPaymentAdditionalData?: (data: BulkPaySelectionData | undefined) => void;
     currentUserAccountID: number;
     isOffline: boolean;
+    verifyAccountAndResume: (retry?: () => void) => void;
 }) {
     const {
         item,
@@ -2089,6 +2118,7 @@ function handleBulkPayItemSelected(params: {
         setPendingPaymentAdditionalData,
         currentUserAccountID,
         isOffline,
+        verifyAccountAndResume,
     } = params;
     const {paymentType, policyFromPaymentMethod, policyFromContext, shouldSelectPaymentMethod} = getActivePaymentType(item.key, activeAdminPolicies, businessBankAccountOptions, policy?.id);
     // Early return if item is not a valid payment method and not a policy-based payment option
@@ -2125,7 +2155,8 @@ function handleBulkPayItemSelected(params: {
 
     if (!isUserValidated && item.key !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
         Log.info('[BulkPay] Blocking bulk pay: user is not validated, redirecting to account verification');
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        // Store the pending bulk pay so it resumes after the user validates, instead of being dropped on the way to the magic-code screen.
+        verifyAccountAndResume(() => handleBulkPayItemSelected({...params, isUserValidated: true}));
         return;
     }
 
@@ -2297,6 +2328,7 @@ export {
     setSearchContext,
     deleteSavedSearch,
     getSearchPayOnyxData,
+    getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,

@@ -2453,15 +2453,20 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
 /**
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
+ *
+ * Callers that need to react to the report data arriving (rather than reading whatever the module-scoped
+ * copy happens to hold at call time) can pass their own subscribed collections through `reportNameValuePairs`
+ * and `reports`. Both fall back to the module-scoped copies when omitted.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     openOnAdminRoom = false,
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reports?: OnyxCollection<Report>,
 ): OnyxEntry<Report> {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
-    let reportsValues = Object.values(deprecatedAllReports ?? {});
+    let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
         const adminReport = reportsValues.find((report) => {
@@ -4137,7 +4142,7 @@ function getIcons(
 }
 
 const getIconDisplayName = (icon: Icon, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
-    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
+    icon.displayName ?? (icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '');
 
 function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
     return icons.sort((first, second) => {
@@ -5578,8 +5583,7 @@ const changeMoneyRequestHoldStatus = (
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
     } else {
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
     }
 };
 

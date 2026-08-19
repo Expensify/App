@@ -658,6 +658,9 @@ type OriginalMessagePolicyChangeLog = {
     /** Updated tag enabled/disabled value */
     enabled?: boolean;
 
+    /** Who pays the currency conversion fees on cross-border reimbursements */
+    preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>;
+
     /** Default value of a report field */
     defaultValue?: string;
 
