@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import type {StepCounterParams} from '@src/languages/params';
 
 import type {ReactNode} from 'react';
+import type {StyleProp, TextStyle} from 'react-native';
 
 import React from 'react';
 
@@ -19,6 +20,9 @@ type HeaderTitleProps = {
 
     /** Title color. */
     titleColor?: string;
+
+    /** Additional styles to apply to the title text. */
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Data to display a step counter in the header. When set, it replaces the subtitle. */
     stepCounter?: StepCounterParams;
@@ -33,7 +37,7 @@ type HeaderTitleProps = {
     shouldUseHeadlineHeader: boolean;
 };
 
-function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
+function HeaderTitle({children, subtitle = '', titleColor, titleStyles, stepCounter, subTitleLink = '', shouldSkipFocusAfterTransition = false, shouldUseHeadlineHeader}: HeaderTitleProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {translate} = useLocalize();
@@ -42,7 +46,7 @@ function HeaderTitle({children, subtitle = '', titleColor, stepCounter, subTitle
         <Header
             title={children}
             subtitle={stepCounter ? translate('stepCounter', stepCounter.step, stepCounter.total, stepCounter.text) : subtitle}
-            textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2]}
+            textStyles={[titleColor ? StyleUtils.getTextColorStyle(titleColor) : {}, shouldUseHeadlineHeader && styles.textHeadlineH2, titleStyles]}
             subTitleLink={subTitleLink}
             numberOfTitleLines={1}
             isScreenHeader

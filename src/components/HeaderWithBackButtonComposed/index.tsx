@@ -64,6 +64,7 @@ function HeaderWithBackButton({
     subtitle = '',
     title = '',
     titleColor,
+    titleStyles,
     threeDotsAnchorAlignment = DEFAULT_ANCHOR_ALIGNMENT,
     threeDotsMenuItems = [],
     shouldEnableDetailPageNavigation = false,
@@ -155,6 +156,7 @@ function HeaderWithBackButton({
                         subtitle={subtitle}
                         stepCounter={stepCounter}
                         titleColor={titleColor}
+                        titleStyles={titleStyles}
                         subTitleLink={subTitleLink}
                         shouldSkipFocusAfterTransition={shouldSkipFocusAfterTransition}
                         shouldUseHeadlineHeader={shouldUseHeadlineHeader}
