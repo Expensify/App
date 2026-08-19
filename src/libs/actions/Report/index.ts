@@ -1325,7 +1325,6 @@ function addAttachmentWithComment({
     }
 
     // Multiple attachments - first: combine text + first attachment as a single action
-    // Only a lone attachment threads, since each of several attachments posts its own message.
     addActions({
         report,
         notifyReportID,
