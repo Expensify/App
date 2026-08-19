@@ -392,6 +392,7 @@ describe('BankAccountUtils', () => {
                     messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
                     actionKey: 'common.actionBadge.fix',
                     tone: 'danger',
+                    badgeTone: 'success',
                     brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
                 });
             });
