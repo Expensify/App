@@ -1,23 +1,23 @@
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
+import useThemeStyles from '@hooks/useThemeStyles';
 
 import {Keyboard, View} from 'react-native';
 
 import type HeaderProps from './types';
 
-import {HeaderContext} from './context';
-import useHeaderStyles from './styles';
+import HeaderContext from './context';
 
 /** Composed counterpart of `HeaderWithBackButton` — content is composed from `Header.Left`/`Center`/`Right` zones and blocks (see the barrel for a full example). */
 function Header({children, shouldUseHeadlineHeader = false, style}: HeaderProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, style});
+    const styles = useThemeStyles();
 
     return (
         <View
-            style={containerStyle}
+            style={[styles.headerBar, shouldUseHeadlineHeader && styles.headerBarHeight, style]}
             onTouchStart={isInLandscapeMode ? () => Keyboard.dismiss() : undefined}
         >
-            <View style={innerRowStyle}>
+            <View style={[styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3]}>
                 <HeaderContext.Provider
                     value={{
                         shouldUseHeadlineHeader,

@@ -111,32 +111,6 @@ function HeaderWithBackButton({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
 
-    const threeDotMenuTooltipsSection = (
-        <>
-            {shouldShowThreeDotsButton &&
-                threeDotsMenuItems.length === 1 &&
-                shouldMinimizeMenuButton && (
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- length === 1 guarantees .at(0) is defined; the fallback only satisfies the type checker.
-                    <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
-                )}
-            {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
-                <HeaderThreeDotsMenu
-                    items={threeDotsMenuItems}
-                    onIconPress={onThreeDotsButtonPress}
-                    shouldOverlay={shouldOverlayDots}
-                    anchorAlignment={threeDotsAnchorAlignment}
-                    shouldSetModalVisibility={shouldSetModalVisibility}
-                />
-            )}
-            {shouldShowCloseButton && (
-                <HeaderCloseButtonTooltip
-                    iconFill={iconFill}
-                    onPress={onCloseButtonPress}
-                />
-            )}
-        </>
-    );
-
     return (
         <Header
             style={[shouldShowBorderBottom && styles.borderBottom, style]}
@@ -199,7 +173,27 @@ function HeaderWithBackButton({
                         />
                     )}
                 </HeaderActions>
-                {threeDotMenuTooltipsSection}
+                {shouldShowThreeDotsButton &&
+                    threeDotsMenuItems.length === 1 &&
+                    shouldMinimizeMenuButton && (
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- length === 1 guarantees .at(0) is defined; the fallback only satisfies the type checker.
+                        <HeaderMenuItemButtonTooltip threeDotsMenuItem={threeDotsMenuItems.at(0) ?? ({} as PopoverMenuItem)} />
+                    )}
+                {shouldShowThreeDotsButton && !(threeDotsMenuItems.length === 1 && shouldMinimizeMenuButton) && (
+                    <HeaderThreeDotsMenu
+                        items={threeDotsMenuItems}
+                        onIconPress={onThreeDotsButtonPress}
+                        shouldOverlay={shouldOverlayDots}
+                        anchorAlignment={threeDotsAnchorAlignment}
+                        shouldSetModalVisibility={shouldSetModalVisibility}
+                    />
+                )}
+                {shouldShowCloseButton && (
+                    <HeaderCloseButtonTooltip
+                        iconFill={iconFill}
+                        onPress={onCloseButtonPress}
+                    />
+                )}
                 {shouldDisplaySearchRouter && <SearchButton />}
                 {shouldDisplayHelpButton && <SidePanelButton />}
             </HeaderRight>
