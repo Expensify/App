@@ -54,7 +54,7 @@ When a trip requires approval, approvers receive a notification with the availab
 
 Because a Pre-Booking Approval request doesn't reserve the fare, room, seat, or rental car while approval is pending, the original price and availability aren't guaranteed. Prices may change, or the selected option may no longer be available by the time approval is given.
 
-These settings are configured within each travel policy under Program > Policies > select a policy > General > Policy group actions.
+These settings are configured within each travel policy under **Program** > **Policies** > **select a policy** > **General** > **Policy group actions**.
 
 ---
 
@@ -64,10 +64,10 @@ When a travel policy uses Pre-Booking Approval, the traveler must receive approv
 
 Here is how the approval process works:
 
-1. The traveler submits a Pre-Booking Approval request during checkout by clicking Request approval.
+1. The traveler submits a Pre-Booking Approval request during checkout by clicking **Request approval**.
 2. The approver receives an email notification with the trip details, including the origin, destination, and travel dates.
-3. The approver reviews the request under Trips > Approvals or directly from the email notification.
-4. The approver clicks Approve or Deny.
+3. The approver reviews the request under **Trips** > **Approvals** or directly from the email notification.
+4. The approver clicks **Approve** or **Deny**.
 
 The approver has 24 hours to respond to the request. If the request isn't approved within 24 hours, it expires and no booking is made.
 
