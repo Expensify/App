@@ -86,7 +86,6 @@ function useReceiptScanDrop() {
 
         if (
             isGroupPolicy(activePolicy) &&
-            activePolicy?.isPolicyExpenseChatEnabled &&
             !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID)
         ) {
             const shouldAutoReport = !!activePolicy?.autoReporting || !!personalPolicy?.autoReporting;
