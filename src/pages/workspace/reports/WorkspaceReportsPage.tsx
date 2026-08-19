@@ -13,7 +13,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
 
 import useConfirmModal from '@hooks/useConfirmModal';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
@@ -31,7 +31,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getConnectedIntegration, hasAccountingConnections as hasAccountingConnectionsPolicyUtils, isControlPolicy, shouldShowSyncError} from '@libs/PolicyUtils';
 import {getTitleFieldWithFallback} from '@libs/ReportUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 import {getReportFieldTypeTranslationKey} from '@libs/WorkspaceReportFieldUtils';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
@@ -87,7 +86,6 @@ function WorkspaceReportFieldsPage({
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const hasAccountingConnections = hasAccountingConnectionsPolicyUtils(policy);
 
-    const illustrations = useMemoizedLazyIllustrations(['ReportReceipt']);
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
 
     const onDisabledOrganizeSwitchPress = () => {
@@ -154,7 +152,6 @@ function WorkspaceReportFieldsPage({
         );
 
     const isLoading = !isOffline && policy === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceReportFieldsPage', isOffline, isPolicyUndefined: policy === undefined};
 
     const renderItem = ({item}: ListRenderItemInfo<ReportFieldForList>) => (
         <OfflineWithFeedback pendingAction={item.pendingAction}>
@@ -224,7 +221,6 @@ function WorkspaceReportFieldsPage({
                 offlineIndicatorStyle={styles.mtAuto}
             >
                 <HeaderWithBackButton
-                    icon={illustrations.ReportReceipt}
                     title={translate('common.reports')}
                     shouldUseHeadlineHeader
                     shouldShowBackButton={shouldUseNarrowLayout}
@@ -235,7 +231,6 @@ function WorkspaceReportFieldsPage({
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={styles.flex1}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (

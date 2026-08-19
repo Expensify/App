@@ -19,6 +19,8 @@ import Onyx from 'react-native-onyx';
 
 import createMockPaymentMethod from '../utils/collections/paymentMethods';
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
+import {getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 jest.mock('@libs/Navigation/Navigation', () => ({
@@ -41,12 +43,12 @@ describe('PaymentUtils', () => {
     describe('getActivePaymentType', () => {
         const randomPolicyA = createRandomPolicy(1);
         const randomPolicyB = createRandomPolicy(2);
-        const bankItem = {
+        const bankItem = createMock<BankAccountMenuItem>({
             text: 'Bank Account',
             description: 'Test bank',
             methodID: 1,
             value: CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT,
-        } as BankAccountMenuItem;
+        });
 
         it('should return EXPENSIFY payment type when paymentMethod is PERSONAL_BANK_ACCOUNT', () => {
             const result = getActivePaymentType(CONST.PAYMENT_METHODS.PERSONAL_BANK_ACCOUNT, [], undefined);
@@ -130,8 +132,8 @@ describe('PaymentUtils', () => {
     });
 
     describe('selectPaymentType', () => {
-        const mockNavigate = Navigation.navigate as jest.MockedFunction<typeof Navigation.navigate>;
-        const mockShouldRestrict = shouldRestrictUserBillableActions as jest.MockedFunction<typeof shouldRestrictUserBillableActions>;
+        const mockNavigate = jest.mocked(Navigation.navigate);
+        const mockShouldRestrict = jest.mocked(shouldRestrictUserBillableActions);
         const mockOnPress = jest.fn();
         const mockTriggerKYCFlow = jest.fn();
         const mockConfirmApproval = jest.fn();
@@ -140,6 +142,7 @@ describe('PaymentUtils', () => {
 
         const baseParams: SelectPaymentTypeParams = {
             event: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
             iouPaymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
             triggerKYCFlow: mockTriggerKYCFlow,
             expenseReportPolicy: testPolicy,
@@ -246,6 +249,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,
@@ -275,6 +279,7 @@ describe('PaymentUtils', () => {
             selectPaymentType(params);
 
             expect(approveMoneyRequest).toHaveBeenCalledWith({
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
                 expenseReport: params.iouReport,
                 expenseReportPolicy: params.expenseReportPolicy,
                 currentUserAccountIDParam: params.currentAccountID,

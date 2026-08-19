@@ -23,7 +23,6 @@ function NetSuiteSetupPage({route}: NetSuiteSetupPageProps) {
         <AccountingSetupWebViewPage
             uri={getNetSuiteSetupLink(policyID, accountID)}
             testID="NetSuiteSetupPage"
-            context="NetSuiteSetupPage"
             shouldAppendShortLivedAuthToken
             backTo={ROUTES.POLICY_ACCOUNTING.getRoute(policyID)}
         />

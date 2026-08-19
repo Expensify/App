@@ -50,7 +50,7 @@ function SearchPage({route}: SearchPageProps) {
 
     const [lastNonEmptySearchResults, setLastNonEmptySearchResults] = useState<SearchResults | undefined>(undefined);
 
-    const {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode} = useSearchPageSetup(currentSearchQueryJSON);
+    useSearchPageSetup(currentSearchQueryJSON);
     useSeedMyExpensesSearch();
 
     // Adjust state during rendering rather than in a useEffect: the value is consumed in the same
@@ -111,19 +111,13 @@ function SearchPage({route}: SearchPageProps) {
         setIsSorting(false);
     }, [currentSearchResults?.isLoading, isSorting, prevIsLoading]);
 
-    const handleSearchAction = useCallback(
-        (value: SearchParams | string) => {
-            if (typeof value === 'string') {
-                searchInServer(value);
-            } else {
-                setSearchRequestResponseStatusCode(null);
-                search(value)?.then((jsonCode) => {
-                    setSearchRequestResponseStatusCode(Number(jsonCode ?? 0));
-                });
-            }
-        },
-        [setSearchRequestResponseStatusCode],
-    );
+    const handleSearchAction = useCallback((value: SearchParams | string) => {
+        if (typeof value === 'string') {
+            searchInServer(value);
+        } else {
+            search(value);
+        }
+    }, []);
 
     const onSortPressedCallback = useCallback(() => {
         setIsSorting(true);
@@ -149,8 +143,6 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageNarrow
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
-                            setSearchRequestResponseStatusCode={setSearchRequestResponseStatusCode}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             onSortPressedCallback={onSortPressedCallback}
                             searchOverlayContent={searchOverlayContent}
@@ -162,7 +154,6 @@ function SearchPage({route}: SearchPageProps) {
                         <SearchPageWide
                             queryJSON={currentSearchQueryJSON}
                             searchResults={searchResults}
-                            searchRequestResponseStatusCode={searchRequestResponseStatusCode}
                             isMobileSelectionModeEnabled={isMobileSelectionModeEnabled}
                             handleSearchAction={handleSearchAction}
                             onSortPressedCallback={onSortPressedCallback}

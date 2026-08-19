@@ -6,6 +6,8 @@ import type {PopoverMenuItem} from '@components/PopoverMenu';
 import type {BankAccountMenuItem} from '@components/Search/types';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
+
 import type {ThemeStyles} from '@styles/index';
 
 import CONST from '@src/CONST';
@@ -56,6 +58,7 @@ type SelectPaymentTypeParams = {
     delegateAccountID: number | undefined;
     isTrackIntentUser: boolean | undefined;
     ownerLogin: string | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
 };
 
 type BusinessBankAccountOption = {
@@ -231,6 +234,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
         delegateAccountID,
         isTrackIntentUser,
         ownerLogin,
+        getCurrencyDecimals,
     } = params;
     if (policy && shouldRestrictUserBillableActions(policy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentAccountID)) {
         Navigation.navigate(ROUTES.RESTRICTED_ACTION.getRoute(policy.id));
@@ -267,6 +271,7 @@ const selectPaymentType = (params: SelectPaymentTypeParams) => {
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                getCurrencyDecimals,
             });
         }
         return;
