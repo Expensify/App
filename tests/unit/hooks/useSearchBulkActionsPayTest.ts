@@ -294,7 +294,7 @@ describe('useSearchBulkActions - Pay option', () => {
         // When the bulk actions hook computes the header dropdown options
         const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
 
-        // Then the Pay option should still be offered because being offline only defers the payment, it does not make the selection unpayable
+        // Then the Pay option should still be offered because being offline only defers the payment
         await waitFor(() => {
             expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
         });
