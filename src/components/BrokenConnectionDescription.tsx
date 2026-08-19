@@ -45,25 +45,19 @@ function BrokenConnectionDescription({transactionID, policy, report}: BrokenConn
         return translate('violations.brokenConnection530Error');
     }
 
-    if (brokenConnectionReauthError) {
-        if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
-            return <RenderHTML html={translate('violations.adminReauthConnectionError', {workspaceCompanyCardRoute})} />;
-        }
-        if (isReportApproved({report}) || isReportManuallyReimbursed(report)) {
-            return translate('violations.memberReauthConnectionError');
-        }
-        return `${translate('violations.memberReauthConnectionError')} ${translate('violations.markAsCashToIgnore')}`;
-    }
+    const isReauth = !!brokenConnectionReauthError;
+    const adminErrorKey = isReauth ? 'violations.adminReauthConnectionError' : 'violations.adminBrokenConnectionError';
+    const memberErrorKey = isReauth ? 'violations.memberReauthConnectionError' : 'violations.memberBrokenConnectionError';
 
     if (isPolicyAdmin && !isCurrentUserSubmitter(report)) {
-        return <RenderHTML html={translate('violations.adminBrokenConnectionError', {workspaceCompanyCardRoute})} />;
+        return <RenderHTML html={translate(adminErrorKey, {workspaceCompanyCardRoute})} />;
     }
 
     if (isReportApproved({report}) || isReportManuallyReimbursed(report)) {
-        return translate('violations.memberBrokenConnectionError');
+        return translate(memberErrorKey);
     }
 
-    return `${translate('violations.memberBrokenConnectionError')} ${translate('violations.markAsCashToIgnore')}`;
+    return `${translate(memberErrorKey)} ${translate('violations.markAsCashToIgnore')}`;
 }
 
 export default BrokenConnectionDescription;
