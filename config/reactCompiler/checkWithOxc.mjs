@@ -14,6 +14,11 @@
  * violates the Rules of React reports `memoized: false` rather than the partial memoization the
  * compiler would otherwise emit for its remaining functions. `didBothCompilersMemoizeFile` relies
  * on that, since it may only suppress manual-memoization lint rules when the whole file is memoized.
+ *
+ * Memoization is detected purely from the emitted memo cache. Targeting React 19 the compiler can
+ * only memoize by importing `react/compiler-runtime` and allocating `_c(n)` slots, so the marker
+ * below is both necessary and sufficient -- verified across every `src/` file, none of which emits
+ * a memo cache the marker misses.
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
@@ -91,17 +96,6 @@ function checkReactCompilerWithOxc(source, filename) {
         }
 
         if (result.code && REACT_COMPILER_MARKER_PATTERN.test(result.code)) {
-            return {
-                status: 'compiled',
-                memoized: true,
-                errors: [],
-            };
-        }
-
-        // Hook-only .ts files compile successfully without emitting _c(...) markers.
-        // Compare against a plain transform to detect compiler activity.
-        const plainResult = transformSync(filename, source, {lang, reactCompiler: false});
-        if (result.code && plainResult.code && result.code !== plainResult.code) {
             return {
                 status: 'compiled',
                 memoized: true,
