@@ -177,13 +177,13 @@ function useRecentlyAddedData(): RecentlyAddedData {
     const hasSearchErrors = Object.keys(searchResults?.errors ?? {}).length > 0;
 
     // A failed search deletes the snapshot's `data` outright (see the failureData in `getOnyxLoadingData`), and the
-    // slot only refetches when Home regains focus or the query changes. A user sitting on Home would therefore lose
+    // slot only fetches again when Home regains focus or the query changes. A user sitting on Home would therefore lose
     // their rows to a single failed request and be told they have no expenses until they navigated away and back.
     // Remembering the last data we rendered covers exactly that gap.
     //
     // Two conditions keep the remembered copy from outliving what it describes. It is paired with the hash it was
     // fetched for, because a delegate switch clears Onyx without unmounting Home and the new accountID produces a new
-    // hash, so an unkeyed copy would render the previous account's expenses. And it is only substituted while `errors`
+    // hash, so a copy without that pairing would render the previous account's expenses. And it is only substituted while `errors`
     // are latched, because every other reason `data` can be absent is one where Onyx is right and the cache is wrong:
     // a successful response that carried no data, an eviction (SNAPSHOT is an evictable key), or a plain clear.
     //
@@ -351,4 +351,4 @@ function useRecentlyAddedData(): RecentlyAddedData {
 }
 
 export {useRecentlyAddedData};
-export type {RecentlyAddedData, RecentlyAddedExpense};
+export type {RecentlyAddedExpense};
