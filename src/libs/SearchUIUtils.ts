@@ -3139,7 +3139,7 @@ function getReportSections({
                     policy,
                     reportIsArchived,
                     // See the note on the task rows above: undefined keeps the getGroupChatName fallback alive when the snapshot has no metadata.
-                    snapshotReportMetadata ? getPendingDeleteMemberAccountIDs(snapshotReportMetadata.pendingChatMembers) : undefined,
+                    reportMetadata ? getPendingDeleteMemberAccountIDs(reportMetadata.pendingChatMembers) : undefined,
                 );
 
                 const isRejectedReport =
