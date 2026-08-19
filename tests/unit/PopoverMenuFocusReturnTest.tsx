@@ -32,6 +32,9 @@ jest.mock('@components/PopoverWithMeasuredContent', () => ({
  */
 describe('PopoverMenu focus return', () => {
     const anchorRef = createRef<View>();
+    const menuItems = [{text: 'Duplicate workspace', onSelected: jest.fn()}];
+    const onClose = jest.fn();
+    const onItemSelected = jest.fn();
 
     function createPopoverMenu(overrides: Partial<React.ComponentProps<typeof PopoverMenu>> = {}) {
         return (
@@ -39,9 +42,9 @@ describe('PopoverMenu focus return', () => {
                 isVisible
                 anchorRef={anchorRef}
                 anchorPosition={{horizontal: 0, vertical: 0}}
-                menuItems={[{text: 'Duplicate workspace', onSelected: jest.fn()}]}
-                onClose={jest.fn()}
-                onItemSelected={jest.fn()}
+                menuItems={menuItems}
+                onClose={onClose}
+                onItemSelected={onItemSelected}
                 {...overrides}
             />
         );
