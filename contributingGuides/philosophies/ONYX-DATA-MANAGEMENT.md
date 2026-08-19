@@ -93,8 +93,10 @@ function useOwnerName(reportID: string) {
 }
 ```
 
-### - All `Onyx.get()` reads MUST come before the first write in that tick, or the write MUST be awaited
+### - All `Onyx.get()` reads MUST come before the first write in that tick, or after an `await`
 `Onyx.merge()` and `Onyx.update()` apply to the cache asynchronously, after the current synchronous block has finished, so a read that follows one returns the pre-write value. `Onyx.set()` and `Onyx.mergeCollection()` do land immediately, which makes code that depends on the difference fragile rather than safe. Treat every write the same way.
+
+Any `await` between the write and the read ends that tick, so what follows one is no longer a same-tick read and is not what this rule is about. When the read has to see the write, await the write's own promise rather than assuming an unrelated one has left it enough room.
 
 ```typescript
 // BAD ❌
