@@ -79,7 +79,7 @@ function ReportSubmitToContent({
 }: ReportSubmitToContentProps) {
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {translate, localeCompare, dateFnsLocale} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
     const {keyboardActiveHeight} = useKeyboardState();
@@ -212,6 +212,7 @@ function ReportSubmitToContent({
             countryCode,
             selectedOptions: [],
             loginsToExclude: CONST.EXPENSIFY_EMAILS_OBJECT,
+            formatPhoneNumber,
         });
 
         if (!inviteOption?.login) {

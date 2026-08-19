@@ -229,6 +229,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                         showPersonalDetails: isOneOnOneChat(contextualReport),
                     },
                     isTrackIntentUser,
+                    formatPhoneNumber,
                 });
                 reportForContextualSearch = option;
             }

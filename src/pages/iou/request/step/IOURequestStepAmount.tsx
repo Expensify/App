@@ -201,10 +201,11 @@ function IOURequestStepAmount({
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         const privateIsArchived = !!allReportNVPs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${participant.reportID}`]?.private_isArchived;
         return participantAccountID
-            ? getParticipantsOption(participant, personalDetails, translate)
+            ? getParticipantsOption(participant, personalDetails, translate, formatPhoneNumber)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserPersonalDetails.accountID, {
                   translate,
                   dateFnsLocale,
+                  formatPhoneNumber,
               });
     });
     const participant = participants.at(0);

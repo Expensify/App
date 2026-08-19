@@ -277,17 +277,18 @@ function getMoneyRequestParticipantOptions(
     privateIsArchived: boolean | undefined,
     reportAttributesDerived: ReportAttributesDerivedValue['reports'] | undefined,
     reportDraft: OnyxEntry<Report> | undefined,
-    translate: LocalizedTranslate,
-    dateFnsLocale: DateFnsLocale | undefined,
+    localize: {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; formatPhoneNumber: LocaleContextProps['formatPhoneNumber']},
 ): Array<Participant | OptionData> {
+    const {translate, dateFnsLocale, formatPhoneNumber} = localize;
     const selectedParticipants = getMoneyRequestParticipantsFromReport(report, currentUserAccountID);
     return selectedParticipants.map((participant) => {
         const participantAccountID = participant?.accountID ?? CONST.DEFAULT_NUMBER_ID;
         return participantAccountID
-            ? getParticipantsOption(participant, personalDetails, translate)
+            ? getParticipantsOption(participant, personalDetails, translate, formatPhoneNumber)
             : getReportOption(participant, privateIsArchived, policy, personalDetails, conciergeReportID, reportAttributesDerived, reportDraft, currentUserAccountID, {
                   translate,
                   dateFnsLocale,
+                  formatPhoneNumber,
               });
     });
 }

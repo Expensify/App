@@ -20,7 +20,7 @@ import createRandomOptionData from '../utils/collections/optionData';
 import createPersonalDetails from '../utils/collections/personalDetails';
 import {getRandomDate} from '../utils/collections/reportActions';
 import {createRandomReport} from '../utils/collections/reports';
-import {translateLocal} from '../utils/TestHelper';
+import {translateLocal, formatPhoneNumber} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 const REPORTS_COUNT = 5000;
@@ -104,6 +104,7 @@ const options = createFilteredOptionList(personalDetails, reports, undefined, EM
     conciergeReportID: undefined,
     isSearching: true,
     currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+    formatPhoneNumber,
 });
 
 const ValidOptionsConfig = {
@@ -155,6 +156,7 @@ describe('OptionsListUtils', () => {
                 personalDetails,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             }),
         );
     });
@@ -172,9 +174,10 @@ describe('OptionsListUtils', () => {
             undefined,
             ValidOptionsConfig,
             translateLocal,
+            formatPhoneNumber,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, formatPhoneNumber, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -189,9 +192,10 @@ describe('OptionsListUtils', () => {
             undefined,
             ValidOptionsConfig,
             translateLocal,
+            formatPhoneNumber,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, formatPhoneNumber, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
         });
     });
 
@@ -224,6 +228,7 @@ describe('OptionsListUtils', () => {
                     sortedActions: undefined,
                 },
                 translateLocal,
+                formatPhoneNumber,
             ),
         );
     });
@@ -275,6 +280,7 @@ describe('OptionsListUtils', () => {
                 undefined,
                 translateLocal,
                 undefined,
+                formatPhoneNumber,
                 mockedPersonalDetails,
                 true,
             ),
@@ -288,7 +294,20 @@ describe('OptionsListUtils', () => {
 
         await waitForBatchedUpdates();
         await measureFunction(() =>
-            formatSectionsFromSearchTerm('', Object.values(selectedOptions), [], [], {}, MOCK_CURRENT_USER_ACCOUNT_ID, undefined, translateLocal, undefined, mockedPersonalDetails, true),
+            formatSectionsFromSearchTerm(
+                '',
+                Object.values(selectedOptions),
+                [],
+                [],
+                {},
+                MOCK_CURRENT_USER_ACCOUNT_ID,
+                undefined,
+                translateLocal,
+                undefined,
+                formatPhoneNumber,
+                mockedPersonalDetails,
+                true,
+            ),
         );
     });
 
@@ -303,6 +322,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: false,
+                formatPhoneNumber,
             });
         });
     });
@@ -316,6 +336,7 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
                 maxRecentReports: 500,
                 isSearching: true,
+                formatPhoneNumber,
             }),
         );
     });
@@ -328,6 +349,7 @@ describe('OptionsListUtils', () => {
             conciergeReportID: undefined,
             maxRecentReports: 500,
             isSearching: true,
+            formatPhoneNumber,
         });
 
         await measureFunction(() =>
@@ -345,6 +367,7 @@ describe('OptionsListUtils', () => {
                 maxResults: 20,
                 sortedActions: undefined,
                 conciergeReportID: undefined,
+                formatPhoneNumber,
             }),
         );
     });

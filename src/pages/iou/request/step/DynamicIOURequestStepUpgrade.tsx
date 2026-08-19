@@ -62,7 +62,7 @@ function DynamicIOURequestStepUpgrade({
 }: DynamicIOURequestStepUpgradeProps) {
     const styles = useThemeStyles();
 
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {isOffline} = useNetwork();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const delegateAccountID = useDelegateAccountID();
@@ -284,7 +284,7 @@ function DynamicIOURequestStepUpgrade({
     const participant = transaction?.participants?.[0];
     const adminParticipant =
         isDistanceRateUpgrade && participant?.accountID
-            ? {participant: getParticipantsOption(participant, personalDetails, translate), doesPersonalDetailExist: !!personalDetails?.[participant.accountID]}
+            ? {participant: getParticipantsOption(participant, personalDetails, translate, formatPhoneNumber), doesPersonalDetailExist: !!personalDetails?.[participant.accountID]}
             : undefined;
 
     const onUpgrade = () => {

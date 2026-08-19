@@ -252,7 +252,7 @@ function IOURequestStepConfirmation({
 
     const styles = useThemeStyles();
     const theme = useTheme();
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isNewManualExpenseFlowEnabled = isBetaEnabled(CONST.BETAS.NEW_MANUAL_EXPENSE_FLOW);
     const {isOffline} = useNetwork();
@@ -321,7 +321,7 @@ function IOURequestStepConfirmation({
                 // is designed for report-backed participants and discards participant.text, so route
                 // any participant without a reportID to getParticipantsOption instead.
                 return participant.accountID || !participant.reportID
-                    ? getParticipantsOption(participant, personalDetails, translate)
+                    ? getParticipantsOption(participant, personalDetails, translate, formatPhoneNumber)
                     : getReportOption(
                           participant,
                           privateIsArchived,
@@ -331,7 +331,7 @@ function IOURequestStepConfirmation({
                           reportAttributesDerived,
                           participantReportDraft,
                           currentUserPersonalDetails.accountID,
-                          {translate, dateFnsLocale},
+                          {translate, dateFnsLocale, formatPhoneNumber},
                       );
             }) ?? [],
         [
