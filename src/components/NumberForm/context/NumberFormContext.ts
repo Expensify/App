@@ -11,4 +11,4 @@ function useNumberFormContext(): NumberFormContext {
     return {...useNumberFormState('useNumberFormContext'), ...useNumberFormActions('useNumberFormContext')};
 }
 
-export {NumberFormActionsContext, NumberFormStateContext, useNumberFormActions, useNumberFormState, useNumberFormContext};
+export {NumberFormActionsContext, NumberFormStateContext, useNumberFormContext};

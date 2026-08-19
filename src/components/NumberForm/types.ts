@@ -129,13 +129,4 @@ type NumberFormProps = {
     children: ReactNode;
 };
 
-export type {
-    NumberFormInputBaseProps,
-    NumberFormInputKeyPressEvent,
-    NumberFormInputPosition,
-    NumberFormNegativeMode,
-    NumberFormProps,
-    NumberFormRef,
-    NumberFormSymbolInputProps,
-    NumberFormTextInputProps,
-};
+export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormNegativeMode, NumberFormProps, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};

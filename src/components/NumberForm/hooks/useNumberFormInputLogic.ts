@@ -235,4 +235,3 @@ function useNumberFormInputLogic({
 }
 
 export default useNumberFormInputLogic;
-export type {NumberSelection};
