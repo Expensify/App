@@ -659,12 +659,6 @@ function Search({
                     }
                 }
 
-                if (item.transactions.length > 1) {
-                    markReportRHPWidth(reportID, 'super-wide');
-                } else {
-                    unmarkReportRHPWidth(reportID, 'super-wide');
-                }
-
                 // Persist the current search context so prev/next navigation arrows
                 // in the report RHP can reference the correct result set.
                 saveLastSearchParams({
@@ -679,8 +673,16 @@ function Search({
                     reportID,
                     backTo,
                 });
+                if (item.transactions.length <= 1) {
+                    // Clearing runs either way, since a report that no longer qualifies must not keep a stale hint whichever tab opens it.
+                    unmarkReportRHPWidth(reportID, 'super-wide');
+                }
+                // Marked after the new-tab guard: opening in a new tab never mounts the screen that would consume the hint, so it would pin this report wide on a later visit.
                 if (openInternalRouteInNewTab(route, event)) {
                     return;
+                }
+                if (item.transactions.length > 1) {
+                    markReportRHPWidth(reportID, 'super-wide');
                 }
                 requestAnimationFrame(() => Navigation.navigate(route));
                 return;
@@ -714,8 +716,6 @@ function Search({
                 return;
             }
 
-            markReportRHPWidth(reportID, 'wide');
-
             if (isTransactionItem && transactionPreviewData) {
                 setOptimisticDataForTransactionThreadPreview(transactionItem, transactionPreviewData, getCurrencyDecimals, transactionItem?.reportAction?.childReportID);
             }
@@ -724,6 +724,7 @@ function Search({
             if (openInternalRouteInNewTab(route, event)) {
                 return;
             }
+            markReportRHPWidth(reportID, 'wide');
             requestAnimationFrame(() => Navigation.navigate(route));
         },
         [

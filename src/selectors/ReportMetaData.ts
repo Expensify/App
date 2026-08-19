@@ -1,5 +1,7 @@
+import {parsePendingNewTransactionFlagKey} from '@libs/PendingNewTransactionFlags';
 import {getPendingDeleteMemberAccountIDs} from '@libs/ReportUtils';
 
+import CONST from '@src/CONST';
 import type {ReportLoadingState, ReportMetadata} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
@@ -32,7 +34,55 @@ const pendingChatMembersSelector = (reportMetadata: OnyxEntry<ReportMetadata>): 
 
 const pendingDeleteMemberAccountIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers);
 
-const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.pendingNewTransactionIDs;
+type PendingNewTransactions = {
+    /** Transaction ID mapped to the flag instance to sweep once highlighted, newest instance winning. */
+    activeFlagKeys: Record<string, string>;
+    /** Flag instances swept without highlighting, being stale, unreadable, or superseded by a newer instance. */
+    expiredFlagKeys: string[];
+};
+
+const pendingNewTransactionIDsSelector = (reportMetadata: OnyxEntry<ReportMetadata>): PendingNewTransactions | undefined => {
+    const pendingNewTransactionIDs = reportMetadata?.pendingNewTransactionIDs;
+    if (!pendingNewTransactionIDs) {
+        return undefined;
+    }
+    const now = Date.now();
+    const activeFlagKeys: Record<string, string> = {};
+    const activeStamps: Record<string, number> = {};
+    const expiredFlagKeys: string[] = [];
+    for (const [flagKey, isFlagged] of Object.entries(pendingNewTransactionIDs)) {
+        if (!isFlagged) {
+            continue;
+        }
+        const flag = parsePendingNewTransactionFlagKey(flagKey);
+        // An unreadable key is swept rather than highlighted, so it can never linger past its window.
+        if (!flag) {
+            expiredFlagKeys.push(flagKey);
+            continue;
+        }
+        const {transactionID, flaggedAt} = flag;
+        const age = now - flaggedAt;
+        // A stamp ahead of the clock would never age out, so it is swept alongside the stale ones.
+        if (age < 0 || age >= CONST.PENDING_TRANSACTION_FRESHNESS_WINDOW) {
+            expiredFlagKeys.push(flagKey);
+            continue;
+        }
+        const previousFlagKey = activeFlagKeys[transactionID];
+        if (previousFlagKey === undefined) {
+            activeFlagKeys[transactionID] = flagKey;
+            activeStamps[transactionID] = flaggedAt;
+            continue;
+        }
+        const [newerFlagKey, olderFlagKey] = flaggedAt >= activeStamps[transactionID] ? [flagKey, previousFlagKey] : [previousFlagKey, flagKey];
+        activeFlagKeys[transactionID] = newerFlagKey;
+        activeStamps[transactionID] = Math.max(flaggedAt, activeStamps[transactionID]);
+        expiredFlagKeys.push(olderFlagKey);
+    }
+    if (!Object.keys(activeFlagKeys).length && !expiredFlagKeys.length) {
+        return undefined;
+    }
+    return {activeFlagKeys, expiredFlagKeys};
+};
 
 const isOptimisticReportSelector = (reportMetadata: OnyxEntry<ReportMetadata>) => reportMetadata?.isOptimisticReport;
 
@@ -47,3 +97,4 @@ export {
     pendingChatMembersSelector,
     pendingDeleteMemberAccountIDsSelector,
 };
+export type {PendingNewTransactions};

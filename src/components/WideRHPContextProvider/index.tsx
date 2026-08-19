@@ -15,7 +15,7 @@ import type {Report} from '@src/types/onyx';
 import type {OnyxCollection} from 'react-native-onyx';
 
 import {findFocusedRoute} from '@react-navigation/native';
-import React, {createContext, useCallback, useContext, useEffect, useRef, useState} from 'react';
+import React, {createContext, useContext, useEffect, useLayoutEffect, useState} from 'react';
 // We use Animated for all functionality related to wide RHP to make it easier
 // to interact with react-navigation components (e.g., CardContainer, interpolator), which also use Animated.
 // eslint-disable-next-line no-restricted-imports
@@ -52,6 +52,45 @@ const animatedWideRHPWidth = new Animated.Value(wideRHPWidth);
 const modalStackOverlayWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - wideRHPWidth);
 const modalStackOverlaySuperWideRHPPositionLeft = new Animated.Value(superWideRHPWidth - singleRHPWidth);
 
+const NO_VISIBLE_RHP_ROUTE_KEYS: string[] = [];
+
+let visibleRHPRouteKeys: {wide: string[]; superWide: string[]} = {wide: NO_VISIBLE_RHP_ROUTE_KEYS, superWide: NO_VISIBLE_RHP_ROUTE_KEYS};
+const visibleRHPRouteKeysListeners = new Set<() => void>();
+
+function haveSameRHPRouteKeys(current: string[], next: string[]) {
+    return current.length === next.length && current.every((routeKey, index) => routeKey === next.at(index));
+}
+
+function setVisibleRHPRouteKeysSnapshot(wide: string[], superWide: string[]) {
+    // Compared by content, since the keys are re-derived into fresh arrays on every navigation event and every subscriber is a mounted screen.
+    if (haveSameRHPRouteKeys(visibleRHPRouteKeys.wide, wide) && haveSameRHPRouteKeys(visibleRHPRouteKeys.superWide, superWide)) {
+        return;
+    }
+    visibleRHPRouteKeys = {wide, superWide};
+    for (const listener of visibleRHPRouteKeysListeners) {
+        listener();
+    }
+}
+
+function subscribeToVisibleRHPRouteKeys(listener: () => void): () => void {
+    visibleRHPRouteKeysListeners.add(listener);
+    return () => visibleRHPRouteKeysListeners.delete(listener);
+}
+
+/** Snapshot read for useSyncExternalStore: the width class a route is currently displayed at, if any. */
+function getVisibleRHPRouteWidth(routeKey: string | undefined): Exclude<RHPWidth, 'narrow'> | undefined {
+    if (!routeKey) {
+        return undefined;
+    }
+    if (visibleRHPRouteKeys.superWide.includes(routeKey)) {
+        return 'super-wide';
+    }
+    if (visibleRHPRouteKeys.wide.includes(routeKey)) {
+        return 'wide';
+    }
+    return undefined;
+}
+
 const WideRHPStateContext = createContext<WideRHPStateContextType>(defaultWideRHPStateContextValue);
 const WideRHPActionsContext = createContext<WideRHPActionsContextType>(defaultWideRHPActionsContextValue);
 
@@ -67,26 +106,23 @@ const expenseReportSelector = (reports: OnyxCollection<Report>) => {
     );
 };
 
-// Function to add a Wide/Super Wide RHP route key to the array including wide/super wide RHP route keys
-function showWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Dispatch<React.SetStateAction<string[]>>) {
-    if (!route.key) {
-        console.error(`The route passed to showWideRHPRoute should have the "key" property defined.`);
-        return;
+/** One entry per route registered at a non-narrow width, newest first, so a route holds at most one width by construction. */
+type RHPWidthRegistration = {
+    key: string;
+    width: RHPWidthHint;
+};
+
+/** Re-registering the same width is a no-op, so a route keeps its place unless its width actually changes. */
+function registerRHPRouteWidth(registrations: RHPWidthRegistration[], routeKey: string, width: RHPWidth): RHPWidthRegistration[] {
+    const existing = registrations.find((registration) => registration.key === routeKey);
+    if (existing?.width === width) {
+        return registrations;
     }
-
-    const newKey = route.key;
-    setAllRHPRouteKeys((prev) => (prev.includes(newKey) ? prev : [newKey, ...prev]));
-}
-
-// Function to remove a Wide/Super Wide RHP route key to the array including wide/super wide RHP route keys
-function removeWideRHPRoute(route: NavigationRoute, setAllRHPRouteKeys: React.Dispatch<React.SetStateAction<string[]>>) {
-    if (!route.key) {
-        console.error(`The route passed to removeWideRHPRoute should have the "key" property defined.`);
-        return;
+    if (!existing && width === 'narrow') {
+        return registrations;
     }
-
-    const keyToRemove = route.key;
-    setAllRHPRouteKeys((prev) => (prev.includes(keyToRemove) ? prev.filter((key) => key !== keyToRemove) : prev));
+    const withoutRoute = existing ? registrations.filter((registration) => registration.key !== routeKey) : registrations;
+    return width === 'narrow' ? withoutRoute : [{key: routeKey, width}, ...withoutRoute];
 }
 
 // Set the rhp width based on the super wide / wide rhp route keys
@@ -104,14 +140,8 @@ function setExpandedRHPProgress(superWideRHPRouteKeys: string[], wideRHPRouteKey
 }
 
 function WideRHPContextProvider({children}: React.PropsWithChildren) {
-    // We have a separate containers for allWideRHPRouteKeys and wideRHPRouteKeys because we may have two or more RHPs on the stack.
-    // For convenience and proper overlay logic wideRHPRouteKeys will show only the keys existing in the last RHP.
-    const [allWideRHPRouteKeys, setAllWideRHPRouteKeys] = useState<string[]>([]);
-    const [wideRHPRouteKeys, setWideRHPRouteKeys] = useState<string[]>([]);
-
-    // Same as above but for Super Wide RHP
-    const [allSuperWideRHPRouteKeys, setAllSuperWideRHPRouteKeys] = useState<string[]>([]);
-    const [superWideRHPRouteKeys, setSuperWideRHPRouteKeys] = useState<string[]>([]);
+    // The only stored width state, since which registrations are on screen is derived from navigation state below.
+    const [rhpWidthRegistrations, setRHPWidthRegistrations] = useState<RHPWidthRegistration[]>([]);
 
     // A reportID maps to at most one hint, making "wide vs super-wide" structurally mutually exclusive.
     const [reportRHPWidthHints, setReportRHPWidthHints] = useState<Map<string, RHPWidthHint>>(() => new Map());
@@ -120,27 +150,21 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         selector: expenseReportSelector,
     });
 
-    const isWideRHPClosingRef = useRef(false);
-    const isSuperWideRHPClosingRef = useRef(false);
-
-    const setIsWideRHPClosing = (isClosing: boolean) => {
-        isWideRHPClosingRef.current = isClosing;
-    };
-
-    const setIsSuperWideRHPClosing = (isClosing: boolean) => {
-        isSuperWideRHPClosingRef.current = isClosing;
-    };
-
-    const {focusedRoute, focusedNavigator} = useRootNavigationState((state) => {
+    const {focusedRoute, focusedNavigator, rootNavigationState} = useRootNavigationState((state) => {
         if (!state) {
-            return {focusedRoute: undefined, focusedNavigator: undefined};
+            return {focusedRoute: undefined, focusedNavigator: undefined, rootNavigationState: undefined};
         }
 
         return {
             focusedRoute: findFocusedRoute(state),
             focusedNavigator: state.routes.at(-1)?.name,
+            rootNavigationState: state,
         };
     });
+
+    const allWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'wide').map((registration) => registration.key);
+    const allSuperWideRHPRouteKeys = rhpWidthRegistrations.filter((registration) => registration.width === 'super-wide').map((registration) => registration.key);
+    const {visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys} = getVisibleRHPKeys(rootNavigationState, allWideRHPRouteKeys, allSuperWideRHPRouteKeys);
 
     const isWideRHPFocused = !!focusedRoute?.key && allWideRHPRouteKeys.includes(focusedRoute.key);
     const isSuperWideRHPFocused = !!focusedRoute?.key && allSuperWideRHPRouteKeys.includes(focusedRoute.key);
@@ -148,27 +172,18 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     const isRHPFocused = focusedNavigator === NAVIGATORS.RIGHT_MODAL_NAVIGATOR;
 
     // Whether Wide RHP is displayed below the currently displayed screen
-    const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
+    const {isWideRHPBelow, isSuperWideRHPBelow} = getIsRHPDisplayedBelow(focusedRoute?.key, visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
 
-    // Updates the Wide RHP visible keys table from the all keys table
-    const syncRHPKeys = useCallback(() => {
-        const {visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys} = getVisibleRHPKeys(allSuperWideRHPRouteKeys, allWideRHPRouteKeys);
-        setWideRHPRouteKeys(visibleWideRHPRouteKeys);
-        setSuperWideRHPRouteKeys(visibleSuperWideRHPRouteKeys);
+    // Layout effect so the animated width and per-route subscribers see the flip before paint, same as context consumers do.
+    useLayoutEffect(() => {
         setExpandedRHPProgress(visibleSuperWideRHPRouteKeys, visibleWideRHPRouteKeys);
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys]);
+        setVisibleRHPRouteKeysSnapshot(visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys);
+    }, [visibleWideRHPRouteKeys, visibleSuperWideRHPRouteKeys]);
 
-    const clearWideRHPKeys = () => {
-        setWideRHPRouteKeys([]);
-        setSuperWideRHPRouteKeys([]);
-        expandedRHPProgress.setValue(0);
-    };
-
-    // Once we have updated the array of all Super Wide RHP keys, we should sync it with the array of RHP keys visible on the screen
-    useEffect(() => {
-        // eslint-disable-next-line react-hooks/set-state-in-effect
-        syncRHPKeys();
-    }, [allSuperWideRHPRouteKeys, allWideRHPRouteKeys, syncRHPKeys]);
+    /**
+     * Effect that empties the module-level snapshot on teardown, since it outlives the provider and would otherwise answer for the next session.
+     */
+    useEffect(() => () => setVisibleRHPRouteKeysSnapshot(NO_VISIBLE_RHP_ROUTE_KEYS, NO_VISIBLE_RHP_ROUTE_KEYS), []);
 
     /**
      * Effect that manages the secondary overlay animation for single RHP displayed on Super Wide RHP and rendering state.
@@ -193,36 +208,30 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
      */
     const shouldRenderTertiaryOverlay = useShouldRenderOverlay(isRHPFocused && isWideRHPBelow && isSuperWideRHPBelow, thirdOverlayProgress);
 
-    /**
-     * Removes the route from both wide and super-wide sets. Used on screen unmount.
-     */
+    /** Removes the route's registration. Used on screen unmount. */
     const removeRHPRouteKey = (route: NavigationRoute) => {
-        removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-        removeWideRHPRoute(route, setAllWideRHPRouteKeys);
+        if (!route.key) {
+            console.error(`The route passed to removeRHPRouteKey should have the "key" property defined.`);
+            return;
+        }
+        const routeKey = route.key;
+        setRHPWidthRegistrations((previousRegistrations) => registerRHPRouteWidth(previousRegistrations, routeKey, 'narrow'));
     };
 
-    /**
-     * Single entry point for setting a route's RHP width. Registrations are mutually exclusive — the
-     * route lives in at most one of {wide, super-wide} sets at any time (or neither, for 'narrow').
-     */
+    /** Single entry point for setting a route's RHP width, in one atomic write. */
     const setRHPWidth = (route: NavigationRoute, width: RHPWidth) => {
-        if (width === 'super-wide') {
-            removeWideRHPRoute(route, setAllWideRHPRouteKeys);
-            showWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
+        if (!route.key) {
+            console.error(`The route passed to setRHPWidth should have the "key" property defined.`);
             return;
         }
-        if (width === 'wide') {
-            removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-            showWideRHPRoute(route, setAllWideRHPRouteKeys);
-            return;
-        }
-        removeWideRHPRoute(route, setAllSuperWideRHPRouteKeys);
-        removeWideRHPRoute(route, setAllWideRHPRouteKeys);
+        const routeKey = route.key;
+        setRHPWidthRegistrations((previousRegistrations) => registerRHPRouteWidth(previousRegistrations, routeKey, width));
     };
 
     /**
      * Sets an optimistic width hint for a reportID before its screen renders, so the right width is
-     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint.
+     * registered on first paint. Invoices and tasks are excluded from the 'wide' hint. The latest mark wins,
+     * since the screen that consumes a hint keeps it as its own floor, so a later mark cannot narrow it.
      */
     const markReportRHPWidth = (reportID: string | undefined, width: RHPWidthHint) => {
         if (!reportID) {
@@ -295,8 +304,8 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
     // Because of the React Compiler we don't need to memoize it manually
     // eslint-disable-next-line react/jsx-no-constructed-context-values
     const stateValue = {
-        wideRHPRouteKeys,
-        superWideRHPRouteKeys,
+        wideRHPRouteKeys: visibleWideRHPRouteKeys,
+        superWideRHPRouteKeys: visibleSuperWideRHPRouteKeys,
         shouldRenderSecondaryOverlayForRHPOnSuperWideRHP,
         shouldRenderSecondaryOverlayForRHPOnWideRHP,
         shouldRenderSecondaryOverlayForWideRHP,
@@ -313,10 +322,6 @@ function WideRHPContextProvider({children}: React.PropsWithChildren) {
         markReportRHPWidth,
         unmarkReportRHPWidth,
         getReportRHPWidthHint,
-        syncRHPKeys,
-        clearWideRHPKeys,
-        setIsWideRHPClosing,
-        setIsSuperWideRHPClosing,
     };
 
     return (
@@ -349,5 +354,7 @@ export {
     thirdOverlayProgress,
     useWideRHPState,
     useWideRHPActions,
+    subscribeToVisibleRHPRouteKeys,
+    getVisibleRHPRouteWidth,
 };
 export type {RHPWidth} from './types';
