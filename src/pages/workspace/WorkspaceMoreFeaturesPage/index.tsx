@@ -160,13 +160,17 @@ function WorkspaceMoreFeaturesPage({policy, route}: WorkspaceMoreFeaturesPagePro
     usePolicyConnectionsPrefetch(policy, true);
 
     // Visibility is gated on a supported integration (QBO / Xero / Sage Intacct) being connected,
-    // not on the export config actually scoping vendors. That way beta members on a supported
-    // workspace still see the row so they can discover the feature even when the row is locked OFF
-    // (export config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
+    // not on the export config actually scoping vendors. That way members on a supported workspace
+    // still see the row so they can discover the feature even when the row is locked OFF (export
+    // config not yet set). NetSuite / QuickBooks Desktop / no connection hide the row.
     // `hasVendorFeature` stays as the narrower `isActive` predicate (is the export config scoping
     // vendors right now), so it can't double as the visibility gate.
+    //
+    // Beta gating mirrors `hasVendorFeature`: QBO (R1) is GA, so a connected QBO workspace always
+    // sees the row regardless of the `vendorMatching` beta. Sage Intacct (R2) and Xero (R3) haven't
+    // reached GA, so they only show the row while the beta is enabled.
     const vendorMatchingConnection = getConnectedIntegration(policy, [CONST.POLICY.CONNECTIONS.NAME.QBO, CONST.POLICY.CONNECTIONS.NAME.XERO, CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT]);
-    const shouldShowVendorsFeature = isVendorMatchingEnabled && !!vendorMatchingConnection;
+    const shouldShowVendorsFeature = vendorMatchingConnection === CONST.POLICY.CONNECTIONS.NAME.QBO || (isVendorMatchingEnabled && !!vendorMatchingConnection);
 
     const warnAccountingManagesOrganizeFeature = async () => {
         if (!hasAccountingConnection || !policyID) {
