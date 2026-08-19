@@ -101,8 +101,14 @@ function useSearchHighlightAndScroll({
         const hasTransactionsIDsChange = transactionsIDs.length !== previousTransactionIDsLocal.length || transactionsIDs.some((id) => !previousTransactionsIDsSet.has(id));
         const hasReportActionsIDsChange = reportActionsIDs.some((id) => !previousReportActionsIDsSet.has(id));
 
+        // Editing an expense that the results already show changes no transaction ID, so the ID checks above miss it.
+        // The rows and the footer total are served from the Search snapshot, and the footer total is computed by the
+        // server, so those edits only become visible after a refetch.
+        const hasChangedResultTransaction =
+            !isChat && !hasTransactionsIDsChange && hasChangedTransactionInSearchResults(transactions, previousTransactions, previousTransactionsIDsSet, searchResultsData);
+
         // Check if there is a change in the transactions or report actions list
-        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange) || hasPendingSearchRef.current) {
+        if ((isChat ? hasReportActionsIDsChange : hasTransactionsIDsChange || hasChangedResultTransaction) || hasPendingSearchRef.current) {
             // Skip if offline, or if the user has navigated to a different fullscreen page entirely.
             // An RHP layered on top of Search makes `isFocused` false but keeps Search as the topmost
             // fullscreen route, so we still want to refetch — otherwise the snapshot can't reflect
@@ -112,6 +118,9 @@ function useSearchHighlightAndScroll({
                 hasPendingSearchRef.current = true;
                 return;
             }
+            // A deferred refetch is its own reason to search. `usePrevious` advances while Search is inactive, so by
+            // the time it becomes active again the change that set the flag has washed out of the comparisons below.
+            const hadPendingSearch = hasPendingSearchRef.current;
             hasPendingSearchRef.current = false;
 
             // Transaction Onyx keys are `transactions_<id>` but search results yield bare IDs, so read the ID off the value.
@@ -137,7 +146,7 @@ function useSearchHighlightAndScroll({
 
             // Only skip search if there are no new items AND search results aren't empty
             // This ensures deletions that result in empty data still trigger search
-            if (!hasAGenuinelyNewID && currentSearchResultIDs.length > 0) {
+            if (!hasAGenuinelyNewID && !hasChangedResultTransaction && !hadPendingSearch && currentSearchResultIDs.length > 0) {
                 const currentIDsSet = new Set(isChat ? reportActionsIDs : currentTransactionIDs);
                 const hasDeletedID = currentSearchResultIDs.some((id) => !currentIDsSet.has(id));
                 if (!hasDeletedID) {
@@ -371,6 +380,48 @@ function extractReportActionIDsFromSearchResults(searchResultsData: Partial<Sear
         .filter(isReportActionEntry)
         .map((key) => Object.keys(searchResultsData[key] ?? {}))
         .flat();
+}
+
+/**
+ * Whether a transaction change invalidates what the current search results show.
+ *
+ * Onyx keeps one value object per collection member and only replaces the ones it writes, so an identity check is
+ * enough to spot an edit. A refetch triggered from here can't feed itself, because a Search response only writes
+ * snapshot keys and never touches the transaction collection.
+ *
+ * A move counts too: the report row owes its count and total to the snapshot, so a transaction never on screen still invalidates it.
+ */
+function hasChangedTransactionInSearchResults(
+    transactions: OnyxCollection<Transaction>,
+    previousTransactions: OnyxCollection<Transaction>,
+    previousTransactionKeys: Set<string>,
+    searchResultsData: Partial<SearchResults['data']> | undefined,
+): boolean {
+    if (!searchResultsData) {
+        return false;
+    }
+
+    const isReportInSearchResults = (reportID: string | undefined) => !!reportID && !!searchResultsData[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+
+    const changedTransactionIDs: string[] = [];
+    for (const [key, transaction] of Object.entries(transactions ?? {})) {
+        const previousTransaction = previousTransactions?.[key];
+        if (!transaction?.transactionID || !previousTransactionKeys.has(key) || previousTransaction === transaction) {
+            continue;
+        }
+        if (transaction.reportID !== previousTransaction?.reportID && (isReportInSearchResults(transaction.reportID) || isReportInSearchResults(previousTransaction?.reportID))) {
+            return true;
+        }
+        changedTransactionIDs.push(transaction.transactionID);
+    }
+
+    // Walking the results is the expensive half, so only do it once something actually changed.
+    if (changedTransactionIDs.length === 0) {
+        return false;
+    }
+
+    const searchResultIDs = new Set(extractTransactionIDsFromSearchResults(searchResultsData));
+    return changedTransactionIDs.some((transactionID) => searchResultIDs.has(transactionID));
 }
 
 export default useSearchHighlightAndScroll;

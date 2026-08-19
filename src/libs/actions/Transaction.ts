@@ -1020,6 +1020,9 @@ function getChangeTransactionsReportOnyxData({
     }
 
     let transactionsMoved = false;
+    // The transactions that are actually moved to the destination report. Transactions already in the destination are
+    // skipped below, so this excludes them from the transactionList sent to the backend (which does not filter them out).
+    const movedTransactionIDs: string[] = [];
     let shouldFixViolations = false;
 
     const policyHasDependentTags = hasDependentTags(policy, policyTagList);
@@ -1104,6 +1107,7 @@ function getChangeTransactionsReportOnyxData({
         }
 
         transactionsMoved = true;
+        movedTransactionIDs.push(transaction.transactionID);
 
         const oldReportID = isUnreportedExpense ? CONST.REPORT.UNREPORTED_REPORT_ID : transaction.reportID;
         const oldReport = reports?.[`${ONYXKEYS.COLLECTION.REPORT}${oldReportID}`];
@@ -1522,6 +1526,10 @@ function getChangeTransactionsReportOnyxData({
                             IOUTransactionID: null,
                         },
                         errors: undefined,
+                        // The expense gets its own action on the new report, so this one is retired: clear its pending
+                        // state too, since `shouldReportActionBeVisible` keeps a pending action on screen.
+                        // `failureData` below restores the whole action.
+                        pendingAction: null,
                     },
                     ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: null} : {}),
                 },
@@ -1987,6 +1995,7 @@ function getChangeTransactionsReportOnyxData({
         updatedReportUnheldNonReimbursableTotals,
         updatedReportReimbursableTotals,
         updatedReportUnheldReimbursableTotals,
+        movedTransactionIDs,
     };
 }
 
@@ -1995,12 +2004,18 @@ function changeTransactionsReport(props: ChangeTransactionsReportProps) {
     if (!changeTransactionsReportOnyxData) {
         return;
     }
-    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID} = changeTransactionsReportOnyxData;
+    const {optimisticData, successData, failureData, transactionIDToReportActionAndThreadData, transactionIDToUpdatedCustomUnitRateID, movedTransactionIDs} =
+        changeTransactionsReportOnyxData;
+
+    // If every selected transaction is already in the destination report, there is nothing to move, so skip the API call.
+    if (movedTransactionIDs.length === 0) {
+        return;
+    }
 
     const reportID = props.newReport?.reportID ?? CONST.REPORT.UNREPORTED_REPORT_ID;
 
     const parameters: ChangeTransactionsReportParams = {
-        transactionList: props.transactionIDs.join(','),
+        transactionList: movedTransactionIDs.join(','),
         reportID,
         transactionIDToReportActionAndThreadData: JSON.stringify(transactionIDToReportActionAndThreadData),
         ...(Object.keys(transactionIDToUpdatedCustomUnitRateID).length > 0 && {
