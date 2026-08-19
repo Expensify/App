@@ -136,9 +136,9 @@ function TaskPreview({action, chatReportID, currentUserPersonalDetails, isHovere
         <>
             {hasAssignee && (
                 <AccountAvatar
-                    containerStyle={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                     accountID={taskAssigneeAccountID}
                     size={avatarSize}
+                    containerStyle={[styles.mr2, isTaskCompleted ? styles.opacitySemiTransparent : undefined]}
                 />
             )}
             <View style={[styles.alignSelfCenter, styles.flex1, styles.textAlignLeft]}>
