@@ -4,6 +4,7 @@
  *
  * Requires the web implementation explicitly — jest resolves platform-split modules to their native variant.
  */
+import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as AuthRedirectCallbackModule from '@libs/CloudflareAccess/handleAuthRedirectCallback/index.ts';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
 
@@ -16,6 +17,10 @@ const mockQAAuth = {
 };
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
+
+// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
+// point the module at the web implementation the handler under test runs against
+jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
 
 jest.mock('@userActions/CloudflareSession', () => ({
     __esModule: true,

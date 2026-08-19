@@ -2,7 +2,11 @@
  * PKCE encoding pinned to the RFC 7636 Appendix B vector, the config security boundary
  * (isQAServerRequest), and the OAuth client's request/response contract.
  */
-import type * as ConfigModule from '@libs/CloudflareAccess/Config';
+import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
+
+// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
+// point the module at the web implementation under test
+jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
 import type * as PKCEModule from '@libs/CloudflareAccess/generatePKCE';
 import type * as OAuthClientModule from '@libs/CloudflareAccess/OAuthClient';
 import type * as PendingAuthFlowStorageModule from '@libs/CloudflareAccess/PendingAuthFlowStorage';
@@ -33,7 +37,8 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
 
 // Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth — otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
-const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config');
+// The web implementation explicitly — jest resolves platform-split modules to their native variant
+const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
 const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
 const {generatePKCEPair, generateState} = require<typeof PKCEModule>('@libs/CloudflareAccess/generatePKCE');

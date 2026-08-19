@@ -414,10 +414,11 @@ describe('unconfigured builds', () => {
 });
 
 describe('native platform safety', () => {
-    it('the real getWebCrypto resolves to the native stub here: import-safe, loud when called', () => {
+    it('the real getWebCrypto resolves to the native stub here: import-safe and inert', () => {
         // jest-expo's haste config resolves index.native.ts — the same file native builds get.
-        // requireActual evaluating without throwing IS the import-safety claim.
+        // The stub is unreachable behind the native isQAAuthConfigured() gate, so it is a typed no-op.
         const actualProvider = jest.requireActual<{default: WebCryptoProvider}>('@libs/CloudflareAccess/getWebCrypto').default;
-        expect(() => actualProvider.getRandomValues(new Uint8Array(1))).toThrow('not implemented on native');
+        const array = new Uint8Array(1);
+        expect(actualProvider.getRandomValues(array)).toBe(array);
     });
 });

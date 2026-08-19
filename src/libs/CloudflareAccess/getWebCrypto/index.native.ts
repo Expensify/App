@@ -1,17 +1,12 @@
 import type WebCryptoProvider from './types';
 
 /**
- * Native: unimplemented while the flow is web-only. The eventual version must use react-native-quick-crypto's
- * WebCrypto surface (`getRandomValues` + `subtle.digest`), NOT its Node-style `createHash`, so the PKCE
- * helper keeps one implementation. Throwing keeps the module import-safe and accidental use loud.
+ * Native: unreachable — QA auth is structurally off (isQAAuthConfigured() returns false on native). A real
+ * implementation must come from react-native-quick-crypto's WebCrypto surface (getRandomValues + subtle.digest).
  */
 const webCrypto: WebCryptoProvider = {
-    getRandomValues: () => {
-        throw new Error('CloudflareAccess getWebCrypto is not implemented on native yet');
-    },
-    sha256: () => {
-        throw new Error('CloudflareAccess getWebCrypto is not implemented on native yet');
-    },
+    getRandomValues: (array) => array,
+    sha256: () => Promise.resolve(new ArrayBuffer(0)),
 };
 
 export default webCrypto;
