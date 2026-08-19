@@ -155,7 +155,7 @@ function WorkspaceCompanyCardFeedSelectorPage({route}: WorkspaceCompanyCardFeedS
         if (!feed.fundID) {
             return;
         }
-        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID) as CompanyCardFeedWithDomainID;
+        const feedValue = getCardFeedWithDomainID(feed.feed, feed.fundID);
         linkCardFeedToPolicy(feed.fundID, policyID, CONST.COMPANY_CARD.LINK_FEED_TYPE.COMPANY_CARD, feed?.country, feed.feed)
             .then(() => {
                 updateSelectedFeed(feedValue, policyID);
