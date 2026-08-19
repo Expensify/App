@@ -1677,9 +1677,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `レポートは${CONST.REPORT.MAX_TRANSACTIONS}件の経費までに制限されています。一部を別のレポートに移動してください。`,
         moveExpensesError: '日当経費は、ワークスペースごとに日当レートが異なる場合があるため、他のワークスペースのレポートに移動することはできません。',
         submitReportTo: {
-            sendExpense: '誰にでも送信',
+            sendExpense: '誰にでも提出',
             sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
-            selectRecipientError: '続行するには、受取人を選択するか入力してください。',
+            selectRecipientError: '続行するには、提出先を選択するか入力してください。',
         },
         changeApprover: {
             title: '承認者を変更',

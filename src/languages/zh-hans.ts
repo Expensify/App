@@ -1637,7 +1637,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitReportTo: {
             sendExpense: '提交给任何人',
             sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
-            selectRecipientError: '请选择或输入收款人以继续。',
+            selectRecipientError: '请选择或输入收件人以继续。',
         },
         changeApprover: {
             title: '更改审批人',

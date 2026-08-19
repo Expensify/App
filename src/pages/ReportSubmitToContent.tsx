@@ -390,7 +390,7 @@ function ReportSubmitToContent({
     );
 
     // Extracted so the same error can render both here (as `SelectionList` children, shown on the non-empty state)
-    // and inside `listEmptyContent` below (shown on the empty / "No results found" state) — `BaseSelectionList`
+    // and inside `listEmptyContent` below (shown on the empty / "No results found" state). `BaseSelectionList`
     // only renders `{children}` in its non-empty branch, so children alone would vanish when a search filters
     // every recipient out while Confirm stays live.
     const errorContent = hasError && (
