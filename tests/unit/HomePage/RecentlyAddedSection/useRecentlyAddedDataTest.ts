@@ -14,18 +14,32 @@
  */
 import {renderHook} from '@testing-library/react-native';
 
-import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import type {SearchQueryJSON} from '@components/Search/types';
 
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useNetwork from '@hooks/useNetwork';
+
+import {buildQueryStringFromFilterFormValues, buildSearchQueryJSON} from '@libs/SearchQueryUtils';
+
+import type {RecentlyAddedExpense} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 import {useRecentlyAddedData} from '@pages/home/RecentlyAddedSection/useRecentlyAddedData';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, Transaction} from '@src/types/onyx';
+import type {Report, SearchResults, Transaction} from '@src/types/onyx';
 import type {CurrentUserPersonalDetails} from '@src/types/onyx/PersonalDetails';
 
 const ACCOUNT_ID = 12345;
 const OTHER_ACCOUNT_ID = 67890;
 const SNAPSHOT_HASH = 1;
+/** A second hash, to prove remembered rows are never reused for a different query. */
+const OTHER_SNAPSHOT_HASH = 2;
+/** Onyx keys error entries by microsecond timestamp; the exact value is irrelevant, only that an entry exists. */
+const ERROR_TIMESTAMP = '1787000000000000';
+/** Rows requested per fetch: SECTION_VISIBLE_LIMIT (5) times the client-filtering headroom the hook applies. */
+const EXPECTED_FETCH_LIMIT = 15;
+/** The ordinary terminal state a resolved search writes. */
+const LOADED: Partial<SearchResults['search']> = {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED};
 
 // Module mocks
 
@@ -36,7 +50,7 @@ jest.mock('@hooks/useCurrentUserPersonalDetails', () => ({
 
 jest.mock('@hooks/useNetwork', () => ({
     __esModule: true,
-    default: () => ({isOffline: false}),
+    default: jest.fn(() => ({isOffline: false})),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -53,6 +67,10 @@ jest.mock('@libs/SearchQueryUtils', () => ({
     buildQueryStringFromFilterFormValues: jest.fn(() => `type:expense from:${ACCOUNT_ID}`),
     buildSearchQueryJSON: jest.fn(() => ({hash: SNAPSHOT_HASH})),
 }));
+
+const mockedUseNetwork = jest.mocked(useNetwork);
+const mockedBuildQueryStringFromFilterFormValues = jest.mocked(buildQueryStringFromFilterFormValues);
+const mockedBuildSearchQueryJSON = jest.mocked(buildSearchQueryJSON);
 
 // useOnyx mock — applies the provided selector to seeded Onyx data.
 
@@ -84,6 +102,23 @@ function makeTransaction(overrides: Partial<Transaction> & {transactionID: strin
     } as Transaction;
 }
 
+/** Only `hash` is read by the hook, but the real parser returns a full query, so build one rather than assert a partial. */
+function makeQueryJSON(hash: number): SearchQueryJSON {
+    return {
+        hash,
+        recentSearchHash: hash,
+        similarSearchHash: hash,
+        inputQuery: `type:expense from:${ACCOUNT_ID}`,
+        type: CONST.SEARCH.DATA_TYPES.EXPENSE,
+        sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
+        sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
+        view: CONST.SEARCH.VIEW.TABLE,
+        filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: String(ACCOUNT_ID)},
+        flatFilters: [],
+        limit: EXPECTED_FETCH_LIMIT,
+    };
+}
+
 function makeReport(reportID: string, ownerAccountID: number, overrides: Partial<Report> = {}): Report {
     return {
         reportID,
@@ -92,8 +127,12 @@ function makeReport(reportID: string, ownerAccountID: number, overrides: Partial
     } as Report;
 }
 
+/** The `search` metadata last seeded, so `failSearch` can preserve it the way an Onyx merge would. */
+let lastSeededSearchMeta: Partial<SearchResults['search']> = {};
+
 /** Seeds the current user's expense snapshot with the given transactions and reports. */
-function setupSnapshot(transactions: Transaction[], reports: Report[]) {
+function setupSnapshot(transactions: Transaction[], reports: Report[], searchMeta: Partial<SearchResults['search']> = {}) {
+    lastSeededSearchMeta = searchMeta;
     const data: Record<string, unknown> = {};
     for (const report of reports) {
         data[`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`] = report;
@@ -101,7 +140,21 @@ function setupSnapshot(transactions: Transaction[], reports: Report[]) {
     for (const transaction of transactions) {
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
-    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data};
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data, search: searchMeta};
+}
+
+/**
+ * Mirrors what `getOnyxLoadingData`'s failureData writes when a Search fails while online: the stored results are
+ * deleted outright and an error marker is left in their place.
+ */
+function failSearch() {
+    const failed: {search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
+        // Production merges `data: null`, which strips only that key and leaves the rest of `search` in place.
+        // `state` reaching `loaded` on a failure is exactly why it cannot be read on its own.
+        search: {...lastSeededSearchMeta, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 0},
+        errors: {[ERROR_TIMESTAMP]: 'common.genericErrorMessage'},
+    };
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = failed;
 }
 
 /** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
@@ -113,7 +166,7 @@ function setupLocalTransactions(transactions: Transaction[]) {
     onyxData[ONYXKEYS.COLLECTION.TRANSACTION] = collection;
 }
 
-function resultTransactionIDs(transactions: Transaction[]): string[] {
+function resultTransactionIDs(transactions: RecentlyAddedExpense[]): string[] {
     return transactions.map((t) => t.transactionID);
 }
 
@@ -122,6 +175,12 @@ beforeEach(() => {
         delete onyxData[k];
     }
     mockUseOnyx.mockClear();
+    mockedBuildQueryStringFromFilterFormValues.mockClear();
+    mockedUseNetwork.mockReturnValue({isOffline: false});
+    // Derive the query and its hash from the account being searched, so a change of accountID moves the hash exactly as
+    // it does in production. A fixed hash would make the hook's `queryJSON` memo hide the change.
+    mockedBuildQueryStringFromFilterFormValues.mockImplementation((values) => `type:expense from:${values.from?.at(0) ?? ''}`);
+    mockedBuildSearchQueryJSON.mockImplementation((query) => makeQueryJSON(query.includes(String(OTHER_ACCOUNT_ID)) ? OTHER_SNAPSHOT_HASH : SNAPSHOT_HASH));
     mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: ACCOUNT_ID, login: `${ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
     // Default: a single report owned by the current user that owned transactions can attach to.
     setupSnapshot([], [makeReport('report_owned', ACCOUNT_ID)]);
@@ -472,5 +531,143 @@ describe('useRecentlyAddedData — status agnostic', () => {
         const {result} = renderHook(() => useRecentlyAddedData());
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['reimbursed', 'approved', 'submitted', 'open']);
+    });
+});
+
+describe('useRecentlyAddedData — surviving a failed search', () => {
+    it('keeps the rows it already had when a failed search deletes the snapshot data', () => {
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
+
+        failSearch();
+        rerender({});
+
+        // The rows outlive the wipe, so the slot never claims the user has no expenses over a transient failure.
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
+    });
+
+    it('replaces the remembered rows once a newer snapshot lands', () => {
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        failSearch();
+        rerender({});
+
+        setupSnapshot([makeTransaction({transactionID: 't2', inserted: '2026-06-02 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
+        rerender({});
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t2']);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('never serves remembered rows to a different account', () => {
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
+
+        // A delegate switch clears Onyx without unmounting Home, and the new accountID moves the query hash. Rows
+        // fetched for the previous account must not be shown as if they belonged to the new one.
+        mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: OTHER_ACCOUNT_ID, login: `${OTHER_ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
+        rerender({});
+
+        expect(result.current.transactions).toEqual([]);
+        // Empty rows plus a settled verdict is the bug this guards: the delegate would be told they have no expenses.
+        expect(result.current.isAwaitingFirstResult).toBe(true);
+    });
+
+    it('does not substitute remembered rows when Onyx dropping the data is the correct answer', () => {
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
+
+        const {result, rerender} = renderHook(() => useRecentlyAddedData());
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
+
+        // A successful response that carries no data is a real empty result, not a failure. Nothing latches `errors`,
+        // so the remembered rows must not be served as though they were still current.
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: LOADED};
+        rerender({});
+
+        expect(result.current.transactions).toEqual([]);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+});
+
+describe('useRecentlyAddedData — awaiting the first result', () => {
+    it('waits while a search is in flight and nothing has been rendered yet', () => {
+        // A snapshot that exists but holds no data yet still counts as nothing rendered.
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: {isLoading: true, state: CONST.SEARCH.SNAPSHOT_STATE.LOADING}};
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.isAwaitingFirstResult).toBe(true);
+    });
+
+    it('stops waiting for a terminal response that carried no data at all', () => {
+        // What finallyData writes on a 460 no-op: `state: loaded` with no `data` key and no errors. Without the
+        // state clause this would shimmer forever.
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: LOADED};
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions).toEqual([]);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('stops waiting when no query could be built, because nothing was ever issued', () => {
+        mockedBuildSearchQueryJSON.mockReturnValue(undefined);
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = undefined;
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('stops waiting for a successful search that genuinely found no expenses', () => {
+        setupSnapshot([], [], LOADED);
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        // The only case that may legitimately show "no expenses".
+        expect(result.current.transactions).toEqual([]);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('stops waiting after a failure with nothing cached, rather than shimmering forever', () => {
+        failSearch();
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.transactions).toEqual([]);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('stops waiting when offline, because no request was issued', () => {
+        mockedUseNetwork.mockReturnValue({isOffline: true});
+        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = undefined;
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+
+    it('stops waiting for a snapshot written without a state field', () => {
+        // The IOU optimistic fan-out writes `data` plus a `search` object that carries no `state`.
+        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], {hasResults: true, isLoading: false});
+
+        const {result} = renderHook(() => useRecentlyAddedData());
+
+        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
+        expect(result.current.isAwaitingFirstResult).toBe(false);
+    });
+});
+
+describe('useRecentlyAddedData — query', () => {
+    it('asks the server for a bounded number of expenses instead of the default page', () => {
+        renderHook(() => useRecentlyAddedData());
+
+        // The slot renders 5 rows; fetching the server default (~50) is wasted payload.
+        expect(mockedBuildQueryStringFromFilterFormValues).toHaveBeenCalledWith(expect.objectContaining({limit: String(EXPECTED_FETCH_LIMIT)}));
     });
 });

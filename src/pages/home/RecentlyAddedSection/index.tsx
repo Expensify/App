@@ -35,14 +35,14 @@ import {View} from 'react-native';
 
 import type {RecentlyAddedExpense} from './useRecentlyAddedData';
 
-import EmptyState from './EmptyState';
+import RecentlyAddedPlaceholder from './RecentlyAddedPlaceholder';
 import RecentlyAddedRow, {DATE_COLUMN_WIDTH, DATE_COLUMN_WIDTH_WIDE} from './RecentlyAddedRow';
 import {useRecentlyAddedData} from './useRecentlyAddedData';
 
 const HEADER_RECEIPT_ICON_SIZE = 16;
 
 function RecentlyAddedSection() {
-    const {transactions} = useRecentlyAddedData();
+    const {transactions, isAwaitingFirstResult} = useRecentlyAddedData();
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -167,7 +167,7 @@ function RecentlyAddedSection() {
                     ))}
                 </View>
             ) : (
-                <EmptyState />
+                <RecentlyAddedPlaceholder shouldShowSkeleton={isAwaitingFirstResult} />
             )}
         </WidgetContainer>
     );
