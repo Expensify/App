@@ -152,8 +152,8 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                     description={translate('walletPage.linkPlaid.wrongAccountDescription')}
                     illustration={illustrations.BankX}
                     shouldShowButton
-                    onButtonPress={retry}
-                    buttonText={translate('common.tryAgain')}
+                    onButtonPress={() => Navigation.goBack(backPath)}
+                    buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
                 />
             </ScrollView>
@@ -172,8 +172,8 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                         </View>
                     }
                     shouldShowButton
-                    onButtonPress={retry}
-                    buttonText={translate('common.tryAgain')}
+                    onButtonPress={() => Navigation.goBack(backPath)}
+                    buttonText={translate('common.buttonConfirm')}
                     containerStyle={styles.h100}
                 />
             </ScrollView>
