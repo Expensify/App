@@ -8,7 +8,6 @@ import Text from '@components/Text';
 
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
-import usePermissions from '@hooks/usePermissions';
 import usePolicyData from '@hooks/usePolicyData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -44,8 +43,6 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
     const {policyID} = route.params;
     const styles = useThemeStyles();
     const {translate} = useLocalize();
-    const {isBetaEnabled} = usePermissions();
-    const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     const policyData = usePolicyData(policyID);
     const isConnectedToAccounting = Object.keys(policy?.connections ?? {}).length > 0;
     const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
@@ -83,8 +80,8 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);
     const isToggleDisabled = !policy?.areCategoriesEnabled || !hasEnabledCategories || isConnectedToAccounting;
 
-    // Under the revamp only the GL codes toggle is left here, so the page has nothing to show without it.
-    const shouldBlockEmptySettings = isRulesRevampEnabled && !policy?.glCodes;
+    // Only the GL codes toggle is left here, so the page has nothing to show without it.
+    const shouldBlockEmptySettings = !policy?.glCodes;
 
     const onSelectItem = (item: ListItem) => {
         if (!item.groupID) {
@@ -123,21 +120,6 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                     onBackButtonPress={() => Navigation.goBack(isQuickSettingsFlow ? backPath : undefined)}
                 />
                 <ScrollView contentContainerStyle={[styles.flexGrow1]}>
-                    {!isRulesRevampEnabled && (
-                        <ToggleSettingOptionRow
-                            title={translate('workspace.categories.requiresCategory')}
-                            subtitle={toggleSubtitle}
-                            switchAccessibilityLabel={translate('workspace.categories.requiresCategory')}
-                            isActive={policy?.requiresCategory ?? false}
-                            onToggle={updateWorkspaceRequiresCategory}
-                            pendingAction={policy?.pendingFields?.requiresCategory}
-                            disabled={isToggleDisabled}
-                            wrapperStyle={[styles.pv2, styles.mh5]}
-                            errors={policy?.errorFields?.requiresCategory ?? undefined}
-                            onCloseError={() => clearPolicyErrorField(policy?.id, 'requiresCategory')}
-                            shouldPlaceSubtitleBelowSwitch
-                        />
-                    )}
                     {!!policy?.glCodes && (
                         <ToggleSettingOptionRow
                             title={translate('workspace.categories.showCategoryGLCodes')}
@@ -150,23 +132,6 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
                             errors={policy?.errorFields?.showCategoryGLCodes ?? undefined}
                             onCloseError={() => clearPolicyErrorField(policy?.id, 'showCategoryGLCodes')}
                         />
-                    )}
-                    {/* Default spend categories moved to Rules > Expense defaults, so they'd be a second source of truth here. */}
-                    {!isRulesRevampEnabled && (
-                        <>
-                            <View style={[styles.sectionDividerLine, styles.mh5, styles.mv6]} />
-                            <View style={[styles.containerWithSpaceBetween]}>
-                                {!!policyData.policy && (data?.length ?? 0) > 0 && (
-                                    <SelectionList
-                                        addBottomSafeAreaPadding
-                                        customListHeaderContent={selectionListHeaderContent}
-                                        data={data}
-                                        ListItem={SpendCategorySelectorListItem}
-                                        onSelectRow={onSelectItem}
-                                    />
-                                )}
-                            </View>
-                        </>
                     )}
                 </ScrollView>
             </ScreenWrapper>
