@@ -36,6 +36,8 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const hasRefetchedPublicRoom = useRef(false);
 
     const [allReports, allReportsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [reportNameValuePairs, reportNameValuePairsMetadata] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const reportNameValuePairsRef = useRef(reportNameValuePairs);
     const [isLoadingApp = true] = useOnyx(ONYXKEYS.IS_LOADING_APP);
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -43,6 +45,10 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
+
+    useEffect(() => {
+        reportNameValuePairsRef.current = reportNameValuePairs;
+    }, [reportNameValuePairs]);
 
     // An anonymous deep link into a public room needs to be re-fetched after OpenApp settles (see the effect
     // below). Track the pending reportID so both the initial-URL and the url-change paths stay in sync.
@@ -56,7 +62,9 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
+        if (
+            isLoadingOnyxValue(allReportsMetadata, reportNameValuePairsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)
+        ) {
             return;
         }
 
@@ -113,6 +121,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         isSelfTourViewed,
                         betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                        reportNameValuePairsRef.current,
                     );
                     trackPendingPublicRoomFromDeepLink(url, isCurrentlyAuthenticated);
                 } else {
@@ -147,7 +156,17 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+            openReportFromDeepLink(
+                state.url,
+                allReports,
+                isCurrentlyAuthenticated,
+                conciergeReportID,
+                introSelected,
+                isSelfTourViewed,
+                betas,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+                reportNameValuePairsRef.current,
+            );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
@@ -162,6 +181,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         introSelected,
         betas,
         allReportsMetadata.status,
+        reportNameValuePairsMetadata.status,
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
         introSelectedMetadata.status,

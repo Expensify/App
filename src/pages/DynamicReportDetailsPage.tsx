@@ -214,6 +214,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
     const hasOutstandingChildTask = useHasOutstandingChildTask(report);
 
     const [reportNameValuePairs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${report?.reportID}`);
+    const [lastAccessedReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
 
     const {reportActions} = usePaginatedReportActions(report.reportID);
@@ -399,12 +400,22 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 introSelected,
                 isSelfTourViewed,
                 betas,
+                lastAccessedReportNameValuePairs,
             );
             return;
         }
 
         const isWorkspaceMemberLeavingWorkspaceRoom = isWorkspaceMemberLeavingWorkspaceRoomUtil(report, isPolicyEmployee, isPolicyAdmin);
-        leaveRoom(report, currentUserPersonalDetails.accountID, conciergeReportID, introSelected, isSelfTourViewed, betas, isWorkspaceMemberLeavingWorkspaceRoom);
+        leaveRoom(
+            report,
+            currentUserPersonalDetails.accountID,
+            conciergeReportID,
+            introSelected,
+            isSelfTourViewed,
+            betas,
+            isWorkspaceMemberLeavingWorkspaceRoom,
+            lastAccessedReportNameValuePairs,
+        );
     }, [
         isRootGroupChat,
         isPolicyEmployee,
@@ -416,6 +427,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         introSelected,
         isSelfTourViewed,
         betas,
+        lastAccessedReportNameValuePairs,
     ]);
 
     const showLastMemberLeavingModal = useCallback(async () => {
@@ -1027,6 +1039,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
                 {
                     ancestors,
                     shouldNavigateBack: !taskDeleteBackTo,
+                    reportNameValuePairs: lastAccessedReportNameValuePairs,
                 },
             );
             return;
@@ -1083,6 +1096,7 @@ function DynamicReportDetailsPage({policy, report, route, reportMetadata, report
         conciergeReportID,
         delegateEmail,
         ancestors,
+        lastAccessedReportNameValuePairs,
         reportActionsForOriginalReportID,
         moneyRequestReport,
         moneyRequestReportActions,
