@@ -15,6 +15,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePolicyFeatureWriteAccess from '@hooks/usePolicyFeatureWriteAccess';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldBlockCurrencyChange from '@hooks/useShouldBlockCurrencyChange';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
@@ -65,19 +66,21 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {canWrite: canWriteExpensifyCard, showReadOnlyModal} = usePolicyFeatureWriteAccess(policy, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
-    // Dismiss the "Update to USD" modal if the currency changes to USD externally (e.g. from another device)
+    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
+    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
+    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policy?.id);
+    const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
+
+    // Dismiss the currency modal if the workspace currency becomes a supported one externally (e.g. from another device)
     const isCurrencyModalOpen = useRef(false);
     useEffect(() => {
-        if (policy?.outputCurrency !== CONST.CURRENCY.USD || !isCurrencyModalOpen.current) {
+        if (!canEnrollNewCardProgram || !isCurrencyModalOpen.current) {
             return;
         }
         closeModal();
         isCurrencyModalOpen.current = false;
-    }, [policy?.outputCurrency, closeModal]);
+    }, [canEnrollNewCardProgram, closeModal]);
 
-    const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
-    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policy?.id);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
     const hasAccessibleFeeds = allFeeds.length > 0;
 
@@ -124,20 +127,21 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         },
     ];
 
-    const promptCurrencyChangeAndStartFlow = async () => {
+    const promptCurrencyChange = async () => {
         isCurrencyModalOpen.current = true;
+        // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
         const result = await showConfirmModal({
             title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
             prompt: translate('workspace.bankAccount.updateCurrencyForExpensifyCard'),
-            confirmText: translate('workspace.bankAccount.updateWorkspaceCurrency'),
-            cancelText: translate('common.cancel'),
-            danger: true,
+            confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
+            cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
+            shouldShowCancelButton: !shouldBlockCurrencyChange,
         });
         isCurrencyModalOpen.current = false;
-        if (result.action !== ModalActions.CONFIRM || !policy) {
+        if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
-        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id, true));
+        Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
     };
 
     return (
@@ -177,7 +181,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                         // The supported currency restriction only applies to enrolling a brand-new card program.
                         // If hasAccessibleFeeds is true, allow the flow to start in order to link an existing feed
                         if (!hasAccessibleFeeds && !canEnrollNewCardProgram) {
-                            promptCurrencyChangeAndStartFlow();
+                            promptCurrencyChange();
                             return;
                         }
                         startFlow();

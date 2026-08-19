@@ -6944,7 +6944,7 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             yourWorkspace: `您的工作区当前使用不受支持的货币。请查看<a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">支持的货币列表</a>。`,
             chooseAnExisting: '选择现有银行账户来支付报销，或添加新账户。',
             changeBankAccount: '更改银行账户',
-            updateCurrencyForExpensifyCard: 'Expensify 卡支持美元、英镑和欧元银行账户。请将此工作区更新为支持的货币，或使用其他工作区进行注册。',
+            updateCurrencyForExpensifyCard: 'Expensify 卡可以以美元、英镑和欧元发行。请将此工作区更新为受支持的货币，或使用其他工作区。',
             updateCurrencyForExpensifyCardTitle: '获取 Expensify 卡',
         },
         changeOwner: {

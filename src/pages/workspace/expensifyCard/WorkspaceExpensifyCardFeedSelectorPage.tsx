@@ -30,7 +30,7 @@ import {isEmailPublicDomain} from '@libs/LoginUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsNavigatorParamList} from '@libs/Navigation/types';
-import {canMemberWrite} from '@libs/PolicyUtils';
+import {canEditWorkspaceSettings, canMemberWrite} from '@libs/PolicyUtils';
 import {expensifyLoginsSelector} from '@libs/UserUtils';
 
 import Navigation from '@navigation/Navigation';
@@ -85,6 +85,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
     const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policyID);
+    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
 
     const getIssueCardFundID = () => {
         if (primaryFeeds.length === 0) {
@@ -101,6 +102,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     };
 
     const issueCardFundID = getIssueCardFundID();
+    const hasIssueCardFundID = issueCardFundID !== undefined;
 
     const handleAddCardPress = () => {
         if (issueCardFundID === undefined) {
@@ -202,17 +204,17 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
 
     const primaryListData = primaryFeeds.map((entry) => toListItem(entry, false));
 
-    // Suppress the new-program branch on workspaces with unsupported currencies
-    // These workspaces may only issue cards on existing feeds
-    const shouldShowIssueCardButton = issueCardFundID !== undefined || canEnrollNewCardProgram;
+    // Suppress the new-program branch on workspaces with unsupported currencies, and for members who cannot
+    // reach the bank account setup page. These workspaces may only issue cards on existing feeds
+    const shouldShowIssueCardButton = hasIssueCardFundID || (canEnrollNewCardProgram && canStartBankAccountSetup);
 
     const issueNewCardAndOtherFeedsFooter = canWriteExpensifyCard ? (
         <View style={[styles.w100, styles.flexColumn]}>
             {shouldShowIssueCardButton && (
                 <MenuItemAction
-                    title={translate(issueCardFundID !== undefined ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
+                    title={translate(hasIssueCardFundID ? 'workspace.expensifyCard.issueCard' : 'workspace.expensifyCard.issueNewCard')}
                     icon={expensifyIcons.Plus}
-                    onPress={issueCardFundID !== undefined ? handleAddCardPress : handleSetUpNewProgramPress}
+                    onPress={hasIssueCardFundID ? handleAddCardPress : handleSetUpNewProgramPress}
                     sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.EXPENSIFY_CARD.ISSUE_CARD_BUTTON}
                 />
             )}
