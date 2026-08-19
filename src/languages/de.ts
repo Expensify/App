@@ -4164,7 +4164,7 @@ ${amount} für ${merchant} – ${date}`,
         proofOfBeneficialOwnerDescription:
             'Bitte legen Sie eine unterzeichnete Bescheinigung und ein Organigramm vor, ausgestellt von einem vereidigten Buchhalter, Notar oder Rechtsanwalt, die den Besitz von 25 % oder mehr des Unternehmens bestätigt. Das Dokument muss innerhalb der letzten drei Monate datiert sein und die Lizenznummer der unterzeichnenden Person enthalten.',
         proofOfBeneficialOwnerDescriptionCA:
-            'Bitte legen Sie Ihr Schedule 50 (Shareholder Information) aus Ihrer letzten T2-Körperschaftsteuererklärung vor, das jede Person aufführt, die 25 % oder mehr des Unternehmens besitzt.',
+            'Bitte geben Sie Ihren Schedule 50 (Aktionärsinformationen) aus Ihrer aktuellsten T2-Körperschaftsteuererklärung an, in dem jede Person aufgeführt ist, die 25 % oder mehr des Unternehmens besitzt.',
         copyOfID: 'Kopie des Ausweises des wirtschaftlich Berechtigten',
         copyOfIDDescription: 'Beispiele: Reisepass, Führerschein usw.',
         proofOfAddress: 'Adressnachweis für wirtschaftlich Berechtigte',

@@ -4115,7 +4115,7 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         proofOfBeneficialOwnerDescription:
             '事業の所有権が25%以上であることを証明するため、公認会計士、公証人、または弁護士が署名した宣誓書および組織図をご提出ください。日付は過去3か月以内のものであり、署名者の免許番号が記載されている必要があります。',
         proofOfBeneficialOwnerDescriptionCA:
-            '直近のT2法人所得税申告書のSchedule 50（Shareholder Information／株主情報）をご提出ください。事業の25%以上を保有するすべての個人が記載されている必要があります。',
+            '直近の T2 法人所得税申告書に含まれる Schedule 50（株主情報）をご提出ください。事業の持分を 25％以上所有しているすべての個人が分かるものをご用意ください。',
         copyOfID: '実質的支配者の本人確認書類のコピー',
         copyOfIDDescription: '例：パスポート、運転免許証など',
         proofOfAddress: '実質的支配者の住所証明',
