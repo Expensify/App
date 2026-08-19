@@ -118,7 +118,10 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
     // The revamp moves the multi-level tag settings to Rules, but the GL codes toggle stays here and needs a way in.
     const shouldShowTagsSettings = canWriteTags && (!(isRulesRevampEnabled && isMultiLevelTags) || !!policy?.glCodes);
-    const canSelectMultiple = canWriteTags && !hasDependentTags && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
+    // Multi-level tag rows only ever offered the Required bulk actions, and those moved to Rules, so selecting them
+    // would open a dropdown with nothing in it.
+    const isSelectionEnabled = canWriteTags && !hasDependentTags && !(isRulesRevampEnabled && isMultiLevelTags);
+    const canSelectMultiple = isSelectionEnabled && (shouldUseNarrowLayout ? isMobileSelectionModeEnabled : true);
     const isControlPolicyWithWideLayout = !shouldUseNarrowLayout && isControlPolicy(policy);
     const tagApproverEmails = useMemo(() => {
         const approverEmails: Record<string, string> = {};
@@ -570,7 +573,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         const selectedTagsObject = selectedTagKeys.map((key) => policyTagLists.at(0)?.tags?.[key]);
         const selectedTagLists = selectedTagKeys.map((selectedTag) => policyTagLists.find((policyTagList) => policyTagList.name === selectedTag));
 
-        if (!canWriteTags || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
+        // Without selection there are no bulk actions, so keep the normal header even if selection mode lingered from elsewhere.
+        if (!canWriteTags || !isSelectionEnabled || (shouldUseNarrowLayout ? !isMobileSelectionModeEnabled : selectedTagKeys.length === 0)) {
             const hasPrimaryActions = canWriteTags && !hasAccountingConnections && !isMultiLevelTags && hasVisibleTags;
             return (
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
@@ -879,7 +883,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
                             <WorkspaceTagsTable
                                 tags={tagRows}
-                                selectionEnabled={canWriteTags && !hasDependentTags}
+                                selectionEnabled={isSelectionEnabled}
                                 selectedKeys={selectedTagKeys}
                                 isMultiLevelTags={isMultiLevelTags}
                                 hasDependentTags={hasDependentTags}
