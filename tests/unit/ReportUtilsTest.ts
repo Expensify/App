@@ -20069,6 +20069,18 @@ describe('ReportUtils', () => {
             originalMessage: {amount: 100, currency: 'USD'},
             created: '2026-01-04 10:00:00.000',
         });
+        const approvedAfterSubmitAction = createMock<ReportAction>({
+            reportActionID: '5',
+            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-03 10:00:00.000',
+        });
+        const approvedBeforeSubmitAction = createMock<ReportAction>({
+            reportActionID: '6',
+            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
+            originalMessage: {amount: 100, currency: 'USD'},
+            created: '2026-01-01 10:00:00.000',
+        });
 
         it('should return false when the report is undefined', () => {
             expect(hasReportBeenForwardedSinceLastSubmit(undefined, {[submittedAction.reportActionID]: submittedAction})).toBe(false);
@@ -20102,6 +20114,28 @@ describe('ReportUtils', () => {
 
         it('should return true when a forwarded action exists and the report was never submitted', () => {
             expect(hasReportBeenForwardedSinceLastSubmit(report, {[forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction})).toBe(true);
+        });
+
+        it('should return true when an approved action was created after the last submit (multi-level intermediate approval)', () => {
+            const reportActions = {[submittedAction.reportActionID]: submittedAction, [approvedAfterSubmitAction.reportActionID]: approvedAfterSubmitAction};
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(true);
+        });
+
+        it('should return false when the only approved action was created before the last submit', () => {
+            const reportActions = {[submittedAction.reportActionID]: submittedAction, [approvedBeforeSubmitAction.reportActionID]: approvedBeforeSubmitAction};
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
+        });
+
+        it('should return false when the report was resubmitted after being approved', () => {
+            const reportActions = {
+                [submittedAction.reportActionID]: submittedAction,
+                [approvedAfterSubmitAction.reportActionID]: approvedAfterSubmitAction,
+                [resubmittedAction.reportActionID]: resubmittedAction,
+            };
+
+            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
         });
 
         it('should read the passed reportActions rather than the report actions stored in Onyx', async () => {

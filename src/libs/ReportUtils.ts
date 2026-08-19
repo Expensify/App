@@ -205,6 +205,7 @@ import {
     isActionableJoinRequestPending,
     isActionableTrackExpense,
     isActionOfType,
+    isApprovedAction,
     isCreatedTaskReportAction,
     isCurrentActionUnread,
     isDeletedAction,
@@ -2060,7 +2061,9 @@ function hasReportBeenForwardedSinceLastSubmit(report: OnyxEntry<Report>, report
     const reportActionsArray = Object.values(reportActions ?? allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`] ?? {});
     const lastSubmittedAt = reportActionsArray.filter(isSubmittedAction).reduce<string>((latest, action) => (action.created > latest ? action.created : latest), '');
 
-    return reportActionsArray.some((action) => isForwardedAction(action) && action.created > lastSubmittedAt);
+    // An intermediate approval in a multi-level workflow keeps the report in the processing state but records an APPROVED action (not a FORWARDED
+    // one), so treat either action created since the last submit as the report having moved past its first level of approval.
+    return reportActionsArray.some((action) => (isForwardedAction(action) || isApprovedAction(action)) && action.created > lastSubmittedAt);
 }
 
 function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
