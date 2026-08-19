@@ -551,16 +551,12 @@ describe('Spend Search Router navigation source', () => {
             Building: mockIcon,
             Gear: mockIcon,
         });
-        mockUseSearchTypeMenuSections.mockReturnValue({
-            typeMenuSections: [
-                {
-                    translationPath: 'search.tabs.expenseReports',
-                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
-                },
-            ],
-            activeItemIndex: -1,
-            activeKey: undefined,
-        });
+        mockUseSearchTypeMenuSections.mockReturnValue([
+            {
+                translationPath: 'search.tabs.expenseReports',
+                menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+            },
+        ]);
         mockUseCreateNavigationSuggestions.mockReturnValue(
             CreateNavigationSuggestions.buildCreateNavigationItems([{visible: true, text: 'Create expense', icon: mockIcon, action: jest.fn(), keyForList: 'create_expense'}]),
         );

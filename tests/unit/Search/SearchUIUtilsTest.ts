@@ -12638,6 +12638,7 @@ describe('SearchUIUtils', () => {
                 defaultKeys,
                 new Set(),
                 translateLocal,
+                undefined,
                 localeCompare,
                 convertToDisplayStringWithoutCurrency,
                 (filterKey, isDefault) => ({isDefault}),
