@@ -181,6 +181,13 @@ describe('NumberForm.SymbolInput', () => {
         expect(screen.getByDisplayValue('12.50')).toBeOnTheScreen();
     });
 
+    it('uses maxLength for integer validation without forwarding it to the native input', async () => {
+        renderSymbolInput({symbol: '$', decimals: 2, maxLength: 8}, {value: '12345678.99'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
+    });
+
     it('normalizes spaces and comma separators before notifying the root', async () => {
         const onInputChange = jest.fn();
         renderSymbolInput({symbol: '$', decimals: 2}, {onInputChange});
@@ -264,6 +271,13 @@ describe('NumberForm.TextInput', () => {
 
         expect(onInputChange).toHaveBeenLastCalledWith('0.5');
         expect(screen.getByDisplayValue('0.5')).toBeOnTheScreen();
+    });
+
+    it('uses maxLength for integer validation without forwarding it to the native input', async () => {
+        renderTextInput({decimals: 2, maxLength: 8}, {value: '12345678.99'});
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByDisplayValue('12345678.99').props.maxLength).toBeUndefined();
     });
 
     it('renders the inline TextInput error and forwards blur and the text-input ref', async () => {

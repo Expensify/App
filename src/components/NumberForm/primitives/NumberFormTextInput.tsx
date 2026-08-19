@@ -8,9 +8,22 @@ import CONST from '@src/CONST';
 import type {TextInputSelectionChangeEvent} from 'react-native';
 
 function NumberFormTextInput(props: NumberFormTextInputProps) {
-    const {symbol = '', hideSymbol = false, disableKeyboard, keyboardType, inputMode, label, prefixStyle, suffixStyle, onSubmitEditing: inputOnSubmitEditing, style, ...rest} = props;
+    const {
+        symbol = '',
+        hideSymbol = false,
+        disableKeyboard,
+        keyboardType,
+        inputMode,
+        label,
+        prefixStyle,
+        suffixStyle,
+        onSubmitEditing: inputOnSubmitEditing,
+        style,
+        maxLength,
+        ...rest
+    } = props;
     const {errorText, formattedNumber, handleBlur, handleInputRef, handleKeyPress, handleSelectionChange, inputPosition, onSubmitEditing, selectionForRender, setNumber} =
-        useNumberFormInputLogic(props);
+        useNumberFormInputLogic({...props, maxLength});
     const handleSubmitEditing = (event: Parameters<NonNullable<BaseTextInputProps['onSubmitEditing']>>[0]) => {
         inputOnSubmitEditing?.(event);
         onSubmitEditing?.(event);

@@ -19,10 +19,11 @@ function NumberFormSymbolInput(props: NumberFormSymbolInputProps) {
         keyboardType,
         isSymbolPressable = false,
         onSymbolButtonPress,
+        maxLength,
         ...rest
     } = props;
     const {errorText, formattedNumber, handleBlur, handleInputRef, handleKeyPress, handleSelectionChange, inputPosition, negativeMode, numberFormat, selectionForRender, setNumber} =
-        useNumberFormInputLogic(props);
+        useNumberFormInputLogic({...props, maxLength});
 
     // TODO: Unify both input paths (NumberForm.SymbolInput and NumberForm.TextInput) around a shared NumberForm.Error primitive so error rendering is no longer conditional.
     return (
