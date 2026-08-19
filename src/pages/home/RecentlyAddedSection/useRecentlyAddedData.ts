@@ -209,7 +209,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
     //
     // `SearchUIUtils.isSearchDataLoaded` answers the same question for the Search page and is deliberately not reused:
     // it recomputes query hashes through `getQueryHashes` on every call to tolerate sort metadata round-tripping, which
-    // this fixed, unsorted query never does, and importing it would put a 7k-line module on Home's startup path.
+    // this fixed, unsorted query never does, so that reconciliation would be unneeded generality here.
     const hasResolved = searchResults?.search?.state === CONST.SEARCH.SNAPSHOT_STATE.LOADED || !!effectiveSnapshotData;
     const isAwaitingFirstResult = !!queryJSON && !hasResolved && !hasSearchErrors && !isOffline;
 
