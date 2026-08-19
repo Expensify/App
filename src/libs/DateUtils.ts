@@ -1122,14 +1122,14 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
  * Returns a month label, e.g. "September 2025".
  */
 function getFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(year, month - 1, 1), 'MMMM yyyy', {locale: dateFnsLocale});
+    return format(new Date(year, month - 1, 1), 'LLLL yyyy', {locale: dateFnsLocale});
 }
 
 /**
  * Returns a compact month label, e.g. "Sep ’25".
  */
 function getShortFormattedMonthForSearch(year: number, month: number, dateFnsLocale: DateFnsLocale | undefined): string {
-    return format(new Date(year, month - 1, 1), 'MMM ’yy', {locale: dateFnsLocale});
+    return format(new Date(year, month - 1, 1), 'LLL ’yy', {locale: dateFnsLocale});
 }
 
 /**
@@ -1194,7 +1194,7 @@ function getFormattedQuarterForSearch(year: number, quarter: number, dateFnsLoca
  * Returns a compact quarter label, e.g. "Q3 ’25".
  */
 function getShortFormattedQuarterForSearch(year: number, quarter: number): string {
-    return `Q${quarter} ’${String(year).slice(-2)}`;
+    return `Q${quarter} ${format(new Date(year, 0, 1), '’yy')}`;
 }
 
 function getNextNthOfMonth(nth: number) {
