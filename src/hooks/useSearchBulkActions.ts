@@ -7,7 +7,7 @@ import {useOpenSearchReportSubmitToPopover} from '@components/ReportSubmitToPopo
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 import type {BulkPaySelectionData, PaymentData, SearchColumnType, SearchFilterKey, SearchQueryJSON, SelectedReports, SelectedTransactions} from '@components/Search/types';
 
-import {getAccountingIntegrationDisplayName} from '@libs/AccountingUtils';
+import {getAccountingIntegrationDisplayName, getExportLabelForConnection} from '@libs/AccountingUtils';
 import {getExpensifyCardStatementPDF} from '@libs/actions/CompanyCards';
 import {exportReceiptsToZip, exportReportsToPDF} from '@libs/actions/Export';
 import {unholdRequest} from '@libs/actions/IOU/Hold';
@@ -1782,11 +1782,18 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 return reportExportOptions.includes(exportOption);
             };
 
-            // Group the selected reports by their connected accounting integration. A single-workspace
+            // Group the selected reports by their connected accounting integration / product. A single-workspace
             // selection collapses to one group (unchanged behavior), while a multi-workspace selection
             // surfaces one export + one "Mark as exported" option per integration, each scoped to the
-            // reports that belong to it.
-            const reportsByIntegration = new Map<NonNullable<ReturnType<typeof getConnectedIntegration>>, typeof selectedReports>();
+            // reports that belong to it (e.g. QBO and IES workspaces form distinct groups).
+            const reportsByIntegration = new Map<
+                string,
+                {
+                    integration: NonNullable<ReturnType<typeof getConnectedIntegration>>;
+                    integrationPolicy: OnyxEntry<Policy>;
+                    reports: typeof selectedReports;
+                }
+            >();
             if (isReportsTab && selectedReportIDs.length > 0 && includeReportLevelExport) {
                 for (const report of selectedReports) {
                     const reportPolicy = report.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${report.policyID}`] : undefined;
@@ -1794,9 +1801,14 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     if (!reportIntegration) {
                         continue;
                     }
-                    const reportsForIntegration = reportsByIntegration.get(reportIntegration) ?? [];
-                    reportsForIntegration.push(report);
-                    reportsByIntegration.set(reportIntegration, reportsForIntegration);
+                    const exportLabel = getExportLabelForConnection(reportIntegration, reportPolicy);
+                    const group = reportsByIntegration.get(exportLabel) ?? {
+                        integration: reportIntegration,
+                        integrationPolicy: reportPolicy ?? policy,
+                        reports: [],
+                    };
+                    group.reports.push(report);
+                    reportsByIntegration.set(exportLabel, group);
                 }
             }
 
@@ -1846,7 +1858,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         if (companyIDs.size > 1) {
                             showConfirmModal({
                                 title: translate('workspace.exportDifferentCompaniesModal.title'),
-                                prompt: translate('workspace.exportDifferentCompaniesModal.description', integration),
+                                prompt: translate('workspace.exportDifferentCompaniesModal.description', integration, connectionNameFriendly),
                                 confirmText: translate('workspace.exportDifferentCompaniesModal.confirmText'),
                                 shouldShowCancelButton: false,
                             });
@@ -1918,7 +1930,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     }
 
                     showConfirmModal({
-                        title: translate('workspace.exportPartialModal.title', integrationReportIDs.length, totalSelectedReportsCount, integration),
+                        title: translate('workspace.exportPartialModal.title', integrationReportIDs.length, totalSelectedReportsCount, integration, connectionNameFriendly),
                         // Fixed subtitle describes the partial scope; the scrollable prompt lists the report names
                         // that will actually be exported for the chosen integration. A partial export can happen for
                         // two independent reasons: part of the selection belongs to other integrations, and/or some
@@ -1928,6 +1940,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                             integration,
                             integrationGroupSize < totalSelectedReportsCount,
                             integrationReportIDs.length < integrationGroupSize,
+                            connectionNameFriendly,
                         ),
                         prompt: exportableReportNames.join('\n'),
                         confirmText: translate('workspace.exportPartialModal.confirmText', {count: integrationReportIDs.length}),
@@ -1943,9 +1956,8 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // Group each integration's actions together, listing its "Export to <integration>" option
             // immediately followed by its "Mark as exported" option, before moving on to the next integration.
-            for (const [integration, reportsForIntegration] of reportsByIntegration) {
+            for (const [, {integration, integrationPolicy, reports: reportsForIntegration}] of reportsByIntegration) {
                 const integrationGroupSize = reportsForIntegration.length;
-                const integrationPolicy = reportsForIntegration.at(0)?.policyID ? policies?.[`${ONYXKEYS.COLLECTION.POLICY}${reportsForIntegration.at(0)?.policyID}`] : policy;
                 const connectionNameFriendly = getAccountingIntegrationDisplayName(integrationPolicy, integration, translate);
                 const integrationIcon = getIntegrationIcon(integration, expensifyIcons);
 

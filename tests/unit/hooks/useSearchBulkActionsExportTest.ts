@@ -115,7 +115,15 @@ jest.mock('@hooks/useLocalize', () => {
     return {
         __esModule: true,
         default: () => ({
-            translate: (key: string) => (key === 'workspace.accounting.qbo' ? actualCONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline : key),
+            translate: (key: string) => {
+                if (key === 'workspace.accounting.qbo') {
+                    return actualCONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY.quickbooksOnline;
+                }
+                if (key === 'workspace.accounting.intuitEnterpriseSuite') {
+                    return actualCONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+                }
+                return key;
+            },
             localeCompare: (a: string, b: string) => a && b,
             formatPhoneNumber: (phone: string) => phone,
         }),
@@ -272,6 +280,7 @@ const REPORT_ID_2 = 'report2';
 const POLICY_ID_2 = 'policy2';
 const NETSUITE_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.NETSUITE];
 const QBO_FRIENDLY_NAME = CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[CONST.POLICY.CONNECTIONS.NAME.QBO];
+const IES_FRIENDLY_NAME = CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
 
 const expenseReportQueryJSON: SearchQueryJSON = {
     inputQuery: 'type:expense-report status:all',
@@ -570,6 +579,69 @@ describe('useSearchBulkActions - export options', () => {
         expect(integrationOptionTexts).toEqual([NETSUITE_FRIENDLY_NAME, 'workspace.common.markAsExported', QBO_FRIENDLY_NAME, 'workspace.common.markAsExported']);
 
         expect(markAsManuallyExported).not.toHaveBeenCalled();
+    });
+
+    it('offers distinct QBO and IES export options and marks reports with their respective workspace product when both are selected', async () => {
+        /**
+         * Given: two selected reports across two workspaces:
+         *        - Workspace 1 connected to QuickBooks Online (QBO)
+         *        - Workspace 2 connected to Intuit Enterprise Suite (IES)
+         *
+         * When: the export bulk-action menu is built.
+         *
+         * Then: both "QuickBooks Online" and "Intuit Enterprise Suite" export options are present,
+         *       each followed by its own "Mark as exported" option scoped to that workspace.
+         */
+        const policy1 = {
+            id: POLICY_ID,
+            connections: {[CONST.POLICY.CONNECTIONS.NAME.QBO]: {}},
+        };
+        const policy2 = {
+            id: POLICY_ID_2,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.QBO]: {
+                    config: {credentials: {scope: 'app-foundations.custom-dimensions.read'}},
+                },
+            },
+        };
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy1);
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID_2}`, policy2);
+
+        mockCurrentSearchResults = makeSearchResults([makeSnapshotReport(), makeSnapshotReport(REPORT_ID_2, POLICY_ID_2)]);
+        mockSelectedReports = [makeSelectedReport(), makeSelectedReport({reportID: REPORT_ID_2, policyID: POLICY_ID_2})];
+        mockSelectedTransactions = {
+            tx1: makeSelectedTransaction(),
+            tx2: makeSelectedTransaction({reportID: REPORT_ID_2, policyID: POLICY_ID_2}),
+        };
+
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}), {wrapper: OnyxListItemProvider});
+
+        await waitFor(() => {
+            const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions);
+            expect(subMenuItems?.some((item) => item.text === IES_FRIENDLY_NAME)).toBe(true);
+        });
+
+        const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions) ?? [];
+
+        // Both QBO and IES export options are present
+        expect(subMenuItems.some((item) => item.text === QBO_FRIENDLY_NAME)).toBe(true);
+        expect(subMenuItems.some((item) => item.text === IES_FRIENDLY_NAME)).toBe(true);
+        expect(subMenuItems.filter((item) => item.text === 'workspace.common.markAsExported')).toHaveLength(2);
+
+        const integrationOptionTexts = subMenuItems
+            .map((item) => item.text)
+            .filter((text) => text === QBO_FRIENDLY_NAME || text === IES_FRIENDLY_NAME || text === 'workspace.common.markAsExported');
+        expect(integrationOptionTexts).toEqual([QBO_FRIENDLY_NAME, 'workspace.common.markAsExported', IES_FRIENDLY_NAME, 'workspace.common.markAsExported']);
+
+        // Selecting "Mark as exported" for IES calls markAsManuallyExported with the IES policy
+        const markAsExportedIESOption = subMenuItems.find(
+            (item) => item.text === 'workspace.common.markAsExported' && item.accessibilityLabel === `workspace.common.markAsExported, ${IES_FRIENDLY_NAME}`,
+        );
+        expect(markAsExportedIESOption).toBeDefined();
+
+        markAsExportedIESOption?.onSelected?.();
+
+        expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, expect.objectContaining({id: POLICY_ID_2}));
     });
 
     it('blocks the export and shows the different-companies modal when the selection spans one integration on different companyIDs', async () => {
