@@ -305,6 +305,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            // Pass the row-scoped, live violations (keyed by this report's snapshot transactions) instead of the
+            // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
+            // every row on unrelated violation changes.
+            allViolations: liveViolationsForSnapshotTransactions,
             conciergeChat,
         });
     }, [
@@ -347,6 +351,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        liveViolationsForSnapshotTransactions,
         conciergeChat,
     ]);
 
