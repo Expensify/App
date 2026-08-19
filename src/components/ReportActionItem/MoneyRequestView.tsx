@@ -265,7 +265,7 @@ function MoneyRequestView({
     }
 
     // Use the report's real policy, not `policy` above (swapped to an unrelated workspace for
-    // unreported expenses) — else self-DM split editing wrongly redirects to RESTRICTED_ACTION.
+    // unreported expenses), else self-DM split editing wrongly redirects to RESTRICTED_ACTION.
     const restrictedActionPolicyID = useRestrictedActionPolicyID(expensePolicy);
 
     const allPolicyCategories = usePolicyCategories();
