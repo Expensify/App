@@ -749,7 +749,6 @@ function getOnyxLoadingData(
     hash: number,
     queryJSON?: Readonly<SearchQueryJSON>,
     offset?: number,
-    isOffline?: boolean,
     isSearchAPI = false,
     shouldCalculateTotals?: boolean,
 ): OnyxData<typeof ONYXKEYS.COLLECTION.SNAPSHOT> {
@@ -809,12 +808,16 @@ function getOnyxLoadingData(
         },
     ];
 
+    // Deliberately leaves `data` in place. The failure is already recorded by `errors` and `responseJsonCode`, and the
+    // consumers that must not show stale rows key off those: the Search view early-returns its error page on `errors`
+    // alone, before it renders any row or empty state. Deleting the results as well cost every consumer its last known
+    // data for a transient failure, with no way back until something refetched — the snapshot is the only copy that
+    // survives a reload, so a widget cannot compensate for losing it.
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hash}`,
             value: {
-                ...(isOffline ? {} : {data: null}),
                 search: {
                     type,
                     ...(isSearchAPI && {isLoading: false}),
@@ -1053,7 +1056,7 @@ function handlePreventSearchAPI(hash: number | undefined) {
     if (typeof hash === 'undefined') {
         return {};
     }
-    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, false, true);
+    const {optimisticData, finallyData} = getOnyxLoadingData(hash, undefined, undefined, true);
     return {
         enableSearchAPIPrevention: () => {
             shouldPreventSearchAPI = true;
@@ -1146,7 +1149,7 @@ function search({
     const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
-    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
+    const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, true, shouldCalculateTotals);
     const {backendQueryJSON, limit, exactMatchFilterKeys} = getBackendQueryJSON(queryJSON);
     const query = {
         ...backendQueryJSON,

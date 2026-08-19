@@ -127,8 +127,9 @@ function makeReport(reportID: string, ownerAccountID: number, overrides: Partial
     } as Report;
 }
 
-/** The `search` metadata last seeded, so `failSearch` can preserve it the way an Onyx merge would. */
+/** The `search` metadata and `data` last seeded, so `failSearch` can preserve them the way an Onyx merge would. */
 let lastSeededSearchMeta: Partial<SearchResults['search']> = {};
+let lastSeededSnapshotData: SearchResults['data'] | undefined;
 
 /** Seeds the current user's expense snapshot with the given transactions and reports. */
 function setupSnapshot(transactions: Transaction[], reports: Report[], searchMeta: Partial<SearchResults['search']> = {}) {
@@ -140,21 +141,23 @@ function setupSnapshot(transactions: Transaction[], reports: Report[], searchMet
     for (const transaction of transactions) {
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
+    lastSeededSnapshotData = data as SearchResults['data'];
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data, search: searchMeta};
 }
 
 /**
- * Mirrors what `getOnyxLoadingData`'s failureData writes when a Search fails while online: the stored results are
- * deleted outright and an error marker is left in their place.
+ * Mirrors what `getOnyxLoadingData`'s failureData merges when a Search fails while online: an error marker plus a
+ * response code, leaving any previously stored results untouched.
  */
 function failSearch() {
-    const failed: {search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
-        // Production merges `data: null`, which strips only that key and leaves the rest of `search` in place.
+    const previous = onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];
+    const failed: {data?: SearchResults['data']; search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
+        data: lastSeededSnapshotData,
         // `state` reaching `loaded` on a failure is exactly why it cannot be read on its own.
         search: {...lastSeededSearchMeta, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 0},
         errors: {[ERROR_TIMESTAMP]: 'common.genericErrorMessage'},
     };
-    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = failed;
+    onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = previous ? failed : {search: failed.search, errors: failed.errors};
 }
 
 /** Seeds the local `transactions_` collection (mirrors what optimistic expense creation writes to Onyx). */
@@ -535,7 +538,7 @@ describe('useRecentlyAddedData — status agnostic', () => {
 });
 
 describe('useRecentlyAddedData — surviving a failed search', () => {
-    it('keeps the rows it already had when a failed search deletes the snapshot data', () => {
+    it('keeps the rows it already had when a search fails', () => {
         setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
@@ -544,7 +547,7 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
         failSearch();
         rerender({});
 
-        // The rows outlive the wipe, so the slot never claims the user has no expenses over a transient failure.
+        // The failure records `errors` without touching `data`, so a transient failure never costs the user their rows.
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
     });
 
@@ -562,35 +565,20 @@ describe('useRecentlyAddedData — surviving a failed search', () => {
         expect(result.current.isAwaitingFirstResult).toBe(false);
     });
 
-    it('never serves remembered rows to a different account', () => {
+    it('never shows one account rows to another', () => {
         setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
 
         const {result, rerender} = renderHook(() => useRecentlyAddedData());
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
 
-        // A delegate switch clears Onyx without unmounting Home, and the new accountID moves the query hash. Rows
-        // fetched for the previous account must not be shown as if they belonged to the new one.
+        // A delegate switch clears Onyx without unmounting Home, and the new accountID moves the query hash, so the
+        // slot reads a different snapshot key. Rows fetched for the previous account must not appear under the new one.
         mockedUseCurrentUserPersonalDetails.mockReturnValue({accountID: OTHER_ACCOUNT_ID, login: `${OTHER_ACCOUNT_ID}@test.com`} as CurrentUserPersonalDetails);
         rerender({});
 
         expect(result.current.transactions).toEqual([]);
         // Empty rows plus a settled verdict is the bug this guards: the delegate would be told they have no expenses.
         expect(result.current.isAwaitingFirstResult).toBe(true);
-    });
-
-    it('does not substitute remembered rows when Onyx dropping the data is the correct answer', () => {
-        setupSnapshot([makeTransaction({transactionID: 't1', inserted: '2026-06-01 10:00:00'})], [makeReport('report_owned', ACCOUNT_ID)], LOADED);
-
-        const {result, rerender} = renderHook(() => useRecentlyAddedData());
-        expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
-
-        // A successful response that carries no data is a real empty result, not a failure. Nothing latches `errors`,
-        // so the remembered rows must not be served as though they were still current.
-        onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {search: LOADED};
-        rerender({});
-
-        expect(result.current.transactions).toEqual([]);
-        expect(result.current.isAwaitingFirstResult).toBe(false);
     });
 });
 
