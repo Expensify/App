@@ -35,11 +35,11 @@ function getInput() {
     return screen.getByTestId(INPUT_TEST_ID);
 }
 
-function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<NumberFormRef>) {
+function renderTextInput(onInputChange: jest.Mock, numberFormRef?: React.Ref<NumberFormRef>, value = '12') {
     return render(
         <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
             <NumberForm
-                value="12"
+                value={value}
                 onInputChange={onInputChange}
                 numberFormRef={numberFormRef}
             >
@@ -64,82 +64,123 @@ describe('NumberForm.TextInput native selection guard', () => {
 
     it('drops the stale selection event emitted in the same batch as the change', async () => {
         const onInputChange = jest.fn();
+
+        // Given a TextInput with value "12"
         renderTextInput(onInputChange);
         await waitForBatchedUpdatesWithAct();
 
-        // Calling the props directly inside a single `act` reproduces native delivering onChangeText and the stale
-        // onSelectionChange in one batch, which `fireEvent` cannot do because it flushes after every event.
+        // When onChangeText and a stale onSelectionChange arrive in the same batch (native behavior fireEvent cannot reproduce)
         const inputProps: {onChangeText?: (text: string) => void; onSelectionChange?: (event: {nativeEvent: {selection: {start: number; end: number}}}) => void} = getInput().props;
         await act(async () => {
             inputProps.onChangeText?.('123');
             inputProps.onSelectionChange?.({nativeEvent: {selection: {start: 0, end: 0}}});
         });
 
+        // Then the value updates and the caret moves to the end instead of the stale position
         expect(onInputChange).toHaveBeenCalledWith('123');
         expect(getInput().props.selection).toEqual({start: 3, end: 3});
     });
 
     it('applies a selection change that arrives after the change has committed', async () => {
         const onInputChange = jest.fn();
+
+        // Given a TextInput with value "12"
         renderTextInput(onInputChange);
         await waitForBatchedUpdatesWithAct();
 
+        // When the value changes to "123"
         fireEvent.changeText(getInput(), '123');
         await waitForBatchedUpdatesWithAct();
 
         expect(getInput().props.selection).toEqual({start: 3, end: 3});
 
+        // When a selection change arrives after the update has committed
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the selection is applied
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
     });
 
     it('does not leave the guard set when setNumber receives the current value', async () => {
         const onInputChange = jest.fn();
+
+        // Given a TextInput with value "12"
         renderTextInput(onInputChange);
         await waitForBatchedUpdatesWithAct();
 
+        // When setNumber is called with the same value "12"
         fireEvent.changeText(getInput(), '12');
         await waitForBatchedUpdatesWithAct();
 
+        // When a selection change arrives afterward
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the selection is applied because the guard was not left set
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
     });
 
     it('does not leave the guard set when updateNumber receives the current value', async () => {
         const onInputChange = jest.fn();
         const numberFormRef = React.createRef<NumberFormRef>();
+
+        // Given a TextInput with value "12" and a numberFormRef
         renderTextInput(onInputChange, numberFormRef);
         await waitForBatchedUpdatesWithAct();
 
+        // When updateNumber is called with the same value "12"
         act(() => {
             numberFormRef.current?.updateNumber('12');
         });
         await waitForBatchedUpdatesWithAct();
 
+        // When a selection change arrives afterward
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the selection is applied and onInputChange is not called
         expect(getInput().props.selection).toEqual({start: 0, end: 0});
         expect(onInputChange).not.toHaveBeenCalled();
     });
 
     it('does not swallow a selection change when the value was rejected', async () => {
         const onInputChange = jest.fn();
+
+        // Given a TextInput with value "12" and two decimal places
         renderTextInput(onInputChange);
         await waitForBatchedUpdatesWithAct();
 
+        // When the user enters a value that exceeds decimal precision
         fireEvent.changeText(getInput(), '1.234');
         await waitForBatchedUpdatesWithAct();
 
         expect(onInputChange).not.toHaveBeenCalled();
 
+        // When a selection change arrives afterward
         fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the selection is still applied
+        expect(getInput().props.selection).toEqual({start: 1, end: 1});
+    });
+
+    it('keeps the caret position when forward-delete removes a character', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a TextInput with value "123" and the caret before the last two characters
+        renderTextInput(onInputChange, undefined, '123');
+        await waitForBatchedUpdatesWithAct();
+
+        fireEvent(getInput(), 'selectionChange', {nativeEvent: {selection: {start: 1, end: 1}}});
+        await waitForBatchedUpdatesWithAct();
+
+        // When forward-delete is pressed and the character after the caret is removed
+        fireEvent(getInput(), 'keyPress', {nativeEvent: {key: 'Delete'}});
+        fireEvent.changeText(getInput(), '13');
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the caret stays before the remaining character instead of moving backward
         expect(getInput().props.selection).toEqual({start: 1, end: 1});
     });
 });

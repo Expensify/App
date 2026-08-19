@@ -1,9 +1,8 @@
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import type {ForwardedRef, ReactNode} from 'react';
+import type {ForwardedRef} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-type NumberFormNegativeMode = 'none' | 'external' | 'inValue';
 type NumberFormInputPosition = 'prefix' | 'suffix';
 
 type NumberFormRef = {
@@ -35,15 +34,6 @@ type NumberFormInputBaseProps = {
     /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
 
-    /** Whether the value is negative when the sign is managed outside the value. */
-    isNegative?: boolean;
-
-    /** Toggle the external negative state. */
-    toggleNegative?: () => void;
-
-    /** Clear the external negative state when backspace is pressed on an empty value. */
-    clearNegative?: () => void;
-
     /** Style applied to the number input. */
     style?: StyleProp<TextStyle>;
 
@@ -52,27 +42,24 @@ type NumberFormInputBaseProps = {
 
     /** Callback for keyboard events received by the numeric input. */
     onKeyPress?: (event: NumberFormInputKeyPressEvent) => void;
-} & Omit<
-    Pick<
-        BaseTextInputProps,
-        | 'accessibilityLabel'
-        | 'autoFocus'
-        | 'autoGrowExtraSpace'
-        | 'autoGrowMarginSide'
-        | 'contentWidth'
-        | 'disabled'
-        | 'disableKeyboard'
-        | 'keyboardType'
-        | 'onBlur'
-        | 'onFocus'
-        | 'prefixContainerStyle'
-        | 'shouldApplyPaddingToContainer'
-        | 'shouldUseDefaultLineHeightForPrefix'
-        | 'submitBehavior'
-        | 'testID'
-        | 'touchableInputWrapperStyle'
-    >,
-    'onKeyPress'
+} & Pick<
+    BaseTextInputProps,
+    | 'accessibilityLabel'
+    | 'autoFocus'
+    | 'autoGrowExtraSpace'
+    | 'autoGrowMarginSide'
+    | 'contentWidth'
+    | 'disabled'
+    | 'disableKeyboard'
+    | 'keyboardType'
+    | 'onBlur'
+    | 'onFocus'
+    | 'prefixContainerStyle'
+    | 'shouldApplyPaddingToContainer'
+    | 'shouldUseDefaultLineHeightForPrefix'
+    | 'submitBehavior'
+    | 'testID'
+    | 'touchableInputWrapperStyle'
 >;
 
 type NumberFormSymbolInputProps = NumberFormInputBaseProps &
@@ -101,41 +88,4 @@ type NumberFormSymbolInputProps = NumberFormInputBaseProps &
 
 type NumberFormTextInputProps = NumberFormInputBaseProps & Pick<BaseTextInputProps, 'inputMode' | 'label' | 'onSubmitEditing' | 'prefixStyle' | 'suffixStyle'>;
 
-type NumberFormProps = {
-    /** The canonical number value shared by composed primitives. */
-    value?: string;
-
-    /** Called when a composed primitive changes the canonical value. */
-    onInputChange?: (value: string) => void;
-
-    /** Describes whether the negative sign is stored in the value or managed externally. */
-    negativeMode?: NumberFormNegativeMode;
-
-    /** Error supplied by FormProvider. */
-    errorText?: string;
-
-    /** Form callback supplied by InputWrapper. */
-    onBlur?: BaseTextInputProps['onBlur'];
-
-    /** Submit callback supplied by InputWrapper. */
-    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
-
-    /** Reference to the underlying text input, supplied by InputWrapper. */
-    ref?: ForwardedRef<BaseTextInputRef>;
-
-    /** Reference exposing the number editing imperative API. */
-    numberFormRef?: ForwardedRef<NumberFormRef>;
-
-    children: ReactNode;
-};
-
-export type {
-    NumberFormInputBaseProps,
-    NumberFormInputKeyPressEvent,
-    NumberFormInputPosition,
-    NumberFormNegativeMode,
-    NumberFormProps,
-    NumberFormRef,
-    NumberFormSymbolInputProps,
-    NumberFormTextInputProps,
-};
+export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};

@@ -1,14 +1,18 @@
 import createContextNamespace from '@hooks/createContextNamespace';
 
-import type {NumberFormActionsContextValue, NumberFormContext, NumberFormStateContextValue} from './types';
+import type {NumberFormActionsContextValue, NumberFormStateContextValue} from './types';
 
 const createNumberFormContext = createContextNamespace('NumberForm');
 
-const [NumberFormStateContext, useNumberFormState] = createNumberFormContext<NumberFormStateContextValue>('State');
-const [NumberFormActionsContext, useNumberFormActions] = createNumberFormContext<NumberFormActionsContextValue>('Actions');
+const [NumberFormStateContext, useNumberFormStateContext] = createNumberFormContext<NumberFormStateContextValue>('State');
+const [NumberFormActionsContext, useNumberFormActionsContext] = createNumberFormContext<NumberFormActionsContextValue>('Actions');
 
-function useNumberFormContext(): NumberFormContext {
-    return {...useNumberFormState('useNumberFormContext'), ...useNumberFormActions('useNumberFormContext')};
+function useNumberFormState() {
+    return useNumberFormStateContext('useNumberFormState');
 }
 
-export {NumberFormActionsContext, NumberFormStateContext, useNumberFormActions, useNumberFormState, useNumberFormContext};
+function useNumberFormActions() {
+    return useNumberFormActionsContext('useNumberFormActions');
+}
+
+export {NumberFormActionsContext, NumberFormStateContext, useNumberFormActions, useNumberFormState};

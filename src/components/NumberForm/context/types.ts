@@ -1,4 +1,4 @@
-import type {NumberFormNegativeMode, NumberFormRef} from '@components/NumberForm/types';
+import type {NumberFormRef} from '@components/NumberForm/types';
 import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import type {ForwardedRef} from 'react';
@@ -16,7 +16,7 @@ type NumberFormStateContextValue = {
      * reads this the way the legacy component read its own `number` prop, so an intentionally empty field is left alone.
      */
     externalValue: string;
-    negativeMode: NumberFormNegativeMode;
+    allowNegative: boolean;
     errorText?: string;
 };
 
@@ -28,6 +28,4 @@ type NumberFormActionsContextValue = {
     setValue: (value: string, options?: SetValueOptions) => string;
 };
 
-type NumberFormContext = NumberFormStateContextValue & NumberFormActionsContextValue;
-
-export type {NumberFormActionsContextValue, NumberFormContext, NumberFormStateContextValue, SetValueOptions};
+export type {NumberFormActionsContextValue, NumberFormStateContextValue, SetValueOptions};

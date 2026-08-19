@@ -20,7 +20,7 @@ function BaseTextInputWithSymbol({
     symbolPosition = CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX,
     onSymbolButtonPress = () => {},
     onChangeAmount = () => {},
-    shouldNormalizeAmountOnChange = true,
+    shouldNormalizeAmountOnChange = false,
     formattedAmount,
     placeholder,
     selection,

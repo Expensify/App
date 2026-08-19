@@ -1,11 +1,43 @@
+import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
+
+import type {ForwardedRef, ReactNode} from 'react';
+
 import {useLayoutEffect, useRef, useState} from 'react';
 
 import type {SetValueOptions} from './context/types';
-import type {NumberFormProps} from './types';
+import type {NumberFormRef} from './types';
 
 import {NumberFormActionsContext, NumberFormStateContext} from './context';
 
-function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
+type NumberFormProps = {
+    /** The canonical number value shared by composed primitives. */
+    value?: string;
+
+    /** Called when a composed primitive changes the canonical value. */
+    onInputChange?: (value: string) => void;
+
+    /** Whether negative values are allowed. The canonical value always stores its sign. */
+    allowNegative?: boolean;
+
+    /** Error supplied by FormProvider. */
+    errorText?: string;
+
+    /** Form callback supplied by InputWrapper. */
+    onBlur?: BaseTextInputProps['onBlur'];
+
+    /** Submit callback supplied by InputWrapper. */
+    onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
+
+    /** Reference to the underlying text input, supplied by InputWrapper. */
+    ref?: ForwardedRef<BaseTextInputRef>;
+
+    /** Reference exposing the number editing imperative API. */
+    numberFormRef?: ForwardedRef<NumberFormRef>;
+
+    children: ReactNode;
+};
+
+function NumberForm({value = '', onInputChange, allowNegative = false, errorText, onBlur, onSubmitEditing, ref, numberFormRef, children}: NumberFormProps) {
     const [currentValue, setCurrentValue] = useState(value);
     const [previousValue, setPreviousValue] = useState(value);
     const committedValueRef = useRef(value);
@@ -39,7 +71,7 @@ function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText
     const stateContextValue = {
         value: currentValue,
         externalValue: value,
-        negativeMode,
+        allowNegative,
         errorText,
     };
 

@@ -1,27 +1,17 @@
-import {useNumberFormContext} from '@components/NumberForm/context';
+import {useNumberFormActions, useNumberFormState} from '@components/NumberForm/context';
 import type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent} from '@components/NumberForm/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {
-    addLeadingZero,
-    handleNegativeAmountFlipping,
-    replaceAllDigits,
-    replaceCommasWithPeriod,
-    stripCommaFromAmount,
-    stripDecimalsFromAmount,
-    stripSpacesFromAmount,
-    validateAmount,
-} from '@libs/MoneyRequestUtils';
+import mergeRefs from '@libs/mergeRefs';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -37,33 +27,11 @@ const getNewSelection = (oldSelection: NumberSelection, previousLength: number, 
     return {start: cursorPosition, end: cursorPosition};
 };
 
-function setRef<T>(ref: ForwardedRef<T> | undefined, value: T | null) {
-    if (typeof ref === 'function') {
-        ref(value);
-        return;
-    }
-
-    if (ref) {
-        // eslint-disable-next-line no-param-reassign
-        ref.current = value;
-    }
-}
-
-function useNumberFormInputLogic({
-    decimals = 0,
-    maxLength,
-    position = 'prefix',
-    isNegative = false,
-    toggleNegative,
-    clearNegative,
-    ref,
-    onBlur: inputOnBlur,
-    onKeyPress,
-}: NumberFormInputBaseProps) {
+function useNumberFormInputLogic({decimals = 0, maxLength, position = 'prefix', ref, onBlur: inputOnBlur, onKeyPress}: NumberFormInputBaseProps) {
     const {fromLocaleDigit, numberFormat, toLocaleDigit} = useLocalize();
-    const {errorText, externalValue, inputRef, negativeMode, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
+    const {allowNegative, errorText, externalValue, value} = useNumberFormState();
+    const {inputRef, numberFormRef, onBlur, onSubmitEditing, setValue} = useNumberFormActions();
 
-    const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
     const forwardDeletePressedRef = useRef(false);
     // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNumber.
@@ -74,8 +42,6 @@ function useNumberFormInputLogic({
     const isFocused = useIsFocused();
     const wasFocused = usePrevious(isFocused);
 
-    const shouldAllowNegativeInput = negativeMode === 'inValue';
-    const shouldFlipNegative = negativeMode === 'external';
     const formattedNumber = replaceAllDigits(value, toLocaleDigit);
     const inputPosition = position === 'suffix' ? CONST.TEXT_INPUT_SYMBOL_POSITION.SUFFIX : CONST.TEXT_INPUT_SYMBOL_POSITION.PREFIX;
 
@@ -101,12 +67,9 @@ function useNumberFormInputLogic({
         const newNumberWithoutSpaces = replaceAllDigits(inputWithoutSpaces, fromLocaleDigit);
         const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
 
-        // When negative input is stored in the value, keep the negative sign as-is.
-        // When the negative state is managed externally, strip the sign and call toggleNegative.
-        const finalNumber = shouldAllowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, shouldFlipNegative, toggleNegative);
-        const numberWithLeadingZero = addLeadingZero(finalNumber, shouldAllowNegativeInput);
+        const numberWithLeadingZero = addLeadingZero(rawFinalNumber, allowNegative);
 
-        if (!validateAmount(numberWithLeadingZero, decimals, maxLength, shouldAllowNegativeInput)) {
+        if (!validateAmount(numberWithLeadingZero, decimals, maxLength, allowNegative)) {
             // Use a shallow copy of selection to trigger setSelection
             // More info: https://github.com/Expensify/App/issues/16385
             setSelection((currentSelection) => ({...currentSelection}));
@@ -129,12 +92,12 @@ function useNumberFormInputLogic({
 
         // If the field is intentionally empty (e.g. new manual expense flow before the user enters an amount)
         // or the current number is already valid for the new decimal count, nothing to do.
-        if (!hasDecimalsChanged || externalValue === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput || shouldFlipNegative)) {
+        if (!hasDecimalsChanged || externalValue === '' || validateAmount(value, decimals, maxLength, allowNegative)) {
             return;
         }
 
         setNumber(stripDecimalsFromAmount(value));
-    }, [decimals, externalValue, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
+    }, [allowNegative, decimals, externalValue, maxLength, setNumber, value]);
 
     useLayoutEffect(() => {
         // A manual update can change only the selection (for example, when setNumber() or updateNumber() receives the
@@ -144,12 +107,10 @@ function useNumberFormInputLogic({
     }, [selection, value]);
 
     const updateNumber = (newNumber: string) => {
-        const updatedNumber = handleNegativeAmountFlipping(newNumber, shouldFlipNegative, toggleNegative);
-
         willSelectionBeUpdatedManually.current = true;
-        numberRef.current = updatedNumber;
-        setValue(updatedNumber, {notify: false});
-        setSelection({start: updatedNumber.length, end: updatedNumber.length});
+        numberRef.current = newNumber;
+        setValue(newNumber, {notify: false});
+        setSelection({start: newNumber.length, end: newNumber.length});
     };
 
     useImperativeHandle(numberFormRef, () => ({
@@ -173,11 +134,7 @@ function useNumberFormInputLogic({
         });
     };
 
-    const handleInputRef = (newRef: BaseTextInputRef | null) => {
-        textInput.current = newRef;
-        setRef(inputRef, newRef);
-        setRef(ref, newRef);
-    };
+    const handleInputRef = mergeRefs(inputRef, ref);
 
     const handleBlur = (event: BlurEvent) => {
         inputOnBlur?.(event);
@@ -189,10 +146,6 @@ function useNumberFormInputLogic({
      */
     const handleKeyPress = (event: NumberFormInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
-
-        if (!textInput.current?.value && key === 'backspace' && isNegative) {
-            clearNegative?.();
-        }
 
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
             // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
@@ -224,15 +177,11 @@ function useNumberFormInputLogic({
         handleKeyPress,
         handleSelectionChange,
         inputPosition,
-        negativeMode,
         numberFormat,
         onSubmitEditing,
         selectionForRender,
         setNumber,
-        shouldAllowNegativeInput,
-        shouldFlipNegative,
     };
 }
 
 export default useNumberFormInputLogic;
-export type {NumberSelection};
