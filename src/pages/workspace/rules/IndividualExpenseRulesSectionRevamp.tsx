@@ -5,25 +5,28 @@ import Section from '@components/Section';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicy from '@hooks/usePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getBillableExpensesPendingAction, getCashExpenseReimbursableMode, setPolicyAttendeeTrackingEnabled, setWorkspaceEReceiptsEnabled} from '@libs/actions/Policy/Policy';
+import {openPolicyTagsPage} from '@libs/actions/Policy/Tag';
 import Navigation from '@libs/Navigation/Navigation';
-import {isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
+import {getTagListLabel, getTagLists, hasPerTagListRequired, isAttendeeTrackingEnabled, isCollectPolicy, tryNavigateToControlPolicyUpgrade} from '@libs/PolicyUtils';
 
 import ToggleSettingOptionRow from '@pages/workspace/workflows/ToggleSettingsOptionRow';
 
 import variables from '@styles/variables';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import ROUTES from '@src/ROUTES';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 import type IconAsset from '@src/types/utils/IconAsset';
 
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
 import PublicReceiptVisibilityToggle from './PublicReceiptVisibilityToggle';
@@ -59,6 +62,7 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const policy = usePolicy(policyID);
+    const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const icons = useMemoizedLazyExpensifyIcons(['CalendarSolid', 'Coins', 'Receipt', 'ReceiptCheck', 'Task', 'Cash', 'Users', 'Eye']);
 
     const policyCurrency = policy?.outputCurrency ?? CONST.CURRENCY.USD;
@@ -116,7 +120,31 @@ function IndividualExpenseRulesSectionRevamp({policyID, canWriteRules}: Individu
     const areEReceiptsEnabled = policy?.eReceipts ?? false;
     const isAttendeeTrackingEnabledForPolicy = isAttendeeTrackingEnabled(policy);
 
-    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), policy?.requiresTag && translate('common.tag')].filter(Boolean).join(', ');
+    useEffect(() => {
+        // The subtitle names the required tag lists, and only the Tags pages fetch them, so it would otherwise read
+        // stale until Tags is opened. This section mounts only while the General tab is active.
+        openPolicyTagsPage(policyID);
+    }, [policyID]);
+
+    const tagLists = getTagLists(policyTags);
+
+    // Name the tag lists the way the Require fields page rows do, instead of a generic "Tag".
+    const requiredTagLabels = (() => {
+        const genericTagLabel = translate('common.tag');
+
+        if (hasPerTagListRequired(policy, policyTags)) {
+            return tagLists.filter((tagList) => tagList.required).map((tagList) => getTagListLabel(tagList.name, genericTagLabel));
+        }
+
+        if (!policy?.requiresTag) {
+            return [];
+        }
+
+        // One flag covers every level, so a list name only fits when there is exactly one list.
+        return [tagLists.length === 1 ? getTagListLabel(tagLists.at(0)?.name, genericTagLabel) : genericTagLabel];
+    })();
+
+    const requiredFieldsList = [policy?.requiresCategory && translate('common.category'), ...requiredTagLabels].filter(Boolean).join(', ');
 
     const prohibitedExpensesText = useMemo(() => {
         const prohibitedExpensesList = Object.values(CONST.POLICY.PROHIBITED_EXPENSES)
