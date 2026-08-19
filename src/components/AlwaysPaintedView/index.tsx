@@ -5,8 +5,10 @@ import type AlwaysPaintedViewProps from './types';
 /**
  * Refuses every write to 'display' on the element. React hides a host element with
  * 'style.setProperty(display, none, important)' and reveals it by assigning to 'style.display', so both are
- * replaced. There is deliberately no defineProperty guard or MutationObserver fallback: the React version in use
- * touches 'display' only through these two entry points, so re-verify this after React upgrades.
+ * replaced. Blocking the writes keeps the element from ever reaching 'display: none'. A MutationObserver
+ * fallback would only restore the value after the fact, so the element would still pass through 'display: none'
+ * and the browser would pay for the layout reflow. The React version in use touches 'display' only through these
+ * two entry points, so re-verify this after React upgrades.
  */
 function pinDisplayToContents(element: HTMLDivElement) {
     const {style} = element;
