@@ -7279,6 +7279,17 @@ const plainStyles = (theme: ThemeColors) =>
             minHeight: COMPOSER_SIZE_BUTTON_SIZE,
         },
 
+        // Hidden probe that measures whether the long placeholder wraps. The paddingRight renders it a few px
+        // narrower than the composer so it wraps first, avoiding a flash at borderline widths.
+        conciergePromptBoxPlaceholderProbe: {
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            opacity: 0,
+            paddingRight: 24,
+        },
+
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
             ({
                 alignItems: 'center',

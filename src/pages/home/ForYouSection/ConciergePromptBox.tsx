@@ -106,9 +106,9 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
     const longPlaceholder = translate('homePage.conciergePrompt.inputPlaceholder');
     const shortPlaceholder = translate('homePage.conciergePrompt.inputPlaceholderMobile');
 
-    // On the wide layout, fall back to the short placeholder when the long one would wrap past one line
-    // (until it is measured, optimistically assume it fits to avoid a flash of the short copy).
-    const longPlaceholderFitsOneLine = longPlaceholderHeight === null || longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
+    // Use the long placeholder only on the wide layout once the probe confirms it fits one line.
+    // Default to the short copy until measured, so it never flashes a wrapped long placeholder that then collapses.
+    const longPlaceholderFitsOneLine = longPlaceholderHeight !== null && longPlaceholderHeight <= SINGLE_LINE_PLACEHOLDER_MAX_HEIGHT;
     const placeholder = shouldUseNarrowLayout || !longPlaceholderFitsOneLine ? shortPlaceholder : longPlaceholder;
     const canSubmit = shouldShowAskConcierge && value.trim().length > 0;
 
@@ -230,7 +230,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                     {/* Hidden probe stretched to the input's width. Its height reveals whether the long placeholder wraps past one line. */}
                     <View
                         pointerEvents="none"
-                        style={[styles.pAbsolute, styles.t0, styles.l0, styles.r0, styles.opacity0]}
+                        style={styles.conciergePromptBoxPlaceholderProbe}
                         onLayout={(event) => setLongPlaceholderHeight(event.nativeEvent.layout.height)}
                     >
                         <Text
