@@ -2113,6 +2113,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
+        viewUserHistory: 'Προβολή ιστορικού χρήστη',
+        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
             subtitle: 'Αυτές οι πληροφορίες εμφανίζονται στο δημόσιο προφίλ σας. Μπορεί να τις δει οποιοσδήποτε.',
@@ -7968,8 +7970,7 @@ ${reportName}`,
                 alwaysNonReimbursable: 'Πάντα μη αποζημιώσιμες',
                 alwaysNonReimbursableDescription: 'Τα έξοδα δεν αποζημιώνονται ποτέ στους υπαλλήλους',
                 billableDefault: 'Προεπιλογή χρεώσιμων',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή. Οι χρεώσιμες δαπάνες ενεργοποιούνται ή απενεργοποιούνται στις <a href="${tagsPageLink}">ετικέτες</a>.</muted-text>`,
+                billableDefaultDescription: 'Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή.',
                 billable: 'Χρεώσιμη',
                 billableDescription: 'Οι δαπάνες συνήθως τιμολογούνται ξανά στους πελάτες',
                 nonBillable: 'Μη χρεώσιμο',

@@ -2040,6 +2040,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
+        viewUserHistory: 'ユーザー履歴を表示',
+        viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
             subtitle: 'これらの詳細はあなたの公開プロフィールに表示され、誰でも閲覧できます。',
@@ -7519,8 +7521,7 @@ ${reportName}`,
                 alwaysNonReimbursable: '常に精算対象外',
                 alwaysNonReimbursableDescription: '経費は従業員に精算されません',
                 billableDefault: '請求可能のデフォルト',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。請求可能な経費は、<a href="${tagsPageLink}">タグ</a>で有効または無効にできます。</muted-text>`,
+                billableDefaultDescription: '現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。',
                 billable: '請求可能',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます',
                 nonBillable: '請求不可',

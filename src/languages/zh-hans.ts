@@ -1984,6 +1984,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: '个人头像',
         customInstructions: '自定义指令',
         copilotIntoAccount: 'Copilot 到账户',
+        viewUserHistory: '查看用户历史记录',
+        viewAgentHistory: '查看代理历史记录',
         publicSection: {
             title: '公开',
             subtitle: '这些详细信息会显示在你的公开资料中，任何人都可以看到。',
@@ -7338,8 +7340,7 @@ ${reportName}`,
                 alwaysNonReimbursable: '始终不予报销',
                 alwaysNonReimbursableDescription: '从不向员工报销费用',
                 billableDefault: '默认计费',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>选择现金和信用卡报销是否默认为可计费。可计费报销可以在<a href="${tagsPageLink}">标签</a>中启用或停用。</muted-text>`,
+                billableDefaultDescription: '选择现金和信用卡报销是否默认为可计费。',
                 billable: '可计费',
                 billableDescription: '费用通常会重新向客户计费',
                 nonBillable: '不可计费',
