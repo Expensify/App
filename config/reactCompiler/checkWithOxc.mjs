@@ -12,6 +12,14 @@
  * A file where one function violates the Rules of React reports `memoized: false`,
  * rather than the partial memoization the compiler would otherwise emit for its remaining functions.
  * `didBothCompilersMemoizeFile` relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
+ *
+ * `status` and `memoized` answer different questions and are derived separately. `memoized` comes
+ * only from the emitted memo cache: targeting React 19 the compiler can memoize solely by importing
+ * `react/compiler-runtime` and allocating `_c(n)` slots, so the marker below is exact. `status`
+ * additionally counts a file the compiler rewrote without memoizing it as `compiled`. Deriving
+ * `memoized` from that same rewrite would overstate it -- the compiler perturbs output for reasons
+ * that have nothing to do with memoization, such as expanding a concise arrow body or dropping a
+ * comment, and Babel reports no memo blocks for every file in `src/` where it does.
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
@@ -93,6 +101,19 @@ function checkReactCompilerWithOxc(source, filename) {
             return {
                 status: 'compiled',
                 memoized: true,
+                errors: [],
+            };
+        }
+
+        // No memo cache, but the compiler may still have processed the file -- a hook that only wraps
+        // useState compiles cleanly with nothing worth memoizing. Diffing against a plain transform
+        // separates that from a file the compiler found nothing to do in, which is what lets the
+        // compliance check tell "compiled on main, broken on this branch" from "never compiled".
+        const plainResult = transformSync(filename, source, {lang, reactCompiler: false});
+        if (result.code && plainResult.code && result.code !== plainResult.code) {
+            return {
+                status: 'compiled',
+                memoized: false,
                 errors: [],
             };
         }
