@@ -46,6 +46,7 @@ function GPSTripStateChecker() {
 
         async function handleGpsTripInProgressOnAppRestart() {
             await checkAndCleanGpsNotification();
+
             if (!gpsDraftDetails?.isTracking) {
                 const isBackgroundTaskRunning = await hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TRACKING_TASK_NAME);
                 if (isBackgroundTaskRunning) {

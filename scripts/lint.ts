@@ -106,8 +106,8 @@ if (!seatbeltArgs.disable) {
     }
 }
 
-// Fail if a new inline eslint-disable bypasses one of the Onyx bans (rulesdir/no-onyx-connect,
-// rulesdir/no-unsafe-onyx-read), checking the same targets as ESLint above. Reached only when ESLint itself passes.
+// Fail if a new inline eslint-disable bypasses the Onyx.connect() ban (rulesdir/no-onyx-connect),
+// checking the same targets as ESLint above. Reached only when ESLint itself passes.
 if (await checkOnyxConnectBypass(lintTargets)) {
     process.exit(1);
 }

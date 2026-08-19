@@ -37,10 +37,11 @@ Different platforms come with varying storage capacities and Onyx has a way to g
 - Add the key to the `evictableKeys` option in `Onyx.init(options)`
 - A least recently accessed key will only be deleted when an Onyx operation retries after failing.
 
-## Reading Onyx data: `useOnyx` vs `Onyx.connectWithoutView`
-There are only two ways to read Onyx data, and `Onyx.connect` is deprecated:
+## Reading Onyx data: `useOnyx`, `Onyx.get()` and `Onyx.connectWithoutView`
+There are three ways to read Onyx data, and `Onyx.connect` is deprecated:
 1. **`useOnyx`** (from `@hooks/useOnyx`) — the default for anything a React component renders.
 2. **`Onyx.connectWithoutView`** — an imperative subscription for non-render logic, used only when `useOnyx` genuinely does not fit.
+3. **`Onyx.get()`**: a synchronous read of the cache that never subscribes, for non-render code that needs a value at the moment it runs.
 
 ### - Prefer a pure function over reading Onyx at all
 A pure function does not read Onyx itself — it receives the data it needs as parameters, and its caller does the reading (with `useOnyx` or `Onyx.connectWithoutView`) and passes it in. Before adding either subscription, check whether the code can be a pure function instead: it needs no connection, is trivial to test, and cannot cause extra rerenders. Prefer this even when it means passing more arguments. This takes precedence over everything below.
@@ -59,6 +60,85 @@ Add an inline comment at each new `Onyx.connectWithoutView` call stating why the
 
 ### - Using `Onyx.connectWithoutView` in a component for performance REQUIRES @frontend-performance approval
 In rare cases a component that subscribes to multiple large collections through `useOnyx` suffers a significant performance regression. Reaching for `Onyx.connectWithoutView` to avoid that is an explicit exception, not a self-serve option: it MUST be approved by the `@frontend-performance` team on Slack, and the PR description MUST link to that discussion.
+
+### - `Onyx.get()` is ONLY for code that runs on an event, never during render
+It returns what is in the cache right now and never subscribes, so a value it returns is frozen at the moment of the read. Use it in action creators, libraries, network handlers, and callbacks such as `useCallback`, `useEffect` and event handlers. A collection key returns every member, exactly as `useOnyx` does. The same rule covers the value it produces: a value read this way MUST NOT reach rendered output, because nothing will re-render when the key changes.
+
+```typescript
+// GOOD ✅
+function submitExpense(transactionID: string) {
+  const transaction = Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`);
+  // ...act on it here, at event time
+}
+
+// BAD ❌
+function ReportName({reportID}: Props) {
+  const report = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`); // never updates again
+  return <Text>{report?.reportName}</Text>;
+}
+```
+
+### - Every caller of a function that reads with `Onyx.get()` MUST also be off the render path
+A read written correctly in a library function becomes a render-time read the moment a component or hook calls that function, and neither file shows the problem on its own. Adding the call is enough to break it, so a diff containing no Onyx code at all can be the diff that introduces the defect. Either take the value as a parameter, or keep every caller off the render path and check that again whenever a caller is added.
+
+```typescript
+// src/libs/ReportUtils.ts, correct in isolation
+function getOwnerAccountID(reportID: string) {
+  return Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.ownerAccountID;
+}
+
+// BAD ❌ src/hooks/useOwnerName.ts, the entire diff: that read now runs during render
+function useOwnerName(reportID: string) {
+  return getOwnerAccountID(reportID);
+}
+```
+
+### - All `Onyx.get()` reads MUST come before the first write in that tick, or after an `await`
+`Onyx.merge()` and `Onyx.update()` apply to the cache asynchronously, after the current synchronous block has finished, so a read that follows one returns the pre-write value. `Onyx.set()` and `Onyx.mergeCollection()` do land immediately, which makes code that depends on the difference fragile rather than safe. Treat every write the same way.
+
+Any `await` between the write and the read ends that tick, so what follows one is no longer a same-tick read and is not what this rule is about. When the read has to see the write, await the write's own promise rather than assuming an unrelated one has left it enough room.
+
+```typescript
+// BAD ❌
+Onyx.merge(ONYXKEYS.ACCOUNT, {isLoading: true});
+const account = Onyx.get(ONYXKEYS.ACCOUNT); // isLoading is still the old value
+```
+
+### - A key and a value derived from it MUST NOT be read in a tick that wrote either
+A `set` lands at once but the derivation's own write does not, so the source and the derived value end up a revision apart. Check this by hand whenever a conversion touches a `DERIVED` key, since the write is often in a caller and the reads in a callee.
+
+```typescript
+// BAD ❌
+Onyx.set(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`, transaction);
+const t = Onyx.get(`${ONYXKEYS.COLLECTION.TRANSACTION}${id}`);  // new revision
+const derived = Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);   // still the old one
+```
+
+### - `Onyx.get()` MUST NOT run at module scope or anywhere reachable from startup
+Module bodies run at import time and the cache hydrates asynchronously, so the read returns `undefined` for anything that lives only on disk. It fails silently, as an absent value rather than an error. Move the read into the function that needs it.
+
+```typescript
+// BAD ❌
+const preferredLocale = Onyx.get(ONYXKEYS.NVP_PREFERRED_LOCALE); // runs at import time
+```
+
+### - Each synchronous stretch MUST do its own reads
+One read block per synchronous stretch, not per function. Code after an `await`, a `runAfterTransitions` or any other deferral runs in a later tick and is meant to see the writes the earlier stretch made, so hoisting a read above the deferral hands it a value that is one tick stale. The ordering rule above is satisfied here, so nothing flags it; cover it with a test that asserts the post-write value.
+
+### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
+Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running, which no position check catches, because nothing renders the value and nothing reads it during render. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.
+
+```typescript
+// BAD ❌ deleting this subscription freezes the effect
+const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${id}`);
+const build = useCallback(() => compute(report), [report]);
+useEffect(() => {
+  build();
+}, [build]); // the subscription is what re-runs this
+```
+
+### - Converting a value the user acted on REQUIRES a deliberate decision
+Conversion changes when a value is sampled, from the caller's last render to the moment the handler runs. That only breaks something when the value was **on screen** in the view the handler belongs to: a dialog confirming an amount MUST act on the amount it displayed. An invisible input to a decision, such as a route, an eligibility check or a request field, is not this case, and event time is usually the more correct reading for it, so "a handler reads Onyx" is not a problem on its own. State which of the two a value is. QA cannot settle it, because the window is one render commit wide.
 
 ## Onyx Derived Values
 
