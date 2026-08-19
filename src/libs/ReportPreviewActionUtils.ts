@@ -11,7 +11,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
-    isArchivedPolicy,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
@@ -46,9 +46,9 @@ function canSubmit(
     policy?: Policy,
     transactions?: Transaction[],
 ) {
-    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -80,7 +80,7 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -131,10 +131,10 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
     // no policy archived state, so an archived report blocks payment instead.
-    if (isExpense ? isArchivedPolicy(policy) : isReportArchived) {
+    if (isExpense ? isArchivedOrPendingDeletePolicy(policy) : isReportArchived) {
         return false;
     }
 

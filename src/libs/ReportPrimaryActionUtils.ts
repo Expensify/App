@@ -13,7 +13,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
-    isArchivedPolicy,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -123,9 +123,9 @@ function isSubmitAction(
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ) {
-    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -163,7 +163,7 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -222,10 +222,10 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
     // no policy archived state, so an archived report or chat blocks payment instead.
-    if (isExpenseReport ? isArchivedPolicy(policy) : isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    if (isExpenseReport ? isArchivedOrPendingDeletePolicy(policy) : isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {

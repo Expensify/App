@@ -25,7 +25,7 @@ import {
     getSubmitToAccountID,
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
-    isArchivedPolicy,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isInstantSubmitEnabled,
     isPolicyAdmin,
@@ -213,9 +213,9 @@ function isSubmitAction({
     currentUserAccountID: number;
     ownerLogin: string | undefined;
 }): boolean {
-    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -306,7 +306,7 @@ function isApproveAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     policy?: Policy,
 ): boolean {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -377,7 +377,7 @@ function isApproveAction(
 }
 
 function isUnapproveAction(currentUserLogin: string, currentUserAccountID: number, report: Report, policy?: Policy): boolean {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -437,7 +437,7 @@ function isCancelPaymentAction(
         return false;
     }
 
-    if (isExpenseReport && isArchivedPolicy(policy)) {
+    if (isExpenseReport && isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -740,7 +740,7 @@ function shouldShowEditSplitInDeleteAction(
 }
 
 function isRetractAction(report: Report, policy?: Policy): boolean {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -767,7 +767,7 @@ function isRetractAction(report: Report, policy?: Policy): boolean {
 }
 
 function isReopenAction(report: Report, policy?: Policy): boolean {
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 

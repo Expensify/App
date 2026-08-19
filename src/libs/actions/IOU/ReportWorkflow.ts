@@ -24,7 +24,7 @@ import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
-    isArchivedPolicy,
+    isArchivedOrPendingDeletePolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
@@ -161,9 +161,9 @@ function canApproveIOU(
         return false;
     }
 
-    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // State transitions are blocked only on archived or pending-delete policies. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still move through the workflow.
-    if (isArchivedPolicy(policy)) {
+    if (isArchivedOrPendingDeletePolicy(policy)) {
         return false;
     }
 
@@ -276,10 +276,10 @@ function canIOUBePaid(
         return false;
     }
 
-    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
     // (e.g. the submitter was unshared from the policy) can still be paid. IOU reports have no policy
     // archived state, so an archived chat blocks payment instead.
-    const isBlockedByArchivedState = isExpenseReport(iouReport) ? isArchivedPolicy(policy) : isChatReportArchived;
+    const isBlockedByArchivedState = isExpenseReport(iouReport) ? isArchivedOrPendingDeletePolicy(policy) : isChatReportArchived;
 
     return (
         canPay &&
