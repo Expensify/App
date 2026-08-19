@@ -475,6 +475,25 @@ describe('TransactionPreviewUtils', () => {
             expect(result.shouldShowSkeleton).toBeTruthy();
         });
 
+        it('should not show skeleton for an action the backend marked deleted, whose transaction will never arrive', () => {
+            // Given a money request action deleted the way the backend reports it — `deleted` timestamps on the
+            // message and the original message rather than the `isDeletedParentAction` flag — and no transaction
+            const functionArgs = {
+                ...basicProps,
+                transaction: undefined,
+                action: {
+                    ...basicProps.action,
+                    message: [{type: 'TEXT', text: '', deleted: '2026-07-30 10:31:05.644'}],
+                },
+            };
+
+            // When the preview conditionals are computed
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then the preview stays out of the loading state instead of waiting for a transaction that is gone
+            expect(result.shouldShowSkeleton).toBeFalsy();
+        });
+
         it('should show merchant if merchant data is valid and significant', () => {
             const functionArgs = {...basicProps, transactionDetails: {merchant: 'Valid Merchant'}};
             const result = createTransactionPreviewConditionals(functionArgs);

@@ -11,8 +11,11 @@ import TextInput from '@components/TextInput';
 import ValuePicker from '@components/ValuePicker';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import usePolicyForTransaction from '@hooks/usePolicyForTransaction';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -20,7 +23,7 @@ import {addErrorMessage} from '@libs/ErrorUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
-import {getPerDiemCustomUnit} from '@libs/PolicyUtils';
+import {getActivePoliciesWithExpenseChatAndPerDiemEnabled, getPerDiemCustomUnit} from '@libs/PolicyUtils';
 
 import {getIOURequestPolicyID} from '@userActions/IOU/MoneyRequest';
 import {addSubrate, removeSubrate, updateSubrate} from '@userActions/IOU/PerDiem';
@@ -29,7 +32,7 @@ import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type SCREENS from '@src/SCREENS';
+import SCREENS from '@src/SCREENS';
 import type * as OnyxTypes from '@src/types/onyx';
 import type {Subrate} from '@src/types/onyx/Policy';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -38,15 +41,16 @@ import type {OnyxEntry} from 'react-native-onyx';
 
 import {useNavigation} from '@react-navigation/native';
 import {SafeString} from 'expensify-common';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import type {WithWritableReportOrNotFoundProps} from './withWritableReportOrNotFound';
 
+import buildPerDiemTimeBasePath from './perDiemTimeBasePath';
 import withFullTransactionOrNotFound from './withFullTransactionOrNotFound';
 import withWritableReportOrNotFound from './withWritableReportOrNotFound';
 
-type IOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.STEP_SUBRATE> & {
+type DynamicIOURequestStepSubrateProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE | typeof SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT> & {
     transaction: OnyxEntry<OnyxTypes.Transaction>;
 
     /** The report linked to the transaction */
@@ -71,14 +75,21 @@ function getSubrateOptions(subRates: Subrate[], filledSubRates: CommentSubrate[]
         }));
 }
 
-function IOURequestStepSubrate({
+function DynamicIOURequestStepSubrate({
     route: {
-        params: {action, backTo, iouType, pageIndex, reportID, transactionID, backToReport},
+        params: {action, iouType, pageIndex, reportID, transactionID, backToReport},
+        name: routeName,
     },
     transaction,
     report,
-}: IOURequestStepSubrateProps) {
+}: DynamicIOURequestStepSubrateProps) {
+    const isEditPage = routeName === SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT;
+    const editBackPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_SUBRATE_EDIT.path);
     const styles = useThemeStyles();
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
+    const {login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const policiesWithPerDiemEnabled = useMemo(() => getActivePoliciesWithExpenseChatAndPerDiemEnabled(allPolicies, currentUserLogin), [allPolicies, currentUserLogin]);
+    const hasMoreThanOnePolicyWithPerDiemEnabled = policiesWithPerDiemEnabled.length > 1;
     const iouPolicyID = getIOURequestPolicyID(transaction, report);
     const {policy} = usePolicyForTransaction({
         transaction,
@@ -124,14 +135,14 @@ function IOURequestStepSubrate({
     const validOptions = getSubrateOptions(allPossibleSubrates, allSubrates, currentSubrate?.id);
 
     const goBack = () => {
-        if (backTo) {
-            Navigation.goBack(backTo);
+        if (isEditPage) {
+            Navigation.goBack(editBackPath);
             return;
         }
         Navigation.goBack(
             createDynamicRoute(
                 DYNAMIC_ROUTES.MONEY_REQUEST_STEP_TIME.path,
-                createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_DESTINATION.path, ROUTES.MONEY_REQUEST_CREATE.getRoute(action, iouType, transactionID, reportID, backToReport)),
+                buildPerDiemTimeBasePath({transaction, action, iouType, transactionID, reportID, backToReport, hasMoreThanOnePolicyWithPerDiemEnabled}),
             ),
         );
     };
@@ -169,7 +180,7 @@ function IOURequestStepSubrate({
             updateSubrate(transaction, pageIndex, quantityInt, subrateVal, name, rate);
         }
 
-        if (backTo) {
+        if (isEditPage) {
             goBack();
         } else {
             Navigation.navigate(ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, iouType, transactionID, reportID, backToReport));
@@ -212,11 +223,11 @@ function IOURequestStepSubrate({
         <ScreenWrapper
             includeSafeAreaPaddingBottom
             shouldEnableMaxHeight
-            testID={IOURequestStepSubrate.displayName}
+            testID={DynamicIOURequestStepSubrate.displayName}
         >
             <FullPageNotFoundView shouldShow={shouldDisableEditor}>
                 <HeaderWithBackButton
-                    title={backTo ? translate('common.subrate') : tabTitles[iouType]}
+                    title={isEditPage ? translate('common.subrate') : tabTitles[iouType]}
                     shouldShowBackButton
                     onBackButtonPress={goBack}
                     shouldShowThreeDotsButton={shouldShowThreeDotsButton}
@@ -288,6 +299,6 @@ function IOURequestStepSubrate({
     );
 }
 
-IOURequestStepSubrate.displayName = 'IOURequestStepSubrate';
+DynamicIOURequestStepSubrate.displayName = 'DynamicIOURequestStepSubrate';
 
-export default withWritableReportOrNotFound(withFullTransactionOrNotFound(IOURequestStepSubrate));
+export default withWritableReportOrNotFound(withFullTransactionOrNotFound(DynamicIOURequestStepSubrate));

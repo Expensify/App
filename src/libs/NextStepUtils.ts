@@ -7,7 +7,7 @@ import type {ReportNextStep} from '@src/types/onyx/Report';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-import {addMonths, format, isPast, setDate} from 'date-fns';
+import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import DateUtils from './DateUtils';
@@ -82,12 +82,14 @@ function buildNextStepMessage(
         eta = translate(`nextStep.eta.${nextStep.eta.etaKey}`);
         etaType = CONST.NEXT_STEP.ETA_TYPE.KEY;
     } else if (nextStep.eta?.dateTime) {
-        const etaDate = new Date(nextStep.eta.dateTime);
+        // `eta.dateTime` is a date-only string (yyyy-MM-dd). Native `new Date(...)` parses it as UTC midnight, which
+        // shifts the day back by one in a UTC-negative timezone. `parseISO` reads it as local midnight, so both branches
+        // below render the day that was actually set in the workspace settings.
+        const etaDate = parseISO(nextStep.eta.dateTime);
         eta =
             nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
-                ? toLocaleOrdinal(preferredLocale, etaDate.getUTCDate())
-                : // Both branches must read this UTC-midnight date-only value in UTC, else they disagree and the weekday branch renders the previous day west of UTC.
-                  DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate, 'UTC');
+                ? toLocaleOrdinal(preferredLocale, etaDate.getDate())
+                : DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 

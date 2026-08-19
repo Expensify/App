@@ -292,14 +292,33 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, getCurrencyDecimals);
+        addSplitExpenseField(
+            transaction,
+            draftTransaction,
+            transactionReport,
+            effectivePolicy,
+            isDraftSelfDMContext,
+            personalPolicy?.outputCurrency,
+            getCurrencySymbol,
+            getCurrencyDecimals,
+            allPolicies,
+        );
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, getCurrencyDecimals);
+        evenlyDistributeSplitExpenseAmounts(
+            draftTransaction,
+            transaction,
+            effectivePolicy,
+            isDraftSelfDMContext,
+            personalPolicy?.outputCurrency,
+            getCurrencySymbol,
+            getCurrencyDecimals,
+            allPolicies,
+        );
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});

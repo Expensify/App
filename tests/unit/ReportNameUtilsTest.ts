@@ -12,7 +12,6 @@ import {
     getMoneyRequestReportName,
     getPolicyExpenseChatName,
     getReportName,
-    deprecatedGetReportName,
 } from '@libs/ReportNameUtils';
 import {buildTransactionsByReportID} from '@libs/TodosUtils';
 
@@ -1351,7 +1350,7 @@ describe('ReportNameUtils', () => {
                 },
             };
 
-            expect(deprecatedGetReportName(report, derived)).toBe("Ragnar Lothbrok's expenses");
+            expect(getReportName(report, derived[report.reportID]?.reportName)).toBe("Ragnar Lothbrok's expenses");
         });
 
         test('Falls back to report.reportName when derived missing', () => {
@@ -1362,7 +1361,7 @@ describe('ReportNameUtils', () => {
                 ownerAccountID: currentUserAccountID,
             };
 
-            expect(deprecatedGetReportName(report, createMock<ReportAttributesDerivedValue['reports']>({}))).toBe('Custom Report Name');
+            expect(getReportName(report, undefined)).toBe('Custom Report Name');
         });
 
         test('Returns empty string when neither present', () => {
@@ -1373,7 +1372,7 @@ describe('ReportNameUtils', () => {
                 reportName: undefined,
             };
 
-            expect(deprecatedGetReportName(report, createMock<ReportAttributesDerivedValue['reports']>({}))).toBe('');
+            expect(getReportName(report, undefined)).toBe('');
         });
     });
 
