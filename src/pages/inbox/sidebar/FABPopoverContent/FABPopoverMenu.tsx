@@ -46,7 +46,13 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {windowHeight} = useWindowDimensions();
     const anchorPosition = styles.createMenuPositionSidebar(windowHeight);
-    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({addBottomSafeAreaPadding: true, style: shouldUseNarrowLayout ? styles.pv4 : styles.pv2});
+    // Use paddingTop (pt*) for the top and pass the bottom via additionalPaddingBottom so it composes with the safe-area inset.
+    // paddingVertical (pv*) shorthand isn't readable by the hook, so its injected paddingBottom would clobber the intended bottom padding.
+    const bottomSafeAreaPaddingStyle = useBottomSafeSafeAreaPaddingStyle({
+        addBottomSafeAreaPadding: true,
+        style: shouldUseNarrowLayout ? styles.pt4 : styles.pt2,
+        additionalPaddingBottom: shouldUseNarrowLayout ? 16 : 8,
+    });
     const [contentActivityMode, setContentActivityMode] = useState<ActivityProps['mode']>(isVisible ? 'visible' : 'hidden');
 
     const [registeredSet, setRegisteredSet] = useState<ReadonlySet<string>>(new Set());
