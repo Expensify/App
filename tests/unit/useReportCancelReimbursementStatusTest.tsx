@@ -1,4 +1,4 @@
-import {renderHook} from '@testing-library/react-native';
+import {act, renderHook} from '@testing-library/react-native';
 
 import useReportCancelReimbursementStatus from '@hooks/useReportCancelReimbursementStatus';
 
@@ -13,12 +13,27 @@ import Onyx from 'react-native-onyx';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockIsOffline = false;
+let triggerVisibilityChange: (() => void) | undefined;
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     getReportCancelReimbursementStatus: jest.fn(() => Promise.resolve({canCancel: true, isWaitingForCreditToPost: false})),
 }));
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
+
+jest.mock('@libs/Visibility', () => ({
+    __esModule: true,
+    default: {
+        isVisible: () => true,
+        hasFocus: () => true,
+        onVisibilityChange: (callback: () => void) => {
+            triggerVisibilityChange = callback;
+            return () => {
+                triggerVisibilityChange = undefined;
+            };
+        },
+    },
+}));
 
 const mockGetReportCancelReimbursementStatus = jest.mocked(getReportCancelReimbursementStatus);
 
@@ -46,6 +61,7 @@ describe('useReportCancelReimbursementStatus', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsOffline = false;
+        triggerVisibilityChange = undefined;
         mockGetReportCancelReimbursementStatus.mockResolvedValue({canCancel: true, isWaitingForCreditToPost: false});
     });
 
@@ -84,5 +100,35 @@ describe('useReportCancelReimbursementStatus', () => {
         await waitForBatchedUpdates();
 
         expect(result.current).toBeUndefined();
+    });
+
+    it('re-checks when the app regains visibility while the report stays open', async () => {
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalledTimes(1);
+
+        mockGetReportCancelReimbursementStatus.mockResolvedValueOnce({canCancel: false, isWaitingForCreditToPost: false});
+        act(() => triggerVisibilityChange?.());
+        await waitForBatchedUpdates();
+
+        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalledTimes(2);
+        expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
+    });
+
+    it('re-checks on the polling interval so a NACHA cutoff or posted credit is not missed', async () => {
+        jest.useFakeTimers();
+
+        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        await waitForBatchedUpdates();
+
+        mockGetReportCancelReimbursementStatus.mockClear();
+        mockGetReportCancelReimbursementStatus.mockResolvedValueOnce({canCancel: false, isWaitingForCreditToPost: false});
+        act(() => jest.advanceTimersByTime(CONST.TIMING.CANCEL_REIMBURSEMENT_STATUS_POLL_INTERVAL));
+        await waitForBatchedUpdates();
+
+        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalled();
+        expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
+
+        jest.useRealTimers();
     });
 });
