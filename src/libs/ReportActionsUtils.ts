@@ -61,7 +61,7 @@ import {getFormattedDistanceInUnits} from './DistanceDisplayUtils';
 import {getEnvironmentURL, getOldDotEnvironmentURL} from './Environment/Environment';
 import getBase62ReportID from './getBase62ReportID';
 import {isReportMessageAttachment} from './isReportMessageAttachment';
-import {toLocaleOrdinal} from './LocaleDigitUtils';
+import {toLocaleDayOfMonth} from './LocaleDigitUtils';
 import {formatPhoneNumber} from './LocalePhoneNumber';
 import {formatMessageElementList} from './Localize';
 import Log from './Log';
@@ -3530,7 +3530,7 @@ function getWorkspaceUpdateFieldMessage(translate: LocalizedTranslate, preferred
                 return translate('workflowsPage.frequencies.lastBusinessDayOfMonth');
             }
             if (typeof autoReportingOffset === 'number') {
-                return toLocaleOrdinal(preferredLocale, autoReportingOffset);
+                return toLocaleDayOfMonth(preferredLocale, autoReportingOffset);
             }
             return '';
         };

@@ -11,7 +11,7 @@ import {addMonths, format, isPast, parseISO, setDate} from 'date-fns';
 import {Str} from 'expensify-common';
 
 import DateUtils from './DateUtils';
-import {toLocaleOrdinal} from './LocaleDigitUtils';
+import {toLocaleDayOfMonth} from './LocaleDigitUtils';
 import {getApprovalWorkflow, getCorrectedAutoReportingFrequency, getReimburserAccountID} from './PolicyUtils';
 import {getOriginalMessage, isDynamicExternalWorkflowApproveFailedAction} from './ReportActionsUtils';
 import {
@@ -88,7 +88,7 @@ function buildNextStepMessage(
         const etaDate = parseISO(nextStep.eta.dateTime);
         eta =
             nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
-                ? toLocaleOrdinal(preferredLocale, etaDate.getDate())
+                ? toLocaleDayOfMonth(preferredLocale, etaDate.getDate())
                 : DateUtils.formatToWeekdayLongDate(etaDate, preferredLocale);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }

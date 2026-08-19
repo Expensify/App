@@ -14,7 +14,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearCashbackToBillError, toggleCashbackToBill} from '@libs/actions/Card';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
-import {toLocaleOrdinal} from '@libs/LocaleDigitUtils';
+import {toLocaleDayOfMonth} from '@libs/LocaleDigitUtils';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
@@ -59,7 +59,7 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const monthlySettlementDateText =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
             ? // An instant (set to `new Date()` on toggle), not a date-only wire value, so the admin's local day-of-month is the one to show.
-              translate('workspace.expensifyCard.monthlySettlementDate', toLocaleOrdinal(preferredLocale, new Date(settings.monthlySettlementDate).getDate()))
+              translate('workspace.expensifyCard.monthlySettlementDate', toLocaleDayOfMonth(preferredLocale, new Date(settings.monthlySettlementDate).getDate()))
             : undefined;
 
     return (

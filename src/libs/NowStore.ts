@@ -6,6 +6,9 @@
 
 const MS_PER_MINUTE = 60_000;
 
+/** Fires just past the boundary rather than exactly on it, so a timer that runs early does not re-read the same minute. */
+const TICK_MARGIN_MS = 10;
+
 const listeners = new Set<() => void>();
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
 // Advanced by `tick` and `subscribe`, never by `getSnapshot`, which must stay pure for `useSyncExternalStore`.
@@ -30,7 +33,7 @@ function scheduleNextTick() {
         return;
     }
     const msUntilNextMinute = MS_PER_MINUTE - (Date.now() % MS_PER_MINUTE);
-    timeoutId = setTimeout(tick, msUntilNextMinute + 10);
+    timeoutId = setTimeout(tick, msUntilNextMinute + TICK_MARGIN_MS);
 }
 
 function tick() {

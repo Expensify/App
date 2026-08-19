@@ -15,6 +15,7 @@ type MockedIntlStore = Pick<typeof IntlStore, 'getCurrentLocale' | 'load' | 'get
  * reading `undefined` in each hand-rolled copy of this shape.
  */
 export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlStore {
+    // `require` is untyped here on purpose: a jest.mock factory is hoisted above imports, so these cannot be `import`s.
     /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access */
     const translations: Record<string, unknown> = require('@src/languages/en').default;
     const flattenObject: (obj: Record<string, unknown>) => FlatTranslationsObject = require('@src/languages/flattenObject').default;

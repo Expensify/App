@@ -91,7 +91,7 @@ function DynamicWorkspaceOverviewPlanTypePage({policy}: WithPolicyProps) {
     const isControl = policy?.type === CONST.POLICY.TYPE.CORPORATE;
     const isAnnual = privateSubscription?.type === CONST.SUBSCRIPTION.TYPE.ANNUAL;
     const autoRenewalDate = privateSubscription?.endDate
-        ? DateUtils.formatToReadableString(new Date(privateSubscription.endDate), preferredLocale)
+        ? DateUtils.formatToReadableString(privateSubscription.endDate, preferredLocale)
         : CardSectionUtils.getNextBillingDate(preferredLocale);
 
     /** If user has the annual Control plan and their first billing cycle is completed, they cannot downgrade the Workspace plan to Collect. */

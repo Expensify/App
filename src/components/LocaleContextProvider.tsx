@@ -146,9 +146,9 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
     const localeCompare: LocaleContextProps['localeCompare'] = (a, b) => collator.compare(a, b);
 
     const formatTravelDate: LocaleContextProps['formatTravelDate'] = (datetime) => {
-        const date = new Date(datetime);
-        const formattedDate = DateUtils.formatToMediumDate(date, currentLocale);
-        const formattedHour = DateUtils.formatToLocalTime(date, currentLocale);
+        // Passed through as a string so the helpers apply `toLocalDate`, which parses the wire shape Hermes rejects.
+        const formattedDate = DateUtils.formatToMediumDate(datetime, currentLocale);
+        const formattedHour = DateUtils.formatToLocalTime(datetime, currentLocale);
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };

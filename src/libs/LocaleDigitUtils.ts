@@ -1,3 +1,4 @@
+import localeDayOfMonthMap from '@src/languages/localeDayOfMonthMap';
 import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
 
@@ -96,4 +97,15 @@ function toLocaleOrdinal(locale: Locale, number: number): string {
     return rule(number);
 }
 
-export {toLocaleDigit, toLocaleOrdinal, fromLocaleDigit};
+/**
+ * Renders a calendar day of the month for the locale. Separate from `toLocaleOrdinal`, which renders a rank: Japanese
+ * dates read `15日` where the rank reads `第15`, and Italian and Polish dates are cardinal where their ranks are not.
+ */
+function toLocaleDayOfMonth(locale: Locale, day: number): string {
+    if (!Number.isFinite(day)) {
+        return '';
+    }
+    return localeDayOfMonthMap[locale](day);
+}
+
+export {toLocaleDigit, toLocaleOrdinal, toLocaleDayOfMonth, fromLocaleDigit};

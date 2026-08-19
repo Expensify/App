@@ -1,3 +1,4 @@
+import {clearIntlFormatterCaches} from '@libs/DateUtils';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
 import Log from '@libs/Log';
 import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
@@ -28,15 +29,10 @@ import type zhHans from './zh-hans';
 import flattenObject from './flattenObject';
 import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat} from './shouldPolyfill';
 
-// Mirrors the Onyx key so a no-op write cannot wake a reportAttributes recompute.
-let areTranslationsLoadingValue: boolean | undefined;
-
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {
-    if (areTranslationsLoadingValue === areTranslationsLoading) {
-        return;
-    }
-    areTranslationsLoadingValue = areTranslationsLoading;
+    // No module-level mirror to skip repeat writes: Onyx owns this key and `Onyx.clear()` resets it independently, so a
+    // mirror would desync and suppress the edge `reportAttributes` now recomputes on. Onyx already de-dupes equal values.
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
@@ -55,6 +51,9 @@ function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale):
     return dataImport.then(
         () => undefined,
         (error: unknown) => {
+            // The formatter caches key on the requested locale, so anything already built for it resolved against the
+            // missing data and would stay English for the session. Dropping them lets a later load rebuild correctly.
+            clearIntlFormatterCaches();
             Log.warn('[IntlStore] Intl polyfill locale data failed to load; that API falls back to English', {locale, error});
         },
     );
