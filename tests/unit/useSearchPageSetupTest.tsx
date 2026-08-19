@@ -10,8 +10,10 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-const mockSearch = jest.fn<Promise<undefined> | undefined, unknown[]>();
+const mockOpenSearch = jest.fn<void, [unknown, number | undefined]>();
 let mockSearchResults: SearchResults | undefined;
+let mockIsOffline = false;
+let mockLastFocusCallback: (() => void) | undefined;
 // Mutable so a test can move a real effect dependency and force the effect to run again.
 let mockSearchKey: SearchKey | undefined;
 
@@ -19,22 +21,28 @@ jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        useFocusEffect: jest.fn(),
+        // Mirrors the real hook closely enough for this file: the callback runs on focus and again whenever its
+        // identity changes, which is what makes the loop guard below worth asserting.
+        useFocusEffect: (callback: () => void) => {
+            if (callback === mockLastFocusCallback) {
+                return;
+            }
+            mockLastFocusCallback = callback;
+            callback();
+        },
     };
 });
 
-// The return value matters: the hook only spends a recovery attempt when search() actually sends,
-// so the mock has to pass it through rather than swallow it.
 jest.mock('@libs/actions/Search', () => ({
-    search: (...args: unknown[]) => mockSearch(...args),
-    openSearch: jest.fn(),
+    search: jest.fn(),
+    openSearch: (...args: [unknown, number | undefined]) => mockOpenSearch(...args),
 }));
 
 jest.mock('@libs/actions/ReportNavigation', () => ({
     saveLastSearchParams: jest.fn(),
 }));
 
-jest.mock('@hooks/useNetwork', () => () => ({isOffline: false}));
+jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => () => false);
 
@@ -58,6 +66,7 @@ function buildErroredSnapshot(hash: number): SearchResults {
             hash,
             isLoading: false,
             offset: 0,
+            state: CONST.SEARCH.SNAPSHOT_STATE.LOADED,
             sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
             sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
             responseJsonCode: 0,
@@ -66,74 +75,82 @@ function buildErroredSnapshot(hash: number): SearchResults {
     } as unknown as SearchResults;
 }
 
+/** The hashes openSearch() was asked to clear, ignoring the plain calls that only load bank account data. */
+function getClearedHashes() {
+    return mockOpenSearch.mock.calls.map((call) => call[1]).filter((hash) => hash !== undefined);
+}
+
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
-        mockSearch.mockClear();
-        // A sent request; search() returns undefined only when it declines to send.
-        mockSearch.mockReturnValue(Promise.resolve(undefined));
+        mockOpenSearch.mockClear();
         mockSearchResults = undefined;
         mockSearchKey = undefined;
+        mockIsOffline = false;
+        mockLastFocusCallback = undefined;
     });
 
-    it('re-requests a query whose snapshot was left errored by a failed request', () => {
+    it('asks OpenSearchPage to clear a snapshot left errored by a failed request', () => {
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
         renderHook(() => useSearchPageSetup(queryJSON));
 
-        // Without this, `errors` counts as a resolution and the page stays pinned to its error view
-        // with nothing in flight, recoverable only by tapping Try again.
-        expect(mockSearch).toHaveBeenCalledTimes(1);
+        // Without this the snapshot stays both errored and terminal, which reads as resolved, so the page
+        // request never fires and the error view returns on every mount.
+        expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
-    it('does not re-request the same hash again when the recovery attempt fails', () => {
+    it('does not clear the same hash twice when the failure comes straight back', () => {
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
         const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
 
-        // The recovery attempt failed and wrote `errors` back, so the snapshot still looks recoverable.
-        // Move a real effect dependency as well, otherwise the effect never re-runs and this asserts nothing.
+        // The request that followed the clear failed and wrote `errors` back, so the snapshot looks clearable
+        // again. Move a real dependency too, otherwise the effect never re-runs and this asserts nothing.
         mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
         rerender({});
 
-        expect(mockSearch).toHaveBeenCalledTimes(1);
+        expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
-    it('keeps the recovery attempt available when search() declines to send', () => {
-        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
-        // API prevention is on, so search() writes nothing and `errors` survives. Spending the attempt
-        // here would leave the query stuck for the rest of the mount.
-        mockSearch.mockReturnValue(undefined);
-
-        const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
-
-        mockSearch.mockReturnValue(Promise.resolve(undefined));
-        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
-        rerender({});
-
-        expect(mockSearch).toHaveBeenCalledTimes(2);
-    });
-
-    it('does not re-request a query the server rejected as malformed', () => {
+    it('does not clear a query the server rejected as malformed', () => {
         const snapshot = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchResults = {...snapshot, search: {...snapshot.search, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}};
 
         renderHook(() => useSearchPageSetup(queryJSON));
 
-        expect(mockSearch).not.toHaveBeenCalled();
+        expect(getClearedHashes()).toEqual([]);
     });
 
-    it('tracks the retry per hash, so returning to an already-retried hash does not retry it again', () => {
+    it('does not clear while offline, since the request that would reload the data cannot run', () => {
+        mockIsOffline = true;
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        expect(getClearedHashes()).toEqual([]);
+    });
+
+    it('leaves a healthy snapshot alone', () => {
+        const snapshot = buildErroredSnapshot(queryJSON?.hash ?? 0);
+        mockSearchResults = {...snapshot, errors: undefined};
+
+        renderHook(() => useSearchPageSetup(queryJSON));
+
+        expect(getClearedHashes()).toEqual([]);
+    });
+
+    it('tracks the clear per hash, so returning to an already-cleared hash does not clear it again', () => {
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
 
-        // A second, independently errored query mounts. It gets its own retry.
+        // A second, independently errored query opens. It gets its own clear.
         mockSearchResults = buildErroredSnapshot(queryJSONB?.hash ?? 0);
         rerender({queryJSON: queryJSONB});
 
-        // Back to the first query within the same mount. It already used its retry, so this must not fire a third call.
+        // Back to the first query within the same mount. It already used its clear, so nothing more fires.
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         rerender({queryJSON});
 
-        expect(mockSearch).toHaveBeenCalledTimes(2);
+        expect(getClearedHashes()).toEqual([queryJSON?.hash, queryJSONB?.hash]);
     });
 });

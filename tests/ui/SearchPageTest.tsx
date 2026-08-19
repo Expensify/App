@@ -248,7 +248,7 @@ describe('SearchPageNarrow', () => {
         expect(screen.queryByText('Try again')).toBeNull();
     });
 
-    it('keeps the retry button on a fresh mount when the persisted response is a retryable failure', async () => {
+    it('drops a persisted retryable failure on a fresh mount instead of showing the error view', async () => {
         await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
 
         renderPage();
@@ -257,7 +257,9 @@ describe('SearchPageNarrow', () => {
             jest.runAllTimers();
         });
 
-        expect(screen.getByText('Try again')).toBeTruthy();
+        // Opening the page clears the stored failure so the request can run again. Leaving it in place is what
+        // turned a single failed request into a dead end the user could only escape by tapping Try again.
+        expect(screen.queryByText('Try again')).toBeNull();
     });
 
     it('renders the empty state when a response without data reached the terminal loaded state', async () => {
