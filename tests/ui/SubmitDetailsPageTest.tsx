@@ -389,6 +389,30 @@ describe('SubmitDetailsPage', () => {
         logAlertSpy.mockRestore();
     });
 
+    // Error #12c — adopt is a move, so the shared path is empty once it lands. A retry after a read failure has to read
+    // the durable copy, or it adopts a path that no longer exists and the advertised retry can never recover.
+    it('retries from the durable copy after a file-read failure', async () => {
+        // Given a share that adopts fine but fails its first read
+        const durableUri = 'file:///Documents/Receipts-Upload/shared_1234.jpg';
+        jest.mocked(ReceiptStorage.adopt).mockResolvedValueOnce('shared_1234.jpg');
+        jest.mocked(ReceiptStorage.toLocalUri).mockReturnValueOnce(durableUri);
+        jest.mocked(readFileAsync).mockImplementationOnce((_path, _fileName, _onSuccess, onFailure) => {
+            onFailure?.('[FileUtils] Could not read uploaded file');
+            return Promise.resolve();
+        });
+
+        // When the user confirms, the read fails, and the user confirms again
+        await renderAndConfirm();
+        fireEvent.press(screen.getByTestId('mock-confirm-button'));
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the second attempt works off the durable copy, not the shared path the move emptied
+        expect(jest.mocked(readFileAsync).mock.calls.at(0)?.[0]).toBe(durableUri);
+        expect(jest.mocked(ReceiptStorage.adopt).mock.calls.at(1)?.[0]).toBe(durableUri);
+        expect(jest.mocked(readFileAsync).mock.calls.at(1)?.[0]).toBe(durableUri);
+        expect(TrackExpense.requestMoney).toHaveBeenCalled();
+    });
+
     // Error #5 — wide layout fallback: when destination is not topmost, reveal it via revealRouteBeforeDismissingModal
     // and defer navigation to cleanup (shouldNavigate: false) so we do not double-navigate after dismiss.
     it('wide layout: reveals destination via revealRouteBeforeDismissingModal when another report is topmost', async () => {

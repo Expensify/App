@@ -567,7 +567,12 @@ function SubmitDetailsPage({
         // The share extension wipes its folder on the next share, so upload from the receipts folder instead. Adopting
         // here rather than at ingestion keeps abandoned shares out of a folder nothing prunes.
         ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
-            .then(ReceiptStorage.toLocalUri)
+            .then((durableName) => {
+                const uri = ReceiptStorage.toLocalUri(durableName);
+                // The draft is what a retry, the preview and the size check all re-read, and the shared path is gone once the move lands.
+                setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, uri, currentReceiptName, true, currentReceiptType);
+                return uri;
+            })
             .catch((error: unknown) => {
                 logReceiptAdoptFailed({error, captureSource: 'share'});
                 return currentReceiptSource;
