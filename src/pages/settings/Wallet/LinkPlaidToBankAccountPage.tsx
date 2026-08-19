@@ -62,8 +62,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
     const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
-    const isSuccess =
-        hasSubmittedRef.current && !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
+    const isSuccess = !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     const plaidBankAccounts = useMemo(() => plaidData?.bankAccounts ?? [], [plaidData?.bankAccounts]);
     const plaidAccessToken = plaidData?.plaidAccessToken ?? '';
@@ -77,7 +76,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearPlaid();
     });
 
-    const handlePlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
+    const onPlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
         if (isFixMode) {
             hasSubmittedRef.current = true;
             linkPlaidToBankAccount(bankAccountID, '', '', undefined, policyID);
@@ -107,7 +106,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         }
         hasSubmittedRef.current = true;
         linkPlaidToBankAccount(bankAccountID, plaidAccessToken, resolvedAccount.plaidAccountID, resolvedAccount.mask, policyID);
-    }, [resolvedAccount, plaidAccessToken, plaidData?.isLoading, bankAccountID, policyID]);
+    }, [resolvedAccount, plaidAccessToken, plaidData?.isLoading, bankAccountID, policyID, isFixMode]);
 
     if (bankAccount?.isLoading || plaidData?.isLoading || !plaidLinkToken) {
         return (
@@ -180,7 +179,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     return (
         <PlaidLink
             token={plaidLinkToken}
-            onSuccess={({publicToken, metadata}) => handlePlaidSuccess({publicToken, bankName: metadata?.institution?.name ?? ''})}
+            onSuccess={({publicToken, metadata}) => onPlaidSuccess({publicToken, bankName: metadata?.institution?.name ?? ''})}
             onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
             onEvent={() => {}}
             onExit={() => Navigation.goBack(backPath)}
