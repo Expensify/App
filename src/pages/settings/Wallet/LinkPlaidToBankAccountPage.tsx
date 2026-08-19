@@ -183,29 +183,51 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         );
     }
 
-    if (pendingSelection) {
-        const items = pendingSelection.accounts.map((account) => ({
-            value: account.id,
-            label: `${account.name ?? ''} ${account.mask ? `xx${account.mask}` : ''}`.trim(),
+    if (isSelectingAccount) {
+        const items = plaidBankAccounts.map((account) => ({
+            value: account.plaidAccountID,
+            label: account.addressName ?? '',
         }));
+        const {icon, iconSize, iconStyles} = getBankIcon({styles});
+        const bankName = plaidData?.bankName;
+        const selectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
 
         return (
             <>
-                <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate('walletPage.chooseYourBankAccount')}</Text>
-                <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
-                <RadioButtons
-                    items={items}
-                    defaultCheckedValue={selectedPlaidAccountID}
-                    onSelect={setSelectedPlaidAccountID}
-                />
+                <ScrollView contentContainerStyle={styles.flexGrow1}>
+                    <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate('walletPage.chooseYourBankAccount')}</Text>
+                    <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
+                        <Icon
+                            src={icon}
+                            height={iconSize}
+                            width={iconSize}
+                            additionalStyles={iconStyles}
+                        />
+                        <View>
+                            <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
+                            {selectedPlaidAccountMask.length > 0 && (
+                                <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
+                            )}
+                        </View>
+                    </View>
+                    <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
+                    <RadioButtons
+                        items={items}
+                        defaultCheckedValue={selectedPlaidAccountID}
+                        onSelect={setSelectedPlaidAccountID}
+                    />
+                </ScrollView>
                 <FixedFooter>
                     <Button
                         variant={CONST.BUTTON_VARIANT.SUCCESS}
                         size={CONST.BUTTON_SIZE.LARGE}
                         isDisabled={!selectedPlaidAccountID}
                         onPress={() => {
-                            const account = pendingSelection.accounts.find((a) => a.id === selectedPlaidAccountID);
-                            submit(pendingSelection.publicToken, account);
+                            const account = plaidBankAccounts.find((a) => a.plaidAccountID === selectedPlaidAccountID);
+                            if (!account) {
+                                return;
+                            }
+                            submit(account);
                         }}
                     >
                         <Button.Text>{translate('common.confirm')}</Button.Text>
@@ -218,7 +240,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     return (
         <PlaidLink
             token={plaidLinkToken}
-            onSuccess={({publicToken, metadata}) => handlePlaidSuccess({publicToken, accounts: metadata?.accounts ?? []})}
+            onSuccess={({publicToken, metadata}) => handlePlaidSuccess({publicToken, bankName: metadata?.institution?.name ?? ''})}
             onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
             onEvent={() => {}}
             onExit={() => Navigation.goBack(backPath)}
