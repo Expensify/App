@@ -32,7 +32,7 @@ describe('useFollowActionBadgeTarget', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockGetTopmostReportId.mockReturnValue(REPORT_ID);
-        mockGetReportRHPActiveRoute.mockReturnValue(undefined);
+        mockGetReportRHPActiveRoute.mockReturnValue('');
     });
 
     afterAll(() => {
