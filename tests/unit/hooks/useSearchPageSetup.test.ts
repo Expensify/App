@@ -31,10 +31,6 @@ jest.mock('@libs/actions/Search', () => ({
     search: (...args: unknown[]) => mockSearch(...args),
 }));
 
-jest.mock('@libs/deferredLayoutWrite', () => ({
-    hasDeferredWrite: jest.fn(() => false),
-}));
-
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
     useFocusEffect: jest.fn(),
