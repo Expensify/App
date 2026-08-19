@@ -3888,7 +3888,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         industryClassificationCode: '業種分類コード',
         confirmCompanyIsNot: '私は、この会社が次のリストに掲載されていないことを確認します',
         listOfRestrictedBusinesses: '制限対象事業の一覧',
-        incorporationDatePlaceholder: '開始日 (yyyy-mm-dd)',
         incorporationTypes: {
             LLC: 'LLC',
             CORPORATION: '法人',
@@ -3952,7 +3951,6 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         selectYourCompanyIncorporationDate: '会社の法人設立日はいつですか？',
         incorporationDate: '設立日',
-        incorporationDatePlaceholder: '開始日 (yyyy-mm-dd)',
         incorporationState: '法人設立州',
         pleaseSelectTheStateYourCompanyWasIncorporatedIn: '会社はどの州で法人登記されていますか？',
         letsDoubleCheck: 'すべて正しく表示されているか、もう一度確認しましょう。',

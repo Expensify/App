@@ -205,31 +205,32 @@ function getWeekEndsOn(locale: Locale): WeekDay {
  * `locale` is unused; kept on the signature for compat with LocaleContextProvider's wrapper.
  */
 function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number): Date {
-    // Only the "now" branch falls back to the current instant, because that is what it already means. An unparsable
-    // caller value must stay Invalid so `formatIntl` renders '' and the row is skipped, rather than being dressed up as
-    // the current time, which is the wrong-timestamp symptom this migration exists to remove.
     if (datetime === undefined) {
         return toZonedSafe(new Date(), currentSelectedTimezone);
     }
     if (datetime instanceof Date || typeof datetime === 'number') {
-        return toZonedTime(datetime, currentSelectedTimezone);
+        return toZonedSafe(datetime, currentSelectedTimezone);
     }
     // `toDate` reads an unzoned value as UTC, honours an embedded offset when there is one, and parses the space-separated
     // wire shape on every engine. Appending `Z` to that shape instead relied on a V8 leniency Hermes lacks, which left
     // every chat timestamp showing the current time. It only understands ISO-like input, so non-ISO strings (a
     // `Date.prototype.toString()` value, which an engine is required to parse back) still need the engine's own parser.
     const isoParsed = toDate(datetime, {timeZone: 'UTC'});
-    return toZonedTime(Number.isNaN(isoParsed.getTime()) ? new Date(datetime) : isoParsed, currentSelectedTimezone);
+    return toZonedSafe(Number.isNaN(isoParsed.getTime()) ? new Date(datetime) : isoParsed, currentSelectedTimezone);
 }
 
-/** Only for the "now" path: an invalid zone conversion there still has a sensible answer, which is the current instant. */
+/**
+ * Zones an instant, recovering only from a timezone the platform rejects: an unsupported IANA id would otherwise blank
+ * the value, where the unzoned instant is still the right answer. An invalid *input* is passed through untouched, so
+ * `formatIntl` still returns '' and the caller skips the row rather than showing a wrong time.
+ */
 function toZonedSafe(date: Date | number, timeZone: string): Date {
-    const res = toZonedTime(date, timeZone);
-    if (Number.isNaN(res.getTime())) {
-        Log.warn('DateUtils.toZonedSafe: toZonedTime returned an invalid date. Returning current date.', {date, timeZone});
-        return new Date();
+    const zoned = toZonedTime(date, timeZone);
+    if (!Number.isNaN(zoned.getTime()) || Number.isNaN(new Date(date).getTime())) {
+        return zoned;
     }
-    return res;
+    Log.warn('DateUtils.toZonedSafe: the platform rejected this timezone; rendering the unzoned instant.', {date, timeZone});
+    return new Date(date);
 }
 
 /**
@@ -1237,8 +1238,9 @@ function doesDateBelongToAPastYear(date: string): boolean {
     // suffixed with a year on what is still today's row.
     const yearMatch = date.match(WIRE_YEAR_PREFIX);
     const transactionYear = yearMatch ? Number(yearMatch[1]) : toUTCDate(date).getUTCFullYear();
-    // UTC on both sides, because `formatTransactionListDate` renders the chosen preset in UTC too.
-    return transactionYear !== new Date().getUTCFullYear();
+    // Local on the "now" side: the question is whether this differs from the year the viewer is currently in, and a
+    // UTC "now" would put a Dec 31 evening in the Americas into next year, which is what the line above guards against.
+    return transactionYear !== new Date().getFullYear();
 }
 
 /**
@@ -1525,8 +1527,9 @@ function formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt: string
 
     try {
         const date = toDate(violationSnapshotStartedAt, {timeZone: 'UTC'});
-        // A date-only payload is a calendar day, not an instant, so render it in UTC where `timeZone` cannot shift the day.
-        const isDateOnly = !violationSnapshotStartedAt.includes(' ');
+        // A date-only payload is a calendar day, not an instant, so render it in UTC where `timeZone` cannot shift the
+        // day. Matched against the shape, not against a space: a T-separated instant has no space either.
+        const isDateOnly = ISO_DATE_PATTERN.test(violationSnapshotStartedAt);
         return formatIntl(preferredLocale, 'LONG_DATE', date, isDateOnly ? 'UTC' : timeZone);
     } catch (error) {
         Log.warn('[DateUtils] Failed to format violation snapshot started at date', {violationSnapshotStartedAt, timeZone, error});

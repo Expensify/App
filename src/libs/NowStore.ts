@@ -39,13 +39,17 @@ function scheduleNextTick() {
 function tick() {
     // Release the fired timer first, else a resubscribe during the notify loop below schedules a second chain.
     timeoutId = null;
-    if (advanceIfStale()) {
-        for (const listener of listeners) {
-            listener();
+    try {
+        if (advanceIfStale()) {
+            for (const listener of listeners) {
+                listener();
+            }
         }
-    }
-    if (listeners.size > 0) {
-        scheduleNextTick();
+    } finally {
+        // Rescheduled even if a listener threw, since nothing else re-arms the chain.
+        if (listeners.size > 0) {
+            scheduleNextTick();
+        }
     }
 }
 

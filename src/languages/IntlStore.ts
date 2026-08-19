@@ -49,11 +49,11 @@ function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale):
         return Promise.resolve();
     }
     return dataImport.then(
-        () => undefined,
-        (error: unknown) => {
-            // The formatter caches key on the requested locale, so anything already built for it resolved against the
-            // missing data and would stay English for the session. Dropping them lets a later load rebuild correctly.
+        () => {
+            // On success, not failure: anything built before the data landed resolved against English and can now rebuild.
             clearIntlFormatterCaches();
+        },
+        (error: unknown) => {
             Log.warn('[IntlStore] Intl polyfill locale data failed to load; that API falls back to English', {locale, error});
         },
     );

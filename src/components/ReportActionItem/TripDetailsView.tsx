@@ -68,12 +68,12 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
     const getFormattedDate = () => {
         switch (reservation.type) {
             case CONST.RESERVATION_TYPE.FLIGHT:
-                return DateUtils.getFormattedTransportDate(translate, new Date(reservation.start.date), preferredLocale);
+                return DateUtils.getFormattedTransportDate(translate, DateUtils.toLocalDate(reservation.start.date), preferredLocale);
             case CONST.RESERVATION_TYPE.HOTEL:
             case CONST.RESERVATION_TYPE.CAR:
-                return DateUtils.getFormattedReservationRangeDate(translate, new Date(reservation.start.date), new Date(reservation.end.date), preferredLocale);
+                return DateUtils.getFormattedReservationRangeDate(translate, DateUtils.toLocalDate(reservation.start.date), DateUtils.toLocalDate(reservation.end.date), preferredLocale);
             default:
-                return DateUtils.formatToLongDateWithWeekday(new Date(reservation.start.date), preferredLocale);
+                return DateUtils.formatToLongDateWithWeekday(DateUtils.toLocalDate(reservation.start.date), preferredLocale);
         }
     };
 

@@ -33,8 +33,8 @@ function HotelTripDetails({reservation, personalDetails}: HotelTripDetailsProps)
         [CONST.CANCELLATION_POLICY.PARTIALLY_REFUNDABLE]: translate('travel.hotelDetails.cancellationPolicies.partiallyRefundable'),
     };
 
-    const checkInDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.start.date), preferredLocale);
-    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(new Date(reservation.end.date), preferredLocale);
+    const checkInDate = DateUtils.getFormattedTransportDateAndHour(DateUtils.toLocalDate(reservation.start.date), preferredLocale);
+    const checkOutDate = DateUtils.getFormattedTransportDateAndHour(DateUtils.toLocalDate(reservation.end.date), preferredLocale);
     const cancellationText = reservation.cancellationDeadline
         ? `${translate('travel.hotelDetails.cancellationUntil')} ${DateUtils.getFormattedCancellationDate(reservation.cancellationDeadline, preferredLocale)}`
         : cancellationMapping[reservation.cancellationPolicy ?? CONST.CANCELLATION_POLICY.UNKNOWN];
