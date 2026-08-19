@@ -9,7 +9,7 @@ import useOnyx from './useOnyx';
 
 /**
  * Closes the open-report span as a cold open (`warm: false`) while a skeleton shows. Call it from a component
- * mounted exactly while the skeleton is on screen — the list body that would otherwise close the span isn't
+ * mounted exactly while the skeleton is on screen. The list body that would otherwise close the span isn't
  * mounted yet.
  */
 function useMarkOpenReportEndOnSkeleton(reportID: string | undefined, isSkeletonVisible = true) {

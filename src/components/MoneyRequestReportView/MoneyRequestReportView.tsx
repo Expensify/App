@@ -210,7 +210,7 @@ function MoneyRequestReportView({report, reportIDFromRoute, reportLoadingState, 
 
     const shouldShowEmptyActionsSkeleton = reportActions.length === 0;
     const shouldShowAppLoadSkeleton = !!report && isAppLoadPending;
-    // Route id, not report?.reportID: these skeletons render before the report lands in Onyx.
+    // These skeletons render before the report lands in Onyx, so the mark uses the route id.
     useMarkOpenReportEndOnSkeleton(reportIDFromRoute, shouldShowOpenReportLoadingSkeleton || shouldShowEmptyActionsSkeleton || shouldShowAppLoadSkeleton);
 
     if (shouldShowOpenReportLoadingSkeleton) {

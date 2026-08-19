@@ -118,7 +118,7 @@ function ReportActionsWithInboxTabDeferredMount({reportID, shouldDefer}: ReportA
         <NavigationDeferredMount
             waitForUpcomingTransition={false}
             placeholder={
-                // Deferral, not a data wait — closing the span here would time the defer and tag a cached report cold.
+                // Deferral, not a data wait. Closing the span here would time the defer and tag a cached report cold.
                 <ReportActionsLoadingSkeleton
                     reportID={reportID}
                     skeletonName={CONST.TELEMETRY.CANCELED_BY_SKELETON.INBOX_TAB_DEFER}

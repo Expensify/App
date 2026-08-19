@@ -21,9 +21,9 @@ type ReportActionsLoadingSkeletonProps = {
 };
 
 /**
- * Report-actions loading skeleton. Hosts the skeleton-phase span marks — cancelling the never-ending
- * send-message span, and closing the open-report span as cold — because mounted here means visible, while a
- * parent's copy of the skeleton condition can drift from what actually renders.
+ * Report-actions loading skeleton. Hosts the skeleton-phase span marks: cancelling the never-ending
+ * send-message span, and closing the open-report span as cold. Mounted here means visible, while a parent's
+ * copy of the skeleton condition can drift from what actually renders.
  */
 function ReportActionsLoadingSkeleton({reportID, skeletonName, shouldAnimate = true, shouldMarkOpenReportEnd = true}: ReportActionsLoadingSkeletonProps) {
     useCancelSendMessageSpanOnSkeleton(reportID, skeletonName);

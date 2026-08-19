@@ -14,7 +14,7 @@ type MarkOpenReportEndOptions = {
 
 /**
  * Mark all 'open_report*' telemetry spans as finished. Keyed by `reportID` so it still ends when the report
- * hasn't loaded; the report-shape attributes are then left off.
+ * hasn't loaded. The report-shape attributes are then left off.
  */
 function markOpenReportEnd(reportID: string, report: OnyxEntry<OnyxTypes.Report>, options: MarkOpenReportEndOptions = {}) {
     const isTransactionThread = isReportTransactionThread(report);
