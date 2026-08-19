@@ -345,9 +345,10 @@ function AccountSwitcher({isScreenFocused}: AccountSwitcherProps) {
                     searchInputValue={searchInput}
                     onSearchInputChange={setSearchInput}
                     shouldShowSearchEmptyState={shouldShowSearchInput && filteredMenuItems.length === 0 && searchInput.length > 0}
-                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.wFitContent]}
+                    containerStyles={[{maxHeight: windowHeight / 2}, styles.mw100, shouldUseNarrowLayout ? {} : styles.accountSwitcherPopover]}
                     headerStyles={styles.pt0}
                     innerContainerStyle={styles.pb0}
+                    scrollContainerStyle={shouldShowSearchInput ? styles.pt0 : undefined}
                     shouldUseScrollView
                     shouldUpdateFocusedIndex={false}
                     enableEdgeToEdgeBottomSafeAreaPadding
