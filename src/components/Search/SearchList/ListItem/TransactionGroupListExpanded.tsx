@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import LinkButton from '@components/ButtonComposed/composed/LinkButton';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {usePersonalDetails} from '@components/OnyxListItemProvider';
 import {PressableWithFeedback} from '@components/Pressable';
@@ -256,12 +256,12 @@ function TransactionGroupListExpandedImpl({
         // When opening the transaction thread in RHP we need to find every other ID for the rest of transactions
         // to display prev/next arrows in RHP for navigation
         if (isModifiedMousePress(event)) {
-            setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash);
+            setActiveTransactionIDs(siblingTransactionIDs);
             navigateToTransactionThread();
             return;
         }
 
-        setActiveTransactionIDs(siblingTransactionIDs, transactionsQueryJSON?.hash).then(navigateToTransactionThread);
+        setActiveTransactionIDs(siblingTransactionIDs).then(navigateToTransactionThread);
     };
 
     const onShowMoreButtonPress = () => {
@@ -392,16 +392,14 @@ function TransactionGroupListExpandedImpl({
             })}
             {shouldDisplayShowMoreButton && !shouldDisplayLoadingIndicator && (
                 <View style={[styles.w100, styles.flexRow, isLargeScreenWidth && styles.pl10]}>
-                    <Button
-                        text={translate('common.showMore')}
+                    <LinkButton
                         onPress={onShowMoreButtonPress}
-                        link
-                        shouldUseDefaultHover={false}
                         isNested
-                        medium
-                        innerStyles={[styles.ph3]}
-                        textStyles={[styles.fontSizeNormal]}
-                    />
+                        size={CONST.BUTTON_SIZE.MEDIUM}
+                        innerStyles={[styles.ph2]}
+                    >
+                        <LinkButton.Text style={[styles.fontSizeNormal]}>{translate('common.showMore')}</LinkButton.Text>
+                    </LinkButton>
                 </View>
             )}
             {shouldDisplayLoadingIndicator && (
