@@ -236,6 +236,15 @@ function isTransparentBoundary(functionNode, parent) {
     return classifyFunctionBoundary(functionNode, parent) === SYNCHRONOUS;
 }
 
+/**
+ * The body an `await` suspends, which is the innermost enclosing function with no transparency: `await`
+ * only suspends the async function it is written in. An async callback passed to `forEach` suspends
+ * itself while `forEach` carries on, even though a plain call in that callback does run in its caller's tick.
+ */
+function getAwaitingBody(ancestors) {
+    return ancestors.findLast(isFunctionNode) ?? null;
+}
+
 /** The body a node runs in, which is the innermost enclosing function once transparent boundaries are seen through. */
 function getEnclosingBody(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
@@ -267,6 +276,16 @@ function isAwaited(ancestors) {
     }
 
     return false;
+}
+
+/**
+ * Whether the body suspends between the write and the read. The rule polices reads that run in the
+ * write's own tick, and an `await` ends that tick: the body stops there and the read resumes in a later
+ * one, after the queued write has had its turn. `await waitForBatchedUpdates()` in tests is this shape,
+ * and so is awaiting the write's promise indirectly, through a handle taken earlier in the body.
+ */
+function isSeparatedByAwait(awaits, write, read) {
+    return awaits.some((awaitNode) => awaitNode.range.at(0) >= write.node.range.at(1) && awaitNode.range.at(1) <= read.node.range.at(0));
 }
 
 /**
@@ -423,7 +442,7 @@ function create(context) {
     const readAliases = new WeakSet();
     const writeAliases = new WeakSet();
 
-    /** Event-time reads and writes per enclosing body, in source order. Bodies are only compared against themselves. */
+    /** Event-time reads, writes and awaits per enclosing body, in source order. Bodies are only compared against themselves. */
     const callsByBody = new Map();
 
     function trackBinding(node, bindingName, bindings) {
@@ -456,7 +475,7 @@ function create(context) {
             return;
         }
 
-        const calls = callsByBody.get(body) ?? {reads: [], writes: []};
+        const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
         calls[kind].push({node, ancestors});
         callsByBody.set(body, calls);
     }
@@ -513,6 +532,17 @@ function create(context) {
                 trackBinding(node, node.id.name, writeAliases);
             }
         },
+        AwaitExpression(node) {
+            const body = getAwaitingBody(sourceCode.getAncestors(node));
+
+            if (!body) {
+                return;
+            }
+
+            const calls = callsByBody.get(body) ?? {reads: [], writes: [], awaits: []};
+            calls.awaits.push(node);
+            callsByBody.set(body, calls);
+        },
         CallExpression(node) {
             const scope = sourceCode.getScope(node);
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
@@ -541,7 +571,7 @@ function create(context) {
         },
         // Reported here rather than on the read, because a read is only a finding once the whole body is known.
         'Program:exit': function reportReadsAfterWrites() {
-            for (const {reads, writes} of callsByBody.values()) {
+            for (const {reads, writes, awaits} of callsByBody.values()) {
                 for (const read of reads) {
                     const precedingWrite = writes.find(
                         (write) =>
@@ -549,6 +579,7 @@ function create(context) {
                             // the case this excludes: a read passed as an argument to the write runs before it.
                             read.node.range.at(0) >= write.node.range.at(1) &&
                             !isAwaited(write.ancestors) &&
+                            !isSeparatedByAwait(awaits, write, read) &&
                             !areMutuallyExclusive(write, read) &&
                             !exitsBeforeRead(write, read) &&
                             !isProvablyDifferentKey(write.node, read.node),

@@ -18,6 +18,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
  * lifetime and cannot be undone, so that window is only observable on the very first init.
  */
 
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- reading in the same tick as a write is the behaviour under test here, so the cases below have to do the exact thing the rule bans everywhere else. */
+
 const TRANSACTION_A = `${ONYXKEYS.COLLECTION.TRANSACTION}A` as const;
 const REPORT_A = `${ONYXKEYS.COLLECTION.REPORT}A` as const;
 

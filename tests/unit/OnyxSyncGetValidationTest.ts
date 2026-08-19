@@ -14,6 +14,8 @@ import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
  * silent stale read inside an event handler.
  */
 
+/* eslint-disable rulesdir/no-unsafe-onyx-read -- reading in the same tick as a write is the behaviour under test here, so the cases below have to do the exact thing the rule bans everywhere else. */
+
 const KEY = ONYXKEYS.ACCOUNT;
 const REPORT_A = `${ONYXKEYS.COLLECTION.REPORT}A` as const;
 const REPORT_B = `${ONYXKEYS.COLLECTION.REPORT}B` as const;
