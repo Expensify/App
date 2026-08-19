@@ -3190,7 +3190,7 @@ describe('ReportActionItem', () => {
             renderItemWithAction(action);
             await waitForBatchedUpdatesWithAct();
 
-            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submit' as TranslationPaths))).toBeOnTheScreen();
+            expect(screen.getByText(translateLocal('actionableMentionTrackExpense.submitToEmployer' as TranslationPaths))).toBeOnTheScreen();
             expect(screen.getByText(translateLocal('actionableMentionTrackExpense.nothing' as TranslationPaths))).toBeOnTheScreen();
         });
     });
