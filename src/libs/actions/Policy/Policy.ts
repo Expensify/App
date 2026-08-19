@@ -4714,7 +4714,7 @@ function createWorkspaceFromIOUPayment({
                     message: [
                         {
                             type: CONST.REPORT.MESSAGE.TYPE.TEXT,
-                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}, getCurrencyDecimals, localeTranslate),
+                            text: ReportUtils.getReportPreviewReportActionMessage({reportOrID: expenseReport, policy: newWorkspace}, getCurrencyDecimals),
                         },
                     ],
                     created: DateUtils.getDBTime(),

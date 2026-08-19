@@ -4289,7 +4289,6 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportName?: string;
-    translate?: LocalizedTranslate;
 };
 
 function buildNewReportOptimisticData({
@@ -4304,7 +4303,6 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportName,
-    translate,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -4344,7 +4342,7 @@ function buildNewReportOptimisticData({
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals, translate);
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
     const createReportActionMessage = [
         {
             html: message,
@@ -4538,9 +4536,9 @@ function createNewReport(
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     shouldNotifyNewAction = false,
     shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string; translate?: LocalizedTranslate} = {},
+    options: {managedCardTransactionID?: string; reportName?: string} = {},
 ) {
-    const {managedCardTransactionID, reportName, translate} = options;
+    const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
     const reportPreviewReportActionID = rand64();
@@ -4557,7 +4555,6 @@ function createNewReport(
         isTrackIntentUser,
         getCurrencyDecimals,
         reportName,
-        translate,
     });
 
     if (shouldDismissEmptyReportsConfirmation) {
@@ -7609,7 +7606,6 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction,
     isTrackIntentUser,
     getCurrencyDecimals,
-    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7625,7 +7621,6 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
-    translate: LocalizedTranslate;
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7857,7 +7852,7 @@ function buildOptimisticChangePolicyData({
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined, translate);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -8108,7 +8103,6 @@ function changeReportPolicy({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
-    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8125,7 +8119,6 @@ function changeReportPolicy({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
-    translate: LocalizedTranslate;
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)) {
         return;
@@ -8145,7 +8138,6 @@ function changeReportPolicy({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
-        translate,
     });
 
     const params = {
@@ -8181,7 +8173,6 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
-    translate,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8199,7 +8190,6 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
-    translate: LocalizedTranslate;
 }) {
     if (
         !report.reportID ||
@@ -8262,7 +8252,6 @@ function changeReportPolicyAndInviteSubmitter({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
-        translate,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

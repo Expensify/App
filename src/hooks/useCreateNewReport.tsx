@@ -10,7 +10,6 @@ import {useCallback} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
-import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -20,7 +19,6 @@ import usePermissions from './usePermissions';
  */
 function useCreateNewReport() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const {translate} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -46,12 +44,9 @@ function useCreateNewReport() {
                 getCurrencyDecimals,
                 false,
                 shouldDismissEmptyReportsConfirmation,
-                {
-                    translate,
-                },
             );
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, translate],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
     );
 }
 

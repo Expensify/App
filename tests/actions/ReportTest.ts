@@ -3650,7 +3650,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -3687,7 +3686,6 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -3750,7 +3748,6 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,
@@ -3823,7 +3820,6 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -3922,7 +3918,6 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4009,7 +4004,6 @@ describe('actions/Report', () => {
             await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${newPolicy.id}`, newPolicy);
 
             Report.changeReportPolicy({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4064,7 +4058,6 @@ describe('actions/Report', () => {
 
             // When moving to another workspace
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4158,7 +4151,6 @@ describe('actions/Report', () => {
 
             // Call changeReportPolicyAndInviteSubmitter
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4205,7 +4197,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4238,7 +4229,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4270,7 +4260,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4302,7 +4291,6 @@ describe('actions/Report', () => {
             };
 
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4336,7 +4324,6 @@ describe('actions/Report', () => {
 
             // Do not set personal details for ownerAccountID so getLoginByAccountID returns empty
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4391,7 +4378,6 @@ describe('actions/Report', () => {
             mockFetch.pause?.();
 
             Report.changeReportPolicyAndInviteSubmitter({
-                translate: TestHelper.translateLocal,
                 report: expenseReport,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4841,7 +4827,6 @@ describe('actions/Report', () => {
             };
             const policy = createRandomPolicy(Number(1));
             Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4897,7 +4882,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData, successData, failureData} = Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -4963,7 +4947,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -5013,7 +4996,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -5076,7 +5058,6 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             const {optimisticData} = Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport: undefined,
@@ -5142,7 +5123,6 @@ describe('actions/Report', () => {
             const policy = createRandomPolicy(Number(1));
 
             const {optimisticData, failureData} = Report.buildOptimisticChangePolicyData({
-                translate: TestHelper.translateLocal,
                 report,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
                 parentReport,

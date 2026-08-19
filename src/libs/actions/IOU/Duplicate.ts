@@ -1026,7 +1026,6 @@ function duplicateReport({
         undefined,
         {
             reportName: newReportName,
-            translate,
         },
     );
 

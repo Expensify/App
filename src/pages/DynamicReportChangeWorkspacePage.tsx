@@ -186,7 +186,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
                 reportPreviewAction,
                 isTrackIntentUser,
                 reportTransactions,
-                translate,
             });
             refreshSearch();
             return;
@@ -208,7 +207,6 @@ function DynamicReportChangeWorkspacePage({report}: DynamicReportChangeWorkspace
             reportPreviewAction,
             isTrackIntentUser,
             reportTransactions,
-            translate,
         });
         refreshSearch();
     };
