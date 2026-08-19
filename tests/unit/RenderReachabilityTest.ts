@@ -1,6 +1,6 @@
 import type {CallEdge, CallGraph, FunctionNode} from '../../scripts/renderReachability';
 
-import {buildCallerIndex, findRenderPaths, hasNode, isRenderReachable} from '../../scripts/renderReachability';
+import {buildCallerIndex, findDeadEnds, findRenderPaths, hasNode, isRenderReachable} from '../../scripts/renderReachability';
 
 function entry(id: string): FunctionNode {
     return {id, isRenderEntry: true};
@@ -134,5 +134,74 @@ describe('buildCallerIndex', () => {
         );
 
         expect(buildCallerIndex(callGraph).get(TARGET)).toEqual(['src/pages/APage.tsx#APage', 'src/pages/BPage.tsx#BPage']);
+    });
+});
+
+const MODULE = 'src/setup/index.ts#<module>';
+const isModuleBody = (unitId: string) => unitId.endsWith('#<module>');
+
+describe('findDeadEnds', () => {
+    it('clears a target whose callers lead back to a module body', () => {
+        const callGraph = graph(
+            [unit(MODULE), unit('src/libs/Duplicate.ts#init'), unit(TARGET)],
+            [
+                [MODULE, 'src/libs/Duplicate.ts#init'],
+                ['src/libs/Duplicate.ts#init', TARGET],
+            ],
+        );
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual([]);
+    });
+
+    it('reports the target itself when nothing calls it', () => {
+        const callGraph = graph([unit(TARGET)], []);
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual([TARGET]);
+    });
+
+    it('reports the unit the walk stopped at, not the target', () => {
+        const callGraph = graph([unit('src/libs/Duplicate.ts#init'), unit(TARGET)], [['src/libs/Duplicate.ts#init', TARGET]]);
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual(['src/libs/Duplicate.ts#init']);
+    });
+
+    it('reports only the branch that stops short when another branch reaches a module body', () => {
+        const callGraph = graph(
+            [unit(MODULE), unit('src/libs/Duplicate.ts#init'), unit('src/libs/Duplicate.ts#onPress'), unit(TARGET)],
+            [
+                [MODULE, 'src/libs/Duplicate.ts#init'],
+                ['src/libs/Duplicate.ts#init', TARGET],
+                ['src/libs/Duplicate.ts#onPress', TARGET],
+            ],
+        );
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual(['src/libs/Duplicate.ts#onPress']);
+    });
+
+    it('reports the target when every branch loops without reaching a root', () => {
+        const callGraph = graph(
+            [unit('src/libs/Duplicate.ts#a'), unit('src/libs/Duplicate.ts#b'), unit(TARGET)],
+            [
+                ['src/libs/Duplicate.ts#a', 'src/libs/Duplicate.ts#b'],
+                ['src/libs/Duplicate.ts#b', 'src/libs/Duplicate.ts#a'],
+                ['src/libs/Duplicate.ts#a', TARGET],
+            ],
+        );
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual([TARGET]);
+    });
+
+    it('clears a cycle that something outside it enters', () => {
+        const callGraph = graph(
+            [unit(MODULE), unit('src/libs/Duplicate.ts#a'), unit('src/libs/Duplicate.ts#b'), unit(TARGET)],
+            [
+                [MODULE, 'src/libs/Duplicate.ts#a'],
+                ['src/libs/Duplicate.ts#a', 'src/libs/Duplicate.ts#b'],
+                ['src/libs/Duplicate.ts#b', 'src/libs/Duplicate.ts#a'],
+                ['src/libs/Duplicate.ts#a', TARGET],
+            ],
+        );
+
+        expect(findDeadEnds(callGraph, TARGET, isModuleBody)).toEqual([]);
     });
 });

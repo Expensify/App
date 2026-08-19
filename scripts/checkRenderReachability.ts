@@ -24,9 +24,10 @@
  *              prints 3, the graph is missing edges and the verdict is not evidence.
  *
  * The graph is built from source with no type information, so a call it cannot resolve is a call it
- * cannot follow. That can only make a render-reachable function look safe, never the reverse, so the
- * summary always prints how many calls went unresolved. Treat a clean verdict on a function whose
- * callers are dynamic as unproven rather than proven.
+ * cannot follow. That can only make a render-reachable function look safe, never the reverse. A unit is
+ * therefore only cleared when the walk out of it reaches a module body along every branch; a branch that
+ * runs out of callers first is reported as UNPROVEN, because the callers it did not find are exactly the
+ * ones that could have rendered.
  */
 import {execFileSync} from 'node:child_process';
 import fs from 'node:fs';
@@ -37,14 +38,14 @@ import type {PathAliases} from './buildCallGraph';
 import type {FileAnalysis} from './callGraphFromSource';
 
 import {buildCallGraph} from './buildCallGraph';
-import {analyzeSource, ONYX_MODULE_PREFIX} from './callGraphFromSource';
-import {buildCallerIndex, findRenderPaths} from './renderReachability';
+import {analyzeSource, MODULE_UNIT_NAME, ONYX_MODULE_PREFIX} from './callGraphFromSource';
+import {buildCallerIndex, findDeadEnds, findRenderPaths} from './renderReachability';
 
 const projectRoot = path.resolve(__dirname, '..');
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 
-/** Handoff sites printed per unproven unit before the rest are summarised. */
-const MAX_HANDOFFS_SHOWN = 5;
+/** Dead ends printed per unproven unit before the rest are summarised. */
+const MAX_DEAD_ENDS_SHOWN = 5;
 
 /**
  * Every source file under `src/`, repo-relative with posix separators. Untracked files are included:
@@ -108,21 +109,50 @@ function readPathAliases(): PathAliases {
     return paths;
 }
 
+/** A unit the backwards search could not leave, because the graph found nothing that calls it. */
+type DeadEnd = {
+    unitId: string;
+
+    /** Where it is handed off as a value, which is the usual reason nothing appears to call it. */
+    handoffs: string[];
+};
+
 type Verdict = {
     unitId: string;
     reads: number;
     renderPaths: string[][];
 
-    /** Direct callers the graph found. Zero means nothing was traced, so a clean result proves nothing. */
-    callers: number;
-
-    /** Where the unit is handed off as a value, which is the usual reason it has no callers. */
-    handoffs: string[];
+    /**
+     * Where the search stopped without reaching a module body. Each one has callers the graph never saw,
+     * and an unseen caller can only hide a render path, so a verdict with any of these clears nothing.
+     */
+    deadEnds: DeadEnd[];
 };
 
-/** A verdict that proves nothing: the graph found no way in, so it never had a path to reject. */
+/** A verdict that proves nothing: the search ran out of graph before it ran out of callers. */
 function isUnproven(verdict: Verdict): boolean {
-    return verdict.renderPaths.length === 0 && verdict.callers === 0;
+    return verdict.renderPaths.length === 0 && verdict.deadEnds.length > 0;
+}
+
+/** A module body runs at import time with nothing calling it, so a walk that arrives at one is complete. */
+function isModuleBody(unitId: string): boolean {
+    return unitId.endsWith(`#${MODULE_UNIT_NAME}`);
+}
+
+/** The lines that name where a search stopped, shared so the CLI and the lint gate report it identically. */
+function describeDeadEnds(verdict: Verdict): string[] {
+    const lines = [`could not trace ${verdict.deadEnds.length} unit(s) back to a module body:`];
+
+    for (const deadEnd of verdict.deadEnds.slice(0, MAX_DEAD_ENDS_SHOWN)) {
+        const handoff = deadEnd.handoffs.at(0);
+        lines.push(`  ${deadEnd.unitId}${handoff ? ` (passed as a value at ${handoff})` : ''}`);
+    }
+
+    if (verdict.deadEnds.length > MAX_DEAD_ENDS_SHOWN) {
+        lines.push(`  and ${verdict.deadEnds.length - MAX_DEAD_ENDS_SHOWN} more`);
+    }
+
+    return lines;
 }
 
 function analyzeFiles(files: readonly string[]): {analyses: FileAnalysis[]; failures: Array<{file: string; message: string}>} {
@@ -174,8 +204,7 @@ function verdictFor(unitId: string, repo: RepoAnalysis): Verdict {
         unitId,
         reads: repo.readCountByUnit.get(unitId) ?? 0,
         renderPaths: findRenderPaths(repo.graph, unitId),
-        callers: (repo.callerIndex.get(unitId) ?? []).length,
-        handoffs: repo.handoffsByTarget.get(unitId) ?? [],
+        deadEnds: findDeadEnds(repo.graph, unitId, isModuleBody).map((deadEndId) => ({unitId: deadEndId, handoffs: repo.handoffsByTarget.get(deadEndId) ?? []})),
     };
 }
 
@@ -225,28 +254,17 @@ function run(): void {
                 continue;
             }
 
-            // No callers means the search had nothing to reject, so this is not the same answer as `ok`.
+            // The search stopped short of every caller, so it never had the full set to reject.
             if (isUnproven(verdict)) {
                 console.log(`UNPROVEN        ${verdict.unitId}`);
-
-                if (verdict.handoffs.length === 0) {
-                    console.log('                no callers and no references, so nothing was traced');
-                    continue;
-                }
-
-                console.log('                no callers; passed as a value at');
-                for (const handoff of verdict.handoffs.slice(0, MAX_HANDOFFS_SHOWN)) {
-                    console.log(`                  ${handoff}`);
-                }
-
-                if (verdict.handoffs.length > MAX_HANDOFFS_SHOWN) {
-                    console.log(`                  and ${verdict.handoffs.length - MAX_HANDOFFS_SHOWN} more`);
+                for (const line of describeDeadEnds(verdict)) {
+                    console.log(`                ${line}`);
                 }
                 continue;
             }
 
             if (!quiet) {
-                console.log(`ok              ${verdict.unitId}`);
+                console.log(`no render path  ${verdict.unitId}`);
             }
         }
 
@@ -307,8 +325,8 @@ function findOnyxTargets(targets: readonly string[]): string[] {
  * file imports Onyx at all. That check is a `git grep` and is a superset of what the graph can flag,
  * which keeps a lint run over unrelated files free.
  *
- * An unproven verdict is reported and does not fail: a unit with no callers is the normal shape of an
- * event handler, so failing on it would fail on correct code.
+ * Only a render path fails. Reads the walk could not clear are summarised in one line and pointed at the
+ * CLI, since they are the normal case and repeating the detail on every lint run would bury the failures.
  */
 async function checkRenderReachability(targets: string[]): Promise<boolean> {
     const candidates = new Set(findOnyxTargets(targets));
@@ -323,12 +341,9 @@ async function checkRenderReachability(targets: string[]): Promise<boolean> {
     const reachable = verdicts.filter((verdict) => verdict.renderPaths.length > 0);
     const unproven = verdicts.filter(isUnproven);
 
-    for (const verdict of unproven) {
-        console.error(`Unproven synchronous Onyx read: ${verdict.unitId}`);
+    if (unproven.length > 0) {
         console.error(
-            verdict.handoffs.length > 0
-                ? `  no callers; passed as a value at ${verdict.handoffs.slice(0, MAX_HANDOFFS_SHOWN).join(', ')}`
-                : '  no callers and no references, so nothing was traced',
+            `Note: ${unproven.length} synchronous Onyx read(s) in these files have callers the graph cannot resolve, so nothing here vouches for them. Run \`bun scripts/checkRenderReachability.ts\` for the detail.`,
         );
     }
 

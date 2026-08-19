@@ -144,10 +144,59 @@ function findRenderPaths(graph: CallGraph, targetId: string, options: FindRender
     return paths;
 }
 
+/**
+ * Every unit the walk out of `targetId` could not leave: nothing in the graph calls it, and `isRoot` does
+ * not recognise it as a place execution starts. Each one stands for callers the graph failed to resolve,
+ * and an unresolved caller can only hide a render path, so an empty result is what lets an empty
+ * `findRenderPaths` answer mean the target is unreachable rather than merely untraced.
+ */
+function findDeadEnds(graph: CallGraph, targetId: string, isRoot: (unitId: string) => boolean): string[] {
+    const callersByCallee = buildCallerIndex(graph);
+    const deadEnds: string[] = [];
+    const visited = new Set<string>([targetId]);
+    const queue: string[] = [targetId];
+    let reachedRoot = false;
+
+    while (queue.length > 0) {
+        const current = queue.shift();
+
+        if (!current) {
+            break;
+        }
+
+        const callers = callersByCallee.get(current) ?? [];
+
+        if (callers.length === 0) {
+            if (isRoot(current)) {
+                reachedRoot = true;
+            } else {
+                deadEnds.push(current);
+            }
+            continue;
+        }
+
+        for (const caller of callers) {
+            if (visited.has(caller)) {
+                continue;
+            }
+            visited.add(caller);
+            queue.push(caller);
+        }
+    }
+
+    // Every branch looped back on itself, so the walk never found where execution enters. A circle is no
+    // more of an answer than a wall, and reporting the target keeps that from reading as a clean result.
+    if (!reachedRoot && deadEnds.length === 0) {
+        return [targetId];
+    }
+
+    return deadEnds;
+}
+
 /** Whether anything that renders can reach `targetId`. A synchronous read there is only safe when this is false. */
 function isRenderReachable(graph: CallGraph, targetId: string): boolean {
     return findRenderPaths(graph, targetId, {maxPaths: 1}).length > 0;
 }
 
-export {buildCallerIndex, findRenderPaths, hasNode, isRenderReachable, DEFAULT_MAX_PATHS};
+export {buildCallerIndex, findDeadEnds, findRenderPaths, hasNode, isRenderReachable, DEFAULT_MAX_PATHS};
 export type {CallEdge, CallGraph, FindRenderPathsOptions, FunctionNode};
