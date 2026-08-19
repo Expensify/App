@@ -31,7 +31,7 @@ import {Modal, Platform, View} from 'react-native';
 import {GestureDetector} from 'react-native-gesture-handler';
 import {RESULTS} from 'react-native-permissions';
 import Animated from 'react-native-reanimated';
-import {useCameraDevice, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
+import {useCameraDevice, useCameraDevices, useCameraFormat, Camera as VisionCamera} from 'react-native-vision-camera';
 
 type CapturedPhoto = {
     uri: string;
@@ -72,6 +72,13 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
     const device = useCameraDevice(cameraPosition, {
         physicalDevices: ['wide-angle-camera', 'ultra-wide-angle-camera'],
     });
+
+    // Only offer the flip control when both a front and a back camera are actually available. Some
+    // devices (and Android emulators) enumerate a camera for only one position, so flipping to the
+    // missing position would leave useCameraDevice returning undefined and strand the user on an
+    // infinite loading spinner. Guarding the flip keeps behavior unchanged on phones with both cameras.
+    const cameraDevices = useCameraDevices();
+    const canFlipCamera = useMemo(() => cameraDevices.some((d) => d.position === 'front') && cameraDevices.some((d) => d.position === 'back'), [cameraDevices]);
 
     // Prioritize photoResolution so the format selector picks the configured PHOTO_WIDTH/PHOTO_HEIGHT
     // format. The live viewfinder renders from the video pipeline, so videoResolution controls preview
@@ -307,8 +314,8 @@ function AttachmentCamera({isVisible, onCapture, onClose}: AttachmentCameraProps
                     <PressableWithFeedback
                         role={CONST.ROLE.BUTTON}
                         accessibilityLabel={translate('receipt.flipCamera')}
-                        style={[styles.alignItemsEnd]}
-                        disabled={cameraPermissionStatus !== RESULTS.GRANTED}
+                        style={[styles.alignItemsEnd, !canFlipCamera && styles.opacity0]}
+                        disabled={cameraPermissionStatus !== RESULTS.GRANTED || !canFlipCamera}
                         onPress={() => setCameraPosition((prev) => (prev === 'back' ? 'front' : 'back'))}
                         sentryLabel="AttachmentCamera-FlipCamera"
                     >
