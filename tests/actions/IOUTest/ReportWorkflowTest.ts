@@ -518,7 +518,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             putOnHold(heldTransaction.transactionID, 'hold reason', expenseReport.reportID, false, CARLOS_EMAIL, CARLOS_ACCOUNT_ID, undefined, false, undefined, []);
             await waitForBatchedUpdates();
 
-            // When submitting the report while offline (callers pass the live report, refreshed by the hold)
+            // When submitting the report while offline
             mockFetch?.pause?.();
             const freshExpenseReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             submitReport({
@@ -540,8 +540,7 @@ describe('actions/IOU/ReportWorkflow', () => {
             });
             await waitForBatchedUpdates();
 
-            // Then the DEW policy determines the actual workflow on the backend, so the report is not optimistically
-            // moved to the submitted state
+            // Then the report is not optimistically moved to the submitted state
             const submittedReport = await getOnyxValue(`${ONYXKEYS.COLLECTION.REPORT}${expenseReport.reportID}`);
             expect(submittedReport?.stateNum).toBe(CONST.REPORT.STATE_NUM.OPEN);
             expect(submittedReport?.statusNum).toBe(CONST.REPORT.STATUS_NUM.OPEN);
