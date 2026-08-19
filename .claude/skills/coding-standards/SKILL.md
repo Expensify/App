@@ -16,6 +16,7 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 | Consistency | `CONSISTENCY-*` | Platform checks, magic values, unused props, ESLint discipline, localization, file naming, JSDoc |
 | Clean React Patterns | `CLEAN-REACT-PATTERNS-*` | Composition, component ownership, state structure, prop typing, function components |
 | UI | `UI-*` | Loading indicators, scrollable pages, styling conventions |
+| Onyx | `ONYX-*` | Reading Onyx data outside render |
 
 ## Quick Reference
 
@@ -73,6 +74,9 @@ Coding standards for the Expensify App. Each standard is a standalone file in `r
 - [UI-1](rules/ui-1-correct-loading-indicator.md) — Use the correct loading indicator based on navigation context
 - [UI-2](rules/ui-2-new-page-scrollview.md) — New pages must be scrollable
 - [UI-3](rules/ui-3-no-inline-styles.md) — Do not use inline style objects
+
+### Onyx
+- [ONYX-1](rules/onyx-1-no-render-reachable-onyx-read.md) — Keep synchronous Onyx reads off the render path
 
 ## Usage
 

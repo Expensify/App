@@ -2,7 +2,6 @@ const name = 'no-unsafe-onyx-read';
 
 /**
  * Import sources that resolve to the Onyx library, including `react-native-onyx/dist/OnyxUtils`.
- * `scripts/callGraphFromSource.ts` walks a different AST and keeps its own copy of this and the sets below.
  */
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
 

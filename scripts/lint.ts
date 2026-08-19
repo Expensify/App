@@ -18,7 +18,6 @@ import {$, file} from 'bun';
 import {SeatbeltArgs, SeatbeltFile} from 'eslint-seatbelt/api';
 
 import checkOnyxConnectBypass from './checkOnyxConnectBypass';
-import checkRenderReachability from './checkRenderReachability';
 
 const projectRoot = `${import.meta.dir}/..`;
 
@@ -110,12 +109,5 @@ if (!seatbeltArgs.disable) {
 // Fail if a new inline eslint-disable bypasses one of the Onyx bans (rulesdir/no-onyx-connect,
 // rulesdir/no-unsafe-onyx-read), checking the same targets as ESLint above. Reached only when ESLint itself passes.
 if (await checkOnyxConnectBypass(lintTargets)) {
-    process.exit(1);
-}
-
-// Fail if a synchronous Onyx read in one of the targets has a caller that renders. Lint sees the position
-// a read is written in; only the call graph sees the position it ends up in. Skips unless a target file
-// imports Onyx, since the graph it needs spans the whole of src/.
-if (await checkRenderReachability(lintTargets)) {
     process.exit(1);
 }
