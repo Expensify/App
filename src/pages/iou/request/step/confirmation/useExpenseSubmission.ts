@@ -990,8 +990,8 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
 
-        // Both split paths below hardcode shouldDeferForSearch:false in the action, so reserve the channel here when the split lands back on Search.
-        if (shouldDeferSplitForSearch) {
+        // The action hardcodes shouldDeferForSearch:false, so reserve here when a split write will actually run and land back on Search.
+        if (shouldDeferSplitForSearch && currentUserPersonalDetails.login && !!transaction) {
             reserveDeferredWriteChannel(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
         }
 

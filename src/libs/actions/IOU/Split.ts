@@ -1414,8 +1414,8 @@ function findExistingSplitChatReport(existingSplitChatReportID: string | undefin
 function resolveOptimisticSplitChatReportID(existingSplitChatReportID: string | undefined, participants: Participant[], currentUserAccountID: number) {
     const participantAccountIDs = participants.map((participant) => Number(participant.accountID));
     const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
-    const optimisticSplitChatReportID = existingSplitChatReport?.reportID ? undefined : generateReportID();
-    return {optimisticSplitChatReportID, chatReportID: existingSplitChatReport?.reportID ?? optimisticSplitChatReportID};
+    const optimisticSplitChatReportID = existingSplitChatReport ? undefined : generateReportID();
+    return {optimisticSplitChatReportID, chatReportID: existingSplitChatReport ? existingSplitChatReport.reportID : optimisticSplitChatReportID};
 }
 
 function getOrCreateOptimisticSplitChatReport(
