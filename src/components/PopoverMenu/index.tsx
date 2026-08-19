@@ -775,6 +775,7 @@ export default React.memo(
         prevProps.disableAnimation === nextProps.disableAnimation &&
         prevProps.withoutOverlay === nextProps.withoutOverlay &&
         prevProps.shouldEnableNewFocusManagement === nextProps.shouldEnableNewFocusManagement &&
+        prevProps.shouldReturnFocus === nextProps.shouldReturnFocus &&
         prevProps.restoreFocusType === nextProps.restoreFocusType &&
         prevProps.shouldSetModalVisibility === nextProps.shouldSetModalVisibility,
 );
