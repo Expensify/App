@@ -116,6 +116,7 @@ import {
     getMovedTransactionMessage,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
+    getOneOnOneChatParticipants,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -11685,6 +11686,39 @@ describe('ReportUtils', () => {
 
             // Then it is a 1:1 chat from account 111's perspective
             expect(isOneOnOneChat(report, 111)).toBe(true);
+        });
+    });
+
+    describe('getOneOnOneChatParticipants', () => {
+        const OTHER_ACCOUNT_ID = 222;
+        const personalDetailsList: PersonalDetailsList = {
+            [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@test.com'},
+        };
+        const dmReport: Report = {
+            ...createRandomReport(0, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID: CONST.POLICY.ID_FAKE,
+            participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
+        };
+
+        it('should return the other participant of a 1:1 DM with their login and accountID', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toEqual([{login: 'other@test.com', accountID: OTHER_ACCOUNT_ID}]);
+        });
+
+        it('should return an empty list for reports that are not 1:1 DMs', () => {
+            const roomReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
+            };
+            expect(getOneOnOneChatParticipants(roomReport, personalDetailsList, currentUserAccountID)).toEqual([]);
+        });
+
+        it('should return an empty list when the other participant has no known login', () => {
+            expect(getOneOnOneChatParticipants(dmReport, {}, currentUserAccountID)).toEqual([]);
+        });
+
+        it('should return an empty list when currentUserAccountID is missing', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, undefined)).toEqual([]);
         });
     });
 

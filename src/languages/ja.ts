@@ -1518,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             unableToSubmitReport: 'レポートを送信できません',
             allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
+            allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -7809,6 +7810,7 @@ ${reportName}`,
                 restrictMerchantsBlockSubtitle: '承認される支出は、許可された通貨で上限金額を超えないもの、または加盟店または加盟店の種類が条件に一致するものです。',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                defaultRulesCannotBeDeleted: '既定のルールは削除できません',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -8742,6 +8744,7 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `通貨換算手数料の設定を「${preferenceLabel}」に更新しました`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },

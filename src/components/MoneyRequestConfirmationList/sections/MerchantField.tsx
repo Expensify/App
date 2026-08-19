@@ -10,7 +10,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {clearMoneyRequestMerchant, setMoneyRequestMerchant} from '@libs/actions/IOU/MoneyRequest';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import {isInvalidMerchantValue, isValidInputLength} from '@libs/ValidationUtils';
+import {isUntypedPlaceholderMerchant, isValidInputLength} from '@libs/ValidationUtils';
 
 import {setDraftSplitTransaction} from '@userActions/IOU/Split';
 
@@ -62,7 +62,7 @@ function MerchantField({
     const merchantState = useTransactionSelector(transactionID, merchantStateSelector);
 
     const merchantValue = merchantState?.merchant ?? '';
-    const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
+    const displayMerchantValue = isUntypedPlaceholderMerchant(merchantState?.isMerchantSet, merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
     // Determine if the merchant error should be displayed
