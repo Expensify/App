@@ -7,8 +7,10 @@ import isDynamicRouteSuffix from './isDynamicRouteSuffix';
 import splitPathAndQuery from './splitPathAndQuery';
 
 /**
- * Merges two query strings into one. If both contain the same key,
- * the error is thrown.
+ * Merges two query strings into one. When both contain the same key, the suffix
+ * value wins (it is the intended destination of the navigation) and the duplicate
+ * from the base path is overwritten. A differing value is logged but never fatal,
+ * because throwing here crashes the app on a legitimate navigation.
  * @param baseQuery - The query string of the base path
  * @param suffixQuery - The query string of the suffix
  * @returns The merged query string or an empty string if both are empty
@@ -16,8 +18,8 @@ import splitPathAndQuery from './splitPathAndQuery';
  * @private - Internal helper. Do not export or use outside this file.
  *
  * @example
- * mergeQueryStrings('foo=bar', 'foo=baz') => '?foo=bar&baz=qux'
- * mergeQueryStrings('foo=bar', 'foo=baz') => throws an error
+ * mergeQueryStrings('foo=bar', 'baz=qux') => '?foo=bar&baz=qux'
+ * mergeQueryStrings('action=edit', 'action=create') => '?action=create' (suffix wins)
  */
 const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     if (!baseQuery && !suffixQuery) {
@@ -27,8 +29,12 @@ const mergeQueryStrings = (baseQuery = '', suffixQuery = ''): string => {
     const suffixParams = new URLSearchParams(suffixQuery);
     const suffixParamsEntries = suffixParams.entries();
     for (const [key, value] of suffixParamsEntries) {
-        if (params.has(key)) {
-            throw new Error(`[createDynamicRoute] Query param "${key}" exists in both base path and dynamic suffix. This is not allowed.`);
+        if (params.has(key) && params.get(key) !== value) {
+            Log.warn('[createDynamicRoute.ts] Query param exists in both base path and dynamic suffix with different values; suffix value takes precedence', {
+                key,
+                baseValue: params.get(key),
+                suffixValue: value,
+            });
         }
         params.set(key, value);
     }
