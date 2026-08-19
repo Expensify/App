@@ -3127,6 +3127,8 @@ ${amount} για ${merchant} - ${date}`,
         all: 'Όλα',
         todo: 'Εκκρεμότητες',
         unread: 'Μη αναγνωσμένα',
+        markAllAsRead: 'Επισήμανση όλων ως αναγνωσμένων',
+        markAllAsReadConfirmationPrompt: 'Είστε βέβαιοι ότι θέλετε να επισημάνετε όλες τις συνομιλίες ως αναγνωσμένες;',
     },
     reportDetailsPage: {
         goToRoom: 'Μετάβαση στο δωμάτιο',

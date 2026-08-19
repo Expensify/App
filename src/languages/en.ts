@@ -3163,6 +3163,8 @@ const translations = {
         all: 'All',
         todo: 'To-dos',
         unread: 'Unread',
+        markAllAsRead: 'Mark all as read',
+        markAllAsReadConfirmationPrompt: 'Are you sure you want to mark all chats as read?',
     },
     reportDetailsPage: {
         goToRoom: 'Go to room',
