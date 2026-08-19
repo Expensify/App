@@ -335,7 +335,6 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
-            'rulesdir/no-useOnyx-dependencies-arg': 'error',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -700,12 +699,36 @@ const config = defineConfig([
     },
 
     {
+        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
+        // the root tsconfig and would otherwise belong to no project at all.
+        files: ['evals/**/*.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
         // CIGitLogic is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
         // be pointed at the project that does own it. See tests/tooling/README.md.
         files: ['tests/tooling/CIGitLogic.test.ts'],
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'tests/tooling/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        // lint.ts is excluded from the root tsconfig because it needs @types/bun, so type-aware rules have to
+        // be pointed at the project that does own it. See scripts/tsconfig.json.
+        files: ['scripts/lint.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'scripts/tsconfig.json'),
                 projectService: false,
             },
         },

@@ -557,24 +557,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
-    return (
-        isScanRequest(transaction) &&
-        transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
-        (transaction?.amount === 0 || transaction?.amount === undefined) &&
-        !hasValidModifiedAmount(transaction)
-    );
-}
-
 function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
-    if (isFailedScanAmountPlaceholder(transaction)) {
-        return true;
-    }
-
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && !hasValidModifiedAmount(transaction);
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -609,7 +596,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isAmountMissing(transaction, isFromExpenseReport);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -1494,9 +1481,24 @@ function getTagArrayFromName(tagName: string): string[] {
 }
 
 /**
- * Returns the exchange rate for a transaction, based on its group or currencyConversionRate
+ * Caps an exchange rate at 4 decimals for display, matching Expensify Classic, which rounds and pads to
+ * exactly 4 decimals (`0.272294077603812` -> `0.2723`, `1.5` -> `1.5000`). `toFixed` handles the exponential
+ * form small rates stringify into (`7.27431439586819e-7` -> `0.0000`), and a finite guard passes a
+ * non-numeric rate through untouched so we never render `NaN`.
  */
-function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string) {
+function formatExchangeRateForDisplay(rate: string | number): string {
+    const parsedRate = Number(rate);
+    return Number.isFinite(parsedRate) ? parsedRate.toFixed(CONST.EXCHANGE_RATE_DISPLAY_DECIMALS) : String(rate);
+}
+
+/**
+ * Returns the exchange rate for a transaction, based on its group or currencyConversionRate.
+ *
+ * When `shouldFormatRate` is true (display only), the rate is rounded and padded to exactly 4 decimals
+ * to match Expensify Classic. The default (false) keeps the raw value so the non-display consumers, the
+ * search/report sort keys and the emptiness predicate, compare on the full precision exactly as they do today.
+ */
+function getExchangeRate(transaction: TransactionWithOptionalSearchFields, reportCurrency?: string, shouldFormatRate = false) {
     const fromCurrency = getCurrency(transaction);
 
     // On the report view, "unconverted" means the transaction currency matches the report currency.
@@ -1510,7 +1512,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     if (transaction.groupExchangeRate != null && transaction.groupCurrency && fromCurrency !== transaction.groupCurrency) {
         const groupRate = Number(transaction.groupExchangeRate);
         if (groupRate !== 1) {
-            return `${transaction.groupExchangeRate} ${fromCurrency}/${transaction.groupCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.groupExchangeRate) : transaction.groupExchangeRate;
+            return `${rate} ${fromCurrency}/${transaction.groupCurrency}`;
         }
     }
 
@@ -1522,7 +1525,8 @@ function getExchangeRate(transaction: TransactionWithOptionalSearchFields, repor
     if (conversionToCurrency && transaction.currencyConversionRate != null && fromCurrency !== conversionToCurrency) {
         const conversionRate = Number(transaction.currencyConversionRate);
         if (conversionRate !== 1) {
-            return `${transaction.currencyConversionRate} ${fromCurrency}/${conversionToCurrency}`;
+            const rate = shouldFormatRate ? formatExchangeRateForDisplay(transaction.currencyConversionRate) : transaction.currencyConversionRate;
+            return `${rate} ${fromCurrency}/${conversionToCurrency}`;
         }
     }
 
@@ -1717,6 +1721,21 @@ function showPendingCardTransactionsBlockModal(
     showConfirmModal({
         title: translate('iou.error.unableToSubmitReport'),
         prompt: translate('iou.error.allTransactionsPendingDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
+/**
+ * Show a confirm modal explaining that a report with only held expenses cannot be submitted.
+ */
+function showHeldExpensesBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+) {
+    showConfirmModal({
+        title: translate('iou.error.unableToSubmitReport'),
+        prompt: translate('iou.error.allExpensesOnHoldDescription'),
         confirmText: translate('common.buttonConfirm'),
         shouldShowCancelButton: false,
     });
@@ -3448,6 +3467,7 @@ export {
     hasOnlyPendingCardTransactions,
     getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
+    showHeldExpensesBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,
@@ -3541,7 +3561,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    isFailedScanAmountPlaceholder,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,
