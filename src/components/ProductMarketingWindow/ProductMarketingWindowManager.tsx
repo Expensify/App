@@ -6,7 +6,7 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {setNameValuePair} from '@libs/actions/User';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
-import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
+import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant, isBrandNewUser} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
 import NAVIGATORS from '@src/NAVIGATORS';
@@ -59,6 +59,8 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const [isAnonymousSession = false] = useOnyx(ONYXKEYS.SESSION, {selector: isAnonymousSessionSelector});
     const [isActingAsDelegate = false, accountMetadata] = useOnyx(ONYXKEYS.ACCOUNT, {selector: isActingAsDelegateSelector});
     const [lastDismissedMarketingWindow, lastDismissedMarketingWindowMetadata] = useOnyx(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW);
+    // Distinguishes returning users from brand-new ones so a "new feature" window isn't shown to users who joined after it shipped.
+    const [firstPolicyCreatedDate, firstPolicyCreatedDateMetadata] = useOnyx(ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE);
     // OpenApp provides the dismissal and targeting data; wait for it to avoid a startup flash or a wrong CTA destination.
     const [isLoadingApp = true, isLoadingAppMetadata] = useOnyx(ONYXKEYS.IS_LOADING_APP);
 
@@ -67,10 +69,20 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
     const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const targetAdminPolicyID = activeAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? activeAdminPolicies?.at(0)?.id;
+    // The admin window targets Collect/Control admins only, so Submit admins fall through to the (absent) member variant and see nothing.
+    const eligibleAdminPolicies = activeAdminPolicies?.filter((policy) => policy.type === CONST.POLICY.TYPE.TEAM || policy.type === CONST.POLICY.TYPE.CORPORATE);
+    const targetAdminPolicyID = eligibleAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? eligibleAdminPolicies?.at(0)?.id;
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const isLoading =
+        isLoadingOnyxValue(
+            lastDismissedMarketingWindowMetadata,
+            activeAdminPoliciesMetadata,
+            activePolicyIDMetadata,
+            firstPolicyCreatedDateMetadata,
+            isLoadingAppMetadata,
+            accountMetadata,
+        ) || isLoadingApp;
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
     const isIn2FASetupFlow = useRootNavigationState((state) => {
@@ -83,6 +95,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
         !announcement ||
         !variant ||
         isLoading ||
+        isBrandNewUser(announcement, firstPolicyCreatedDate) ||
         isProductMarketingWindowCovered ||
         isAnonymousSession ||
         isActingAsDelegate ||

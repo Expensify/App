@@ -9,6 +9,8 @@ import type {Route} from '@src/ROUTES';
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {differenceInDays} from 'date-fns';
+
 type ProductMarketingAnnouncementVisual =
     | {
           type: 'image';
@@ -42,6 +44,13 @@ type ProductMarketingAnnouncement = {
     /** Stable key shared by every audience variant of this product update. A later update must use a new key. */
     updateKey: string;
 
+    /**
+     * Optional cutoff for the "returning user" audience. Users whose first workspace was created on or after this
+     * date are treated as brand-new and never shown the announcement — a "new feature" update is only relevant to
+     * users who were around before it shipped. Omit to show regardless of how long the user has been around.
+     */
+    returningUserCutoffDate?: Date;
+
     /** Variant shown to users who are an admin on at least one active workspace. Admin prevails when a user is both member and admin. */
     admin: ProductMarketingAnnouncementVariant;
 
@@ -56,6 +65,9 @@ type ProductMarketingAnnouncement = {
  */
 const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null = {
     updateKey: 'productUpdateJuly2026',
+    // The new admin role types shipped with this update, so only users who had a workspace before it should be told
+    // about them. Users whose first workspace was created on or after this date are brand-new and skip the window.
+    returningUserCutoffDate: new Date(2026, 6, 1),
     admin: {
         visual: {type: 'image', source: July26PromoImage},
         heading: 'productMarketingWindow.roleTypes.admin.heading',
@@ -68,6 +80,18 @@ const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null
 /** Whether the given announcement was already dismissed by the user. */
 function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
     return !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+}
+
+/**
+ * Whether the user is too new to be shown the announcement. A user is brand-new when the announcement defines a
+ * returningUserCutoffDate and the user's first workspace was created on or after it. When the creation date is
+ * unknown we treat the user as returning so established admins are never wrongly excluded.
+ */
+function isBrandNewUser(announcement: ProductMarketingAnnouncement | null, firstPolicyCreatedDate: OnyxEntry<string>): boolean {
+    if (!announcement?.returningUserCutoffDate || !firstPolicyCreatedDate) {
+        return false;
+    }
+    return differenceInDays(firstPolicyCreatedDate, announcement.returningUserCutoffDate) >= 0;
 }
 
 /**
@@ -85,5 +109,5 @@ function getProductMarketingAnnouncementVariant(
     return hasActiveAdminPolicies ? announcement.admin : announcement.member;
 }
 
-export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, getProductMarketingAnnouncementVariant};
+export {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, isProductMarketingAnnouncementDismissed, isBrandNewUser, getProductMarketingAnnouncementVariant};
 export type {ProductMarketingAnnouncement, ProductMarketingAnnouncementVariant};
