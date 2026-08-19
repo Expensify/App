@@ -486,7 +486,10 @@ function AttachmentPickerWithMenuItems({
                                                 actionButtonRef.current?.blur();
                                                 setMenuVisibility(!isMenuVisible);
                                             }}
-                                            style={({hovered, pressed}) => [styles.composerSizeButton, StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled))]}
+                                            style={({hovered, pressed}) => [
+                                                styles.composerSizeButton,
+                                                StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && !disabled, pressed && !disabled)),
+                                            ]}
                                             disabled={disabled}
                                             role={CONST.ROLE.BUTTON}
                                             accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
