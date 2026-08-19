@@ -58,10 +58,12 @@ jest.mock('@hooks/useRootNavigationState', () => jest.fn(() => false));
 // Keep setNameValuePair's optimistic Onyx merge (so persistence behavior is exercised end-to-end) while
 // dropping its API call and letting tests assert that the previous value is supplied for failure rollback.
 jest.mock('@libs/actions/User', () => {
+    const onyxKeys = jest.requireActual<{default: typeof ONYXKEYS}>('@src/ONYXKEYS').default;
+
     return {
         dismissMarketingWindow: jest.fn((updateKey: string) => {
             const OnyxModule = jest.requireActual<{default: typeof Onyx}>('react-native-onyx').default;
-            OnyxModule.merge(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, updateKey);
+            OnyxModule.merge(onyxKeys.NVP_LAST_DISMISSED_MARKETING_WINDOW, updateKey);
         }),
     };
 });
