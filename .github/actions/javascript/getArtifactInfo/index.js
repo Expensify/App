@@ -25587,13 +25587,6 @@ var CONST = {
   STATE: {
     OPEN: "open"
   },
-  COMMENT: {
-    TYPE_BOT: "Bot",
-    NAME_MELVIN_BOT: "melvin-bot[bot]",
-    NAME_MELVIN_USER: "MelvinBot",
-    NAME_CODEX: "chatgpt-codex-connector",
-    NAME_GITHUB_ACTIONS: "github-actions"
-  },
   ACTIONS: {
     CREATED: "created",
     EDITED: "edited"
@@ -25629,8 +25622,14 @@ var CONST = {
   MOBILE_EXPENSIFY_URL: `https://github.com/${GIT_CONST.GITHUB_OWNER}/${GIT_CONST.MOBILE_EXPENSIFY_REPO}`,
   NO_ACTION: "NO_ACTION",
   ACTION_EDIT: "ACTION_EDIT",
-  ACTION_REQUIRED: "ACTION_REQUIRED",
-  ACTION_HIDE_DUPLICATE: "ACTION_HIDE_DUPLICATE"
+  /**
+   * What a comment on a Help Wanted issue is trying to do, for comments that don't follow the proposal template.
+   */
+  INTENT: {
+    NOT_AN_ATTEMPT: "NOT_AN_ATTEMPT",
+    GENUINE_ATTEMPT: "GENUINE_ATTEMPT",
+    SPAM: "SPAM"
+  }
 };
 var CONST_default = CONST;
 
@@ -25807,6 +25806,23 @@ var GithubUtils = class {
       issue_number: number,
       body: messageBody
     });
+  }
+  /**
+   * Collapse a comment as spam. Only exposed over GraphQL, and unlike rewriting the body it leaves the
+   * original text intact and can be undone from the UI.
+   */
+  static minimizeCommentAsSpam(commentNodeID) {
+    console.log(`Minimizing comment ${commentNodeID} as spam`);
+    return this.graphql(
+      `mutation($subjectId: ID!) {
+                minimizeComment(input: {subjectId: $subjectId, classifier: SPAM}) {
+                    minimizedComment {
+                        isMinimized
+                    }
+                }
+            }`,
+      { subjectId: commentNodeID }
+    );
   }
   /**
    * Get the most recent workflow run for the given New Expensify workflow.

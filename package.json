@@ -82,6 +82,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./server ./tests/tooling",
+    "eval:proposal-police": "bun test --path-ignore-patterns='**/__never__/**' ./evals/proposalPolice/",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"
