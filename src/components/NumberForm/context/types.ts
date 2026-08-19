@@ -6,12 +6,6 @@ import type {ForwardedRef} from 'react';
 type SetValueOptions = {
     /** Whether `onInputChange` should be called with the new value. Defaults to `true`. */
     notify?: boolean;
-
-    /**
-     * Called synchronously with the previous committed value before the write, so callers can derive cursor positions
-     * against a value that is never stale - even when `setValue` runs more than once before the next render.
-     */
-    onPreviousValue?: (previousValue: string) => void;
 };
 
 type NumberFormStateContextValue = {
@@ -31,7 +25,7 @@ type NumberFormActionsContextValue = {
     onSubmitEditing?: BaseTextInputProps['onSubmitEditing'];
     inputRef?: ForwardedRef<BaseTextInputRef>;
     numberFormRef?: ForwardedRef<NumberFormRef>;
-    setValue: (value: string, options?: SetValueOptions) => void;
+    setValue: (value: string, options?: SetValueOptions) => string;
 };
 
 type NumberFormContext = NumberFormStateContextValue & NumberFormActionsContextValue;

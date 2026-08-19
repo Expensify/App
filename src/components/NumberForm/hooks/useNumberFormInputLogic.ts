@@ -118,19 +118,9 @@ function useNumberFormInputLogic({
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = numberWithLeadingZero;
 
-        // The selection is derived from the previous committed value so two calls in the same tick can't read a stale length.
-        let hasSelectionBeenSet = false;
-        setValue(numberWithLeadingZero, {
-            onPreviousValue: (previousNumber) => {
-                if (hasSelectionBeenSet) {
-                    return;
-                }
-                hasSelectionBeenSet = true;
-
-                const isForwardDelete = previousNumber.length > numberWithLeadingZero.length && forwardDeletePressedRef.current;
-                setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? numberWithLeadingZero.length : previousNumber.length, numberWithLeadingZero.length));
-            },
-        });
+        const previousNumber = setValue(numberWithLeadingZero);
+        const isForwardDelete = previousNumber.length > numberWithLeadingZero.length && forwardDeletePressedRef.current;
+        setSelection((currentSelection) => getNewSelection(currentSelection, isForwardDelete ? numberWithLeadingZero.length : previousNumber.length, numberWithLeadingZero.length));
     };
 
     useEffect(() => {

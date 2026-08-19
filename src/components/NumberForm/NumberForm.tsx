@@ -28,11 +28,12 @@ function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText
 
         committedValueRef.current = nextValue;
         setCurrentValue(nextValue);
-        options?.onPreviousValue?.(previousCommittedValue);
 
         if (options?.notify !== false) {
             onInputChange?.(nextValue);
         }
+
+        return previousCommittedValue;
     };
 
     const stateContextValue = {

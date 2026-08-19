@@ -22,13 +22,17 @@ function ContextReadout() {
                 accessibilityLabel="Set value"
                 accessibilityRole="button"
                 testID="ctx-setValue"
-                onPress={() => setValue('7')}
+                onPress={() => {
+                    setValue('7');
+                }}
             />
             <PressableWithFeedback
                 accessibilityLabel="Set value silently"
                 accessibilityRole="button"
                 testID="ctx-setValueSilent"
-                onPress={() => setValue('99', {notify: false})}
+                onPress={() => {
+                    setValue('99', {notify: false});
+                }}
             />
             <TextInput
                 accessibilityHint="Triggers the blur callback"
@@ -40,7 +44,7 @@ function ContextReadout() {
     );
 }
 
-function RapidValueUpdater({onPreviousValue}: {onPreviousValue: (value: string) => void}) {
+function RapidValueUpdater({onPreviousValues}: {onPreviousValues: (values: string[]) => void}) {
     const {setValue} = useNumberFormContext();
 
     return (
@@ -49,8 +53,7 @@ function RapidValueUpdater({onPreviousValue}: {onPreviousValue: (value: string) 
             accessibilityRole="button"
             testID="ctx-setValuesRapidly"
             onPress={() => {
-                setValue('7', {onPreviousValue});
-                setValue('99', {onPreviousValue});
+                onPreviousValues([setValue('7'), setValue('99')]);
             }}
         />
     );
@@ -152,20 +155,19 @@ describe('NumberForm', () => {
             expect(onInputChange).not.toHaveBeenCalled();
         });
 
-        it('reports the latest previous value when setValue is called more than once before a render', () => {
-            const onPreviousValue = jest.fn();
+        it('returns the latest previous value when setValue is called more than once before a render', () => {
+            const onPreviousValues = jest.fn();
             renderNumberForm(
                 {value: '1'},
                 <>
                     <ContextReadout />
-                    <RapidValueUpdater onPreviousValue={onPreviousValue} />
+                    <RapidValueUpdater onPreviousValues={onPreviousValues} />
                 </>,
             );
 
             fireEvent.press(screen.getByTestId('ctx-setValuesRapidly'));
 
-            expect(onPreviousValue).toHaveBeenNthCalledWith(1, '1');
-            expect(onPreviousValue).toHaveBeenNthCalledWith(2, '7');
+            expect(onPreviousValues).toHaveBeenCalledWith(['1', '7']);
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
         });
 
