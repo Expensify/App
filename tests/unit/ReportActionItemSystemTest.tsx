@@ -81,8 +81,24 @@ describe('ReportActionItemSystem', () => {
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        expect(actor.parent === content.parent).toBe(true);
-        expect(timestamp.parent === content.parent).toBe(false);
+        const getAncestors = (node: typeof actor) => {
+            const ancestors: Array<typeof actor> = [];
+            let parent = node.parent;
+            while (parent) {
+                ancestors.push(parent);
+                parent = parent.parent;
+            }
+            return ancestors;
+        };
+        const actorAncestors = getAncestors(actor);
+        const contentAncestors = getAncestors(content);
+        const timestampAncestors = getAncestors(timestamp);
+        const firstLineContainer = actorAncestors.find((ancestor) => contentAncestors.includes(ancestor));
+
+        if (!firstLineContainer) {
+            throw new Error('Expected actor and action content to share a line container');
+        }
+        expect(timestampAncestors.includes(firstLineContainer)).toBe(false);
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {
