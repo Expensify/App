@@ -679,8 +679,8 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
-    // Plain comments keep the raw text as typed: the LHN shows literal HTML-like text unparsed, while
-    // Parser.htmlToText would strip it (e.g. `<b>test</b>` becomes `test`). Ref: https://github.com/Expensify/App/issues/82036
+    // Keep Plain comments as they're typed (example: `<b>test</b>` stays `<b>test</b>`).
+    // Parser.htmlToText would strip it to `test`. Ref: https://github.com/Expensify/App/issues/82036
     const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const formattedLastMessageText =
         formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
