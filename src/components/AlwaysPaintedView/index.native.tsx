@@ -1,22 +1,22 @@
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {PropsWithChildren} from 'react';
-import type {ViewStyle} from 'react-native';
+import type {ViewProps, ViewStyle} from 'react-native';
 
 import {NativeComponentRegistry, View} from 'react-native';
 import ReactNativeStyleAttributes from 'react-native/Libraries/Components/View/ReactNativeStyleAttributes';
 
 import type AlwaysPaintedViewProps from './types';
 
-type NativeAlwaysPaintedViewProps = PropsWithChildren<{style: ViewStyle}>;
-type ViewConfigProvider = Parameters<typeof NativeComponentRegistry.get<NativeAlwaysPaintedViewProps>>[1];
-type StyleAttribute = true | {readonly diff?: (a: unknown, b: unknown) => boolean; readonly process?: (value: unknown) => unknown};
+// RN declares the view config types but does not export them, so they are read back off the registry signature.
+type ViewConfigProvider = Parameters<typeof NativeComponentRegistry.get>[1];
+type AlwaysPaintedViewConfig = ReturnType<ViewConfigProvider>;
+type StyleAttributes = NonNullable<NonNullable<AlwaysPaintedViewConfig['validAttributes']>['style']>;
 
 // The style already carries the value React would set while hiding the view, so hiding it dirties no Yoga node.
 const DISPLAY_CONTENTS: ViewStyle = {display: 'contents'};
 
-function getAlwaysPaintedViewConfig(): ReturnType<ViewConfigProvider> {
-    const styleAttributes: Record<string, StyleAttribute> = {
+function getAlwaysPaintedViewConfig() {
+    const styleAttributes: StyleAttributes = {
         ...ReactNativeStyleAttributes,
         display: {
             process: () => 'contents',
@@ -28,7 +28,7 @@ function getAlwaysPaintedViewConfig(): ReturnType<ViewConfigProvider> {
         validAttributes: {
             style: styleAttributes,
         },
-    };
+    } satisfies AlwaysPaintedViewConfig;
 }
 
 /**
@@ -37,7 +37,7 @@ function getAlwaysPaintedViewConfig(): ReturnType<ViewConfigProvider> {
  * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) - validated with RN 0.85.3.
  * Re-verify after upgrades.
  */
-const NativeAlwaysPaintedView = NativeComponentRegistry.get<NativeAlwaysPaintedViewProps>('AlwaysPaintedView', getAlwaysPaintedViewConfig);
+const NativeAlwaysPaintedView = NativeComponentRegistry.get<ViewProps>('AlwaysPaintedView', getAlwaysPaintedViewConfig);
 
 /**
  * Native implementation that renders with `display: 'contents'` so wrapper nodes don't hide the navigation
