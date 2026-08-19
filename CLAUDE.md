@@ -157,12 +157,13 @@ Major action categories:
 - `Search.ts`: Search operations
 - `Travel.ts`: Travel features
 
-### Reading Onyx data (`useOnyx` vs `Onyx.connectWithoutView`)
-There are only two ways to read Onyx data:
+### Reading Onyx data (`useOnyx`, `Onyx.get()`, `Onyx.connectWithoutView`)
+There are three ways to read Onyx data:
 1. **`useOnyx`** (`@hooks/useOnyx`) — the default for anything a component renders.
 2. **`Onyx.connectWithoutView`** — only for non-render logic (module-level state in actions/libraries) that genuinely can't use `useOnyx`.
+3. **`Onyx.get()`**: a synchronous, non-subscribing read of the cache, for non-render code that needs a value when it runs. Never during render, never at module scope, and never after an un-awaited write to the same key in that tick.
 
-Before either, prefer a **pure function** that receives the data as parameters: it does not read Onyx itself — the caller reads (with `useOnyx` or `Onyx.connectWithoutView`) and passes the data in. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own with a comment explaining why it is needed. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). See [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-vs-onyxconnectwithoutview).
+Before any of them, prefer a **pure function** that receives the data as parameters: it does not read Onyx itself — the caller reads and passes the data in. Do not add a new `Onyx.connectWithoutView` by copying existing usage — justify each one on its own with a comment explaining why it is needed. Using it in a component for performance requires `@frontend-performance` approval on Slack (link it in the PR description). The full rules for all three, including the conditions a read must meet before it moves into the function that uses it, are in [Onyx Data Management](contributingGuides/philosophies/ONYX-DATA-MANAGEMENT.md#reading-onyx-data-useonyx-onyxget-and-onyxconnectwithoutview).
 
 ## Build & Deployment
 
