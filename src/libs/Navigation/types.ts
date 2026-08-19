@@ -2058,15 +2058,13 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
         reportID: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_PARTICIPANTS]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_PARTICIPANTS]: {
         action: IOUAction;
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         transactionID: string;
         reportID: string;
         /** Whether to limit the destination list to workspaces only (e.g. "Submit to my employer" on the Submit plan) */
         isWorkspacesOnly?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
     [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_DATE]: {
         action: IOUAction;

@@ -173,6 +173,11 @@ const oldRoutes: Record<string, string> = {
     '/*/*/description/*/*': '/r/$4/expense-description?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     '/*/*/date/*/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4&reportActionID=$5',
     '/*/*/date/*/*': '/r/$4/expense-date?action=$1&iouType=$2&transactionID=$3&reportID=$4',
+    // The two entries below are guards, not redirects: the report participant-details route has the same segment
+    // count as `/*/*/participants/*/*`, and the matcher picks the longest pattern, so these identity patterns win.
+    '/r/*/participants/participants-details/*': '/r/$1/participants/participants-details/$2',
+    '/e/*/participants/participants-details/*': '/e/$1/participants/participants-details/$2',
+    '/*/*/participants/*/*': '/r/$4/expense-participants?action=$1&iouType=$2&transactionID=$3&reportID=$4',
     /* eslint-enable @typescript-eslint/naming-convention */
 };
 

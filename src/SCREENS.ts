@@ -338,7 +338,7 @@ const SCREENS = {
         DYNAMIC_STEP_DISTANCE: 'Dynamic_Money_Request_Step_Distance',
         DYNAMIC_STEP_DISTANCE_RATE: 'Dynamic_Money_Request_Step_Rate',
         DYNAMIC_STEP_MERCHANT: 'Dynamic_Money_Request_Step_Merchant',
-        STEP_PARTICIPANTS: 'Money_Request_Step_Participants',
+        DYNAMIC_STEP_PARTICIPANTS: 'Dynamic_Money_Request_Step_Participants',
         STEP_SCAN: 'Money_Request_Step_Scan',
         DYNAMIC_STEP_TAG: 'Dynamic_Money_Request_Step_Tag',
         STEP_WAYPOINT: 'Money_Request_Step_Waypoint',

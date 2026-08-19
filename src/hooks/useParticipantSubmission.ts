@@ -64,7 +64,6 @@ type UseParticipantSubmissionParams = {
     participants: Participant[] | undefined;
     iouType: IOUType;
     action: IOUAction;
-    backTo: string | undefined;
     isSplitRequest: boolean;
     isMovingTransactionFromTrackExpense: boolean;
     isFocused: boolean;
@@ -77,7 +76,6 @@ function useParticipantSubmission({
     participants,
     iouType,
     action,
-    backTo,
     isSplitRequest,
     isMovingTransactionFromTrackExpense,
     isFocused,
@@ -209,16 +207,12 @@ function useParticipantSubmission({
         }
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
+            // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
+            // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
-                } else {
-                    // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-                    // More information can be found here: https://github.com/Expensify/App/issues/73728
-                    Navigation.navigate(iouConfirmationPageRoute);
-                }
+                // `goBack` replaces the current route when the confirmation screen isn't on the stack.
+                // Params are not compared because we just changed the participants.
+                Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });
     };
@@ -432,16 +426,12 @@ function useParticipantSubmission({
             : iouConfirmationPageRoute;
 
         KeyboardUtils.dismissKeyboardAndExecute(() => {
-            // If the backTo parameter is set, we should navigate back to the confirmation screen that is already on the stack.
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
             // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
-                if (backTo) {
-                    // We don't want to compare params because we just changed the participants.
-                    Navigation.goBack(route, {compareParams: false});
-                } else {
-                    Navigation.navigate(route);
-                }
+                // `goBack` replaces the current route when the confirmation screen isn't on the stack.
+                // Params are not compared because we just changed the participants.
+                Navigation.goBack(route, {compareParams: false});
             });
         });
     };
