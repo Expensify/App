@@ -564,12 +564,12 @@ function SubmitDetailsPage({
             return;
         }
         formHasBeenSubmitted.current = true;
-        // The share extension wipes its folder on the next share, so upload from the receipts folder instead. Adopting
-        // here rather than at ingestion keeps abandoned shares out of a folder nothing prunes.
+        // The share extension wipes its folder on the next share. Adopting at submit, not at ingestion, keeps cancelled
+        // shares out of a folder nothing prunes.
         ReceiptStorage.adopt(currentReceiptSource, currentReceiptName)
             .then((durableName) => {
                 const uri = ReceiptStorage.toLocalUri(durableName);
-                // The draft is what a retry, the preview and the size check all re-read, and the shared path is gone once the move lands.
+                // The shared path is empty once the move lands, and the draft is what a retry re-reads.
                 setMoneyRequestReceipt(CONST.IOU.OPTIMISTIC_TRANSACTION_ID, uri, currentReceiptName, true, currentReceiptType);
                 return uri;
             })
@@ -583,7 +583,6 @@ function SubmitDetailsPage({
                     currentReceiptName,
                     (file) => onSuccess(file, locationPermissionGranted),
                     () => {
-                        // Allow retry after a file-read failure.
                         formHasBeenSubmitted.current = false;
                         setIsConfirming(false);
                     },

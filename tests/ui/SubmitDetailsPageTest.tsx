@@ -355,8 +355,7 @@ describe('SubmitDetailsPage', () => {
         expect(jest.mocked(readFileAsync)).not.toHaveBeenCalled();
     });
 
-    // Error #12 — the share extension wipes its folder on the next share, so the receipt must be read from the
-    // receipts folder, not from the app-group folder it was shared into.
+    // Error #12 — the share extension wipes its folder on the next share, so the read must come from the receipts folder.
     it('adopts the shared file into the receipts folder and uploads from there', async () => {
         // Given a share whose file adopt moves into the receipts folder
         const durableUri = 'file:///Documents/Receipts-Upload/shared_1234.jpg';
@@ -371,8 +370,7 @@ describe('SubmitDetailsPage', () => {
         expect(jest.mocked(readFileAsync).mock.calls.at(0)?.[0]).toBe(durableUri);
     });
 
-    // Error #12b — a failed move must not block the submit: the shared path still works for this session,
-    // so falling back keeps a rare failure from turning every share into a dead end.
+    // Error #12b — a failed move must not block the submit: the shared path still works for this session.
     it('submits with the shared path when adopting the file fails', async () => {
         // Given adopt rejects
         const logAlertSpy = jest.spyOn(Log, 'alert').mockImplementation(() => {});
@@ -389,8 +387,7 @@ describe('SubmitDetailsPage', () => {
         logAlertSpy.mockRestore();
     });
 
-    // Error #12c — adopt is a move, so the shared path is empty once it lands. A retry after a read failure has to read
-    // the durable copy, or it adopts a path that no longer exists and the advertised retry can never recover.
+    // Error #12c — adopt is a move, so a retry after a read failure has to work off the durable copy.
     it('retries from the durable copy after a file-read failure', async () => {
         // Given a share that adopts fine but fails its first read
         const durableUri = 'file:///Documents/Receipts-Upload/shared_1234.jpg';
