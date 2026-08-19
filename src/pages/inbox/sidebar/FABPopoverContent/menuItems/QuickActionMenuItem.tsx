@@ -88,9 +88,6 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
     const [quickActionReportPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(quickActionReport?.reportID)}`, {
         selector: pendingDeleteMemberAccountIDsSelector,
     });
-    const [policyChatForActivePolicyPendingDeleteMemberAccountIDs] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${getNonEmptyStringOnyxID(policyChatForActivePolicy?.reportID)}`, {
-        selector: pendingDeleteMemberAccountIDsSelector,
-    });
 
     const isVisible =
         (quickAction?.action && quickActionReport
@@ -115,19 +112,7 @@ function QuickActionMenuItem({reportID}: QuickActionMenuItemProps) {
         );
         quickActionAvatars = avatars.length <= 1 || isPolicyExpenseChat(quickActionReport) ? avatars : avatars.filter((avatar) => avatar.id !== currentUserPersonalDetails.accountID);
     } else if (!isEmptyObject(policyChatForActivePolicy)) {
-        quickActionAvatars = getIcons(
-            policyChatForActivePolicy,
-            formatPhoneNumber,
-            translate,
-            personalDetails,
-            null,
-            undefined,
-            undefined,
-            undefined,
-            undefined,
-            isReportArchived,
-            policyChatForActivePolicyPendingDeleteMemberAccountIDs,
-        );
+        quickActionAvatars = getIcons(policyChatForActivePolicy, formatPhoneNumber, translate, personalDetails, null, undefined, undefined, undefined, undefined, isReportArchived);
     }
 
     let quickActionTitle = '';
