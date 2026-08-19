@@ -172,8 +172,6 @@ function DynamicIOURequestStepDistanceRate({
 
     const shouldShowNotFoundPage = useShowNotFoundPageInIOUStep(action, iouType, reportActionID, report, currentTransaction);
 
-    const initiallyFocusedOption = options.find((item) => item.isSelected)?.keyForList;
-
     // Pin the rate that was selected when the list opened to the top so it stays visible and doesn't move
     // while browsing. Freeze it for the open cycle so picking an over-limit rate (which keeps the list
     // mounted via pendingRateID) doesn't repin the list.
@@ -294,7 +292,7 @@ function DynamicIOURequestStepDistanceRate({
                 ListItem={SingleSelectListItem}
                 onSelectRow={({value}) => selectDistanceRate(value ?? '')}
                 shouldSingleExecuteRowSelect
-                initiallyFocusedItemKey={initiallyFocusedOption}
+                initiallyFocusedItemKey={pinnedRateID}
                 shouldScrollToFocusedIndexOnMount={false}
                 shouldUpdateFocusedIndex
             />
