@@ -51,9 +51,30 @@ type BuildStats = {
     missingExportCalls: number;
 };
 
+/** Where a function was handed off as a value, resolved to the unit it names. */
+type ResolvedReference = {
+    /** Unit the reference names. */
+    targetId: string;
+
+    /** Unit the reference is written in. */
+    from: string;
+
+    file: string;
+    line: number;
+
+    /** What receives the value: the prop it fills, or the function it is passed to. */
+    via: string | null;
+};
+
 type BuildResult = {
     graph: CallGraph;
     stats: BuildStats;
+
+    /**
+     * Value handoffs, kept out of `graph` on purpose: passing a function is not calling it, so an edge
+     * here would invent render paths that do not exist. They explain a unit the search could not trace.
+     */
+    references: ResolvedReference[];
 };
 
 /**
@@ -248,8 +269,31 @@ function buildCallGraph(analyses: readonly FileAnalysis[], options: BuildOptions
         }
     }
 
+    const references: ResolvedReference[] = [];
+
+    for (const analysis of analyses) {
+        for (const reference of analysis.references) {
+            if (reference.target.kind === 'unresolved') {
+                continue;
+            }
+
+            const targetIds =
+                reference.target.kind === 'local'
+                    ? [reference.target.unitId]
+                    : resolveModuleSources(reference.target.source, analysis.file, options).flatMap((targetFile) => {
+                          const unitId = reference.target.kind === 'module' ? resolveExportedUnit(targetFile, reference.target.name, 0) : null;
+                          return unitId ? [unitId] : [];
+                      });
+
+            for (const targetId of targetIds) {
+                references.push({targetId, from: reference.from, file: analysis.file, line: reference.line, via: reference.via});
+            }
+        }
+    }
+
     return {
         graph: {nodes: [...nodesById.values()], edges},
+        references,
         stats: {
             files: analyses.length,
             units: nodesById.size,
@@ -264,4 +308,4 @@ function buildCallGraph(analyses: readonly FileAnalysis[], options: BuildOptions
 }
 
 export {buildCallGraph, expandToBasePaths, MODULE_SUFFIXES, resolveModuleSources};
-export type {BuildOptions, BuildResult, BuildStats, PathAliases};
+export type {BuildOptions, BuildResult, BuildStats, PathAliases, ResolvedReference};

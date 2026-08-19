@@ -104,6 +104,25 @@ type SourceCall = {
     line: number;
 };
 
+/**
+ * A function handed off as a value rather than called: `useNetwork({onReconnect: fn})`,
+ * `<Row onPress={fn} />`. Whoever receives it decides when it runs, so this is not a call edge. It is
+ * recorded because a unit with no callers at all cannot be cleared by a reachability search, and naming
+ * the handoff is the difference between "nothing was traced" and "nothing was found".
+ */
+type SourceReference = {
+    /** Unit the reference is written in. */
+    from: string;
+
+    /** The function the identifier names, in the same shape a call target uses. */
+    target: CalleeRef;
+
+    line: number;
+
+    /** What receives the value: the prop it fills, or the function it is passed to. */
+    via: string | null;
+};
+
 /** A synchronous Onyx read, attributed to the unit that performs it. */
 type SourceRead = {
     unitId: string;
@@ -121,6 +140,7 @@ type FileAnalysis = {
     file: string;
     units: SourceUnit[];
     calls: SourceCall[];
+    references: SourceReference[];
     reads: SourceRead[];
     reExports: ReExport[];
 
@@ -401,6 +421,95 @@ function findVariable(scope: Scope.Scope | null, variableName: string): Scope.Va
 }
 
 /**
+ * Whether an identifier is a value being read, rather than a name being declared, a property key, a
+ * label or a type. A callee is excluded too: the `CallExpression` visitor already records those.
+ */
+function isValueReference(identifier: AstNode, parent: AstNode | null): boolean {
+    if (!parent || parent.type.startsWith('TS')) {
+        return false;
+    }
+
+    switch (parent.type) {
+        case 'CallExpression':
+        case 'NewExpression':
+            return parent.callee !== identifier;
+
+        // `a.b` hands off `b`, which needs the member resolved rather than the object.
+        case 'MemberExpression':
+            return false;
+
+        case 'Property':
+            return parent.value === identifier;
+
+        case 'VariableDeclarator':
+            return parent.init === identifier;
+
+        // Declarations, bindings, patterns, labels, and the export forms the graph reads separately.
+        case 'FunctionDeclaration':
+        case 'FunctionExpression':
+        case 'ArrowFunctionExpression':
+        case 'ClassDeclaration':
+        case 'ClassExpression':
+        case 'CatchClause':
+        case 'ImportSpecifier':
+        case 'ImportDefaultSpecifier':
+        case 'ImportNamespaceSpecifier':
+        case 'ExportSpecifier':
+        case 'ExportDefaultDeclaration':
+        case 'ExportNamedDeclaration':
+        case 'MethodDefinition':
+        case 'PropertyDefinition':
+        case 'LabeledStatement':
+        case 'BreakStatement':
+        case 'ContinueStatement':
+        case 'RestElement':
+        case 'AssignmentPattern':
+        case 'ObjectPattern':
+        case 'ArrayPattern':
+        case 'JSXAttribute':
+            return false;
+
+        default:
+            return true;
+    }
+}
+
+/** The nearest thing that receives the value, walking outwards until the enclosing statement. */
+function describeHandoff(ancestors: readonly AstNode[]): string | null {
+    for (let index = ancestors.length - 1; index >= 0; index--) {
+        const ancestor = ancestors.at(index);
+
+        if (!ancestor) {
+            continue;
+        }
+
+        if (ancestor.type === 'JSXAttribute') {
+            // A JSXAttribute's `name` is a JSXIdentifier node, not the plain string the field carries elsewhere.
+            const attributeName: unknown = Reflect.get(ancestor, 'name');
+            const attributeNameText: unknown = typeof attributeName === 'object' && attributeName !== null ? Reflect.get(attributeName, 'name') : null;
+
+            return typeof attributeNameText === 'string' ? attributeNameText : null;
+        }
+
+        if (ancestor.type === 'CallExpression' || ancestor.type === 'NewExpression') {
+            const callee = ancestor.callee;
+
+            if (callee?.type === 'Identifier') {
+                return callee.name ?? null;
+            }
+
+            return callee?.type === 'MemberExpression' ? getStaticPropertyName(callee) : null;
+        }
+
+        if (isFunctionNode(ancestor) || ancestor.type.endsWith('Statement')) {
+            return null;
+        }
+    }
+
+    return null;
+}
+
+/**
  * Analyze one file. Calls that cross a file boundary come back as `{kind: 'module'}` for the caller to
  * resolve once every file has been analyzed.
  */
@@ -417,6 +526,7 @@ function analyzeSource(file: string, code: string): FileAnalysis {
      * declared further down the file has no unit id yet at the moment the call is visited.
      */
     const pendingCalls: Array<{from: string; line: number; calleeFunction: AstNode | null; moduleRef: {source: string; name: string} | null; reason: UnresolvedReason}> = [];
+    const pendingReferences: Array<{from: string; line: number; targetFunction: AstNode | null; moduleRef: {source: string; name: string} | null; via: string | null}> = [];
     let defaultExportFunction: AstNode | null = null;
 
     function recordUnit(unit: SourceUnit): void {
@@ -604,6 +714,31 @@ function analyzeSource(file: string, code: string): FileAnalysis {
 
                     pendingCalls.push({from: unit.id, line, calleeFunction: null, moduleRef: null, reason: callee?.type === 'MemberExpression' ? 'member' : 'unknown'});
                 },
+                Identifier(node) {
+                    const identifier = toAstNode(node);
+                    const ancestors = ancestorsOf(node);
+
+                    // The syntactic filter runs before any scope work, since most identifiers fail it.
+                    if (!identifier?.name || !isValueReference(identifier, ancestors.at(-1) ?? null)) {
+                        return;
+                    }
+
+                    const variable = findVariable(sourceCode.getScope(node), identifier.name);
+                    const importDefinition = getImportDefinition(variable);
+                    const targetFunction = getFunctionForVariable(variable);
+
+                    if (!importDefinition && !targetFunction) {
+                        return;
+                    }
+
+                    pendingReferences.push({
+                        from: unitOf(node).id,
+                        line: identifier.loc?.start.line ?? 0,
+                        targetFunction: importDefinition ? null : targetFunction,
+                        moduleRef: importDefinition ? {source: importDefinition.source, name: importDefinition.imported ?? 'default'} : null,
+                        via: describeHandoff(ancestors),
+                    });
+                },
             };
         },
     };
@@ -630,6 +765,21 @@ function analyzeSource(file: string, code: string): FileAnalysis {
         throw new Error(`Failed to parse ${file}: ${fatal.message} (line ${fatal.line})`);
     }
 
+    const references: SourceReference[] = pendingReferences.map((pending) => {
+        if (pending.moduleRef) {
+            return {from: pending.from, target: {kind: 'module' as const, source: pending.moduleRef.source, name: pending.moduleRef.name}, line: pending.line, via: pending.via};
+        }
+
+        const unitId = pending.targetFunction ? unitIdByFunctionNode.get(pending.targetFunction) : undefined;
+
+        return {
+            from: pending.from,
+            target: unitId ? ({kind: 'local' as const, unitId} as CalleeRef) : ({kind: 'unresolved' as const, reason: 'unknown' as const} as CalleeRef),
+            line: pending.line,
+            via: pending.via,
+        };
+    });
+
     const calls: SourceCall[] = pendingCalls.map((pending) => {
         if (pending.moduleRef) {
             return {from: pending.from, callee: {kind: 'module', source: pending.moduleRef.source, name: pending.moduleRef.name}, line: pending.line};
@@ -648,6 +798,7 @@ function analyzeSource(file: string, code: string): FileAnalysis {
         file,
         units: [...units.values()],
         calls,
+        references,
         reads,
         reExports,
         defaultExportUnitId: defaultExportFunction ? (unitIdByFunctionNode.get(defaultExportFunction) ?? null) : null,
@@ -655,4 +806,4 @@ function analyzeSource(file: string, code: string): FileAnalysis {
 }
 
 export {analyzeSource, isTransparentBoundary, MODULE_UNIT_NAME, ONYX_MODULE_PREFIX, SYNC_READ_METHODS};
-export type {AstNode, CalleeRef, FileAnalysis, ReExport, SourceCall, SourceRead, SourceUnit, UnresolvedReason};
+export type {AstNode, CalleeRef, FileAnalysis, ReExport, SourceCall, SourceReference, SourceRead, SourceUnit, UnresolvedReason};

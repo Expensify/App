@@ -1,5 +1,5 @@
 import type {BuildOptions, PathAliases} from '../../scripts/buildCallGraph';
-import type {FileAnalysis, SourceCall, SourceUnit} from '../../scripts/callGraphFromSource';
+import type {FileAnalysis, SourceCall, SourceReference, SourceUnit} from '../../scripts/callGraphFromSource';
 
 import {buildCallGraph, resolveModuleSources} from '../../scripts/buildCallGraph';
 import {isRenderReachable} from '../../scripts/renderReachability';
@@ -31,8 +31,16 @@ function moduleCall(from: string, source: string, name: string): SourceCall {
     return {from, callee: {kind: 'module', source, name}, line: 1};
 }
 
+function localReference(from: string, to: string, via: string): SourceReference {
+    return {from, target: {kind: 'local', unitId: to}, line: 7, via};
+}
+
+function moduleReference(from: string, source: string, name: string, via: string): SourceReference {
+    return {from, target: {kind: 'module', source, name}, line: 7, via};
+}
+
 function analysis(file: string, parts: Partial<Omit<FileAnalysis, 'file'>> = {}): FileAnalysis {
-    return {file, units: [], calls: [], reads: [], reExports: [], defaultExportUnitId: null, ...parts};
+    return {file, units: [], calls: [], references: [], reads: [], reExports: [], defaultExportUnitId: null, ...parts};
 }
 
 describe('resolveModuleSources', () => {
@@ -195,5 +203,56 @@ describe('buildCallGraph', () => {
         const {graph} = buildCallGraph(analyses, options(['src/pages/SearchPage.tsx', 'src/libs/ReportUtils.ts']));
 
         expect(graph.edges).toHaveLength(1);
+    });
+});
+
+/**
+ * References resolve like calls but stay out of the graph, because passing a function is not calling it.
+ * An edge here would invent render paths that do not exist.
+ */
+describe('buildCallGraph, value references', () => {
+    it('resolves a local reference without adding an edge', () => {
+        const analyses = [
+            analysis('src/hooks/useThing.ts', {
+                units: [entryUnit('src/hooks/useThing.ts', 'useThing'), plainUnit('src/hooks/useThing.ts', 'useThing.refresh')],
+                references: [localReference('src/hooks/useThing.ts#useThing', 'src/hooks/useThing.ts#useThing.refresh', 'useNetwork')],
+            }),
+        ];
+
+        const {graph, references} = buildCallGraph(analyses, options(['src/hooks/useThing.ts']));
+
+        expect(graph.edges).toEqual([]);
+        expect(references).toEqual([{targetId: 'src/hooks/useThing.ts#useThing.refresh', from: 'src/hooks/useThing.ts#useThing', file: 'src/hooks/useThing.ts', line: 7, via: 'useNetwork'}]);
+        // The hook renders, so an edge would have made the handed-off function look render-reachable.
+        expect(isRenderReachable(graph, 'src/hooks/useThing.ts#useThing.refresh')).toBe(false);
+    });
+
+    it('resolves a reference across an alias to the module default', () => {
+        const analyses = [
+            analysis('src/pages/SearchPage.tsx', {
+                units: [entryUnit('src/pages/SearchPage.tsx', 'SearchPage')],
+                references: [moduleReference('src/pages/SearchPage.tsx#SearchPage', '@userActions/navigateToConciergeChat', 'default', 'onPress')],
+            }),
+            analysis('src/libs/actions/navigateToConciergeChat.ts', {
+                units: [plainUnit('src/libs/actions/navigateToConciergeChat.ts', 'navigateToConciergeChat')],
+                defaultExportUnitId: 'src/libs/actions/navigateToConciergeChat.ts#navigateToConciergeChat',
+            }),
+        ];
+
+        const {graph, references} = buildCallGraph(analyses, options(['src/pages/SearchPage.tsx', 'src/libs/actions/navigateToConciergeChat.ts']));
+
+        expect(graph.edges).toEqual([]);
+        expect(references.map((reference) => reference.targetId)).toEqual(['src/libs/actions/navigateToConciergeChat.ts#navigateToConciergeChat']);
+    });
+
+    it('drops a reference whose target could not be identified', () => {
+        const analyses = [
+            analysis('src/pages/SearchPage.tsx', {
+                units: [entryUnit('src/pages/SearchPage.tsx', 'SearchPage')],
+                references: [{from: 'src/pages/SearchPage.tsx#SearchPage', target: {kind: 'unresolved', reason: 'unknown'}, line: 7, via: 'onPress'}],
+            }),
+        ];
+
+        expect(buildCallGraph(analyses, options(['src/pages/SearchPage.tsx'])).references).toEqual([]);
     });
 });

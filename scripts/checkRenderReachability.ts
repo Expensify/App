@@ -37,15 +37,22 @@ import type {PathAliases} from './buildCallGraph';
 import type {FileAnalysis} from './callGraphFromSource';
 
 import {buildCallGraph} from './buildCallGraph';
-import {analyzeSource} from './callGraphFromSource';
+import {analyzeSource, ONYX_MODULE_PREFIX} from './callGraphFromSource';
 import {buildCallerIndex, findRenderPaths} from './renderReachability';
 
 const projectRoot = path.resolve(__dirname, '..');
 const SOURCE_EXTENSIONS = new Set(['.ts', '.tsx', '.js', '.jsx']);
 
-/** Every tracked source file under `src/`, repo-relative with posix separators. */
+/** Handoff sites printed per unproven unit before the rest are summarised. */
+const MAX_HANDOFFS_SHOWN = 5;
+
+/**
+ * Every source file under `src/`, repo-relative with posix separators. Untracked files are included:
+ * a file a developer has just written is not staged yet, and skipping it would silently clear the read
+ * it introduces.
+ */
 function listSourceFiles(): string[] {
-    const output = execFileSync('git', ['ls-files', '--', 'src'], {cwd: projectRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
+    const output = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '--', 'src'], {cwd: projectRoot, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024});
     return output
         .split('\n')
         .filter(Boolean)
@@ -105,7 +112,18 @@ type Verdict = {
     unitId: string;
     reads: number;
     renderPaths: string[][];
+
+    /** Direct callers the graph found. Zero means nothing was traced, so a clean result proves nothing. */
+    callers: number;
+
+    /** Where the unit is handed off as a value, which is the usual reason it has no callers. */
+    handoffs: string[];
 };
+
+/** A verdict that proves nothing: the graph found no way in, so it never had a path to reject. */
+function isUnproven(verdict: Verdict): boolean {
+    return verdict.renderPaths.length === 0 && verdict.callers === 0;
+}
 
 function analyzeFiles(files: readonly string[]): {analyses: FileAnalysis[]; failures: Array<{file: string; message: string}>} {
     const analyses: FileAnalysis[] = [];
@@ -122,15 +140,22 @@ function analyzeFiles(files: readonly string[]): {analyses: FileAnalysis[]; fail
     return {analyses, failures};
 }
 
-function run(): void {
-    const args = process.argv.slice(2);
-    const asJson = args.includes('--json');
-    const quiet = args.includes('--quiet');
-    const targets = args.filter((arg) => !arg.startsWith('--'));
-
+/**
+ * Build the graph over the whole of `src/` and index everything a verdict needs. The graph is whole-repo
+ * whatever the caller is interested in, because a caller of a read can live in any file.
+ */
+function analyzeRepo() {
     const files = listSourceFiles();
     const {analyses, failures} = analyzeFiles(files);
-    const {graph, stats} = buildCallGraph(analyses, {aliases: readPathAliases(), knownFiles: new Set(files)});
+    const {graph, stats, references} = buildCallGraph(analyses, {aliases: readPathAliases(), knownFiles: new Set(files)});
+    const callerIndex = buildCallerIndex(graph);
+
+    const handoffsByTarget = new Map<string, string[]>();
+    for (const reference of references) {
+        const sites = handoffsByTarget.get(reference.targetId) ?? [];
+        sites.push(`${reference.file}:${reference.line}${reference.via ? ` (${reference.via})` : ''}`);
+        handoffsByTarget.set(reference.targetId, sites);
+    }
 
     const readCountByUnit = new Map<string, number>();
     for (const analysis of analyses) {
@@ -139,11 +164,40 @@ function run(): void {
         }
     }
 
+    return {graph, stats, failures, callerIndex, handoffsByTarget, readCountByUnit};
+}
+
+type RepoAnalysis = ReturnType<typeof analyzeRepo>;
+
+function verdictFor(unitId: string, repo: RepoAnalysis): Verdict {
+    return {
+        unitId,
+        reads: repo.readCountByUnit.get(unitId) ?? 0,
+        renderPaths: findRenderPaths(repo.graph, unitId),
+        callers: (repo.callerIndex.get(unitId) ?? []).length,
+        handoffs: repo.handoffsByTarget.get(unitId) ?? [],
+    };
+}
+
+/** The file a unit id names, which is the part before the `#`. */
+function fileOf(unitId: string): string {
+    return unitId.slice(0, unitId.indexOf('#'));
+}
+
+function run(): void {
+    const args = process.argv.slice(2);
+    const asJson = args.includes('--json');
+    const quiet = args.includes('--quiet');
+    const targets = args.filter((arg) => !arg.startsWith('--'));
+
+    const repo = analyzeRepo();
+    const {graph, stats, failures, callerIndex, readCountByUnit} = repo;
+
     if (args.includes('--callers')) {
         const nodesById = new Map(graph.nodes.map((node) => [node.id, node]));
 
         for (const target of targets) {
-            const callers = buildCallerIndex(graph).get(target) ?? [];
+            const callers = callerIndex.get(target) ?? [];
             console.log(`${target}: ${callers.length} direct caller(s)`);
 
             for (const caller of callers) {
@@ -154,28 +208,45 @@ function run(): void {
     }
 
     const unitsToCheck = targets.length > 0 ? targets : [...readCountByUnit.keys()].sort();
-    const verdicts: Verdict[] = unitsToCheck.map((unitId) => ({
-        unitId,
-        reads: readCountByUnit.get(unitId) ?? 0,
-        renderPaths: findRenderPaths(graph, unitId),
-    }));
+    const verdicts: Verdict[] = unitsToCheck.map((unitId) => verdictFor(unitId, repo));
 
     const reachable = verdicts.filter((verdict) => verdict.renderPaths.length > 0);
+    const unproven = verdicts.filter(isUnproven);
 
     if (asJson) {
         console.log(JSON.stringify({stats: {...stats, parseFailures: failures.length}, verdicts}, null, 2));
     } else {
         for (const verdict of verdicts) {
-            if (verdict.renderPaths.length === 0) {
-                if (!quiet) {
-                    console.log(`ok              ${verdict.unitId}`);
+            if (verdict.renderPaths.length > 0) {
+                console.log(`RENDER-REACHED  ${verdict.unitId}`);
+                for (const renderPath of verdict.renderPaths) {
+                    console.log(`                via ${renderPath.join(' -> ')}`);
                 }
                 continue;
             }
 
-            console.log(`RENDER-REACHED  ${verdict.unitId}`);
-            for (const renderPath of verdict.renderPaths) {
-                console.log(`                via ${renderPath.join(' -> ')}`);
+            // No callers means the search had nothing to reject, so this is not the same answer as `ok`.
+            if (isUnproven(verdict)) {
+                console.log(`UNPROVEN        ${verdict.unitId}`);
+
+                if (verdict.handoffs.length === 0) {
+                    console.log('                no callers and no references, so nothing was traced');
+                    continue;
+                }
+
+                console.log('                no callers; passed as a value at');
+                for (const handoff of verdict.handoffs.slice(0, MAX_HANDOFFS_SHOWN)) {
+                    console.log(`                  ${handoff}`);
+                }
+
+                if (verdict.handoffs.length > MAX_HANDOFFS_SHOWN) {
+                    console.log(`                  and ${verdict.handoffs.length - MAX_HANDOFFS_SHOWN} more`);
+                }
+                continue;
+            }
+
+            if (!quiet) {
+                console.log(`ok              ${verdict.unitId}`);
             }
         }
 
@@ -191,7 +262,7 @@ function run(): void {
         );
         console.log(`Unresolved import targets ${stats.unresolvedModuleTargets}: ${stats.externalModuleCalls} outside src, ${stats.missingExportCalls} name not found in the resolved file.`);
         console.log('A call the graph cannot follow can only make a function look safer than it is, so read a clean verdict against these numbers.');
-        console.log(`Checked ${verdicts.length} unit(s): ${reachable.length} render-reachable.`);
+        console.log(`Checked ${verdicts.length} unit(s): ${reachable.length} render-reachable, ${unproven.length} unproven.`);
 
         if (failures.length > 0 && !quiet) {
             for (const failure of failures.slice(0, 10)) {
@@ -205,4 +276,81 @@ function run(): void {
     }
 }
 
-run();
+/** Lint targets that could hold a synchronous Onyx read, so the graph is only built when one might. */
+function findOnyxTargets(targets: readonly string[]): string[] {
+    const pathSpecs = targets.length > 0 ? [...targets] : ['.'];
+
+    try {
+        const output = execFileSync('git', ['grep', '-lI', '-F', '--untracked', '--no-recurse-submodules', '-e', ONYX_MODULE_PREFIX, '--', ...pathSpecs], {
+            cwd: projectRoot,
+            encoding: 'utf8',
+            maxBuffer: 64 * 1024 * 1024,
+        });
+        return output
+            .split('\n')
+            .filter(Boolean)
+            .filter((file) => file.startsWith('src/'));
+    } catch (error: unknown) {
+        // git grep exits 1 when nothing matches; anything else is a real failure.
+        if (typeof error === 'object' && error !== null && 'status' in error && error.status === 1) {
+            return [];
+        }
+        throw error;
+    }
+}
+
+/**
+ * Checks the synchronous Onyx reads in `targets` for a caller that renders, reporting any to stderr.
+ * Returns `true` if one was found (i.e. the caller should fail).
+ *
+ * The graph is whole-repo because callers live anywhere, so this is only worth building when a target
+ * file imports Onyx at all. That check is a `git grep` and is a superset of what the graph can flag,
+ * which keeps a lint run over unrelated files free.
+ *
+ * An unproven verdict is reported and does not fail: a unit with no callers is the normal shape of an
+ * event handler, so failing on it would fail on correct code.
+ */
+async function checkRenderReachability(targets: string[]): Promise<boolean> {
+    const candidates = new Set(findOnyxTargets(targets));
+
+    if (candidates.size === 0) {
+        return false;
+    }
+
+    const repo = analyzeRepo();
+    const unitIds = [...repo.readCountByUnit.keys()].filter((unitId) => candidates.has(fileOf(unitId))).sort();
+    const verdicts = unitIds.map((unitId) => verdictFor(unitId, repo));
+    const reachable = verdicts.filter((verdict) => verdict.renderPaths.length > 0);
+    const unproven = verdicts.filter(isUnproven);
+
+    for (const verdict of unproven) {
+        console.error(`Unproven synchronous Onyx read: ${verdict.unitId}`);
+        console.error(
+            verdict.handoffs.length > 0
+                ? `  no callers; passed as a value at ${verdict.handoffs.slice(0, MAX_HANDOFFS_SHOWN).join(', ')}`
+                : '  no callers and no references, so nothing was traced',
+        );
+    }
+
+    if (reachable.length === 0) {
+        return false;
+    }
+
+    console.error(
+        'A synchronous Onyx read must not run during render: it does not subscribe, so the rendered value never updates. Use useOnyx() instead, or move the read into code that runs on an event.',
+    );
+    for (const verdict of reachable) {
+        console.error(`  ${verdict.unitId}`);
+        for (const renderPath of verdict.renderPaths) {
+            console.error(`    via ${renderPath.join(' -> ')}`);
+        }
+    }
+
+    return true;
+}
+
+if (require.main === module) {
+    run();
+}
+
+export default checkRenderReachability;

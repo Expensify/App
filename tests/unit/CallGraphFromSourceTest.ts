@@ -26,6 +26,18 @@ function findUnit(analysis: FileAnalysis, name: string) {
     return analysis.units.find((candidate) => candidate.name === name);
 }
 
+function localReferences(analysis: FileAnalysis): Array<[string, string, string | null]> {
+    return analysis.references.flatMap((reference) =>
+        reference.target.kind === 'local' ? [[reference.from, reference.target.unitId, reference.via] as [string, string, string | null]] : [],
+    );
+}
+
+function moduleReferences(analysis: FileAnalysis): Array<[string, string, string, string | null]> {
+    return analysis.references.flatMap((reference) =>
+        reference.target.kind === 'module' ? [[reference.from, reference.target.source, reference.target.name, reference.via] as [string, string, string, string | null]] : [],
+    );
+}
+
 describe('analyzeSource, units and read attribution', () => {
     it('attributes a read in a plain module function to that function, which is not render code', () => {
         const analysis = analyzeSource(FILE, `${ONYX_IMPORT} export function buildPayload(reportID) { return Onyx.get(reportID); }`);
@@ -175,5 +187,48 @@ describe('analyzeSource, exports', () => {
             {name: 'buildPayload', source: './Payload'},
             {name: '*', source: './Other'},
         ]);
+    });
+});
+
+/**
+ * A function passed as a value has no call edge, because passing it is not calling it. Recording where
+ * it was handed off is what separates "no path to render" from "nothing was traced at all".
+ */
+describe('analyzeSource, value references', () => {
+    it('records a function passed as an object property, naming the call that receives it', () => {
+        const analysis = analyzeSource(FILE, 'function useThing() { const onReconnect = () => {}; useNetwork({onReconnect}); }');
+
+        expect(localReferences(analysis)).toEqual([[unitId('useThing'), unitId('useThing.onReconnect'), 'useNetwork']]);
+    });
+
+    it('records the same handoff written longhand', () => {
+        const analysis = analyzeSource(FILE, 'function useThing() { const refresh = () => {}; useNetwork({onReconnect: refresh}); }');
+
+        expect(localReferences(analysis)).toEqual([[unitId('useThing'), unitId('useThing.refresh'), 'useNetwork']]);
+    });
+
+    it('records a function passed as a JSX prop, naming the prop', () => {
+        const analysis = analyzeSource(FILE, 'function Row() { const onPress = () => {}; return <View onPress={onPress} />; }');
+
+        expect(localReferences(analysis)).toEqual([[unitId('Row'), unitId('Row.onPress'), 'onPress']]);
+    });
+
+    it('records a reference to an imported function', () => {
+        const analysis = analyzeSource(FILE, "import openReport from '@userActions/Report'; function Row() { return <View onPress={openReport} />; }");
+
+        expect(moduleReferences(analysis)).toEqual([[unitId('Row'), '@userActions/Report', 'default', 'onPress']]);
+    });
+
+    it('does not record a callee, which is a call rather than a handoff', () => {
+        const analysis = analyzeSource(FILE, 'function helper() {} function submit() { helper(); }');
+
+        expect(localReferences(analysis)).toEqual([]);
+        expect(localEdges(analysis)).toEqual([[unitId('submit'), unitId('helper')]]);
+    });
+
+    it('does not record declarations, property keys or the export that names a function', () => {
+        const analysis = analyzeSource(FILE, 'function helper() {} const handlers = {helper: 1}; export default helper;');
+
+        expect(localReferences(analysis)).toEqual([]);
     });
 });
