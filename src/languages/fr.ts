@@ -8812,6 +8812,9 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 title ? `a mis à jour la règle d’agent « ${title} » en : ${prompt}` : `a mis à jour une règle d’agent en : ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `a supprimé la règle d’agent « ${title} »` : 'a supprimé une règle d’agent'),
         },
+        addedRule: 'a ajouté une règle',
+        updatedRule: 'a mis à jour une règle',
+        removedRule: 'a supprimé une règle',
         expensifyCardRule: {
             actionVerb: {block: 'bloqué', allow: 'autorisé'},
             amountOperator: {over: 'terminé', under: 'sous'},

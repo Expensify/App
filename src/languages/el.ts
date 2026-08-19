@@ -8675,6 +8675,9 @@ ${reportName}`,
                 title ? `ενημέρωσε τον κανόνα πράκτορα «${title}» σε: ${prompt}` : `ενημέρωσε έναν κανόνα πράκτορα σε: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `αφαίρεσε τον κανόνα πράκτορα «${title}»` : 'αφαίρεσε έναν κανόνα πράκτορα'),
         },
+        addedRule: 'πρόσθεσε έναν κανόνα',
+        updatedRule: 'ενημέρωσε έναν κανόνα',
+        removedRule: 'αφαίρεσε έναν κανόνα',
         expensifyCardRule: {
             actionVerb: {
                 block: 'μπλοκαρισμένο',
