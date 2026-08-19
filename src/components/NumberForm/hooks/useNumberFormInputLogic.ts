@@ -66,7 +66,9 @@ function useNumberFormInputLogic({
     const textInput = useRef<BaseTextInputRef | null>(null);
     const numberRef = useRef<string | undefined>(undefined);
     const forwardDeletePressedRef = useRef(false);
+    // The ref is used to ignore any onSelectionChange event that happens while we are updating the selection manually in setNumber.
     const willSelectionBeUpdatedManually = useRef(false);
+    // Decimal changes need to be handled once, rather than on every render of the input.
     const previousDecimals = useRef<number | undefined>(undefined);
     const [selection, setSelection] = useState<NumberSelection>({start: value.length, end: value.length});
     const isFocused = useIsFocused();
@@ -92,18 +94,21 @@ function useNumberFormInputLogic({
         clearSelection();
     }, [isFocused, wasFocused, clearSelection]);
 
-    /**
-     * Normalizes and validates raw input, then commits it. This is the single normalization point for every input path:
-     * callers pass the text exactly as the user typed it and never pre-convert locale digits or pad leading zeros.
-     */
     const setNumber = (inputValue: string) => {
+        // Remove spaces from the new number because Safari on iOS adds spaces when pasting a copied number
+        // More info: https://github.com/Expensify/App/issues/16974
         const inputWithoutSpaces = stripSpacesFromAmount(inputValue);
         const newNumberWithoutSpaces = replaceAllDigits(inputWithoutSpaces, fromLocaleDigit);
         const rawFinalNumber = newNumberWithoutSpaces.includes('.') ? stripCommaFromAmount(newNumberWithoutSpaces) : replaceCommasWithPeriod(newNumberWithoutSpaces);
+
+        // When negative input is stored in the value, keep the negative sign as-is.
+        // When the negative state is managed externally, strip the sign and call toggleNegative.
         const finalNumber = shouldAllowNegativeInput ? rawFinalNumber : handleNegativeAmountFlipping(rawFinalNumber, shouldFlipNegative, toggleNegative);
         const numberWithLeadingZero = addLeadingZero(finalNumber, shouldAllowNegativeInput);
 
         if (!validateAmount(numberWithLeadingZero, decimals, maxLength, shouldAllowNegativeInput)) {
+            // Use a shallow copy of selection to trigger setSelection
+            // More info: https://github.com/Expensify/App/issues/16385
             setSelection((currentSelection) => ({...currentSelection}));
             return;
         }
@@ -132,13 +137,12 @@ function useNumberFormInputLogic({
         const hasDecimalsChanged = previousDecimals.current === undefined || previousDecimals.current !== decimals;
         previousDecimals.current = decimals;
 
-        // The empty check reads the value prop, not the edited value, so a field the caller keeps empty is left alone.
-        // A negative sign is valid whichever way negatives are modelled: kept in the value, or stripped and tracked externally.
+        // If the field is intentionally empty (e.g. new manual expense flow before the user enters an amount)
+        // or the current number is already valid for the new decimal count, nothing to do.
         if (!hasDecimalsChanged || externalValue === '' || validateAmount(value, decimals, maxLength, shouldAllowNegativeInput || shouldFlipNegative)) {
             return;
         }
 
-        // Keep the existing behavior when a currency or unit changes its decimal precision. This intentionally updates the root value from an effect.
         setNumber(stripDecimalsFromAmount(value));
     }, [decimals, externalValue, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
 
@@ -170,6 +174,7 @@ function useNumberFormInputLogic({
             return;
         }
 
+        // When the number is updated in setNumber on iOS / Android, onSelectionChange formattedNumber stores the number before the update. Using numberRef allows us to read the updated number
         const maxSelection = numberRef.current?.length ?? formattedNumber.length;
         numberRef.current = undefined;
         setSelection({
@@ -189,6 +194,9 @@ function useNumberFormInputLogic({
         onBlur?.(event);
     };
 
+    /**
+     * Input handler to check for a forward-delete key (or keyboard shortcut) press.
+     */
     const handleKeyPress = (event: NumberFormInputKeyPressEvent) => {
         const key = event.nativeEvent.key.toLowerCase();
 
@@ -197,6 +205,8 @@ function useNumberFormInputLogic({
         }
 
         if (isMobileSafari() && key === CONST.PLATFORM_SPECIFIC_KEYS.CTRL.DEFAULT) {
+            // Optimistically anticipate forward-delete on iOS Safari (in cases where the Mac Accessibility keyboard is being
+            // used for input). If the Control-D shortcut doesn't get sent, the ref will still be reset on the next key press.
             forwardDeletePressedRef.current = true;
             onKeyPress?.(event);
             return;
@@ -204,10 +214,13 @@ function useNumberFormInputLogic({
 
         const operatingSystem = getOperatingSystem();
         const isMacOrIOS = operatingSystem === CONST.OS.MAC_OS || operatingSystem === CONST.OS.IOS;
+        // Control-D on Mac is a keyboard shortcut for forward-delete. See https://support.apple.com/en-us/HT201236 for Mac keyboard shortcuts.
+        // Also check for the keyboard shortcut on iOS in cases where a hardware keyboard may be connected to the device.
         forwardDeletePressedRef.current = key === 'delete' || (isMacOrIOS && !!event.nativeEvent.ctrlKey && key === 'd');
         onKeyPress?.(event);
     };
 
+    // An external value can shrink between native selection events; never render a caret past the displayed text.
     const selectionForRender = {
         start: Math.min(selection.start, formattedNumber.length),
         end: Math.min(selection.end, formattedNumber.length),
