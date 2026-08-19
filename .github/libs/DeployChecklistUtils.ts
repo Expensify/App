@@ -1,4 +1,3 @@
-
 import {Str} from 'expensify-common';
 
 import CONST from './CONST';
