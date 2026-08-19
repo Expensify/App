@@ -33,11 +33,15 @@ function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
     const {inputCallbackRef} = useAutoFocusInput();
 
     const applyFiltersAndNavigate = (newName: string) => {
+        if (!q) {
+            return;
+        }
+
         Navigation.dismissModal();
         Navigation.isNavigationReady().then(() => {
             Navigation.navigate(
                 ROUTES.SEARCH_ROOT.getRoute({
-                    query: q ?? '',
+                    query: q,
                     name: newName,
                 }),
             );
@@ -45,8 +49,12 @@ function SavedSearchRenamePage({route}: {route: {params: {id: string}}}) {
     };
 
     const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVED_SEARCH_RENAME_FORM>) => {
+        if (!q) {
+            return;
+        }
+
         const newName = values[INPUT_IDS.NAME].trim();
-        const queryJSON = buildSearchQueryJSON(q || buildCannedSearchQuery()) ?? ({} as SearchQueryJSON);
+        const queryJSON = buildSearchQueryJSON(q) ?? ({} as SearchQueryJSON);
 
         saveSearch({
             id,

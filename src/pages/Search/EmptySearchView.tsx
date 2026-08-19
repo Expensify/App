@@ -27,7 +27,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
-import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
