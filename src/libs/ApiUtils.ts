@@ -16,9 +16,10 @@ import getEnvironment from './Environment/getEnvironment';
 let ENV_NAME: ValueOf<typeof CONST.ENVIRONMENT> = CONST.ENVIRONMENT.PRODUCTION;
 let storedShouldUseStagingServer: boolean | undefined;
 
-// Subscribed synchronously, and storing the value verbatim, so that a slow or incorrect environment
-// resolution can never discard what the user chose. Since it isn't connected to a UI anywhere, it's
-// OK to use connectWithoutView()
+// Subscribed synchronously, and storing the value verbatim, so that the stored preference and the environment
+// can arrive in either order without one discarding the other. Note this does not cover the window before
+// getEnvironment() settles: ENV_NAME is PRODUCTION until then, which forces the production root regardless of
+// what is stored. Since it isn't connected to a UI anywhere, it's OK to use connectWithoutView()
 Onyx.connectWithoutView({
     key: ONYXKEYS.SHOULD_USE_STAGING_SERVER,
     callback: (value) => {
@@ -33,8 +34,9 @@ getEnvironment().then((envName) => {
 /**
  * Whether requests should be sent to the staging API.
  *
- * Derived on demand rather than cached, so it always reflects both the stored preference and the
- * environment, whichever resolved last.
+ * Derived on demand rather than cached, so a value stored before the environment resolved is still applied
+ * once it does — the cached-boolean version only ever read the preference through whatever ENV_NAME happened
+ * to be at callback time.
  */
 function shouldUseStagingServer(): boolean {
     // Toggling between APIs is not allowed on production and internal dev environment
