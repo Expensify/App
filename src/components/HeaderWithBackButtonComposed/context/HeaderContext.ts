@@ -4,7 +4,6 @@ import type HeaderContextValue from './types';
 
 /** Fallback used when a Header block is rendered outside a `<Header>` wrapper — keeps consumers safe from `undefined` reads. */
 const defaultHeaderContextValue: HeaderContextValue = {
-    iconFill: undefined,
     shouldUseHeadlineHeader: false,
 };
 

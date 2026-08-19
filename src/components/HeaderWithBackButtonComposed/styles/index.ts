@@ -2,8 +2,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import {StyleSheet} from 'react-native';
-
 type ContainerStyleParams = {
     /** Whether the header uses the headline style (taller bar). */
     shouldUseHeadlineHeader?: boolean;
@@ -19,17 +17,11 @@ type ContainerStyleParams = {
 };
 
 /** Composed styles for the Header bar + zones. Left padding (pl2/pl0) is derived from block registration, not props. */
-function useHeaderStyles({shouldUseHeadlineHeader = false, shouldShowBorderBottom = false, shouldOverlay = false, style}: ContainerStyleParams = {}) {
+function useHeaderStyles({shouldUseHeadlineHeader = false, shouldShowBorderBottom = false, style}: ContainerStyleParams = {}) {
     const styles = useThemeStyles();
 
     /** Outer header bar. */
-    const containerStyle: StyleProp<ViewStyle> = [
-        styles.headerBar,
-        shouldUseHeadlineHeader && styles.headerBarHeight,
-        shouldShowBorderBottom && styles.borderBottom,
-        shouldOverlay && StyleSheet.absoluteFill,
-        style,
-    ];
+    const containerStyle: StyleProp<ViewStyle> = [styles.headerBar, shouldUseHeadlineHeader && styles.headerBarHeight, shouldShowBorderBottom && styles.borderBottom, style];
 
     /** Inner flex row that lays out the three zones. */
     const innerRowStyle: StyleProp<ViewStyle> = [styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3];
