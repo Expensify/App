@@ -113,6 +113,7 @@ import ShareBank from '@assets/images/simple-illustrations/simple-illustration__
 import BankCoin from '@assets/images/simple-illustrations/simple-illustration__bankcoin.svg';
 import Binoculars from '@assets/images/simple-illustrations/simple-illustration__binoculars.svg';
 import BlueShield from '@assets/images/simple-illustrations/simple-illustration__blueshield.svg';
+import BriefcaseHandshake from '@assets/images/simple-illustrations/simple-illustration__briefcase-handshake.svg';
 import Briefcase from '@assets/images/simple-illustrations/simple-illustration__briefcase.svg';
 import Broom from '@assets/images/simple-illustrations/simple-illustration__broom.svg';
 import Building from '@assets/images/simple-illustrations/simple-illustration__building.svg';
@@ -385,6 +386,7 @@ const Illustrations = {
     CarIce,
     BlueShield,
     Briefcase,
+    BriefcaseHandshake,
     Pencil,
     ShareBank,
     Luggage,
