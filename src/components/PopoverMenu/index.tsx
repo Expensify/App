@@ -138,6 +138,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     /** Whether to display the standard empty state below the search input */
     shouldShowSearchEmptyState?: boolean;
 
+    /** Styles applied to the optional controlled search input container */
+    searchInputContainerStyle?: StyleProp<ViewStyle>;
+
     /** Whether disable the animations */
     disableAnimation?: boolean;
 
@@ -187,6 +190,9 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
 
     /** Whether we should wrap the list item in a scroll view */
     shouldUseScrollView?: boolean;
+
+    /** Whether to add spacing to the first item when using a scroll view */
+    shouldAddScrollViewTopItemSpacing?: boolean;
 
     /**
      * Whether we should set a max height to the popover content.
@@ -328,6 +334,7 @@ function BasePopoverMenu({
     searchInputValue = '',
     onSearchInputChange,
     shouldShowSearchEmptyState,
+    searchInputContainerStyle,
     fromSidebarMediumScreen,
     shouldHandleNavigationBack,
     anchorAlignment = {
@@ -351,6 +358,7 @@ function BasePopoverMenu({
     innerContainerStyle,
     scrollContainerStyle,
     shouldUseScrollView = false,
+    shouldAddScrollViewTopItemSpacing = true,
     shouldEnableMaxHeight = true,
     shouldUpdateFocusedIndex = true,
     shouldUseModalPaddingStyle,
@@ -536,7 +544,10 @@ function BasePopoverMenu({
                                 theme.activeComponentBG,
                                 theme.hoverComponentBG,
                             ),
-                            shouldUseScrollView && !shouldUseModalPaddingStyle && StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
+                            shouldUseScrollView &&
+                                (shouldAddScrollViewTopItemSpacing || menuIndex !== 0) &&
+                                !shouldUseModalPaddingStyle &&
+                                StyleUtils.getOptionMargin(menuIndex, currentMenuItems.length - 1),
                         ]}
                         shouldRemoveHoverBackground={item.isSelected}
                         titleStyle={StyleSheet.flatten([styles.flex1, item.titleStyle])}
@@ -748,6 +759,7 @@ function BasePopoverMenu({
                                     onChangeText={onSearchInputChange}
                                     shouldShowEmptyState={shouldShowSearchEmptyState}
                                     shouldShowIcon={false}
+                                    style={searchInputContainerStyle}
                                 />
                             </View>
                         )}
@@ -781,6 +793,8 @@ export default React.memo(
         prevProps.searchInputValue === nextProps.searchInputValue &&
         prevProps.onSearchInputChange === nextProps.onSearchInputChange &&
         prevProps.shouldShowSearchEmptyState === nextProps.shouldShowSearchEmptyState &&
+        prevProps.searchInputContainerStyle === nextProps.searchInputContainerStyle &&
+        prevProps.shouldAddScrollViewTopItemSpacing === nextProps.shouldAddScrollViewTopItemSpacing &&
         prevProps.fromSidebarMediumScreen === nextProps.fromSidebarMediumScreen &&
         // eslint-disable-next-line rulesdir/no-deep-equal-in-memo -- anchorAlignment object is created inline in most usages
         deepEqual(prevProps.anchorAlignment, nextProps.anchorAlignment) &&
