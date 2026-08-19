@@ -16,7 +16,7 @@ type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalA
 type BankAccountConnectionStatus = {
     labelKey: TranslationPaths;
     tone: 'default' | 'success' | 'danger';
-    statusBadgeTone?: 'default' | 'success' | 'danger';
+    badgeTone?: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;
@@ -144,6 +144,7 @@ function getBankAccountConnectionStatus(accountData: AccountData | undefined, cu
                 messageKey: 'walletPage.bankAccountStatus.plaidBrokenReconnect',
                 actionKey: 'common.actionBadge.fix',
                 tone: 'danger',
+                badgeTone: 'success',
                 brickRoadIndicator: CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR,
             };
         }
