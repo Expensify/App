@@ -214,7 +214,7 @@ function AccessOrNotFoundWrapper({
             return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived, isRestrictedToPreferredPolicy);
         }
         if (variant === CONST.POLICY.ACCESS_VARIANTS.ADMIN) {
-            return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived && isBetaEnabled(CONST.BETAS.ARCHIVE_POLICIES));
+            return acc && canEditWorkspaceSettings(policy, login, canBeAccessedIfArchived);
         }
         return acc && accessFunction(policy, login, report, allPolicies ?? null, betas, iouType, isReportArchived);
     }, true);
