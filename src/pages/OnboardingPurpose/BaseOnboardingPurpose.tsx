@@ -84,7 +84,8 @@ function BaseOnboardingPurpose({shouldUseNativeStyles, shouldEnableMaxHeight, ro
     const [onboardingCompanySize] = useOnyx(ONYXKEYS.ONBOARDING_COMPANY_SIZE);
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [isSelfTourViewed] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
-    const [hasProvidedWorkEmail] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => !!onboarding?.isMergeAccountStepCompleted});
+    // Skipping the work email step also marks it completed, so a skipped step still means we never got an email.
+    const [hasProvidedWorkEmail] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: (onboarding) => !!onboarding?.isMergeAccountStepCompleted && !onboarding?.isMergeAccountStepSkipped});
     const {isBetaEnabled} = usePermissions();
     const autoCreateSubmitWorkspace = useAutoCreateSubmitWorkspace();
     const autoCreateTrackWorkspace = useAutoCreateTrackWorkspace();
