@@ -1,9 +1,13 @@
-const name = 'no-onyx-read-after-write';
+const name = 'no-unsafe-onyx-read';
 
-/** Import sources that resolve to the Onyx library, including `react-native-onyx/dist/OnyxUtils`. */
+/**
+ * Import sources that resolve to the Onyx library, including `react-native-onyx/dist/OnyxUtils`.
+ * `scripts/callGraphFromSource.ts` keeps its own copy of this and of the four sets below, because it
+ * walks a different AST. Change one, change the other.
+ */
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
 
-/** Synchronous read APIs on the Onyx surface. All of them read the cache and nothing else. */
+/** Synchronous read APIs on the Onyx surface. None of them subscribe, and all of them read the cache and nothing else. */
 const SYNC_READ_METHODS = new Set(['get', 'multiGet', 'tupleGet', 'getAllKeys']);
 
 /**
@@ -16,27 +20,97 @@ const WRITE_METHODS = new Set(['merge', 'update', 'set', 'multiSet', 'mergeColle
 
 /**
  * Array methods whose callback runs in the caller's own tick. A function boundary here defers nothing,
- * so a read inside one is as much a same-tick read as a read written inline.
+ * so a read inside one runs wherever the surrounding code runs: during render, at import time, or in
+ * the same tick as a write it follows.
  */
 const SYNCHRONOUS_CALLBACK_METHODS = new Set(['map', 'filter', 'reduce', 'reduceRight', 'forEach', 'find', 'findIndex', 'findLast', 'findLastIndex', 'flatMap', 'some', 'every', 'sort']);
+
+/** Hooks whose callback runs during render, unlike useCallback (on an event) and useEffect (after commit). */
+const RENDER_TIME_HOOK_NAMES = new Set(['useMemo']);
+
+/** Calls that wrap a component without deferring it, so their callback argument is still a render body. */
+const COMPONENT_WRAPPER_NAMES = new Set(['memo', 'forwardRef']);
+
+/** What a function boundary between the read and module scope does to the timing of the code inside it. */
+const RENDER = 'render';
+const DEFERRED = 'deferred';
+const SYNCHRONOUS = 'synchronous';
+
+/** Where a read runs, which is what decides which of the three hazards it is. `RENDER` is shared with the above. */
+const MODULE_SCOPE = 'moduleScope';
+const EVENT = 'event';
 
 const meta = {
     type: 'problem',
     docs: {
         description:
-            'Disallow a synchronous Onyx read that follows an un-awaited Onyx write in the same function body. Writes apply to the cache in a later microtask, so the read returns the pre-write value.',
+            'Disallow unsafe synchronous Onyx reads (Onyx.get and friends): during render, where the read does not subscribe; at module scope, where it runs before the cache is hydrated; and after an un-awaited write in the same body, where it returns the pre-write value.',
         recommended: 'error',
     },
     schema: [],
     messages: {
+        noOnyxGetInRender:
+            'Do not read Onyx during render. Onyx.get() is a synchronous, non-reactive read: a value read while rendering does not re-render the component when that key changes, so the UI can show stale data indefinitely.\n\n' +
+            'Use useOnyx() for anything the component renders. Reserve the synchronous read for code that runs on an event: event handlers, useCallback and useEffect bodies, and plain module functions.',
+        noOnyxReadAtModuleScope:
+            'Do not read Onyx at module scope. Module bodies run at import time, and Onyx.init() hydrates the cache asynchronously, so this read returns undefined for every key whose value is only on disk. It cannot fail loudly: it looks like an absent value.\n\n' +
+            'Move the read inside the function that needs it, so it runs at event time. If it genuinely has to run during startup, sequence it after hydration instead of reading here.',
         noOnyxReadAfterWrite:
             'Do not read Onyx after writing it in the same tick. Onyx.merge() and Onyx.update() apply their changes to the cache in a later microtask, so a synchronous read that follows one returns the pre-write value. Onyx.set() and Onyx.mergeCollection() do happen to be visible immediately, which makes code that depends on the difference fragile rather than safe.\n\n' +
             'Do all of the reads before the first write, or await the write before reading. Reads of keys the tick has not written are always current.',
     },
 };
 
+// ---------------------------------------------------------------------------------------------------
+// AST helpers
+// ---------------------------------------------------------------------------------------------------
+
 function isFunctionNode(node) {
     return node.type === 'FunctionDeclaration' || node.type === 'FunctionExpression' || node.type === 'ArrowFunctionExpression';
+}
+
+function isHookName(functionName) {
+    return /^use[A-Z0-9]/.test(functionName);
+}
+
+function isComponentName(functionName) {
+    return /^[A-Z]/.test(functionName);
+}
+
+/** The name a function is known by: its own identifier, or the binding it is assigned to. */
+function getFunctionName(functionNode, parent) {
+    if (functionNode.id?.type === 'Identifier') {
+        return functionNode.id.name;
+    }
+
+    if (parent?.type === 'VariableDeclarator' && parent.id.type === 'Identifier') {
+        return parent.id.name;
+    }
+
+    if (parent?.type === 'Property' && !parent.computed && parent.key?.type === 'Identifier') {
+        return parent.key.name;
+    }
+
+    return null;
+}
+
+/** A function that returns JSX is a render body whatever it is called, which covers anonymous default exports. */
+function returnsJSX(functionNode) {
+    const body = functionNode.body;
+
+    if (!body) {
+        return false;
+    }
+
+    if (body.type === 'JSXElement' || body.type === 'JSXFragment') {
+        return true;
+    }
+
+    if (body.type !== 'BlockStatement') {
+        return false;
+    }
+
+    return body.body.some((statement) => statement.type === 'ReturnStatement' && (statement.argument?.type === 'JSXElement' || statement.argument?.type === 'JSXFragment'));
 }
 
 /** The static name a key node stands for, covering both `a.b` and `a['b']`. */
@@ -69,28 +143,120 @@ function matchesCalleeName(callee, names) {
     return false;
 }
 
+function isOnyxModuleSource(sourceValue) {
+    return typeof sourceValue === 'string' && (sourceValue === ONYX_MODULE_PREFIX || sourceValue.startsWith(`${ONYX_MODULE_PREFIX}/`));
+}
+
+function getVariableByName(scope, variableName) {
+    let currentScope = scope;
+
+    while (currentScope) {
+        const variable = currentScope.variables.find((scopeVariable) => scopeVariable.name === variableName);
+
+        if (variable) {
+            return variable;
+        }
+
+        currentScope = currentScope.upper;
+    }
+
+    return null;
+}
+
+// ---------------------------------------------------------------------------------------------------
+// Position: render, module scope, or event time
+// ---------------------------------------------------------------------------------------------------
+
+/**
+ * Classify what a function boundary does to the timing of the code inside it. `SYNCHRONOUS` means the
+ * boundary is transparent (an IIFE, or an array callback), so the walk continues outward through it.
+ */
+function classifyFunctionBoundary(functionNode, parent) {
+    if (parent?.type === 'CallExpression') {
+        if (parent.callee === functionNode) {
+            return SYNCHRONOUS;
+        }
+
+        if (parent.arguments.includes(functionNode)) {
+            if (matchesCalleeName(parent.callee, COMPONENT_WRAPPER_NAMES) || matchesCalleeName(parent.callee, RENDER_TIME_HOOK_NAMES)) {
+                return RENDER;
+            }
+
+            if (parent.callee.type === 'MemberExpression' && matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS)) {
+                return SYNCHRONOUS;
+            }
+
+            return DEFERRED;
+        }
+    }
+
+    const functionName = getFunctionName(functionNode, parent);
+
+    if (functionName && (isHookName(functionName) || isComponentName(functionName))) {
+        return RENDER;
+    }
+
+    return returnsJSX(functionNode) ? RENDER : DEFERRED;
+}
+
+/**
+ * Walk outwards from the read towards module scope, and answer where it runs. The first boundary that
+ * decides the timing wins: a deferring function boundary (an event handler, useCallback, useEffect, a
+ * nested helper) puts the read at event time, while a component or hook body, a useMemo callback or a
+ * JSX expression puts it in render. Reaching module scope with no boundary at all means the read runs
+ * at import time.
+ *
+ * A JSX expression sets a flag rather than deciding on the spot, so that a read written directly into
+ * JSX at module scope is reported as the module-scope read it is. Inside any function boundary the flag
+ * still wins, because a JSX expression there is a render position whatever that boundary is called.
+ */
+function classifyPosition(ancestors) {
+    let sawJSXExpression = false;
+
+    for (let index = ancestors.length - 1; index >= 0; index--) {
+        const ancestor = ancestors[index];
+
+        if (ancestor.type === 'JSXExpressionContainer') {
+            sawJSXExpression = true;
+            continue;
+        }
+
+        if (!isFunctionNode(ancestor)) {
+            continue;
+        }
+
+        if (sawJSXExpression) {
+            return RENDER;
+        }
+
+        const disposition = classifyFunctionBoundary(ancestor, ancestors[index - 1] ?? null);
+
+        if (disposition === DEFERRED) {
+            return EVENT;
+        }
+
+        if (disposition === RENDER) {
+            return RENDER;
+        }
+    }
+
+    return MODULE_SCOPE;
+}
+
+// ---------------------------------------------------------------------------------------------------
+// Order: a read after an un-awaited write in the same body
+// ---------------------------------------------------------------------------------------------------
+
 /**
  * Whether a function boundary runs in its caller's own tick. An IIFE and a synchronous array callback
  * both do, so neither moves a read or a write out of the surrounding body. Every other boundary means
  * something has to call it, and when that happens is not knowable here.
  */
 function isTransparentBoundary(functionNode, parent) {
-    if (parent?.type !== 'CallExpression') {
-        return false;
-    }
-
-    if (parent.callee === functionNode) {
-        return true;
-    }
-
-    return parent.arguments.includes(functionNode) && parent.callee.type === 'MemberExpression' && matchesCalleeName(parent.callee, SYNCHRONOUS_CALLBACK_METHODS);
+    return classifyFunctionBoundary(functionNode, parent) === SYNCHRONOUS;
 }
 
-/**
- * The body a node runs in, which is the innermost enclosing function once transparent boundaries are
- * seen through. `null` means module scope, which is `no-onyx-read-at-module-scope`'s brief: every read
- * there is already reported, so pairing them with a write would only report the same line twice.
- */
+/** The body a node runs in, which is the innermost enclosing function once transparent boundaries are seen through. */
 function getEnclosingBody(ancestors) {
     for (let index = ancestors.length - 1; index >= 0; index--) {
         const ancestor = ancestors[index];
@@ -253,9 +419,16 @@ function areMutuallyExclusive(write, read) {
 }
 
 /**
- * Flags a synchronous Onyx read that runs after an un-awaited Onyx write in the same body, which A1
- * measured returns the pre-write value. Source order within the body is what decides "after", so a read
- * placed above the write is fine even though a loop could run it again afterwards.
+ * Flags the three ways a synchronous Onyx read goes wrong, all of which are properties of where and when
+ * the call runs rather than of the call itself:
+ *
+ * - during render, where the read does not subscribe, so the rendered value never updates;
+ * - at module scope, where it runs at import time, before Onyx.init() has hydrated the cache;
+ * - after an un-awaited write in the same body, where A1 measured it returns the pre-write value.
+ *
+ * One read gets one message. Position decides first, so a read that is both in render and after a write
+ * is reported as the render read, which is the fix that subsumes the other. Only an event-time read is a
+ * candidate for the read-after-write pass.
  *
  * The object has to resolve to an import from `react-native-onyx`, so a local object that happens to
  * expose `get` and `merge` is left alone.
@@ -269,7 +442,7 @@ function create(context) {
     const readAliases = new WeakSet();
     const writeAliases = new WeakSet();
 
-    /** Reads and writes per enclosing body, in source order. Bodies are only compared against themselves. */
+    /** Event-time reads and writes per enclosing body, in source order. Bodies are only compared against themselves. */
     const callsByBody = new Map();
 
     function trackBinding(node, bindingName, bindings) {
@@ -278,22 +451,6 @@ function create(context) {
         if (variable) {
             bindings.add(variable);
         }
-    }
-
-    function getVariableByName(scope, variableName) {
-        let currentScope = scope;
-
-        while (currentScope) {
-            const variable = currentScope.variables.find((scopeVariable) => scopeVariable.name === variableName);
-
-            if (variable) {
-                return variable;
-            }
-
-            currentScope = currentScope.upper;
-        }
-
-        return null;
     }
 
     function isOnyxMember(node, scope, methods) {
@@ -325,7 +482,7 @@ function create(context) {
 
     return {
         ImportDeclaration(node) {
-            if (typeof node.source.value !== 'string' || (node.source.value !== ONYX_MODULE_PREFIX && !node.source.value.startsWith(`${ONYX_MODULE_PREFIX}/`))) {
+            if (!isOnyxModuleSource(node.source.value)) {
                 return;
             }
 
@@ -380,7 +537,20 @@ function create(context) {
             const calleeVariable = node.callee.type === 'Identifier' ? getVariableByName(scope, node.callee.name) : null;
 
             if (isOnyxMember(node.callee, scope, SYNC_READ_METHODS) || (!!calleeVariable && readAliases.has(calleeVariable))) {
-                record(node, sourceCode.getAncestors(node), 'reads');
+                const ancestors = sourceCode.getAncestors(node);
+                const position = classifyPosition(ancestors);
+
+                if (position === MODULE_SCOPE) {
+                    context.report({node, messageId: 'noOnyxReadAtModuleScope'});
+                    return;
+                }
+
+                if (position === RENDER) {
+                    context.report({node, messageId: 'noOnyxGetInRender'});
+                    return;
+                }
+
+                record(node, ancestors, 'reads');
                 return;
             }
 
