@@ -255,6 +255,11 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                         return;
                     }
 
+                    if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
+                        Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                        return;
+                    }
+
                     Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute(route.params?.backTo));
                 }}
             />
