@@ -1362,7 +1362,6 @@
 "../../tests/actions/IOUTest/TrackExpenseTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/IOUTest/UpdateMoneyRequestTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/OdometerTransactionUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/actions/PolicyMemberTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	8
 "../../tests/actions/PolicyProfileTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/PolicyTest.ts"	"no-restricted-imports"	1
 "../../tests/actions/ReportFieldTest.ts"	"no-restricted-imports"	1
@@ -1373,8 +1372,6 @@
 "../../tests/ui/MoneyRequestReportPreview.test.tsx"	"no-restricted-imports"	1
 "../../tests/ui/WorkspaceMoreFeaturesPageTest.tsx"	"no-restricted-imports"	1
 "../../tests/ui/components/Button.tsx"	"no-restricted-imports"	1
-"../../tests/unit/CompanyCardExportTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/CountryUtils.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/FormulaTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/HomePage/YourSpendSection/useYourSpendDataTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/IOUUtilsTest.ts"	"no-restricted-imports"	1
@@ -1384,18 +1381,11 @@
 "../../tests/unit/ReportSecondaryActionUtilsTest.ts"	"no-restricted-imports"	2
 "../../tests/unit/ReportTitleUtilsTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/ReportUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/Search/handleActionButtonPressTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../tests/unit/SidebarUtilsTest.ts"	"no-restricted-imports"	1
-"../../tests/unit/TelemetrySynchronizerTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/TranslateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/canEditFieldOfMoneyRequestTest.ts"	"@typescript-eslint/no-deprecated/randomReportAction.originalMessage"	3
-"../../tests/unit/cleanupAndNavigateAfterExpenseCreateTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/hooks/useTimeSensitiveCards.test.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/navigateAfterOnboardingTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/navigateToWorkspacesPageTest.ts"	"no-restricted-imports"	1
 "../../tests/unit/pages/inbox/report/ReportActionEditMessageContext.test.tsx"	"no-restricted-imports"	1
-"../../tests/unit/useAccountTabIndicatorStatusTest.ts"	"@typescript-eslint/no-unsafe-type-assertion"	9
-"../../tests/unit/useCreateReportTest.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	9
 "../../tests/unit/useMarkAsReadTest.ts"	"no-restricted-imports"	1
 "../../tests/utils/createMock.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../rsbuild/CustomVersionFilePlugin.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
