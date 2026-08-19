@@ -13,6 +13,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isArchivedPolicy,
     isGroupPolicy,
     isPaidGroupPolicy,
     isPolicyAdmin as isPolicyAdminPolicyUtils,
@@ -118,12 +119,13 @@ function isSubmitAction(
     reportMetadata: OnyxEntry<ReportMetadata>,
     ownerLogin: string | undefined,
     policy?: Policy,
-    reportNameValuePairs?: ReportNameValuePairs,
     violations?: OnyxCollection<TransactionViolation[]>,
     currentUserEmail?: string,
     currentUserAccountID?: number,
 ) {
-    if (isArchivedReport(reportNameValuePairs)) {
+    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedPolicy(policy)) {
         return false;
     }
 
@@ -161,6 +163,10 @@ function isSubmitAction(
 }
 
 function isApproveAction(report: Report, reportTransactions: Transaction[], currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy) {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -214,10 +220,14 @@ function isPrimaryPayAction({
     isSecondaryAction,
     canNonPayerAdminPay,
 }: IsPrimaryPayActionParams) {
-    if (isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    const isExpenseReport = isExpenseReportUtils(report);
+
+    // Expense reports on archived policies cannot be paid, but reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can. IOU and invoice reports have no policy
+    // archived state, so they keep the archived report/chat restriction.
+    if (isExpenseReport ? isArchivedPolicy(policy) : isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
-    const isExpenseReport = isExpenseReportUtils(report);
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
         return false;
     }
@@ -536,7 +546,7 @@ function getReportPrimaryAction(params: GetReportPrimaryActionParams): ValueOf<t
 
     if (
         isCurrentUserSubmitter(report, currentUserAccountID) &&
-        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, reportNameValuePairs, violations, currentUserLogin, currentUserAccountID) &&
+        isSubmitAction(report, reportTransactions, reportMetadata, ownerLogin, policy, violations, currentUserLogin, currentUserAccountID) &&
         !allExpensesHeld
     ) {
         return CONST.REPORT.PRIMARY_ACTIONS.SUBMIT;
