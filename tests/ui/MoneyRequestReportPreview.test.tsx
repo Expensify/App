@@ -1062,6 +1062,65 @@ describe('MoneyRequestReportPreview', () => {
             expect(setActiveTransactionIDsSpy).not.toHaveBeenCalledWith([newerTransaction.transactionID, olderTransaction.transactionID]);
         });
 
+        it('does not open the pressed expense over the report when "View" is tapped during the cascade delay', async () => {
+            // Regression: "View" opens the same report route, so the cascade's own "did the user navigate away" guard
+            // does not catch it and the expense used to land on top, showing the details twice after going back.
+            jest.useRealTimers();
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+
+            await renderAndPopulateCarousel();
+            await pressSecondTransaction();
+
+            // Tap "View" while the cascade timer is still pending.
+            fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
+            await waitForBatchedUpdatesWithAct();
+            await act(async () => {
+                await new Promise((resolve) => {
+                    setTimeout(resolve, 350);
+                });
+            });
+
+            const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
+            expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: reportRoute}));
+        });
+
+        it('seeds every expense into the arrows, not just the ones the carousel renders', async () => {
+            // Regression: the carousel caps how many cards it draws, and seeding that capped list left the next arrow
+            // disabled on the last drawn card even though more expenses existed after it.
+            mockResponsiveLayoutOverride = wideResponsiveLayout;
+            const many = Array.from({length: 14}, (_, index) => ({
+                ...mockTransaction,
+                transactionID: `bulk_${index}`,
+                created: `2026-08-${String(index + 1).padStart(2, '0')} 00:00:00`,
+                amount: mockTransaction.amount - (index + 1) * 1300,
+            }));
+            mockUseReportWithTransactionsAndViolations.mockImplementation(() => [mockIOUReport, many, {}]);
+            mockUseReportTransactionsCollection.mockImplementation(() => toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, many, (transaction) => transaction.transactionID));
+            jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
+            const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
+
+            renderPage({});
+            await waitForBatchedUpdatesWithAct();
+            setCurrentWidth();
+            await act(async () => {
+                await Onyx.mergeCollection(
+                    ONYXKEYS.COLLECTION.TRANSACTION,
+                    Object.fromEntries(many.map((transaction) => [`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`, transaction])) as Record<
+                        `${typeof ONYXKEYS.COLLECTION.TRANSACTION}${string}`,
+                        Transaction
+                    >,
+                );
+                await waitForBatchedUpdatesWithAct();
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText(getTransactionDisplayAmountAndHeaderText(many.at(0) ?? mockTransaction).transactionDisplayAmount));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(many.map((transaction) => transaction.transactionID));
+        });
+
         it('opens the report instead of the lone expense for a single-expense report', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             setReportPreviewData({transactions: [mockTransaction]});

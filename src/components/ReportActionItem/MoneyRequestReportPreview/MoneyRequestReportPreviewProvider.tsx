@@ -69,6 +69,7 @@ type MoneyRequestReportPreviewProviderProps = ChildrenProps & {
     onPaymentOptionsHide?: () => void;
     renderTransactionItem: ListRenderItem<Transaction>;
     onOrderedTransactionsChange?: (orderedTransactions: Transaction[]) => void;
+    onCancelPendingPress?: () => void;
     currentWidth: number;
     reportPreviewStyles: MoneyRequestReportPreviewStyleType;
     newTransactionIDs?: Set<string>;
@@ -98,6 +99,7 @@ function MoneyRequestReportPreviewProvider({
     onPaymentOptionsHide,
     renderTransactionItem,
     onOrderedTransactionsChange,
+    onCancelPendingPress,
     currentWidth,
     reportPreviewStyles,
     newTransactionIDs,
@@ -211,6 +213,8 @@ function MoneyRequestReportPreviewProvider({
         if (!iouReportID) {
             return;
         }
+        // A carousel press may still have a delayed expense navigation staged, and it opens over this same report.
+        onCancelPendingPress?.();
         startSpan(`${CONST.TELEMETRY.SPAN_OPEN_REPORT}_${iouReportID}`, {
             name: 'MoneyRequestReportPreviewContent',
             op: CONST.TELEMETRY.SPAN_OPEN_REPORT,
@@ -227,7 +231,7 @@ function MoneyRequestReportPreviewProvider({
                 }),
             );
         }
-    }, [iouReportID, isSmallScreenWidth]);
+    }, [iouReportID, isSmallScreenWidth, onCancelPendingPress]);
 
     const onHoldMenuOpen = useCallback((requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => {
         if (requestType !== CONST.IOU.REPORT_ACTION_TYPE.PAY && requestType !== CONST.IOU.REPORT_ACTION_TYPE.APPROVE) {

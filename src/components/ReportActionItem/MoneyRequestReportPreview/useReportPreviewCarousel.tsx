@@ -85,7 +85,7 @@ function useReportPreviewCarousel({
     const [ownerLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(iouReport?.ownerAccountID)});
     const isFocusedRef = useIsFocusedRef();
 
-    const carouselTransactions = useMemo(() => {
+    const sortedTransactions = useMemo(() => {
         if (shouldShowAccessPlaceHolder) {
             return [];
         }
@@ -106,8 +106,11 @@ function useReportPreviewCarousel({
             // Tiebreak by date (ascending — oldest first) so position is stable across RBR state changes
             return localeCompare(getCreated(a), getCreated(b));
         });
-        return sorted.slice(0, MAX_PREVIEWS_NUMBER + 1);
+        return sorted;
     }, [shouldShowAccessPlaceHolder, transactions, transactionViolations, currentUserDetails?.login, currentUserDetails?.accountID, iouReport, ownerLogin, policy, localeCompare]);
+
+    // The carousel only renders the first few cards, but the expense view's arrows must still reach every expense.
+    const carouselTransactions = useMemo(() => sortedTransactions.slice(0, MAX_PREVIEWS_NUMBER + 1), [sortedTransactions]);
     const prevCarouselTransactionLength = useRef(0);
 
     useEffect(() => {
@@ -160,8 +163,8 @@ function useReportPreviewCarousel({
 
     useEffect(() => {
         carouselTransactionsRef.current = carouselTransactions;
-        onOrderedTransactionsChange?.(carouselTransactions);
-    }, [carouselTransactions, onOrderedTransactionsChange]);
+        onOrderedTransactionsChange?.(sortedTransactions);
+    }, [carouselTransactions, onOrderedTransactionsChange, sortedTransactions]);
 
     useEffect(() => {
         const index = carouselTransactions.findIndex((transaction) => newTransactionIDs?.has(transaction.transactionID));
