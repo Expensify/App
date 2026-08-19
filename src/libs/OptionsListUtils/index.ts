@@ -120,7 +120,7 @@ import {
     wasActionTakenByCurrentUser,
     withDEWRoutedActionsArray,
 } from '@libs/ReportActionsUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName, getReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
@@ -516,13 +516,21 @@ function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): b
     );
 }
 
+type ChatPreviewParts = {
+    /** The `Name: ` actor prefix the LHN shows before the last message preview, or an empty string */
+    actorPrefix: string;
+    /** LHN-identical replacement text for actions whose custom alternate text embeds the actor (rename, leave room, invite/remove) */
+    customAlternateText?: string;
+};
+
 /**
- * Returns the `Name: ` actor prefix that the LHN (SidebarUtils.getOptionData) shows before the last message
- * preview, or an empty string when no prefix should be shown. Mirrors the two prefix regimes of getOptionData:
- * rooms/threads/tasks/group chats show the actor for any regular message, everything else (DMs, expense reports)
- * is gated by shouldShowLastActorDisplayName.
+ * Returns the chat preview pieces that the LHN (SidebarUtils.getOptionData) renders for the last message.
+ * `actorPrefix` mirrors the two prefix regimes of getOptionData: rooms/threads/tasks/group chats show the actor
+ * for any regular message, everything else (DMs, expense reports) is gated by shouldShowLastActorDisplayName.
+ * `customAlternateText` reproduces the getOptionData branches that bake the actor into their own alternate text
+ * (rename, leave room, invite/remove), since excluding them from the generic prefix alone would drop the actor.
  */
-function getChatPreviewActorPrefix({
+function getChatPreviewParts({
     report,
     personalDetails,
     isReportArchived,
@@ -530,6 +538,7 @@ function getChatPreviewActorPrefix({
     visibleReportActionsData,
     currentUserAccountID,
     sortedActions,
+    reportAttributesDerived,
 }: {
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -538,9 +547,10 @@ function getChatPreviewActorPrefix({
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     currentUserAccountID: number | undefined;
     sortedActions?: Record<string, ReportAction[]>;
-}): string {
+    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
+}): ChatPreviewParts {
     if (!report || isReportArchived || currentUserAccountID === undefined) {
-        return '';
+        return {actorPrefix: ''};
     }
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     // When the sorted (newest-first) actions derived value is available, the last visible action is found in a
@@ -573,11 +583,54 @@ function getChatPreviewActorPrefix({
         isThreadMessage ||
         reportUtilsIsGroupChat(report) ||
         isDeprecatedGroupDM(report, isReportArchived);
+
+    // Mirror the getOptionData branches that render these actions with the actor baked into the text itself.
+    // Keep in sync with the if/else chain in SidebarUtils.getOptionData.
+    let customAlternateText: string | undefined;
+    if (usesChatPrefixRules) {
+        if (isRenamedAction(lastAction)) {
+            customAlternateText = getRenamedAction(translate, lastAction, isExpenseReport(report), lastActorDisplayName);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
+            const actionMessage = getReportActionMessageText(lastAction);
+            customAlternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
+            customAlternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
+        } else if (isInviteOrRemovedAction(lastAction)) {
+            let actorDetails: Partial<PersonalDetails> | undefined;
+            if (lastAction.actorAccountID) {
+                actorDetails = personalDetails?.[lastAction.actorAccountID] ?? undefined;
+            }
+            let actorDisplayName = lastAction.person?.[0]?.text;
+            if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
+                actorDetails = {
+                    displayName: actorDisplayName,
+                    accountID: lastAction.actorAccountID,
+                };
+            }
+            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
+            const lastActionOriginalMessage = getOriginalMessage(lastAction);
+            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
+            const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
+            const isInvite =
+                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
+            const verb = isInvite ? translate('workspace.invite.invited') : translate('workspace.invite.removed');
+            const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
+            customAlternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
+            const lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
+            const derivedReportName = lastActionReport?.reportID ? reportAttributesDerived?.[lastActionReport.reportID]?.reportName : undefined;
+            const roomName = getReportName(lastActionReport, derivedReportName) || lastActionOriginalMessage?.roomName;
+            if (roomName) {
+                const preposition = isInvite ? ` ${translate('workspace.invite.to')}` : ` ${translate('workspace.invite.from')}`;
+                customAlternateText += `${preposition} ${roomName}`;
+            }
+        }
+    }
+
     const shouldShowActorPrefix = usesChatPrefixRules
         ? lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !!lastActorDisplayName && !isActionWithCustomAlternateText(lastAction)
         : shouldShowLastActorDisplayName(report, resolvedLastActorDetails, lastAction, currentUserAccountID, translate);
     if (!shouldShowActorPrefix) {
-        return '';
+        return {actorPrefix: '', customAlternateText};
     }
     const displayName =
         getLastActorDisplayNameFromLastVisibleActions(
@@ -590,7 +643,7 @@ function getChatPreviewActorPrefix({
             visibleReportActionsData,
             lastAction,
         ) || lastActorDisplayName;
-    return displayName ? `${displayName}: ` : '';
+    return {actorPrefix: displayName ? `${displayName}: ` : '', customAlternateText};
 }
 
 type GetAlternateTextConfig = {
@@ -641,7 +694,7 @@ function getAlternateText(
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
     // Plain comments keep the raw text as typed: the LHN shows literal HTML-like text unparsed, while
-    // Parser.htmlToText would strip it (e.g. `<b>test</b>` -> `test`). Ref: https://github.com/Expensify/App/issues/82036
+    // Parser.htmlToText would strip it (e.g. `<b>test</b>` becomes `test`). Ref: https://github.com/Expensify/App/issues/82036
     const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const formattedLastMessageText =
         formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
@@ -663,9 +716,9 @@ function getAlternateText(
         });
     const reportPrefix = getReportSubtitlePrefix(report);
 
-    const actorPrefix =
+    const {actorPrefix, customAlternateText} =
         showChatPreviewLine && formattedLastMessageText
-            ? getChatPreviewActorPrefix({
+            ? getChatPreviewParts({
                   report,
                   personalDetails,
                   isReportArchived,
@@ -673,9 +726,10 @@ function getAlternateText(
                   visibleReportActionsData,
                   currentUserAccountID,
                   sortedActions,
+                  reportAttributesDerived,
               })
-            : '';
-    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + formattedLastMessageText;
+            : {actorPrefix: '', customAlternateText: undefined};
+    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + (customAlternateText ?? formattedLastMessageText);
 
     if (isExpenseThread || option.isMoneyRequestReport) {
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
