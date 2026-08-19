@@ -1696,8 +1696,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Berichte sind auf ${CONST.REPORT.MAX_TRANSACTIONS} Ausgaben begrenzt. Bitte verschiebe einige in einen anderen Bericht.`,
         moveExpensesError: 'Sie können Pauschalspesen nicht in Berichte anderer Arbeitsbereiche verschieben, da die Pauschalsätze je nach Arbeitsbereich unterschiedlich sein können.',
         submitReportTo: {
-            sendExpense: 'Senden Sie Ihre Ausgabe an jede beliebige Person',
+            sendExpense: 'An beliebige Person senden',
             sendExpenseSubtitle: 'Laden Sie jede beliebige Person zu Expensify ein, indem Sie ihre E-Mail-Adresse oder Telefonnummer verwenden.',
+            selectRecipientError: 'Wählen Sie einen Empfänger aus oder geben Sie ihn ein, um fortzufahren.',
         },
         changeApprover: {
             title: 'Genehmigende Person ändern',

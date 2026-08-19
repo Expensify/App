@@ -110,7 +110,10 @@ function ReportSubmitToContent({
     const [userSelectedManagerEmail, setUserSelectedManagerEmail] = useState<string | undefined>();
     const [extraSubmitToRecipients, setExtraSubmitToRecipients] = useState<WorkspaceMemberItem[]>([]);
     const [hasError, setHasError] = useState(false);
-    const managerEmail = userSelectedManagerEmail ?? prepopulatedEmail;
+    // Never seed the selection from the default recipient. `prepopulatedEmail` still decides which rows are listed
+    // (via `isPrepopulatedSubmitToRecipient` / `prepopulatedSubmitToRecipient`), but nothing is auto-selected, so the
+    // submitter is no longer pre-picked and the "nothing selected" guard in `handleSubmit` becomes reachable.
+    const managerEmail = userSelectedManagerEmail ?? '';
 
     const workspaceMembers = useMemo((): WorkspaceMemberItem[] => {
         const employeeList = policy?.employeeList;
@@ -386,20 +389,53 @@ function ReportSubmitToContent({
         [setSearchTerm, workspaceMembers],
     );
 
+    // Extracted so the same error can render both here (as `SelectionList` children, shown on the non-empty state)
+    // and inside `listEmptyContent` below (shown on the empty / "No results found" state) — `BaseSelectionList`
+    // only renders `{children}` in its non-empty branch, so children alone would vanish when a search filters
+    // every recipient out while Confirm stays live.
+    const errorContent = hasError && (
+        <FormHelpMessage
+            isError
+            style={[styles.ph5, styles.mb3]}
+            message={translate('iou.submitReportTo.selectRecipientError')}
+        />
+    );
+
     const listEmptyContent = useMemo(() => {
         return (
-            <BlockingView
-                icon={lazyIllustrations.PaperAirplane}
-                iconWidth={variables.iconSizeSuperLarge}
-                iconHeight={variables.iconSizeSuperLarge}
-                title={translate('iou.submitReportTo.sendExpense')}
-                subtitle={translate('iou.submitReportTo.sendExpenseSubtitle')}
-                subtitleStyle={styles.textSupporting}
-                containerStyle={styles.pb10}
-                contentFitImage="contain"
-            />
+            <View style={[styles.flex1, styles.w100]}>
+                <BlockingView
+                    icon={lazyIllustrations.PaperAirplane}
+                    iconWidth={variables.iconSizeSuperLarge}
+                    iconHeight={variables.iconSizeSuperLarge}
+                    title={translate('iou.submitReportTo.sendExpense')}
+                    subtitle={translate('iou.submitReportTo.sendExpenseSubtitle')}
+                    subtitleStyle={styles.textSupporting}
+                    // `notFoundTextHeader` spaces the title with `marginVertical: 20`, which is wider than the 8px gap
+                    // used between a headline and its paragraph elsewhere. Only the bottom edge is narrowed here.
+                    titleStyles={styles.mb2}
+                    containerStyle={styles.pb10}
+                    contentFitImage="contain"
+                />
+                {/* Taken out of the layout flow so revealing the error can't shrink the centred BlockingView above and
+                    shove the illustration upwards. The 40px `pb10` already reserves the room this occupies. */}
+                <View style={[styles.pAbsolute, styles.b0, styles.l0, styles.r0]}>{errorContent}</View>
+            </View>
         );
-    }, [lazyIllustrations.PaperAirplane, styles.pb10, styles.textSupporting, translate]);
+    }, [
+        errorContent,
+        lazyIllustrations.PaperAirplane,
+        styles.b0,
+        styles.flex1,
+        styles.l0,
+        styles.mb2,
+        styles.pAbsolute,
+        styles.pb10,
+        styles.r0,
+        styles.textSupporting,
+        styles.w100,
+        translate,
+    ]);
 
     const shouldShowNotFoundView = (isEmptyObject(policy) && !isLoadingReportData) || !isExpenseReport(report) || isMoneyRequestReportPendingDeletion(report);
 
@@ -448,13 +484,7 @@ function ReportSubmitToContent({
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding={!isInLandscapeMode}
             >
-                {hasError && (
-                    <FormHelpMessage
-                        isError
-                        style={[styles.ph5, styles.mb3]}
-                        message={translate('common.error.pleaseSelectOne')}
-                    />
-                )}
+                {errorContent}
             </SelectionList>
         </View>
     );

@@ -1635,8 +1635,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `每个报告最多可包含 ${CONST.REPORT.MAX_TRANSACTIONS} 笔支出。请将部分支出移动到其他报告。`,
         moveExpensesError: '您无法将每日津贴报销移动到其他工作区的报表中，因为不同工作区的每日津贴标准可能不同。',
         submitReportTo: {
-            sendExpense: '将你的报销发送给任何人',
+            sendExpense: '发送给任何人',
             sendExpenseSubtitle: '使用电子邮箱地址或电话号码邀请任何人加入 Expensify。',
+            selectRecipientError: '选择或输入收件人以继续。',
         },
         changeApprover: {
             title: '更改审批人',

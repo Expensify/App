@@ -1776,8 +1776,9 @@ const translations = {
         moveExpensesError: "You can't move per diem expenses to reports on other workspaces, because the per diem rates may differ between workspaces.",
         moveExpensesMaxTransactionsError: `Reports are limited to ${CONST.REPORT.MAX_TRANSACTIONS} expenses. Please move some to another report.`,
         submitReportTo: {
-            sendExpense: 'Send your expense to anyone',
+            sendExpense: 'Submit to anyone',
             sendExpenseSubtitle: 'Invite anyone to Expensify by using their email address or phone number.',
+            selectRecipientError: 'Select or enter a recipient to continue.',
         },
         changeApprover: {
             title: 'Change approver',

@@ -1690,8 +1690,9 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Os relatórios são limitados a ${CONST.REPORT.MAX_TRANSACTIONS} despesas. Mova algumas para outro relatório.`,
         moveExpensesError: 'Você não pode mover despesas de diária para relatórios em outros workspaces, porque as tarifas de diária podem ser diferentes entre os workspaces.',
         submitReportTo: {
-            sendExpense: 'Envie sua despesa para qualquer pessoa',
+            sendExpense: 'Enviar para qualquer pessoa',
             sendExpenseSubtitle: 'Convide qualquer pessoa para o Expensify usando o endereço de e-mail ou número de telefone.',
+            selectRecipientError: 'Selecione ou insira um destinatário para continuar.',
         },
         changeApprover: {
             title: 'Alterar aprovador',
