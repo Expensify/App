@@ -86,7 +86,10 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare', IconAsset>,
+    expensifyIcons?: Record<
+        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare',
+        IconAsset
+    >,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
     isIntuitEnterpriseSuiteOverride?: boolean,
@@ -147,7 +150,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
                 title: translate(shouldUseIntuitEnterpriseSuite ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo'),
-                icon: expensifyIcons?.QBOSquare,
+                icon: shouldUseIntuitEnterpriseSuite ? expensifyIcons?.IntuitSquare : expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
@@ -173,8 +176,8 @@ function getAccountingIntegrationData(
                     CONST.QUICKBOOKS_CONFIG.RECEIVABLE_ACCOUNT,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSES_EXPORT_DESTINATION,
                     CONST.QUICKBOOKS_CONFIG.NON_REIMBURSABLE_EXPENSE_ACCOUNT,
-                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR,
-                    CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR,
+                    CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
                     ...(qboConfig?.nonReimbursableExpensesExportDestination === CONST.QUICKBOOKS_NON_REIMBURSABLE_EXPORT_ACCOUNT_TYPE.VENDOR_BILL
                         ? [CONST.QUICKBOOKS_CONFIG.AUTO_CREATE_VENDOR]
                         : []),
@@ -232,7 +235,7 @@ function getAccountingIntegrationData(
                     CONST.XERO_CONFIG.EXPORTER,
                     CONST.XERO_CONFIG.BILL_DATE,
                     CONST.XERO_CONFIG.BILL_STATUS,
-                    CONST.XERO_CONFIG.TRAVEL_INVOICING_PAYABLE_ACCOUNT,
+                    CONST.XERO_CONFIG.TRAVEL_BILLING_PAYABLE_ACCOUNT,
                     CONST.XERO_CONFIG.NON_REIMBURSABLE_ACCOUNT,
                     CONST.XERO_CONFIG.DEFAULT_VENDOR,
                 ],
@@ -500,8 +503,8 @@ function getAccountingIntegrationData(
                     CONST.RILLET_CONFIG.BILL_PAYMENT_ACCOUNT_CODE,
                     CONST.RILLET_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.RILLET_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
-                    CONST.RILLET_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
-                    CONST.RILLET_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.RILLET_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.RILLET_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.rillet.alias,
@@ -556,8 +559,8 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.BILL_PAYMENT_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.SYNC_EXPENSIFY_CARD_SETTLEMENTS,
                     CONST.DUALENTRY_CONFIG.SETTLEMENTS_BANK_ACCOUNT_ID,
-                    CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_INVOICING_SETTLEMENTS,
-                    CONST.DUALENTRY_CONFIG.TRAVEL_INVOICING_SETTLEMENTS_BANK_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.SYNC_TRAVEL_BILLING_SETTLEMENTS,
+                    CONST.DUALENTRY_CONFIG.TRAVEL_BILLING_SETTLEMENTS_BANK_ACCOUNT_ID,
                 ],
                 workspaceUpgradeNavigationDetails: {
                     integrationAlias: CONST.UPGRADE_FEATURE_INTRO_MAPPING.dualEntry.alias,

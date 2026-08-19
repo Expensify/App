@@ -1,4 +1,4 @@
-import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import {afterAll, afterEach, beforeEach, describe, expect, it, jest, mock, setDefaultTimeout} from 'bun:test';
 import type {Mock} from 'bun:test';
 
 import Git from '@scripts/utils/Git';
@@ -9,6 +9,12 @@ import {Str} from 'expensify-common';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
+
+// Each test shells out to the real `oxfmt` binary (twice per locale) plus file I/O, so under a loaded CI runner a
+// test can spike well past the default 5000ms per-test timeout (measured spikes of 4-11s vs a ~275ms healthy peak),
+// which killed the in-flight `oxfmt` subprocess with SIGTERM and flaked the run. 30s matches the CIGitLogic timeout
+// and leaves ample headroom over the worst observed contention.
+setDefaultTimeout(30000);
 
 let processExitSpy: Mock<typeof process.exit>;
 let consoleErrorSpy: Mock<typeof console.error>;

@@ -1462,7 +1462,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} aprovou:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} aprovou ${amount}`,
         payerSettled: (amount: number | string) => `pagou ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `pagou ${amount}. Adicione uma conta bancária para receber seu pagamento.`,
         automaticallyApproved: `aprovado por meio das <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">regras do workspace</a>`,
         approvedAmount: (amount: number | string) => `aprovou ${amount}`,
         approvedMessage: `aprovado`,
@@ -1580,6 +1579,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             unableToSubmitReport: 'Não foi possível enviar o relatório',
             allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
+            allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
@@ -2101,6 +2101,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
+        viewUserHistory: 'Ver histórico do usuário',
+        viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -2193,6 +2195,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Instale a versão mais recente do Expensify',
         toGetLatestChanges: 'Para mobile, faça o download e instale a versão mais recente. Para web, atualize o seu navegador.',
         newAppNotAvailable: 'Atualize agora e você vai agradecer a gente depois.',
+        updateAvailable: 'Atualização disponível',
+        pleaseRefresh: 'Atualize esta página para obter a versão mais recente do Expensify.',
+        refreshPage: 'Atualizar página',
     },
     initialSettingsPage: {
         about: 'Sobre',
@@ -3243,6 +3248,7 @@ ${amount} para ${merchant} - ${date}`,
         accounting: {
             title: 'Você usa algum software de contabilidade?',
             none: 'Nenhum',
+            otherAccountingSoftware: 'Seu software de contabilidade',
         },
         interestedFeatures: {
             title: 'Em quais recursos você tem interesse?',
@@ -5714,8 +5720,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha de onde pagar as contas e nós vamos criar o pagamento no Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
-            travelInvoicingSettlementAccount: {label: 'Conta de liquidação de faturamento de viagem', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de cobrança consolidada de viagens',
+            travelInvoicingSettlementAccount: {
+                label: 'Conta de liquidação de faturamento consolidado de viagens',
+                description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.',
+            },
             exportToMultipleAccounts: 'Configurar exportação para várias contas',
             cardProgramAccount: {
                 label: 'Conta do programa de cartão',
@@ -5901,6 +5910,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             directFeed: 'Feed direto',
             whoNeedsCardAssigned: 'Quem precisa de um cartão atribuído?',
             chooseTheCardholder: 'Escolha o titular do cartão',
+            pleaseSelectACardholder: 'Selecione um titular do cartão para continuar',
             chooseCard: 'Escolha um cartão',
             chooseCardFor: (assignee: string) =>
                 `Escolha um cartão para <strong>${assignee}</strong>. Não encontra o cartão que está procurando? <concierge-link>Conte para a gente.</concierge-link>`,
@@ -6045,6 +6055,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             deleteFailureMessage: 'Ocorreu um erro ao excluir a categoria, tente novamente',
             categoryName: 'Nome da categoria',
             requiresCategory: 'Os membros devem categorizar todas as despesas',
+            showCategoryGLCodes: 'Mostrar códigos GL ao categorizar despesas',
             needCategoryForExportToIntegration: (connectionName: string) => `Todas as despesas devem ser categorizadas para serem exportadas para ${connectionName}.`,
             subtitle: 'Tenha uma visão melhor de onde o dinheiro está sendo gasto. Use nossas categorias padrão ou adicione as suas.',
             emptyCategories: {
@@ -7259,6 +7270,31 @@ ${reportName}`,
             confirmText: 'Sim, exportar novamente',
             cancelText: 'Cancelar',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Cuidado!',
+            description: (connectionName: ConnectionName) =>
+                `Os relatórios selecionados estão conectados a empresas ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diferentes, portanto não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
+            confirmText: 'Entendi',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Exportar ${exportableCount}/${selectedCount} relatórios para ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Somente os relatórios conectados a ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Somente os relatórios elegíveis para exportação serão exportados.`);
+                }
+                return `${reasons.join('\n\n')}\n\nOs seguintes relatórios serão exportados:`;
+            },
+            confirmText: () => ({
+                one: `Exportar 1 relatório`,
+                other: (count: number) => `Exportar ${count} relatórios`,
+            }),
+            cancelText: 'Cancelar',
+        },
         upgrade: {
             reportFields: {
                 title: 'Campos do relatório',
@@ -7593,8 +7629,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 alwaysNonReimbursable: 'Sempre não reembolsável',
                 alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Cobrável por padrão',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. As despesas faturáveis são ativadas ou desativadas em <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão.',
                 billable: 'Faturável',
                 billableDescription: 'As despesas são mais frequentemente refaturadas aos clientes',
                 nonBillable: 'Não faturável',
@@ -8821,6 +8856,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de categorização de despesas`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de marcação de despesas`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `atualizou a configuração da taxa de conversão de moeda para "${preferenceLabel}"`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
@@ -9068,7 +9104,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Cartão Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Reembolso',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Faturamento de Viagens Consolidado',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Faturamento de Viagens Consolidado',
             },
             is: 'É',
             has: {submittedViolation: 'Violação enviada'},
@@ -9469,7 +9505,6 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         decline: 'Recusar',
     },
     actionableMentionTrackExpense: {
-        submit: 'Enviar para alguém',
         submitToFriend: 'Enviar para um amigo',
         submitToEmployer: 'Enviar para meu empregador',
         categorize: 'Classificar isso',
@@ -10003,6 +10038,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 onboardingChatTitle: (discountType: number) => `Oferta por tempo limitado: ${discountType}% de desconto no seu primeiro ano!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Solicite em até ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {title: 'Sua fatura de viagem está vencida', subtitle: (date: string) => `Pague sua fatura de viagem até ${date} para continuar reservando viagens.`},
+            travelInvoiceOverdueLocked: {title: 'Reserva de viagem está pausada', subtitle: 'Sua fatura de viagem está vencida. Pague-a para voltar a reservar viagens.'},
         },
         cardSection: {
             title: 'Pagamento',
