@@ -81,8 +81,8 @@ describe('ReportActionItemSystem', () => {
         const actor = screen.getByText('Todd Clyde ');
         const content = screen.getByText('submitted');
         const timestamp = screen.getByText('2026-07-30 00:00:00.000');
-        expect(actor.parent).toBe(content.parent);
-        expect(timestamp.parent).not.toBe(content.parent);
+        expect(actor.parent === content.parent).toBe(true);
+        expect(timestamp.parent === content.parent).toBe(false);
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {
