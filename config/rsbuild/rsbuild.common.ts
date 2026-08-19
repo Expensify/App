@@ -52,7 +52,6 @@ function getOxcAndWorkletsLoaders(isDevServer: boolean) {
                 reactCompiler: {
                     target: '19',
                     panicThreshold: 'none',
-                    isDev: isDevServer,
                     // `sources` is a filename allowlist: the compiler only runs on files whose path
                     // contains one of these strings. Every path contains the empty string, so this
                     // replaces the default filter (which skips `node_modules`) and keeps the compiler
