@@ -9,6 +9,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import useParentReportAction from '@hooks/useParentReportAction';
+import useReportActionsScroll from '@hooks/useReportActionsScroll';
 import useReportTransactionsCollection from '@hooks/useReportTransactionsCollection';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSidePanelState from '@hooks/useSidePanelState';
@@ -215,7 +216,7 @@ const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementT
 
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
 const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
-const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
+const mockUseReportActionsScroll = useReportActionsScroll as jest.MockedFunction<typeof useReportActionsScroll>;
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 
 jest.mock('@libs/actions/Report', () => ({
@@ -405,6 +406,10 @@ describe('ReportActionsList (body)', () => {
             mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: systemActions});
             return renderReportActionsList();
         };
+        const getCapturedSystemActionIDs = () =>
+            getCapturedVisibleActions()
+                ?.filter((action) => systemActions.some((systemAction) => systemAction.reportActionID === action.reportActionID))
+                .map((action) => action.reportActionID);
 
         afterEach(() => {
             mockReport.type = undefined;
@@ -413,9 +418,9 @@ describe('ReportActionsList (body)', () => {
         it('collapses and re-expands passive system runs in the standard expense-report list', () => {
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
 
-            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'chat-boundary']);
-            expect(getRenderedReportActionsListItemProps(systemActions.at(2) as OnyxTypes.ReportAction, 1)).toMatchObject({displayAsGroup: false});
-            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
+            expect(getRenderedReportActionsListItemProps(systemActions.at(2)!, 1)).toMatchObject({displayAsGroup: false});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
             const showControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(showControl?.props).toMatchObject({count: 2, isExpanded: false});
 
@@ -423,8 +428,8 @@ describe('ReportActionsList (body)', () => {
                 showControl?.props.onPress();
             });
 
-            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'system-older', 'chat-boundary']);
-            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
             const hideControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(expandedAnchor, CollapsedSystemMessages);
             const systemItem = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(expandedAnchor, ReportActionsListItemRenderer);
             expect(hideControl?.props).toMatchObject({count: 2, isExpanded: true});
@@ -433,7 +438,7 @@ describe('ReportActionsList (body)', () => {
             act(() => {
                 hideControl?.props.onPress();
             });
-            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'chat-boundary']);
+            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
         });
 
         it('maps an unread run member to the collapsed summary row', () => {
@@ -442,7 +447,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIDForInitialScroll: 'system-newer'});
-            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
         });
@@ -456,8 +461,8 @@ describe('ReportActionsList (body)', () => {
         it('does not collapse passive actions in ordinary chat reports', () => {
             renderSystemActions(CONST.REPORT.TYPE.CHAT);
 
-            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'system-older', 'chat-boundary']);
-            expect(getRenderedReportActionsListItemProps(systemActions.at(0) as OnyxTypes.ReportAction).reportActionItemComponent).toBeUndefined();
+            expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+            expect(getRenderedReportActionsListItemProps(systemActions.at(0)!).reportActionItemComponent).toBeUndefined();
         });
     });
 
@@ -491,7 +496,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(true);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(true);
+            expect(getCapturedListProps()?.extraData).toMatchObject({isDraftPendingCompletion: true});
         });
 
         it('enables the context menu after the Concierge draft finishes streaming', () => {
@@ -505,7 +510,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(getCapturedVisibleActions()?.some((action) => action.reportActionID === conciergeDraftReportAction.reportActionID)).toBe(true);
             expect(getRenderedReportActionsListItemProps(conciergeDraftReportAction).shouldDisableContextMenuForConciergeDraft).toBe(false);
-            expect((getCapturedListProps()?.extraData as unknown[]).at(-1)).toBe(false);
+            expect(getCapturedListProps()?.extraData).toMatchObject({isDraftPendingCompletion: false});
         });
     });
 

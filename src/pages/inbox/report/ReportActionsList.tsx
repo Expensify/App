@@ -285,11 +285,12 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     // Find the action-badge target in the displayed list, mapping a hidden run member to its summary row.
     const actionBadgeTargetID = reportAttributes?.actionTargetReportActionID;
-    const actionBadgeTargetIndex = actionBadgeTargetID
-        ? shouldCollapseSystemMessages
+    let actionBadgeTargetIndex = -1;
+    if (actionBadgeTargetID) {
+        actionBadgeTargetIndex = shouldCollapseSystemMessages
             ? (reportActionIDToDisplayIndex.get(actionBadgeTargetID) ?? -1)
-            : renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID)
-        : -1;
+            : renderedVisibleReportActions.findIndex((action) => action.reportActionID === actionBadgeTargetID);
+    }
 
     const {
         trackVerticalScrolling,
@@ -467,14 +468,14 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
 
     // Native mobile does not render updates flatlist the changes even though component did update called.
     // To notify there something changes we can use extraData prop to flatlist
-    const extraData = [
-        shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
-        isArchivedNonExpenseReport(report, isReportArchived),
+    const extraData = {
+        unreadMarkerReportActionID: shouldUseNarrowLayout ? unreadMarkerReportActionID : undefined,
+        isArchivedReport: isArchivedNonExpenseReport(report, isReportArchived),
         draftReportActionID,
         draftMessageHTML,
         isDraftPendingCompletion,
         expandedSystemMessageReportActionIDs,
-    ];
+    };
 
     const listHeaderComponent = (
         <ReportActionsListHeader

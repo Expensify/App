@@ -4,7 +4,7 @@ import Navigation from '@libs/Navigation/Navigation';
 
 import useFollowActionBadgeTarget from '@pages/inbox/report/useFollowActionBadgeTarget';
 
-import type {ReportAction} from '@src/types/onyx';
+import {getFakeReportAction} from '../utils/ReportTestUtils';
 
 const REPORT_ID = 'report';
 
@@ -21,17 +21,18 @@ jest.spyOn(global, 'requestAnimationFrame').mockImplementation((callback: FrameR
     return 0;
 });
 
-const mockNavigation = Navigation as jest.Mocked<typeof Navigation>;
+const mockGetTopmostReportId = jest.mocked(Navigation.getTopmostReportId);
+const mockGetReportRHPActiveRoute = jest.mocked(Navigation.getReportRHPActiveRoute);
 
-function makeAction(reportActionID: string): ReportAction {
-    return {reportActionID} as ReportAction;
+function makeAction(reportActionID: string) {
+    return getFakeReportAction(1, {reportActionID});
 }
 
 describe('useFollowActionBadgeTarget', () => {
     beforeEach(() => {
         jest.clearAllMocks();
-        mockNavigation.getTopmostReportId.mockReturnValue(REPORT_ID);
-        mockNavigation.getReportRHPActiveRoute.mockReturnValue(undefined);
+        mockGetTopmostReportId.mockReturnValue(REPORT_ID);
+        mockGetReportRHPActiveRoute.mockReturnValue(undefined);
     });
 
     afterAll(() => {

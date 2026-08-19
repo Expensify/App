@@ -215,7 +215,7 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
-        const collapsedControl = screen.getByRole('button', {name: '2 actions'});
+        const collapsedControl = screen.getByRole('button', {name: 'Show 2 actions'});
         expect(collapsedControl.props.accessibilityState).toMatchObject({expanded: false});
         expect(getRenderedActionIDs()).toEqual(['report-action-chat-boundary', 'report-action-system-singleton']);
         expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single-chat');
@@ -224,13 +224,13 @@ describe('MoneyRequestReportActionsList system-message presentation', () => {
         fireEvent.press(collapsedControl);
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.getByRole('button', {name: '2 actions'}).props.accessibilityState).toMatchObject({expanded: true});
+        expect(screen.getByRole('button', {name: 'Hide 2 actions'}).props.accessibilityState).toMatchObject({expanded: true});
         expect(getRenderedActionIDs()).toEqual(['report-action-system-anchor', 'report-action-legacy-system', 'report-action-chat-boundary', 'report-action-system-singleton']);
         expect(screen.getByTestId('report-action-system-anchor').props.accessibilityLabel).toBe('grouped-system');
         expect(screen.getByTestId('report-action-legacy-system').props.accessibilityLabel).toBe('grouped-system');
         expect(screen.getByTestId('report-action-chat-boundary').props.accessibilityLabel).toBe('single-chat');
 
-        fireEvent.press(screen.getByRole('button', {name: '2 actions'}));
+        fireEvent.press(screen.getByRole('button', {name: 'Hide 2 actions'}));
         await waitForBatchedUpdatesWithAct();
 
         expect(screen.queryByTestId('report-action-system-anchor')).toBeNull();
