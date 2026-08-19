@@ -57,6 +57,10 @@ function TabSelectorItem({
     const isOfflineWithPendingAction = !!isOffline && !!pendingAction;
     const shouldTextHaveStrikeThrough = isOffline && pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
 
+    // PressableWithSecondaryInteraction handles the web `contextmenu` (right-click) event directly and does not respect the
+    // pressable's `disabled` prop, so gate the secondary interaction ourselves to match the primary press behavior below.
+    const isPressableDisabled = !disabledAction && isDisabled;
+
     const children = (
         <AnimatedPressableWithSecondaryInteraction
             accessibilityLabel={title}
@@ -69,7 +73,7 @@ function TabSelectorItem({
                 isOfflineWithPendingAction ? styles.offlineFeedbackPending : undefined,
             ]}
             wrapperStyle={equalWidth ? styles.flex1 : styles.flexGrow1}
-            onSecondaryInteraction={onLongPress}
+            onSecondaryInteraction={isPressableDisabled ? undefined : onLongPress}
             onPress={() => {
                 scrollToTab(tabKey);
                 onPress();
@@ -81,7 +85,7 @@ function TabSelectorItem({
             dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true}}
             testID={testID}
             sentryLabel={sentryLabel}
-            disabled={!disabledAction && isDisabled}
+            disabled={isPressableDisabled}
         >
             <TabIcon
                 icon={icon}

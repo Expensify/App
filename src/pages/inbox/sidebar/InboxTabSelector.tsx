@@ -126,6 +126,9 @@ function InboxTabSelector() {
                 anchorRef={anchorRef}
                 anchorPosition={popoverPosition ?? {horizontal: 0, vertical: 0}}
                 anchorAlignment={anchorAlignment}
+                // Safari ignores shouldCallAfterModalHide by default, which would show the confirmation modal while the
+                // popover is still dismissing and its focus trap is active. Avoid that exception so the sequencing holds on Safari too.
+                shouldAvoidSafariException
             />
         </View>
     );
