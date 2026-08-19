@@ -140,6 +140,7 @@ import QBOExport from '@assets/images/integrationicons/export/qbo-icon.svg';
 import SageIntacctExport from '@assets/images/integrationicons/export/sage-intacct-icon.svg';
 import XeroExport from '@assets/images/integrationicons/export/xero-icon.svg';
 import GustoSquare from '@assets/images/integrationicons/gusto-icon-square.svg';
+import IntuitSquare from '@assets/images/integrationicons/intuit-icon-square.svg';
 import MicrosoftDynamicsSquare from '@assets/images/integrationicons/microsoft-dynamics-icon-square.svg';
 import NetSuiteSquare from '@assets/images/integrationicons/netsuite-icon-square.svg';
 import OracleSquare from '@assets/images/integrationicons/oracle-icon-square.svg';
@@ -409,6 +410,7 @@ const Expensicons = {
     Info,
     Invoice,
     InvoiceGeneric,
+    IntuitSquare,
     Key,
     Keyboard,
     Link,
