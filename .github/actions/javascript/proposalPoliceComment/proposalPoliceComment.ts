@@ -42,6 +42,7 @@ import * as core from '@actions/core';
 import {context} from '@actions/github';
 import {format} from 'date-fns';
 import {toZonedTime} from 'date-fns-tz';
+import {pathToFileURL} from 'url';
 
 /**
  * The model ProposalPolice uses for all Responses API calls, replacing the Assistant's GPT-4o.
@@ -358,8 +359,8 @@ async function run() {
 }
 
 // Consistent with every other action in .github/actions/javascript/*: only auto-invoke when this file is
-// the actual entry point, not when Jest imports it as a module to unit test `run` directly.
-if (require.main === module) {
+// the actual entry point, not when a test imports it as a module to unit test `run` directly.
+if (import.meta.url === pathToFileURL(process.argv.at(1) ?? '').href) {
     run().catch((error) => {
         console.error(error);
         // Zero status ensures that the action is marked as successful regardless the outcome
