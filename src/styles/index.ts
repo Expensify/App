@@ -2575,6 +2575,28 @@ const staticStyles = (theme: ThemeColors) =>
             justifyContent: 'center',
         },
 
+        // Fixed-width column reserving the composer size button's footprint (button + its horizontal margins) so the
+        // input width stays stable whether the button is centered or bottom-aligned.
+        composerButtonColumn: {
+            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
+            flexGrow: 0,
+            flexShrink: 0,
+        },
+
+        // Absolute stack that fills the column height and reverses direction. On one line the trailing element
+        // wraps away and the button centers, on many lines it grows and pushes the button to the bottom.
+        composerButtonStack: {
+            display: 'flex',
+            flexDirection: 'column-reverse',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            position: 'absolute',
+            height: '100%',
+            width: '100%',
+            overflow: 'hidden',
+            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
+        },
+
         chatItemPDFAttachmentLoading: {
             backgroundColor: 'transparent',
             borderColor: theme.border,
@@ -7249,69 +7271,12 @@ const plainStyles = (theme: ThemeColors) =>
                 marginTop: shouldUseNarrowLayout ? 20 : 32,
             }) satisfies ViewStyle,
 
-        getConciergePromptBoxContainerStyle: (isFocused: boolean) =>
-            ({
-                borderWidth: 1,
-                borderColor: isFocused ? theme.borderFocus : theme.border,
-                borderRadius: variables.componentBorderRadiusRounded,
-                backgroundColor: theme.appBG,
-                minHeight: variables.componentSizeMedium,
-            }) satisfies ViewStyle,
-
-        // Fixed-width column reserving the "+" button's footprint (button + its horizontal margins) so
-        // the input width stays stable whether the button is centered or bottom-aligned.
-        conciergePromptBoxButtonColumn: {
-            flexBasis: COMPOSER_SIZE_BUTTON_SIZE + COMPOSER_SIZE_BUTTON_MARGIN * 2,
-            flexGrow: 0,
-            flexShrink: 0,
-        },
-
-        // Absolute full-height column: on one line the spacer wraps away and the "+" centers, on many
-        // lines the spacer grows and pushes the "+" to the bottom (mirrors the chat composer).
-        conciergePromptBoxButtonStack: {
-            display: 'flex',
-            flexDirection: 'column-reverse',
-            flexWrap: 'wrap',
-            justifyContent: 'center',
-            position: 'absolute',
-            height: '100%',
-            width: '100%',
-            overflow: 'hidden',
-            paddingVertical: COMPOSER_SIZE_BUTTON_MARGIN,
-        },
-
-        // Grows to fill the column so the "+" button sits at the bottom on multi-line input.
+        // Grows to fill the "+" column so the button sits at the bottom on multi-line input. On a single
+        // line it wraps away inside composerButtonStack (overflow hidden) and the button centers instead.
         conciergePromptBoxButtonSpacer: {
             flexGrow: 1,
             flexShrink: 0,
             minHeight: COMPOSER_SIZE_BUTTON_SIZE,
-        },
-
-        conciergePromptBoxDivider: {
-            width: 1,
-            alignSelf: 'stretch',
-            // Cancel the container's vertical padding (pv1) so the divider spans edge-to-edge
-            // while the buttons and input keep their vertical breathing room.
-            marginVertical: -4,
-            backgroundColor: theme.border,
-        },
-
-        conciergePromptBoxInput: {
-            color: theme.text,
-            lineHeight: variables.lineHeightXLarge,
-            fontFamily: FontUtils.fontFamily.platform.EXP_NEUE.fontFamily,
-            // Center the (auto-height) input against the buttons, mirroring the chat composer.
-            alignSelf: 'center',
-            // MarkdownTextInput renders a default 1px border on web. Suppress it like the chat composer.
-            borderWidth: 0,
-        } satisfies TextStyle,
-
-        conciergePromptBoxSendButton: {
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: variables.componentSizeNormal,
-            height: variables.componentSizeNormal,
-            borderRadius: variables.componentBorderRadiusRounded,
         },
 
         getWidgetItemIconContainerStyle: (backgroundColor: string) =>
