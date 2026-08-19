@@ -3067,7 +3067,7 @@ function getReportSections({
             const actions = getLiveOrSnapshotReportActions(reportActions, data, reportItem.reportID);
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
-            const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
+            const shouldShow = isActionLoading || isEligibleForStatus(currentQueryJSON, reportItem);
 
             if (shouldShow) {
                 const reportPendingAction =
