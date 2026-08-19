@@ -66,16 +66,24 @@ afterEach(() => {
 // tree stays mounted.
 describe('ScreenActivityWrapper', () => {
     it('takes a covered screen out of accessibility on its first, still painted render', () => {
-        renderWrapper(true);
+        // Given a screen wrapped for the activity behavior
+        // When it mounts already covered by another screen
+        const {toJSON} = renderWrapper(true);
 
+        // Then it still renders that first frame, while its content is already unreachable for accessibility
+        expect(toJSON()).not.toBeNull();
         expect(screen.queryByTestId('content')).toBeNull();
         expect(screen.getByTestId('content', {includeHiddenElements: true})).toBeOnTheScreen();
     });
 
     it('hides a covered screen after its first render but keeps it mounted', () => {
+        // Given a screen that mounted already covered
         const {toJSON} = renderWrapper(true);
+
+        // When the first-render window completes
         completeFirstRender();
 
+        // Then nothing of it is rendered any more, while its tree stays mounted so revealing it does not remount the children
         expect(toJSON()).toBeNull();
         expect(screen.getByTestId('content', {includeHiddenElements: true})).toBeOnTheScreen();
     });

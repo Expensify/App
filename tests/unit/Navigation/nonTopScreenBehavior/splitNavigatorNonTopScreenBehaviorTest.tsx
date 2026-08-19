@@ -101,14 +101,20 @@ beforeEach(() => {
 
 describe('SplitNavigator non-top screen behavior', () => {
     it('freezes the covered screen that took the navigator default', () => {
+        // Given a split navigator whose sidebar picked no behavior of its own
+        // When it is rendered with a central screen on top of the sidebar
         renderSplitNavigator();
 
+        // Then the sidebar falls back to the navigator default, which is still the freeze behavior
         expect(getNonTopScreenWrapperOf('sidebar-content')).toEqual({wrapper: ScreenFreezeWrapper, isScreenBlurred: true});
     });
 
     it('lets a screen override the navigator default and marks only the covered one as blurred', () => {
+        // Given two central screens that both picked the activity behavior
+        // When they are rendered with only one of them on top
         renderSplitNavigator();
 
+        // Then both take the picked wrapper instead of the navigator default, and only the covered one is blurred
         expect(getNonTopScreenWrapperOf('covered-content')).toEqual({wrapper: ScreenActivityWrapper, isScreenBlurred: true});
         expect(getNonTopScreenWrapperOf('top-content')).toEqual({wrapper: ScreenActivityWrapper, isScreenBlurred: false});
     });

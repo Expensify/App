@@ -7,6 +7,9 @@ jest.mock('@src/CONFIG', () => ({__esModule: true, default: {USE_ACTIVITY_SCREEN
 
 describe('StrictModeMountGate', () => {
     it('falls back to the pass-through gate when the development flag is off, so child effects run only once', () => {
+        // Given the gate loaded with the development flag off
+        // When children that record their effect cycle are mounted through it
+        // Then their effects run once, so a profiling session that opts out of the gate measures no double invocation
         expect(renderGate(StrictModeMountGate)).toEqual(['effect']);
     });
 });

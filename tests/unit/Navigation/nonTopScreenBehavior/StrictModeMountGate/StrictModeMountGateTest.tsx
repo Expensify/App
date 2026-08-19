@@ -7,6 +7,9 @@ jest.mock('@src/CONFIG', () => ({__esModule: true, default: {USE_ACTIVITY_SCREEN
 
 describe('StrictModeMountGate', () => {
     it('mounts the children into an already committed StrictMode, so their effects run the full effect, cleanup, effect cycle', () => {
+        // Given the gate loaded with the development flag on
+        // When children that record their effect cycle are mounted through it
+        // Then their effects run twice around a cleanup, which is what surfaces effects that break when a screen is revealed again
         expect(renderGate(StrictModeMountGate)).toEqual(['effect', 'cleanup', 'effect']);
     });
 });

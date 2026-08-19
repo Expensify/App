@@ -101,6 +101,7 @@ describe('ScreenActivityWrapper navigation context', () => {
     // The inner navigator holds a single screen, so its own blur state can never turn on and the assertions below
     // pin the cover state to the navigation context of the route that hosts the whole navigator.
     it('covers the top screen of a navigator that lost focus to a route above it', () => {
+        // Given an inner navigator that is the focused route, so its own screen starts out uncovered
         render(
             <NavigationContainer ref={testNavigationRef}>
                 <RootStack.Navigator initialRouteName={HOST}>
@@ -121,8 +122,10 @@ describe('ScreenActivityWrapper navigation context', () => {
         expect(getInnerActivityWrapper().props.isScreenBlurred).toBe(false);
         expect(getInnerScreenCoveredState()).toBe(false);
 
+        // When a route above the whole navigator takes focus
         act(() => testNavigationRef.navigate(RHP));
 
+        // Then the inner screen counts as covered, because the wrapper follows the navigation context and not only its own blur state
         expect(screen.getByTestId('rhp-content')).toBeOnTheScreen();
         expect(getInnerActivityWrapper().props.isScreenBlurred).toBe(false);
         expect(getInnerScreenCoveredState()).toBe(true);
