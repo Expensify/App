@@ -68,6 +68,7 @@ target 'NewExpensify' do
   # pinning policy in CertificatePinning.swift applies to all URLSession traffic (fetch(),
   # react-native-blob-util, etc.) without per-call code changes.
   pod 'TrustKit', '~> 3.0'
+  pod 'NWWebSocket', '~> 0.5.10'
   use_expo_modules!
   post_integrate do |installer|
     begin
