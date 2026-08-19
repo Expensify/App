@@ -347,6 +347,7 @@ function IOURequestStepConfirmation({
             reportDrafts,
             translate,
             currentUserPersonalDetails.accountID,
+            formatPhoneNumber,
         ],
     );
 
