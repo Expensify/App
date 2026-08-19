@@ -476,11 +476,23 @@ To react to this event, include phrases like:
 - When the bank connection for a company card is broken and an admin must fix it
 - When imported card transactions stop appearing due to a failed feed
 
+**A company card feed connection has been broken for 30 days; a reminder was posted in the workspace #admins room asking an admin to reconnect the feed or remove it if it is no longer in use.**
+
+To react to this event, include phrases like:
+- When a company card feed has been broken for a month and still has not been reconnected
+- When an admin is reminded to clean up a long-broken company card connection
+
 **A personal card connected via Plaid failed to import transactions; a notice was posted in the cardholder's Concierge DM so they can reconnect the card.**
 
 To react to this event, include phrases like:
 - When a personal credit or bank card stops syncing and the user needs to reconnect it
 - When Plaid loses access to a personal card and the user must reauthenticate
+
+**A personal card connection has been broken for 30 days; a reminder was posted in the cardholder's Concierge DM asking them to reconnect the card or remove it if it is no longer in use.**
+
+To react to this event, include phrases like:
+- When a personal card has been disconnected for a month and still has not been reconnected
+- When a user is reminded to clean up a long-broken personal card connection
 
 **Plaid failed to verify the workspace's connected bank balance needed for ACH settlement; a notice was posted in the workspace #admins room so an admin can investigate the bank connection.**
 
@@ -868,4 +880,4 @@ To react to this event, include phrases like:
 
 ---
 
-*This reference covers all 118 events AI Agents can react to.*
+*This reference covers all 120 events AI Agents can react to.*

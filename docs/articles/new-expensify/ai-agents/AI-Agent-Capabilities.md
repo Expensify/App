@@ -149,10 +149,11 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that rename expense reports
 
-**Goal:** Changes the title of an existing expense report. It only updates the report name — it does not modify the report's expenses, approval state, ownership, or participants.
+**Goal:** Changes the title of an existing expense report, identified from the current report or resolved by name/ID from any chat. It only updates the report name — it does not modify the report's expenses, approval state, ownership, or participants.
 
 To accomplish this, include phrases like:
 - Rename this report to Q2 Marketing Expenses
+- From any chat, rename my Acme Travel report to Q2 Travel
 - Change the report title to match the project it belongs to
 - Title reports with the submitter's name and the month
 - Rename untitled reports to a short summary of their expenses
@@ -175,7 +176,7 @@ To accomplish this, include phrases like:
 
 ## How to write instructions that edit expenses
 
-**Goal:** Edits, deletes, or restores individual expenses on the current report — field-level changes such as amount, category, merchant, reimbursable status, tags, or tax.
+**Goal:** Edits, deletes, or restores individual expenses — field-level changes such as amount, category, merchant, reimbursable status, tags, or tax — on the current report, or on the reports of a user who added the agent as their Copilot.
 
 To accomplish this, include phrases like:
 - Set the category to Travel for all flight expenses
