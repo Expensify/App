@@ -58,7 +58,7 @@ function moveAttachmentCache(): Promise<void> {
  * exists and re-cache on a miss, so a rewritten record never renders a dead path.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         // connectWithoutView is appropriate here because migrations run once at startup, before anything renders
         const connection = Onyx.connectWithoutView({
             key: ONYXKEYS.COLLECTION.ATTACHMENT,
@@ -80,10 +80,14 @@ function updateAttachmentRecordPaths(): Promise<void> {
 
                 // No need to add a new action just for this migration
                 // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates).then(() => {
-                    Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
-                    resolve();
-                });
+                Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates)
+                    .then(() => {
+                        Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
+                        resolve();
+                    })
+                    // The rejection must propagate so the startup fallback in the migration's
+                    // catch handler runs instead of leaving migrateOnyx() pending forever
+                    .catch(reject);
             },
         });
     });

@@ -2,7 +2,7 @@ diff --git a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm b/node_modules
 index 6ce7258..65c29cb 100644
 --- a/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
 +++ b/node_modules/react-native-nitro-sqlite/ios/OnLoad.mm
-@@ -10,6 +10,56 @@
+@@ -10,6 +10,63 @@
  using namespace margelo::nitro;
  using namespace margelo::nitro::rnnitrosqlite;
  
@@ -49,11 +49,18 @@ index 6ce7258..65c29cb 100644
 +    }
 +  }
 +
-+  // The database file is deleted first, so an interruption here can only leave journal files
-+  // behind, which the sweep above removes on the next launch.
-+  for (NSString *file in databaseFiles) {
-+    [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:file] error:nil];
++  // The database file is deleted first, and the journals only once that succeeds: if the
++  // database cannot be removed, the existence check in +load keeps using the source database
++  // on this launch, so its -wal must stay next to it or committed writes would be lost.
++  // An interruption after the first delete can only leave journal files behind, which the
++  // sweep above removes on the next launch.
++  NSError *removeError = nil;
++  if (![fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB"] error:&removeError]) {
++    NSLog(@"Failed to remove migrated database from its old location: %@", removeError.localizedDescription);
++    return;
 +  }
++  [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-wal"] error:nil];
++  [fileManager removeItemAtPath:[fromDirectory stringByAppendingPathComponent:@"OnyxDB-shm"] error:nil];
 +}
 +
  + (void)load {
