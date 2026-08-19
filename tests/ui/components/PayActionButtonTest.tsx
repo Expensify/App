@@ -8,7 +8,6 @@ import useOnyx from '@hooks/useOnyx';
 import {hasHeldExpensesFromTransactions, hasViolations} from '@libs/ReportUtils';
 
 import {payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
-import {approveMoneyRequest} from '@userActions/IOU/ReportWorkflow';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -20,7 +19,6 @@ import React from 'react';
 
 const TEST_IOU_REPORT_ID = '1001';
 const TEST_CHAT_REPORT_ID = '2002';
-const TEST_TRANSACTION_ID = '3003';
 const SELECTED_BANK_ACCOUNT_ID = 9999;
 
 // Mutable so each test can back the mocked useReportPreviewTransactionViolations slice with a specific value.
