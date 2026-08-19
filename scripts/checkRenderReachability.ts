@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 /**
- * Answers the one condition `rulesdir/no-onyx-get-in-render` cannot see: whether anything that renders
+ * Answers the one condition `rulesdir/no-unsafe-onyx-read` cannot see: whether anything that renders
  * can reach a function, transitively, across files.
  *
  * A synchronous Onyx read is only safe in code that does not run during render. Lint enforces the

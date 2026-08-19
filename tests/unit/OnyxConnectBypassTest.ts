@@ -2,7 +2,7 @@ import type {ESLint} from 'eslint';
 
 import type {ResultWithSuppressed} from '../../scripts/onyxConnectBypass';
 
-import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses, RENDER_READ_RULE_ID} from '../../scripts/onyxConnectBypass';
+import {BANNED_RULE_ID, collectSuppressedBans, findNewBypasses, UNSAFE_READ_RULE_ID} from '../../scripts/onyxConnectBypass';
 
 const PROJECT_ROOT = '/repo';
 
@@ -25,11 +25,11 @@ describe('collectSuppressedBans', () => {
     });
 
     it('collects both policed rules from the same file', () => {
-        const results = [makeResult('src/libs/Foo.ts', [suppressed(BANNED_RULE_ID, 12), suppressed(RENDER_READ_RULE_ID, 40)])];
+        const results = [makeResult('src/libs/Foo.ts', [suppressed(BANNED_RULE_ID, 12), suppressed(UNSAFE_READ_RULE_ID, 40)])];
 
         expect(collectSuppressedBans(results, PROJECT_ROOT)).toEqual([
             {ruleId: BANNED_RULE_ID, file: 'src/libs/Foo.ts', line: 12},
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/libs/Foo.ts', line: 40},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/Foo.ts', line: 40},
         ]);
     });
 
@@ -63,8 +63,8 @@ describe('findNewBypasses', () => {
 
     it('flags every disable of the render-read rule, which has no allowance anywhere', () => {
         const bans = [
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/components/Search/SearchList/ListItem/ActionCell/PayActionCell.tsx', line: 41},
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/hooks/useSwitchToDelegator.ts', line: 12},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/components/Search/SearchList/ListItem/ActionCell/PayActionCell.tsx', line: 41},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/hooks/useSwitchToDelegator.ts', line: 12},
         ];
         expect(findNewBypasses(bans)).toEqual(bans);
     });
@@ -72,9 +72,9 @@ describe('findNewBypasses', () => {
     it("does not let one rule's allowance cover another rule in the same file", () => {
         const bans = [
             {ruleId: BANNED_RULE_ID, file: 'src/libs/NextStepUtils.ts', line: 33},
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/libs/NextStepUtils.ts', line: 33},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/NextStepUtils.ts', line: 33},
         ];
-        expect(findNewBypasses(bans)).toEqual([{ruleId: RENDER_READ_RULE_ID, file: 'src/libs/NextStepUtils.ts', line: 33}]);
+        expect(findNewBypasses(bans)).toEqual([{ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/NextStepUtils.ts', line: 33}]);
     });
 
     it('flags a render-read bypass in a file whose connect allowance would otherwise absorb it', () => {
@@ -82,29 +82,29 @@ describe('findNewBypasses', () => {
         // let the render-read bypass through unnoticed.
         const bans = [
             {ruleId: BANNED_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 192},
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205},
         ];
-        expect(findNewBypasses(bans)).toEqual([{ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205}]);
+        expect(findNewBypasses(bans)).toEqual([{ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205}]);
     });
 
     it('keeps a grandfathered connect disable allowed when another rule is also disabled earlier in the file', () => {
         // The mirror of the case above: counting per file would spend the render-read rule's empty
         // allowance on the connect disables and report all three.
         const bans = [
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 10},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 10},
             {ruleId: BANNED_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 192},
             {ruleId: BANNED_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 201},
         ];
-        expect(findNewBypasses(bans)).toEqual([{ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 10}]);
+        expect(findNewBypasses(bans)).toEqual([{ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 10}]);
     });
 
     it('counts the two rules separately when both are disabled repeatedly in one file', () => {
         const bans = [
             {ruleId: BANNED_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 192},
             {ruleId: BANNED_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 201},
-            {ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205},
+            {ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205},
         ];
-        expect(findNewBypasses(bans)).toEqual([{ruleId: RENDER_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205}]);
+        expect(findNewBypasses(bans)).toEqual([{ruleId: UNSAFE_READ_RULE_ID, file: 'src/libs/ReportNameUtils.ts', line: 205}]);
     });
 
     it('returns nothing for an empty input', () => {

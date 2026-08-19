@@ -1,7 +1,7 @@
 /**
  * Render-reachability over a call graph.
  *
- * `rulesdir/no-onyx-get-in-render` can only see the position a read is written in. It cannot see that
+ * `rulesdir/no-unsafe-onyx-read` can only see the position a read is written in. It cannot see that
  * a plain module function, which is a legal place for a synchronous Onyx read, is called by a hook
  * that a component calls while rendering. That path makes the read a render read anyway, so it has to
  * be checked across files before a conversion lands.

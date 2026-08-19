@@ -4,7 +4,7 @@
  * to other files. `checkRenderReachability.ts` stitches the per-file results into a graph and
  * `renderReachability.ts` searches it.
  *
- * Two things decide what a unit is, and both mirror `eslint-plugin-local-rules/no-onyx-get-in-render`:
+ * Two things decide what a unit is, and both mirror `eslint-plugin-local-rules/no-unsafe-onyx-read`:
  *
  * - A function boundary that defers execution starts a new unit: a component body, a hook body, an
  *   event handler, a plain function.
@@ -26,7 +26,11 @@ import type {Rule, Scope} from 'eslint';
 import {Linter} from 'eslint';
 import {parser as tsParser} from 'typescript-eslint';
 
-/** Import sources that resolve to the Onyx library. */
+/**
+ * Import sources that resolve to the Onyx library. This constant and the four sets below are a second
+ * copy of the ones in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`, kept because this walker is
+ * not an ESLint rule. Change one, change the other.
+ */
 const ONYX_MODULE_PREFIX = 'react-native-onyx';
 
 /** Synchronous read APIs on the Onyx surface. */
