@@ -1,10 +1,8 @@
 ---
-
 title: Managing Users
 description: Learn how Travel Admins can view and manage traveler profiles, groups, roles, and configuration settings in Expensify Travel.
 keywords: [manage users, travel users, traveler profile, expensify travel admin, travel groups, travel roles, legal entity, secondary approvers, travel arranger]
 internalScope: Audience is Travel Admins. Covers traveler provisioning, individual traveler profile settings, and user-level group and role assignments in Expensify Travel. Does not cover creating or managing groups, role definitions, scopes, or travel policy configuration.
-
 ---
 
 Travel Admins can view and manage traveler profiles, access, and configuration settings under the **Users** section of Expensify Travel.
@@ -94,7 +92,7 @@ Use **Add manager** to assign a direct manager. This can be used to route travel
 
 ---
 
-## Groups and roles tab
+## How the Groups and roles tab works
 
 The **Groups and roles** tab shows the groups and roles assigned to an individual user.
 
@@ -151,7 +149,7 @@ Assign users who can arrange travel for this traveler.
 
 Arrangers can book and manage travel on the traveler's behalf. The users available to assign as arrangers depend on their access in Expensify Travel.
 
-For more information about managing Travel access, see Managing Groups and Roles.
+For more information about managing Travel access, see [Managing Groups and Roles](Managing-Groups-and-Roles.md).
 
 ---
 
@@ -166,15 +164,7 @@ Confirm that the user:
 
 Both conditions must be met for the user to be provisioned to Expensify Travel.
 
-## What happens if a user changes their default workspace?
-
-If the Travel-enabled workspace is no longer the user's default workspace, they're automatically deprovisioned from Expensify Travel.
-
-To provision them again, they must remain a member of the Travel-enabled workspace and set it as their default workspace again.
-
-## What happens if I remove a user from the Travel-enabled workspace?
-
-The user is automatically deprovisioned from Expensify Travel.
+Users can't be manually added directly in Expensify Travel. If they're removed from the Travel-enabled workspace or change their default workspace, they're automatically deprovisioned.
 
 ## How do I give someone Company Admin access in Expensify Travel?
 
@@ -193,5 +183,8 @@ For more information, see [Managing Groups and Roles](Managing-Groups-and-Roles.
 Not at this time. If this functionality would benefit your team, talk to your Account Manager to share feedback and explore alternatives.
 
 ## Can users assign their own arrangers or secondary approvers?
+
+Yes. Users can update their arrangers and secondary approvers in their own profile settings if permitted.
+
 
 Yes. Users can update their arrangers and secondary approvers in their own profile settings if permitted.
