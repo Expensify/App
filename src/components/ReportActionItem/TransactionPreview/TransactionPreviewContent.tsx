@@ -201,6 +201,8 @@ function TransactionPreviewContent({
 
     // While scanning there is no merchant or amount, so the type label stacks above the status instead of using the usual rows.
     const shouldUseScanningLayout = isTransactionScanning && !isDeleted;
+    // The category is the only other metadata worth showing while scanning, e.g. "Receipt • Travel".
+    const scanningTypeText = [displayTypeText, shouldShowCategory && category ? getDecodedLeafCategoryName(category) : ''].filter(Boolean).join(` ${CONST.DOT_SEPARATOR} `);
 
     const previewSupportingText = [previewText.previewDateText, shouldShowCategory && category ? {text: getDecodedLeafCategoryName(category)} : undefined, ...previewText.previewStatusText]
         .filter((item): item is TranslationPathOrText => !!item)
@@ -329,7 +331,7 @@ function TransactionPreviewContent({
                                                 numberOfLines={1}
                                                 style={[styles.textLabelSupporting, styles.pre, styles.lh16]}
                                             >
-                                                {displayTypeText}
+                                                {scanningTypeText}
                                             </Text>
                                             <Text
                                                 fontSize={variables.fontSizeNormal}
