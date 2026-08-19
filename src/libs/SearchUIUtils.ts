@@ -3094,8 +3094,7 @@ function getReportSections({
                         ? reportItem.pendingFields.preview
                         : (reportItem?.pendingFields?.total ?? reportItem?.pendingFields?.preview));
                 const shouldShowBlankTo = !reportItem || isOpenExpenseReport(reportItem);
-                const snapshotReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`];
-                const reportMetadata = snapshotReportMetadata ?? {};
+                const reportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${reportItem.reportID}`] ?? {};
                 const allReportTransactions = transactionsByReportID.get(reportItem.reportID) ?? [];
                 const allActions = getActions(data, allViolations, key, currentSearch, currentUserEmail, currentAccountID, bankAccountList, reportMetadata, actions, allReportTransactions);
 
