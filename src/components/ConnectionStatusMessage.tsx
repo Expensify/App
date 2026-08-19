@@ -3,7 +3,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {ComponentProps} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,6 +23,7 @@ type ConnectionStatusMessageProps = {
     statusTone?: 'default' | 'success' | 'danger';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 function ConnectionStatusMessage({
@@ -30,6 +34,7 @@ function ConnectionStatusMessage({
     statusTone = 'default',
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
+    brickRoadIndicator,
 }: ConnectionStatusMessageProps) {
     const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
     const theme = useTheme();
