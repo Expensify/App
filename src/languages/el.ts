@@ -714,7 +714,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'Αυτή η συσκευή',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Μία', 'Δύο', 'Τρεις', 'Τέσσερις', 'Πέντε', 'Έξι', 'Επτά', 'Οκτώ', 'Εννέα'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: `${displayCount} άλλη συσκευή`,
                     other: `${displayCount} άλλες συσκευές`,

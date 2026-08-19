@@ -688,7 +688,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'このデバイス',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['一', '二', '三', '四', '五', '六', '七', '八', '九'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: `その他${displayCount}件のデバイス`,
                     other: `その他${displayCount}件のデバイス`,
@@ -1157,8 +1157,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: '1 名のメンバーが更新されました。',
             other: `${count} 人のメンバーを更新しました。`,
         }),
-        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
-            `${added}件のメンバー${added > 1 ? 's' : ''}を追加し、${updated}件のメンバー${updated > 1 ? 's' : ''}を更新しました。`,
+        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) => `${added}件のメンバーを追加し、${updated}件のメンバーを更新しました。`,
         importTagsSuccessfulDescription: ({count}: {count: number}) => ({
             one: `${count} 個のタグを追加しました。`,
             other: `${count} 個のタグを追加しました。`,

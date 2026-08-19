@@ -42,10 +42,14 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         durationHours: ({count}: {count: number}) => ({
             one: `1 godzina`,
+            few: `${count} godziny`,
+            many: `${count} godzin`,
             other: `${count} godziny`,
         }),
         durationMinutes: ({count}: {count: number}) => ({
             one: `1 minuta`,
+            few: `${count} minuty`,
+            many: `${count} minut`,
             other: `${count} minuty`,
         }),
         count: 'Liczba',
@@ -696,7 +700,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'To urządzenie',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Jedno', 'Dwa', 'Trzy', 'Cztery', 'Pięć', 'Sześć', 'Siedem', 'Osiem', 'Dziewięć'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: `${displayCount} inne urządzenie`,
                     few: `${displayCount} inne urządzenia`,
@@ -1069,8 +1073,10 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         freeTrialSection: {
             title: ({count}: {count: number}) => ({
-                one: `Darmowy okres próbny: pozostało 1 dzień!`,
-                other: `Darmowy okres próbny: pozostało ${count} dni!`,
+                one: `Darmowy okres próbny: pozostał 1 dzień!`,
+                few: `Darmowy okres próbny: pozostały ${count} dni!`,
+                many: `Darmowy okres próbny: pozostało ${count} dni!`,
+                other: `Darmowy okres próbny: pozostało ${count} dnia!`,
             }),
             offer50Body: 'Zyskaj 50% zniżki na pierwszy rok',
             offer25Body: 'Uzyskaj 25% zniżki na pierwszy rok',
@@ -1162,11 +1168,15 @@ const translations: TranslationDeepObject<typeof en> = {
         importCategoriesNoneAddedOrUpdated: 'Nie dodano ani nie zaktualizowano żadnych kategorii.',
         importCategoriesAdded: ({count}: {count: number}) => ({
             one: 'Dodano 1 kategorię.',
-            other: `Dodano ${count} kategorie.`,
+            few: `Dodano ${count} kategorie.`,
+            many: `Dodano ${count} kategorii.`,
+            other: `Dodano ${count} kategorii.`,
         }),
         importCategoriesUpdated: ({count}: {count: number}) => ({
             one: 'Zaktualizowano 1 kategorię.',
-            other: `Zaktualizowano ${count} kategorie.`,
+            few: `Zaktualizowano ${count} kategorie.`,
+            many: `Zaktualizowano ${count} kategorii.`,
+            other: `Zaktualizowano ${count} kategorii.`,
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
             `Dodano ${added} ${added === 1 ? 'kategorię' : 'kategorie'}, zaktualizowano ${updated} ${updated === 1 ? 'kategorię' : 'kategorie'}.`,
@@ -1185,8 +1195,7 @@ const translations: TranslationDeepObject<typeof en> = {
             one: 'Zaktualizowano 1 członka.',
             other: `Zaktualizowano ${count} członków.`,
         }),
-        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
-            `Dodano ${added} członka${added > 1 ? 's' : ''}, zaktualizowano ${updated} członka${updated > 1 ? 's' : ''}.`,
+        importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) => `Dodano ${added} członka, zaktualizowano ${updated} członka.`,
         importTagsSuccessfulDescription: ({count}: {count: number}) => ({
             one: 'Dodano 1 tag.',
             few: `Dodano ${count} tagi.`,
@@ -1211,7 +1220,9 @@ const translations: TranslationDeepObject<typeof en> = {
         },
         importMerchantRulesSkippedCategories: ({count}: {count: number}) => ({
             one: 'Pominięto 1 kategorię, ponieważ nie istnieje w tej przestrzeni roboczej.',
-            other: `Pominięto ${count} kategorie, ponieważ nie istnieją w tej przestrzeni roboczej.`,
+            few: `Pominięto ${count} kategorie, ponieważ nie istnieją w tej przestrzeni roboczej.`,
+            many: `Pominięto ${count} kategorii, ponieważ nie istnieją w tej przestrzeni roboczej.`,
+            other: `Pominięto ${count} kategorii, ponieważ nie istnieją w tej przestrzeni roboczej.`,
         }),
         importMerchantRulesRequiredColumns:
             'Ups! Musisz zmapować co najmniej jedną kolumnę „Sprzedawca to” lub „Sprzedawca zawiera” oraz co najmniej jedno pole do aktualizacji. Sprawdź i spróbuj ponownie.',
@@ -3184,7 +3195,7 @@ ${amount} dla ${merchant} - ${date}`,
         requiredWhen2FAEnabled: 'Wymagane, gdy włączone jest 2FA',
         requestNewCode: ({timeRemaining}: {timeRemaining: string}) => `Poproś o nowy kod za <a>${timeRemaining}</a>`,
         requestNewCodeAfterErrorOccurred: 'Poproś o nowy kod',
-        timeRemainingAnnouncement: ({count}) => ({
+        timeRemainingAnnouncement: ({count}: {count: number}) => ({
             one: 'Pozostały czas: 1 sekunda',
             few: `Pozostały czas: ${count} sekundy`,
             many: `Pozostały czas: ${count} sekund`,

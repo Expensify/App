@@ -37,15 +37,15 @@ type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         durationDays: ({count}: {count: number}) => ({
-            one: `1 dia`,
+            one: `${count} dia`,
             other: `${count} dias`,
         }),
         durationHours: ({count}: {count: number}) => ({
-            one: `1 hora`,
+            one: `${count} hora`,
             other: `${count} horas`,
         }),
         durationMinutes: ({count}: {count: number}) => ({
-            one: `1 minuto`,
+            one: `${count} minuto`,
             other: `${count} minutos`,
         }),
         count: 'Contagem',
@@ -694,7 +694,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'Este dispositivo',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Um', 'Dois', 'Três', 'Quatro', 'Cinco', 'Seis', 'Sete', 'Oito', 'Nove'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: `${displayCount} outro dispositivo`,
                     other: `${displayCount} outros dispositivos`,
@@ -1151,11 +1151,11 @@ const translations: TranslationDeepObject<typeof en> = {
         importSuccessfulTitle: 'Importação concluída',
         importCategoriesNoneAddedOrUpdated: 'Nenhuma categoria foi adicionada ou atualizada.',
         importCategoriesAdded: ({count}: {count: number}) => ({
-            one: '1 categoria foi adicionada.',
+            one: `${count} categoria foi adicionada.`,
             other: `${count} categorias foram adicionadas.`,
         }),
         importCategoriesUpdated: ({count}: {count: number}) => ({
-            one: '1 categoria foi atualizada.',
+            one: `${count} categoria foi atualizada.`,
             other: `${count} categorias foram atualizadas.`,
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
@@ -1166,11 +1166,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersNoneAddedOrUpdated: 'Nenhum membro foi adicionado ou atualizado.',
         importMembersAdded: ({count}: {count: number}) => ({
-            one: '1 membro foi adicionado.',
+            one: `${count} membro foi adicionado.`,
             other: `${count} membros foram adicionados.`,
         }),
         importMembersUpdated: ({count}: {count: number}) => ({
-            one: '1 membro foi atualizado.',
+            one: `${count} membro foi atualizado.`,
             other: `${count} membros foram atualizados.`,
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>

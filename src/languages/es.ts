@@ -690,7 +690,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'Este dispositivo',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['un', 'dos', 'tres', 'cuatro', 'cinco', 'seis', 'siete', 'ocho', 'nueve'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: 'Otro dispositivo',
                     other: `Otros ${displayCount} dispositivos`,
@@ -1157,11 +1157,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importCategoriesAddedAndUpdated: ({added, updated}) => `Se añadieron ${added} categoría${added === 1 ? '' : 's'} y se actualizaron ${updated} categoría${updated === 1 ? '' : 's'}.`,
         importMembersNoneAddedOrUpdated: 'No se han añadido ni actualizado miembros.',
-        importMembersAdded: ({count}) => ({
+        importMembersAdded: ({count}: {count: number}) => ({
             one: 'Se ha agregado 1 miembro.',
-            other: `Se han agregado ${count} miembros`,
+            other: `Se han agregado ${count} miembros.`,
         }),
-        importMembersUpdated: ({count}) => ({
+        importMembersUpdated: ({count}: {count: number}) => ({
             one: '1 miembro ha sido actualizado.',
             other: `${count} miembros han sido actualizados.`,
         }),

@@ -37,15 +37,15 @@ type AllCountries = Record<Country, string>;
 const translations: TranslationDeepObject<typeof en> = {
     common: {
         durationDays: ({count}: {count: number}) => ({
-            one: `1 jour`,
+            one: `${count} jour`,
             other: `${count} jours`,
         }),
         durationHours: ({count}: {count: number}) => ({
-            one: `1 heure`,
+            one: `${count} heure`,
             other: `${count} heures`,
         }),
         durationMinutes: ({count}: {count: number}) => ({
-            one: `1 minute`,
+            one: `${count} minute`,
             other: `${count} minutes`,
         }),
         count: 'Nombre',
@@ -698,7 +698,7 @@ const translations: TranslationDeepObject<typeof en> = {
             thisDevice: 'Cet appareil',
             otherDevices: ({count}: {count: number}) => {
                 const numberWords = ['Un', 'Deux', 'Trois', 'Quatre', 'Cinq', 'Six', 'Sept', 'Huit', 'Neuf'];
-                const displayCount = count !== undefined && count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
+                const displayCount = count >= 1 && count <= 9 ? numberWords.at(count - 1) : `${count}`;
                 return {
                     one: `${displayCount} autre appareil`,
                     other: `${displayCount} autres appareils`,
@@ -1156,11 +1156,11 @@ const translations: TranslationDeepObject<typeof en> = {
         importSuccessfulTitle: 'Importation réussie',
         importCategoriesNoneAddedOrUpdated: 'Aucune catégorie n’a été ajoutée ou mise à jour.',
         importCategoriesAdded: ({count}: {count: number}) => ({
-            one: '1 catégorie a été ajoutée.',
+            one: `${count} catégorie a été ajoutée.`,
             other: `${count} catégories ont été ajoutées.`,
         }),
         importCategoriesUpdated: ({count}: {count: number}) => ({
-            one: '1 catégorie a été mise à jour.',
+            one: `${count} catégorie a été mise à jour.`,
             other: `${count} catégories ont été mises à jour.`,
         }),
         importCategoriesAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
@@ -1171,11 +1171,11 @@ const translations: TranslationDeepObject<typeof en> = {
         }),
         importMembersNoneAddedOrUpdated: 'Aucun membre n’a été ajouté ni mis à jour.',
         importMembersAdded: ({count}: {count: number}) => ({
-            one: '1 membre a été ajouté.',
+            one: `${count} membre a été ajouté.`,
             other: `${count} membres ont été ajoutés.`,
         }),
         importMembersUpdated: ({count}: {count: number}) => ({
-            one: '1 membre a été mis à jour.',
+            one: `${count} membre a été mis à jour.`,
             other: `${count} membres ont été mis à jour.`,
         }),
         importMembersAddedAndUpdated: ({added, updated}: {added: number; updated: number}) =>
