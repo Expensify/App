@@ -12,7 +12,6 @@
 "../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../.github/actions/javascript/markPullRequestsAsDeployed/markPullRequestsAsDeployed.ts"	"no-restricted-imports"	1
 "../../.github/actions/javascript/postOrReplaceComment/postOrReplaceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts"	"@typescript-eslint/no-deprecated/openAI.parseAssistantResponse"	2
 "../../.github/actions/javascript/proposalPoliceComment/proposalPoliceComment.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/reviewerChecklist/reviewerChecklist.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../.github/actions/javascript/validateReassureOutput/validateReassureOutput.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
@@ -44,11 +43,7 @@
 "../../scripts/react-compiler-compliance-check.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/sentry/release-adoption-older-than.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../scripts/utils/Git.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
-"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.create"	1
-"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.messages.list"	1
-"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.runs.create"	1
-"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-deprecated/this.client.beta.threads.runs.retrieve"	1
-"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
+"../../scripts/utils/OpenAIUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../scripts/utils/TSCompilerUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	3
 "../../scripts/utils/Translator/TranslationPromptUtils.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../server/stubs/react-native-reanimated.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
@@ -700,7 +695,7 @@
 "../../src/libs/actions/Card.ts"	"no-restricted-syntax"	2
 "../../src/libs/actions/Chronos.ts"	"no-restricted-syntax"	1
 "../../src/libs/actions/ClearReportActionErrors.ts"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	4
+"../../src/libs/actions/CompanyCards.ts"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-imports"	1
 "../../src/libs/actions/CompanyCards.ts"	"no-restricted-syntax"	5
 "../../src/libs/actions/Delegate.ts"	"no-restricted-syntax"	4
@@ -1228,12 +1223,11 @@
 "../../src/pages/workspace/companyCards/DynamicWorkspaceCompanyCardDetailsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardAddWorkEmailPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardEditTransactionStartDatePage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
-"../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	3
+"../../src/pages/workspace/companyCards/WorkspaceCompanyCardFeedSelectorPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsErrorConfirmation.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceCompanyCardsSettingsPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	2
 "../../src/pages/workspace/companyCards/WorkspaceVerifyWorkAccountPage.tsx"	"react-hooks/set-state-in-effect"	1
-"../../src/pages/workspace/companyCards/addNew/CardInstructionsStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
 "../../src/pages/workspace/companyCards/addNew/DynamicAddNewCardPage.tsx"	"@typescript-eslint/no-deprecated/ConfirmModal"	1
 "../../src/pages/workspace/companyCards/addNew/PlaidConnectionStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	6
 "../../src/pages/workspace/companyCards/addNew/SelectCountryStep.tsx"	"@typescript-eslint/no-unsafe-type-assertion"	1
