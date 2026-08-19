@@ -744,7 +744,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 getCurrencyDecimals,
                 report: trackReport,
                 isDraftPolicy,
-                isDraftChatReport,
+                isDraftChatReport: !!isDraftChatReport,
                 action,
                 existingTransaction: item,
                 participantParams: {

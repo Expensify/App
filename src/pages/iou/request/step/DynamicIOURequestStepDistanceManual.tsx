@@ -298,6 +298,7 @@ function DynamicIOURequestStepDistanceManual({
             iouType,
             action,
             report,
+            isDraftChatReport: !!reportDraft,
             policy,
             transaction,
             reportID,

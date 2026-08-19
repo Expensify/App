@@ -96,6 +96,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
+    isDraftChatReport: boolean;
     action: IOUAction;
     isTrackIntentUser: boolean | undefined;
     delegateAccountID: number | undefined;
@@ -199,6 +200,7 @@ function handleMoneyRequestStepDistanceNavigation({
     conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
+    isDraftChatReport,
     action,
     isTrackIntentUser,
     delegateAccountID,
@@ -279,6 +281,7 @@ function handleMoneyRequestStepDistanceNavigation({
                         trackExpense({
                             report,
                             isDraftPolicy: false,
+                            isDraftChatReport,
                             existingTransaction: transaction,
                             participantParams: {
                                 payeeEmail: currentUserLogin,
