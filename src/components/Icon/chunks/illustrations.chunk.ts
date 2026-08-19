@@ -125,6 +125,7 @@ import Car from '@assets/images/simple-illustrations/simple-illustration__car.sv
 import CardReaderAlt from '@assets/images/simple-illustrations/simple-illustration__cardreader-alt.svg';
 import Chair from '@assets/images/simple-illustrations/simple-illustration__chair.svg';
 import Chalkboard from '@assets/images/simple-illustrations/simple-illustration__chalkboard.svg';
+import Chart from '@assets/images/simple-illustrations/simple-illustration__chart.svg';
 import ChatBubbles from '@assets/images/simple-illustrations/simple-illustration__chatbubbles.svg';
 import CheckboxText from '@assets/images/simple-illustrations/simple-illustration__checkboxtext.svg';
 import CheckmarkCircle from '@assets/images/simple-illustrations/simple-illustration__checkmarkcircle.svg';
@@ -156,6 +157,7 @@ import HeadSet from '@assets/images/simple-illustrations/simple-illustration__he
 import Hourglass from '@assets/images/simple-illustrations/simple-illustration__hourglass.svg';
 import HouseMoney from '@assets/images/simple-illustrations/simple-illustration__house-money.svg';
 import House from '@assets/images/simple-illustrations/simple-illustration__house.svg';
+import HouseWithMap from '@assets/images/simple-illustrations/simple-illustration__housewithmap.svg';
 import InvoiceBlue from '@assets/images/simple-illustrations/simple-illustration__invoice.svg';
 import LifeRing from '@assets/images/simple-illustrations/simple-illustration__lifering.svg';
 import Lightbulb from '@assets/images/simple-illustrations/simple-illustration__lightbulb.svg';
@@ -414,6 +416,7 @@ const Illustrations = {
     HeadSet,
     Hourglass,
     House,
+    HouseWithMap,
     HouseMoney,
     LifeRing,
     Lightbulb,
@@ -444,6 +447,7 @@ const Illustrations = {
     Trophy1,
     FoodTruck,
     Chalkboard,
+    Chart,
 
     // Multifactor Authentication Illustrations
     MagnifyingGlassSpyMouthClosed,

@@ -24,6 +24,7 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
@@ -597,14 +598,14 @@ describe('SettlementButton', () => {
                 report: expenseReport,
                 chatReport: createChatReport(),
                 policy: createTestPolicy({
-                    achAccount: {
+                    achAccount: createMock<NonNullable<Policy['achAccount']>>({
                         bankAccountID: BANK_ACCOUNT_ID,
                         routingNumber: '123456789',
                         addressName: 'Test Business',
                         bankName: 'Test Bank',
                         reimburser: 'reimburser@test.com',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    } as Policy['achAccount'],
+                    }),
                 }),
                 lastPaymentMethod: {
                     [POLICY_ID]: {
@@ -637,14 +638,14 @@ describe('SettlementButton', () => {
                 report: expenseReport,
                 chatReport: createChatReport(),
                 policy: createTestPolicy({
-                    achAccount: {
+                    achAccount: createMock<NonNullable<Policy['achAccount']>>({
                         bankAccountID: BANK_ACCOUNT_ID,
                         routingNumber: '123456789',
                         addressName: 'Test Business',
                         bankName: 'Test Bank',
                         reimburser: 'reimburser@test.com',
                         state: CONST.BANK_ACCOUNT.STATE.OPEN,
-                    } as Policy['achAccount'],
+                    }),
                 }),
                 bankAccountList: createBankAccountList('3333'),
                 // No lastPaymentMethod → hasIntentToPay = true (achAccount.state === OPEN && !lastPaymentMethod)
@@ -1119,7 +1120,7 @@ describe('SettlementButton', () => {
 
     describe('createWorkspace regression test', () => {
         it('should NOT call createWorkspace during render for invoice scenarios', async () => {
-            const createWorkspaceMock = createWorkspace as jest.Mock;
+            const createWorkspaceMock = jest.mocked(createWorkspace);
             createWorkspaceMock.mockClear();
 
             const invoiceReport = createInvoiceReport();

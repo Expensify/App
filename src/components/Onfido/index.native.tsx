@@ -145,7 +145,6 @@ function Onfido({sdkToken, onUserExit, onSuccess, onError}: OnfidoProps) {
         <ActivityIndicator
             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
             style={styles.flex1}
-            reasonAttributes={{context: 'Onfido'}}
         />
     );
 }

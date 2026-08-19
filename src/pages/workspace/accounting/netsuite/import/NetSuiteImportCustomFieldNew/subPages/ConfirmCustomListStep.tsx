@@ -29,10 +29,7 @@ function ConfirmCustomListStep({onMove, netSuiteCustomFieldFormValues: values, o
     if (!values.mapping) {
         return (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'ConfirmCustomListStep'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }
