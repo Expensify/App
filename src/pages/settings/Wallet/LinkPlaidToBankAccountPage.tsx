@@ -32,7 +32,7 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
 import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useRef} from 'react';
 import {View} from 'react-native';
 
 type LinkPlaidToBankAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID>;
@@ -55,15 +55,15 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
 
-    const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [isSelectorDispatched, setIsSelectorDispatched] = useState(false);
+    const hasSubmittedRef = useRef(false);
 
     const policyID = bankAccount?.accountData?.additionalData?.policyID;
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
     const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
-    const isSuccess = hasSubmitted && !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
+    const isSuccess =
+        hasSubmittedRef.current && !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     const plaidBankAccounts = useMemo(() => plaidData?.bankAccounts ?? [], [plaidData?.bankAccounts]);
     const plaidAccessToken = plaidData?.plaidAccessToken ?? '';
@@ -79,11 +79,10 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const handlePlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
         if (isFixMode) {
-            setHasSubmitted(true);
+            hasSubmittedRef.current = true;
             linkPlaidToBankAccount(bankAccountID, '', '', undefined, policyID);
             return;
         }
-        setIsSelectorDispatched(true);
         openPlaidBankAccountSelector(publicToken, bankName, true, bankAccountID);
     };
 
@@ -103,12 +102,12 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
 
     useEffect(() => {
-        if (!isSelectorDispatched || isSelectorLoading || hasSubmitted || !resolvedAccount) {
+        if (hasSubmittedRef.current || plaidData?.isLoading || !plaidAccessToken || !resolvedAccount) {
             return;
         }
-        setHasSubmitted(true);
+        hasSubmittedRef.current = true;
         linkPlaidToBankAccount(bankAccountID, plaidAccessToken, resolvedAccount.plaidAccountID, resolvedAccount.mask, policyID);
-    }, [resolvedAccount, isSelectorDispatched, isSelectorLoading, hasSubmitted, bankAccountID, plaidAccessToken, policyID]);
+    }, [resolvedAccount, plaidAccessToken, plaidData?.isLoading, bankAccountID, policyID]);
 
     if (bankAccount?.isLoading || plaidData?.isLoading || !plaidLinkToken) {
         return (
