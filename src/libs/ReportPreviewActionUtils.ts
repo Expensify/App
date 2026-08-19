@@ -128,6 +128,7 @@ function canPay(
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+
     // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPayReport =
         isReportPayer ||
