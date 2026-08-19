@@ -233,6 +233,7 @@ function DynamicIOURequestStepDistanceManual({
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
     });
 
     const navigateToNextPage = (amount: string) => {

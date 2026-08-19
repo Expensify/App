@@ -8,6 +8,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {PolicyTagLists} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
+import {formatPhoneNumber} from 'tests/utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
@@ -51,6 +52,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived,
                 reportDraft,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -97,6 +99,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 
@@ -120,6 +123,7 @@ describe('useMoneyRequestParticipantsPolicyTags', () => {
                 reportAttributesDerived: {},
                 reportDraft: undefined,
                 translate,
+                formatPhoneNumber,
             }),
         );
 

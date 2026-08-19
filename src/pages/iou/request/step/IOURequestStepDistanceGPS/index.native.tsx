@@ -134,6 +134,7 @@ function IOURequestStepDistanceGPS({
         reportAttributesDerived,
         reportDraft,
         translate,
+        formatPhoneNumber,
     });
 
     const navigateToNextStep = () => {
