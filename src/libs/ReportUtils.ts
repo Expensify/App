@@ -147,7 +147,6 @@ import {getParsedMessageWithShortMentions} from './ParsingUtils';
 import {getBankAccountLastFourDigits} from './PaymentUtils';
 import Permissions from './Permissions';
 import {
-    EN_LOCALE_HIDDEN,
     getAccountIDsByLogins,
     getDisplayNameOrDefault,
     getDisplayNameOrDefaultEnLocale,
@@ -3642,7 +3641,7 @@ function getDisplayNameForParticipant({
         longName = longName.split('@').at(0) ?? '';
     }
 
-    const hiddenText = shouldUseEnLocale ? EN_LOCALE_HIDDEN : (translate?.('common.hidden') ?? hiddenTranslation);
+    const hiddenText = shouldUseEnLocale ? CONST.EN_LOCALE_TEXT.HIDDEN : (translate?.('common.hidden') ?? hiddenTranslation);
 
     // If the user's personal details (first name) should be hidden, make sure we return "hidden" instead of the short name
     if (shouldFallbackToHidden && longName === hiddenText) {

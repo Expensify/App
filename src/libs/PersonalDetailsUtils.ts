@@ -60,11 +60,6 @@ Onyx.connect({
 
 const regexMergedAccount = new RegExp(CONST.REGEX.MERGED_ACCOUNT_PREFIX);
 
-// English values of `common.hidden` and `common.you`, for text that is stored in English regardless of the
-// viewer's locale. IMPORTANT: keep in sync with `en.ts`. See getDisplayNameOrDefaultEnLocale below.
-const EN_LOCALE_HIDDEN = 'Hidden';
-const EN_LOCALE_YOU = 'you';
-
 type DisplayNameOrDefaultParams = {
     passedPersonalDetails?: Partial<PersonalDetails> | null;
     defaultValue?: string;
@@ -204,7 +199,7 @@ function temporaryGetDisplayNameOrDefault({
  * IMPORTANT: keep these in sync with `common.hidden` and `common.you` in `en.ts`.
  */
 function getDisplayNameOrDefaultEnLocale(params: DisplayNameOrDefaultParams): string {
-    return buildDisplayNameOrDefault({...params, hiddenText: EN_LOCALE_HIDDEN, youText: EN_LOCALE_YOU});
+    return buildDisplayNameOrDefault({...params, hiddenText: CONST.EN_LOCALE_TEXT.HIDDEN, youText: CONST.EN_LOCALE_TEXT.YOU});
 }
 
 function getPersonalDetailsByID(accountID: number | undefined, personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined {
@@ -645,5 +640,4 @@ export {
     areTravelPersonalDetailsMissing,
     temporaryGetDisplayNameOrDefault,
     getDisplayNameOrDefaultEnLocale,
-    EN_LOCALE_HIDDEN,
 };
