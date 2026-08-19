@@ -6,14 +6,13 @@ import {getReportCancelReimbursementStatus} from '@userActions/IOU/PayMoneyReque
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report} from '@src/types/onyx';
+import type {Report, ReportCancelReimbursementStatus} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 let mockIsOffline = false;
-let triggerVisibilityChange: (() => void) | undefined;
 
 jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
     getReportCancelReimbursementStatus: jest.fn(() => Promise.resolve({canCancel: true, isWaitingForCreditToPost: false})),
@@ -21,23 +20,10 @@ jest.mock('@userActions/IOU/PayMoneyRequest', () => ({
 
 jest.mock('@hooks/useNetwork', () => () => ({isOffline: mockIsOffline}));
 
-jest.mock('@libs/Visibility', () => ({
-    __esModule: true,
-    default: {
-        isVisible: () => true,
-        hasFocus: () => true,
-        onVisibilityChange: (callback: () => void) => {
-            triggerVisibilityChange = callback;
-            return () => {
-                triggerVisibilityChange = undefined;
-            };
-        },
-    },
-}));
-
 const mockGetReportCancelReimbursementStatus = jest.mocked(getReportCancelReimbursementStatus);
 
 const REPORT_ID = '1';
+const OTHER_REPORT_ID = '2';
 
 const submittedReimbursement = {
     reportID: REPORT_ID,
@@ -61,7 +47,6 @@ describe('useReportCancelReimbursementStatus', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockIsOffline = false;
-        triggerVisibilityChange = undefined;
         mockGetReportCancelReimbursementStatus.mockResolvedValue({canCancel: true, isWaitingForCreditToPost: false});
     });
 
@@ -102,33 +87,54 @@ describe('useReportCancelReimbursementStatus', () => {
         expect(result.current).toBeUndefined();
     });
 
-    it('re-checks when the app regains visibility while the report stays open', async () => {
-        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+    it('drops the status when the connection is lost', async () => {
+        const {result, rerender} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
         await waitForBatchedUpdates();
-        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalledTimes(1);
+        expect(result.current).toEqual({canCancel: true, isWaitingForCreditToPost: false});
 
+        mockIsOffline = true;
+        rerender(undefined);
+        await waitForBatchedUpdates();
+
+        expect(result.current).toBeUndefined();
+    });
+
+    it('ignores a response that arrives after the hook moved to another report', async () => {
+        const otherReimbursement = {...submittedReimbursement, reportID: OTHER_REPORT_ID} as Report;
+        let resolveFirstRequest: ((status: ReportCancelReimbursementStatus) => void) | undefined;
+        mockGetReportCancelReimbursementStatus.mockImplementationOnce(
+            () =>
+                new Promise((resolve) => {
+                    resolveFirstRequest = resolve;
+                }),
+        );
         mockGetReportCancelReimbursementStatus.mockResolvedValueOnce({canCancel: false, isWaitingForCreditToPost: false});
-        act(() => triggerVisibilityChange?.());
-        await waitForBatchedUpdates();
 
-        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalledTimes(2);
+        const {result, rerender} = renderHook((currentReport: Report) => useReportCancelReimbursementStatus(currentReport), {initialProps: submittedReimbursement});
+        rerender(otherReimbursement);
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
+
+        await act(async () => {
+            resolveFirstRequest?.({canCancel: true, isWaitingForCreditToPost: false});
+            await waitForBatchedUpdates();
+        });
+
         expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
     });
 
-    it('re-checks on the polling interval so a NACHA cutoff or posted credit is not missed', async () => {
-        jest.useFakeTimers();
+    it('does not show one report status on another while the new one is still loading', async () => {
+        const otherReimbursement = {...submittedReimbursement, reportID: OTHER_REPORT_ID} as Report;
+        mockGetReportCancelReimbursementStatus.mockResolvedValueOnce({canCancel: true, isWaitingForCreditToPost: false});
+        mockGetReportCancelReimbursementStatus.mockImplementationOnce(() => new Promise(() => {}));
 
-        const {result} = renderHook(() => useReportCancelReimbursementStatus(submittedReimbursement));
+        const {result, rerender} = renderHook((currentReport: Report) => useReportCancelReimbursementStatus(currentReport), {initialProps: submittedReimbursement});
+        await waitForBatchedUpdates();
+        expect(result.current).toEqual({canCancel: true, isWaitingForCreditToPost: false});
+
+        rerender(otherReimbursement);
         await waitForBatchedUpdates();
 
-        mockGetReportCancelReimbursementStatus.mockClear();
-        mockGetReportCancelReimbursementStatus.mockResolvedValueOnce({canCancel: false, isWaitingForCreditToPost: false});
-        act(() => jest.advanceTimersByTime(CONST.TIMING.CANCEL_REIMBURSEMENT_STATUS_POLL_INTERVAL));
-        await waitForBatchedUpdates();
-
-        expect(mockGetReportCancelReimbursementStatus).toHaveBeenCalled();
-        expect(result.current).toEqual({canCancel: false, isWaitingForCreditToPost: false});
-
-        jest.useRealTimers();
+        expect(result.current).toBeUndefined();
     });
 });
