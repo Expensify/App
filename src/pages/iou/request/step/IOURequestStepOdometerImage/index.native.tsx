@@ -324,7 +324,6 @@ function IOURequestStepOdometerImage({
                 <ScannerControlsBar
                     isInLandscapeMode={isInLandscapeMode}
                     cameraPermissionStatus={cameraPermissionStatus}
-                    shouldShowFlashButton={false}
                     setIsAttachmentPickerActive={setIsAttachmentPickerActive}
                     onAttachmentPickerStatusChange={setIsLoaderVisible}
                     onPicked={(files) => validateFiles(files)}

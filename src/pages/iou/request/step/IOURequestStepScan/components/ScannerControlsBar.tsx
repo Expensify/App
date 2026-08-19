@@ -40,11 +40,8 @@ type ScannerControlsBarProps = {
     /** Whether the camera device supports flash */
     hasFlash?: boolean;
 
-    /** Updater function to toggle flash state */
+    /** Updater function to toggle flash state. When omitted the flash button is replaced by a same-sized spacer that keeps the shutter centered */
     setFlash?: (updater: (prev: boolean) => boolean) => void;
-
-    /** Whether the trailing slot renders the flash button. When false a same-sized spacer keeps the shutter centered */
-    shouldShowFlashButton?: boolean;
 
     /** Sets whether the attachment picker modal is open */
     setIsAttachmentPickerActive: (value: boolean) => void;
@@ -77,7 +74,6 @@ function ScannerControlsBar({
     flash = false,
     hasFlash = false,
     setFlash,
-    shouldShowFlashButton = true,
     setIsAttachmentPickerActive,
     onAttachmentPickerStatusChange,
     onPicked,
@@ -160,7 +156,7 @@ function ScannerControlsBar({
                     />
                 </PressableWithFeedback>
             )}
-            {!canUseMultiScan && shouldShowFlashButton && (
+            {!canUseMultiScan && !!setFlash && (
                 <PressableWithFeedback
                     role={CONST.ROLE.BUTTON}
                     accessibilityLabel={translate('receipt.flash')}
@@ -178,7 +174,7 @@ function ScannerControlsBar({
                 </PressableWithFeedback>
             )}
             {/* Empty View matching the gallery icon size so justifyContentAround keeps the shutter exactly centered */}
-            {!canUseMultiScan && !shouldShowFlashButton && <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />}
+            {!canUseMultiScan && !setFlash && <View style={StyleUtils.getWidthAndHeightStyle(variables.iconSizeMenuItem)} />}
         </View>
     );
 }
