@@ -1687,7 +1687,7 @@ const translations: TranslationDeepObject<typeof en> = {
         moveExpensesMaxTransactionsError: `Raporty są ograniczone do ${CONST.REPORT.MAX_TRANSACTIONS} wydatków. Przenieś część z nich do innego raportu.`,
         moveExpensesError: 'Nie możesz przenosić diet do raportów w innych przestrzeniach roboczych, ponieważ stawki diet mogą się różnić między przestrzeniami roboczymi.',
         submitReportTo: {
-            sendExpense: 'Wyślij do dowolnej osoby',
+            sendExpense: 'Wyślij do kogokolwiek',
             sendExpenseSubtitle: 'Zaproś dowolną osobę do Expensify, używając jej adresu e-mail lub numeru telefonu.',
             selectRecipientError: 'Wybierz lub wprowadź odbiorcę, aby kontynuować.',
         },

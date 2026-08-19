@@ -1679,7 +1679,7 @@ const translations: TranslationDeepObject<typeof en> = {
         submitReportTo: {
             sendExpense: '誰にでも送信',
             sendExpenseSubtitle: 'メールアドレスまたは電話番号を使って、誰でも Expensify に招待できます。',
-            selectRecipientError: '続行するには、受信者を選択または入力してください。',
+            selectRecipientError: '続行するには、受取人を選択するか入力してください。',
         },
         changeApprover: {
             title: '承認者を変更',
