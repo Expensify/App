@@ -1,6 +1,5 @@
 import type {Octokit as OctokitCore} from '@octokit/core';
 import type {graphql} from '@octokit/graphql/types';
-import type {components as OctokitComponents} from '@octokit/openapi-types/types';
 import type {PaginateInterface} from '@octokit/plugin-paginate-rest';
 import type {Api, RestEndpointMethodTypes} from '@octokit/plugin-rest-endpoint-methods';
 
@@ -17,11 +16,15 @@ import CONST from './CONST';
 // (which wraps it as `{rest: RestEndpointMethods}`), so it's derived here instead.
 type RestEndpointMethods = Api['rest'];
 
-type OctokitIssueItem = OctokitComponents['schemas']['issue'];
+// These response shapes come from `RestEndpointMethodTypes` rather than `@octokit/openapi-types` directly.
+// openapi-types is only a transitive dependency here, so importing it by name resolves to whatever version
+// npm hoists — which can differ from the one the endpoint methods were generated against, making otherwise
+// identical types mutually unassignable (e.g. `issue.id` is `number` in one and `number | bigint` in the other).
+type OctokitIssueItem = RestEndpointMethodTypes['issues']['listForRepo']['response']['data'][number];
 
 type ListForRepoMethod = RestEndpointMethods['issues']['listForRepo'];
 
-type OctokitCommit = OctokitComponents['schemas']['commit'];
+type OctokitCommit = RestEndpointMethodTypes['repos']['listCommits']['response']['data'][number];
 
 type CommitType = {
     commit: string;
@@ -30,9 +33,9 @@ type CommitType = {
     date: string;
 };
 
-type OctokitArtifact = OctokitComponents['schemas']['artifact'];
+type OctokitArtifact = RestEndpointMethodTypes['actions']['listArtifactsForRepo']['response']['data']['artifacts'][number];
 
-type OctokitPR = OctokitComponents['schemas']['pull-request-simple'];
+type OctokitPR = RestEndpointMethodTypes['pulls']['list']['response']['data'][number];
 
 type CreateCommentResponse = RestEndpointMethodTypes['issues']['createComment']['response'];
 
