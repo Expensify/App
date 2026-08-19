@@ -64,7 +64,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
     });
     const [onboardingPurposeSelected] = useOnyx(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED);
     const isJoiningCompanyWorkspace = onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE;
-    const [hasSkippedWorkEmail, setHasSkippedWorkEmail] = useState(false);
     const [formValue] = useOnyx(ONYXKEYS.FORMS.ONBOARDING_WORK_EMAIL_FORM);
     const workEmail = formValue?.[INPUT_IDS.ONBOARDING_WORK_EMAIL];
     const [onboardingErrorMessageTranslationKey] = useOnyx(ONYXKEYS.ONBOARDING_ERROR_MESSAGE_TRANSLATION_KEY);
@@ -114,8 +113,8 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         }
 
         // The "Join my company workspace" intent navigates here on purpose, so this screen is the destination rather than
-        // a step to pass through. Without this the user is sent straight back to the intent list they just came from.
-        if (isJoiningCompanyWorkspace && !hasSkippedWorkEmail) {
+        // a step to pass through. Submitting and skipping both navigate on their own from here.
+        if (isJoiningCompanyWorkspace) {
             return;
         }
 
@@ -129,7 +128,6 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
         isSmb,
         isFocused,
         isJoiningCompanyWorkspace,
-        hasSkippedWorkEmail,
         onboardingValues?.isMergeAccountStepCompleted,
         onboardingValues?.isMergeAccountStepSkipped,
     ]);
@@ -257,9 +255,14 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
                                 testID="onboardingPrivateEmailSkipButton"
                                 onPress={() => {
                                     setOnboardingErrorMessage(null);
-                                    setHasSkippedWorkEmail(true);
 
                                     setOnboardingMergeAccountStepValue(true, true);
+
+                                    // The user already picked an intent, so skipping continues to the last onboarding
+                                    // step rather than returning them to the intent list they came from.
+                                    if (isJoiningCompanyWorkspace) {
+                                        Navigation.navigate(ROUTES.ONBOARDING_PERSONAL_DETAILS.getRoute());
+                                    }
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.ONBOARDING.SKIP}
                             >
