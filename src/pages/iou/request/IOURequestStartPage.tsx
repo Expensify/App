@@ -225,8 +225,8 @@ function IOURequestStartPage({
     const shouldShowWorkspaceSelectForPerDiem = moreThanOnePerDiemExist && !hasCurrentPolicyPerDiemEnabled;
 
     // Every flow that reaches this page embeds the confirmation as its landing step except INVOICE, which stays on the
-    // amount-first flow. (`shouldUseTab` also excludes SEND, but the money-request route params type it away, so PAY is
-    // the only type this has to add back.)
+    // amount-first flow. (`shouldUseTab` also excludes the deprecated SEND type, but nothing builds a create route with
+    // it, so PAY is the only type this has to add back.)
     // The pay quick action still writes SKIP_CONFIRMATION, but IOURequestStepAmount is its only reader and no longer
     // mounts for PAY - the embedded confirmation carries the amount inline, so there is no separate step left to skip.
     const shouldEmbedConfirmation = isNewManualExpenseFlowEnabled && (shouldUseTab || iouType === CONST.IOU.TYPE.PAY);
