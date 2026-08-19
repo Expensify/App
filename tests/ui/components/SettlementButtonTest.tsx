@@ -24,7 +24,6 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
-import createMock from '../../utils/createMock';
 import {translateLocal} from '../../utils/TestHelper';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
