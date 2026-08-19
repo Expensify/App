@@ -52,29 +52,38 @@ beforeEach(() => {
 
 describe('fetchWithQAAuth', () => {
     it('attaches the bearer header on a QA request, keeps credentials omitted', async () => {
+        // Given a live session and a request to the exact configured QA origin — the one place the token is allowed to go
         const {captured} = mockFetchSequence(response(200));
 
+        // When the request is made
         await fetchWithQAAuth(QA_URL, {method: 'post'});
 
+        // Then the token travels in the Authorization header, and credentials stay omitted like HttpUtils — auth rides in the header, never cookies
         expect(captured.at(0)?.init.headers).toEqual({Authorization: `Bearer ${SESSION_A.accessToken}`});
         expect(captured.at(0)?.init.credentials).toBe('omit');
     });
 
     it('sends no auth header for any other origin, even with a live session', async () => {
+        // Given a live session but a request to some other origin — the exact-origin match is the security boundary
         const {captured} = mockFetchSequence(response(200));
 
+        // When the request is made
         await fetchWithQAAuth(OTHER_URL, {method: 'post'});
 
+        // Then no auth header is attached, so the token can never leak to production, staging, or a user-controlled URL; credentials stay omitted either way
         expect(captured.at(0)?.init.headers).toBeUndefined();
         expect(captured.at(0)?.init.credentials).toBe('omit');
     });
 
     it('on a 401: refreshes once with the used token and retries once with the rotated token', async () => {
+        // Given the QA origin rejects the current token with a 401, and a refresh would rotate the session to a new token
         jest.mocked(getCloudflareSession).mockReturnValueOnce(SESSION_A).mockReturnValue(SESSION_B);
         const {fetchMock, captured} = mockFetchSequence(response(401), response(200));
 
+        // When the request is made, it recovers and resolves with the retried response
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).resolves.toMatchObject({status: 200});
 
+        // Then exactly one refresh (keyed on the token that just failed) and one retry happen, and the retry already carries the rotated token — refresh must persist the new session before resolving
         expect(refreshCloudflareSession).toHaveBeenCalledTimes(1);
         expect(refreshCloudflareSession).toHaveBeenCalledWith(SESSION_A.accessToken);
         expect(fetchMock).toHaveBeenCalledTimes(2);
@@ -82,48 +91,63 @@ describe('fetchWithQAAuth', () => {
     });
 
     it('rejects with the re-auth sentinel and does not retry when the refresh outcome is terminal', async () => {
+        // Given the QA origin 401s and the refresh reports a terminal outcome — the session is unrecoverable
         jest.mocked(refreshCloudflareSession).mockResolvedValue('reauth-required');
         const {fetchMock} = mockFetchSequence(response(401));
 
+        // When the request is made, it rejects with the sentinel so the caller knows to start a fresh authorize round trip
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).rejects.toThrow(CF_REAUTH_REQUIRED);
 
+        // Then no retry was attempted — retrying with a dead session would just 401 again
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it('propagates a transient refresh failure as-is — the session is still alive', async () => {
+        // Given the QA origin 401s and the refresh fails transiently (e.g. network blip) — the session itself is still alive
         const transientError = new TypeError('Failed to fetch');
         jest.mocked(refreshCloudflareSession).mockRejectedValue(transientError);
         const {fetchMock} = mockFetchSequence(response(401));
 
+        // When the request is made, the transient error propagates as-is rather than being converted to re-auth, so the caller may simply retry later
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).rejects.toBe(transientError);
 
+        // Then no retry was attempted with the un-refreshed token
         expect(fetchMock).toHaveBeenCalledTimes(1);
     });
 
     it('on a second 401: rejects with the re-auth sentinel and leaves the shared session alone', async () => {
+        // Given the retry with the freshly rotated token still gets a 401 — refreshing again clearly won't help
         jest.mocked(getCloudflareSession).mockReturnValueOnce(SESSION_A).mockReturnValue(SESSION_B);
         const {fetchMock} = mockFetchSequence(response(401), response(401));
 
+        // When the request is made, it rejects with the re-auth sentinel instead of looping refresh attempts
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).rejects.toThrow(CF_REAUTH_REQUIRED);
 
+        // Then only one refresh happened, and the shared session store was deliberately left alone — it is shared across tabs, so recovery is by replacement, not deletion
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(refreshCloudflareSession).toHaveBeenCalledTimes(1);
     });
 
     it('leaves a 401 from any other origin alone — no refresh, no retry', async () => {
+        // Given a 401 from a non-QA origin — no bearer was sent there, so it cannot be a Cloudflare Access rejection
         const {fetchMock} = mockFetchSequence(response(401));
 
+        // When the request is made, the 401 is returned untouched for the caller to handle
         await expect(fetchWithQAAuth(OTHER_URL, {method: 'post'})).resolves.toMatchObject({status: 401});
 
+        // Then no refresh or retry happened — the Cloudflare session had nothing to do with this failure
         expect(fetchMock).toHaveBeenCalledTimes(1);
         expect(refreshCloudflareSession).not.toHaveBeenCalled();
     });
 
     it('returns a non-401 error response untouched, so the caller decides', async () => {
+        // Given the QA origin returns an error other than 401 — the token was accepted, something else failed
         mockFetchSequence(response(500));
 
+        // When the request is made, the error response is returned untouched so the caller decides what to do with it
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).resolves.toMatchObject({status: 500});
 
+        // Then no refresh was burned — only a 401 signals a Cloudflare Access token problem
         expect(refreshCloudflareSession).not.toHaveBeenCalled();
     });
 });
