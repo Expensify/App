@@ -62,8 +62,6 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
     const [isSelectorDispatched, setIsSelectorDispatched] = useState(false);
-    const [isSelectingAccount, setIsSelectingAccount] = useState(false);
-    const [selectedPlaidAccountID, setSelectedPlaidAccountID] = useState('');
 
     const policyID = bankAccount?.accountData?.additionalData?.policyID;
     const isLoading = !!bankAccount?.isLoading;
@@ -85,19 +83,10 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearPlaid();
     });
 
-    const submit = (account: PlaidBankAccount) => {
-        setHasSubmitted(true);
-        linkPlaidToBankAccount(bankAccountID, plaidAccessToken, account.plaidAccountID, account.mask, policyID);
-        setIsSelectingAccount(false);
-        setSelectedPlaidAccountID('');
-    };
-
     const retry = () => {
         clearLinkPlaidBankAccountErrors(bankAccountID);
         setHasSubmitted(false);
         setIsSelectorDispatched(false);
-        setIsSelectingAccount(false);
-        setSelectedPlaidAccountID('');
         clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
     };
 
@@ -215,60 +204,6 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5]}>
                 <Text style={styles.formError}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
-        );
-    }
-
-    if (isSelectingAccount) {
-        const items = plaidBankAccounts.map((account) => ({
-            value: account.plaidAccountID,
-            label: account.addressName ?? '',
-        }));
-        const {icon, iconSize, iconStyles} = getBankIcon({styles});
-        const bankName = plaidData?.bankName;
-        const selectedPlaidAccountMask = plaidBankAccounts.find((account) => account.plaidAccountID === selectedPlaidAccountID)?.mask ?? '';
-
-        return (
-            <>
-                <ScrollView contentContainerStyle={styles.flexGrow1}>
-                    <Text style={[styles.mh5, styles.mb3, styles.textHeadlineLineHeightXXL]}>{translate('walletPage.chooseYourBankAccount')}</Text>
-                    <View style={[styles.mh5, styles.flexRow, styles.alignItemsCenter, styles.mb6]}>
-                        <Icon
-                            src={icon}
-                            height={iconSize}
-                            width={iconSize}
-                            additionalStyles={iconStyles}
-                        />
-                        <View>
-                            <Text style={[styles.ml3, styles.textStrong]}>{bankName}</Text>
-                            {selectedPlaidAccountMask.length > 0 && (
-                                <Text style={[styles.ml3, styles.textLabelSupporting]}>{`${translate('bankAccount.accountEnding')} ${selectedPlaidAccountMask}`}</Text>
-                            )}
-                        </View>
-                    </View>
-                    <Text style={[styles.textLabelSupporting, styles.mh5]}>{`${translate('bankAccount.chooseAnAccountBelow')}:`}</Text>
-                    <RadioButtons
-                        items={items}
-                        defaultCheckedValue={selectedPlaidAccountID}
-                        onSelect={setSelectedPlaidAccountID}
-                    />
-                </ScrollView>
-                <FixedFooter>
-                    <Button
-                        variant={CONST.BUTTON_VARIANT.SUCCESS}
-                        size={CONST.BUTTON_SIZE.LARGE}
-                        isDisabled={!selectedPlaidAccountID}
-                        onPress={() => {
-                            const account = plaidBankAccounts.find((a) => a.plaidAccountID === selectedPlaidAccountID);
-                            if (!account) {
-                                return;
-                            }
-                            submit(account);
-                        }}
-                    >
-                        <Button.Text>{translate('common.confirm')}</Button.Text>
-                    </Button>
-                </FixedFooter>
-            </>
         );
     }
 
