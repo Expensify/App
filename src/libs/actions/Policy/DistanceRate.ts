@@ -652,7 +652,7 @@ function setWorkspaceDistanceAutoUpdate(
     const customUnitID = customUnit.customUnitID;
 
     const optimisticRates: Record<string, Rate> = {};
-    const successRates: Record<string, NullishDeep<Rate>> = {};
+    const clearedRatePendingActions: Record<string, NullishDeep<Rate>> = {};
     const failureRates: Record<string, null> = {};
     const optimisticRateIDs: Record<string, string> = {};
 
@@ -696,7 +696,7 @@ function setWorkspaceDistanceAutoUpdate(
                 },
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
             };
-            successRates[customUnitRateID] = {pendingAction: null};
+            clearedRatePendingActions[customUnitRateID] = {pendingAction: null};
             failureRates[customUnitRateID] = null;
         }
     }
@@ -729,11 +729,11 @@ function setWorkspaceDistanceAutoUpdate(
                 key: policyKey,
                 value: {
                     pendingFields: {shouldAutoUpdateGovernmentDistanceRates: null},
-                    ...(Object.keys(successRates).length > 0 || shouldCorrectUnit
+                    ...(Object.keys(clearedRatePendingActions).length > 0 || shouldCorrectUnit
                         ? {
                               customUnits: {
                                   [customUnitID]: {
-                                      ...(Object.keys(successRates).length > 0 ? {rates: successRates} : {}),
+                                      ...(Object.keys(clearedRatePendingActions).length > 0 ? {rates: clearedRatePendingActions} : {}),
                                       ...(shouldCorrectUnit ? {pendingFields: {attributes: null}} : {}),
                                   },
                               },
