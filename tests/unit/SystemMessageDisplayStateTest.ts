@@ -80,6 +80,8 @@ describe('system message presentation', () => {
             CONST.REPORT.ACTIONS.TYPE.TRAVEL_NUDGE,
             CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
             CONST.REPORT.ACTIONS.TYPE.CREATED_REPORT_FOR_UNAPPROVED_TRANSACTIONS,
+            CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION,
+            CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT,
             CONST.REPORT.ACTIONS.TYPE.CARD_FROZEN,
             CONST.REPORT.ACTIONS.TYPE.CARD_UNFROZEN,
             CONST.REPORT.ACTIONS.TYPE.CARD_DEACTIVATED,
@@ -278,6 +280,15 @@ describe('system message presentation', () => {
                 ['2', 0],
                 ['3', 0],
             ]);
+        });
+
+        it('keeps newly routed muted audit actions inside a maximal system-message run', () => {
+            const actions = [systemAction('1'), makeAction('2', CONST.REPORT.ACTIONS.TYPE.COMMUTER_EXCLUSION), makeAction('3', CONST.REPORT.ACTIONS.TYPE.ACTION_DELEGATE_SUBMIT)];
+            const state = getSystemMessageDisplayState(actions, new Set());
+
+            expect(actions.every((action) => isCollapsibleSystemMessageAction(action))).toBe(true);
+            expect(state.displayReportActions).toEqual([actions.at(0)]);
+            expect(state.runsByAnchorReportActionID.get('1')?.reportActionIDs).toEqual(['1', '2', '3']);
         });
 
         it('uses chat and non-collapsible error rows as run boundaries', () => {

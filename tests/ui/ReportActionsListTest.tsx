@@ -441,9 +441,16 @@ describe('ReportActionsList (body)', () => {
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
 
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIDForInitialScroll: 'system-newer'});
             const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
+        });
+
+        it('does not select a summary as the initial target when there is no unread marker', () => {
+            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIDForInitialScroll: null});
         });
 
         it('does not collapse passive actions in ordinary chat reports', () => {

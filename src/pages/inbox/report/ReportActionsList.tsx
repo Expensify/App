@@ -259,6 +259,10 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
     });
     const displayReportActions = shouldCollapseSystemMessages ? collapsedDisplayReportActions : renderedVisibleReportActions;
     const unreadMarkerReportActionIndex = shouldCollapseSystemMessages ? collapsedUnreadMarkerReportActionIndex : canonicalUnreadMarkerReportActionIndex;
+    const unreadMarkerReportActionIDForInitialScroll =
+        shouldCollapseSystemMessages && collapsedUnreadMarkerReportActionIndex >= 0
+            ? displayReportActions.at(collapsedUnreadMarkerReportActionIndex)?.reportActionID
+            : unreadMarkerReportActionID;
     const renderedVisibleReportActionIndexByID = shouldCollapseSystemMessages
         ? new Map(renderedVisibleReportActions.map((reportAction, index) => [reportAction.reportActionID, index]))
         : undefined;
@@ -313,6 +317,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         markNewestActionAsRead,
         completeSkippedMarkAsRead,
         unreadMarkerReportActionID,
+        unreadMarkerReportActionIDForInitialScroll,
         unreadMarkerReportActionIndex,
         hasNewerActions,
         draftAutoScrollKey,
@@ -355,6 +360,7 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
         renderedVisibleReportActions: displayReportActions,
+        reportActionIDToDisplayIndex: shouldCollapseSystemMessages ? reportActionIDToDisplayIndex : undefined,
         scrollToActionBadgeTarget,
     });
 
