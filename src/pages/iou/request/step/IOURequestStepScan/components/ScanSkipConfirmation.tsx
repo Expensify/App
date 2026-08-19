@@ -23,7 +23,7 @@ import {createTransaction, getMoneyRequestParticipantOptions} from '@libs/action
 import {startSplitBill} from '@libs/actions/IOU/Split';
 import {clearUserLocation, setUserLocation} from '@libs/actions/UserLocation';
 import getCurrentPosition from '@libs/getCurrentPosition';
-import {calculateDefaultReimbursable, getExistingTransactionID, isSelfDMSoleDestination} from '@libs/IOUUtils';
+import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
@@ -112,7 +112,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const {isOffline} = useNetwork();
     // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
     // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
-    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
     const {isMultiScanEnabled} = useMultiScanState();
@@ -139,6 +139,8 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
 
     // Whether this expense's sole destination is the current user's self-DM. Forwarded to the cleanup helpers so the
     // LOOKING_AROUND "route to Spend > Expenses" behaviour is scoped to the self-DM case (matches the confirmation step).
+    // Unlike the quick-action amount/distance paths (which OR in isSelfDM(report) as a fallback), participants are already
+    // populated at component level here via getMoneyRequestParticipantOptions, so isSelfDMSoleDestination alone is sufficient.
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);

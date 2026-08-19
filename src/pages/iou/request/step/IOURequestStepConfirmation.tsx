@@ -48,6 +48,7 @@ import {
     isMovingTransactionFromTrackExpense as isMovingTransactionFromTrackExpenseIOUUtils,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     navigateToStartMoneyRequestStep,
     pickReportForPolicy,
     resolveOptimisticChatReportID,
@@ -279,7 +280,7 @@ function IOURequestStepConfirmation({
     // Gated on !isOffline: Search reads a server-populated snapshot that can't be fetched while offline, so a brand-new
     // user's first Expenses query would render empty. Offline, treat them as not-LOOKING_AROUND for routing so they fall
     // back to the self-DM landing, which renders the optimistically-created expense from local Onyx.
-    const isLookingAroundUser = !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND;
+    const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
     const receiptFilename = transaction?.receipt?.filename;

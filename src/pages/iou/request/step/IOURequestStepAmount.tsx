@@ -17,7 +17,7 @@ import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
-import {isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
+import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
 import Log from '@libs/Log';
 import {getAmountHasUnsavedChanges} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
@@ -171,7 +171,7 @@ function IOURequestStepAmount({
         report?.reportID,
         // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
         // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
-        !isOffline && isLookingAroundUser,
+        isLookingAroundSearchRoutingActive(isLookingAroundUser, isOffline),
         isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
     );
     usePreMountDestination(skipConfirmationPreMountRoute);

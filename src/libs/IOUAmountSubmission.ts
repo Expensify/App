@@ -35,6 +35,7 @@ import {convertToBackendAmount} from './CurrencyUtils';
 import {
     calculateDefaultReimbursable,
     getExistingTransactionID,
+    isLookingAroundSearchRoutingActive,
     isMovingTransactionFromTrackExpense,
     isParticipantP2P,
     isSelfDMSoleDestination,
@@ -435,7 +436,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
             // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
             // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
-            isLookingAroundUser: !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+            isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
             isSelfDMDestination,
         });
     };
@@ -444,7 +445,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
         isFromGlobalCreate: getIsFromGlobalCreate(transaction),
         // Gated on !isOffline (see cleanupAfterSkipConfirmSubmit above): offline, fall back to the self-DM landing.
-        isLookingAroundUser: !isOffline && introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND,
+        isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
         isSelfDMDestination,
         telemetryContext: {
             scenario: isTrackExpenseSubmit ? CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.TRACK_EXPENSE : CONST.TELEMETRY.SUBMIT_EXPENSE_SCENARIO.REQUEST_MONEY_MANUAL,
