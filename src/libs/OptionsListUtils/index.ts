@@ -492,10 +492,6 @@ const CUSTOM_ALTERNATE_TEXT_ACTION_NAMES = new Set<string>([
     CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
 ]);
 
-/**
- * Matches the actions that SidebarUtils.getOptionData renders with their own alternate text (without the
- * `Name: ` actor prefix). Keep in sync with the if/else chain in getOptionData.
- */
 function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): boolean {
     const actionName = lastAction?.actionName;
     if (!lastAction || !actionName) {
@@ -517,18 +513,14 @@ function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): b
 }
 
 type ChatPreviewParts = {
-    /** The `Name: ` actor prefix the LHN shows before the last message preview, or an empty string */
     actorPrefix: string;
-    /** LHN-identical replacement text for actions whose custom alternate text embeds the actor (rename, leave room, invite/remove) */
     customAlternateText?: string;
 };
 
 /**
- * Returns the chat preview pieces that the LHN (SidebarUtils.getOptionData) renders for the last message.
- * `actorPrefix` mirrors the two prefix regimes of getOptionData: rooms/threads/tasks/group chats show the actor
- * for any regular message, everything else (DMs, expense reports) is gated by shouldShowLastActorDisplayName.
- * `customAlternateText` reproduces the getOptionData branches that bake the actor into their own alternate text
- * (rename, leave room, invite/remove), since excluding them from the generic prefix alone would drop the actor.
+ * Returns the chat preview pieces that the LHN (SidebarUtils.getOptionData) renders for the last message:
+ * the `Name: ` actor prefix, plus a replacement text for the actions whose LHN alternate text embeds the actor
+ * (rename, leave room, invite/remove) — excluding those from the generic prefix alone would drop the actor.
  */
 function getChatPreviewParts({
     report,
@@ -553,15 +545,11 @@ function getChatPreviewParts({
         return {actorPrefix: ''};
     }
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    // When the sorted (newest-first) actions derived value is available, the last visible action is found in a
-    // couple of iterations instead of getLastVisibleAction's full scan over every cached action of the report.
     const sortedActionsForReport = sortedActions?.[report.reportID];
     const lastAction = sortedActionsForReport
         ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
         : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
 
-    // Resolve the actor the same way SidebarUtils.getOptionData does: prefer the action's actor and
-    // fall back to the action's `person` when the actor is missing from personal details.
     // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
     const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
     let resolvedLastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
@@ -584,8 +572,6 @@ function getChatPreviewParts({
         reportUtilsIsGroupChat(report) ||
         isDeprecatedGroupDM(report, isReportArchived);
 
-    // Mirror the getOptionData branches that render these actions with the actor baked into the text itself.
-    // Keep in sync with the if/else chain in SidebarUtils.getOptionData.
     let customAlternateText: string | undefined;
     if (usesChatPrefixRules) {
         if (isRenamedAction(lastAction)) {
