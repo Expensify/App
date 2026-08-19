@@ -410,6 +410,13 @@ describe('ReportActionsList (body)', () => {
             getCapturedVisibleActions()
                 ?.filter((action) => systemActions.some((systemAction) => systemAction.reportActionID === action.reportActionID))
                 .map((action) => action.reportActionID);
+        const getSystemAction = (index: number) => {
+            const action = systemActions.at(index);
+            if (!action) {
+                throw new Error(`Expected a system action at index ${index}`);
+            }
+            return action;
+        };
 
         afterEach(() => {
             mockReport.type = undefined;
@@ -419,8 +426,8 @@ describe('ReportActionsList (body)', () => {
             renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'chat-boundary']);
-            expect(getRenderedReportActionsListItemProps(systemActions.at(2)!, 1)).toMatchObject({displayAsGroup: false});
-            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
+            expect(getRenderedReportActionsListItemProps(getSystemAction(2), 1)).toMatchObject({displayAsGroup: false});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const showControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(showControl?.props).toMatchObject({count: 2, isExpanded: false});
 
@@ -429,7 +436,7 @@ describe('ReportActionsList (body)', () => {
             });
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
-            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
+            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const hideControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(expandedAnchor, CollapsedSystemMessages);
             const systemItem = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(expandedAnchor, ReportActionsListItemRenderer);
             expect(hideControl?.props).toMatchObject({count: 2, isExpanded: true});
@@ -447,7 +454,7 @@ describe('ReportActionsList (body)', () => {
 
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
             expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIDForInitialScroll: 'system-newer'});
-            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0)!, index: 0});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: getSystemAction(0), index: 0});
             const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
             expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
         });
@@ -462,7 +469,7 @@ describe('ReportActionsList (body)', () => {
             renderSystemActions(CONST.REPORT.TYPE.CHAT);
 
             expect(getCapturedSystemActionIDs()).toEqual(['system-newer', 'system-older', 'chat-boundary']);
-            expect(getRenderedReportActionsListItemProps(systemActions.at(0)!).reportActionItemComponent).toBeUndefined();
+            expect(getRenderedReportActionsListItemProps(getSystemAction(0)).reportActionItemComponent).toBeUndefined();
         });
     });
 
