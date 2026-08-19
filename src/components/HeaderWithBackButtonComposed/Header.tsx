@@ -8,7 +8,7 @@ import type HeaderProps from './types';
 
 import HeaderContext from './context';
 
-/** Composed counterpart of `HeaderWithBackButton` — content is composed from `Header.Left`/`Center`/`Right` zones and blocks (see the barrel for a full example). */
+/** Composed counterpart of `HeaderWithBackButton`. Content is composed from primitive blocks and the `Header.Right` zone (see the barrel for a full example). */
 function Header({children, shouldUseHeadlineHeader = false, style}: HeaderProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
     const styles = useThemeStyles();
