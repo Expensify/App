@@ -166,7 +166,7 @@ function AddAgentPageContent({route, template}: AddAgentPageContentProps) {
             testID={AddAgentPage.displayName}
             includeSafeAreaPaddingBottom
             offlineIndicatorStyle={styles.mtAuto}
-            shouldEnableMaxHeight={shouldUseScrollableLayout}
+            shouldEnableMaxHeight
         >
             <HeaderWithBackButton
                 title={translate('addAgentPage.title')}
