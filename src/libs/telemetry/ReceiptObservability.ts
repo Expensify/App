@@ -178,6 +178,17 @@ function logReceiptDropped({
     });
 }
 
+/**
+ * Records a stat failure behind checkFileExists. A locked device rejects the stat with a permission error, which is
+ * not the same as a missing file, and both otherwise collapse into the same dropped line.
+ */
+function logReceiptStatFailed(code: string | undefined) {
+    Log.info(`${RECEIPT_LOG_PREFIX} stat failed`, false, {
+        event: 'statFailed',
+        code,
+    });
+}
+
 function logReceiptAdoptFailed({error, captureSource}: {error: unknown; captureSource: ReceiptCaptureSource}) {
     Log.alert(`${RECEIPT_LOG_PREFIX} adopt failed`, {
         event: 'adoptFailed',
@@ -246,6 +257,7 @@ export {
     logReceiptSubmitted,
     logReceiptEnqueued,
     logReceiptDropped,
+    logReceiptStatFailed,
     logReceiptAdoptFailed,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
