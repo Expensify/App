@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unsafe-type-assertion, @typescript-eslint/naming-convention -- test-only: chart context mocks are narrowed from minimal literals, and per-line font maps are keyed by numeric line index */
 import {render, screen} from '@testing-library/react-native';
 
+import {ChartFontsContext} from '@components/Charts/context/ChartFontsContext';
+import type ChartFontsValue from '@components/Charts/types/chartFontsTypes';
 import {CHART_TYPE} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/constants';
 import {useVictoryChartContext, VictoryChartProvider, VictoryChartScaledProvider} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
@@ -28,6 +30,8 @@ const processedResult = {
     legendItems: [],
 } as unknown as ProcessNodeResult;
 
+const chartFontsValue = {typefaces: {}, fontManager: null} as unknown as ChartFontsValue;
+
 /** Serializes the parts of the context under test so assertions can read them from the rendered output. */
 function ContextProbe() {
     const {padding, domainPadding, labelItems, chartContentStyles, pixelScale} = useVictoryChartContext();
@@ -45,15 +49,17 @@ function getProbedContext(): Record<string, unknown> {
 describe('VictoryChartScaledProvider', () => {
     it('provides pixel-space values scaled by the given factor', () => {
         render(
-            <VictoryChartProvider
-                tnode={tnode}
-                processedResult={processedResult}
-                type={CHART_TYPE.CARTESIAN}
-            >
-                <VictoryChartScaledProvider scale={2}>
-                    <ContextProbe />
-                </VictoryChartScaledProvider>
-            </VictoryChartProvider>,
+            <ChartFontsContext.Provider value={chartFontsValue}>
+                <VictoryChartProvider
+                    tnode={tnode}
+                    processedResult={processedResult}
+                    type={CHART_TYPE.CARTESIAN}
+                >
+                    <VictoryChartScaledProvider scale={2}>
+                        <ContextProbe />
+                    </VictoryChartScaledProvider>
+                </VictoryChartProvider>
+            </ChartFontsContext.Provider>,
         );
 
         expect(getProbedContext()).toMatchObject({
@@ -68,15 +74,17 @@ describe('VictoryChartScaledProvider', () => {
 
     it('provides the unscaled context for scale 1', () => {
         render(
-            <VictoryChartProvider
-                tnode={tnode}
-                processedResult={processedResult}
-                type={CHART_TYPE.CARTESIAN}
-            >
-                <VictoryChartScaledProvider scale={1}>
-                    <ContextProbe />
-                </VictoryChartScaledProvider>
-            </VictoryChartProvider>,
+            <ChartFontsContext.Provider value={chartFontsValue}>
+                <VictoryChartProvider
+                    tnode={tnode}
+                    processedResult={processedResult}
+                    type={CHART_TYPE.CARTESIAN}
+                >
+                    <VictoryChartScaledProvider scale={1}>
+                        <ContextProbe />
+                    </VictoryChartScaledProvider>
+                </VictoryChartProvider>
+            </ChartFontsContext.Provider>,
         );
 
         expect(getProbedContext()).toMatchObject({
