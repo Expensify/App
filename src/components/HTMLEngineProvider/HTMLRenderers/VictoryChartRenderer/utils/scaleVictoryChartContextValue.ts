@@ -1,7 +1,7 @@
 import type {VictoryChartContextValue} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/context/VictoryChartContext';
 import type {LabelItem, LegendItem} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 
-import type {SkFont} from '@shopify/react-native-skia';
+import type {SkFont, SkTypeface} from '@shopify/react-native-skia';
 
 import {Skia} from '@shopify/react-native-skia';
 
@@ -77,19 +77,19 @@ function scaleDomainPadding(domainPadding: VictoryChartContextValue['domainPaddi
     return scaleSidedPixelValues(domainPadding, scale);
 }
 
-/** Rebuilds a Skia font at the scaled size; the original font object is left untouched. */
-function scaleFont(font: SkFont | null | undefined, scale: number): SkFont | null | undefined {
-    if (!font) {
-        return font;
-    }
-    const typeface = font.getTypeface();
-    if (!typeface) {
+/**
+ * Rebuilds a Skia font at the scaled size using the chart's shared typeface; the original font
+ * object is left untouched. The typeface must be passed in rather than read via `font.getTypeface()`
+ * because CanvasKit (web) returns a raw pointer there that cannot be passed back into `Skia.Font`.
+ */
+function scaleFont(font: SkFont | null | undefined, scale: number, typeface: SkTypeface | null): SkFont | null | undefined {
+    if (!font || !typeface) {
         return font;
     }
     return Skia.Font(typeface, font.getSize() * scale);
 }
 
-function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font?: SkFont | null} | undefined>(axis: TAxis, scale: number): TAxis {
+function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font?: SkFont | null} | undefined>(axis: TAxis, scale: number, typeface: SkTypeface | null): TAxis {
     if (!axis) {
         return axis;
     }
@@ -97,11 +97,11 @@ function scaleAxis<TAxis extends {lineWidth?: number; labelOffset?: number; font
         ...axis,
         lineWidth: axis.lineWidth === undefined ? undefined : axis.lineWidth * scale,
         labelOffset: axis.labelOffset === undefined ? undefined : axis.labelOffset * scale,
-        font: scaleFont(axis.font, scale),
+        font: scaleFont(axis.font, scale, typeface),
     };
 }
 
-function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: number): VictoryChartContextValue {
+function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: number, typeface: SkTypeface | null = null): VictoryChartContextValue {
     if (scale === 1) {
         return value;
     }
@@ -111,8 +111,8 @@ function scaleVictoryChartContextValue(value: VictoryChartContextValue, scale: n
 
     return {
         ...value,
-        xAxis: scaleAxis(value.xAxis, scale),
-        yAxis: value.yAxis?.map((axis) => scaleAxis(axis, scale)),
+        xAxis: scaleAxis(value.xAxis, scale, typeface),
+        yAxis: value.yAxis?.map((axis) => scaleAxis(axis, scale, typeface)),
         domainPadding: scaleDomainPadding(value.domainPadding, scale),
         padding: scalePadding(value.padding, scale),
         labelItems: value.labelItems.map((labelItem) => scaleLabelItem(labelItem, scale)),

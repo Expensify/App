@@ -1,3 +1,5 @@
+import {useChartTypefaces} from '@components/Charts/context/ChartFontsContext';
+import getVictoryChartTreeTypeface from '@components/Charts/utils/getVictoryChartTreeTypeface';
 import type {ChartType, LabelItem, LegendItem, ProcessNodeResult} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/types';
 import computeAdjustedOverlayY from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeAdjustedOverlayY';
 import computeDynamicChartHeight from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/computeDynamicChartHeight';
@@ -102,7 +104,9 @@ type VictoryChartScaledProviderProps = {
  */
 function VictoryChartScaledProvider({scale, children}: VictoryChartScaledProviderProps) {
     const value = useVictoryChartContext();
-    const scaledValue = useMemo(() => scaleVictoryChartContextValue(value, scale), [value, scale]);
+    const typefaces = useChartTypefaces();
+    const typeface = getVictoryChartTreeTypeface(typefaces);
+    const scaledValue = useMemo(() => scaleVictoryChartContextValue(value, scale, typeface), [value, scale, typeface]);
     return <VictoryChartContext.Provider value={scaledValue}>{children}</VictoryChartContext.Provider>;
 }
 

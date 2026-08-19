@@ -57,8 +57,8 @@ describe('scaleVictoryChartContextValue', () => {
         expect(scaled.labelItems.at(0)?.lineHeight).toEqual({0: 1.2});
     });
 
-    it('returns axis fonts unchanged when they have no typeface', () => {
-        const fakeFont = {getTypeface: () => null, getSize: () => 12};
+    it('returns axis fonts unchanged when no shared typeface is provided', () => {
+        const fakeFont = {getSize: () => 12};
         const value = {...baseValue, xAxis: {...(baseValue.xAxis as Record<string, unknown>), font: fakeFont}} as unknown as typeof baseValue;
         const scaled = scaleVictoryChartContextValue(value, 2);
         expect((scaled.xAxis as Record<string, unknown>).font).toBe(fakeFont);
