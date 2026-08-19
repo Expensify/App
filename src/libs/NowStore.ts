@@ -54,9 +54,7 @@ function subscribe(listener: () => void): () => void {
         }
     }
     listeners.add(listener);
-    if (timeoutId === null) {
-        scheduleNextTick();
-    }
+    scheduleNextTick();
     return () => {
         listeners.delete(listener);
         if (listeners.size === 0 && timeoutId !== null) {

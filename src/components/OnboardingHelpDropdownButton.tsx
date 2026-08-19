@@ -77,27 +77,29 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             },
         });
     }
-    const eventTime = latestScheduledCall?.eventTime;
-    const weekday = eventTime ? DateUtils.formatInTimeZoneToWeekday(eventTime, userTimezone, preferredLocale) : '';
-    const longDate = eventTime ? DateUtils.formatInTimeZoneToLong(eventTime, userTimezone, preferredLocale) : '';
-    const startTime = eventTime ? DateUtils.formatInTimeZoneToShortTime(eventTime, userTimezone, preferredLocale) : '';
-
-    if (hasActiveScheduledCall && eventTime && weekday && longDate && startTime) {
-        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(DateUtils.toLocalDate(eventTime), 30), userTimezone, preferredLocale);
-        options.push({
-            text: `${weekday}, ${longDate}`,
-            value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventTime, userTimezone)}`,
-            descriptionTextStyle: [styles.themeTextColor, styles.ml2],
-            displayInDefaultIconColor: true,
-            icon: illustrations.HeadSet,
-            iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
-            iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
-            wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
-            interactive: false,
-            titleStyle: styles.ml2,
-            avatarSize: CONST.AVATAR_SIZE.LARGE,
-        });
+    if (hasActiveScheduledCall && latestScheduledCall) {
+        const eventDate = DateUtils.toUTCDate(latestScheduledCall.eventTime);
+        const weekday = DateUtils.formatInTimeZoneToWeekday(eventDate, userTimezone, preferredLocale);
+        const longDate = DateUtils.formatInTimeZoneToLong(eventDate, userTimezone, preferredLocale);
+        const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
+        // Only the display row depends on the formatters. Reschedule and Cancel stay reachable either way.
+        if (weekday && longDate && startTime && endTime) {
+            options.push({
+                text: `${weekday}, ${longDate}`,
+                value: CONST.ONBOARDING_HELP.EVENT_TIME,
+                description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone)}`,
+                descriptionTextStyle: [styles.themeTextColor, styles.ml2],
+                displayInDefaultIconColor: true,
+                icon: illustrations.HeadSet,
+                iconWidth: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+                iconHeight: StyleUtils.getAvatarSize(CONST.AVATAR_SIZE.LARGE),
+                wrapperStyle: [styles.mb3, styles.pl4, styles.pr5, styles.pt3, styles.pb6, styles.borderBottom],
+                interactive: false,
+                titleStyle: styles.ml2,
+                avatarSize: CONST.AVATAR_SIZE.LARGE,
+            });
+        }
         options.push({
             text: translate('common.reschedule'),
             value: CONST.ONBOARDING_HELP.RESCHEDULE,

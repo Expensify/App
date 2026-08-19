@@ -15,6 +15,9 @@ import Onyx from 'react-native-onyx';
 // Current user mail is needed for handling missing translations
 let userEmail = '';
 
+// One warning per locale pair, not per key: the fallback branch runs for every string in the app while a locale loads.
+const warnedFallbackLocalePairs = new Set<string>();
+
 // TODO: Remove this Onyx.connectWithoutView after deprecating translateLocal (#64943) and completing Onyx.connect deprecation - see https://github.com/Expensify/App/issues/66329
 Onyx.connectWithoutView({
     key: ONYXKEYS.SESSION,
@@ -116,7 +119,11 @@ function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, 
         // Beats a raw dotted path, but it is the wrong language, so warn: a caller that persists it cannot correct it later.
         const currentLocale = IntlStore.getCurrentLocale();
         if (currentLocale !== locale && IntlStore.hasLocale(currentLocale)) {
-            Log.warn('[Localize] Translating in a fallback locale because the requested one is not loaded', {requested: locale, used: currentLocale, path});
+            const pair = `${locale}>${currentLocale}`;
+            if (!warnedFallbackLocalePairs.has(pair)) {
+                warnedFallbackLocalePairs.add(pair);
+                Log.warn('[Localize] Translating in a fallback locale because the requested one is not loaded', {requested: locale, used: currentLocale, path});
+            }
             return translate(currentLocale, path, ...parameters);
         }
         return Array.isArray(path) ? path.join('.') : path;

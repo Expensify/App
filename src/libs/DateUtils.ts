@@ -74,15 +74,34 @@ function isWeekDay(value: number): value is WeekDay {
  * Bounded because `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry. Keyed on a string rather than the argument
  * tuple: this runs for every formatted cell in a long list, and the shared `memoize` cache scans its entries linearly, so
  * a bound high enough to hold the ~19 presets x active locale x on-screen timezones would make each miss walk all of them.
- * Insertion order is eviction order.
+ * LRU by re-inserting on a hit, so the presets every row uses outlive the one-off timezones a long list drags in.
+ * Failures are cached too, under the same bound: an engine that rejects a preset rejects it for the session, and retrying
+ * would throw two to four times per row. `clearIntlFormatCacheForTests` is the only way back out.
  */
 const INTL_FORMAT_CACHE_MAX_SIZE = 256;
-const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat>();
+const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat | null>();
+
+function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeFormat | null): void {
+    if (intlDateTimeFormatCache.size >= INTL_FORMAT_CACHE_MAX_SIZE) {
+        const oldestKey = intlDateTimeFormatCache.keys().next().value;
+        if (oldestKey !== undefined) {
+            intlDateTimeFormatCache.delete(oldestKey);
+        }
+    }
+    intlDateTimeFormatCache.set(cacheKey, formatter);
+}
+
+/** Test-only. The cache is module state that outlives a suite, so a test stubbing `Intl` needs a cold start. */
+function clearIntlFormatCacheForTests(): void {
+    intlDateTimeFormatCache.clear();
+}
 
 function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null {
     const cacheKey = `${locale}|${formatKey}|${timeZone ?? ''}`;
-    const cached = intlDateTimeFormatCache.get(cacheKey);
-    if (cached) {
+    if (intlDateTimeFormatCache.has(cacheKey)) {
+        const cached = intlDateTimeFormatCache.get(cacheKey) ?? null;
+        intlDateTimeFormatCache.delete(cacheKey);
+        intlDateTimeFormatCache.set(cacheKey, cached);
         return cached;
     }
     const preset = CONST.DATE.INTL_FORMATS[formatKey];
@@ -97,21 +116,15 @@ function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZon
                 if (candidateLocale !== locale || candidateTimeZone !== timeZone) {
                     Log.warn('[DateUtils] Intl.DateTimeFormat constructed on a fallback candidate', {locale, formatKey, timeZone, candidateLocale, candidateTimeZone});
                 }
-                if (intlDateTimeFormatCache.size >= INTL_FORMAT_CACHE_MAX_SIZE) {
-                    const oldestKey = intlDateTimeFormatCache.keys().next().value;
-                    if (oldestKey !== undefined) {
-                        intlDateTimeFormatCache.delete(oldestKey);
-                    }
-                }
-                intlDateTimeFormatCache.set(cacheKey, formatter);
+                cacheIntlDateTimeFormat(cacheKey, formatter);
                 return formatter;
             } catch {
                 // Next candidate.
             }
         }
     }
-    // Not cached: failure can be transient, and a cached `null` has no invalidation path for the rest of the session.
     Log.warn('[DateUtils] Intl.DateTimeFormat construction failed for every candidate', {locale, formatKey, timeZone, backwardTimeZone});
+    cacheIntlDateTimeFormat(cacheKey, null);
     return null;
 }
 
@@ -1423,7 +1436,8 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
  * falls back to UTC + warn rather than throwing — render-path callers have no error boundaries.
  */
 function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: string, formatStr: string, options?: Parameters<typeof formatInTimeZone>[3]): string {
-    // Validation only, via `formatInTimeZone`'s own parser: `new Date` rejects the wire shape on Hermes, and an unzoned string is wall-clock in the target zone, not UTC.
+    // Validation only, via `formatInTimeZone`'s own parser, since `new Date` rejects the wire shape on Hermes. The
+    // original value is what gets formatted below, because date-fns-tz reads an unzoned string as runtime-local.
     const validationDate = typeof date === 'string' ? toDate(date) : date;
     // An invalid date throws in every timezone, so the UTC fallback below cannot rescue it. Bail before trying.
     if (!isValid(validationDate)) {
@@ -1690,6 +1704,7 @@ const DateUtils = {
     getMonthNames,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
+    clearIntlFormatCacheForTests,
     toLocalDate,
     toUTCDate,
     getLocalizedDatePlaceholder,

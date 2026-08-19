@@ -175,7 +175,6 @@ import {getDescription, getAmount as getTransactionAmount, getCurrency as getTra
 import {generateAccountID} from '@libs/UserUtils';
 
 import CONST from '@src/CONST';
-import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,

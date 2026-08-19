@@ -1057,10 +1057,13 @@ describe('DateUtils', () => {
         });
 
         it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
+            DateUtils.clearIntlFormatCacheForTests();
             jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
                 throw new RangeError('no Intl');
             });
             expect(DateUtils.getFormattedQuarterForSearch(2025, 3, LOCALE)).toBe('Q3 2025');
+            jest.restoreAllMocks();
+            DateUtils.clearIntlFormatCacheForTests();
         });
     });
 
