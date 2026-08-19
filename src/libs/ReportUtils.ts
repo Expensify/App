@@ -13284,7 +13284,7 @@ function doesReportContainRequestsFromMultipleUsers(iouReport: OnyxEntry<Report>
  * Determines whether the report can be moved to the workspace.
  */
 function isWorkspaceEligibleForReportChange(submitterEmail: string | undefined, newPolicy: OnyxEntry<Policy>, report?: Report): boolean {
-    if (!submitterEmail || !newPolicy || !isGroupPolicyPolicyUtils(newPolicy)) {
+    if (!submitterEmail || !newPolicy || !isGroupPolicyPolicyUtils(newPolicy) || isTeachersUnitePolicyID(newPolicy.id)) {
         return false;
     }
     if (report?.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.CLOSED && !isPolicyAdminPolicyUtils(newPolicy)) {
