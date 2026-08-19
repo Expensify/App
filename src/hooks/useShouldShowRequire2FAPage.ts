@@ -1,5 +1,3 @@
-import AccountUtils from '@libs/AccountUtils';
-
 import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
@@ -15,7 +13,7 @@ function useShouldShowRequire2FAPage(): boolean {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
     const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
 
-    return AccountUtils.shouldShowRequire2FAPage(account, !!hasCompletedGuidedSetupFlow);
+    return (!!account?.needsTwoFactorAuthSetup && !account?.requiresTwoFactorAuth) || (!!account?.twoFactorAuthSetupInProgress && !hasCompletedGuidedSetupFlow);
 }
 
 export default useShouldShowRequire2FAPage;

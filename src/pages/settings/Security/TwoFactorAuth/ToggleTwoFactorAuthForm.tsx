@@ -3,13 +3,11 @@ import type {BaseTwoFactorAuthFormRef} from '@components/TwoFactorAuthForm/types
 
 import useOnyx from '@hooks/useOnyx';
 
-import AccountUtils from '@libs/AccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import {clearAccountMessages, toggleTwoFactorAuth, validateTwoFactorAuth} from '@userActions/Session';
 
 import ONYXKEYS from '@src/ONYXKEYS';
-import {hasCompletedGuidedSetupFlowSelector} from '@src/selectors/Onboarding';
 
 import type {Ref} from 'react';
 
@@ -32,9 +30,7 @@ type BaseTwoFactorAuthFormProps = {
 
 function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoFocusOnMobile = true, ref}: BaseTwoFactorAuthFormProps) {
     const [account] = useOnyx(ONYXKEYS.ACCOUNT);
-    const [hasCompletedGuidedSetupFlow] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
-    const shouldKeepTwoFactorAuthFlowOpen = AccountUtils.isForced2FAOnboardingSetup(account, !!hasCompletedGuidedSetupFlow);
-    const shouldClearData = (account?.needsTwoFactorAuthSetup ?? false) && !shouldKeepTwoFactorAuthFlowOpen;
+    const shouldClearData = account?.needsTwoFactorAuthSetup ?? false;
     const shouldAllowRecoveryCode = validateInsteadOfDisable === false;
 
     /**
@@ -49,7 +45,7 @@ function ToggleTwoFactorAuthForm({validateInsteadOfDisable, onFocus, shouldAutoF
 
     const handleSubmit = (code: string) => {
         if (validateInsteadOfDisable !== false) {
-            validateTwoFactorAuth(code, shouldClearData, {shouldKeepTwoFactorAuthFlowOpen});
+            validateTwoFactorAuth(code, shouldClearData);
             return;
         }
         toggleTwoFactorAuth(false, code);

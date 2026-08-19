@@ -1,6 +1,5 @@
 import {useInitialURLState} from '@components/InitialURLContextProvider';
 
-import AccountUtils from '@libs/AccountUtils';
 import getCurrentUrl from '@libs/Navigation/currentUrl';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -8,7 +7,7 @@ import {isLoggingInAsNewUser} from '@libs/SessionUtils';
 import {hasSecureLinkKey} from '@libs/Url';
 
 import {completeHybridAppOnboarding} from '@userActions/Welcome';
-import {buildOnboardingFlowParams, startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
+import {startOnboardingFlow} from '@userActions/Welcome/OnboardingFlow';
 
 import CONFIG from '@src/CONFIG';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -117,24 +116,22 @@ function useOnboardingFlowRouter() {
                     return;
                 }
 
-                // Pause the onboarding redirect while required 2FA is in progress:
-                // 1) Overlay visible (pre-verify / cancel-resume) via shouldShowRequire2FAPage
-                // 2) Post-verify handoff window when requiresTwoFactorAuth is true, setupInProgress is still
-                //    true, and the overlay is intentionally hidden — isForced2FAOnboardingSetup covers this.
-                // Auto-resetting to onboarding fights the 2FA wizard, corrupts its dynamic base route, and can
-                // bypass getRequired2FAOnboardingResumePath. Once Got it clears twoFactorAuthSetupInProgress,
-                // DynamicSuccessPage explicitly starts onboarding.
-                if (AccountUtils.shouldShowRequire2FAPage(account, !!isOnboardingCompleted) || AccountUtils.isForced2FAOnboardingSetup(account, !!isOnboardingCompleted)) {
-                    return;
-                }
-
                 // Explicitly start the onboarding flow when onboarding is not completed.
                 // We use startOnboardingFlow (which calls resetRoot) instead of Navigation.navigate because
                 // navigate goes through the router where OnboardingGuard would block the navigation.
                 // isNavigationReady ensures navigation is ready, which is critical during fresh login.
                 if (isOnboardingCompleted === false) {
                     Navigation.isNavigationReady().then(() => {
-                        startOnboardingFlow(buildOnboardingFlowParams(account, onboardingValues, onboardingCompanySize, onboardingPurposeSelected, onboardingInitialPath));
+                        startOnboardingFlow({
+                            onboardingValuesParam: onboardingValues ?? undefined,
+                            isUserFromPublicDomain: !!account?.isFromPublicDomain,
+                            hasAccessiblePolicies: !!account?.hasAccessibleDomainPolicies,
+                            currentOnboardingCompanySize: onboardingCompanySize,
+                            currentOnboardingPurposeSelected: onboardingPurposeSelected,
+                            onboardingInitialPath,
+                            onboardingValues,
+                            isAccountValidated: !!account?.validated,
+                        });
                     });
                 }
             },
@@ -155,7 +152,9 @@ function useOnboardingFlowRouter() {
         isLoggingInAsNewSessionUser,
         isOnboardingLoading,
         onboardingValues,
-        account,
+        account?.isFromPublicDomain,
+        account?.hasAccessibleDomainPolicies,
+        account?.validated,
         onboardingCompanySize,
         onboardingPurposeSelected,
         onboardingInitialPath,

@@ -6,12 +6,8 @@ import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import useOnyx from './useOnyx';
 
-type TwoFactorAuthRouteOptions = {
-    forceSetup?: boolean;
-};
-
 type TwoFactorAuthRouteResult = {
-    getTwoFactorAuthRoute: (backTo?: Route, options?: TwoFactorAuthRouteOptions) => Route;
+    getTwoFactorAuthRoute: (backTo?: Route) => Route;
     is2FAEnabled: boolean;
 };
 
@@ -29,8 +25,8 @@ function useTwoFactorAuthRoute(): TwoFactorAuthRouteResult {
 
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
 
-    const getTwoFactorAuthRoute = (backTo?: Route, options?: TwoFactorAuthRouteOptions): Route => {
-        if (is2FAEnabled && !options?.forceSetup) {
+    const getTwoFactorAuthRoute = (backTo?: Route): Route => {
+        if (is2FAEnabled) {
             return ROUTES.SETTINGS_2FA_ENABLED;
         }
 
