@@ -158,7 +158,7 @@ The most common ways to improve a component's performance are:
     *Examples: [#89120](https://github.com/Expensify/App/pull/89120), [#86865](https://github.com/Expensify/App/pull/86865)*
 
 > [!WARNING]
-> Do not reach for `InteractionManager.runAfterInteractions` as a deferral primitive. It is being removed from React Native and is in the process of being migrated out of the codebase. New usages should not be introduced. See [INTERACTION_MANAGER.md](https://github.com/Expensify/App/blob/main/contributingGuides/INTERACTION_MANAGER.md) for more details.
+> Do not reach for `InteractionManager.runAfterInteractions` as a deferral primitive. It is deprecated in React Native and now ships as a no-op stub, and it has been migrated out of the codebase. New usages must not be introduced - use `TransitionTracker` or the `afterTransition` callbacks built on it. See [INTERACTION_MANAGER.md](https://github.com/Expensify/App/blob/main/contributingGuides/INTERACTION_MANAGER.md) for more details.
 
 2. Defer non-critical work past the next paint.
 

@@ -86,7 +86,10 @@ function getAccountingIntegrationData(
     integrationToDisconnect?: ConnectionName,
     shouldDisconnectIntegrationBeforeConnecting?: boolean,
     canUseNetSuiteUSATax?: boolean,
-    expensifyIcons?: Record<'IntacctSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare', IconAsset>,
+    expensifyIcons?: Record<
+        'IntacctSquare' | 'IntuitSquare' | 'QBOSquare' | 'XeroSquare' | 'NetSuiteSquare' | 'QBDSquare' | 'CertiniaSquare' | 'RilletSquare' | 'DualEntrySquare',
+        IconAsset
+    >,
     cardFeeds?: CombinedCardFeeds,
     cardList?: Record<string, WorkspaceCardsList | undefined>,
     isIntuitEnterpriseSuiteOverride?: boolean,
@@ -147,7 +150,7 @@ function getAccountingIntegrationData(
         case CONST.POLICY.CONNECTIONS.NAME.QBO:
             return {
                 title: translate(shouldUseIntuitEnterpriseSuite ? 'workspace.accounting.intuitEnterpriseSuite' : 'workspace.accounting.qbo'),
-                icon: expensifyIcons?.QBOSquare,
+                icon: shouldUseIntuitEnterpriseSuite ? expensifyIcons?.IntuitSquare : expensifyIcons?.QBOSquare,
                 setupConnectionFlow: (
                     <ConnectToQuickbooksOnlineFlow
                         policyID={policyID}
