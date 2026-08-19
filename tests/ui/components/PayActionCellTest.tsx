@@ -6,7 +6,10 @@ import type {PaymentActionParams} from '@components/SettlementButton/types';
 import useOnyx from '@hooks/useOnyx';
 import useReportWithTransactionsAndViolations from '@hooks/useReportWithTransactionsAndViolations';
 
-import {payInvoice} from '@userActions/IOU/PayMoneyRequest';
+import type * as SearchActions from '@libs/actions/Search';
+import {isInvoiceReport} from '@libs/ReportUtils';
+
+import {payInvoice, payMoneyRequest} from '@userActions/IOU/PayMoneyRequest';
 
 import CONST from '@src/CONST';
 import type {Report} from '@src/types/onyx';
@@ -59,9 +62,21 @@ jest.mock('@userActions/IOU/ReportWorkflow', () => ({
     canIOUBePaid: jest.fn(() => true),
 }));
 
+const mockLogInfo = jest.fn();
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        info: (...args: unknown[]) => {
+            mockLogInfo(...args);
+        },
+        warn: jest.fn(),
+    },
+}));
+
 jest.mock('@libs/actions/Search', () => ({
     __esModule: true,
     getSearchPayOnyxData: jest.fn(() => ({optimisticData: [], successData: [], failureData: []})),
+    getChatReportWithFallback: jest.requireActual<typeof SearchActions>('@libs/actions/Search').getChatReportWithFallback,
 }));
 
 jest.mock('@libs/ReportUtils', () => {
@@ -113,6 +128,19 @@ jest.mock('@components/DelegateNoAccessModalProvider', () => ({
 const mockedUseOnyx = jest.mocked(useOnyx);
 const mockedUseReportWithTransactionsAndViolations = jest.mocked(useReportWithTransactionsAndViolations);
 const mockedPayInvoice = jest.mocked(payInvoice);
+const mockedPayMoneyRequest = jest.mocked(payMoneyRequest);
+const mockedIsInvoiceReport = jest.mocked(isInvoiceReport);
+
+const TEST_EXPENSE_REPORT_ID = '3003';
+
+const expenseReport = {
+    reportID: TEST_EXPENSE_REPORT_ID,
+    chatReportID: TEST_CHAT_REPORT_ID,
+    type: CONST.REPORT.TYPE.EXPENSE,
+    currency: CONST.CURRENCY.USD,
+    policyID: 'policy1',
+    total: -5000,
+} as Report;
 
 describe('PayActionCell', () => {
     beforeEach(() => {
@@ -170,5 +198,92 @@ describe('PayActionCell', () => {
         });
 
         expect(mockedPayInvoice).not.toHaveBeenCalled();
+        expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping invoice row pay: chat report is not loaded', false, {reportID: TEST_INVOICE_REPORT_ID});
+    });
+
+    it('pays a money request with a fallback chat report when no chatReport prop is supplied', () => {
+        mockedIsInvoiceReport.mockReturnValue(false);
+        mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
+
+        render(
+            <PayActionCell
+                isLoading={false}
+                policyID="policy1"
+                reportID={TEST_EXPENSE_REPORT_ID}
+                hash={TEST_HASH}
+                amount={5000}
+                chatReport={undefined}
+            />,
+        );
+
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chatReport: {reportID: TEST_CHAT_REPORT_ID, policyID: 'policy1'},
+                isFallbackChatReport: true,
+            }),
+        );
+    });
+
+    it('pays a money request with the loaded chat report when it is supplied', () => {
+        mockedIsInvoiceReport.mockReturnValue(false);
+        mockedUseReportWithTransactionsAndViolations.mockReturnValue([expenseReport, [], undefined]);
+
+        render(
+            <PayActionCell
+                isLoading={false}
+                policyID="policy1"
+                reportID={TEST_EXPENSE_REPORT_ID}
+                hash={TEST_HASH}
+                amount={5000}
+                chatReport={chatReport}
+            />,
+        );
+
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        expect(mockedPayMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chatReport,
+                isFallbackChatReport: false,
+            }),
+        );
+    });
+
+    it('does not pay a money request and logs the reason when the chat is not loaded and no chatReportID is available', () => {
+        mockedIsInvoiceReport.mockReturnValue(false);
+        mockedUseReportWithTransactionsAndViolations.mockReturnValue([{...expenseReport, chatReportID: undefined, parentReportID: undefined}, [], undefined]);
+
+        render(
+            <PayActionCell
+                isLoading={false}
+                policyID="policy1"
+                reportID={TEST_EXPENSE_REPORT_ID}
+                hash={TEST_HASH}
+                amount={5000}
+                chatReport={undefined}
+            />,
+        );
+
+        act(() => {
+            mockOnPressHolder.current?.({
+                paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                payAsBusiness: false,
+            });
+        });
+
+        expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
+        expect(mockLogInfo).toHaveBeenCalledWith('[SearchPay] Dropping row pay: chat report is not loaded and no chatReportID is available', false, {reportID: TEST_EXPENSE_REPORT_ID});
     });
 });
