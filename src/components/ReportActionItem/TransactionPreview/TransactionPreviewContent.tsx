@@ -1,7 +1,7 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
 import Text from '@components/Text';
@@ -136,7 +136,7 @@ function TransactionPreviewContent({
     const {shouldShowRBR, shouldShowMerchant, shouldShowSplitShare, shouldShowTag, shouldShowCategory, shouldShowSkeleton, shouldShowDescription} = conditionals;
 
     const isIOUActionType = isMoneyRequestAction(action);
-    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy);
+    const canEdit = isIOUActionType && canEditMoneyRequest(action, transaction, isChatReportArchived, report, policy, reportActions);
     const companyCardPageURL = `${environmentURL}/${ROUTES.WORKSPACE_COMPANY_CARDS.getRoute(report?.policyID)}`;
     const {personalCardsWithBrokenConnection} = useCardFeedErrors();
     const connectionLink = getBrokenConnectionUrlToFixPersonalCard(personalCardsWithBrokenConnection, environmentURL);
@@ -337,12 +337,12 @@ function TransactionPreviewContent({
                                         <Text style={[isDeleted && styles.lineThrough, styles.textLabelSupporting, styles.flex1, styles.lh16, previewTextMargin]}>{previewHeaderText}</Text>
                                         {isBillSplit && (
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportActionAvatars
+                                                <MultiAccountAvatar
                                                     accountIDs={participantAccountIDs}
-                                                    horizontalStacking={{
+                                                    horizontalOptions={{
                                                         avatarBorderColor: theme.cardBG,
                                                     }}
-                                                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
+                                                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID]}
                                                     size={CONST.AVATAR_SIZE.XX_SMALL}
                                                 />
                                             </View>
