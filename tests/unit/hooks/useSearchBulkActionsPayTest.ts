@@ -6,7 +6,9 @@ import type {SearchQueryJSON, SelectedReports, SelectedTransactions} from '@comp
 import useSearchBulkActions from '@hooks/useSearchBulkActions';
 import type {SearchHeaderOptionValue} from '@hooks/useSearchBulkActions';
 
-import {payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
+import {getLastPolicyPaymentMethod} from '@libs/actions/Search';
+import type * as SearchActions from '@libs/actions/Search';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -30,24 +32,42 @@ jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
     default: (presentModal: () => void) => presentModal(),
 }));
 
-jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
-    exportSearchItemsToCSV: jest.fn(),
-    queueExportSearchItemsToCSV: jest.fn(),
-    queueExportSearchWithTemplate: jest.fn(),
-    getSearchApproveOnyxData: jest.fn(() => ({})),
-    getSearchPayOnyxData: jest.fn(() => ({})),
-    bulkDeleteReports: jest.fn(),
-    getLastPolicyBankAccountID: jest.fn(),
-    getLastPolicyPaymentMethod: jest.fn(),
-    getPayMoneyOnSearchInvoiceParams: jest.fn(),
-    getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: mockShouldEnableBulkPayOption, isFirstTimePayment: false})),
-    getReportType: jest.fn(),
-    getTotalFormattedAmount: jest.fn(() => ''),
-    isCurrencySupportWalletBulkPay: jest.fn(() => false),
-    payMoneyRequestOnSearch: jest.fn(),
-    submitMoneyRequestOnSearch: jest.fn(),
-    unholdMoneyRequestOnSearch: jest.fn(),
+jest.mock('@libs/actions/Search', () => {
+    const actualSearch = jest.requireActual<typeof SearchActions>('@libs/actions/Search');
+    return {
+        getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
+        exportSearchItemsToCSV: jest.fn(),
+        queueExportSearchItemsToCSV: jest.fn(),
+        queueExportSearchWithTemplate: jest.fn(),
+        getSearchApproveOnyxData: jest.fn(() => ({})),
+        getSearchPayOnyxData: jest.fn(() => ({})),
+        bulkDeleteReports: jest.fn(),
+        getLastPolicyBankAccountID: jest.fn(),
+        getLastPolicyPaymentMethod: jest.fn(),
+        getPayMoneyOnSearchInvoiceParams: jest.fn(),
+        getPayOption: jest.fn(() => ({shouldEnableBulkPayOption: mockShouldEnableBulkPayOption, isFirstTimePayment: false})),
+        getReportType: jest.fn(),
+        getTotalFormattedAmount: jest.fn(() => ''),
+        isCurrencySupportWalletBulkPay: jest.fn(() => false),
+        payMoneyRequestOnSearch: jest.fn(),
+        submitMoneyRequestOnSearch: jest.fn(),
+        unholdMoneyRequestOnSearch: jest.fn(),
+        getChatReportWithFallback: actualSearch.getChatReportWithFallback,
+        getReportFromSearchSnapshot: actualSearch.getReportFromSearchSnapshot,
+        getPolicyFromSearchSnapshot: actualSearch.getPolicyFromSearchSnapshot,
+        resolveSearchPayPaymentMethod: actualSearch.resolveSearchPayPaymentMethod,
+    };
+});
+
+const mockLogInfo = jest.fn();
+jest.mock('@libs/Log', () => ({
+    __esModule: true,
+    default: {
+        info: (...args: unknown[]) => {
+            mockLogInfo(...args);
+        },
+        warn: jest.fn(),
+    },
 }));
 
 jest.mock('@libs/actions/MergeTransaction', () => ({
@@ -300,5 +320,118 @@ describe('useSearchBulkActions - Pay option', () => {
             expect(result.current.headerButtonsOptions).toBeDefined();
         });
         expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeUndefined();
+    });
+});
+
+describe('useSearchBulkActions - bulk pay chat report fallback', () => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
+        jest.clearAllMocks();
+        mockIsOffline = false;
+        mockShouldEnableBulkPayOption = true;
+        mockBulkPayButtonOptions = [{text: 'Mark as paid', key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE}];
+        mockAreAllMatchingItemsSelected = false;
+        mockSelectedTransactions = {tx1: makeSelectedTransaction()};
+        mockSelectedReports = [
+            {
+                reportID: '1',
+                policyID: 'policy1',
+                chatReportID: '2',
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.PAY,
+                canPay: true,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+        ];
+        jest.mocked(getLastPolicyPaymentMethod).mockReturnValue(CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+
+        await Onyx.merge(ONYXKEYS.SESSION, {accountID: CURRENT_USER_ACCOUNT_ID, email: 'test@example.com'});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}policy1`, {id: 'policy1', role: CONST.POLICY.ROLE.ADMIN});
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, chatReportID: '2', policyID: 'policy1'});
+    });
+
+    afterEach(async () => {
+        await Onyx.clear();
+    });
+
+    async function selectBulkPay() {
+        const {result} = renderHook(() => useSearchBulkActions({queryJSON: expenseReportQueryJSON}));
+        await waitFor(() => {
+            expect(getPayOptionFromResult(result.current.headerButtonsOptions)).toBeDefined();
+        });
+        const payOption = getPayOptionFromResult(result.current.headerButtonsOptions);
+        await act(async () => {
+            await payOption?.onSelected?.();
+        });
+    }
+
+    it('pays with a fallback chat report when the chat is not loaded', async () => {
+        await selectBulkPay();
+
+        expect(payMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chatReport: {reportID: '2', policyID: 'policy1'},
+                isFallbackChatReport: true,
+            }),
+        );
+    });
+
+    it('pays with the loaded chat report when it is available', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}2`, {reportID: '2', type: CONST.REPORT.TYPE.CHAT, policyID: 'policy1'});
+
+        await selectBulkPay();
+
+        expect(payMoneyRequest).toHaveBeenCalledWith(
+            expect.objectContaining({
+                chatReport: expect.objectContaining({reportID: '2', type: CONST.REPORT.TYPE.CHAT}),
+                isFallbackChatReport: false,
+            }),
+        );
+    });
+
+    it('skips an invoice whose chat is not loaded', async () => {
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}1`, {type: CONST.REPORT.TYPE.INVOICE});
+
+        await selectBulkPay();
+
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(payInvoice).not.toHaveBeenCalled();
+        expect(mockLogInfo).toHaveBeenCalledWith(
+            '[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx',
+            false,
+            expect.objectContaining({reportID: '1', isItemInvoice: true}),
+        );
+    });
+
+    it('skips a report when the chat is not loaded and no chatReportID is available', async () => {
+        mockSelectedReports = [
+            {
+                reportID: '1',
+                policyID: 'policy1',
+                chatReportID: undefined,
+                total: 100,
+                action: CONST.SEARCH.ACTION_TYPES.PAY,
+                canPay: true,
+                canApprove: false,
+                canSubmit: false,
+                canChangeApprover: false,
+            },
+        ];
+        await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1', type: CONST.REPORT.TYPE.EXPENSE, policyID: 'policy1'});
+
+        await selectBulkPay();
+
+        expect(payMoneyRequest).not.toHaveBeenCalled();
+        expect(mockLogInfo).toHaveBeenCalledWith(
+            '[BulkPay] Skipping report: chat report not found in the search snapshot or Onyx',
+            false,
+            expect.objectContaining({reportID: '1', isItemInvoice: false}),
+        );
+        expect(mockLogInfo).toHaveBeenCalledWith('[BulkPay] Bulk pay finished with skipped reports', false, {paidReportCount: 0, selectedCount: 1});
     });
 });
