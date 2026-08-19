@@ -632,7 +632,9 @@ describe('useSearchBulkActions - export options', () => {
 
         markAsExportedIESOption?.onSelected?.();
 
-        expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, expect.objectContaining({id: POLICY_ID_2}));
+        await waitFor(() => {
+            expect(markAsManuallyExported).toHaveBeenCalledWith([REPORT_ID_2], CONST.POLICY.CONNECTIONS.NAME.QBO, expect.objectContaining({id: POLICY_ID_2}));
+        });
     });
 
     it('blocks the export and shows the different-companies modal when the selection spans one integration on different companyIDs', async () => {
