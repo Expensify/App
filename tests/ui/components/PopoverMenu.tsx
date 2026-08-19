@@ -1,7 +1,8 @@
-import {act, fireEvent, render, screen, waitFor} from '@testing-library/react-native';
+import {act, fireEvent, render, renderHook, screen, waitFor} from '@testing-library/react-native';
 
 import type {PopoverMenuItem, PopoverMenuProps} from '@components/PopoverMenu';
 import PopoverMenu, {buildKeyPathFromIndexPath, getItemKey, resolveIndexPathByKeyPath} from '@components/PopoverMenu';
+import useNoopPopoverMenuFocusManagement from '@components/PopoverMenu/usePopoverMenuFocusManagement/noop';
 
 import getPlatform from '@libs/getPlatform';
 import {getShouldSuppressBackgroundInputFocus} from '@libs/ModalFocusManager';
@@ -666,22 +667,23 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
     });
 
-    it('keeps legacy focus management for a marked option outside iOS', () => {
-        mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
-        renderLifecycleMenu([
-            {
-                text: 'Delete',
-                shouldCallAfterModalHide: true,
-                shouldSkipFocusRestore: true,
-                onSelected: jest.fn(),
-            },
-        ]);
+    it('keeps legacy focus management for a marked option in the non-iOS hook', () => {
+        const menuItem = {
+            text: 'Delete',
+            shouldCallAfterModalHide: true,
+            shouldSkipFocusRestore: true,
+            onSelected: jest.fn(),
+        };
+        const {result} = renderHook(() =>
+            useNoopPopoverMenuFocusManagement({
+                isVisible: true,
+                menuItems: [menuItem],
+            }),
+        );
 
-        fireEvent.press(screen.getByTestId('PopoverMenuItem-Delete'));
-
-        expect(getLatestMeasuredPopoverProps().restoreFocusType).toBeUndefined();
-        expect(getLatestMeasuredPopoverProps().shouldEnableNewFocusManagement).toBe(false);
-        expect(mockClose).toHaveBeenCalledTimes(1);
+        expect(result.current.effectiveRestoreFocusType).toBeUndefined();
+        expect(result.current.shouldUseNewFocusManagement).toBe(false);
+        expect(result.current.prepareForSelection(menuItem)).toBe(false);
     });
 
     it('applies DELETE focus policy to a marked nested submenu item', () => {
