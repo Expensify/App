@@ -1,15 +1,17 @@
 import type {TransactionReportGroupListItemType} from '@components/Search/SearchList/ListItem/types';
 
+import * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
+// eslint-disable-next-line no-restricted-imports -- namespace import needed to spy on hasViolations in the approve-action test
+import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
-import type {LastPaymentMethod, Policy, Report, SearchResults} from '@src/types/onyx';
+import ROUTES from '@src/ROUTES';
+import type {LastPaymentMethod, Policy, Report, SearchResults, TransactionViolations} from '@src/types/onyx';
 
-import type {OnyxEntry} from 'react-native-onyx';
+import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
@@ -360,6 +362,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
     });
@@ -386,6 +389,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
 
         expect(onHoldMenuOpen).toHaveBeenCalledWith(mockReportItemWithHold, CONST.IOU.REPORT_ACTION_TYPE.APPROVE);
@@ -412,8 +416,51 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            allViolations: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
+    });
+
+    test('Should compute hasViolations from the passed allViolations param (not the global Onyx collection) and forward it to approveMoneyRequest', () => {
+        // Given: a report item with no held expenses so the approve action reaches getApproveActionCallback,
+        // and a violations collection passed explicitly through the params.
+        const allViolations: OnyxCollection<TransactionViolations> = {
+            [`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}1049531721038862176`]: [{name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION}],
+        };
+
+        const hasViolationsMock = jest.spyOn(ReportUtils, 'hasViolations').mockReturnValue(true);
+        const approveMoneyRequestMock = jest.spyOn(ReportWorkflow, 'approveMoneyRequest').mockImplementation(jest.fn());
+
+        // When: the approve action button is pressed
+        handleActionButtonPress({
+            hash: searchHash,
+            item: updatedMockReportItem,
+            goToItem: jest.fn(),
+            snapshotReport,
+            snapshotPolicy,
+            submitterLogin: undefined,
+            lastPaymentMethod: mockLastPaymentMethod,
+            personalPolicyID: undefined,
+            ownerBillingGracePeriodEnd: undefined,
+            amountOwed: undefined,
+            userBillingGracePeriodEnds: undefined,
+            policy: snapshotPolicy,
+            chatReportActions: undefined,
+            currentUserAccountID: 1206,
+            delegateAccountID: undefined,
+            isTrackIntentUser: false,
+            allViolations,
+            conciergeChat: undefined,
+            getCurrencyDecimals: getCurrencyDecimalsLocal,
+        });
+
+        // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,
+        // and the resulting value is forwarded to approveMoneyRequest.
+        expect(hasViolationsMock).toHaveBeenCalledWith(updatedMockReportItem.reportID, allViolations, 1206, '');
+        expect(approveMoneyRequestMock).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
+
+        hasViolationsMock.mockRestore();
+        approveMoneyRequestMock.mockRestore();
     });
 });
 
@@ -438,6 +485,7 @@ describe('handleBulkPayItemSelected', () => {
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
         isOffline: false,
+        verifyAccountAndResume: jest.fn<void, [(() => void) | undefined]>(),
     };
 
     beforeEach(async () => {
@@ -546,7 +594,7 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
-    it('should not navigate to verify account and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
+    it('should not trigger account verification and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
         const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
@@ -563,11 +611,11 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
         });
 
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
-    it('should navigate to verify account when user is unvalidated and item is a bank-funded payment type (VBBA)', async () => {
+    it('should defer to verifyAccountAndResume when user is unvalidated and item is a bank-funded payment type (VBBA), then resume the payment after validation', async () => {
         const policy: Policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
@@ -584,8 +632,19 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
         });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+
+        // Invoke the stored retry closure, which is what the hook runs once the user validates.
+        const retry = baseParams.verifyAccountAndResume.mock.calls.at(0)?.at(0);
+        if (!retry) {
+            throw new Error('Expected verifyAccountAndResume to receive a retry callback');
+        }
+        retry();
+
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
     it('should call confirmPayment directly when an open business bank account is selected, even if it is not linked to the policy', async () => {
@@ -674,7 +733,8 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });

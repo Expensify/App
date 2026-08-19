@@ -30,8 +30,6 @@ type ReusablePolicyConnectionName =
     | typeof CONST.POLICY.CONNECTIONS.NAME.RILLET
     | typeof CONST.POLICY.CONNECTIONS.NAME.DUALENTRY;
 
-const activePolicySelector = (policy: OnyxEntry<Policy>) => (policy?.type !== CONST.POLICY.TYPE.PERSONAL ? policy : undefined);
-
 const ownerPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountID: number) => getOwnedPaidPolicies(policies, currentUserAccountID);
 
 type OwnedPaidPoliciesCounts = {
@@ -142,13 +140,13 @@ const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, curren
 
 /**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
- * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces when the beta is enabled),
+ * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces),
  * so subscribers don't re-render when anything else on the policy collection changes.
  */
 const createHasWorkspaceToSubmitToSelector =
-    (currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false) =>
+    (currentUserLogin: string | undefined) =>
     (policies: OnyxCollection<Policy>): boolean =>
-        getActivePoliciesWithExpenseChat(policies, currentUserLogin, isSubmit2026BetaEnabled).length > 0;
+        getActivePoliciesWithExpenseChat(policies, currentUserLogin).length > 0;
 
 /**
  * Creates a selector that aggregates all non-formula policy report fields from all policies,
@@ -356,6 +354,8 @@ const policyNameSelector = (policy: OnyxEntry<Policy>) => policy?.name;
 
 const policyTypeSelector = (policy: OnyxEntry<Policy>) => policy?.type;
 
+const policyRoleSelector = (policy: OnyxEntry<Policy>) => policy?.role;
+
 const areInvoicesEnabledSelector = (policy: OnyxEntry<Policy>) => policy?.areInvoicesEnabled;
 
 function isAdminForPolicyByIDSelector(policyID?: string) {
@@ -391,7 +391,6 @@ const createAdminPoliciesSelector =
 
 export type {PolicySelector};
 export {
-    activePolicySelector,
     createAllPolicyReportFieldsSelector,
     ownerPoliciesSelector,
     createOwnedPaidPoliciesCountsSelector,
@@ -411,6 +410,7 @@ export {
     lastWorkspaceNumberSelector,
     hasOnlyPersonalPoliciesSelector,
     policyNameSelector,
+    policyRoleSelector,
     policyTypeSelector,
     areInvoicesEnabledSelector,
     createAdminPoliciesSelector,

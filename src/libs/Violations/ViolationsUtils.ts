@@ -65,7 +65,7 @@ type ViolationTranslationParams = {
     connectionLink?: string;
     card?: Card;
     isMarkAsCash?: boolean;
-    routeDistanceMeters?: number;
+    routeDistanceMeters?: number | null;
     distanceUnit?: Unit;
 };
 

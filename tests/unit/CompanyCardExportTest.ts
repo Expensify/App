@@ -79,7 +79,7 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
 }
 
 function createCard(nvpExportAccount?: string): Card {
-    const nameValuePairs: Record<string, string> = {};
+    const nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>> = {};
     if (nvpExportAccount !== undefined) {
         nameValuePairs.quickbooks_desktop_export_account_credit = nvpExportAccount;
     }
