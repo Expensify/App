@@ -16,6 +16,11 @@ type FilterConfigEntry = {
     label: string;
     filterType?: ValueOf<typeof CONST.TABLES.FILTER_TYPE>;
     options: Array<{label: string; value: string}>;
+
+    /**
+     * When true, the filter's options render inline in the popover and each selection applies immediately,
+     * instead of being staged behind an "Apply" button. Only takes effect for `MULTI_SELECT` filters.
+     */
     immediate?: boolean;
 };
 

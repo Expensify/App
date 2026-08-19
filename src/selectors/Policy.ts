@@ -128,7 +128,7 @@ const createWorkspaceListPoliciesSelector =
                 id: policy.id,
                 name: policy.name,
                 type: policy.type,
-                role: (getPolicyRole(policy, currentUserLogin) ?? policy.role) as ValueOf<typeof CONST.POLICY.ROLE>,
+                role: getPolicyRole(policy, currentUserLogin) as ValueOf<typeof CONST.POLICY.ROLE>,
                 ownerAccountID: policy.ownerAccountID,
                 avatarURL: policy.avatarURL,
                 pendingAction: policy.pendingAction,
