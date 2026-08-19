@@ -1,11 +1,12 @@
 import {renderHook} from '@testing-library/react-native';
 
+import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+
 import useAutoCreateSubmitWorkspace from '@hooks/useAutoCreateSubmitWorkspace';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useHasActiveAdminPolicies from '@hooks/useHasActiveAdminPolicies';
 import useLocalize from '@hooks/useLocalize';
 import useOnboardingMessages from '@hooks/useOnboardingMessages';
-import useOnyx from '@hooks/useOnyx';
 import usePreferredPolicy from '@hooks/usePreferredPolicy';
 
 import * as navigateAfterOnboarding from '@libs/navigateAfterOnboarding';
@@ -15,10 +16,14 @@ import * as Report from '@userActions/Report';
 import * as Welcome from '@userActions/Welcome';
 
 import CONST from '@src/CONST';
+import ONYXKEYS from '@src/ONYXKEYS';
+import type {Policy as PolicyType} from '@src/types/onyx';
+import type Session from '@src/types/onyx/Session';
 
-jest.mock('@hooks/useOnyx', () => {
-    return {__esModule: true, default: jest.fn(() => [undefined])};
-});
+import Onyx from 'react-native-onyx';
+
+import createMock from '../../utils/createMock';
+import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
 jest.mock('@hooks/useCurrentUserPersonalDetails');
 jest.mock('@hooks/useHasActiveAdminPolicies');
@@ -26,73 +31,82 @@ jest.mock('@hooks/useLocalize');
 jest.mock('@hooks/usePreferredPolicy');
 jest.mock('@hooks/useOnboardingMessages');
 
-const mockTranslate = jest.fn((key: string) => key);
+const mockTranslate: LocalizedTranslate = (path, ...parameters) => {
+    parameters.some(() => false);
+    return path;
+};
 const mockFormatPhoneNumber = jest.fn((phone: string) => phone);
 
-// Single shared assertion so individual tests can re-mock useOnyx without repeating the unsafe cast
-const mockUseOnyx = useOnyx as jest.Mock;
+type MockSession = Session & Required<Pick<Session, 'accountID' | 'email'>>;
 
-const MOCK_SESSION = {
+const MOCK_SESSION = createMock<MockSession>({
     accountID: 12345,
     email: 'test@expensify.com',
-};
+});
 
 const MOCK_POLICY_ID = 'mock-policy-id';
 const MOCK_ADMINS_CHAT_REPORT_ID = 'mock-admins-chat-report-id';
-const MOCK_ONBOARDING_MESSAGE = {message: 'Welcome!', video: undefined, tasks: []};
+const MOCK_ONBOARDING_MESSAGE = createMock<ReturnType<typeof useOnboardingMessages>['onboardingMessages'][typeof CONST.ONBOARDING_CHOICES.EMPLOYER]>({
+    message: 'Welcome!',
+    video: undefined,
+    tasks: [],
+});
 
 function setupDefaultMocks() {
-    mockUseOnyx.mockImplementation((key: string) => {
-        if (key === 'session') {
-            return [MOCK_SESSION];
-        }
-        if (key === 'betas') {
-            return [[]];
-        }
-        if (key.startsWith('policy_')) {
-            return [false];
-        }
-        return [undefined];
-    });
-
-    (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+    jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
         accountID: MOCK_SESSION.accountID,
         login: MOCK_SESSION.email,
         localCurrencyCode: 'USD',
     });
 
-    (useLocalize as jest.Mock).mockReturnValue({
-        translate: mockTranslate,
-        formatPhoneNumber: mockFormatPhoneNumber,
-    });
+    jest.mocked(useLocalize).mockReturnValue(
+        createMock<ReturnType<typeof useLocalize>>({
+            translate: mockTranslate,
+            formatPhoneNumber: mockFormatPhoneNumber,
+        }),
+    );
 
-    (usePreferredPolicy as jest.Mock).mockReturnValue({
+    jest.mocked(usePreferredPolicy).mockReturnValue({
         isRestrictedToPreferredPolicy: false,
         preferredPolicyID: undefined,
         isRestrictedPolicyCreation: false,
     });
 
-    (useHasActiveAdminPolicies as jest.Mock).mockReturnValue(false);
+    jest.mocked(useHasActiveAdminPolicies).mockReturnValue(false);
 
-    (useOnboardingMessages as jest.Mock).mockReturnValue({
-        onboardingMessages: {
-            [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
-        },
-    });
+    jest.mocked(useOnboardingMessages).mockReturnValue(
+        createMock<ReturnType<typeof useOnboardingMessages>>({
+            onboardingMessages: {
+                [CONST.ONBOARDING_CHOICES.EMPLOYER]: MOCK_ONBOARDING_MESSAGE,
+            },
+        }),
+    );
 }
 
 describe('useAutoCreateSubmitWorkspace', () => {
-    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue({
-        policyID: MOCK_POLICY_ID,
-        adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
-    } as ReturnType<typeof Policy.createWorkspace>);
+    const createWorkspaceSpy = jest.spyOn(Policy, 'createWorkspace').mockReturnValue(
+        createMock<ReturnType<typeof Policy.createWorkspace>>({
+            policyID: MOCK_POLICY_ID,
+            adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
+        }),
+    );
     const completeOnboardingSpy = jest.spyOn(Report, 'completeOnboarding').mockImplementation(jest.fn());
     const setOnboardingAdminsChatReportIDSpy = jest.spyOn(Welcome, 'setOnboardingAdminsChatReportID').mockImplementation(jest.fn());
     const setOnboardingPolicyIDSpy = jest.spyOn(Welcome, 'setOnboardingPolicyID').mockImplementation(jest.fn());
     const navigateSpy = jest.spyOn(navigateAfterOnboarding, 'navigateToSubmitWorkspaceAfterOnboardingWithMicrotaskQueue').mockImplementation(jest.fn());
 
-    beforeEach(() => {
+    beforeAll(() => {
+        Onyx.init({keys: ONYXKEYS});
+    });
+
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await Onyx.clear();
+        await Onyx.multiSet({
+            [ONYXKEYS.SESSION]: MOCK_SESSION,
+            [ONYXKEYS.BETAS]: [],
+        });
+        await waitForBatchedUpdates();
         setupDefaultMocks();
     });
 
@@ -139,6 +153,9 @@ describe('useAutoCreateSubmitWorkspace', () => {
                 lastName: 'Doe',
                 adminsChatReportID: MOCK_ADMINS_CHAT_REPORT_ID,
                 onboardingPolicyID: MOCK_POLICY_ID,
+                // The new Submit workspace gets a Concierge welcome with suggested responses in its #admins
+                // room, so the Concierge DM checklist is suppressed to avoid a duplicate onboarding experience.
+                shouldSkipConciergeOnboarding: true,
             }),
         );
     });
@@ -169,30 +186,17 @@ describe('useAutoCreateSubmitWorkspace', () => {
         expect(navigateSpy).toHaveBeenCalledWith(MOCK_POLICY_ID, expect.any(Boolean));
     });
 
-    it('reuses the existing onboarding workspace instead of creating a new one', () => {
+    it('reuses the existing onboarding workspace instead of creating a new one', async () => {
         // Given a user who already has an onboardingPolicyID set (e.g. assigned by an admin
         // or from a previous partial onboarding attempt)
         const existingPolicyID = 'existing-policy-id';
         const existingAdminsReportID = 'existing-admins-report-id';
 
-        (useOnyx as jest.Mock).mockImplementation((key: string) => {
-            if (key === 'onboardingPolicyID') {
-                return [existingPolicyID];
-            }
-            if (key === 'onboardingAdminsChatReportID') {
-                return [existingAdminsReportID];
-            }
-            if (key === 'session') {
-                return [MOCK_SESSION];
-            }
-            if (key === 'betas') {
-                return [[]];
-            }
-            if (key.startsWith('policy_')) {
-                return [false];
-            }
-            return [undefined];
+        await Onyx.multiSet({
+            [ONYXKEYS.ONBOARDING_POLICY_ID]: existingPolicyID,
+            [ONYXKEYS.ONBOARDING_ADMINS_CHAT_REPORT_ID]: existingAdminsReportID,
         });
+        await waitForBatchedUpdates();
 
         // When the onboarding flow runs
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -205,30 +209,23 @@ describe('useAutoCreateSubmitWorkspace', () => {
             expect.objectContaining({
                 adminsChatReportID: existingAdminsReportID,
                 onboardingPolicyID: existingPolicyID,
+                // No workspace was created, so no #admins welcome was posted and the Concierge DM
+                // checklist is the only onboarding experience this user gets.
+                shouldSkipConciergeOnboarding: false,
             }),
         );
     });
 
-    it('skips workspace creation when the user is already a paid group policy admin', () => {
+    it('skips workspace creation when the user is already a paid group policy admin', async () => {
         // Given a user who is already an admin of a paid group policy
-        (useOnyx as jest.Mock).mockImplementation((key: string) => {
-            if (key === 'session') {
-                return [MOCK_SESSION];
-            }
-            if (key === 'betas') {
-                return [[]];
-            }
-            if (key === 'onboardingPolicyID') {
-                return [undefined];
-            }
-            if (key === 'onboardingAdminsChatReportID') {
-                return [undefined];
-            }
-            if (key.startsWith('policy_')) {
-                return [true];
-            }
-            return [undefined];
+        const existingPaidPolicy = createMock<PolicyType>({
+            id: 'existing-paid-policy-id',
+            name: 'Existing Paid Workspace',
+            type: CONST.POLICY.TYPE.TEAM,
+            role: CONST.POLICY.ROLE.ADMIN,
         });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingPaidPolicy.id}`, existingPaidPolicy);
+        await waitForBatchedUpdates();
 
         // When onboarding completes
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -241,7 +238,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('skips workspace creation when the user domain restricts policy creation', () => {
         // Given a user whose domain security group has enableRestrictedPolicyCreation set to true
-        (usePreferredPolicy as jest.Mock).mockReturnValue({
+        jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
@@ -259,7 +256,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('still completes onboarding and navigates even when workspace creation is skipped', async () => {
         // Given a user who cannot create a workspace due to domain restrictions
-        (usePreferredPolicy as jest.Mock).mockReturnValue({
+        jest.mocked(usePreferredPolicy).mockReturnValue({
             isRestrictedToPreferredPolicy: false,
             preferredPolicyID: undefined,
             isRestrictedPolicyCreation: true,
@@ -280,31 +277,14 @@ describe('useAutoCreateSubmitWorkspace', () => {
     it('navigates to the existing Submit workspace when an already-onboarded caller skips creation', async () => {
         // Given an already-onboarded user (the Submit plan welcome modal passes shouldCompleteOnboarding = false)
         // who is an editor/admin of an existing Submit workspace, so no new workspace should be created
-        const existingSubmitPolicy = {
+        const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
-        };
-        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
-            if (key === 'session') {
-                return [MOCK_SESSION];
-            }
-            if (key === 'betas') {
-                return [[]];
-            }
-            if (key.startsWith('policy_')) {
-                // Run the hook's real selectors against a fake policy collection so both the
-                // hasEditableGroupPolicy and existingSubmitPolicyID subscriptions resolve correctly.
-                // Unrelated policy-collection selectors (e.g. useLastWorkspaceNumber's) expect extra
-                // arguments this mock doesn't provide, so fall back to undefined when they throw.
-                try {
-                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
-                } catch {
-                    return [undefined];
-                }
-            }
-            return [undefined];
         });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
 
         // When the user confirms the Submit plan welcome modal again
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -320,27 +300,14 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('keeps the Home fallback for onboarding callers when creation is skipped', async () => {
         // Given an onboarding user who already has an editable group workspace, so creation is skipped
-        const existingSubmitPolicy = {
+        const existingSubmitPolicy = createMock<PolicyType>({
             id: 'existing-submit-policy-id',
+            name: 'Existing Submit Workspace',
             type: CONST.POLICY.TYPE.SUBMIT,
             role: CONST.POLICY.ROLE.ADMIN,
-        };
-        mockUseOnyx.mockImplementation((key: string, options?: {selector?: (policies: unknown) => unknown}) => {
-            if (key === 'session') {
-                return [MOCK_SESSION];
-            }
-            if (key === 'betas') {
-                return [[]];
-            }
-            if (key.startsWith('policy_')) {
-                try {
-                    return [options?.selector?.({[`policy_${existingSubmitPolicy.id}`]: existingSubmitPolicy})];
-                } catch {
-                    return [undefined];
-                }
-            }
-            return [undefined];
         });
+        await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${existingSubmitPolicy.id}`, existingSubmitPolicy);
+        await waitForBatchedUpdates();
 
         // When the onboarding flow runs (shouldCompleteOnboarding defaults to true)
         const {result} = renderHook(() => useAutoCreateSubmitWorkspace());
@@ -355,7 +322,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('uses the localCurrencyCode from personal details for workspace currency', () => {
         // Given a user whose personal details have localCurrencyCode set to GBP
-        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
             accountID: MOCK_SESSION.accountID,
             login: MOCK_SESSION.email,
             localCurrencyCode: 'GBP',
@@ -375,7 +342,7 @@ describe('useAutoCreateSubmitWorkspace', () => {
 
     it('falls back to USD when localCurrencyCode is not available', () => {
         // Given a user whose personal details do not have a localCurrencyCode set
-        (useCurrentUserPersonalDetails as jest.Mock).mockReturnValue({
+        jest.mocked(useCurrentUserPersonalDetails).mockReturnValue({
             accountID: MOCK_SESSION.accountID,
             login: MOCK_SESSION.email,
             localCurrencyCode: undefined,

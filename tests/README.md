@@ -2,6 +2,10 @@
 
 [Jest](https://jestjs.io/) is a testing framework we use to ensure our most mission critical libraries are as stable as possible. Here are a few things to consider with regards to our app's architecture when testing in Jest.
 
+> Jest covers everything except `tests/tooling/`, which tests the repo's own build and deploy tooling and runs under
+> `bun:test` instead. If your test's import graph reaches `@actions/*` or `@octokit/*`, it belongs there — see
+> [tests/tooling/README.md](tooling/README.md).
+
 ## Asynchronous Testing
 
 - Much of the logic in the app is asynchronous in nature. [`react-native-onyx`](https://github.com/expensify/react-native-onyx) writes data async before updating subscribers.
