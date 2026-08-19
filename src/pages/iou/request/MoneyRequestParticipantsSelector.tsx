@@ -103,7 +103,7 @@ function MoneyRequestParticipantsSelector({
 
     return (
         <Activity mode={isActivityVisible ? 'visible' : 'hidden'}>
-            <AlwaysPaintedView inert={!isActivityVisible}>
+            <AlwaysPaintedView inert={!isFocused}>
                 <ParticipantSearchResults
                     iouType={iouType}
                     action={action}
