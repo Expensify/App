@@ -26,14 +26,14 @@ Workspace Admins can reconcile reimbursements when Payments is enabled on the Wo
 
 ---
 
-## How to Read the Amount Debited and Amount Reimbursed Columns
+## How to read the Amount debited and Amount reimbursed columns
 
-A cross-border reimbursement debits your company in one currency and pays the employee in another, so a single total cannot describe it. For these reimbursements, the reconciliation view shows two additional columns between **Expenses** and **Total**:
+A cross-border reimbursement debits your company in one currency and pays the employee in another, so a single total cannot describe it. When your selected results include at least one cross-border reimbursement, the reconciliation view shows two additional columns between **Expenses** and **Total**:
 
 - **Amount debited** — the amount withdrawn from your company's bank account, shown in the settlement currency.
 - **Amount reimbursed** — the amount deposited to the employee, shown in the employee's deposit currency.
 
-A domestic reimbursement does not convert currencies, so both columns stay blank and the **Total** column shows the single amount. You can sort the list by either column by clicking its header.
+If every reimbursement in view is domestic, these columns are hidden entirely. In a mixed list, domestic rows leave both cells blank and show their amount in the **Total** column. You can sort the list by either column by clicking its header.
 
 ---
 
@@ -64,9 +64,9 @@ If you see a charge on your bank statement that you cannot identify, go to the R
 
 A single reimbursement payment may cover one expense report. Expanding the payment row shows all the expenses on the report that was reimbursed. 
 
-## Why are the Amount debited and Amount reimbursed columns blank for some reimbursements?
+## Why don't I see the Amount debited and Amount reimbursed columns, or why are they blank?
 
-Those columns only apply to cross-border reimbursements, where the debited and reimbursed amounts are in different currencies. A domestic reimbursement does not convert currencies, so both columns stay blank and the **Total** column shows the single amount.
+Those columns apply only to cross-border reimbursements, where the debited and reimbursed amounts are in different currencies. If your selected results contain only domestic reimbursements, the columns don't appear at all. In a mixed list, domestic rows leave both cells blank because the amount is shown in the **Total** column instead.
 
 ## Why don't I see Reimbursements under Reconciliation?
 
