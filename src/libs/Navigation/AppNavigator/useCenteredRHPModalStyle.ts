@@ -7,7 +7,7 @@ import type {ViewStyle} from 'react-native';
 
 import {useMemo} from 'react';
 
-const CENTERED_MODAL_VERTICAL_MARGIN = 32;
+const CENTERED_MODAL_VERTICAL_MARGIN = 60;
 
 /** Geometry of the centered RHP modal box (width/height/position/radius). Shared so the container and its inner content stay aligned. */
 function useCenteredRHPModalStyle(): ViewStyle {
