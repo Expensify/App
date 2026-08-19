@@ -14,6 +14,7 @@ import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useConfirmModal from '@hooks/useConfirmModal';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -38,6 +39,8 @@ import type {Policy, Report} from '@src/types/onyx';
 import type {ColorValue} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
+import {transactionViolationsByIDsSelector} from '@selectors/TransactionViolations';
 import React, {useMemo} from 'react';
 import {View} from 'react-native';
 // Use the original useOnyx hook to get the real-time personal details list data from Onyx and not from the snapshot
@@ -272,19 +275,25 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
-    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)}, [reportItem.ownerAccountID]);
+    const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
     const [chatReportActions] = useOnyx(
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
-    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, nextStep, chatReportPolicy, amountOwed, delegateEmail} = useReportPaymentContext({
-        reportID: reportItem.reportID,
-        chatReportPolicyID: chatReport?.policyID,
-    });
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
+    const reportTransactionIDs = (reportItem.transactions ?? []).map((transaction) => transaction.transactionID);
+    const [allViolations] = originalUseOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS, {selector: transactionViolationsByIDsSelector(reportTransactionIDs)});
+
+    const {currentUserAccountID, currentUserLogin, introSelected, betas, isSelfTourViewed, activePolicy, chatReportPolicy, amountOwed, delegateEmail, delegateAccountID, conciergeChat} =
+        useReportPaymentContext({
+            chatReportPolicyID: chatReport?.policyID,
+        });
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {showConfirmModal} = useConfirmModal();
     const {isSelected} = useRowSelection(reportItem.keyForList);
     const avatarBorderColor =
@@ -295,6 +304,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
 
     const handleOnButtonPress = (event?: ModifiedMouseEvent) => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: reportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem, event),
@@ -322,10 +332,13 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             activePolicy,
             chatReport,
             chatReportPolicy,
-            iouReportCurrentNextStepDeprecated: nextStep,
             searchData: snapshot?.data,
             chatReportActions,
             delegateEmail,
+            delegateAccountID,
+            isTrackIntentUser,
+            allViolations,
+            conciergeChat,
         });
     };
     return !isLargeScreenWidth ? (

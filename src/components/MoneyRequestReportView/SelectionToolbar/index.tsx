@@ -82,7 +82,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
 
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const {showConfirmModal} = useConfirmModal();
-    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(undefined, true));
+    const {trackExport, exportDownloadStatusModal} = useExportDownloadStatusModal(() => clearSelectedTransactions(true));
 
     const [offlineModalVisible, setOfflineModalVisible] = useState(false);
     const [isDownloadErrorModalVisible, setIsDownloadErrorModalVisible] = useState(false);
@@ -165,7 +165,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
         hasPayInSelectionMode,
         onSelectionModePaymentSelect,
         selectionModeKYCSuccess,
-        shouldBlockAction,
+        handleWorkspaceSelected,
         primaryAction,
         kycWallRef,
         isHoldMenuVisible,
@@ -261,12 +261,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
                                 report={report}
                                 onSelectionModePaymentSelect={onSelectionModePaymentSelect}
                                 selectionModeKYCSuccess={selectionModeKYCSuccess}
-                                onWorkspacePolicySelect={(selectedPolicy, triggerKYCFlow) => {
-                                    if (shouldBlockAction(undefined, true)) {
-                                        return;
-                                    }
-                                    triggerKYCFlow({policy: selectedPolicy});
-                                }}
+                                onWorkspacePolicySelect={handleWorkspaceSelected}
                                 primaryAction={primaryAction}
                                 selectedTransactionsOptions={selectedTransactionsOptions}
                                 selectedTransactionIDs={selectedTransactionIDs}

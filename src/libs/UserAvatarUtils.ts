@@ -1,5 +1,11 @@
+import type useDefaultAvatars from '@hooks/useDefaultAvatars';
+
 import CONST from '@src/CONST';
+import type {PersonalDetailsList} from '@src/types/onyx';
+import type {Icon} from '@src/types/onyx/OnyxCommon';
 import type IconAsset from '@src/types/utils/IconAsset';
+
+import type {OnyxEntry} from 'react-native-onyx';
 
 import {md5, Str} from 'expensify-common';
 
@@ -9,6 +15,7 @@ import type {DefaultAvatarIDs} from './Avatars/UserAvatarCatalog.types';
 import {findAvatarIDFromURL, findCatalogMatchForURL, findLocalAvatarForURL} from './Avatars/AvatarLookup';
 import {DEFAULT_LETTER_AVATAR_SCHEME, isLetterAvatarSchemeKey, LETTER_AVATAR_COLOR_KEYS, LETTER_AVATAR_SCHEMES} from './Avatars/letterAvatarPalette';
 import {DEFAULT_AVATAR_PREFIX, USER_AVATARS} from './Avatars/UserAvatarCatalog';
+import {addSMSDomainIfPhoneNumber} from './PhoneNumber';
 
 type AvatarRange = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 | 12 | 13 | 14 | 15 | 16 | 17 | 18 | 19 | 20 | 21 | 22 | 23 | 24;
 
@@ -44,6 +51,10 @@ type CommonAvatarArgsType = {
 type DefaultAvatarArgsType = CommonAvatarArgsType & {
     /** Existing avatar URL */
     avatarURL?: string;
+    /** The user's first name, when known (seeds letter-avatar initials ahead of the email) */
+    firstName?: string;
+    /** The user's last name, when known */
+    lastName?: string;
 };
 
 type GetAvatarArgsType = CommonAvatarArgsType & {
@@ -51,8 +62,10 @@ type GetAvatarArgsType = CommonAvatarArgsType & {
     avatarSource?: AvatarSource;
 };
 
+type DefaultAvatars = ReturnType<typeof useDefaultAvatars>;
+
 type DefaultAvatarsType = {
-    defaultAvatars: Record<'ConciergeAvatar' | 'NotificationsAvatar', IconAsset>;
+    defaultAvatars: DefaultAvatars;
 };
 
 /**
@@ -130,10 +143,12 @@ function getDefaultAvatarName({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail
  * @param args.accountID - The user's account ID
  * @param args.accountEmail - The user's email address (for consistency with backend logic, used for avatar calculation if provided)
  * @param args.avatarURL - Existing avatar URL (parsed to extract avatar number if available)
+ * @param args.firstName - The user's first name, when known (seeds the letter-avatar initials ahead of the email, matching the backend)
+ * @param args.lastName - The user's last name, when known
  * @returns The CloudFront CDN URL for the avatar image
  *
  */
-function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL}: DefaultAvatarArgsType): string {
+function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail, avatarURL, firstName, lastName}: DefaultAvatarArgsType): string {
     if (Number(accountID) === CONST.ACCOUNT_ID.CONCIERGE || accountEmail === CONST.EMAIL.CONCIERGE) {
         return CONST.CONCIERGE_ICON_URL;
     }
@@ -141,9 +156,7 @@ function getDefaultAvatarURL({accountID = CONST.DEFAULT_NUMBER_ID, accountEmail,
         return CONST.NOTIFICATIONS_ICON_URL;
     }
 
-    // The local default has no name to read initials from, so they come from the email. The backend emits
-    // name-based initials on the avatar URL, which the client parses instead of recomputing here.
-    const letterAvatarURL = getLetterAvatarURL(accountID, '', '', accountEmail ?? '');
+    const letterAvatarURL = getLetterAvatarURL(accountID, firstName ?? '', lastName ?? '', accountEmail ?? '');
     if (letterAvatarURL) {
         return letterAvatarURL;
     }
@@ -162,6 +175,16 @@ function getCatalogAvatarNameFromURL(avatarURL?: AvatarSource): string | undefin
         return undefined;
     }
     return findAvatarIDFromURL(avatarURL);
+}
+
+/** Narrows an avatar owner ID to a numeric account ID. User-avatar path only — a workspace policyID yields the anonymous default; use `WorkspaceAvatar` instead. */
+function getAccountIDFromAvatarID(avatarID?: number | string): number {
+    if (avatarID === undefined) {
+        return CONST.DEFAULT_NUMBER_ID;
+    }
+    // Number() (unlike parseInt) rejects a policyID like '1A2B...' whole, instead of extracting a bogus leading account ID.
+    const accountID = Number(avatarID);
+    return Number.isNaN(accountID) ? CONST.DEFAULT_NUMBER_ID : accountID;
 }
 
 /**
@@ -250,6 +273,30 @@ function firstLetterAvatarCharacter(name: string): string {
 }
 
 /**
+ * Returns the 1-2 letter-avatar initials for a user, or '' when no letter avatar applies.
+ * Initials come from the first alphanumeric character of the first and last name, falling back to the login
+ * for non-SMS logins.
+ *
+ * @param firstName - The user's first name
+ * @param lastName - The user's last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ */
+function getLetterAvatarInitials(firstName: string, lastName: string, login: string): string {
+    const initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
+    if (initials !== '') {
+        return initials;
+    }
+    // The displayed login has the merge prefix stripped, so derive the initial from the
+    // stripped form to match what users see. This is a no-op for non-merged logins.
+    const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
+    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
+    if (!normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
+        return firstLetterAvatarCharacter(normalizedLogin);
+    }
+    return '';
+}
+
+/**
  * Builds the generated letter-avatar URL for an account from its name and login.
  * Initials come from the first alphanumeric character of the first and last name, falling back to the login
  * for non-SMS logins. The color key is picked by hashing the login, or by accountID modulo when there is no login.
@@ -261,7 +308,7 @@ function firstLetterAvatarCharacter(name: string): string {
  * @returns The generated letter-avatar URL, or '' when no letter avatar applies
  */
 function getLetterAvatarURL(accountID: number, firstName: string, lastName: string, login: string): string {
-    // The displayed login has the merge prefix stripped, so derive the initial and color from the
+    // The displayed login has the merge prefix stripped, so derive the color from the
     // stripped form to match what users see. This is a no-op for non-merged logins.
     const normalizedLogin = login.replace(CONST.REGEX.MERGED_ACCOUNT_PREFIX, '');
     if (
@@ -273,11 +320,7 @@ function getLetterAvatarURL(accountID: number, firstName: string, lastName: stri
         return '';
     }
 
-    let initials = firstLetterAvatarCharacter(firstName) + firstLetterAvatarCharacter(lastName);
-    // Only a real email seeds the initial. Phone numbers (raw or @expensify.sms) fall back to the illustrated default.
-    if (initials === '' && !normalizedLogin.endsWith(CONST.SMS.DOMAIN) && Str.isValidEmail(normalizedLogin)) {
-        initials = firstLetterAvatarCharacter(normalizedLogin);
-    }
+    const initials = getLetterAvatarInitials(firstName, lastName, login);
     if (initials === '') {
         return '';
     }
@@ -316,6 +359,34 @@ function parseLetterAvatarURL(source: AvatarSource | undefined): {colors: Letter
 
     const colors = isLetterAvatarSchemeKey(colorKey) ? LETTER_AVATAR_SCHEMES[colorKey] : DEFAULT_LETTER_AVATAR_SCHEME;
     return {colors, initials};
+}
+
+/**
+ * Rebuilds a generated letter-avatar URL with the initials for a new name, keeping the URL's color key.
+ * The color key is preserved rather than recomputed so a user-picked avatar color survives a name change.
+ *
+ * @param source - The current avatar source
+ * @param firstName - The user's new first name
+ * @param lastName - The user's new last name
+ * @param login - The user's login (email or SMS), or '' when unknown
+ * @returns The rewritten URL, or undefined when the source is not a generated letter-avatar URL or the new name yields no initials
+ */
+function getUpdatedLetterAvatarURL(source: AvatarSource | undefined, firstName: string, lastName: string, login: string): string | undefined {
+    if (typeof source !== 'string' || !isGeneratedLetterAvatarURL(source)) {
+        return undefined;
+    }
+
+    const initials = getLetterAvatarInitials(firstName, lastName, login);
+    if (initials === '') {
+        return undefined;
+    }
+
+    const segments = source.split('?').at(0)?.split('/') ?? [];
+    if (segments.length < 2) {
+        return undefined;
+    }
+    segments[segments.length - 1] = `${initials}.png`;
+    return segments.join('/');
 }
 
 /**
@@ -426,7 +497,49 @@ function getSmallSizeAvatar(args: GetAvatarArgsType & DefaultAvatarsType): Avata
     return `${source.substring(0, lastPeriodIndex)}_128${source.substring(lastPeriodIndex)}`;
 }
 
+type BuildUserIconArgsType = DefaultAvatarsType & {
+    /** Account ID whose avatar is being resolved */
+    accountID: number;
+
+    /** Personal details from the `OnyxListItemProvider` context */
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+
+    /**
+     * Email tied to an invited (not-yet-registered) account. Its presence also seeds a deterministic fallback avatar,
+     * so an invited account keeps the same avatar before and after it registers.
+     */
+    invitedEmail?: string;
+
+    /** Overrides the icon name, which otherwise comes from the account's login. Pass `''` to leave it blank. */
+    name?: string;
+};
+
+/**
+ * Resolves a single account ID into an avatar {@link Icon} using the personal-details context and the default-avatar set.
+ * Shared by `AccountAvatar` and `useReportActionAvatars` so the resolution stays in one place.
+ */
+function buildUserIcon({accountID, personalDetails, defaultAvatars, invitedEmail, name}: BuildUserIconArgsType): Icon {
+    return {
+        id: accountID,
+        type: CONST.ICON_TYPE_AVATAR,
+        source: personalDetails?.[accountID]?.avatar ?? defaultAvatars.FallbackAvatar,
+        name: name ?? personalDetails?.[accountID]?.login ?? invitedEmail ?? '',
+        displayName: personalDetails?.[accountID]?.displayName ?? personalDetails?.[accountID]?.login,
+        fallbackIcon: invitedEmail ? getDefaultAvatar({accountID, accountEmail: addSMSDomainIfPhoneNumber(invitedEmail), defaultAvatars}) : undefined,
+    };
+}
+
+/**
+ * Swaps a catalog-backed avatar URL for its bundled local SVG so it renders without a network request.
+ * Non-catalog sources (uploaded image URLs, SVG components, or undefined) are returned unchanged.
+ */
+function optimizeAvatarSource(source?: AvatarSource): AvatarSource | undefined {
+    return findLocalAvatarForURL(source) ?? source;
+}
+
 export {
+    buildUserIcon,
+    getAccountIDFromAvatarID,
     getAvatar,
     getAvatarURL,
     getDefaultAvatar,
@@ -435,11 +548,14 @@ export {
     getCatalogAvatarNameFromURL,
     getFullSizeAvatar,
     getSmallSizeAvatar,
+    getLetterAvatarInitials,
     getLetterAvatarURL,
+    getUpdatedLetterAvatarURL,
     parseLetterAvatarURL,
     isCatalogAvatar,
     isDefaultAvatar,
     isGeneratedLetterAvatarURL,
     isLetterAvatar,
+    optimizeAvatarSource,
 };
 export type {AvatarSource};

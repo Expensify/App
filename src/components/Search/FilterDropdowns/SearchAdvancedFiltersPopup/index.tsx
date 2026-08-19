@@ -9,6 +9,7 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
+import {getFilterNegatableValue} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
@@ -18,8 +19,8 @@ import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 import AmountFilterContentPopupWrapper from './AmountFilterContentPopupWrapper';
-import CommonFilterContentPopupWrapper from './CommonFilterContentPopupWrapper';
 import DateFilterContentPopupWrapper from './DateFilterContentPopupWrapper';
+import ListFilterContentPopupWrapper from './ListFilterContentPopupWrapper';
 import ReportFieldFilterContentPopupWrapper from './ReportFieldFilterContentPopupWrapper';
 import TextInputFilterContentPopupWrapper from './TextInputFilterContentPopupWrapper';
 
@@ -43,7 +44,7 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 <FilterList
                     style={[styles.typeFiltersPopupContainer]}
                     type={searchAdvancedFiltersForm?.type}
-                    policyID={searchAdvancedFiltersForm?.policyID}
+                    policyID={getFilterNegatableValue(CONST.SEARCH.SYNTAX_FILTER_KEYS.POLICY_ID, searchAdvancedFiltersForm)}
                     selectedFilter={selectedFilter}
                     onHoverIn={setSelectedFilter}
                     onFocus={setSelectedFilter}
@@ -54,10 +55,9 @@ function SearchAdvancedFiltersPopup({queryJSON}: SearchAdvancedFiltersPopupProps
                 >
                     <SearchAdvancedFiltersContent
                         values={searchAdvancedFiltersForm}
-                        filterKey={selectedFilter}
-                        policyIDQuery={queryJSON.policyID}
+                        baseFilterKey={selectedFilter}
                         components={{
-                            Common: CommonFilterContentPopupWrapper,
+                            List: ListFilterContentPopupWrapper,
                             Text: TextInputFilterContentPopupWrapper,
                             Amount: AmountFilterContentPopupWrapper,
                             Date: DateFilterContentPopupWrapper,

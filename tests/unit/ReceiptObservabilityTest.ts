@@ -124,13 +124,11 @@ describe('ReceiptObservability', () => {
         });
 
         it.each([
-            WRITE_COMMANDS.SPLIT_BILL,
-            WRITE_COMMANDS.SPLIT_BILL_AND_OPEN_REPORT,
-            WRITE_COMMANDS.COMPLETE_SPLIT_BILL,
             WRITE_COMMANDS.SEND_MONEY_ELSEWHERE,
             WRITE_COMMANDS.SEND_MONEY_WITH_WALLET,
             WRITE_COMMANDS.CATEGORIZE_TRACKED_EXPENSE,
             WRITE_COMMANDS.SHARE_TRACKED_EXPENSE,
+            WRITE_COMMANDS.ADD_TRACKED_EXPENSE_TO_POLICY,
         ])('includes %s in the receipt-bearing set', (command) => {
             // Given a queued request for a receipt-bearing command outside the original 4-command allow-list
             getAllSpy.mockReturnValue([{command, data: {transactionID: '300', receipt: {source: 'file://300.png', receiptTraceId: 'trace-C'}}}]);
@@ -144,10 +142,10 @@ describe('ReceiptObservability', () => {
             expect(snapshots.at(0)?.params).toMatchObject({command, transactionID: '300', receiptTraceId: 'trace-C'});
         });
 
-        it('skips receipt-bearing commands whose data.receipt is missing (e.g. SplitBill, SendMoney without receipt)', () => {
-            // Given a receipt-bearing command queued WITHOUT a top-level data.receipt — SplitBill nests it in the splits
-            // JSON; SendMoney can be issued with no receipt at all. A snapshot row with no trace id is not joinable to
-            // the capture log and would only add noise.
+        it('skips requests with no top-level data.receipt (e.g. SplitBill, SendMoney without receipt)', () => {
+            // Given two requests with no top-level data.receipt: a split bill, which is left out of the receipt-bearing
+            // set because it nests its receipt inside the splits payload, and a send money request issued with no
+            // receipt at all. A snapshot row with no trace id cannot be joined to the capture log and would only add noise.
             getAllSpy.mockReturnValue([
                 {command: WRITE_COMMANDS.SPLIT_BILL, data: {transactionID: '500', splits: '[...]'}},
                 {command: WRITE_COMMANDS.SEND_MONEY_WITH_WALLET, data: {transactionID: '501'}},

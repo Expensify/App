@@ -8,7 +8,10 @@ import type {SearchDateValues} from '@components/Search/FilterComponents/DatePre
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
+import SCREENS from '@src/SCREENS';
 
+import {NavigationContainer} from '@react-navigation/native';
+import {createStackNavigator} from '@react-navigation/stack';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
@@ -29,17 +32,27 @@ const emptyDateValues: SearchDateValues = {
     [CONST.SEARCH.DATE_MODIFIERS.RANGE]: undefined,
 };
 
+const Stack = createStackNavigator();
+
 function renderDateFilterBase(props: {onSubmit?: jest.Mock; onReset?: jest.Mock; defaultDateValues?: SearchDateValues}) {
     return render(
-        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
-            <DateFilterBase
-                title="Date"
-                defaultDateValues={props.defaultDateValues ?? defaultDateValues}
-                presets={[]}
-                onSubmit={props.onSubmit ?? jest.fn()}
-                onReset={props.onReset}
-            />
-        </ComposeProviders>,
+        <NavigationContainer>
+            <Stack.Navigator>
+                <Stack.Screen name={SCREENS.SEARCH.ADVANCED_FILTERS_CONTENT_RHP}>
+                    {() => (
+                        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+                            <DateFilterBase
+                                title="Date"
+                                defaultDateValues={props.defaultDateValues ?? defaultDateValues}
+                                presets={[]}
+                                onSubmit={props.onSubmit ?? jest.fn()}
+                                onReset={props.onReset}
+                            />
+                        </ComposeProviders>
+                    )}
+                </Stack.Screen>
+            </Stack.Navigator>
+        </NavigationContainer>,
     );
 }
 

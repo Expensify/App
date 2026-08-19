@@ -11,7 +11,7 @@ import {paginateRest} from '@octokit/plugin-paginate-rest';
 import {throttling} from '@octokit/plugin-throttling';
 import {RequestError} from '@octokit/request-error';
 
-import CONST from './CONST.js';
+import CONST from './CONST';
 
 // @octokit/plugin-rest-endpoint-methods no longer exports its `RestEndpointMethods` type directly, only `Api`
 // (which wraps it as `{rest: RestEndpointMethods}`), so it's derived here instead.

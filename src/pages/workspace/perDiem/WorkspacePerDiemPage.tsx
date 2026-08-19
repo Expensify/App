@@ -14,7 +14,7 @@ import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useFilteredSelection from '@hooks/useFilteredSelection';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -33,7 +33,6 @@ import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavig
 import type {WorkspaceSplitNavigatorParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {canMemberWrite, getPerDiemCustomUnit} from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
 
@@ -105,7 +104,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     useWorkspaceDocumentTitle(policy?.name, 'workspace.common.perDiem');
     const [policyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
-    const illustrations = useMemoizedLazyIllustrations(['PerDiem']);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Trashcan']);
 
     const [customUnit, allSubRates] = useMemo(() => {
@@ -291,9 +289,10 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
 
             return (
                 <ButtonWithDropdownMenu
+                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                     onPress={() => null}
                     shouldAlwaysShowDropdownMenu
-                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                    size={CONST.BUTTON_SIZE.MEDIUM}
                     customText={translate('workspace.common.selected', {count: selectedSubRateKeys.length})}
                     options={options}
                     isSplitButton={false}
@@ -311,7 +310,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
         return (
             <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                 <ButtonWithDropdownMenu
-                    success={false}
                     onPress={() => {}}
                     shouldAlwaysShowDropdownMenu
                     customText={translate('common.more')}
@@ -325,7 +323,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
     };
 
     const isLoading = !isOffline && customUnit === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspacePerDiemPage', isOffline, isCustomUnitUndefined: customUnit === undefined};
 
     useEffect(() => {
         if (isMobileSelectionModeEnabled) {
@@ -387,7 +384,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                 <HeaderWithBackButton
                     shouldShowBackButton={shouldUseNarrowLayout}
                     title={translate(selectionModeHeader ? 'common.selectMultiple' : 'common.perDiem')}
-                    icon={!selectionModeHeader ? illustrations.PerDiem : undefined}
                     shouldUseHeadlineHeader={!selectionModeHeader}
                     shouldDisplayHelpButton
                     onBackButtonPress={() => {
@@ -413,7 +409,6 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                     <ActivityIndicator
                         size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                         style={[styles.flex1]}
-                        reasonAttributes={reasonAttributes}
                     />
                 )}
                 {!isLoading && (

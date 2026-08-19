@@ -16,6 +16,7 @@ import {payInvoice, payMoneyRequest} from '@libs/actions/IOU/PayMoneyRequest';
 import {canIOUBePaid} from '@libs/actions/IOU/ReportWorkflow';
 import {getSearchPayOnyxData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
+import Log from '@libs/Log';
 import {getReimbursableTotal, isIndividualInvoiceRoom, isInvoiceReport} from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
@@ -25,6 +26,7 @@ import type {Report} from '@src/types/onyx';
 
 import type {OnyxEntry} from 'react-native-onyx';
 
+import {isTrackIntentUserSelector} from '@selectors/Onboarding';
 import React from 'react';
 
 type PayActionCellProps = {
@@ -39,7 +41,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -49,6 +51,8 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+
     const invoiceReceiverPolicyID = chatReport?.invoiceReceiver && 'policyID' in chatReport.invoiceReceiver ? chatReport.invoiceReceiver.policyID : undefined;
     const invoiceReceiverPolicy = usePolicy(invoiceReceiverPolicyID);
     const {
@@ -64,11 +68,11 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         ownerBillingGracePeriodEnd,
         activePolicyID,
         activePolicy,
+        conciergeChat,
         defaultWorkspaceName,
-        nextStep,
         chatReportPolicy,
+        delegateAccountID,
     } = useReportPaymentContext({
-        reportID,
         chatReportPolicyID: chatReport?.policyID,
     });
 
@@ -80,6 +84,13 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
 
     const confirmPayment = ({paymentType: type, payAsBusiness, methodID, paymentMethod}: PaymentActionParams) => {
         if (!type || !reportID || !hash || !amount || !chatReport) {
+            Log.info('[SearchPay] Dropping row pay: missing required data', false, {
+                hasPaymentType: !!type,
+                reportID,
+                hasHash: !!hash,
+                hasAmount: !!amount,
+                hasChatReport: !!chatReport,
+            });
             return;
         }
 
@@ -107,10 +118,10 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(shouldUseB2BInvoiceReport ? existingB2BInvoiceReport?.reportID : chatReport?.reportID)}`];
 
             payInvoice({
+                getCurrencyDecimals,
                 paymentMethodType: type,
                 chatReport,
                 invoiceReport: iouReport,
-                invoiceReportCurrentNextStepDeprecated: nextStep,
                 introSelected,
                 currentUserAccountIDParam: currentUserAccountID,
                 currentUserEmailParam: email ?? '',
@@ -120,21 +131,24 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 methodID,
                 paymentMethod,
                 activePolicy,
+                conciergeChat,
                 betas,
                 isSelfTourViewed,
                 defaultWorkspaceName,
                 additionalOnyxData,
                 chatReportActions,
+                delegateAccountID,
+                isTrackIntentUser,
             });
             return;
         }
 
         payMoneyRequest({
+            getCurrencyDecimals,
             paymentType: type,
             chatReport,
             iouReport,
             introSelected,
-            iouReportCurrentNextStepDeprecated: nextStep,
             currentUserAccountID,
             currentUserLogin: currentUserLogin ?? '',
             activePolicy,
@@ -148,6 +162,9 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             methodID: type === CONST.IOU.PAYMENT_TYPE.VBBA ? methodID : undefined,
             additionalOnyxData,
             chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID)}`],
+            delegateAccountID,
+            isTrackIntentUser,
+            conciergeChat,
         });
     };
 
@@ -155,7 +172,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
         <SearchScopeProvider isOnSearch={false}>
             <SettlementButton
                 shouldUseShortForm
-                buttonSize={CONST.BUTTON_SIZE.SMALL}
+                size={CONST.BUTTON_SIZE.SMALL}
                 currency={currency}
                 formattedAmount={convertToDisplayString(Math.abs(getReimbursableTotal(iouReport)), currency)}
                 policyID={policyID || iouReport?.policyID}
@@ -167,7 +184,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 wrapperStyle={[styles.w100]}
                 shouldShowPersonalBankAccountOption={!policyID && !iouReport?.policyID}
                 isDisabled={isOffline || shouldDisablePointerEvents}
-                shouldStayNormalOnDisable={shouldDisablePointerEvents}
+                stayNormalOnDisable={shouldDisablePointerEvents}
                 isLoading={isLoading}
                 onlyShowPayElsewhere={shouldOnlyShowElsewhere}
                 sentryLabel={CONST.SENTRY_LABEL.SEARCH.ACTION_CELL_PAY}

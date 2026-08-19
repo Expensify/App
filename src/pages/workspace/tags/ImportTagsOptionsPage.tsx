@@ -1,7 +1,7 @@
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
 import DecisionModal from '@components/DecisionModal';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import MenuItem from '@components/MenuItem';
+import MenuItemNavigation from '@components/MenuItem/presets/MenuItemNavigation';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import ScreenWrapper from '@components/ScreenWrapper';
 import Text from '@components/Text';
@@ -67,6 +67,8 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         () => [getTagLists(policyTags), isMultiLevelTagsPolicyUtils(policyTags), hasDependentTagsPolicyUtils(policy, policyTags)],
         [policy, policyTags],
     );
+    // If required tags was enabled before clearing tags for a level switch, the next first tag should restore that setting.
+    const shouldRestoreRequiresTagAfterTagCreate = (policy?.requiresTag ?? false) || policyTagLists.some((policyTagList) => policyTagList.required);
 
     const hasVisibleTags = useMemo(() => {
         if (isMultiLevelTags) {
@@ -184,7 +186,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                     danger: true,
                 });
                 if (action === ModalActions.CONFIRM) {
-                    cleanPolicyTags(policyID);
+                    cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);
                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                         Navigation.navigate(
                             isQuickSettingsFlow ? ROUTES.SETTINGS_TAGS_IMPORT.getRoute(policyID, ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, backTo)) : workspaceTagsImportPath,
@@ -205,6 +207,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
         overrideMultiTagPrompt,
         isQuickSettingsFlow,
         policyID,
+        shouldRestoreRequiresTagAfterTagCreate,
         backTo,
         switchSingleToMultiLevelTagPrompt,
         workspaceTagsImportPath,
@@ -245,10 +248,9 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                 <FullPageOfflineBlockingView>
                     <Text style={[styles.ph5, styles.pv3, styles.textSupporting, styles.textNormal]}>{translate('workspace.tags.importTagsSupportingText')}</Text>
 
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('workspace.tags.tagLevel.singleLevel')}
                         icon={expensifyIcons.Tag}
-                        shouldShowRightIcon
                         onPress={async () => {
                             setImportedSpreadsheetIsImportingMultiLevelTags(false);
                             if (hasVisibleTags && isMultiLevelTags) {
@@ -260,7 +262,7 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                                     danger: true,
                                 });
                                 if (action === ModalActions.CONFIRM) {
-                                    cleanPolicyTags(policyID);
+                                    cleanPolicyTags(policyID, shouldRestoreRequiresTagAfterTagCreate);
                                     Navigation.setNavigationActionToMicrotaskQueue(() => {
                                         Navigation.navigate(
                                             isQuickSettingsFlow
@@ -278,11 +280,10 @@ function ImportTagsOptionsPage({route}: ImportTagsOptionsPageProps) {
                             }
                         }}
                     />
-                    <MenuItem
+                    <MenuItemNavigation
                         title={translate('workspace.tags.tagLevel.multiLevel')}
                         // TODO: Update icon to multi-level tag icon once it's provided by design team
                         icon={expensifyIcons.MultiTag}
-                        shouldShowRightIcon
                         onPress={() => {
                             if (!isControlPolicy(policy)) {
                                 setShouldRunPostUpgradeFlow(true);

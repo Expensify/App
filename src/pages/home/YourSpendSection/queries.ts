@@ -15,7 +15,7 @@ function get30DaysAgoDateString(): string {
 function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING,
+        status: [CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING],
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
         // Limit to the user's workspaces so IOU and personal expenses aren't counted.
@@ -26,7 +26,7 @@ function buildAwaitingApprovalQuery(accountID: number, policyIDs: string[]): str
 function buildRepaidLast30DaysQuery(accountID: number): string {
     return buildQueryStringFromFilterFormValues({
         type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-        status: CONST.SEARCH.STATUS.EXPENSE.PAID,
+        status: [CONST.SEARCH.STATUS.EXPENSE.PAID],
         from: [String(accountID)],
         reimbursable: CONST.SEARCH.BOOLEAN.YES,
         [FILTER_KEYS.DATE_AFTER]: get30DaysAgoDateString(),

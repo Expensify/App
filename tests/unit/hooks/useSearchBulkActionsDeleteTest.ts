@@ -10,10 +10,13 @@ import {deleteMoneyRequest} from '@libs/actions/IOU/DeleteMoneyRequest';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {ReportAction, SearchResults} from '@src/types/onyx';
+import type {SearchResultDataType} from '@src/types/onyx/SearchResults';
 
 import Onyx from 'react-native-onyx';
 
 import type * as MockUsePaymentContextUtil from '../../utils/mockUsePaymentContext';
+
+import createMock from '../../utils/createMock';
 
 // ---------------------------------------------------------------------------
 // Module mocks
@@ -41,7 +44,7 @@ jest.mock('@libs/actions/Report', () => ({
 }));
 
 jest.mock('@libs/actions/Search', () => ({
-    getExportTemplates: jest.fn(() => []),
+    getExportTemplates: jest.fn(() => ({customTemplates: [], defaultTemplates: []})),
     exportSearchItemsToCSV: jest.fn(),
     queueExportSearchItemsToCSV: jest.fn(),
     queueExportSearchWithTemplate: jest.fn(),
@@ -172,16 +175,6 @@ jest.mock('@hooks/useDuplicateTransactionsAndViolations', () => ({
     default: () => ({duplicateTransactions: {}, duplicateTransactionViolations: {}}),
 }));
 
-// Make InteractionManager execute callbacks immediately so we don't need fake timers
-jest.mock('react-native', () => ({
-    InteractionManager: {
-        runAfterInteractions: (callback: () => void | Promise<void>) => {
-            callback();
-            return {cancel: jest.fn()};
-        },
-    },
-}));
-
 // Make TransitionTracker execute callbacks immediately too (it can't wait for a real
 // modal/popover transition in a unit test, and waitForUpcomingTransition would otherwise
 // stall until MAX_TRANSITION_START_WAIT_MS).
@@ -259,7 +252,6 @@ const baseQueryJSON: SearchQueryJSON = {
     similarSearchHash: 12345,
     flatFilters: [],
     type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-    status: CONST.SEARCH.STATUS.EXPENSE.ALL,
     sortBy: CONST.SEARCH.TABLE_COLUMNS.DATE,
     sortOrder: CONST.SEARCH.SORT_ORDER.DESC,
     view: CONST.SEARCH.VIEW.TABLE,
@@ -268,7 +260,7 @@ const baseQueryJSON: SearchQueryJSON = {
 
 /** Minimal IOU report action that references our test transaction */
 function makeIOUAction(overrides: Partial<ReportAction> = {}): ReportAction {
-    return {
+    return createMock<ReportAction>({
         reportActionID: IOU_ACTION_ID,
         actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
         actorAccountID: CURRENT_USER_ACCOUNT_ID,
@@ -283,7 +275,7 @@ function makeIOUAction(overrides: Partial<ReportAction> = {}): ReportAction {
         person: [],
         shouldShow: true,
         ...overrides,
-    } as unknown as ReportAction;
+    });
 }
 
 function makeSelectedTransaction(overrides: Partial<SelectedTransactions[string]> = {}): SelectedTransactions[string] {
@@ -349,10 +341,9 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
         const iouAction = makeIOUAction();
 
         // Snapshot contains the IOU action (simulates what the search API returns).
-        mockCurrentSearchResults = {
+        const searchResults = createMock<SearchResults>({
             search: {
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
-                status: CONST.SEARCH.STATUS.EXPENSE.ALL,
                 offset: 0,
                 hasMoreResults: false,
                 hasResults: true,
@@ -361,12 +352,11 @@ describe('useSearchBulkActions - delete unreported expenses', () => {
                 total: 100,
                 currency: 'USD',
             },
-            data: {
-                [`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_REPORT_ID}`]: {
-                    [IOU_ACTION_ID]: iouAction,
-                },
-            },
-        } as unknown as SearchResults;
+            data: {},
+        });
+        const searchData: SearchResultDataType = searchResults.data;
+        searchData[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${SELF_DM_REPORT_ID}`] = {[IOU_ACTION_ID]: iouAction};
+        mockCurrentSearchResults = searchResults;
 
         // The transaction itself is available in Onyx (used by useAllTransactions).
         await Onyx.merge(`${ONYXKEYS.COLLECTION.TRANSACTION}${TRANSACTION_ID}`, {

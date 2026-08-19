@@ -1,4 +1,6 @@
-#!/usr/bin/env npx ts-node
+#!/usr/bin/env bun
+import GitHubUtils from '@github/libs/GithubUtils';
+
 import decodeUnicode from '@libs/StringUtils/decodeUnicode';
 import hashStr from '@libs/StringUtils/hash';
 
@@ -28,7 +30,6 @@ import type {StringWithContext} from './utils/Translator/types';
 import type {TransformerResult} from './utils/TSCompilerUtils';
 
 import COLORS from './utils/COLORS';
-import importEsmOnlyGithubDeps from './utils/esmGithubDeps';
 import Git from './utils/Git';
 import Oxfmt from './utils/Oxfmt';
 import PromisePool from './utils/PromisePool';
@@ -544,7 +545,7 @@ class TranslationGenerator {
             if (!this.isIncremental) {
                 const scriptPath = path.relative(process.cwd(), path.resolve(__dirname, 'generateTranslations.ts'));
                 console.log(
-                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`npx ts-node ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
+                    `Note: You are currently running a full retranslation of the entire \`en.ts\` file. To incrementally translate only what you changed on your branch, run: ${COLORS.BLUE}\`bun ${scriptPath} --compare-ref main\`${COLORS.RESET}\n`,
                 );
             }
 
@@ -953,8 +954,6 @@ class TranslationGenerator {
                         console.log(`🌐 Using GitHub API diff for PR #${this.prNumber}`);
                     }
 
-                    const {GitHubUtils} = await importEsmOnlyGithubDeps();
-
                     // GitHub's PR diff is a three-dot diff (merge-base...head), so we need the
                     // actual merge-base commit, not the tip of the base branch.
                     this.diffBase = await GitHubUtils.getPullRequestMergeBaseSHA(this.prNumber);
@@ -1251,7 +1250,6 @@ class TranslationGenerator {
         try {
             let oldEnContent: string;
             if (this.useGitHubAPI) {
-                const {GitHubUtils} = await importEsmOnlyGithubDeps();
                 oldEnContent = await GitHubUtils.getFileContents(relativePath, this.diffBase);
             } else {
                 oldEnContent = Git.show(this.diffBase, relativePath);

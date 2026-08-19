@@ -12,6 +12,7 @@ import type Animated from 'react-native-reanimated';
 import {useMemo} from 'react';
 import 'setimmediate';
 import mockStorage from 'react-native-onyx/dist/storage/__mocks__';
+import {TextDecoder, TextEncoder} from 'util';
 import '@src/polyfills/PromiseWithResolvers';
 import '@src/polyfills/requestIdleCallback';
 
@@ -26,6 +27,9 @@ if (!('GITHUB_REPOSITORY' in process.env)) {
 
 setupMockImages();
 mockFSLibrary();
+
+// Polyfill necessary for Onyx.init in jest/setupAfterEnv.ts
+Object.assign(global, {TextDecoder, TextEncoder});
 
 // This mock is required as per setup instructions for react-navigation testing
 // https://reactnavigation.org/docs/testing/#mocking-native-modules
@@ -300,6 +304,16 @@ jest.mock('@src/hooks/useWorkletStateMachine/runOnUISync', () => ({
 
 jest.mock('react-native-nitro-sqlite', () => ({
     open: jest.fn(),
+}));
+
+jest.mock('react-native-nitro-fetch', () => ({
+    __esModule: true,
+    fetch: (...args: Parameters<typeof fetch>) => globalThis.fetch(...args),
+    prefetchOnAppStart: jest.fn(() => Promise.resolve()),
+    registerTokenRefresh: jest.fn(),
+    clearTokenRefresh: jest.fn(),
+    removeFromAutoPrefetch: jest.fn(() => Promise.resolve()),
+    removeAllFromAutoprefetch: jest.fn(() => Promise.resolve()),
 }));
 
 jest.mock('@shopify/react-native-skia', () => ({

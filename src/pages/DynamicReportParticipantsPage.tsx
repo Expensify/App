@@ -1,5 +1,5 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption, WorkspaceMemberBulkActionType} from '@components/ButtonWithDropdownMenu/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
@@ -17,7 +17,7 @@ import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchBackPress from '@hooks/useSearchBackPress';
@@ -79,7 +79,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
     const tableRef = useRef<TableHandle<ReportParticipantRowData, ReportParticipantsTableColumnKey, string>>(null);
     const isReportArchived = useReportIsArchived(report?.reportID);
     const [reportMetadata] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_METADATA}${report?.reportID}`);
-    const reportAttributes = useReportAttributes();
+    const derivedReportName = useDerivedReportNameByReportID(report?.reportID);
     const isMobileSelectionModeEnabled = useMobileSelectionMode();
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
@@ -177,7 +177,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             keyForList: `${accountID}`,
             accountID,
             login: details?.login ?? '',
-            name: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+            name: temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
             email: formatPhoneNumber(details?.login ?? ''),
             isAdmin: role === CONST.REPORT.ROLE.ADMIN,
             isGroupChat,
@@ -247,37 +247,39 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
                             navigateBackToReportDetails();
                         }
                     }}
-                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, reportAttributes))}
+                    subtitle={StringUtils.lineBreaksToSpaces(getReportName(report, derivedReportName))}
                 />
                 <View style={[styles.pl5, styles.pr5]}>
                     {isGroupChat && (
                         <View style={styles.w100}>
                             {(isSmallScreenWidth ? canSelectMultiple : selectedMembers.length > 0) ? (
                                 <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     shouldAlwaysShowDropdownMenu
                                     pressOnEnter
                                     customText={translate('workspace.common.selected', {count: selectedMembers.length})}
-                                    buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                                    size={CONST.BUTTON_SIZE.MEDIUM}
                                     onPress={() => null}
                                     isSplitButton={false}
                                     options={bulkActionsButtonOptions}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
                                     isDisabled={!selectedMembers.length}
                                 />
                             ) : (
                                 <Button
-                                    success
+                                    variant={CONST.BUTTON_VARIANT.SUCCESS}
                                     onPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.REPORT_PARTICIPANTS_INVITE.path))}
-                                    text={translate('workspace.invite.member')}
-                                    icon={icons.Plus}
                                     innerStyles={[shouldUseNarrowLayout && styles.alignItemsCenter]}
-                                    style={[shouldUseNarrowLayout && styles.flexGrow1]}
-                                />
+                                    style={[shouldUseNarrowLayout && styles.flexGrow1, styles.mb5]}
+                                >
+                                    <Button.Icon src={icons.Plus} />
+                                    <Button.Text>{translate('workspace.invite.member')}</Button.Text>
+                                </Button>
                             )}
                         </View>
                     )}
                 </View>
-                <View style={[styles.w100, isGroupChat ? styles.mt3 : styles.mt0, styles.flex1]}>
+                <View style={[styles.w100, styles.flex1]}>
                     <ReportParticipantsTable
                         ref={tableRef}
                         members={participants}

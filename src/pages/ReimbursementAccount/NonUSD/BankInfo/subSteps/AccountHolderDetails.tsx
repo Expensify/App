@@ -143,6 +143,7 @@ function AccountHolderDetails({onNext, isEditing, corpayFields}: BankInfoSubStep
                         renamedInputKeys={{
                             street: 'accountHolderAddress1',
                             city: 'accountHolderCity',
+                            country: 'accountHolderCountry',
                         }}
                         hint={field.id === ACCOUNT_HOLDER_NAME ? translate('bankInfoStep.accountHolderNameDescription') : undefined}
                         forwardedFSClass={CONST.FULLSTORY.CLASS.MASK}

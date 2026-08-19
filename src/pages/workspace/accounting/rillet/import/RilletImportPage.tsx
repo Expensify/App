@@ -39,8 +39,8 @@ function RilletImportPage({policy}: WithPolicyConnectionsProps) {
             connectionName={CONST.POLICY.CONNECTIONS.NAME.RILLET}
             shouldBeBlocked
         >
-            <View style={[styles.mv3, styles.mh5]}>
-                <Text>{translate('workspace.rillet.importDescription')}</Text>
+            <View>
+                <Text style={[styles.ph5, styles.pb5]}>{translate('workspace.rillet.importDescription')}</Text>
             </View>
             <ToggleSettingOptionRow
                 title={translate('workspace.accounting.accounts')}

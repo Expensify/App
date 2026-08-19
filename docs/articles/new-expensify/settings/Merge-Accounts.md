@@ -29,7 +29,7 @@ If you have multiple Expensify accounts, you can merge them into a single login.
 4. Enter the **email address or phone number** for the account you want to merge into this one.
 5. Check the box that says **"Yes, I understand this is not reversible"**.
 6. Click **Merge Accounts**.
-7. Check your email for the magic code sent by Expensify.
+7. Check your email for the security code sent by Expensify.
 8. Enter the code into the prompt and click **Merge**.
 
 ---

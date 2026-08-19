@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import ButtonWithDropdownMenu from '@components/ButtonWithDropdownMenu';
 import type {DropdownOption} from '@components/ButtonWithDropdownMenu/types';
 import DecisionModal from '@components/DecisionModal';
@@ -16,7 +16,7 @@ import Text from '@components/Text';
 import useCleanupSelectedOptions from '@hooks/useCleanupSelectedOptions';
 import useConfirmModal from '@hooks/useConfirmModal';
 import useEnvironment from '@hooks/useEnvironment';
-import {useMemoizedLazyExpensifyIcons, useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useMobileSelectionMode from '@hooks/useMobileSelectionMode';
 import useNetwork from '@hooks/useNetwork';
@@ -42,7 +42,6 @@ import {
     setWorkspaceTagEnabled,
     setWorkspaceTagRequired,
 } from '@libs/actions/Policy/Tag';
-import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
@@ -54,7 +53,6 @@ import {
     getCleanedTagName,
     getConnectedIntegration,
     getCountOfEnabledTagsOfList,
-    getCurrentConnectionName,
     getTagApproverRule,
     getTagLists,
     hasAccountingConnections as hasAccountingConnectionsPolicyUtils,
@@ -64,9 +62,9 @@ import {
     isMultiLevelTags as isMultiLevelTagsPolicyUtils,
     shouldShowSyncError,
 } from '@libs/PolicyUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import AccessOrNotFoundWrapper from '@pages/workspace/AccessOrNotFoundWrapper';
+import {getCurrentAccountingIntegrationName} from '@pages/workspace/accounting/utils';
 
 import {close} from '@userActions/Modal';
 
@@ -91,7 +89,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     // eslint-disable-next-line rulesdir/prefer-shouldUseNarrowLayout-instead-of-isSmallScreenWidth
     const {shouldUseNarrowLayout, isSmallScreenWidth, isInLandscapeMode} = useResponsiveLayout();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {showConfirmModal} = useConfirmModal();
     const [isDownloadFailureModalVisible, setIsDownloadFailureModalVisible] = useState(false);
     const {backTo, policyID} = route.params;
@@ -107,7 +105,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     const hasSyncError = shouldShowSyncError(policy, isSyncInProgress, CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES);
     const connectedIntegration = getConnectedIntegration(policy) ?? syncingAccountingIntegration;
     const isConnectionVerified = connectedIntegration && !isConnectionUnverified(policy, connectedIntegration);
-    const currentConnectionName = getCurrentConnectionName(policy);
+    const currentConnectionName = getCurrentAccountingIntegrationName(policy, translate);
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Gear', 'Table', 'Download', 'Plus', 'Trashcan', 'Close', 'Trashcan', 'Checkmark']);
 
     const [policyTagLists, isMultiLevelTags, hasDependentTags, hasIndependentTags] = useMemo(
@@ -144,7 +142,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         openPolicyTagsPage(policyID);
     }, [policyID]);
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.SETTINGS_TAGS_ROOT;
-    const illustrations = useMemoizedLazyIllustrations(['Tag']);
 
     const tagsList = useMemo(() => {
         if (isMultiLevelTags) {
@@ -369,7 +366,8 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     pendingAction: getPendingAction(policyTagList),
                     isLocked: !canWriteTags || isMakingLastRequiredTagListOptional(policy, policyTags, [policyTagList]),
                     showEnabledSwitch: false,
-                    showRequiredSwitch: !hasDependentTags,
+                    // Required is configured from Rules once the revamp is on.
+                    showRequiredSwitch: !hasDependentTags && !isRulesRevampEnabled,
                     action: () => navigateToTagSettings(policyTagList.name, policyTagList.orderWeight),
                     onToggleRequired: (required: boolean) => handleTagListRequiredToggle(required, policyTagList),
                     onClose: () => {},
@@ -425,6 +423,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         hasDependentTags,
         isMultiLevelTags,
         isOffline,
+        isRulesRevampEnabled,
         navigateToTagSettings,
         policy,
         policyID,
@@ -432,6 +431,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
         policyTags,
         shouldShowApproverColumn,
         tagApproverEmails,
+        formatPhoneNumber,
     ]);
 
     const tagRowsKeyedByName = useMemo(
@@ -461,7 +461,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
     };
 
     const isLoading = !isOffline && policyTags === undefined;
-    const reasonAttributes: SkeletonSpanReasonAttributes = {context: 'WorkspaceTagsPage', isOffline, isPolicyTagsUndefined: policyTags === undefined};
     const hasVisibleTags = tagRows.some((tag) => tag.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || isOffline);
 
     const navigateToImportSpreadsheet = useCallback(() => {
@@ -576,17 +575,17 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 <View style={[styles.flexRow, styles.gap2, shouldDisplayButtonsInSeparateLine && styles.mb3]}>
                     {hasPrimaryActions && (
                         <Button
-                            success
+                            variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={navigateToCreateTagPage}
                             sentryLabel={CONST.SENTRY_LABEL.WORKSPACE.TAGS.ADD_BUTTON}
-                            icon={expensifyIcons.Plus}
-                            text={translate('workspace.tags.addTag')}
                             style={[shouldDisplayButtonsInSeparateLine && styles.flex1]}
-                        />
+                        >
+                            <Button.Icon src={expensifyIcons.Plus} />
+                            <Button.Text>{translate('workspace.tags.addTag')}</Button.Text>
+                        </Button>
                     )}
                     {secondaryActions.length > 0 && (
                         <ButtonWithDropdownMenu
-                            success={false}
                             onPress={() => {}}
                             shouldAlwaysShowDropdownMenu
                             customText={translate('common.more')}
@@ -703,7 +702,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             }
         }
 
-        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (requiredTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Close,
                 text: translate('workspace.tags.notRequireTags'),
@@ -724,7 +723,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
             });
         }
 
-        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags) {
+        if (optionalTagCount > 0 && !hasDependentTags && isMultiLevelTags && !isRulesRevampEnabled) {
             options.push({
                 icon: expensifyIcons.Checkmark,
                 text: translate(requiredTagCount === 1 ? 'workspace.tags.requireTag' : 'workspace.tags.requireTags'),
@@ -738,10 +737,11 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
 
         return (
             <ButtonWithDropdownMenu
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
                 onPress={() => null}
                 shouldAlwaysShowDropdownMenu
                 isSplitButton={false}
-                buttonSize={CONST.BUTTON_SIZE.MEDIUM}
+                size={CONST.BUTTON_SIZE.MEDIUM}
                 customText={translate('workspace.common.selected', {count: selectedTagKeys.length})}
                 options={options}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
@@ -843,7 +843,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                     offlineIndicatorStyle={styles.mtAuto}
                 >
                     <HeaderWithBackButton
-                        icon={!selectionModeHeader ? illustrations.Tag : undefined}
                         shouldUseHeadlineHeader={!selectionModeHeader}
                         title={translate(selectionModeHeader ? 'common.selectMultiple' : 'workspace.common.tags')}
                         shouldShowBackButton={shouldUseNarrowLayout}
@@ -871,7 +870,6 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={[styles.flex1]}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isLoading && (

@@ -1,5 +1,6 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import {ModalActions} from '@components/Modal/Global/ModalContext';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -196,7 +197,7 @@ function WorkspaceCompanyCardsSettingsPage({
                             />
                         )}
                         {isCsvFeed && (
-                            <MenuItem
+                            <MenuItemAction
                                 icon={icons.Table}
                                 title={translate('spreadsheet.importSpreadsheet')}
                                 onPress={() => {
@@ -206,13 +207,14 @@ function WorkspaceCompanyCardsSettingsPage({
                                             companyCardLayoutName: selectedFeedData?.customFeedName ?? feedName ?? '',
                                             useAdvancedFields: hadAdvancedFields,
                                             existingInstanceID: selectedFeedData?.uploadLayoutSettings?.instanceID ?? null,
+                                            domainAccountID: domainOrWorkspaceAccountID,
                                         },
                                     });
                                     Navigation.navigate(ROUTES.WORKSPACE_COMPANY_CARDS_IMPORT_SPREADSHEET.getRoute(policyID));
                                 }}
                             />
                         )}
-                        <MenuItem
+                        <MenuItemAction
                             icon={icons.Trashcan}
                             title={translate('workspace.moreFeatures.companyCards.removeCardFeed')}
                             onPress={() => {

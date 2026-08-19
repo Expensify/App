@@ -1,9 +1,10 @@
 import RenderHTML from '@components/RenderHTML';
-import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData} from '@components/Table';
+import type {CompareItemsCallback, IsItemInSearchCallback, TableColumn, TableData, TableHandle} from '@components/Table';
 import Table from '@components/Table';
 
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useThemeStyles from '@hooks/useThemeStyles';
 
@@ -11,6 +12,7 @@ import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
 
+import ONYXKEYS from '@src/ONYXKEYS';
 import type * as OnyxCommon from '@src/types/onyx/OnyxCommon';
 
 import type {ListRenderItemInfo} from '@shopify/flash-list';
@@ -35,14 +37,28 @@ type AgentRowData = TableData & {
 };
 
 type AgentsTableProps = {
+    ref?: React.Ref<TableHandle<AgentRowData, AgentsTableColumnKey, string>> | undefined;
+
+    /** The list of agents to render as rows */
     agents: AgentRowData[];
+
+    /** Whether rows can be selected (enables selection UI) */
+    canSelectAgents: boolean;
+
+    /** Keys of the currently selected rows */
+    selectedKeys: string[];
+
+    /** Called with the updated selected row keys when the selection changes */
+    onRowSelectionChange: (selectedRowKeys: string[]) => void;
 };
 
-export default function AgentsTable({agents}: AgentsTableProps) {
+export default function AgentsTable({ref, agents, canSelectAgents, selectedKeys, onRowSelectionChange}: AgentsTableProps) {
     const styles = useThemeStyles();
     const {translate, localeCompare} = useLocalize();
     const {shouldUseNarrowLayout, isMediumScreenWidth} = useResponsiveLayout();
     const illustrations = useMemoizedLazyIllustrations(['TvScreenRobot', 'AiBot']);
+
+    const [areAgentsLoaded] = useOnyx(ONYXKEYS.ARE_AGENTS_LOADED);
 
     const shouldUseNarrowTableLayout = shouldUseNarrowLayout || isMediumScreenWidth;
 
@@ -78,8 +94,13 @@ export default function AgentsTable({agents}: AgentsTableProps) {
         />
     );
 
+    if (!areAgentsLoaded) {
+        return <Table.LoadingState />;
+    }
+
     return (
         <Table
+            ref={ref}
             data={agents}
             columns={agentsTableColumns}
             renderItem={renderTableItem}
@@ -88,6 +109,9 @@ export default function AgentsTable({agents}: AgentsTableProps) {
             initialSortColumn="agent"
             title={translate('agentsPage.title')}
             keyExtractor={(item) => item.keyForList}
+            selectionEnabled={canSelectAgents}
+            selectedKeys={selectedKeys}
+            onRowSelectionChange={onRowSelectionChange}
         >
             <Table.FilterBar label={translate('agentsPage.findAgent')} />
             <Table.EmptyState

@@ -4,7 +4,7 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {setTabNavigatorMounted, setTabNavigatorUnmounted} from '@libs/Navigation/helpers/tabNavigatorReadiness';
+import {bottomTabScreenLayoutWrapper} from '@libs/Navigation/PlatformStackNavigation/ScreenLayout';
 import type {TabNavigatorParamList} from '@libs/Navigation/types';
 import {getSpan} from '@libs/telemetry/activeSpans';
 
@@ -49,10 +49,7 @@ function LazyFallback({tabSpanName}: LazyFallbackProps) {
 
     return (
         <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter, styles.appBG]}>
-            <ActivityIndicator
-                size="large"
-                reasonAttributes={{context: 'TabNavigator.LazyTab'}}
-            />
+            <ActivityIndicator size="large" />
         </View>
     );
 }
@@ -97,14 +94,6 @@ function TabNavigator() {
     const navigation = useNavigation();
     const parentNavigation = navigation.getParent();
     const focusedRouteName = useNavigationState((state) => findFocusedRoute(state)?.name);
-
-    // Signal that TAB_NAVIGATOR's child router has mounted (and reset on unmount/logout) so deep-link
-    // and notification navigation waits for it before dispatching a nested NAVIGATE action.
-    useEffect(() => {
-        setTabNavigatorMounted();
-        return setTabNavigatorUnmounted;
-    }, []);
-
     useEffect(() => {
         if (!shouldUseNarrowLayout || !parentNavigation) {
             return;
@@ -124,6 +113,7 @@ function TabNavigator() {
             backBehavior="fullHistory"
             tabBar={renderTabBar}
             screenOptions={screenOptions}
+            screenLayout={bottomTabScreenLayoutWrapper}
         >
             <Tab.Screen
                 name={SCREENS.HOME}

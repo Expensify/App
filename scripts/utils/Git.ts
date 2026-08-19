@@ -1,5 +1,9 @@
+import CONST from '@github/libs/CONST';
+import GitHubUtils from '@github/libs/GithubUtils';
+
 import type {ExecSyncOptionsWithStringEncoding, ExecOptions as ExecWithCallbackOptions} from 'child_process';
 
+import {context} from '@actions/github';
 import {exec as execWithCallback, execSync as originalExecSync} from 'child_process';
 import fs from 'fs';
 import path from 'path';
@@ -494,10 +498,28 @@ class Git {
     }
 
     /**
-     * Get changed files with their status (added, modified, removed, renamed) via `git diff` against the provided
-     * ref. CI callers that need GitHub's canonical PR file list instead should query the GitHub API directly.
+     * Get changed files with their status (added, modified, removed, renamed).
+     * In CI, uses the GitHub API with pagination for accuracy.
+     * Locally, uses git diff against the provided ref.
      */
     static async getChangedFilesWithStatus(fromRef: string, toRef?: string, shouldIncludeUntrackedFiles = false): Promise<ChangedFile[]> {
+        if (IS_CI) {
+            const files = await GitHubUtils.paginate(GitHubUtils.octokit.pulls.listFiles, {
+                owner: CONST.GITHUB_OWNER,
+                repo: CONST.APP_REPO,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                pull_number: context.payload.pull_request?.number ?? 0,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                per_page: 100,
+            });
+
+            return files.map((file) => ({
+                filename: file.filename,
+                status: file.status as 'added' | 'modified' | 'removed' | 'renamed',
+                previousFilename: file.previous_filename,
+            }));
+        }
+
         const diffResult = this.diff(fromRef, toRef, undefined, shouldIncludeUntrackedFiles);
         return diffResult.files.map((file) => ({
             filename: file.filePath,

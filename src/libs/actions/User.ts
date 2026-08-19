@@ -9,6 +9,7 @@ import type {
     GetStatementPDFParams,
     PusherPingParams,
     RequestContactMethodValidateCodeParams,
+    ResendValidateCodeParams,
     RevokeDeviceParams,
     SetContactMethodAsDefaultParams,
     SetNameValuePairParams,
@@ -27,6 +28,7 @@ import DateUtils from '@libs/DateUtils';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import type Platform from '@libs/getPlatform/types';
 import Log from '@libs/Log';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 import * as SequentialQueue from '@libs/Network/SequentialQueue';
 import {getIsOffline} from '@libs/NetworkState';
@@ -44,7 +46,7 @@ import Visibility from '@libs/Visibility';
 import CONFIG from '@src/CONFIG';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
+import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {ExpenseRuleForm, FlagForReviewRuleForm, MerchantRuleForm, MerchantTypeRuleForm, RequireFieldsRuleForm, SpendRuleForm} from '@src/types/form';
 import type {AppReview, BlockedFromConcierge, CustomStatusDraft, ExpenseRule, NewLogin, ReportAttributesDerivedValue} from '@src/types/onyx';
 import type Login from '@src/types/onyx/Login';
@@ -204,12 +206,12 @@ function closeAccount(reason: string) {
 /**
  * Resend a validation link to a given login
  */
-function resendValidateCode(login: string) {
-    sessionResendValidateCode(login);
+function resendValidateCode(reasonParams: ResendValidateCodeParams, login: string) {
+    sessionResendValidateCode(reasonParams, login);
 }
 
 /**
- * Requests a new validate code be sent for the passed contact method
+ * Requests a new validateCode be sent for the passed contact method
  *
  * @param contactMethod - the new contact method that the user is trying to verify
  */
@@ -353,7 +355,7 @@ function deleteContactMethod(contactMethod: string, loginList: Record<string, Lo
     const parameters: DeleteContactMethodParams = {partnerUserID: contactMethod};
 
     API.write(WRITE_COMMANDS.DELETE_CONTACT_METHOD, parameters, {optimisticData, successData, failureData});
-    Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+    Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
 }
 
 /**
@@ -512,9 +514,9 @@ function addNewContactMethod(contactMethod: string, validateCode = '') {
 }
 
 /**
- * Requests a magic code to verify current user
+ * Requests a validateCode to verify current user
  */
-function requestValidateCodeAction() {
+function requestValidateCodeAction(params?: ResendValidateCodeParams) {
     const requestedAt = Date.now();
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.VALIDATE_ACTION_CODE>> = [
         {
@@ -566,7 +568,7 @@ function requestValidateCodeAction() {
         },
     ];
 
-    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, null, {optimisticData, successData, failureData});
+    API.write(WRITE_COMMANDS.RESEND_VALIDATE_CODE, params ?? null, {optimisticData, successData, failureData});
 }
 
 /**
@@ -796,9 +798,9 @@ function playSoundForMessageType<TKey extends OnyxKey>(pushJSON: Array<OnyxServe
     });
 }
 
-let pongHasBeenMissed = false;
 let lastPingSentTimestamp = Date.now();
 let lastPongReceivedTimestamp = Date.now();
+let shouldSkipCheckAfterReconnect = false;
 function subscribeToPusherPong(currentUserAccountID: number) {
     // If there is no user accountID yet (because the app isn't fully setup yet), the channel can't be subscribed to so return early
     if (!currentUserAccountID) {
@@ -813,9 +815,6 @@ function subscribeToPusherPong(currentUserAccountID: number) {
         const pongEvent = pushJSON as PingPongEvent;
         const latency = Date.now() - Number(pongEvent.pingTimestamp);
         Log.info(`[Pusher PINGPONG] The event took ${latency} ms`);
-
-        // When any PONG event comes in, reset this flag so that checkForLatePongReplies will resume looking for missed PONGs
-        pongHasBeenMissed = false;
     });
 }
 
@@ -825,8 +824,8 @@ const PING_INTERVAL_LENGTH_IN_SECONDS = 30;
 // Specify how long between each check for missing PONG events
 const CHECK_LATE_PONG_INTERVAL_LENGTH_IN_SECONDS = 60;
 
-// Specify how long before a PING event is considered to be missing a PONG event in order to put the application in offline mode
-const NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
+// Specify how long before a PING event is considered to be missing a PONG event, at which point the socket is presumed dead
+const SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS = 2 * PING_INTERVAL_LENGTH_IN_SECONDS;
 
 function pingPusher() {
     if (getIsOffline()) {
@@ -847,7 +846,11 @@ function pingPusher() {
     lastPingSentTimestamp = pingTimestamp;
 
     const parameters: PusherPingParams = {pingID, pingTimestamp};
-    API.writeWithNoDuplicatesConflictAction(WRITE_COMMANDS.PUSHER_PING, parameters);
+
+    // The heartbeat is a probe, not a user's write, so it must not be persisted to disk, retried, or hold the
+    // head of the queue while a real write waits behind it. The Logging middleware already logs any failure.
+    // eslint-disable-next-line rulesdir/no-api-side-effects-method
+    API.makeRequestWithSideEffects(SIDE_EFFECT_REQUEST_COMMANDS.PUSHER_PING, parameters).catch(() => {});
     Log.info(`[Pusher PINGPONG] Sending a PING to the server: ${pingID} timestamp: ${pingTimestamp}`);
 }
 
@@ -857,23 +860,24 @@ function checkForLatePongReplies() {
         return;
     }
 
-    if (pongHasBeenMissed) {
-        Log.info(`[Pusher PINGPONG] Skipped checking for late PONG events because a PONG has already been missed`);
+    // A reconnect just happened, so give the fresh socket one full check interval to deliver a PONG
+    if (shouldSkipCheckAfterReconnect) {
+        shouldSkipCheckAfterReconnect = false;
         return;
     }
 
-    Log.info(`[Pusher PINGPONG] Checking for late PONG events`);
-    const timeSinceLastPongReceived = Date.now() - lastPongReceivedTimestamp;
+    const now = Date.now();
+    const timeSinceLastPongReceived = now - lastPongReceivedTimestamp;
 
-    // If the time since the last pong was received is more than 2 * PING_INTERVAL_LENGTH_IN_SECONDS, then record it in the logs
-    if (timeSinceLastPongReceived > NO_EVENT_RECEIVED_TO_BE_OFFLINE_THRESHOLD_IN_SECONDS * 1000) {
-        Log.info(`[Pusher PINGPONG] The server has not replied to the PING event in ${timeSinceLastPongReceived} ms so going offline`);
+    // A missing PONG while HTTP still works (the client is not offline) means the socket is presumed dead, so reconnect Pusher
+    if (timeSinceLastPongReceived > SOCKET_PRESUMED_DEAD_THRESHOLD_IN_SECONDS * 1000) {
+        Log.info(`[Pusher PINGPONG] The server has not sent a PONG in ${timeSinceLastPongReceived} ms so the socket is presumed dead and Pusher is being reconnected`);
 
-        // When going offline, reset the pingpong state so that when the network reconnects, the client will start fresh
-        lastPingSentTimestamp = Date.now();
-        pongHasBeenMissed = true;
+        // Retries stay unbounded: one reconnect every second check tick (~2 minutes) while PONGs are missing
+        shouldSkipCheckAfterReconnect = true;
+        Pusher.reconnect();
     } else {
-        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so not going offline`);
+        Log.info(`[Pusher PINGPONG] Last PONG event was ${timeSinceLastPongReceived} ms ago so the socket is presumed alive`);
     }
 }
 
@@ -1215,7 +1219,7 @@ function setContactMethodAsDefault(
         failureData,
     });
     if (!skipNavigation) {
-        Navigation.goBack(ROUTES.SETTINGS_CONTACT_METHODS.getRoute(backTo));
+        Navigation.goBack(createDynamicRoute(DYNAMIC_ROUTES.CONTACT_METHODS.path, backTo));
     }
 }
 
@@ -1371,6 +1375,38 @@ function setNameValuePair<TKey extends OnyxKey>(name: TKey, value: SetNameValueP
  */
 function dismissASAPSubmitExplanation(shouldDismiss: boolean) {
     Onyx.merge(ONYXKEYS.NVP_DISMISSED_ASAP_SUBMIT_EXPLANATION, shouldDismiss);
+}
+
+/**
+ * Persist that the user has seen the Submit plan migration in-product modal so it is never shown again.
+ *
+ * The Onyx key is prefixed with `nvp_`, but the backend NVP name is unprefixed (`submitMigrationModalShown`),
+ * so we can't reuse the generic `setNameValuePair` (which sends the prefixed Onyx key as the API `name`).
+ * Instead we send the unprefixed backend name while still storing the value under the prefixed Onyx key.
+ */
+function setSubmitMigrationModalShown() {
+    const optimisticData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: true,
+        },
+    ];
+
+    const failureData: AnyOnyxUpdate[] = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: ONYXKEYS.NVP_SUBMIT_MIGRATION_MODAL_SHOWN,
+            value: false,
+        },
+    ];
+
+    const parameters: SetNameValuePairParams = {
+        name: CONST.SUBMIT_MIGRATION_MODAL_SHOWN_NVP_NAME,
+        value: true,
+    };
+
+    API.write(WRITE_COMMANDS.SET_NAME_VALUE_PAIR, parameters, {optimisticData, failureData});
 }
 
 function requestRefund() {
@@ -1539,6 +1575,7 @@ function requestUnlockAccount(accountID: number) {
 type RespondToProactiveAppReviewParams = {
     response: 'positive' | 'negative' | 'skip';
     optimisticReportActionID?: string;
+    policyID: string | undefined;
 };
 
 /**
@@ -1550,10 +1587,11 @@ function respondToProactiveAppReview(
     userEmail: string | undefined,
     userAccountID: number,
     delegateAccountID: number | undefined,
+    policyID: string | undefined,
     message?: string,
     conciergeChatReportID?: string,
 ) {
-    const params: RespondToProactiveAppReviewParams = {response};
+    const params: RespondToProactiveAppReviewParams = {response, policyID};
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.COLLECTION.REPORT | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
     const successData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS>> = [];
     const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.REPORT_ACTIONS | typeof ONYXKEYS.NVP_APP_REVIEW>> = [];
@@ -1646,7 +1684,7 @@ function respondToProactiveAppReview(
  *
  * This handles the complete flow for verifying a secondary login:
  * 1. Verifies the validation code entered by the user
- * 2. On success, stores the validate code to allow adding the new email
+ * 2. On success, stores the validateCode to allow adding the new email
  * 3. On failure, updates the state to reflect the failed verification
  *
  * @param validateCode - The validation code entered by the user
@@ -1998,6 +2036,7 @@ export {
     clearDraftCustomStatus,
     requestRefund,
     setNameValuePair,
+    setSubmitMigrationModalShown,
     clearUnvalidatedNewContactMethodAction,
     clearPendingContactActionErrors,
     requestValidateCodeAction,

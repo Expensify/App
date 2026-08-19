@@ -82,6 +82,7 @@ jest.mock('@libs/Navigation/Navigation', () => ({
     removeScreenByKey: jest.fn(),
 }));
 jest.mock('@react-navigation/native', () => ({
+    ...jest.requireActual<Record<string, unknown>>('@react-navigation/native'),
     createNavigationContainerRef: jest.fn(() => ({getCurrentRoute: jest.fn(() => ({name: 'Money_Request_Distance_Create', params: {}})), getState: jest.fn(() => ({}))})),
     useIsFocused: () => true,
     useNavigation: () => ({navigate: jest.fn(), addListener: jest.fn()}),

@@ -38,7 +38,6 @@ const GITHUB_ACTIONS = [
     'reviewerChecklist/reviewerChecklist.ts',
     'validateReassureOutput/validateReassureOutput.ts',
     'verifySignedCommits/verifySignedCommits.ts',
-    'waitForPreviousRuns/waitForPreviousRuns.ts',
 ].map((relativePath) => path.join(ACTIONS_DIR, relativePath));
 
 // This will be prepended to the top of all compiled files as a warning to devs.

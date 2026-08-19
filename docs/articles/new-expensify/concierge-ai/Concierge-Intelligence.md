@@ -128,5 +128,3 @@ Yes—and that’s by design. Because it’s context-aware, asking “Is this re
 ## Can I test how Concierge behaves in different modes?
 
 Absolutely. Try sending the same question in different contexts (a report, a Workspace chat, a DM) and you’ll see how Concierge tailors its response to match.
-
-</div>

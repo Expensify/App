@@ -21,6 +21,7 @@ import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {CONST as COMMON_CONST} from 'expensify-common';
 import React, {useEffect} from 'react';
 
 type ReportVirtualCardFraudVerifyAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.REPORT_VIRTUAL_CARD_FRAUD>;
@@ -78,8 +79,8 @@ function ReportVirtualCardFraudVerifyAccountPage({
     return (
         <ValidateCodeActionContent
             title={translate('cardPage.validateCardTitle')}
-            descriptionPrimary={translate('cardPage.enterMagicCode', primaryLogin ?? '')}
-            sendValidateCode={() => requestValidateCodeAction()}
+            descriptionPrimary={translate('cardPage.enterSecurityCode', primaryLogin ?? '')}
+            sendValidateCode={() => requestValidateCodeAction({reasonCode: COMMON_CONST.VALIDATE_CODE_REASONS.REPORT_CARD_FRAUD, reasonCardID: Number(cardID)})}
             validateCodeActionErrorField="reportVirtualCard"
             handleSubmitForm={handleValidateCodeEntered}
             validateError={{...cardError, ...codeError}}

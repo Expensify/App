@@ -8,17 +8,17 @@ import MultiGestureCanvas, {DEFAULT_ZOOM_RANGE} from '@components/MultiGestureCa
 import type {OnScaleChangedCallback, ZoomRange} from '@components/MultiGestureCanvas/types';
 import {getCanvasFitScale} from '@components/MultiGestureCanvas/utils';
 
+import useCanvasSize from '@hooks/useCanvasSize';
 import useNetwork from '@hooks/useNetwork';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isLocalFile} from '@libs/fileDownload/FileUtils';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 import type {Dimensions} from '@src/types/utils/Layout';
 
-import type {LayoutChangeEvent, StyleProp, ViewStyle} from 'react-native';
+import type {StyleProp, ViewStyle} from 'react-native';
 
 import React, {useState} from 'react';
 import {PixelRatio, StyleSheet, View} from 'react-native';
@@ -122,13 +122,7 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const hasSiblingCarouselItems = isUsedInCarousel && !isSingleCarouselItem;
     const isActive = page === activePage;
 
-    const [canvasSize, setCanvasSize] = useState<Dimensions>();
-    const isCanvasLoading = canvasSize === undefined;
-    const updateCanvasSize = ({
-        nativeEvent: {
-            layout: {width, height},
-        },
-    }: LayoutChangeEvent) => setCanvasSize({width: PixelRatio.roundToNearestPixel(width), height: PixelRatio.roundToNearestPixel(height)});
+    const {canvasSize, updateCanvasSize, isCanvasLoading} = useCanvasSize();
 
     const [contentSize, setInternalContentSize] = useState<Dimensions | undefined>(() => cachedImageDimensions.get(uri));
     const setContentSize = (newDimensions: Dimensions | undefined) => {
@@ -205,15 +199,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
     const isALocalFile = isLocalFile(uri);
     const shouldShowOfflineIndicator = isOffline && !isLoading && !isALocalFile;
 
-    const reasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'Lightbox',
-        isImageLoaded,
-        isLoadingPreviousUri: false,
-        isOffline,
-        isLoading,
-        isALocalFile,
-    };
-
     return (
         <View
             testID="lightbox-wrapper"
@@ -288,7 +273,6 @@ function Lightbox({attachmentID, isAuthTokenRequired = false, uri, onScaleChange
                         <ActivityIndicator
                             size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
                             style={StyleSheet.absoluteFill}
-                            reasonAttributes={reasonAttributes}
                         />
                     )}
                     {!isImageLoaded && shouldShowOfflineIndicator && <AttachmentOfflineIndicator />}

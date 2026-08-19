@@ -13,20 +13,17 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidLegalName, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
+import {getFieldRequiredErrors, isValidAddress, isValidDebitCard, isValidExpirationDate, isValidNameOnCard, isValidPaymentZipCode, isValidSecurityCode} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
-import SCREENS from '@src/SCREENS';
 import INPUT_IDS from '@src/types/form/AddPaymentCardForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {ReactNode} from 'react';
 import type {ValueOf} from 'type-fest';
 
-import {useRoute} from '@react-navigation/native';
 import React, {useCallback, useRef, useState} from 'react';
 import {View} from 'react-native';
 
@@ -131,7 +128,6 @@ function PaymentCardForm({
     const [data, metadata] = useOnyx(ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM);
 
     const {translate} = useLocalize();
-    const route = useRoute();
     const label = CARD_LABELS[isDebitCard ? CARD_TYPES.DEBIT_CARD : CARD_TYPES.PAYMENT_CARD];
 
     const cardNumberRef = useRef<AnimatedTextInputRef>(null);
@@ -183,7 +179,7 @@ function PaymentCardForm({
     const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.ADD_PAYMENT_CARD_FORM> => {
         const errors = getFieldRequiredErrors(values, REQUIRED_FIELDS, translate);
 
-        if (values.nameOnCard && !isValidLegalName(values.nameOnCard)) {
+        if (values.nameOnCard && !isValidNameOnCard(values.nameOnCard)) {
             errors.nameOnCard = translate(label.error.nameOnCard);
         }
 
@@ -261,6 +257,7 @@ function PaymentCardForm({
                 submitButtonText={submitButtonText}
                 scrollContextEnabled
                 style={[styles.mh5, styles.flexGrow1]}
+                shouldPreserveCustomValidationErrors
             >
                 <InputWrapper
                     InputComponent={TextInput}
@@ -351,7 +348,6 @@ function PaymentCardForm({
                 {!!showStateSelector && (
                     <View style={[styles.mt4, styles.mhn5]}>
                         <InputWrapper
-                            stateSelectorRoute={route.name === SCREENS.IOU_SEND.ADD_DEBIT_CARD ? ROUTES.MONEY_REQUEST_STATE_SELECTOR : undefined}
                             InputComponent={StateSelector}
                             inputID={INPUT_IDS.ADDRESS_STATE}
                         />

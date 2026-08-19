@@ -1,3 +1,4 @@
+import useLiveFilteredReportActions from '@components/Search/hooks/useLiveFilteredReportActions';
 import {useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import useActionLoadingReportIDs from '@hooks/useActionLoadingReportIDs';
@@ -8,8 +9,9 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 
 import {search} from '@libs/actions/Search';
+import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
 import {getSections} from '@libs/SearchUIUtils';
-import {mergeProhibitedViolations, shouldShowViolation} from '@libs/TransactionUtils';
+import {getVisibleTransactionViolations} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -21,6 +23,8 @@ import React, {useEffect, useMemo, useState} from 'react';
 import type {GroupChildrenContentProps, TransactionListItemType} from './types';
 
 import TransactionGroupListExpandedItem from './TransactionGroupListExpanded';
+
+const emptyChildReportIDs: string[] = [];
 
 function GroupChildrenContent({
     item,
@@ -39,7 +43,7 @@ function GroupChildrenContent({
     cardFeeds,
     conciergeReportID,
 }: GroupChildrenContentProps) {
-    const {translate, formatPhoneNumber} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const currentUserDetails = useCurrentUserPersonalDetails();
     const isScreenFocused = useIsFocused();
@@ -50,6 +54,9 @@ function GroupChildrenContent({
     const isExpenseReportType = searchType === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT;
 
     const [transactionsSnapshot] = useOnyx(`${ONYXKEYS.COLLECTION.SNAPSHOT}${groupItem.transactionsQueryJSON?.hash}`);
+    const liveReportActions = useLiveFilteredReportActions(
+        isExpenseReportType ? emptyChildReportIDs : groupItem.transactions.map((transaction) => transaction.reportID).filter((reportID): reportID is string => !!reportID),
+    );
     const [transactionsVisibleLimit, setTransactionsVisibleLimit] = useState<number>(CONST.TRANSACTION.RESULTS_PAGE_SIZE);
     const isActionLoadingSet = useActionLoadingReportIDs();
     const snapshotData = transactionsSnapshot?.data;
@@ -64,6 +71,7 @@ function GroupChildrenContent({
             return [];
         }
         const [sectionData] = getSections({
+            dateFnsLocale,
             type: CONST.SEARCH.DATA_TYPES.EXPENSE,
             data: snapshotData,
             currentAccountID: currentUserDetails.accountID,
@@ -75,6 +83,7 @@ function GroupChildrenContent({
             cardFeeds,
             conciergeReportID,
             convertToDisplayString,
+            reportActions: liveReportActions,
             reportAttributesDerivedValue: undefined,
         }) as [TransactionListItemType[], number, boolean];
         return sectionData.map((transactionItem) => ({
@@ -94,7 +103,9 @@ function GroupChildrenContent({
         cardFeeds,
         conciergeReportID,
         convertToDisplayString,
+        liveReportActions,
         selectedTransactionIDsSet,
+        dateFnsLocale,
     ]);
 
     const isEmpty = transactions.length === 0;
@@ -186,8 +197,14 @@ function GroupChildrenContent({
             if (report && policy) {
                 const transactionViolations = groupViolations[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`];
                 if (transactionViolations) {
-                    const merged = mergeProhibitedViolations(
-                        transactionViolations.filter((violation) => shouldShowViolation(report, policy, violation.name, currentUserDetails?.email ?? '', true, snapshotTransaction)),
+                    const merged = getVisibleTransactionViolations(
+                        snapshotTransaction,
+                        transactionViolations,
+                        currentUserDetails?.email ?? '',
+                        currentUserDetails.accountID,
+                        report,
+                        getLoginByAccountID(report.ownerAccountID, snapshotData.personalDetailsList),
+                        policy,
                     );
                     if (merged.length > 0) {
                         result[`${ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS}${snapshotTransaction.transactionID}`] = merged;
@@ -196,7 +213,7 @@ function GroupChildrenContent({
             }
         }
         return result;
-    }, [snapshotData, currentUserDetails.email]);
+    }, [snapshotData, currentUserDetails.email, currentUserDetails.accountID]);
 
     const onExpandedRowLongPress = (transaction: TransactionListItemType) => {
         onLongPressRow?.(transaction);

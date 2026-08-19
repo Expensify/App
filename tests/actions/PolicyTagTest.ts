@@ -11,12 +11,14 @@ import {
     clearPolicyTagErrors,
     clearPolicyTagListErrorField,
     clearPolicyTagListErrors,
+    cleanPolicyTags,
     createPolicyTag,
     deletePolicyTags,
     enablePolicyTags,
     renamePolicyTag,
     renamePolicyTagList,
     setPolicyRequiresTag,
+    setPolicyShowTagGLCodes,
     setPolicyTagApprover,
     setPolicyTagGLCode,
     setPolicyTagsRequired,
@@ -48,8 +50,8 @@ describe('actions/Policy', () => {
 
     let mockFetch: MockFetch;
     beforeEach(() => {
-        global.fetch = TestHelper.getGlobalFetchMock();
-        mockFetch = fetch as MockFetch;
+        mockFetch = TestHelper.getGlobalFetchMock();
+        global.fetch = mockFetch;
         return Onyx.clear().then(waitForBatchedUpdates);
     });
 
@@ -71,7 +73,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
 
@@ -91,7 +92,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -119,7 +119,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
 
@@ -139,7 +138,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -171,7 +169,6 @@ describe('actions/Policy', () => {
                         new Promise<void>((resolve) => {
                             const connection = Onyx.connect({
                                 key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
-                                waitForCollectionCallback: false,
                                 callback: (policy) => {
                                     Onyx.disconnect(connection);
                                     expect(policy?.pendingFields?.requiresTag).toBeFalsy();
@@ -205,6 +202,83 @@ describe('actions/Policy', () => {
             });
 
             expect(updatePolicyTags?.[tagListName]?.required).toBeTruthy();
+        });
+    });
+
+    describe('SetPolicyShowTagGLCodes', () => {
+        it('enable show tag GL codes', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = false;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    setPolicyShowTagGLCodes(fakePolicy.id, true, false);
+                    return waitForBatchedUpdates();
+                })
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+
+                                    resolve();
+                                },
+                            });
+                        }),
+                )
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
+        });
+
+        it('reset show tag GL codes when api returns an error', () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.showTagGLCodes = true;
+
+            mockFetch?.pause?.();
+
+            return Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy)
+                .then(() => {
+                    mockFetch?.fail?.();
+                    setPolicyShowTagGLCodes(fakePolicy.id, false, true);
+                    return waitForBatchedUpdates();
+                })
+                .then(mockFetch?.resume)
+                .then(waitForBatchedUpdates)
+                .then(
+                    () =>
+                        new Promise<void>((resolve) => {
+                            const connection = Onyx.connect({
+                                key: `${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`,
+                                callback: (policy) => {
+                                    Onyx.disconnect(connection);
+                                    expect(policy?.pendingFields?.showTagGLCodes).toBeFalsy();
+                                    expect(policy?.errorFields?.showTagGLCodes).toBeTruthy();
+                                    expect(policy?.showTagGLCodes).toBeTruthy();
+                                    resolve();
+                                },
+                            });
+                        }),
+                );
         });
     });
 
@@ -383,6 +457,59 @@ describe('actions/Policy', () => {
             const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
             const newTag = policyTags?.[tagListName]?.tags?.[newTagName];
             expect(newTag?.errors).toBeTruthy();
+        });
+
+        it('restores required tags when creating the first tag after required tags were cleared by switching tag levels', async () => {
+            const fakePolicy = createRandomPolicy(0);
+            fakePolicy.areTagsEnabled = true;
+            fakePolicy.requiresTag = true;
+
+            const tagListName = CONST.POLICY.DEFAULT_TAG_NAME;
+            const newTagName = 'new tag';
+            const fakePolicyTags = createRandomPolicyTags(tagListName, 1);
+            fakePolicyTags[tagListName].required = true;
+
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, fakePolicy);
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, fakePolicyTags);
+
+            mockFetch.pause();
+            cleanPolicyTags(fakePolicy.id, true);
+            await waitForBatchedUpdates();
+
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`, {requiresTag: false});
+            await Onyx.set(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`, CONST.POLICY.DEFAULT_TAG_LIST);
+            await waitForBatchedUpdates();
+
+            const {result: policyData} = renderHook(() => usePolicyData(fakePolicy.id), {wrapper: OnyxListItemProvider});
+
+            createPolicyTag({
+                policyData: policyData.current,
+                tagName: newTagName,
+                setupTagsTaskReport: undefined,
+                setupTagsTaskParentReport: undefined,
+                isSetupTagsTaskParentReportArchived: false,
+                setupTagsHasOutstandingChildTask: false,
+                setupTagsParentReportAction: undefined,
+                setupCategoriesAndTagsTaskReport: undefined,
+                setupCategoriesAndTagsTaskParentReport: undefined,
+                isSetupCategoriesAndTagsTaskParentReportArchived: false,
+                setupCategoriesAndTagsHasOutstandingChildTask: false,
+                setupCategoriesAndTagsParentReportAction: undefined,
+                currentUserAccountID: 0,
+                policyHasCustomCategories: false,
+                pendingRequiresTagRestore: policyData.current.policy?.pendingRequiresTagRestore === true,
+            });
+            await waitForBatchedUpdates();
+
+            const policy = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY}${fakePolicy.id}`);
+            const policyTags = await OnyxUtils.get(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${fakePolicy.id}`);
+
+            expect(policy?.requiresTag).toBe(true);
+            expect(policyTags?.[tagListName]?.required).toBe(true);
+            expect(policy?.pendingRequiresTagRestore).toBeFalsy();
+
+            mockFetch.resume();
+            await waitForBatchedUpdates();
         });
 
         it('should handle empty policy tags object', async () => {

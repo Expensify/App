@@ -172,6 +172,9 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                     submitFlexEnabled={false}
                     enabledWhenOffline
                     validate={validate}
+                    // The submit handler can early-return into a cancelable confirmation modal without setting any
+                    // loading state or navigating away, so an immediate press spinner would never reset
+                    shouldShowLoadingImmediatelyOnPress={false}
                 >
                     <InputWrapper
                         InputComponent={AmountForm}
