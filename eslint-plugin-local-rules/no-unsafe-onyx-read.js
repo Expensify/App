@@ -288,7 +288,11 @@ function getStaticKeyPath(keyNode) {
     }
 
     if (keyNode.type === 'TemplateLiteral') {
-        return keyNode.quasis.at(0)?.value.raw === '' ? getStaticKeyPath(keyNode.expressions.at(0)) : null;
+        // A collection member opens with its prefix expression, so the first expression starts three
+        // characters into the literal, one for the backtick and two for the `${`.
+        const [firstExpression] = keyNode.expressions;
+
+        return firstExpression?.range.at(0) === keyNode.range.at(0) + 3 ? getStaticKeyPath(firstExpression) : null;
     }
 
     if (keyNode.type !== 'MemberExpression') {

@@ -94,7 +94,7 @@ function useOwnerName(reportID: string) {
 ```
 
 ### - All `Onyx.get()` reads MUST come before the first write in that tick, or the write MUST be awaited
-`Onyx.merge()` and `Onyx.update()` apply to the cache a microtask later, so a read that follows one returns the pre-write value. `Onyx.set()` and `Onyx.mergeCollection()` do land immediately, which makes code that depends on the difference fragile rather than safe. Treat every write the same way.
+`Onyx.merge()` and `Onyx.update()` apply to the cache asynchronously, after the current synchronous block has finished, so a read that follows one returns the pre-write value. `Onyx.set()` and `Onyx.mergeCollection()` do land immediately, which makes code that depends on the difference fragile rather than safe. Treat every write the same way.
 
 ```typescript
 // BAD ❌

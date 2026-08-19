@@ -26,7 +26,7 @@
  * reference sits in event-position code, no reference is an effect trigger, and the consuming function
  * performs no Onyx write the read could land behind. It does not claim anything about pushing the read
  * further down into a callee in another file, which changes that callee's safety class and needs the
- * forward sweep in the onyx-get skill; `--callees` prints the callees to sweep. And it
+ * forward sweep in the onyx-get skill; `--callee-names` prints every callee to sweep. And it
  * cannot speak to the proposal's fourth condition, mixing a source key with a key derived from it,
  * because that depends on which keys the converted function ends up reading.
  *
@@ -40,7 +40,7 @@
  *   bun scripts/trackOnyxGetMigration.ts                 # summary, then the whole-file candidates
  *   bun scripts/trackOnyxGetMigration.ts --certain       # just the CERTAIN bindings, one per line
  *   bun scripts/trackOnyxGetMigration.ts --verdicts      # every non-render binding and why
- *   bun scripts/trackOnyxGetMigration.ts --callees       # callees to run the caller sweep on
+ *   bun scripts/trackOnyxGetMigration.ts --callee-names  # every callee to run the caller sweep on
  *   bun scripts/trackOnyxGetMigration.ts --file <path>   # one file, per-binding verdict
  *   bun scripts/trackOnyxGetMigration.ts --json
  */
@@ -170,7 +170,7 @@ type ReferenceKind =
     | 'deferred';
 
 type Verdict =
-    /** Reaches rendered output. Not part of this workstream. */
+    /** Reaches rendered output. Not part of this migration. */
     | 'NOT_CANDIDATE'
     /** Never referenced. Delete the binding; there is nothing to convert. */
     | 'DEAD'
@@ -189,7 +189,7 @@ type Binding = {
     /** Every reference indexes straight into the value, so a member-key read is exactly equivalent. */
     readsSingleMemberOnly: boolean;
     /** Functions the value is handed to, as `name` or `object.name`. Where the read would move. */
-    callees: string[];
+    calleeNames: string[];
     /** Onyx write methods called inside a consuming function, ahead of the reference. */
     writesAhead: string[];
     /** Deferral points inside the consuming function, which split it into several synchronous stretches. */
@@ -238,7 +238,7 @@ function calleeName(node: ts.CallExpression): string {
 
 /**
  * The bare name a call is made through, so `React.useEffect` matches `useEffect`. Matching the full
- * text instead leaves a member-expression hook call unrecognised, and an unrecognised hook makes a
+ * text instead leaves a member-expression hook call unrecognized, and an unrecognized hook makes a
  * dependency-array reference look like a render read.
  */
 function hookName(node: ts.CallExpression): string {
@@ -832,7 +832,7 @@ function writersIn(file: string): Set<string> {
         return writers;
     }
 
-    /** Every top-level name, with the Onyx write methods and the same-file callees found in its body. */
+    /** Every top-level name, with the Onyx write methods and each same-file callee found in its body. */
     const bodies = new Map<string, {writes: boolean; calls: Set<string>}>();
     /** `export * from './x'`, whose whole writer set belongs to this module's surface too. */
     const starReExports: string[] = [];
@@ -1089,7 +1089,7 @@ function analyzeFile(file: string): Binding[] {
         escapingScopes.set(scope, escaping);
 
         const kinds = new Set<ReferenceKind>();
-        const callees = new Set<string>();
+        const calleeNames = new Set<string>();
         const priorWrites = new Set<string>();
         const deferrals = new Set<string>();
         let referenceCount = 0;
@@ -1110,7 +1110,7 @@ function analyzeFile(file: string): Binding[] {
 
             const callee = argumentCallee(candidate);
             if (callee) {
-                callees.add(callee);
+                calleeNames.add(callee);
             }
 
             const consumer = consumingFunction(candidate, scope, renderInvoked);
@@ -1172,7 +1172,7 @@ function analyzeFile(file: string): Binding[] {
             referenceCount,
             kinds: [...kinds],
             readsSingleMemberOnly: referenceCount > 0 && referenceCount === indexedReferenceCount,
-            callees: [...callees],
+            calleeNames: [...calleeNames],
             writesAhead: [...priorWrites],
             deferrals: [...deferrals],
             verdict,
@@ -1198,9 +1198,7 @@ function countSyncReads(files: string[]): {reads: number; files: number} {
             continue;
         }
         const sourceFile = parse(file);
-        const onyxNames = new Set(
-            [...collectImports(sourceFile).entries()].filter(([, specifier]) => specifier.startsWith(ONYX_MODULE_PREFIX)).map(([localName]) => localName),
-        );
+        const onyxNames = new Set([...collectImports(sourceFile).entries()].filter(([, specifier]) => specifier.startsWith(ONYX_MODULE_PREFIX)).map(([localName]) => localName));
         if (onyxNames.size === 0) {
             continue;
         }
@@ -1262,7 +1260,9 @@ function main(): void {
         console.log(row('      DEAD, delete rather than convert', dead.length));
         console.log('');
         console.log(`synchronous Onyx reads present today        : ${String(converted.reads).padStart(5)} in ${converted.files} file(s)`);
-        console.log(`cheapest next PRs, files entirely CERTAIN   : ${String(wholeCertain.length).padStart(5)} files, ${wholeCertain.reduce((sum, fileBindings) => sum + fileBindings.length, 0)} bindings`);
+        console.log(
+            `cheapest next PRs, files entirely CERTAIN   : ${String(wholeCertain.length).padStart(5)} files, ${wholeCertain.reduce((sum, fileBindings) => sum + fileBindings.length, 0)} bindings`,
+        );
         console.log('');
         console.log('Percentages are of every useOnyx binding in src/. CERTAIN means no mechanical condition objects,');
         console.log('not that a conversion is correct, so it is a review shortlist rather than a work-list. REVIEW is not');
@@ -1277,10 +1277,10 @@ function main(): void {
         return;
     }
 
-    if (argv.includes('--callees')) {
+    if (argv.includes('--callee-names')) {
         // Every function a CERTAIN binding hands its value to, so the read can be pushed past this file.
         // Run the forward caller sweep on these before moving a read into one.
-        for (const callee of [...new Set(certain.flatMap((binding) => binding.callees))].sort()) {
+        for (const callee of [...new Set(certain.flatMap((binding) => binding.calleeNames))].sort()) {
             console.log(callee);
         }
         return;
