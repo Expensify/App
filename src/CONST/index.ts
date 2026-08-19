@@ -2107,7 +2107,7 @@ const CONST = {
         ACCESSIBILITY_ANNOUNCEMENT_DEBOUNCE_TIME: 1000,
         SUGGESTION_DEBOUNCE_TIME: 100,
         /** How long the cursor has to stay on an advanced filter row before its content is rendered */
-        SEARCH_FILTER_HOVER_INTENT_DELAY: 80,
+        SEARCH_FILTER_HOVER_INTENT_DELAY: 30,
         RESIZE_DEBOUNCE_TIME: 100,
         UNREAD_UPDATE_DEBOUNCE_TIME: 300,
         USE_DEBOUNCED_STATE_DELAY: 300,
