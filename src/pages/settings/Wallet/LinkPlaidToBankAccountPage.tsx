@@ -4,6 +4,8 @@ import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
 import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
+import Icon from '@components/Icon';
+import getBankIcon from '@components/Icon/BankIcons';
 import PlaidLink from '@components/PlaidLink';
 import RadioButtons from '@components/RadioButtons';
 import RenderHTML from '@components/RenderHTML';
@@ -19,8 +21,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} from '@libs/actions/BankAccounts';
-import {openPlaidBankLogin} from '@libs/actions/Plaid';
-import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
+import {openPlaidBankAccountSelector, openPlaidBankLogin} from '@libs/actions/Plaid';
+import {getLastFourDigits, hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
@@ -33,21 +35,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
+import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import type {LinkAccount} from 'react-native-plaid-link-sdk';
-import type {PlaidAccount} from 'react-plaid-link';
-
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {View} from 'react-native';
 
 type LinkPlaidToBankAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID>;
-
-type PlaidLinkAccount = PlaidAccount | LinkAccount;
-
-type PendingPlaidSelection = {
-    publicToken: string;
-    accounts: PlaidLinkAccount[];
-};
 
 type LinkPlaidToBankAccountInnerProps = {
     /** ID of the bank account being (re)linked to Plaid */
@@ -64,18 +57,24 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
+    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
 
     const [hasSubmitted, setHasSubmitted] = useState(false);
-    const [pendingSelection, setPendingSelection] = useState<PendingPlaidSelection | null>(null);
+    const [isSelectorDispatched, setIsSelectorDispatched] = useState(false);
+    const [isSelectingAccount, setIsSelectingAccount] = useState(false);
     const [selectedPlaidAccountID, setSelectedPlaidAccountID] = useState('');
 
     const policyID = bankAccount?.accountData?.additionalData?.policyID;
     const isLoading = !!bankAccount?.isLoading;
+    const isSelectorLoading = !!plaidData?.isLoading;
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
     const isSuccess = hasSubmitted && !isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
+
+    const plaidBankAccounts = useMemo(() => plaidData?.bankAccounts ?? [], [plaidData?.bankAccounts]);
+    const plaidAccessToken = plaidData?.plaidAccessToken ?? '';
 
     useEffect(() => {
         openPlaidBankLogin(false, bankAccountID);
@@ -86,36 +85,65 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearPlaid();
     });
 
-    const submit = (publicToken: string, account: PlaidLinkAccount | undefined) => {
+    const submit = (account: PlaidBankAccount) => {
         setHasSubmitted(true);
-        linkPlaidToBankAccount(bankAccountID, publicToken, account?.mask, policyID);
-        setPendingSelection(null);
+        linkPlaidToBankAccount(bankAccountID, plaidAccessToken, account.plaidAccountID, account.mask, policyID);
+        setIsSelectingAccount(false);
         setSelectedPlaidAccountID('');
     };
 
     const retry = () => {
         clearLinkPlaidBankAccountErrors(bankAccountID);
         setHasSubmitted(false);
-        setPendingSelection(null);
+        setIsSelectorDispatched(false);
+        setIsSelectingAccount(false);
         setSelectedPlaidAccountID('');
         clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
     };
 
-    const handlePlaidSuccess = ({publicToken, accounts}: {publicToken: string; accounts: PlaidLinkAccount[]}) => {
-        const account = accounts.at(0);
-        if (!account) {
-            return;
-        }
-
-        if (accounts.length <= 1) {
-            submit(publicToken, account);
-            return;
-        }
-        setPendingSelection({publicToken, accounts});
-        setSelectedPlaidAccountID(account.id);
+    const handlePlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
+        setIsSelectorDispatched(true);
+        openPlaidBankAccountSelector(publicToken, bankName, true, bankAccountID);
     };
 
-    if (isLoading || !plaidLinkToken) {
+    // Resolve the target Plaid account (or 'needs-selection') from the server-returned list plus the
+    // stored BBA mask. Doing this in useMemo keeps the effect body free of derivation logic so it can
+    // stay focused on syncing the Onyx PLAID_DATA subsystem into local UI state / API dispatch.
+    const resolvedTarget = useMemo<PlaidBankAccount | 'needs-selection' | null>(() => {
+        if (plaidBankAccounts.length === 0) {
+            return null;
+        }
+        if (plaidBankAccounts.length === 1) {
+            const only = plaidBankAccounts.at(0);
+            return only ?? null;
+        }
+        const storedMask = getLastFourDigits(bankAccount?.accountData?.accountNumber ?? '');
+        if (storedMask) {
+            const matched = plaidBankAccounts.find((account) => account.mask === storedMask);
+            if (matched) {
+                return matched;
+            }
+        }
+        return 'needs-selection';
+    }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
+
+    useEffect(() => {
+        if (!isSelectorDispatched || isSelectorLoading || hasSubmitted || isSelectingAccount || !resolvedTarget) {
+            return;
+        }
+        if (resolvedTarget === 'needs-selection') {
+            setIsSelectingAccount(true);
+            const firstAccountID = plaidBankAccounts.at(0)?.plaidAccountID;
+            if (firstAccountID) {
+                setSelectedPlaidAccountID(firstAccountID);
+            }
+            return;
+        }
+        submit(resolvedTarget);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [resolvedTarget, isSelectorDispatched, isSelectorLoading, hasSubmitted, isSelectingAccount]);
+
+    if (isLoading || isSelectorLoading || !plaidLinkToken) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
