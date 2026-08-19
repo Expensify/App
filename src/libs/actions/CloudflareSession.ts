@@ -47,7 +47,7 @@ if (isQAAuthConfigured()) {
 
     // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously. The in-flight refs
     // below are deliberately left alone — clearing them wouldn't cancel the work, it would just let a second
-    // flight overlap; the generation bump is what neutralises whatever is still running.
+    // flight overlap; the generation bump is what neutralizes whatever is still running.
     registerSessionCleanupCallback(() => {
         sessionGeneration++;
         sessionCache = null;
@@ -142,7 +142,7 @@ let refreshPromise: Promise<CloudflareRefreshResult> | null = null;
  * Cloudflare rotates the refresh token on every call — so two tabs refreshing at once each spend a token the
  * other still needs, and the loser's `invalid_grant` would clear the winner's freshly persisted session.
  *
- * Web Locks serialise the read-refresh-persist across the tabs of this origin, which also leaves the second
+ * Web Locks serialize the read-refresh-persist across the tabs of this origin, which also leaves the second
  * tab a full network round trip for Onyx's (event-driven, hence async) cross-tab update to reach its cache
  * before it re-reads it. Where the API is missing the in-context single-flight and the guards in
  * `performCloudflareRefresh` are what remain.
@@ -151,7 +151,7 @@ function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult
     if (!navigator.locks) {
         return callback();
     }
-    // The name is origin-scoped, so it serialises across every tab of this app
+    // The name is origin-scoped, so it serializes across every tab of this app
     return navigator.locks.request('cloudflareSessionRefresh', callback);
 }
 
@@ -207,7 +207,7 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
 }
 
 /**
- * Single-flight refresh, serialised across tabs; the rotated pair is persisted before it resolves. Resolves
+ * Single-flight refresh, serialized across tabs; the rotated pair is persisted before it resolves. Resolves
  * `'reauth-required'` only for terminal failures — the spent session is deliberately left in place (see
  * performCloudflareRefresh) and recovery is a fresh authorize round trip. Transient ones reject and keep
  * the session alive. Pass the token a 401 was seen with to get `'skipped-newer-token'` when rotation already

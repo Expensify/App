@@ -332,7 +332,7 @@ describe('pendingAuthFlowStorage', () => {
     });
 
     it.each([
-        ['unparseable JSON', 'not json'],
+        ['unparsable JSON', 'not json'],
         ['a missing verifier', JSON.stringify({state: 's', returnURL: '/', createdAt: FLOW.createdAt})],
         ['an empty state', JSON.stringify({...FLOW, state: ''})],
     ])('returns null for %s, and still clears it', (_label, raw) => {
