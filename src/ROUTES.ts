@@ -367,6 +367,18 @@ const DYNAMIC_ROUTES = {
         },
         queryParams: ['action', 'iouType', 'reportID', 'shouldTurnOffSelectionMode', 'transactionID'],
     },
+    MONEY_REQUEST_HOLD_REASON: {
+        path: 'hold-reason',
+        entryScreens: [SCREENS.REPORT, SCREENS.RIGHT_MODAL.SEARCH_REPORT, SCREENS.RIGHT_MODAL.EXPENSE_REPORT, SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT],
+        getRoute: (transactionID: string, holdReportID: string | undefined) => getUrlWithParams('hold-reason', {transactionID, holdReportID}),
+        queryParams: ['transactionID', 'holdReportID'],
+    },
+    MONEY_REQUEST_RECEIPT_VIEW: {
+        path: 'receipt-view',
+        entryScreens: [SCREENS.MONEY_REQUEST.CREATE, SCREENS.MONEY_REQUEST.STEP_SCAN],
+        getRoute: (transactionID: string) => getUrlWithParams('receipt-view', {transactionID}),
+        queryParams: ['transactionID'],
+    },
     MONEY_REQUEST_STEP_TAG: {
         path: 'expense-tag',
         entryScreens: [
@@ -454,6 +466,16 @@ const DYNAMIC_ROUTES = {
         path: 'per-diem-time-edit',
         // In the new manual expense flow the confirmation fields are inlined on the create page, so it is also an entry point.
         entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION, SCREENS.MONEY_REQUEST.CREATE],
+    },
+    MONEY_REQUEST_STEP_SUBRATE: {
+        path: 'per-diem-subrate/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_TIME],
+        getRoute: (pageIndex: string | number = 0) => `per-diem-subrate/${pageIndex}` as const,
+    },
+    MONEY_REQUEST_STEP_SUBRATE_EDIT: {
+        path: 'per-diem-subrate-edit/:pageIndex',
+        entryScreens: [SCREENS.MONEY_REQUEST.STEP_CONFIRMATION],
+        getRoute: (pageIndex: string | number) => `per-diem-subrate-edit/${pageIndex}` as const,
     },
     PROFILE: {
         path: 'a/:accountID',
@@ -2397,14 +2419,6 @@ const ROUTES = {
             return getUrlWithBackToParam(`edit/split-expense/overview/${reportID}/${originalTransactionID}${splitExpenseTransactionID ? `/${splitExpenseTransactionID}` : ''}`, backTo);
         },
     },
-    MONEY_REQUEST_HOLD_REASON: {
-        route: ':type/edit/reason/:transactionID?/:searchHash?',
-        getRoute: (type: ValueOf<typeof CONST.POLICY.TYPE>, transactionID: string, reportID: string | undefined, backTo: string, searchHash?: number) => {
-            const searchPart = searchHash ? `/${searchHash}` : '';
-            const reportPart = reportID ? `&reportID=${reportID}` : '';
-            return `${type as string}/edit/reason/${transactionID}${searchPart}/?backTo=${backTo}${reportPart}` as const;
-        },
-    },
     MONEY_REQUEST_CREATE: {
         route: ':action/:iouType/start/:transactionID/:reportID/:backToReport?',
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) => {
@@ -2447,16 +2461,6 @@ const ROUTES = {
 
             return getUrlWithBackToParam(`${action as string}/${iouType as string}/vendor/${transactionID}/${reportID}${reportActionID ? `/${reportActionID}` : ''}`, backTo);
         },
-    },
-    MONEY_REQUEST_STEP_SUBRATE: {
-        route: ':action/:iouType/subrate/:transactionID/:reportID/:backToReport?/:pageIndex',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/0`, backTo),
-    },
-    MONEY_REQUEST_STEP_SUBRATE_EDIT: {
-        route: ':action/:iouType/subrate/:transactionID/:reportID/edit/:pageIndex',
-        getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, pageIndex = 0, backTo = '') =>
-            getUrlWithBackToParam(`${action as string}/${iouType as string}/subrate/${transactionID}/${reportID}/edit/${pageIndex}`, backTo),
     },
     MONEY_REQUEST_RECEIPT_PREVIEW: {
         route: ':action/:iouType/receipt/:transactionID/:reportID',
@@ -2624,12 +2628,6 @@ const ROUTES = {
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string, backToReport?: string) =>
             `create/${iouType as string}/start/${transactionID}/${reportID}${backToReport ? `/${backToReport}` : ''}/time` as const,
     },
-
-    MONEY_REQUEST_RECEIPT_VIEW: {
-        route: 'receipt-view/:transactionID',
-
-        getRoute: (transactionID: string, backTo: string) => getUrlWithBackToParam(`receipt-view/${transactionID}`, backTo),
-    } as const,
 
     MONEY_REQUEST_STEP_TIME_RATE: {
         route: ':action/:iouType/rate/:transactionID/:reportID/:reportActionID?',
