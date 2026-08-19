@@ -2059,6 +2059,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar profilo',
         customInstructions: 'Istruzioni personalizzate',
         copilotIntoAccount: "Copilot nell'account",
+        viewUserHistory: 'Visualizza cronologia utente',
+        viewAgentHistory: 'Visualizza cronologia agente',
         publicSection: {
             title: 'Pubblico',
             subtitle: 'Questi dettagli vengono visualizzati nel tuo profilo pubblico. Chiunque può vederli.',
@@ -7612,8 +7614,7 @@ Richiedi dettagli sulle spese come ricevute e descrizioni, imposta limiti e valo
                 alwaysNonReimbursable: 'Sempre non rimborsabile',
                 alwaysNonReimbursableDescription: 'Le spese non vengono mai rimborsate ai dipendenti',
                 billableDefault: 'Fatturabile predefinito',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita. Le spese fatturabili vengono abilitate o disabilitate nei <a href="${tagsPageLink}">tag</a>.</muted-text>`,
+                billableDefaultDescription: 'Scegli se le spese in contanti e con carta di credito devono essere fatturabili per impostazione predefinita.',
                 billable: 'Fatturabile',
                 billableDescription: 'Le spese sono più spesso rifatturate ai clienti',
                 nonBillable: 'Non fatturabile',

@@ -335,14 +335,11 @@ const config = defineConfig([
             'rulesdir/require-live-region-for-status-updates': 'error',
             'rulesdir/require-a11y-disable-justification': 'error',
             'rulesdir/no-direct-pre-insert-fullscreen-under-rhp': 'error',
+            // Position and order for the synchronous Onyx read: not during render, where the read does not subscribe; not at module
+            // scope, where it runs at import time, before Onyx.init() has hydrated the cache; and not after an un-awaited write in
+            // the same body, where Onyx.merge() and Onyx.update() apply in a later microtask so the read returns the pre-write value.
             // Ships as a warning while the synchronous read is still being introduced; promoted to an error once the first wave of conversions lands.
-            'rulesdir/no-onyx-get-in-render': 'warn',
-            // Companion to the rule above, which deliberately allows module scope. A module body is not a render body, but it is not
-            // an event-time position either: it runs at import time, before Onyx.init() has hydrated the cache. Same warn-first staging.
-            'rulesdir/no-onyx-read-at-module-scope': 'warn',
-            // Position is what the two rules above police. This one polices order: a synchronous read after an un-awaited write in the
-            // same body returns the pre-write value, because Onyx.merge() and Onyx.update() apply in a later microtask. Same staging.
-            'rulesdir/no-onyx-read-after-write': 'warn',
+            'rulesdir/no-unsafe-onyx-read': 'warn',
             'rulesdir/require-locale-for-localized-date-format': 'error',
             'rulesdir/prefer-narrow-hook-dependencies': [
                 'error',
@@ -701,6 +698,18 @@ const config = defineConfig([
         languageOptions: {
             parserOptions: {
                 project: path.resolve(projectRoot, 'server/tsconfig.json'),
+                projectService: false,
+            },
+        },
+    },
+
+    {
+        // Its own project because `@types/bun`'s globals conflict with the app's, so it is excluded from
+        // the root tsconfig and would otherwise belong to no project at all.
+        files: ['evals/**/*.ts'],
+        languageOptions: {
+            parserOptions: {
+                project: path.resolve(projectRoot, 'evals/tsconfig.json'),
                 projectService: false,
             },
         },
