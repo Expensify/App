@@ -392,7 +392,6 @@ type OpenReportActionParams = {
     betas: OnyxEntry<Beta[]>;
 
     /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
-    // TODO: Make conciergeChat required once all openReport callers pass it. Refactor issue: https://github.com/Expensify/App/issues/66411
     conciergeChat?: OnyxEntry<Report>;
 };
 
@@ -1591,7 +1590,6 @@ function getGuidedSetupDataForOpenReport(
     introSelected: OnyxEntry<IntroSelected>,
     // TODO: undefined will be removed once all openReport callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID: number | undefined,
-    /** The Concierge chat report, threaded so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
     conciergeChat: OnyxEntry<Report>,
     // TODO: This will be required eventually. Refactor issue: https://github.com/Expensify/App/issues/66424
     isSelfTourViewed?: boolean,

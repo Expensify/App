@@ -80,7 +80,7 @@ function ReportAttachmentModalContent({route, navigation}: AttachmentModalScreen
         }
 
         openReport({reportID: reportActionReportID, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID});
-    }, [reportActionReportID, shouldFetchReport, introSelected, reportActionID, betas, hasReportActions, currentUserAccountID]);
+    }, [reportActionReportID, shouldFetchReport, introSelected, conciergeChat, reportActionID, betas, hasReportActions, currentUserAccountID]);
 
     const onCarouselAttachmentChange = (attachment: Attachment) => {
         const routeToNavigate = ROUTES.REPORT_ATTACHMENTS.getRoute({

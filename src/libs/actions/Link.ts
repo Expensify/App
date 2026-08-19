@@ -471,10 +471,10 @@ function openReportFromDeepLink(
             parentSpan: getSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.PUBLIC_ROOM_CHECK),
         });
 
-        // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
         openReport({
             reportID,
             introSelected,
+            // Unauthenticated public-room path: there is no signed-in user, so no Concierge chat exists to thread.
             conciergeChat: undefined,
             parentReportActionID: '0',
             isFromDeepLink: true,

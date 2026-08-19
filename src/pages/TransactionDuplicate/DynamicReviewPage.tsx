@@ -121,7 +121,7 @@ function DynamicReviewPage() {
             return;
         }
         openReport({reportID: route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentUserAccountID: currentPersonalDetails.accountID});
-    }, [report?.reportID, route.params.reportID, introSelected, betas, hasReportActions, currentPersonalDetails.accountID]);
+    }, [report?.reportID, route.params.reportID, introSelected, conciergeChat, betas, hasReportActions, currentPersonalDetails.accountID]);
 
     useEffect(() => {
         if (!transactionID) {

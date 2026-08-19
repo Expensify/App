@@ -29,7 +29,7 @@ type UseDistanceTransactionBackupParams = {
     /** The current user's enabled betas — used by the offline-recovery `openReport` call. */
     betas: OnyxEntry<Beta[]>;
 
-    /** The Concierge chat report — threaded to the offline-recovery `openReport` call so prepareOnboardingOnyxData no longer relies on the deprecated CONCIERGE_REPORT_ID Onyx.connect (#66411). */
+    /** The Concierge chat report */
     conciergeChat: OnyxEntry<Report>;
 
     /** Caller-owned ref. Set `.current = true` once the user has confirmed a save so the cleanup drops the backup instead of restoring it. */
