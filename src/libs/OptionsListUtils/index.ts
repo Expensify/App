@@ -112,6 +112,7 @@ import {
     isReimbursementQueuedAction,
     isRenamedAction,
     isReportActionVisible,
+    isReportActionVisibleAsLastAction,
     isReportPreviewAction,
     isTaskAction,
     isThreadParentMessage,
@@ -528,6 +529,7 @@ function getChatPreviewActorPrefix({
     translate,
     visibleReportActionsData,
     currentUserAccountID,
+    sortedActions,
 }: {
     report: OnyxEntry<Report>;
     personalDetails: OnyxEntry<PersonalDetailsList>;
@@ -535,11 +537,18 @@ function getChatPreviewActorPrefix({
     translate: LocalizedTranslate;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     currentUserAccountID: number | undefined;
+    sortedActions?: Record<string, ReportAction[]>;
 }): string {
     if (!report || isReportArchived || currentUserAccountID === undefined) {
         return '';
     }
-    const lastAction = getLastVisibleAction(report.reportID, canUserPerformWriteAction(report, isReportArchived), {}, undefined, visibleReportActionsData);
+    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+    // When the sorted (newest-first) actions derived value is available, the last visible action is found in a
+    // couple of iterations instead of getLastVisibleAction's full scan over every cached action of the report.
+    const sortedActionsForReport = sortedActions?.[report.reportID];
+    const lastAction = sortedActionsForReport
+        ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
+        : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
 
     // Resolve the actor the same way SidebarUtils.getOptionData does: prefer the action's actor and
     // fall back to the action's `person` when the actor is missing from personal details.
@@ -663,6 +672,7 @@ function getAlternateText(
                   translate: translateFn,
                   visibleReportActionsData,
                   currentUserAccountID,
+                  sortedActions,
               })
             : '';
     const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + formattedLastMessageText;
