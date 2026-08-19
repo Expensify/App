@@ -41,6 +41,7 @@ describe('NumberWithSymbolForm without a touch screen', () => {
     it('renders the currency button and does not show touch-only controls', async () => {
         const onSymbolButtonPress = jest.fn();
 
+        // Given a form rendered on a device without a touch screen
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <NumberWithSymbolForm
@@ -58,16 +59,21 @@ describe('NumberWithSymbolForm without a touch screen', () => {
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the currency button is shown and touch-only controls are hidden
         const currencyButton = screen.getByText('USD');
         expect(currencyButton).toBeTruthy();
         expect(screen.queryByTestId('button_1')).toBeNull();
         expect(screen.queryByText(translateLocal('iou.flip'))).toBeNull();
 
+        // When the currency button is pressed
         fireEvent.press(currencyButton);
+
+        // Then the symbol button callback is called
         expect(onSymbolButtonPress).toHaveBeenCalledTimes(1);
     });
 
     it('applies the selection event after a manual update on web', async () => {
+        // Given a text input rendered on a device without a touch screen
         render(
             <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
                 <NumberWithSymbolForm
@@ -82,12 +88,15 @@ describe('NumberWithSymbolForm without a touch screen', () => {
         await waitForBatchedUpdatesWithAct();
 
         const textInput = screen.getByTestId(INPUT_TEST_ID);
+
+        // When the value is manually updated and a selection event is fired
         fireEvent.changeText(textInput, '13');
         await waitForBatchedUpdatesWithAct();
 
         fireEvent(textInput, 'selectionChange', {nativeEvent: {selection: {start: 0, end: 0}}});
         await waitForBatchedUpdatesWithAct();
 
+        // Then the selection event is applied
         expect(textInput.props.selection).toEqual({start: 0, end: 0});
     });
 });
