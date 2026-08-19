@@ -1,5 +1,6 @@
 import FormProvider from '@components/Form/FormProvider';
 import InputWrapper from '@components/Form/InputWrapper';
+import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
@@ -26,6 +27,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import {rand64} from '@libs/NumberUtils';
 import {getCustomColumnDefault, getSearchColumnTranslationKey, mapFiltersFormToLabelValueList, savedSearchIDToSearchKey} from '@libs/SearchUIUtils';
 import type {SearchFilter} from '@libs/SearchUIUtils';
+import {getFieldRequiredErrors} from '@libs/ValidationUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -33,7 +35,7 @@ import type {SearchAdvancedFiltersForm} from '@src/types/form';
 import INPUT_IDS from '@src/types/form/SearchSaveForm';
 import {getEmptyObject} from '@src/types/utils/EmptyObject';
 
-import React, {useState} from 'react';
+import React from 'react';
 import {View} from 'react-native';
 
 type FilterValueProps = {
@@ -152,32 +154,34 @@ function getAppliedDisplays(searchAdvancedFiltersForm: Partial<SearchAdvancedFil
 
 function SearchSavePage() {
     const styles = useThemeStyles();
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {convertToDisplayStringWithoutCurrency} = useCurrencyListActions();
     const [searchAdvancedFiltersForm = getEmptyObject<Partial<SearchAdvancedFiltersForm>>()] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM);
-    const [name, setName] = useState('');
 
     const {currentDefaultSearchQueryFilterKeys, currentSearchQueryJSON} = useSearchQueryContext();
     const {setCurrentSearchKey} = useSearchQueryActions();
 
-    const onSaveSearch = () => {
+    const onSaveSearch = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>) => {
         if (!currentSearchQueryJSON) {
             Navigation.goBack();
             return;
         }
 
-        const newName = name.trim() || currentSearchQueryJSON?.inputQuery;
         const id = rand64();
         setCurrentSearchKey(savedSearchIDToSearchKey(id));
-        saveSearch({id, queryJSON: currentSearchQueryJSON, newName});
+        saveSearch({id, queryJSON: currentSearchQueryJSON, newName: values[INPUT_IDS.NAME].trim()});
         Navigation.goBack();
     };
+
+    const validate = (values: FormOnyxValues<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM>): FormInputErrors<typeof ONYXKEYS.FORMS.SEARCH_SAVE_FORM> =>
+        getFieldRequiredErrors(values, [INPUT_IDS.NAME], translate);
 
     const appliedFilters = mapFiltersFormToLabelValueList(
         searchAdvancedFiltersForm,
         currentDefaultSearchQueryFilterKeys,
         undefined,
         translate,
+        dateFnsLocale,
         localeCompare,
         convertToDisplayStringWithoutCurrency,
     );
@@ -195,6 +199,7 @@ function SearchSavePage() {
                 formID={ONYXKEYS.FORMS.SEARCH_SAVE_FORM}
                 submitButtonText={translate('search.saveView')}
                 onSubmit={onSaveSearch}
+                validate={validate}
                 style={[styles.mh5, styles.flex1]}
                 enabledWhenOffline
                 shouldHideFixErrorsAlert
@@ -204,8 +209,6 @@ function SearchSavePage() {
                     InputComponent={TextInput}
                     inputID={INPUT_IDS.NAME}
                     ref={inputCallbackRef}
-                    value={name}
-                    onChangeText={setName}
                     placeholder={translate('common.name')}
                     accessibilityLabel={translate('common.name')}
                     role={CONST.ROLE.PRESENTATION}

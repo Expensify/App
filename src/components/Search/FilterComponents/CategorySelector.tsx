@@ -55,7 +55,7 @@ function CategorySelector({value = [], policyID, selectionListTextInputStyle, se
 
     const categoryItems = [{text: translate('search.noCategory'), value: CONST.SEARCH.CATEGORY_EMPTY_VALUE as string}];
     const uniqueCategoryNames = new Set<string>(
-        getAllPolicyValues(policyID, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
+        getAllPolicyValues(policyID?.value?.length ? policyID : undefined, ONYXKEYS.COLLECTION.POLICY_CATEGORIES, allPolicyCategories).flatMap((policyCategories) =>
             Object.values(policyCategories ?? {}).map((category) => category.name),
         ),
     );

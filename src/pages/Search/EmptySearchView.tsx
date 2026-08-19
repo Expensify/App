@@ -60,7 +60,6 @@ type EmptySearchViewProps = {
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
     currentUserPersonalDetails: PersonalDetails;
-    typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
@@ -80,15 +79,13 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
-    const typeMenuSections = useSearchTypeMenuSections();
-    const {isBetaEnabled} = usePermissions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -101,7 +98,6 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
                 type={type}
                 hasResults={hasResults}
                 currentUserPersonalDetails={currentUserPersonalDetails}
-                typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
@@ -126,7 +122,6 @@ function EmptySearchViewContent({
     type,
     hasResults,
     currentUserPersonalDetails,
-    typeMenuSections,
     allPolicies,
     activePolicy,
     groupPoliciesWithChatEnabled,
@@ -136,12 +131,13 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
+    const typeMenuSections = useSearchTypeMenuSections();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
@@ -220,7 +216,10 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
+            subtitle: translate(
+                'search.searchResults.emptyViolationSnapshotResults.subtitle',
+                DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone, dateFnsLocale),
+            ),
         };
     }
 

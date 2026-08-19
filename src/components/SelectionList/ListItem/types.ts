@@ -42,6 +42,9 @@ type ListItem<K extends string | number = string> = {
     /** Alternate text to display */
     alternateText?: string | null;
 
+    /** Custom node rendered in place of the alternate text (e.g. a description containing an inline link). Takes precedence over `alternateText` when set. */
+    alternateTextComponent?: ReactNode;
+
     /** Whether to force hide the alternate text even if it exists */
     shouldHideAlternateText?: boolean;
 
@@ -145,6 +148,9 @@ type ListItem<K extends string | number = string> = {
 
     /** The style to override the default appearance */
     itemStyle?: StyleProp<ViewStyle>;
+
+    /** Styles applied to the item title */
+    titleStyles?: StyleProp<TextStyle>;
 
     /** Boolean whether to display the right icon */
     shouldShowRightCaret?: boolean;
@@ -449,6 +455,7 @@ type WorkspaceListItemType = {
     text: string;
     policyID?: string;
     isPolicyAdmin?: boolean;
+    isArchived?: boolean;
     brickRoadIndicator?: BrickRoad;
 } & ListItem;
 

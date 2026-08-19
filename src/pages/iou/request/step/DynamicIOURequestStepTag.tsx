@@ -1,9 +1,10 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
 import {useSearchQueryContext} from '@components/Search/SearchContext';
 import TagPicker from '@components/TagPicker';
 import WorkspaceEmptyStateSection from '@components/WorkspaceEmptyStateSection';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -22,7 +23,7 @@ import {getIOURequestPolicyID, setMoneyRequestTag} from '@libs/actions/IOU/Money
 import {setDraftSplitTransaction} from '@libs/actions/IOU/Split';
 import {updateMoneyRequestTag} from '@libs/actions/IOU/UpdateMoneyRequest';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
-import {pickReportForPolicy} from '@libs/IOUUtils';
+import {getSelectedWorkspacePolicyID, pickReportForPolicy} from '@libs/IOUUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getTagListName, getTagLists, hasDependentTags as hasDependentTagsPolicyUtils, isPolicyAdmin} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -68,8 +69,7 @@ function DynamicIOURequestStepTag({
     const [participantReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(transaction?.participants?.at(0)?.reportID)}`);
     const {policy: policyFromTransaction} = usePolicyForTransaction({
         transaction,
-        // Skip the placeholder '_FAKE_' self-DM policy so it doesn't shadow the selected workspace chat's real policy. See #96576.
-        reportPolicyID: getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)),
+        reportPolicyID: getSelectedWorkspacePolicyID(transaction, action) ?? getIOURequestPolicyID(transaction, pickReportForPolicy(report, participantReport)),
         action,
         iouType,
         isPerDiemRequest: isPerDiemRequest(transaction),
@@ -94,6 +94,7 @@ function DynamicIOURequestStepTag({
     const {isOffline} = useNetwork();
 
     const styles = useThemeStyles();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateExpenses']);
     const {currentSearchHash} = useSearchQueryContext();
     const {translate} = useLocalize();
@@ -160,7 +161,7 @@ function DynamicIOURequestStepTag({
         });
 
         if (isEditingSplit) {
-            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag});
+            setDraftSplitTransaction(transactionID, splitDraftTransaction, {tag: updatedTag}, getCurrencyDecimals, getCurrencySymbol);
             saveAndNavigateBack();
             return;
         }
@@ -184,6 +185,8 @@ function DynamicIOURequestStepTag({
                 delegateAccountID,
                 reportPolicyTags,
                 isTrackIntentUser,
+                getCurrencyDecimals,
+                getCurrencySymbol,
             });
             saveAndNavigateBack();
             return;
@@ -213,14 +216,15 @@ function DynamicIOURequestStepTag({
                     {isPolicyAdmin(policy) && (
                         <FixedFooter style={[styles.mtAuto, styles.pt5]}>
                             <Button
-                                large
-                                success
+                                size={CONST.BUTTON_SIZE.LARGE}
+                                variant={CONST.BUTTON_VARIANT.SUCCESS}
                                 style={[styles.w100]}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_TAGS_ROOT.getRoute(policyID, Navigation.getActiveRoute()))}
-                                text={translate('workspace.tags.editTags')}
-                                pressOnEnter
                                 sentryLabel={CONST.SENTRY_LABEL.IOU_REQUEST_STEP.EDIT_TAGS_BUTTON}
-                            />
+                            >
+                                <Button.KeyboardShortcut />
+                                <Button.Text>{translate('workspace.tags.editTags')}</Button.Text>
+                            </Button>
                         </FixedFooter>
                     )}
                 </View>

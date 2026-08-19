@@ -1,4 +1,4 @@
-import type {ActionableItem} from '@components/ReportActionItem/ActionableItemButtons';
+import Button from '@components/ButtonComposed';
 import ActionableItemButtons from '@components/ReportActionItem/ActionableItemButtons';
 
 import useLocalize from '@hooks/useLocalize';
@@ -28,32 +28,23 @@ function JoinRequestContent({action, actionOwnerReportID, policyID}: JoinRequest
     const {translate} = useLocalize();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
 
-    const buttons: ActionableItem[] =
-        getOriginalMessage(action)?.choice !== ('' as JoinWorkspaceResolution)
-            ? []
-            : [
-                  {
-                      text: 'actionableMentionJoinWorkspaceOptions.accept',
-                      key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.ACCEPT}`,
-                      onPress: () => acceptJoinRequest(actionOwnerReportID, action),
-                      isPrimary: true,
-                  },
-                  {
-                      text: 'actionableMentionJoinWorkspaceOptions.decline',
-                      key: `${action.reportActionID}-actionableMentionJoinWorkspace-${CONST.REPORT.ACTIONABLE_MENTION_JOIN_WORKSPACE_RESOLUTION.DECLINE}`,
-                      onPress: () => declineJoinRequest(actionOwnerReportID, action),
-                  },
-              ];
+    const isJoinRequestUnresolved = getOriginalMessage(action)?.choice === ('' as JoinWorkspaceResolution);
 
     return (
         <View>
             <ReportActionItemBasicMessage message={getJoinRequestMessage(translate, policy, action)} />
-            {buttons.length > 0 && (
-                <ActionableItemButtons
-                    items={buttons}
-                    shouldUseLocalization
-                    layout="horizontal"
-                />
+            {isJoinRequestUnresolved && (
+                <ActionableItemButtons layout="horizontal">
+                    <Button
+                        variant={CONST.BUTTON_VARIANT.SUCCESS}
+                        onPress={() => acceptJoinRequest(actionOwnerReportID, action)}
+                    >
+                        <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.accept')}</Button.Text>
+                    </Button>
+                    <Button onPress={() => declineJoinRequest(actionOwnerReportID, action)}>
+                        <Button.Text>{translate('actionableMentionJoinWorkspaceOptions.decline')}</Button.Text>
+                    </Button>
+                </ActionableItemButtons>
             )}
         </View>
     );

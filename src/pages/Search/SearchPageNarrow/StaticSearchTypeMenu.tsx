@@ -6,12 +6,13 @@ import {useSearchQueryContext} from '@components/Search/SearchContext';
 import type {SearchQueryJSON} from '@components/Search/types';
 import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 
+import useActiveSavedSearch from '@hooks/useActiveSavedSearch';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
 import type {SearchKey, SearchTypeMenuItem} from '@libs/SearchUIUtils';
-import {getSuggestedSearches, searchKeyToSavedSearchID} from '@libs/SearchUIUtils';
+import {getSuggestedSearches} from '@libs/SearchUIUtils';
 
 import {SearchTypeMenuNarrowContent} from '@pages/Search/SearchTypeMenuNarrow';
 
@@ -35,12 +36,7 @@ function StaticSearchTypeMenu({queryJSON}: {queryJSON: SearchQueryJSON}) {
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Receipt', 'Document', 'Pencil', 'Bookmark']);
     const {currentSearchKey} = useSearchQueryContext();
     const [policyInfo] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {selector: staticPolicyInfoSelector});
-    const [activeSavedSearch] = useOnyx(ONYXKEYS.SAVED_SEARCHES, {
-        selector: (savedSearches) => {
-            const activeSavedSearchID = searchKeyToSavedSearchID(currentSearchKey);
-            return activeSavedSearchID ? savedSearches?.[activeSavedSearchID] : undefined;
-        },
-    });
+    const activeSavedSearch = useActiveSavedSearch();
     const hasGroupPolicy = policyInfo?.hasGroupPolicy ?? false;
     const session = useSession();
     const accountID = session?.accountID ?? CONST.DEFAULT_NUMBER_ID;

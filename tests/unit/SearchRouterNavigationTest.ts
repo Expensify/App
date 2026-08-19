@@ -8,6 +8,8 @@ import {
     sortNavigationSuggestionItems,
     stripNavigationIntentPrefix,
 } from '@components/Search/SearchRouter/SearchRouterHelpers';
+import type {NavigationSuggestionSourceItem} from '@components/Search/SearchRouter/SearchRouterHelpers';
+import * as CreateNavigationSuggestions from '@components/Search/SearchRouter/useCreateNavigationSuggestions';
 import useNavigationSuggestions, {buildSpendNavigationItems, buildTopLevelNavigationItems} from '@components/Search/SearchRouter/useNavigationSuggestions';
 
 import {setSearchContext} from '@libs/actions/Search';
@@ -26,12 +28,19 @@ import {isValidElement} from 'react';
 
 const mockUseSearchTypeMenuSections = jest.fn<SearchTypeMenuSection[], [isScreenFocused: boolean]>();
 const mockUseMemoizedLazyExpensifyIcons = jest.fn<Record<string, IconAsset>, []>();
+const mockUseCreateNavigationSuggestions = jest.fn<NavigationSuggestionSourceItem[], []>(() => []);
 const mockClearSelectedTransactions = jest.fn();
 
 jest.mock('@components/Search/SearchContext', () => ({
     useSearchSelectionActions: () => ({clearSelectedTransactions: mockClearSelectedTransactions}),
     useSearchQueryContext: () => ({}),
     useSearchQueryActions: () => ({}),
+}));
+
+jest.mock('@components/Search/SearchRouter/useCreateNavigationSuggestions', () => ({
+    __esModule: true,
+    ...jest.requireActual<typeof CreateNavigationSuggestions>('@components/Search/SearchRouter/useCreateNavigationSuggestions'),
+    default: () => mockUseCreateNavigationSuggestions(),
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
@@ -78,6 +87,8 @@ jest.mock('@libs/actions/Search', () => ({
 jest.mock('@libs/Navigation/Navigation', () => ({
     __esModule: true,
     default: {
+        dismissModal: jest.fn(),
+        isTopmostRouteModalScreen: jest.fn(() => false),
         navigate: jest.fn(),
     },
 }));
@@ -99,7 +110,6 @@ const spendIcons = {
     Pencil: mockIcon,
     ThumbsUp: mockIcon,
     CheckCircle: mockIcon,
-    UserEye: mockIcon,
 };
 
 function createSpendMenuItem(
@@ -286,9 +296,79 @@ describe('top-level Search Router navigation source', () => {
     });
 });
 
+describe('Create Search Router navigation source', () => {
+    const createAction = jest.fn();
+    const createItems: CreateNavigationSuggestions.CreateNavigationItem[] = [
+        {visible: true, text: 'Create expense', icon: mockIcon, action: createAction, keyForList: 'create_expense', matchTerms: ['Create expense', 'Add expense']},
+        {visible: true, text: 'Create report', icon: mockIcon, action: createAction, keyForList: 'create_report'},
+        {visible: true, text: 'Track distance', icon: mockIcon, action: createAction, keyForList: 'create_trackDistance'},
+        {visible: true, text: 'Start chat', icon: mockIcon, action: createAction, keyForList: 'create_chat', matchTerms: ['Start chat', 'New chat screen']},
+        {visible: false, text: 'Create invoice', icon: mockIcon, action: createAction, keyForList: 'create_invoice'},
+        {visible: false, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
+    ];
+
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
+
+    it('builds visible Create rows with direct action labels and excludes unavailable items', () => {
+        const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
+
+        expect(items.map((item) => item.text)).toEqual(['Create expense', 'Create report', 'Track distance', 'Start chat']);
+        expect(items.map((item) => item.keyForList)).toEqual(['create_expense', 'create_report', 'create_trackDistance', 'create_chat']);
+        expect(items.map((item) => item.singleIcon)).toEqual([mockIcon, mockIcon, mockIcon, mockIcon]);
+        expect(items.map((item) => item.matchTerms)).toEqual([['Create expense', 'Add expense'], ['Create report'], ['Track distance'], ['Start chat', 'New chat screen']]);
+        expect(items.some((item) => item.text?.startsWith('Go to'))).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_invoice' || item.keyForList === 'create_workspace')).toBe(false);
+        expect(items.some((item) => item.keyForList === 'create_travel' || item.keyForList === 'create_quickAction')).toBe(false);
+    });
+
+    it('matches Create rows through the existing navigation suggestion pipeline', () => {
+        const items = CreateNavigationSuggestions.buildCreateNavigationItems(createItems);
+
+        expect(buildNavigationSuggestions('expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+        expect(buildNavigationSuggestions('add expense', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_expense']);
+        expect(buildNavigationSuggestions('new chat', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_chat']);
+        expect(buildNavigationSuggestions('go to track distance', [items], localeCompare).map((item) => item.keyForList)).toEqual(['create_trackDistance']);
+    });
+
+    it('matches hidden Create aliases without changing row text', () => {
+        const items = CreateNavigationSuggestions.buildCreateNavigationItems([
+            {visible: true, text: 'New workspace', icon: mockIcon, action: createAction, keyForList: 'create_workspace', matchTerms: ['New workspace', 'Create workspace']},
+        ]);
+
+        expect(buildNavigationSuggestions('create workspace', [items], localeCompare).at(0)).toMatchObject({
+            text: 'New workspace',
+            keyForList: 'create_workspace',
+        });
+    });
+
+    it('runs an action immediately when no RHP is open', () => {
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(false);
+
+        CreateNavigationSuggestions.replaceTopmostModalWithAction(createAction);
+
+        expect(createAction).toHaveBeenCalledTimes(1);
+        expect(Navigation.dismissModal).not.toHaveBeenCalled();
+    });
+
+    it('dismisses an existing RHP before running the Create action', () => {
+        jest.mocked(Navigation.isTopmostRouteModalScreen).mockReturnValue(true);
+
+        CreateNavigationSuggestions.replaceTopmostModalWithAction(createAction);
+
+        expect(createAction).not.toHaveBeenCalled();
+        expect(Navigation.dismissModal).toHaveBeenCalledTimes(1);
+        const afterTransition = jest.mocked(Navigation.dismissModal).mock.calls.at(0)?.at(0)?.afterTransition;
+        afterTransition?.();
+        expect(createAction).toHaveBeenCalledTimes(1);
+    });
+});
+
 describe('Spend Search Router navigation source', () => {
     beforeEach(() => {
         jest.clearAllMocks();
+        mockUseCreateNavigationSuggestions.mockReturnValue([]);
     });
 
     it('reuses Spend menu labels, icons, queries, and excludes saved searches', () => {
@@ -460,5 +540,33 @@ describe('Spend Search Router navigation source', () => {
 
         rerender({shouldWatchForApprovals: true});
         expect(mockUseSearchTypeMenuSections).toHaveBeenLastCalledWith(true);
+    });
+
+    it('keeps Create rows reachable when top-level and Spend sources are present', () => {
+        mockUseMemoizedLazyExpensifyIcons.mockReturnValue({
+            ...spendIcons,
+            Home: mockIcon,
+            Inbox: mockIcon,
+            ReceiptMultiple: mockIcon,
+            Building: mockIcon,
+            Gear: mockIcon,
+        });
+        mockUseSearchTypeMenuSections.mockReturnValue({
+            typeMenuSections: [
+                {
+                    translationPath: 'search.tabs.expenseReports',
+                    menuItems: [createSpendMenuItem(CONST.SEARCH.SEARCH_KEYS.REPORTS, 'search.tabs.reports', 'Document', 'type:expense-report')],
+                },
+            ],
+            activeItemIndex: -1,
+            activeKey: undefined,
+        });
+        mockUseCreateNavigationSuggestions.mockReturnValue(
+            CreateNavigationSuggestions.buildCreateNavigationItems([{visible: true, text: 'Create expense', icon: mockIcon, action: jest.fn(), keyForList: 'create_expense'}]),
+        );
+
+        const {result} = renderHook(() => useNavigationSuggestions('create expense'));
+
+        expect(result.current.map((item) => item.keyForList)).toEqual(['create_expense']);
     });
 });
