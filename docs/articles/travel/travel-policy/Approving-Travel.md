@@ -48,9 +48,9 @@ When a trip requires approval, approvers receive a notification with the availab
 
 ## How to understand Soft Approval, Hard Approval, and Pre-Booking Approval
 
-**Soft Approval**: Travel can be booked and processed before the approver reviews it. Approvers are notified, but the booking doesn't require approval to proceed.
-**Hard Approval**: The booking is completed immediately and the payment card is charged to secure the selected price and availability. The approver has 24 hours to deny the booking. If denied, the booking is canceled. Any refund or travel credit depends on the airline, hotel, rental car provider, and the cancellation or refund terms of the fare that was booked.
-**Pre-Booking Approval**: The traveler submits the trip for approval before the booking is completed. The approver has 24 hours to approve the request. The payment card isn't charged until the request is approved and the booking is completed.
+- **Soft Approval**: Travel can be booked and processed before the approver reviews it. Approvers are notified, but the booking doesn't require approval to proceed.
+- **Hard Approval**: The booking is completed immediately and the payment card is charged to secure the selected price and availability. The approver has 24 hours to deny the booking. If denied, the booking is canceled. Any refund or travel credit depends on the airline, hotel, rental car provider, and the cancellation or refund terms of the fare that was booked.
+- **Pre-Booking Approval**: The traveler submits the trip for approval before the booking is completed. The approver has 24 hours to approve the request. The payment card isn't charged until the request is approved and the booking is completed.
 
 Because a Pre-Booking Approval request doesn't reserve the fare, room, seat, or rental car while approval is pending, the original price and availability aren't guaranteed. Prices may change, or the selected option may no longer be available by the time approval is given.
 
