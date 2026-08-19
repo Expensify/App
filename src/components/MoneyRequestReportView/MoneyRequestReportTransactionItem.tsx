@@ -242,6 +242,7 @@ function MoneyRequestReportTransactionItemBody({
                 sentryLabel={CONST.SENTRY_LABEL.REPORT.MONEY_REQUEST_REPORT_TRANSACTION_ITEM}
                 role={getButtonRole(true)}
                 isNested
+                shouldAllowTextSelection
                 id={transaction.transactionID}
                 style={[styles.transactionListItemStyle, !shouldUseNarrowLayout ? StyleUtils.getSearchTableRowPressableStyle(isLastItem, isSelected) : styles.noBorderRadius]}
                 hoverStyle={[!isPendingDelete && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
@@ -252,7 +253,7 @@ function MoneyRequestReportTransactionItemBody({
                 onPressOut={() => ControlSelection.unblock()}
                 onLongPress={handlePressableLongPress}
                 disabled={isTransactionPendingDelete(transaction)}
-                wrapperStyle={[animatedHighlightStyle, styles.userSelectNone, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
+                wrapperStyle={[animatedHighlightStyle, shouldUseNarrowLayout && !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected)]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

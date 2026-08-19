@@ -353,6 +353,7 @@ function TransactionGroupListExpandedImpl({
                             accessibilityRole={CONST.ROLE.BUTTON}
                             accessibilityLabel={transaction.text ?? ''}
                             isNested
+                            shouldAllowTextSelection
                             onMouseDown={(e) => {
                                 const isCopyableTarget = markMouseDownOnCopyableText(e?.target);
                                 if (isCopyableTarget) {

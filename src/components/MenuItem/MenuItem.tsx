@@ -692,6 +692,7 @@ function MenuItem({
             isDeleted ? styles.offlineFeedbackDeleted : {},
             shouldBreakWord ? styles.breakWord : {},
             styles.mw100,
+            isTitleSelectable ? styles.userSelectText : {},
         ],
         (titleStyle ?? {}) as TextStyle,
     );
@@ -881,6 +882,7 @@ function MenuItem({
                                 onMouseDown={(event) => {
                                     markMouseDownOnCopyableText(event?.target, isTitleSelectable);
                                 }}
+                                shouldAllowTextSelection={isTitleSelectable}
                                 onPressIn={() => shouldBlockSelection && shouldUseNarrowLayout && canUseTouchScreen() && ControlSelection.block()}
                                 onPressOut={ControlSelection.unblock}
                                 onSecondaryInteraction={copyable && !deviceHasHoverSupport ? secondaryInteraction : onSecondaryInteraction}
@@ -1133,7 +1135,13 @@ function MenuItem({
                                                     </View>
                                                 </View>
                                             </View>
-                                            <View style={[styles.flexRow, StyleUtils.getMenuItemTextContainerStyle(isCompact), !hasPressableRightComponent && styles.pointerEventsNone]}>
+                                            <View
+                                                style={[
+                                                    styles.flexRow,
+                                                    StyleUtils.getMenuItemTextContainerStyle(isCompact),
+                                                    !hasPressableRightComponent && !isTitleSelectable && styles.pointerEventsNone,
+                                                ]}
+                                            >
                                                 {!!badgeText && !shouldShowBadgeInSeparateRow && !shouldShowBadgeBelow && (
                                                     <Badge
                                                         text={badgeText}

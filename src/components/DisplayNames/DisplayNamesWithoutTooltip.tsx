@@ -42,7 +42,7 @@ function DisplayNamesWithoutTooltip({
     return (
         <Text
             accessibilityLabel={accessibilityLabel}
-            style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap]}
+            style={[textStyles, numberOfLines === 1 ? styles.pre : styles.preWrap, isCopyable && styles.userSelectText]}
             numberOfLines={numberOfLines}
             fsClass={forwardedFSClass}
             selectable={isCopyable}

@@ -107,6 +107,7 @@ function BaseListItem<TItem extends ListItem>({
     onLongPressRow,
     shouldHighlightSelectedItem = false,
     shouldDisableHoverStyle,
+    shouldAllowTextSelection = false,
     shouldShowRightCaret = false,
     accessible,
     accessibilityLabel,
@@ -214,6 +215,7 @@ function BaseListItem<TItem extends ListItem>({
                 disabled={isDisabled && !isRowSelected}
                 interactive={item.isInteractive}
                 isNested
+                shouldAllowTextSelection={shouldAllowTextSelection}
                 hoverDimmingValue={1}
                 pressDimmingValue={item.isInteractive === false ? 1 : variables.pressDimValue}
                 hoverStyle={!shouldDisableHoverStyle ? [(!item.isDisabled || isRowSelected) && item.isInteractive !== false && styles.hoveredComponentBG, hoverStyle] : undefined}

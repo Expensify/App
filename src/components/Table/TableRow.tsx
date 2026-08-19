@@ -109,7 +109,6 @@ export default function TableRow({
     const tableRowPressableStyles = [
         styles.mh5,
         styles.highlightBG,
-        styles.userSelectNone,
         !isFirstRow && styles.borderTop,
         isLastRow && styles.tableBottomRadius,
         item.selected && [styles.activeComponentBG, {borderColor: theme.buttonHoveredBG}],
@@ -231,6 +230,7 @@ export default function TableRow({
                 style={tableRowPressableStyles}
                 sentryLabel={sentryLabel}
                 interactive={interactive}
+                shouldAllowTextSelection
                 disabled={isDisabled}
                 hoverStyle={tableRowPressableHoverStyle}
                 pressDimmingValue={!interactive ? undefined : 1}

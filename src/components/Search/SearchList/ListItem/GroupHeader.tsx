@@ -406,6 +406,7 @@ function GroupHeader({
                 accessibilityLabel={item.text ?? ''}
                 role={getButtonRole(true)}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!isExpanded && !item.isDisabled && styles.hoveredComponentBG, isItemSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 onMouseDown={(e) => {

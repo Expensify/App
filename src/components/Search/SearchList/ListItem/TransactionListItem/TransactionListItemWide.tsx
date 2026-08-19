@@ -169,6 +169,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
+                shouldAllowTextSelection
                 onMouseDown={handleOnMouseDown}
                 onHoverIn={handleOnHoverIn}
                 hoverStyle={[!item.isDisabled && !shouldDisableHoverStyle && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
@@ -181,7 +182,7 @@ function TransactionListItemWide<TItem extends ListItem>({
                     isDeletedTransaction && styles.cursorDefault,
                 ]}
                 onFocus={onFocus}
-                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, styles.userSelectNone, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
+                wrapperStyle={[styles.mh5, styles.flex1, animatedHighlightStyle, isLastItem && [styles.tableBottomRadius, styles.overflowHidden]]}
             >
                 {({hovered}) => (
                     <TransactionItemRow

@@ -2,6 +2,8 @@ import {COPYABLE_TEXT_DATA_SET} from '@components/CopyableText/selection';
 import Text from '@components/Text';
 import Tooltip from '@components/Tooltip';
 
+import useThemeStyles from '@hooks/useThemeStyles';
+
 import React, {useState} from 'react';
 
 import type TextWithTooltipProps from './types';
@@ -11,6 +13,7 @@ type LayoutChangeEvent = {
 };
 
 function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines = 1, forwardedFSClass, isCopyable = false}: TextWithTooltipProps) {
+    const styles = useThemeStyles();
     const [showTooltip, setShowTooltip] = useState(false);
 
     return (
@@ -20,7 +23,7 @@ function TextWithTooltip({testID, text, shouldShowTooltip, style, numberOfLines 
         >
             <Text
                 testID={testID}
-                style={style}
+                style={isCopyable ? [style, styles.userSelectText] : style}
                 numberOfLines={numberOfLines}
                 selectable={isCopyable}
                 onLayout={(e) => {

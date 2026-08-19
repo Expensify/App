@@ -123,6 +123,7 @@ function TransactionListItemNarrow<TItem extends ListItem>({
                 accessibilityLabel={item.text ?? ''}
                 role={!isDeletedTransaction ? getButtonRole(true) : 'none'}
                 isNested
+                shouldAllowTextSelection
                 hoverStyle={[!item.isDisabled && styles.hoveredComponentBG, isSelected && styles.activeComponentBG]}
                 dataSet={{[CONST.SELECTION_SCRAPER_HIDDEN_ELEMENT]: true, [CONST.INNER_BOX_SHADOW_ELEMENT]: false}}
                 id={item.keyForList ?? ''}

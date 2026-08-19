@@ -25,6 +25,7 @@ function PressableWithSecondaryInteraction({
     onSecondaryInteraction: rawOnSecondaryInteraction,
     activeOpacity = 1,
     opacityAnimationDuration,
+    shouldAllowTextSelection = false,
     ref,
     ...rest
 }: PressableWithSecondaryInteractionProps) {
@@ -102,6 +103,7 @@ function PressableWithSecondaryInteraction({
     }, [ref, onSecondaryInteraction, preventDefaultContextMenu, withoutFocusOnSecondaryInteraction]);
 
     const inlineStyle = inline ? styles.dInline : {};
+    const selectionStyle = canUseTouchScreen() && !shouldAllowTextSelection ? [styles.userSelectNone, styles.noSelect] : [];
 
     // On Web, Text does not support LongPress events thus manage inline mode with styling instead of using Text.
     return (
@@ -111,7 +113,8 @@ function PressableWithSecondaryInteraction({
             accessibilityHasPopup={accessibilityHasPopup}
             nativeID={nativeID}
             accessibilityControls={accessibilityControls}
-            wrapperStyle={[StyleUtils.combineStyles(canUseTouchScreen() ? [styles.userSelectNone, styles.noSelect] : [], inlineStyle), wrapperStyle]}
+            shouldAllowTextSelection={shouldAllowTextSelection}
+            wrapperStyle={[StyleUtils.combineStyles(selectionStyle, inlineStyle), wrapperStyle]}
             onLongPress={onSecondaryInteraction ? executeSecondaryInteraction : undefined}
             pressDimmingValue={activeOpacity}
             dimAnimationDuration={opacityAnimationDuration}

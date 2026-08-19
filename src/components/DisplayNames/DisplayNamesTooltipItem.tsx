@@ -76,7 +76,7 @@ function DisplayNamesTooltipItem({
                     // eslint-disable-next-line no-param-reassign
                     childRefs.current[index] = el;
                 }}
-                style={[textStyles, styles.pre]}
+                style={[textStyles, styles.pre, isCopyable && styles.userSelectText]}
                 fsClass={forwardedFSClass}
                 selectable={isCopyable}
                 dataSet={isCopyable ? COPYABLE_TEXT_DATA_SET : undefined}
