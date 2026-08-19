@@ -101,7 +101,14 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
     };
 
+    const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
+
     const handlePlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
+        if (isFixMode) {
+            setHasSubmitted(true);
+            linkPlaidToBankAccount(bankAccountID, '', '', undefined, policyID);
+            return;
+        }
         setIsSelectorDispatched(true);
         openPlaidBankAccountSelector(publicToken, bankName, true, bankAccountID);
     };
