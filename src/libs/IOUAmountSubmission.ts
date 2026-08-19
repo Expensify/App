@@ -85,7 +85,7 @@ type SubmitAmountArgs = {
     paymentMethod?: PaymentMethodType;
     translate: LocalizedTranslate;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
-    /** Whether the app is offline. Suppresses the LOOKING_AROUND self-DM -> Search routing offline (Search can't load its snapshot). */
+    /** Whether the app is offline. Offline suppresses the LOOKING_AROUND self-DM -> Search routing. */
     isOffline?: boolean;
 
     // Submit-time Onyx data — supplied by the screen via AmountSubmitDataSync so this module owns no subscriptions.
@@ -434,8 +434,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
             backToReport,
             optimisticChatReportID,
             linkedTrackedExpenseReportAction: transaction?.linkedTrackedExpenseReportAction,
-            // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
-            // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
             isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
             isSelfDMDestination,
         });
@@ -444,7 +442,6 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
         executeWrite: executeExpenseWrite,
         destinationReportID: isTrackExpenseSubmit ? (report?.reportID ?? selfDMReport?.reportID) : report?.reportID,
         isFromGlobalCreate: getIsFromGlobalCreate(transaction),
-        // Gated on !isOffline (see cleanupAfterSkipConfirmSubmit above): offline, fall back to the self-DM landing.
         isLookingAroundUser: isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline),
         isSelfDMDestination,
         telemetryContext: {

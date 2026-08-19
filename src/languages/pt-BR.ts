@@ -1531,6 +1531,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `O intervalo de datas não pode exceder ${CONST.IOU.SPLITS_LIMIT} dias.`,
             unableToSubmitReport: 'Não foi possível enviar o relatório',
             allTransactionsPendingDescription: 'Você não pode enviar este relatório porque todas as transações estão pendentes. Elas podem levar alguns dias para serem lançadas.',
+            allExpensesOnHoldDescription: 'Você não pode enviar este relatório porque todas as despesas estão em espera. Remova a espera para enviar.',
             stitchOdometerImagesFailed: 'Falha ao combinar imagens do hodômetro. Tente novamente mais tarde.',
             failedToSaveOdometerDraft: 'Não foi possível salvar seu rascunho do hodômetro. Tente novamente.',
         },
@@ -2050,6 +2051,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
+        viewUserHistory: 'Ver histórico do usuário',
+        viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -4478,6 +4481,10 @@ ${amount} para ${merchant} - ${date}`,
                 'Você sabia que pode reservar e gerenciar viagens de trem direto no Expensify? Da próxima vez, evite o trabalho de criar sua despesa manualmente e simplesmente reserve pela <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Viagem não está ativada',
+            message: 'Para fazer uma reserva, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
         },
     },
     workspace: {
@@ -7887,6 +7894,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     'As cobranças são aprovadas para moedas permitidas que não ultrapassem um valor máximo ou quando o comerciante ou o tipo de comerciante correspondem.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                defaultRulesCannotBeDeleted: 'Regras padrão não podem ser excluídas',
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -8711,6 +8719,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title ? `atualizou a regra do agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : 'removeu uma regra de agente'),
         },
+        addedRule: 'adicionou uma regra',
+        updatedRule: 'atualizou uma regra',
+        removedRule: 'removeu uma regra',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},
@@ -8823,6 +8834,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de categorização de despesas`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ativado' : 'desativado'} o requisito de marcação de despesas`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `atualizou a configuração da taxa de conversão de moeda para "${preferenceLabel}"`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `alterou os participantes da categoria "${categoryName}" para ${newValue ? 'obrigatório' : 'não obrigatório'} (antes ${newValue ? 'não obrigatório' : 'obrigatório'})`;
         },
@@ -10332,8 +10344,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Novos tipos de função para administradores',
-                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                heading: 'Mapeamento de fornecedor aprimorado',
+                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
+                cta: 'Experimente',
+            },
+            member: {
+                heading: 'Agentes pré-configurados para você',
+                body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
                 cta: 'Experimente',
             },
         },

@@ -29,6 +29,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
@@ -110,8 +111,6 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     });
     const isTrackIntentUser = isTrackOnboardingChoice(introSelected?.choice);
     const {isOffline} = useNetwork();
-    // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
-    // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
 
     const [transactions] = useOptimisticDraftTransactions(transaction);
@@ -144,7 +143,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const isSelfDMDestination = isSelfDMSoleDestination(participants, iouType, currentUserPersonalDetails.accountID);
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '');
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 

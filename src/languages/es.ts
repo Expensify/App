@@ -1504,6 +1504,7 @@ const translations: TranslationDeepObject<typeof en> = {
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             unableToSubmitReport: 'No se puede enviar el informe',
             allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
+            allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1984,6 +1985,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
+        viewUserHistory: 'Ver historial del usuario',
+        viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
@@ -4414,6 +4417,10 @@ ${amount} para ${merchant} - ${date}`,
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? La próxima vez evita la molestia de crear tu gasto manualmente y simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Los viajes no están habilitados',
+            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
         },
     },
     proactiveAppReview: {
@@ -7881,6 +7888,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 restrictMerchantsBlockSubtitle: 'Los cargos se aprueban para monedas permitidas que no superen un importe máximo, o cuando el comercio o el tipo de comercio coinciden.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'divisas' : 'moneda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
+                defaultRulesCannotBeDeleted: 'Las reglas predeterminadas no se pueden eliminar',
             },
             agentRules: {
                 title: 'Reglas del agente',
@@ -8299,6 +8307,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente «${title}»` : 'eliminó una regla de agente'),
         },
+        addedRule: 'añadió una regla',
+        updatedRule: 'actualizó una regla',
+        removedRule: 'eliminó una regla',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},
@@ -8718,6 +8729,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de categorización de gastos`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de etiquetado de gastos`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `actualizó el ajuste de la comisión por conversión de moneda a «${preferenceLabel}»`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
@@ -10594,8 +10606,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuevos tipos de roles para admins',
-                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                heading: 'Asignación de proveedores mejorada',
+                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
+                cta: 'Pruébalo',
+            },
+            member: {
+                heading: 'Agentes preconfigurados para ti',
+                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
                 cta: 'Pruébalo',
             },
         },

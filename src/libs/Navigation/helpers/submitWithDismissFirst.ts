@@ -89,21 +89,14 @@ function submitWithDismissFirst({
         return;
     }
 
-    // "Something else" (LOOKING_AROUND) users have no workspace, so a global-create expense lands in their self-DM, but
-    // the product requirement is to route them to Spend > Expenses instead. Every dismiss-first branch below calls
-    // executeWrite with shouldHandleNavigation: false, and cleanupAfterSkipConfirmSubmit drops the routing flags in that
-    // case - so navigateAfterExpenseCreate never runs and the destinationReportID branch reveals the self-DM. Hand
-    // navigation back to the write, same as the fallback below, so navigateAfterExpenseCreate owns the Search routing.
+    // LOOKING_AROUND self-DM create must route to Spend > Expenses, so hand navigation to the write (like the fallback below)
+    // and let navigateAfterExpenseCreate own the Search routing.
     if (isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination) {
         startTracking(telemetryContext, {skipSubmitExpenseSpan: true});
         setFastPath(CONST.TELEMETRY.FAST_PATH_HANDLER.DEFAULT);
-        // On narrow layout there is no pre-inserted route to reveal (getSkipConfirmationPreMountDestinationRoute suppresses
-        // the self-DM pre-insert for these users), and navigateAfterExpenseCreate's narrow branch only switches the tab
-        // beneath the RHP via Navigation.navigate - it never closes the Create Expense modal, so the user is stranded on an
-        // empty "Create Expense" page with the receipt hidden. Dismiss the modal first (mirroring the confirmation flow's
-        // handleSearchDismiss), then hand navigation to the write, which routes to Search once the modal has closed. Wide
-        // layout keeps the direct write: there navigateAfterExpenseCreate reveals Search via revealRouteBeforeDismissingModal,
-        // which dismisses the modal itself, so an explicit dismiss here would be redundant (and revealing after it would break).
+        // Narrow layout: navigateAfterExpenseCreate only switches the tab beneath the RHP and never closes the Create Expense
+        // modal, so dismiss it first (like the confirmation flow) then hand navigation to the write. Wide layout keeps the
+        // direct write, where navigateAfterExpenseCreate reveals Search and dismisses the modal itself.
         if (getIsNarrowLayout()) {
             Navigation.dismissModal({
                 afterTransition: () => executeWrite({shouldHandleNavigation: true}),

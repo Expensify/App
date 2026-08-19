@@ -621,12 +621,10 @@ function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, 
 }
 
 /**
- * The LOOKING_AROUND "route the self-DM create to Spend > Expenses (Search)" behaviour must be suppressed while offline:
- * Search reads a server-populated snapshot that is unavailable offline and would render empty, so offline these users
- * fall back to the normal self-DM (Personal Space) landing. This is the single source of truth for that gate so every
- * create path (the confirmation step and all skip-confirmation flows) computes the routing flag identically and the
- * pre-mount / dismiss / final-landing decision points cannot disagree. `isLookingAroundUser` is the raw onboarding
- * signal (choice === LOOKING_AROUND); the returned flag is only active online.
+ * Single source of truth for whether a LOOKING_AROUND user's self-DM create routes to Spend > Expenses (Search).
+ * Suppressed offline because Search reads a server-populated snapshot that can't load offline (would render empty),
+ * so offline these users fall back to the self-DM (Personal Space) landing. Every create path calls this so the
+ * pre-mount / dismiss / final-landing decisions can't disagree.
  */
 function isLookingAroundSearchRoutingActive(isLookingAroundUser: boolean | undefined, isOffline: boolean | undefined): boolean {
     return !!isLookingAroundUser && !isOffline;

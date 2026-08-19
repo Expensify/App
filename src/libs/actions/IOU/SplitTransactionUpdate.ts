@@ -17,7 +17,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
     getIOUActionForTransactionID,
@@ -614,6 +614,7 @@ function updateSplitTransactions({
         const reverseSplitLinkedTrackedExpenseReportAction = isReverseSplitOperation && linkedTrackedExpenseChildReportExistsInOnyx ? currentReportAction : undefined;
 
         const splitExpenseMerchant = splitExpense.merchant ?? '';
+        const originalTransactionTaxCode = resolveCurrentTaxCode(policy, originalTransactionDetails?.taxCode ?? '');
 
         const requestMoneyInformation = {
             participantParams: {
@@ -642,7 +643,7 @@ function updateSplitTransactions({
                 pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
-                taxCode: originalTransactionDetails?.taxCode,
+                taxCode: originalTransactionTaxCode,
                 taxAmount: calculateIOUAmount(
                     splitExpenses.length - 1,
                     originalTransactionDetails?.taxAmount ?? 0,
@@ -694,7 +695,7 @@ function updateSplitTransactions({
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
-                taxCode: originalTransactionDetails?.taxCode,
+                taxCode: originalTransactionTaxCode,
                 taxAmount: calculateIOUAmount(
                     splitExpenses.length - 1,
                     originalTransactionDetails?.taxAmount ?? 0,

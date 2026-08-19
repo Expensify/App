@@ -1252,14 +1252,10 @@ function getSecondaryTransactionThreadActions({
         options.push(CONST.REPORT.TRANSACTION_SECONDARY_ACTIONS.MOVE_EXPENSE);
     }
 
-    // Show "Send to someone" only for an unreported self-tracked expense in personal space (a track expense not yet
-    // submitted to a workspace/report), where the same convert-from-track "Choose a recipient" flow from the
-    // track-expense whisper applies. Once submitted, parentReport is no longer a self-DM and reportAction is no longer
-    // a track action, so this correctly hides.
-    // Self-DM split expenses can only be submitted to a workspace, so hide the action for a split unless the user has a
-    // workspace to submit to - matching the track-expense whisper and the report-details menu, which suppress it for the
-    // same unsupported case (otherwise the recipient picker opens onto a flow with no valid workspace destination).
-    // Also require write access (as MOVE_EXPENSE above does) so the row hides on an archived self-DM.
+    // Show "Send to someone" only for an unreported self-tracked expense in personal space, reusing the track-expense
+    // whisper's convert-from-track flow (once submitted, parentReport is no longer a self-DM so this hides).
+    // A self-DM split can only go to a workspace, so hide it for a split unless the user has one; also require write
+    // access (like MOVE_EXPENSE) so the row hides on an archived self-DM.
     const {isExpenseSplit: isSelfDMExpenseSplit} = getOriginalTransactionWithSplitInfo(reportTransaction, originalTransaction);
     if (
         isTrackExpenseReportNew(transactionThreadReport, parentReport, reportAction) &&

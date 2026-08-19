@@ -19,6 +19,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -83,7 +84,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     quickAction: OnyxEntry<QuickAction>;
     policyRecentlyUsedCurrencies?: string[];
     introSelected?: IntroSelected;
-    /** Whether the app is offline. Suppresses the LOOKING_AROUND self-DM -> Search routing offline (Search can't load its snapshot). */
+    /** Whether the app is offline. Offline suppresses the LOOKING_AROUND self-DM -> Search routing. */
     isOffline?: boolean;
     draftTransactionIDs: string[] | undefined;
     selfDMReport: OnyxEntry<Report>;
@@ -224,8 +225,6 @@ function handleMoneyRequestStepDistanceNavigation({
     const isGPSDistance = gpsDistance !== undefined && gpsCoordinates !== undefined;
     const distanceRequestType = getDistanceRequestType(transaction);
     // Derived here (rather than read from Onyx) from the onboarding choice the calling component/hook already passes in.
-    // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
-    // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
     const isLookingAroundUser = isLookingAroundSearchRoutingActive(introSelected?.choice === CONST.ONBOARDING_CHOICES.LOOKING_AROUND, isOffline);
     // Whether this expense's sole destination is the current user's self-DM. Scopes the LOOKING_AROUND
     // "route to Spend > Expenses" behaviour to the self-DM case (matches the confirmation step).
@@ -285,7 +284,7 @@ function handleMoneyRequestStepDistanceNavigation({
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
-            const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
+            const distanceTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '');
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 

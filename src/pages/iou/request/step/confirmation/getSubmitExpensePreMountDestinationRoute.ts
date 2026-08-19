@@ -68,10 +68,8 @@ function getSubmitExpensePreMountDestinationRoute({
     // Spend tab) pre-inserting a report is wrong - the user should stay on Search. Global-create TRACK targets self-DM, PAY/SPLIT
     // target a specific chat report, and a self-DM CREATE is effectively a TRACK, so all are eligible when Search is NOT topmost.
     const isReportBoundGlobalCreate = iouType === CONST.IOU.TYPE.PAY || iouType === CONST.IOU.TYPE.SPLIT;
-    // "Something else" (LOOKING_AROUND) users are routed to Spend > Expenses after a global-create expense that lands in
-    // their self-DM, so never pre-insert that self-DM report - doing so would strand them on it instead of Search after
-    // dismiss. The gate is scoped to isSelfDMDestination so it only fires for the self-DM case: a LOOKING_AROUND user who
-    // later has a workspace and submits to a real report/friend (e.g. PAY/SPLIT) still gets that report pre-inserted.
+    // Never pre-insert the self-DM report for a LOOKING_AROUND self-DM create - it routes to Search, and pre-inserting would
+    // strand the user on the self-DM. Scoped to isSelfDMDestination so other destinations still get pre-inserted.
     const canUseReportPreInsert =
         !shouldPreInsertSearch &&
         !(isFromGlobalCreate && isLookingAroundUser && isSelfDMDestination) &&

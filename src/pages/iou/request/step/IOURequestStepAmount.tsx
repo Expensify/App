@@ -15,6 +15,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isLookingAroundSearchRoutingActive, isMovingTransactionFromTrackExpense, isSelfDMSoleDestination} from '@libs/IOUUtils';
@@ -134,10 +135,14 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
+    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
+    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
-                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                typedAmount: typedAmount ?? baselineAmount,
                 committedAmount: transactionAmount,
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
@@ -169,8 +174,6 @@ function IOURequestStepAmount({
     const skipConfirmationPreMountRoute = getSkipConfirmationPreMountDestinationRoute(
         shouldSkipConfirmation,
         report?.reportID,
-        // Gated on !isOffline: the LOOKING_AROUND self-DM route targets Spend > Expenses (Search), which reads a
-        // server-populated snapshot unavailable offline and would render empty. Offline, fall back to the self-DM landing.
         isLookingAroundSearchRoutingActive(isLookingAroundUser, isOffline),
         isSelfDM(report) || isSelfDMSoleDestination(transaction?.participants ?? [], iouType, currentUserPersonalDetails.accountID),
     );
@@ -326,6 +329,7 @@ function IOURequestStepAmount({
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
+                onAmountChange={setTypedAmount}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
