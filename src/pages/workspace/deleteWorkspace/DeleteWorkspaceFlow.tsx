@@ -20,7 +20,7 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import Navigation from '@libs/Navigation/Navigation';
 import {isPendingDeletePolicy, shouldBlockWorkspaceDeletionForInvoicifyUser} from '@libs/PolicyUtils';
 import {isSubscriptionTypeOfInvoicing} from '@libs/SubscriptionUtils';
-import {getIsTravelInvoicingEnabled, getTravelInvoicingCardSettingsKey, getTravelInvoicingFeedID} from '@libs/TravelInvoicingUtils';
+import {getIsTravelBillingEnabled, getTravelBillingCardSettingsKey, getTravelBillingFeedID} from '@libs/TravelBillingUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -86,10 +86,10 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
     const [cardsList, cardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${workspaceAccountID}_${CONST.EXPENSIFY_CARD.BANK}`, {
         selector: filterInactiveCards,
     });
-    const [travelCardsList, travelCardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelInvoicingFeedID(workspaceAccountID)}`, {
+    const [travelCardsList, travelCardsListResult] = useOnyx(`${ONYXKEYS.COLLECTION.WORKSPACE_CARDS_LIST}${getTravelBillingFeedID(workspaceAccountID)}`, {
         selector: filterInactiveCards,
     });
-    const [travelCardSettings, travelCardSettingsResult] = useOnyx(getTravelInvoicingCardSettingsKey(workspaceAccountID));
+    const [travelCardSettings, travelCardSettingsResult] = useOnyx(getTravelBillingCardSettingsKey(workspaceAccountID));
     const {reportsToArchive, transactionViolations, reportsResult, transactionsResult, transactionViolationsResult} = useTransactionViolationOfWorkspace(policyID);
     const [accountIDToLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: accountIDToLoginSelector(reportsToArchive)});
 
@@ -113,11 +113,11 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
         // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
         ((policy?.areExpensifyCardsEnabled || policy?.areCompanyCardsEnabled) && policy?.policyAccountID);
     const hasExpensifyCardsEnabledOnWorkspace = !!policy?.areExpensifyCardsEnabled && !!policy?.policyAccountID;
-    const hasTravelInvoicingEnabledOnWorkspace = getIsTravelInvoicingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
+    const hasTravelBillingEnabledOnWorkspace = getIsTravelBillingEnabled(getCardSettings(travelCardSettings, CONST.TRAVEL.PROGRAM_TRAVEL_US));
     const hasExpensifyCards = Object.values(cardsList ?? {}).some(isCard);
     const hasTravelCards = Object.values(travelCardsList ?? {}).some(isCard);
     const isBlockedByExpensifyCards = hasExpensifyCardsEnabledOnWorkspace && hasExpensifyCards;
-    const isBlockedByTravelInvoicing = hasTravelInvoicingEnabledOnWorkspace && hasTravelCards;
+    const isBlockedByTravelBilling = hasTravelBillingEnabledOnWorkspace && hasTravelCards;
     // While offline we can't get the real rejection reason from the backend, so if we already know locally that the workspace has active Expensify Cards, block the delete up front instead of queuing one that will fail on reconnect.
     const hasDeleteWorkspaceExpensifyCardsError = isBlockedByExpensifyCards && !!isOffline;
 
@@ -164,7 +164,7 @@ function DeleteWorkspaceFlow({policyID, onDismiss, onDeleteComplete}: DeleteWork
 
     if (shouldLatchDeleteWorkspaceErrorModal && !deleteWorkspaceError) {
         setDeleteWorkspaceError(
-            isBlockedByExpensifyCards || isBlockedByTravelInvoicing
+            isBlockedByExpensifyCards || isBlockedByTravelBilling
                 ? {translationKey: isBlockedByExpensifyCards ? 'workspace.common.deleteOpenExpensifyCardsError' : 'workspace.common.deleteTravelInvoicingError'}
                 : {message: policyLatestErrorMessage},
         );

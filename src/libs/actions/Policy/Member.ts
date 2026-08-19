@@ -827,7 +827,6 @@ function buildAddMembersToWorkspaceOnyxData(
     const policyKey = `${ONYXKEYS.COLLECTION.POLICY}${policyID}` as const;
 
     // Submit workspaces enforce the editor role for all invited members regardless of the requested role.
-    // Gating is on the policy type — the SUBMIT_2026 beta only controls whether a Submit workspace can be created.
     const effectiveRole = isSubmitPolicy(policy) ? CONST.POLICY.ROLE.EDITOR : role;
 
     const announceRoomMembers = buildRoomMembersOnyxData(CONST.REPORT.CHAT_TYPE.POLICY_ANNOUNCE, policyID, accountIDs);
