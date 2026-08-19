@@ -10,7 +10,7 @@ import {getAmount, getCreated, getCurrency, getMerchantName, getTransactionPendi
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {Report, ReportAction, SearchResults, Transaction} from '@src/types/onyx';
+import type {Report, ReportAction, Transaction} from '@src/types/onyx';
 import type {PendingAction} from '@src/types/onyx/OnyxCommon';
 
 import type {OnyxCollection} from 'react-native-onyx';

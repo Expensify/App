@@ -129,7 +129,7 @@ function makeReport(reportID: string, ownerAccountID: number, overrides: Partial
 
 /** The `search` metadata and `data` last seeded, so `failSearch` can preserve them the way an Onyx merge would. */
 let lastSeededSearchMeta: Partial<SearchResults['search']> = {};
-let lastSeededSnapshotData: SearchResults['data'] | undefined;
+let lastSeededSnapshotData: Record<string, unknown> | undefined;
 
 /** Seeds the current user's expense snapshot with the given transactions and reports. */
 function setupSnapshot(transactions: Transaction[], reports: Report[], searchMeta: Partial<SearchResults['search']> = {}) {
@@ -141,7 +141,7 @@ function setupSnapshot(transactions: Transaction[], reports: Report[], searchMet
     for (const transaction of transactions) {
         data[`${ONYXKEYS.COLLECTION.TRANSACTION}${transaction.transactionID}`] = transaction;
     }
-    lastSeededSnapshotData = data as SearchResults['data'];
+    lastSeededSnapshotData = data;
     onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`] = {data, search: searchMeta};
 }
 
@@ -151,7 +151,7 @@ function setupSnapshot(transactions: Transaction[], reports: Report[], searchMet
  */
 function failSearch() {
     const previous = onyxData[`${ONYXKEYS.COLLECTION.SNAPSHOT}${SNAPSHOT_HASH}`];
-    const failed: {data?: SearchResults['data']; search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
+    const failed: {data?: Record<string, unknown>; search: Partial<SearchResults['search']>; errors: SearchResults['errors']} = {
         data: lastSeededSnapshotData,
         // `state` reaching `loaded` on a failure is exactly why it cannot be read on its own.
         search: {...lastSeededSearchMeta, isLoading: false, state: CONST.SEARCH.SNAPSHOT_STATE.LOADED, responseJsonCode: 0},
