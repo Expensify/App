@@ -90,7 +90,7 @@ function DecisionModal({
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <ScrollView
-                contentContainerStyle={styles.p5}
+                contentContainerStyle={[styles.p5, styles.pb5]}
                 addBottomSafeAreaPadding
             >
                 <View>
