@@ -557,24 +557,11 @@ function isPartialMerchant(merchant: string): boolean {
     return merchant === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT;
 }
 
-function isFailedScanAmountPlaceholder(transaction: OnyxEntry<Transaction>) {
-    return (
-        isScanRequest(transaction) &&
-        transaction?.receipt?.state === CONST.IOU.RECEIPT_STATE.SCAN_FAILED &&
-        (transaction?.amount === 0 || transaction?.amount === undefined) &&
-        !hasValidModifiedAmount(transaction)
-    );
-}
-
 function isAmountMissing(transaction: OnyxEntry<Transaction>, isFromExpenseReport = true) {
-    if (isFailedScanAmountPlaceholder(transaction)) {
-        return true;
-    }
-
     if (isFromExpenseReport) {
         return transaction?.amount === undefined && (transaction?.modifiedAmount === undefined || transaction?.modifiedAmount === '');
     }
-    return (transaction?.amount === 0 || transaction?.amount === undefined) && !hasValidModifiedAmount(transaction);
+    return (transaction?.amount === 0 || transaction?.amount === undefined) && (!transaction?.modifiedAmount || transaction?.modifiedAmount === 0 || transaction?.modifiedAmount === '');
 }
 
 function hasValidModifiedAmount(transaction: OnyxEntry<Transaction> | null): boolean {
@@ -609,7 +596,7 @@ function isCreatedMissing(transaction: OnyxEntry<Transaction>) {
 
 function areRequiredFieldsEmpty(transaction: OnyxEntry<Transaction>, transactionReport: OnyxEntry<Report>): boolean {
     const isFromExpenseReport = transactionReport?.type === CONST.REPORT.TYPE.EXPENSE;
-    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || isAmountMissing(transaction, isFromExpenseReport);
+    return (isFromExpenseReport && isMerchantMissing(transaction)) || isCreatedMissing(transaction) || (!isFromExpenseReport && getAmount(transaction) === 0);
 }
 
 function getClearedPendingFields(transactionChanges: TransactionChanges) {
@@ -3346,34 +3333,6 @@ function hasSmartScanFailedWithMissingFields(transactions: Transaction[], report
     );
 }
 
-/**
- * Whether a scan-failed expense is one that the backend moves to its own report on payment. Auth only moves it when
- * both the merchant and the amount are unset, so anything with an amount has to stay put to keep the payment total in
- * sync with the server.
- */
-function isScanFailedTransactionMovedOnPayment(transaction: Transaction, report: OnyxEntry<Report>): boolean {
-    if (!hasSmartScanFailedWithMissingFields([transaction], report)) {
-        return false;
-    }
-    return getMerchant(transaction) === CONST.TRANSACTION.PARTIAL_TRANSACTION_MERCHANT && getAmount(transaction, true) === 0;
-}
-
-/**
- * Whether the report has scan-failed expenses to move out and at least one other expense left behind to pay.
- */
-function shouldSplitScanFailedTransactions(transactions: Transaction[], report: OnyxEntry<Report>): boolean {
-    let hasScanFailedTransaction = false;
-    let hasRemainingTransaction = false;
-    for (const transaction of transactions) {
-        if (isScanFailedTransactionMovedOnPayment(transaction, report)) {
-            hasScanFailedTransaction = true;
-        } else {
-            hasRemainingTransaction = true;
-        }
-    }
-    return hasScanFailedTransaction && hasRemainingTransaction;
-}
-
 function getDistanceRequestType(transaction: OnyxEntry<Transaction>): string | undefined {
     const requestType = getRequestType(transaction);
     return isDistanceExpenseType(requestType) ? requestType : undefined;
@@ -3586,9 +3545,6 @@ export {
     isDistanceTypeRequest,
     recalculateUnreportedTransactionDetails,
     hasSmartScanFailedWithMissingFields,
-    isScanFailedTransactionMovedOnPayment,
-    shouldSplitScanFailedTransactions,
-    isFailedScanAmountPlaceholder,
     isDeletedTransaction,
     getDistanceRequestType,
     isUnreportedManagedCardTransaction,

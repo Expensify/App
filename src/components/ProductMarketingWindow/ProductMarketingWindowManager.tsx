@@ -1,9 +1,11 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import useRootNavigationState from '@hooks/useRootNavigationState';
+import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {setNameValuePair} from '@libs/actions/User';
-import Navigation from '@libs/Navigation/Navigation';
+import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
@@ -16,6 +18,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
 
+import {useNavigation} from '@react-navigation/core';
 import React from 'react';
 
 import ProductMarketingWindow from './ProductMarketingWindow';
@@ -68,8 +71,25 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
+    const navigation = useNavigation();
+    const isIn2FASetupFlow = useRootNavigationState((state) => {
+        // When navigation is not ready yet, use the navigation state from the navigation hook.
+        const focusedScreen = getDeepestFocusedScreen(state ?? navigation.getState());
+        return isTwoFactorSetupScreen(focusedScreen?.name);
+    });
 
-    if (!announcement || !variant || isLoading || isProductMarketingWindowCovered || isAnonymousSession || isActingAsDelegate || isCoveredByCenteredModalScreen) {
+    if (
+        !announcement ||
+        !variant ||
+        isLoading ||
+        isProductMarketingWindowCovered ||
+        isAnonymousSession ||
+        isActingAsDelegate ||
+        isCoveredByCenteredModalScreen ||
+        shouldShowRequire2FAPage ||
+        isIn2FASetupFlow
+    ) {
         return null;
     }
 

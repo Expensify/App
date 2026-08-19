@@ -513,8 +513,20 @@ describe('UserAvatarUtils', () => {
                 type: CONST.ICON_TYPE_AVATAR,
                 source: AVATAR_URL,
                 name: 'john@example.com',
+                displayName: 'John Doe',
                 fallbackIcon: undefined,
             });
+        });
+
+        it.each([
+            ['the display name when available', personalDetails, 'John Doe'],
+            ['the login when there is no display name', {[ACCOUNT_ID]: {accountID: ACCOUNT_ID, login: 'john@example.com'}}, 'john@example.com'],
+            ['an empty string when the account is missing from personal details', {}, undefined],
+        ])('should embed %s as the sortable display name', (_case, details: PersonalDetailsList, expectedDisplayName?: string) => {
+            const {result: avatars} = renderHook(() => useDefaultAvatars());
+            const icon = UserAvatarUtils.buildUserIcon({accountID: ACCOUNT_ID, personalDetails: details, defaultAvatars: avatars.current});
+
+            expect(icon.displayName).toBe(expectedDisplayName);
         });
 
         it.each([
