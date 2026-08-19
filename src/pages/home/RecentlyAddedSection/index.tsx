@@ -48,6 +48,7 @@ function RecentlyAddedSection() {
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
 
     const hasExpenses = transactions.length > 0;
+    const listBottomPadding = shouldUseNarrowLayout ? styles.pb2 : styles.pb5;
 
     const openExpense = (expense: RecentlyAddedExpense) => {
         // Resolve only the tapped expense now. getReportIDToOpenForExpense may create a transaction thread, so
@@ -111,7 +112,7 @@ function RecentlyAddedSection() {
         <WidgetContainer
             title={translate('homePage.recentlyAddedSection.title')}
             titleRightContent={overflowMenu}
-            containerStyles={shouldUseNarrowLayout ? styles.pb2 : styles.pb5}
+            containerStyles={hasExpenses ? listBottomPadding : undefined}
         >
             {hasExpenses ? (
                 transactions.map((expense, index) => (
