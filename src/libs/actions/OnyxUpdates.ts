@@ -24,8 +24,7 @@ let lastUpdateIDAppliedToClient: number | undefined = 0;
 // applied so queued WRITE responses don't look like gaps; reset if the flush fails so recovery can kick in.
 let lastUpdateIDPendingFlush = 0;
 
-// Updates staged for the deferred WRITE flush count as applied for ordering purposes, otherwise they would
-// get re-staged (and reapplied on flush) if the same update ID arrives again while the flush is pending.
+// Updates staged for the deferred flush count as applied, otherwise a repeat of the same ID is re-staged and applied twice.
 function getEffectiveLastUpdateID(): number {
     return Math.max(lastUpdateIDAppliedToClient ?? 0, lastUpdateIDPendingFlush);
 }
@@ -151,9 +150,7 @@ function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, upd
 function apply<TKey extends OnyxKey>({lastUpdateID, type, request, response, updates}: OnyxUpdatesFromServer<TKey>): Promise<void | Response<TKey>> | undefined {
     Log.info(`[OnyxUpdateManager] Applying update type: ${type} with lastUpdateID: ${lastUpdateID}`, false, {command: request?.command});
 
-    // A catch-up fetch is answered from the persisted watermark, so judge its response against that number.
-    // Judging it against updates merely staged for the deferred flush makes the answer look old, so it is
-    // discarded, the watermark never advances, and the next Pusher event finds the same gap.
+    // A catch-up is answered from the persisted watermark, so judging it against the staged flush makes it look old and pins the watermark.
     const isCatchUpRequest =
         request?.command === SIDE_EFFECT_REQUEST_COMMANDS.GET_MISSING_ONYX_MESSAGES || (request?.command === SIDE_EFFECT_REQUEST_COMMANDS.RECONNECT_APP && !!request?.data?.updateIDFrom);
     const effectiveLastUpdateID = isCatchUpRequest ? (lastUpdateIDAppliedToClient ?? 0) : getEffectiveLastUpdateID();
