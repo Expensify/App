@@ -630,6 +630,32 @@ describe('useExpenseSubmission orchestrator-suppressed cleanup', () => {
             expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
             expect(mockSplitBillAction).toHaveBeenCalledTimes(1);
         });
+
+        it('does not reserve the SEARCH channel (or run the split) when there is no login to submit with, even on Search', async () => {
+            // The shared reservation runs before the branch's login+transaction check, so it must reuse that guard or it leaks a SEARCH channel no write ever flushes.
+            mockIsSearchTopmostFullScreenRoute.mockReturnValue(true);
+            const splitTransaction = buildTransaction();
+
+            const {result} = renderHook(() =>
+                useExpenseSubmission(
+                    buildParams({
+                        iouType: CONST.IOU.TYPE.SPLIT,
+                        transaction: splitTransaction,
+                        transactions: [splitTransaction],
+                        currentUserPersonalDetails: {accountID: CURRENT_USER_ACCOUNT_ID, login: undefined, email: 'me@test.com'},
+                    }),
+                ),
+            );
+            await waitForBatchedUpdatesWithAct();
+
+            await act(async () => {
+                result.current.createTransaction(false, false);
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockReserveDeferredWriteChannel).not.toHaveBeenCalled();
+            expect(mockSplitBillAction).not.toHaveBeenCalled();
+        });
     });
 });
 
