@@ -66,7 +66,7 @@ Once the group is created, you can assign roles and scopes and add members.
 
 ## How to assign roles and scopes to a group
 
-Roles determine what members of the group can access and manage. Each role must have a scope that determines where those permissions apply.
+Roles determine what members of the group can access and manage. Each role assignment includes a scope that determines where those permissions apply.
 
 1. Go to **Program > Company > People > Groups and roles**.
 2. Select the **Groups** tab.
@@ -151,7 +151,7 @@ Direct role assignments work in addition to any access the user receives through
 
 ## How to view available roles and permissions
 
-Roles are predefined and can't be created, deleted, or have their permissions modified.
+Roles are predefined and can't be created, deleted, or modified.
 
 To review a role:
 
@@ -220,7 +220,7 @@ If you select multiple roles at once, only scope types supported by all selected
 
 The available scope options depend on all roles being assigned together.
 
-If one selected role supports Organization and Trip Template but another only supports Organization, **Trip Template** won't be available. Remove the role that only supports Organization and Trip Template will become available again.
+If one selected role supports Organization and Trip Template but another only supports Organization, **Trip Template** won't be available. Remove the role that only supports Organization, and Trip Template will become available again.
 
 ## Can a user belong to more than one group?
 
