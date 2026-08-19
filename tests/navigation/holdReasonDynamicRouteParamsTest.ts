@@ -32,13 +32,6 @@ function resolveHoldReason(basePath: string, holdReportID?: string): FocusedRout
     return getFocusedRoute(getStateFromPath(url));
 }
 
-/**
- * A dynamic route inherits the params of the screen it is opened on top of, so a query param that shares a name with a
- * base screen param silently falls back to the base value when it is absent. The hold reason page is the case where
- * that is harmful: its report is the transaction thread, which does not exist yet for a freshly created expense.
- * Holding from a report preview then wrote the hold actions into the parent chat instead of a new thread.
- * Regression test for https://github.com/Expensify/App/issues/98936.
- */
 describe('hold reason dynamic route params', () => {
     it.each([
         ['a chat report', `/r/${CHAT_REPORT_ID}`],
