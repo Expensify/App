@@ -889,7 +889,6 @@ const ONYXKEYS = {
         // keys below (REPORT_LOADING_STATE, REPORT_PAGINATION_STATE, REPORT_LAST_VISIT_TIMES)
         // so they don't ripple to every subscriber of the report's business state.
         REPORT_METADATA: 'reportMetadata_',
-
         /** Session-scoped loading/error flags for a report's action list.
          *  Registered as RAM-only in `setup/index.ts`. */
         RAM_ONLY_REPORT_LOADING_STATE: 'reportLoadingState_',
