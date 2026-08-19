@@ -48,7 +48,8 @@ function WorkspaceTagsSettingsPage({route}: WorkspaceTagsSettingsPageProps) {
     const {isOffline} = useNetwork();
     const isQuickSettingsFlow = route.name === SCREENS.SETTINGS_TAGS.DYNAMIC_SETTINGS_TAGS_SETTINGS;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.SETTINGS_TAGS_SETTINGS.path);
-    const shouldBlockEmptySettings = isMultiLevelTags && !isLoading;
+    // Multi-level tag settings moved to Rules, so the GL codes toggle is the only thing that can keep this page alive.
+    const shouldBlockEmptySettings = isMultiLevelTags && !isLoading && !policyData.policy?.glCodes;
 
     const getTagsSettings = (policy: OnyxEntry<Policy>) => {
         const updateShowTagGLCodes = (value: boolean) => {

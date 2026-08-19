@@ -3088,6 +3088,75 @@ describe('actions/Report', () => {
             expect(formEntries.selectedInterestedFeatures).toBe(JSON.stringify(selectedInterestedFeatures));
         });
 
+        it('should forward the user-reported integration name to the CompleteGuidedSetup API call', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            jest.mocked(global.fetch).mockClear();
+            await waitForBatchedUpdates();
+
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            Report.completeOnboarding({
+                conciergeChat: undefined,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634069',
+                onboardingPolicyID: 'A70D00C752416809',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: 'other',
+                userReportedIntegrationName: 'Acme Books',
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected CompleteGuidedSetup request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.userReportedIntegration).toBe('other');
+            expect(formEntries.userReportedIntegrationName).toBe('Acme Books');
+        });
+
+        it('should omit the user-reported integration name from CompleteGuidedSetup when it is undefined', async () => {
+            await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
+            jest.mocked(global.fetch).mockClear();
+            await waitForBatchedUpdates();
+
+            const engagementChoice = CONST.INTRO_CHOICES.MANAGE_TEAM;
+            const {onboardingMessages} = getOnboardingMessages();
+
+            Report.completeOnboarding({
+                conciergeChat: undefined,
+                engagementChoice,
+                onboardingMessage: onboardingMessages[engagementChoice],
+                adminsChatReportID: '7957055873634070',
+                onboardingPolicyID: 'A70D00C752416810',
+                companySize: CONST.ONBOARDING_COMPANY_SIZE.MICRO,
+                userReportedIntegration: 'other',
+                introSelected: {choice: engagementChoice},
+                isSelfTourViewed: false,
+            });
+
+            await waitForBatchedUpdates();
+
+            const calls = TestHelper.getFetchMockCalls(WRITE_COMMANDS.COMPLETE_GUIDED_SETUP);
+            expect(calls.length).toBeGreaterThan(0);
+            const body = calls.at(-1)?.[1]?.body;
+            expect(body).toBeInstanceOf(FormData);
+            if (!(body instanceof FormData)) {
+                throw new Error('Expected CompleteGuidedSetup request body to be FormData');
+            }
+            const formEntries = Object.fromEntries(body);
+            expect(formEntries.userReportedIntegration).toBe('other');
+            expect(formEntries.userReportedIntegrationName).toBeUndefined();
+        });
+
         it('should post onboarding tasks to the existing Concierge chat', async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: TEST_USER_LOGIN, accountID: TEST_USER_ACCOUNT_ID});
             await waitForBatchedUpdates();
@@ -5145,6 +5214,29 @@ describe('actions/Report', () => {
             await waitForBatchedUpdates();
 
             TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.OPEN_REPORT, 1);
+        });
+    });
+
+    describe('openReport with participants', () => {
+        it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'dm1';
+
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                participants: [{login: 'other@test.com', accountID: 2}],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: REPORT_ID,
+                emailList: 'other@test.com',
+                accountIDList: '2',
+            });
         });
     });
 

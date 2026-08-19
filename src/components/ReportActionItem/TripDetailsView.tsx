@@ -164,7 +164,6 @@ function ReservationView({reservation, transactionID, tripRoomReportID, sequence
             shouldGreyOutWhenDisabled={false}
             numberOfLinesTitle={0}
             interactive
-            shouldStackHorizontally={false}
             onSecondaryInteraction={() => {}}
             iconHeight={20}
             iconWidth={20}

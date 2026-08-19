@@ -2453,15 +2453,20 @@ function getMostRecentlyVisitedReport(reports: Array<OnyxEntry<Report>>, lastVis
 /**
  * This function is used to find the last accessed report and we don't need to subscribe the data in the UI.
  * So please use `Onyx.connectWithoutView()` to get the necessary data when we remove the `Onyx.connect()`
+ *
+ * Callers that need to react to the report data arriving (rather than reading whatever the module-scoped
+ * copy happens to hold at call time) can pass their own subscribed collections through `reportNameValuePairs`
+ * and `reports`. Both fall back to the module-scoped copies when omitted.
  */
 function findLastAccessedReport(
     ignoreDomainRooms: boolean,
     openOnAdminRoom = false,
     excludeReportID?: string,
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>,
+    reports?: OnyxCollection<Report>,
 ): OnyxEntry<Report> {
     const reportNameValuePairsCollection = reportNameValuePairs ?? allReportNameValuePair;
-    let reportsValues = Object.values(deprecatedAllReports ?? {});
+    let reportsValues = Object.values(reports ?? deprecatedAllReports ?? {});
 
     if (openOnAdminRoom) {
         const adminReport = reportsValues.find((report) => {
@@ -2845,6 +2850,26 @@ function isOneOnOneChat(report: OnyxEntry<Report>, currentUserAccountID?: number
         isDM(report) &&
         !isIOUReport(report)
     );
+}
+
+/**
+ * Returns the other participant of a cached 1:1 DM as OpenReport participant info, so the server can
+ * resolve a stale/optimistic reportID to the real chat (returned as preexistingReportID) instead of
+ * failing with "Report not found". Returns an empty list for any report that is not a 1:1 DM.
+ */
+function getOneOnOneChatParticipants(
+    report: OnyxEntry<Report>,
+    personalDetails: OnyxEntry<PersonalDetailsList>,
+    currentUserAccountID: number | undefined,
+): Array<{login: string; accountID: number}> {
+    if (!currentUserAccountID || !isOneOnOneChat(report, currentUserAccountID)) {
+        return [];
+    }
+    return Object.keys(report?.participants ?? {})
+        .map(Number)
+        .filter((accountID) => accountID !== currentUserAccountID)
+        .map((accountID) => ({login: personalDetails?.[accountID]?.login ?? '', accountID}))
+        .filter((participant) => !!participant.login);
 }
 
 /**
@@ -4137,7 +4162,7 @@ function getIcons(
 }
 
 const getIconDisplayName = (icon: Icon, personalDetails: OnyxInputOrEntry<PersonalDetailsList>) =>
-    icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '';
+    icon.displayName ?? (icon.id ? (personalDetails?.[icon.id]?.displayName ?? personalDetails?.[icon.id]?.login ?? '') : '');
 
 function sortIconsByName(icons: Icon[], personalDetails: OnyxInputOrEntry<PersonalDetailsList>, localeCompare: LocaleContextProps['localeCompare']) {
     return icons.sort((first, second) => {
@@ -5578,8 +5603,7 @@ const changeMoneyRequestHoldStatus = (
             Log.warn('Missing reportAction.childReportID during money request unhold');
         }
     } else {
-        const activeRoute = encodeURIComponent(Navigation.getActiveRoute());
-        Navigation.navigate(ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(policy?.type ?? CONST.POLICY.TYPE.PERSONAL, transactionID, reportAction.childReportID, activeRoute));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_HOLD_REASON.getRoute(transactionID, reportAction.childReportID)));
     }
 };
 
@@ -11199,7 +11223,7 @@ function getIOUReportActionDisplayMessage(
 
         switch (originalMessage.paymentType) {
             case CONST.IOU.PAYMENT_TYPE.ELSEWHERE:
-                translationKey = hasMissingInvoiceBankAccount(IOUReportID) ? 'iou.payerSettledWithMissingBankAccount' : 'iou.paidElsewhere';
+                translationKey = 'iou.paidElsewhere';
                 break;
             case CONST.IOU.PAYMENT_TYPE.EXPENSIFY:
             case CONST.IOU.PAYMENT_TYPE.VBBA:
@@ -11226,9 +11250,6 @@ function getIOUReportActionDisplayMessage(
         }
         if (translationKey === 'iou.paidElsewhere') {
             return getElsewherePaymentReportActionMessage(translate, originalMessage);
-        }
-        if (translationKey === 'iou.payerSettledWithMissingBankAccount') {
-            return translate(translationKey, '');
         }
     }
 
@@ -14251,6 +14272,7 @@ export {
     getNonHeldAndFullAmount,
     getReimbursableTotal,
     getUnheldReimbursableTotal,
+    getOneOnOneChatParticipants,
     getOptimisticDataForAncestors,
     getOriginalReportID,
     getOutstandingChildRequest,

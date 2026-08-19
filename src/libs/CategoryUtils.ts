@@ -184,6 +184,11 @@ function getDecodedLeafCategoryName(categoryName: string): string {
     return Str.htmlDecode(leaf.trim());
 }
 
+function getDecodedFullCategoryName(categoryName: string): string {
+    const segments = processCategoryNameSegments(categoryName).map((segment) => segment.trim());
+    return Str.htmlDecode(segments.join(`${CONST.PARENT_CHILD_SEPARATOR} `));
+}
+
 function getAvailableNonPersonalPolicyCategories(policyCategories: OnyxCollection<PolicyCategories>, personalPolicyID: string | undefined) {
     return Object.fromEntries(
         Object.entries(policyCategories ?? {}).filter(([key, categories]) => {
@@ -228,6 +233,7 @@ export {
     getCategoryGLCode,
     getDecodedCategoryName,
     getDecodedLeafCategoryName,
+    getDecodedFullCategoryName,
     processCategoryNameSegments,
     getAvailableNonPersonalPolicyCategories,
     hasAnyCategoryRules,
