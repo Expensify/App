@@ -69,6 +69,7 @@ import {
     shouldFilterExpensifyTeam,
 } from '@libs/PolicyUtils';
 import {getDisplayNameForParticipant} from '@libs/ReportUtils';
+import getShouldPopoverUseScrollView from '@libs/shouldPopoverUseScrollView';
 import {convertPolicyEmployeesToApprovalWorkflows, updateWorkflowDataOnApproverRemoval} from '@libs/WorkflowUtils';
 
 import {close} from '@userActions/Modal';
@@ -719,6 +720,7 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
         if (!canWriteMembers) {
             return null;
         }
+        const bulkActionOptions = getBulkActionsButtonOptions();
         return (shouldUseNarrowLayout ? canSelectMultiple : selectedEmployees.length > 0) ? (
             <ButtonWithDropdownMenu<WorkspaceMemberBulkActionType>
                 variant={CONST.BUTTON_VARIANT.SUCCESS}
@@ -726,7 +728,8 @@ function WorkspaceMembersPage({personalDetails, route, policy}: WorkspaceMembers
                 customText={translate('workspace.common.selected', {count: selectedEmployees.length})}
                 size={CONST.BUTTON_SIZE.MEDIUM}
                 onPress={() => null}
-                options={getBulkActionsButtonOptions()}
+                options={bulkActionOptions}
+                shouldPopoverUseScrollView={getShouldPopoverUseScrollView(bulkActionOptions)}
                 isSplitButton={false}
                 style={[shouldDisplayButtonsInSeparateLine && styles.flexGrow1, shouldDisplayButtonsInSeparateLine && styles.mb3]}
                 isDisabled={!selectedEmployees.length}

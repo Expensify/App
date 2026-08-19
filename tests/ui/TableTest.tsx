@@ -2514,7 +2514,17 @@ describe('Table', () => {
             </Table.Row>
         );
 
-        function ControlledSelectableTable({data = mockData, initialSelected = []}: {data?: TestItem[]; initialSelected?: string[]}) {
+        function ControlledSelectableTable({
+            data = mockData,
+            initialSelected = [],
+            showSearch = false,
+            shouldPreserveSelectionOnSearch = false,
+        }: {
+            data?: TestItem[];
+            initialSelected?: string[];
+            showSearch?: boolean;
+            shouldPreserveSelectionOnSearch?: boolean;
+        }) {
             const [selectedKeys, setSelectedKeys] = React.useState<string[]>(initialSelected);
             const props = createDefaultProps();
             return (
@@ -2526,9 +2536,12 @@ describe('Table', () => {
                         renderItem={renderSelectableRow}
                         keyExtractor={props.keyExtractor}
                         selectionEnabled
+                        shouldPreserveSelectionOnSearch={shouldPreserveSelectionOnSearch}
                         selectedKeys={selectedKeys}
+                        isItemInSearch={props.isItemInSearch}
                         onRowSelectionChange={setSelectedKeys}
                     >
+                        {showSearch && <Table.FilterBar label="Search" />}
                         <Table.Header />
                         <Table.Body />
                     </Table>
@@ -2601,6 +2614,33 @@ describe('Table', () => {
             pressRow(4, true);
 
             expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,2,4,5$/);
+        });
+
+        it('should preserve opted-in selection through a no-results search and clear', () => {
+            render(
+                <ControlledSelectableTable
+                    showSearch
+                    shouldPreserveSelectionOnSearch
+                />,
+            );
+
+            pressRow(0);
+            pressRow(2);
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
+            fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
+
+            fireEvent.changeText(screen.getByTestId('search-input'), '');
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^1,3$/);
+        });
+
+        it('should keep clearing selection on search when preservation is not enabled', () => {
+            render(<ControlledSelectableTable showSearch />);
+
+            pressRow(0);
+            pressRow(2);
+            fireEvent.changeText(screen.getByTestId('search-input'), 'no matching row');
+            expect(screen.getByTestId('selected-keys')).toHaveTextContent(/^$/);
         });
     });
 });
