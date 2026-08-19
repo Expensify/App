@@ -24,7 +24,7 @@ import {getExistingTransactionID, isSelfDMSoleDestination, resolveOptimisticChat
 import Log from '@libs/Log';
 import cleanupAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAfterExpenseCreate';
 import cleanupAndNavigateAfterExpenseCreate from '@libs/Navigation/helpers/cleanupAndNavigateAfterExpenseCreate';
-import dismissModalAndOpenReportInInboxTabHelper from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
+import dismissModalAndOpenReportInInboxTab from '@libs/Navigation/helpers/dismissModalAndOpenReportInInboxTab';
 import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTopmostFullScreenRoute';
 import navigateAfterExpenseCreate from '@libs/Navigation/helpers/navigateAfterExpenseCreate';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -618,7 +618,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 isTrackIntentUser,
             });
             if (shouldHandleNavigation) {
-                dismissModalAndOpenReportInInboxTabHelper(optimisticChatReportID, false, false);
+                dismissModalAndOpenReportInInboxTab(optimisticChatReportID, false, false);
             }
         } else {
             const isExpenseReport = isMoneyRequestReportReportUtils(report);
@@ -1033,7 +1033,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 });
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
-                    dismissModalAndOpenReportInInboxTabHelper(report?.reportID, undefined, reportTransactions.length > 0);
+                    dismissModalAndOpenReportInInboxTab(report?.reportID, undefined, reportTransactions.length > 0);
                 } else {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
                 }
@@ -1086,7 +1086,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 if (shouldHandleNavigation) {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID], shouldWaitForUpcomingTransition: true});
                     // A split lands in a group DM or 1:1 chat, and transactions are never attached to a chat report.
-                    dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, false);
+                    dismissModalAndOpenReportInInboxTab(chatReportID, undefined, false);
                 } else {
                     cleanupAfterExpenseCreate({draftTransactionIDs: [CONST.IOU.OPTIMISTIC_TRANSACTION_ID]});
                 }
@@ -1238,7 +1238,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             return;
         }
         if (shouldHandleNavigation) {
-            dismissModalAndOpenReportInInboxTabHelper(chatReportID, undefined, reportTransactions.length > 0);
+            dismissModalAndOpenReportInInboxTab(chatReportID, undefined, reportTransactions.length > 0);
         }
     }
 

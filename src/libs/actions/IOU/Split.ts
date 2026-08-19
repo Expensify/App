@@ -1427,7 +1427,7 @@ function getOrCreateOptimisticSplitChatReport(
 ) {
     const existingSplitChatReport = findExistingSplitChatReport(existingSplitChatReportID, participants, participantAccountIDs, currentUserAccountID);
 
-    // We found an existing chat report we are done...
+    // We found an existing chat report, so we're done.
     if (existingSplitChatReport) {
         // Yes, these are the same, but give the caller a way to identify if we created a new report or not
         return {existingSplitChatReport, splitChatReport: existingSplitChatReport};
