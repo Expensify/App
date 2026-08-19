@@ -43,18 +43,17 @@ const MODULE_SCOPE_ERRORS = [{messageId: 'noOnyxReadAtModuleScope'}];
 const READ_AFTER_WRITE_ERRORS = [{messageId: 'noOnyxReadAfterWrite'}];
 
 /**
- * Validation steps B1a, B5a and B5b of ONYX-GET-VALIDATION-PLAN.md, which were three rules and three
- * suites until they were merged. The rule polices one call, `Onyx.get(...)`, on two axes:
+ * The rule polices one call, `Onyx.get(...)`, on two axes:
  *
- * - position: not during render (the read does not subscribe), and not at module scope (it runs at
- *   import time, before `Onyx.init()` has hydrated the cache);
- * - order: not after an un-awaited write in the same body, because A1 measured that `Onyx.merge` and
- *   `Onyx.update` apply in a later microtask, so the read returns the pre-write value. `set` and
- *   `mergeCollection` are visible immediately, and are still flagged, because code that relies on which
- *   is which breaks when the same call moves inside `update()`, where even a SET is deferred.
+ * - position: not during render, where the read does not subscribe, and not at module scope, where it
+ *   runs at import time, before `Onyx.init()` has hydrated the cache;
+ * - order: not after an un-awaited write in the same body, since `Onyx.merge` and `Onyx.update` apply in
+ *   a later microtask. `set` and `mergeCollection` are visible immediately and are still flagged,
+ *   because code relying on which is which breaks when the call moves inside `update()`, where even a
+ *   SET is deferred.
  *
  * One read gets one message. Position decides first, so a read that is both in render and after a write
- * reports as the render read, which is the fix that subsumes the other.
+ * reports as the render read.
  */
 describe('no-unsafe-onyx-read', () => {
     ruleTester.run(ruleModule.name, ruleModule, {
@@ -118,7 +117,7 @@ describe('no-unsafe-onyx-read', () => {
             // The read is an argument of the write, so it is evaluated before it.
             `${ONYX_IMPORT} function submit() { Onyx.merge(key, Onyx.get(key)); }`,
 
-            // Provably different keys: A1's rule exempts reads of keys the tick did not write.
+            // Provably different keys: a read of a key the tick did not write is always current.
             `${ONYX_IMPORT} function submit() { Onyx.merge(ONYXKEYS.SESSION, value); return Onyx.get(ONYXKEYS.ACCOUNT); }`,
             `${ONYX_IMPORT} function submit(reportID) { Onyx.merge(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`, value); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT_ACTIONS}\${reportID}\`); }`,
             `${ONYX_IMPORT} function submit(reportID) { Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, values); return Onyx.get(\`\${ONYXKEYS.COLLECTION.REPORT}\${reportID}\`); }`,

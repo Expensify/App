@@ -92,7 +92,7 @@ const POLICED_RULES: PolicedRule[] = [
         name: 'no-unsafe-onyx-read',
         load: loadLocalRule('no-unsafe-onyx-read'),
         grepTerms: ['react-native-onyx', 'eslint-disable'],
-        advice: 'Unsafe synchronous Onyx reads are banned and the ban cannot be bypassed with eslint-disable. One disable silences all three positions, so check which one applies. During render: use useOnyx() for anything the component renders, and keep the synchronous read in code that runs on an event. At module scope: a module body runs at import time, before Onyx.init() has hydrated the cache, so the read returns undefined for anything held only on disk; move it into the function that needs it. After an un-awaited write: Onyx.merge() and Onyx.update() apply in a later microtask, so the read returns the pre-write value; do all of the reads before the first write, or await the write.',
+        advice: 'Unsafe synchronous Onyx reads are banned and the ban cannot be bypassed with eslint-disable. Remove the disable and read the rule message, which names which of its three cases applies: during render, at module scope, or after an un-awaited write in the same body.',
     },
 ];
 

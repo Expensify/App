@@ -11,14 +11,14 @@ import Storage from 'react-native-onyx/dist/storage';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
- * Validation step A7c of ONYX-GET-VALIDATION-PLAN.md.
+ * `src/setup/index.ts` calls `Onyx.init()` and `initOnyxDerivedValues()` in the same tick, and hydration
+ * is async, so a synchronous read taken there misses keys that are on disk. The first two cases pin that
+ * down; the last two cover the consequence, that the derived-value restore has to happen at the first
+ * compute, once.
  *
- * `src/setup/index.ts` calls `Onyx.init()` and `initOnyxDerivedValues()` in the same tick, and hydration is
- * async, so a synchronous read taken there misses keys that are on disk. Cases 1 and 2 pin that down; cases 3
- * and 4 cover the consequence, that the derived-value restore has to happen at the first compute, once.
- *
- * `loginToAccountIDMap` is the vehicle because its single dependency gates the first compute on nothing. Seeding
- * goes through `Storage`, not `Onyx`, which would populate the cache and remove the phenomenon.
+ * `loginToAccountIDMap` is the vehicle because its single dependency gates the first compute on nothing.
+ * Seeding goes through `Storage` rather than `Onyx`, which would populate the cache and remove the
+ * phenomenon.
  */
 
 const PERSISTED_LOGIN = 'persisted@example.com';
@@ -34,7 +34,7 @@ const observed = {
     logsFromLaterDependencyChange: [] as string[],
 };
 
-describe('A7c: the derived value restore across the Onyx hydration boundary', () => {
+describe('the derived value restore across the Onyx hydration boundary', () => {
     beforeAll(async () => {
         const logs: string[] = [];
         jest.spyOn(Log, 'info').mockImplementation((message: string) => {

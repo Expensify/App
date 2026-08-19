@@ -4,7 +4,7 @@
  * `rulesdir/no-unsafe-onyx-read` can only see the position a read is written in. It cannot see that
  * a plain module function, which is a legal place for a synchronous Onyx read, is called by a hook
  * that a component calls while rendering. That path makes the read a render read anyway, so it has to
- * be checked across files before a conversion lands.
+ * be checked across files before a synchronous read is added there.
  *
  * This module holds the graph half of that check, so it can be tested on graphs whose answer is known
  * by construction. Building the real graph out of source is the job of `checkRenderReachability.ts`.
@@ -82,8 +82,7 @@ function hasNode(graph: CallGraph, nodeId: string): boolean {
  *
  * The search walks callers breadth-first, so each path is a shortest one, and it stops at a render
  * entry rather than walking past it: a component that calls a hook that calls the target is reported
- * as the hook path, which is the closest render code to the target and the place a conversion has to
- * account for.
+ * as the hook path, the closest render code to the target.
  */
 function findRenderPaths(graph: CallGraph, targetId: string, options: FindRenderPathsOptions = {}): string[][] {
     const maxPaths = options.maxPaths ?? DEFAULT_MAX_PATHS;
@@ -145,7 +144,7 @@ function findRenderPaths(graph: CallGraph, targetId: string, options: FindRender
     return paths;
 }
 
-/** Whether anything that renders can reach `targetId`. A conversion is only safe when this is false. */
+/** Whether anything that renders can reach `targetId`. A synchronous read there is only safe when this is false. */
 function isRenderReachable(graph: CallGraph, targetId: string): boolean {
     return findRenderPaths(graph, targetId, {maxPaths: 1}).length > 0;
 }

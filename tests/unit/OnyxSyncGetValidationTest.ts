@@ -7,16 +7,11 @@ import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
- * Validation steps A1 to A3 of ONYX-GET-VALIDATION-PLAN.md.
+ * What a synchronous `OnyxUtils.get()` returns when it runs in the same tick as a write.
  *
- * Documents what a synchronous `OnyxUtils.get()` returns when it runs in the same tick as a write.
  * These are observation tests, not aspiration: they encode the behaviour authors have to code against
- * once event-time reads are allowed, so a change in Onyx's write timing shows up here rather than as a
+ * when reading Onyx at event time, so a change in Onyx's write timing shows up here rather than as a
  * silent stale read inside an event handler.
- *
- * Run against `react-native-onyx@3.0.94` plus `patches/react-native-onyx/react-native-onyx+3.0.94.patch`,
- * which is the Onyx #773 change applied locally. Unpatched, `get` returns a Promise and the same-tick
- * cases fail.
  */
 
 const KEY = ONYXKEYS.ACCOUNT;
@@ -33,8 +28,8 @@ beforeEach(async () => {
     await waitForBatchedUpdates();
 });
 
-describe('A1: synchronous read in the same tick as a write', () => {
-    // Guards the premise of every case below. Unpatched, `get` returns a Promise, so this fails first
+describe('synchronous read in the same tick as a write', () => {
+    // Guards the premise of every case below: if `get` ever returns a Promise again, this fails first
     // and names the reason instead of leaving a wall of "expected undefined, received {}".
     it('returns a value rather than a promise', async () => {
         await Onyx.merge(KEY, {primaryLogin: 'first@example.com'});
@@ -172,12 +167,12 @@ describe('A1: synchronous read in the same tick as a write', () => {
 });
 
 /**
- * Validation step A2. The patch moves the `partialSetCollection` thunk ahead of the
- * `mergeCollectionWithPatches` thunk inside `update()`, so a set's cache write is in place when the
- * merge reads previous values synchronously. `Promise.all(promises.map((p) => p()))` invokes the
- * thunks in array order, so array order is execution order.
+ * Inside `update()` the `partialSetCollection` thunk runs ahead of `mergeCollectionWithPatches`, so a
+ * set's cache write is in place when the merge reads previous values synchronously.
+ * `Promise.all(promises.map((p) => p()))` invokes the thunks in array order, so array order is
+ * execution order.
  */
-describe('A2: update() operation ordering', () => {
+describe('update() operation ordering', () => {
     it('applies a merge on top of a set on the same key in one batch', async () => {
         await Onyx.update([
             {onyxMethod: Onyx.METHOD.SET, key: REPORT_A, value: {reportID: 'A', total: 100}},
@@ -251,11 +246,10 @@ describe('A2: update() operation ordering', () => {
 });
 
 /**
- * Validation step A3. The patch flushes pending merge queues in `clear()`. `clear()` runs on sign-out
- * and on cache reset, so a merge in flight must not survive it.
- * Related: https://github.com/callstack-internal/expensify-issues/issues/2813
+ * `clear()` flushes pending merge queues. It runs on sign-out and on cache reset, so a merge in flight
+ * must not survive it.
  */
-describe('A3: clear() and pending merges', () => {
+describe('clear() and pending merges', () => {
     it('does not let a merge started before clear() resurrect the key', async () => {
         await Onyx.merge(REPORT_A, {reportID: 'A', total: 1});
 

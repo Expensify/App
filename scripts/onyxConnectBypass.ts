@@ -15,10 +15,7 @@ import path from 'node:path';
 /** Rule id of the Onyx.connect() ban, as exposed through eslint-plugin-rulesdir. */
 const BANNED_RULE_ID = 'rulesdir/no-onyx-connect';
 
-/**
- * Rule id of the ban on unsafe synchronous Onyx reads: during render, at module scope, and after an
- * un-awaited write in the same body. One disable of it silences all three, which is why it is policed here.
- */
+/** Rule id of the ban on unsafe synchronous Onyx reads. One disable silences all three of its cases. */
 const UNSAFE_READ_RULE_ID = 'rulesdir/no-unsafe-onyx-read';
 
 /** Every rule whose inline disables are policed. A suppressed violation of anything else is ignored. */
@@ -29,8 +26,7 @@ const POLICED_RULE_IDS: ReadonlySet<string> = new Set([BANNED_RULE_ID, UNSAFE_RE
  * occurrences in each file. Migrating the Onyx.connect() call sites to useOnyx() is already in
  * progress; any suppressed violation beyond these counts is treated as a new bypass.
  *
- * The read rule starts with no allowance at all, which is the point of adding it before any read is
- * converted: there is nothing to grandfather, so every disable of it is new.
+ * The read rule has no allowance at all: there is nothing to grandfather, so every disable of it is new.
  */
 const GRANDFATHERED_BYPASSES: ReadonlyMap<string, ReadonlyMap<string, number>> = new Map<string, ReadonlyMap<string, number>>([
     [

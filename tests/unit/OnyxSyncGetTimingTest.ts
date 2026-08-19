@@ -11,17 +11,17 @@ import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
 /**
- * Validation steps A4 and A7 of ONYX-GET-VALIDATION-PLAN.md, the parts that turn out to be testable
- * without a device.
+ * When a synchronous read sees a value that did not come from the reading tick: before `Onyx.init()`
+ * resolves, from another browser tab, and from a derived key.
  *
- * A7 must run before anything else in this file: `Onyx.init()` resolves once per module lifetime and
- * cannot be undone, so the pre-init window can only be observed on the very first init.
+ * The pre-init block must run before anything else in this file. `Onyx.init()` resolves once per module
+ * lifetime and cannot be undone, so that window is only observable on the very first init.
  */
 
 const TRANSACTION_A = `${ONYXKEYS.COLLECTION.TRANSACTION}A` as const;
 const REPORT_A = `${ONYXKEYS.COLLECTION.REPORT}A` as const;
 
-describe('A7: reads before Onyx.init has resolved', () => {
+describe('reads before Onyx.init has resolved', () => {
     it('returns undefined for a key whose initial state has not been applied yet', async () => {
         // `Onyx.get` has no init guard: every write path goes through `OnyxUtils.afterInit`, but the
         // read is a bare cache lookup. So a read that runs before init resolves sees nothing, even for
@@ -39,7 +39,7 @@ describe('A7: reads before Onyx.init has resolved', () => {
     });
 });
 
-describe('A6: a write made by another browser tab', () => {
+describe('a write made by another browser tab', () => {
     it('reaches the cache in the same statement that notifies subscribers', async () => {
         // On web, `Onyx.init` registers a callback with `storage.keepInstancesSync`. Another tab's
         // write arrives through a localStorage `storage` event as a batch of pairs, and the callback
@@ -71,7 +71,7 @@ describe('A6: a write made by another browser tab', () => {
     });
 });
 
-describe('A4: reads of derived keys', () => {
+describe('reads of derived keys', () => {
     beforeAll(async () => {
         initOnyxDerivedValues();
         await waitForBatchedUpdates();

@@ -6,7 +6,7 @@
  *
  * A synchronous Onyx read is only safe in code that does not run during render. Lint enforces the
  * position a read is written in; this enforces the position it ends up in once callers are taken into
- * account, which is the gate the proposal's step 2 relies on before a conversion lands.
+ * account.
  *
  * Usage:
  *
@@ -15,7 +15,7 @@
  *       them is render-reachable.
  *
  *   bun scripts/checkRenderReachability.ts 'src/libs/actions/IOU/Duplicate.ts#bulkDuplicateReports'
- *       Named units, whether or not they read Onyx. Use this before converting a function.
+ *       Named units, whether or not they read Onyx. Use this before adding a synchronous read to one.
  *
  *   --json     Machine-readable output.
  *   --quiet    Only print render-reachable results and the summary.
