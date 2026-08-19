@@ -3,12 +3,12 @@ import {act, render} from '@testing-library/react-native';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 
-import CONST from '@src/CONST';
-import type Report from '@src/types/onyx/Report';
+import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
 
-import ReportSubmitToContent from '@pages/ReportSubmitToContent';
+import CONST from '@src/CONST';
+import type Report from '@src/types/onyx/Report';
 
 import React from 'react';
 
