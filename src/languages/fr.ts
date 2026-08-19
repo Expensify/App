@@ -10445,8 +10445,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nouveaux types de rôles pour les administrateurs',
-                body: 'Offrez à votre équipe des autorisations plus granulaires avec de nouveaux rôles d’administrateur pour les cartes, les personnes et les paiements.',
+                heading: 'Mappage de fournisseur amélioré',
+                body: 'Créez des fournisseurs et des règles personnalisées pour faciliter la mise en correspondance avec les principaux logiciels de comptabilité.',
+                cta: 'Essayer',
+            },
+            member: {
+                heading: 'Agents préconfigurés pour vous',
+                body: 'Utilisez des agents prédéfinis ou personnalisés pour coder, répartir et soumettre automatiquement les dépenses en votre nom.',
                 cta: 'Essayer',
             },
         },
