@@ -59,12 +59,11 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     const [isSelectorDispatched, setIsSelectorDispatched] = useState(false);
 
     const policyID = bankAccount?.accountData?.additionalData?.policyID;
-    const isLoading = !!bankAccount?.isLoading;
-    const isSelectorLoading = !!plaidData?.isLoading;
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
-    const isSuccess = hasSubmitted && !isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
+    const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
+    const isSuccess = hasSubmitted && !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
 
     const plaidBankAccounts = useMemo(() => plaidData?.bankAccounts ?? [], [plaidData?.bankAccounts]);
     const plaidAccessToken = plaidData?.plaidAccessToken ?? '';
@@ -77,15 +76,6 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearLinkPlaidBankAccountErrors(bankAccountID);
         clearPlaid();
     });
-
-    const retry = () => {
-        clearLinkPlaidBankAccountErrors(bankAccountID);
-        setHasSubmitted(false);
-        setIsSelectorDispatched(false);
-        clearPlaid().then(() => openPlaidBankLogin(false, bankAccountID));
-    };
-
-    const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
 
     const handlePlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
         if (isFixMode) {
@@ -120,7 +110,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         linkPlaidToBankAccount(bankAccountID, plaidAccessToken, resolvedAccount.plaidAccountID, resolvedAccount.mask, policyID);
     }, [resolvedAccount, isSelectorDispatched, isSelectorLoading, hasSubmitted, bankAccountID, plaidAccessToken, policyID]);
 
-    if (isLoading || isSelectorLoading || !plaidLinkToken) {
+    if (bankAccount?.isLoading || plaidData?.isLoading || !plaidLinkToken) {
         return (
             <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
                 <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
