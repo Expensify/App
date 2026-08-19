@@ -4794,6 +4794,9 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
         },
         qbo: {
             connectedTo: '接続先',
+            entity: 'Entity',
+            entitySelectDescription: 'Select the entity to sync with this workspace.',
+            connectNewEntity: 'Connect a new entity',
             importDescription: (integrationName = 'QuickBooks Online') => `${integrationName} から Expensify に取り込むコード設定を選択してください。`,
             classes: 'クラス',
             locations: '場所',

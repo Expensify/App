@@ -363,6 +363,27 @@ type QBOCredentials = {
      * The current scope of QBO connection.
      */
     scope: string;
+
+    /** Whether these credentials authorize an Intuit sandbox company. */
+    isSandbox?: boolean;
+
+    /** Absolute epoch time when the refresh token expires. */
+    refreshTokenExpiresAt?: number;
+};
+
+/** An IES entity authorized for this workspace. */
+type IntuitEnterpriseSuiteEntity = {
+    /** Intuit company identifier. */
+    realmId: string;
+
+    /** Intuit company name. */
+    companyName: string;
+
+    /** OAuth credentials for this entity. */
+    credentials: QBOCredentials;
+
+    /** Whether selecting this entity must start OAuth again. */
+    needsReconnect?: boolean;
 };
 
 /** Financial account (bank account, debit card, etc) */
@@ -614,6 +635,9 @@ type QBOConnectionConfig = OnyxCommon.OnyxValueWithOfflineFeedback<{
 
     /** Credentials of the current QBO connection */
     credentials: QBOCredentials;
+
+    /** IES entities authorized for this workspace, keyed by realm ID. */
+    entities?: Record<string, IntuitEnterpriseSuiteEntity>;
 
     /** The accounting Method for NetSuite connection config */
     accountingMethod?: ValueOf<typeof COMMON_CONST.INTEGRATIONS.ACCOUNTING_METHOD>;
@@ -3228,6 +3252,7 @@ export type {
     QBDNonReimbursableExportAccountType,
     QBOReimbursableExportAccountType,
     QBOConnectionConfig,
+    IntuitEnterpriseSuiteEntity,
     XeroTrackingCategory,
     NetSuiteConnection,
     ConnectionLastSync,
