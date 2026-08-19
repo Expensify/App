@@ -33,12 +33,13 @@ const localeDayOfMonthMap: Record<Locale, DayOfMonthRenderer> = {
         }
     },
     [LOCALES.ES]: (day) => `${day}º`,
-    [LOCALES.FR]: (day) => `${day}e`,
+    /** Only the first of the month takes an ordinal in French: `le 1er`, then `le 2`, `le 15`. */
+    [LOCALES.FR]: (day) => (day === 1 ? '1er' : `${day}`),
     /** German dates take a trailing period. */
     [LOCALES.DE]: (day) => `${day}.`,
     [LOCALES.EL]: (day) => `${day}η`,
-    /** Italian dates are cardinal; `15º` would be the rank, not the date. */
-    [LOCALES.IT]: (day) => `${day}`,
+    /** Same first-of-month rule as French: `il 1º`, then `il 2`, `il 15`. A bare `15º` would be the rank, not the date. */
+    [LOCALES.IT]: (day) => (day === 1 ? '1º' : `${day}`),
     /** CJK dates carry the day unit, where the ordinal would be the `第15` prefix. */
     [LOCALES.JA]: (day) => `${day}日`,
     [LOCALES.NL]: (day) => `${day}e`,

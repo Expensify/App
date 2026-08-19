@@ -149,6 +149,10 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         // Passed through as a string so the helpers apply `toLocalDate`, which parses the wire shape Hermes rejects.
         const formattedDate = DateUtils.formatToMediumDate(datetime, currentLocale);
         const formattedHour = DateUtils.formatToLocalTime(datetime, currentLocale);
+        // Both halves required, else a formatter failure leaves the bare conjunction on its own.
+        if (!formattedDate || !formattedHour) {
+            return '';
+        }
         const at = translateLocalize(currentLocale, 'common.conjunctionAt');
         return `${formattedDate} ${at} ${formattedHour}`;
     };

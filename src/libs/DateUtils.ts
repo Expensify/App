@@ -44,6 +44,7 @@ import {Str} from 'expensify-common';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
+import {INTL_FORMAT_CACHE_MAX_SIZE, clearIntlFormatterCaches, intlDateTimeFormatCache, relativeTimeFormatCache} from './IntlFormatterCaches';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -79,11 +80,8 @@ function isWeekDay(value: number): value is WeekDay {
  * a bound high enough to hold the ~19 presets x active locale x on-screen timezones would make each miss walk all of them.
  * LRU by re-inserting on a hit, so the presets every row uses outlive the one-off timezones a long list drags in.
  * Failures are cached too, under the same bound: an engine that rejects a preset rejects it for the session, and retrying
- * would throw two to four times per row. `clearIntlFormatCacheForTests` is the only way back out.
+ * would throw two to four times per row. `clearIntlFormatterCaches` is the only way back out.
  */
-const INTL_FORMAT_CACHE_MAX_SIZE = 256;
-const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat | null>();
-
 function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeFormat | null): void {
     if (intlDateTimeFormatCache.size >= INTL_FORMAT_CACHE_MAX_SIZE) {
         const oldestKey = intlDateTimeFormatCache.keys().next().value;
@@ -92,15 +90,6 @@ function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeForma
         }
     }
     intlDateTimeFormatCache.set(cacheKey, formatter);
-}
-
-/**
- * Drops every cached Intl formatter. Called when a locale's polyfill data fails to load, since anything built before
- * that resolved against the missing data and would stay English for the session; also used by tests stubbing `Intl`.
- */
-export function clearIntlFormatterCaches(): void {
-    intlDateTimeFormatCache.clear();
-    relativeTimeFormatCache.clear();
 }
 
 function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null {
@@ -389,8 +378,6 @@ const RELATIVE_TIME_UNITS: ReadonlyArray<[divisor: number, unit: Intl.RelativeTi
  * Cached per locale to keep the ~10-20 KB ICU state per RelativeTimeFormat off the render path; the key space is
  * the eleven shipped locales, so it needs no bound, only a clear for when polyfill data arrives late.
  */
-const relativeTimeFormatCache = new Map<Locale, Intl.RelativeTimeFormat | null>();
-
 function getRelativeTimeFormat(locale: Locale): Intl.RelativeTimeFormat | null {
     if (relativeTimeFormatCache.has(locale)) {
         return relativeTimeFormatCache.get(locale) ?? null;
@@ -1250,7 +1237,8 @@ function doesDateBelongToAPastYear(date: string): boolean {
     // suffixed with a year on what is still today's row.
     const yearMatch = date.match(WIRE_YEAR_PREFIX);
     const transactionYear = yearMatch ? Number(yearMatch[1]) : toUTCDate(date).getUTCFullYear();
-    return transactionYear !== new Date().getFullYear();
+    // UTC on both sides, because `formatTransactionListDate` renders the chosen preset in UTC too.
+    return transactionYear !== new Date().getUTCFullYear();
 }
 
 /**

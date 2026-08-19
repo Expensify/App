@@ -1,3 +1,4 @@
+import {LOCALES} from '@src/CONST/LOCALES';
 import localeDayOfMonthMap from '@src/languages/localeDayOfMonthMap';
 import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
@@ -105,7 +106,9 @@ function toLocaleDayOfMonth(locale: Locale, day: number): string {
     if (!Number.isFinite(day)) {
         return '';
     }
-    return localeDayOfMonthMap[locale](day);
+    // Total over the `Locale` union, but the tag reaches here from an Onyx NVP, so a malformed persisted value would
+    // otherwise throw inside a render with no error boundary.
+    return (localeDayOfMonthMap[locale] ?? localeDayOfMonthMap[LOCALES.DEFAULT])(day);
 }
 
 export {toLocaleDigit, toLocaleOrdinal, toLocaleDayOfMonth, fromLocaleDigit};

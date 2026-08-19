@@ -23,7 +23,7 @@ export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlSt
 
     const cache = new Map<Locale, FlatTranslationsObject>([[locale, flattenObject(translations)]]);
     // Same reference on every call so `useSyncExternalStore` does not loop the render.
-    const snapshot = {locale, loaded: cache.has(locale), hasAnyTranslations: cache.size > 0};
+    const snapshot = {locale, hasAnyTranslations: cache.size > 0};
 
     return {
         getCurrentLocale: () => locale,

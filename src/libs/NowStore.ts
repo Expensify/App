@@ -50,12 +50,9 @@ function tick() {
 }
 
 function subscribe(listener: () => void): () => void {
-    // Refresh before adding the listener, so the new subscriber is not notified on top of React's own mount-time check.
-    if (advanceIfStale()) {
-        for (const other of listeners) {
-            other();
-        }
-    }
+    // Refresh the snapshot so the new subscriber reads a current value, but do not notify: React re-reads `getSnapshot`
+    // after `subscribe` returns, and the pending tick already owns telling everyone else.
+    advanceIfStale();
     listeners.add(listener);
     scheduleNextTick();
     return () => {

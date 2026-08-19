@@ -10,7 +10,7 @@ describe('toLocaleDayOfMonth', () => {
     it.each([
         [CONST.LOCALES.EN, '15th'],
         [CONST.LOCALES.ES, '15º'],
-        [CONST.LOCALES.FR, '15e'],
+        [CONST.LOCALES.FR, '15'],
         [CONST.LOCALES.DE, '15.'],
         [CONST.LOCALES.EL, '15η'],
         [CONST.LOCALES.IT, '15'],
@@ -37,6 +37,14 @@ describe('toLocaleDayOfMonth', () => {
         [31, '31st'],
     ])('applies the English teen exception to day %i', (day, expected) => {
         expect(toLocaleDayOfMonth(CONST.LOCALES.EN, day)).toBe(expected);
+    });
+
+    it.each([
+        [CONST.LOCALES.FR, '1er', '2'],
+        [CONST.LOCALES.IT, '1º', '2'],
+    ])('%s takes an ordinal only on the first of the month', (locale, firstDay, secondDay) => {
+        expect(toLocaleDayOfMonth(locale, 1)).toBe(firstDay);
+        expect(toLocaleDayOfMonth(locale, 2)).toBe(secondDay);
     });
 
     it('returns empty for a non-finite day rather than rendering NaN', () => {

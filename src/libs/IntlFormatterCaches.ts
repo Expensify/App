@@ -1,0 +1,19 @@
+/**
+ * Caches for constructed Intl formatters, kept in their own module so `IntlStore` can drop them without importing
+ * `DateUtils` (which imports `Localize`, which imports `IntlStore`). A formatter built while a locale's polyfill data
+ * was still missing resolved against English and would otherwise stay that way for the session.
+ */
+import type {Locale} from '@src/CONST/LOCALES';
+
+/** `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry, so this one is bounded; the relative-time key space is the shipped locales. */
+const INTL_FORMAT_CACHE_MAX_SIZE = 256;
+
+const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat | null>();
+const relativeTimeFormatCache = new Map<Locale, Intl.RelativeTimeFormat | null>();
+
+function clearIntlFormatterCaches(): void {
+    intlDateTimeFormatCache.clear();
+    relativeTimeFormatCache.clear();
+}
+
+export {INTL_FORMAT_CACHE_MAX_SIZE, intlDateTimeFormatCache, relativeTimeFormatCache, clearIntlFormatterCaches};

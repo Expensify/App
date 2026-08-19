@@ -1,5 +1,5 @@
-import {clearIntlFormatterCaches} from '@libs/DateUtils';
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
+import {clearIntlFormatterCaches} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
 import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -236,8 +236,8 @@ class IntlStore {
      */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
-        // Snapshot's `loaded` derives from cache membership, and the splash gate reads the snapshot rather than the Onyx
-        // flag, so notifying is enough to clear it. Without this, subscribers stay on the stale pre-seed value forever.
+        // The splash gate reads the snapshot rather than the Onyx flag, so notifying is enough to clear it. Without this,
+        // subscribers stay on the stale pre-seed value forever.
         IntlStore.notifyListeners();
     }
 
@@ -249,16 +249,16 @@ class IntlStore {
      * only the cache changed (locale stayed the same). Returning `getCurrentLocale` directly would let React bail on
      * the same-string check and swallow the cache-fill event.
      */
-    private static snapshot: {locale: Locale; loaded: boolean; hasAnyTranslations: boolean} = {locale: LOCALES.DEFAULT, loaded: false, hasAnyTranslations: false};
+    private static snapshot: {locale: Locale; hasAnyTranslations: boolean} = {locale: LOCALES.DEFAULT, hasAnyTranslations: false};
 
-    public static getSnapshot(this: void): {locale: Locale; loaded: boolean; hasAnyTranslations: boolean} {
+    public static getSnapshot(this: void): {locale: Locale; hasAnyTranslations: boolean} {
         return IntlStore.snapshot;
     }
 
     /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
         // `hasAnyTranslations` is monotonic because the cache never shrinks, which is what the boot splash gate needs.
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale), hasAnyTranslations: IntlStore.cache.size > 0};
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, hasAnyTranslations: IntlStore.cache.size > 0};
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -290,8 +290,10 @@ class IntlStore {
         // deploy) would otherwise reject unhandled and permanently block the boot splash gate in Expensify.tsx.
         return retryDynamicImport(loaderPromise, `${LOCALE_RETRY_KEY_PREFIX}${locale}`)
             .then(() => {
-                // A newer `load()` call superseded this one — let it commit instead.
+                // A newer `load()` call superseded this one — let it commit the locale instead. Still notify, because the
+                // cache grew either way and `hasAnyTranslations` is a store-wide fact the splash gate reads.
                 if (IntlStore.loadToken !== token) {
+                    IntlStore.notifyListeners();
                     return;
                 }
                 IntlStore.currentLocale = locale;
@@ -312,6 +314,8 @@ class IntlStore {
                 }
                 // The splash gate below only lifts on a non-empty cache, so without this fallback the app hangs on the boot splash forever.
                 if (IntlStore.loadToken !== token || IntlStore.cache.size > 0 || locale === LOCALES.DEFAULT) {
+                    // Publish whatever a superseded load already cached, else the gate never sees it and the splash sticks.
+                    IntlStore.notifyListeners();
                     return;
                 }
                 return retryDynamicImport(IntlStore.loaders[LOCALES.DEFAULT], `${LOCALE_RETRY_KEY_PREFIX}${LOCALES.DEFAULT}`)

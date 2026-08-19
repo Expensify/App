@@ -29,9 +29,9 @@ import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
+import migrateOnyx from './libs/migrateOnyx';
 // This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
 import './libs/NetworkState';
-import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import PushNotification from './libs/Notification/PushNotification';
