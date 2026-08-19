@@ -1792,46 +1792,70 @@ function updateSplitTransactions({
                 });
             }
         }
-        // Build the snapshot data update: remove original transaction and add child transactions
-        const currentSnapshotData = allSnapshots?.[`${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`]?.data;
-        const rescaledChildSnapshotEntries: SearchResultDataType = {};
-        for (const childKey of optimisticChildSnapshotKeys) {
-            const childTransaction = optimisticChildSnapshotEntries[childKey];
-            if (!childTransaction) {
+        // Patch current search snapshot + every active grouped snapshot (e.g. Spend > Expenses),
+        // else original transaction lingers there until the server refetch.
+        const originalTransactionSnapshotKey = `${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}` as const;
+        const forwardSplitSnapshotHashes = new Set<number>();
+        if (searchContext?.currentSearchHash !== undefined && searchContext.currentSearchHash >= 0) {
+            forwardSplitSnapshotHashes.add(searchContext.currentSearchHash);
+        }
+        for (const searchHash of searchContext?.activeGroupSearchHashes ?? []) {
+            if (searchHash >= 0) {
+                forwardSplitSnapshotHashes.add(searchHash);
+            }
+        }
+
+        for (const searchHash of forwardSplitSnapshotHashes) {
+            const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const;
+            const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
+
+            // Skip unloaded group snapshots; current search snapshot always gets patched.
+            if (!previousSnapshotData && searchHash !== searchContext?.currentSearchHash) {
                 continue;
             }
-            const groupSourceTransaction = findSnapshotGroupSourceTransaction(currentSnapshotData, childTransaction, [childTransaction.transactionID, ...groupSourceCandidateTransactionIDs]);
-            rescaledChildSnapshotEntries[childKey] = rescaleSnapshotGroupAmount(childTransaction, groupSourceTransaction);
+
+            const rescaledChildSnapshotEntries: SearchResultDataType = {};
+            for (const childKey of optimisticChildSnapshotKeys) {
+                const childTransaction = optimisticChildSnapshotEntries[childKey];
+                if (!childTransaction) {
+                    continue;
+                }
+                const groupSourceTransaction = findSnapshotGroupSourceTransaction(previousSnapshotData, childTransaction, [
+                    childTransaction.transactionID,
+                    ...groupSourceCandidateTransactionIDs,
+                ]);
+                rescaledChildSnapshotEntries[childKey] = rescaleSnapshotGroupAmount(childTransaction, groupSourceTransaction);
+            }
+
+            const optimisticSnapshotData: SearchResultDataType = {
+                [originalTransactionSnapshotKey]: null,
+                ...rescaledChildSnapshotEntries,
+            };
+
+            // On failure, restore the original transaction and remove the child transactions
+            // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
+            const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
+            failureSnapshotData[originalTransactionSnapshotKey] = previousSnapshotData?.[originalTransactionSnapshotKey] ?? originalTransaction ?? null;
+            for (const childKey of optimisticChildSnapshotKeys) {
+                failureSnapshotData[childKey] = null;
+            }
+
+            onyxData.optimisticData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: snapshotKey,
+                value: {
+                    data: optimisticSnapshotData,
+                },
+            });
+
+            onyxData.failureData?.push({
+                onyxMethod: Onyx.METHOD.MERGE,
+                key: snapshotKey,
+                value: {
+                    data: failureSnapshotData,
+                },
+            });
         }
-
-        const optimisticSnapshotData: SearchResultDataType = {
-            [`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`]: null,
-            ...rescaledChildSnapshotEntries,
-        };
-
-        // On failure, restore the original transaction and remove the child transactions
-        // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
-        const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
-        failureSnapshotData[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`] = originalTransaction ?? null;
-        for (const childKey of optimisticChildSnapshotKeys) {
-            failureSnapshotData[childKey] = null;
-        }
-
-        onyxData.optimisticData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: optimisticSnapshotData,
-            },
-        });
-
-        onyxData.failureData?.push({
-            onyxMethod: Onyx.METHOD.MERGE,
-            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchContext?.currentSearchHash}`,
-            value: {
-                data: failureSnapshotData,
-            },
-        });
     } else {
         onyxData.optimisticData?.push({
             onyxMethod: Onyx.METHOD.MERGE,
