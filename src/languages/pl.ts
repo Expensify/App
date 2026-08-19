@@ -4472,6 +4472,10 @@ ${amount} dla ${merchant} - ${date}`,
             railCard:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Podróże są wyłączone',
+            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
+        },
     },
     workspace: {
         common: {
