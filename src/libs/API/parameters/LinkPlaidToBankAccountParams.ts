@@ -1,6 +1,7 @@
 type LinkPlaidToBankAccountParams = {
     bankAccountID: number;
-    publicToken: string;
+    plaidAccessToken: string;
+    plaidAccountID: string;
     mask?: string;
     policyID?: string;
 };

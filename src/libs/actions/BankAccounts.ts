@@ -484,8 +484,8 @@ function connectBankAccountWithPlaid(bankAccountID: number, selectedPlaidBankAcc
 /**
  * Link (or re-link/fix) an existing verified Business Bank Account to Plaid.
  */
-function linkPlaidToBankAccount(bankAccountID: number, publicToken: string, mask: string | undefined, policyID: string | undefined) {
-    const parameters: LinkPlaidToBankAccountParams = {bankAccountID, publicToken, mask, policyID};
+function linkPlaidToBankAccount(bankAccountID: number, plaidAccessToken: string, plaidAccountID: string, mask: string | undefined, policyID: string | undefined) {
+    const parameters: LinkPlaidToBankAccountParams = {bankAccountID, plaidAccessToken, plaidAccountID, mask, policyID};
 
     const onyxData: OnyxData<typeof ONYXKEYS.BANK_ACCOUNT_LIST> = {
         optimisticData: [
