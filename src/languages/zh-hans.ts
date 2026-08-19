@@ -8517,6 +8517,7 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `将货币转换费用设置更新为“${preferenceLabel}”`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },

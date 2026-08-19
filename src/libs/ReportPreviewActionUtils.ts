@@ -12,6 +12,7 @@ import {
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
     isArchivedPolicy,
+    isGroupPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -138,9 +139,13 @@ function canPay(
     }
 
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPayReport =
         isReportPayer ||
-        (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
+        (isGroupPolicy(policy) &&
+            policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
+            canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;

@@ -8935,6 +8935,7 @@ ${reportName}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εγκεκριμένες αναφορές αυτόματης πληρωμής`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ορίστε το όριο για αυτόματη πληρωμή των εγκεκριμένων αναφορών σε «${newLimit}»`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>

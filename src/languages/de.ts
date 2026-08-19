@@ -8886,6 +8886,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgabenkategorisierung`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgaben-Taggierung`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `hat die Einstellung für die Währungsumrechnungsgebühr auf „${preferenceLabel}“ aktualisiert`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
