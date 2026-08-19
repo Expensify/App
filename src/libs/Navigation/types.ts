@@ -2269,7 +2269,8 @@ type MoneyRequestNavigatorParamList = {
         transactionID: string;
 
         /** ID of the report that user is providing hold reason to */
-        reportID?: string;
+        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
+        holdReportID?: string;
     };
     [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */

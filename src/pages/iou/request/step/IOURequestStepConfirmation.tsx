@@ -638,8 +638,19 @@ function IOURequestStepConfirmation({
                 iouType,
                 isCreatingTrackExpense,
                 isSelfDMDestination,
+                isMovingTransactionFromTrackExpense,
             }),
-        [isTransactionReady, destinationReportID, destinationReport, isFromGlobalCreate, canPreInsertSearch, iouType, isCreatingTrackExpense, isSelfDMDestination],
+        [
+            isTransactionReady,
+            destinationReportID,
+            destinationReport,
+            isFromGlobalCreate,
+            canPreInsertSearch,
+            iouType,
+            isCreatingTrackExpense,
+            isSelfDMDestination,
+            isMovingTransactionFromTrackExpense,
+        ],
     );
 
     const {reveal: revealPreMountDestination, cleanupPreMount} = usePreMountDestination(preMountDestinationRoute, {

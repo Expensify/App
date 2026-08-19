@@ -116,6 +116,7 @@ import {
     getMovedTransactionMessage,
     getNextApproverAccountID,
     getNonHeldAndFullAmount,
+    getOneOnOneChatParticipants,
     getOriginalReportID,
     getOutstandingChildRequest,
     getParentNavigationSubtitle,
@@ -240,7 +241,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -1334,6 +1335,35 @@ describe('ReportUtils', () => {
             expect(sortedParticipants.at(1)?.name).toBe('floki@vikings.net');
             expect(sortedParticipants.at(1)?.id).toBe(2);
             expect(sortedParticipants.at(1)?.type).toBe('avatar');
+        });
+
+        it('sorts by the display name embedded in the icon without a personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Ragnar Lothbrok'},
+                {id: 3, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+            ];
+
+            const sortedIcons = sortIconsByName(icons, undefined, localeCompare);
+
+            // Sorted by display name first, then by accountID for identical names
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 3, 1]);
+        });
+
+        it('prefers the embedded display name over the personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Zed'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Abe'},
+            ];
+
+            // Personal details would put account 1 first, but the embedded names must win
+            const details: PersonalDetailsList = {
+                1: {accountID: 1, displayName: 'Aaa'},
+                2: {accountID: 2, displayName: 'Zzz'},
+            };
+            const sortedIcons = sortIconsByName(icons, details, localeCompare);
+
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 1]);
         });
     });
 
@@ -9524,6 +9554,66 @@ describe('ReportUtils', () => {
         });
     });
 
+    describe('findLastAccessedReport with a caller-provided reports collection', () => {
+        const buildOwnedReport = (reportID: string, lastReadTime: string): Report => ({
+            ...LHNTestUtils.getFakeReport(),
+            reportID,
+            lastReadTime,
+            lastVisibleActionCreated: lastReadTime,
+            ownerAccountID: currentUserAccountID,
+            participants: {
+                [currentUserAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        });
+
+        const providedReport = buildOwnedReport('2001', '2024-03-01 04:56:47.233');
+        const storedReport = buildOwnedReport('2002', '2024-03-02 04:56:47.233');
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should resolve a report from the passed collection while the stored reports are still empty', () => {
+            // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
+            expect(findLastAccessedReport(false)).toBeUndefined();
+
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
+            };
+
+            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+        });
+
+        it('should prefer the passed collection over the stored reports', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
+            await waitForBatchedUpdates();
+
+            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
+
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
+            };
+
+            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+        });
+
+        it('should fall back to the stored reports when no collection is passed', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
+            await waitForBatchedUpdates();
+
+            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
+        });
+    });
+
     describe('getApprovalChain', () => {
         describe('submit and close policy', () => {
             it('should return empty array', () => {
@@ -11596,6 +11686,39 @@ describe('ReportUtils', () => {
 
             // Then it is a 1:1 chat from account 111's perspective
             expect(isOneOnOneChat(report, 111)).toBe(true);
+        });
+    });
+
+    describe('getOneOnOneChatParticipants', () => {
+        const OTHER_ACCOUNT_ID = 222;
+        const personalDetailsList: PersonalDetailsList = {
+            [OTHER_ACCOUNT_ID]: {accountID: OTHER_ACCOUNT_ID, login: 'other@test.com'},
+        };
+        const dmReport: Report = {
+            ...createRandomReport(0, undefined),
+            type: CONST.REPORT.TYPE.CHAT,
+            policyID: CONST.POLICY.ID_FAKE,
+            participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
+        };
+
+        it('should return the other participant of a 1:1 DM with their login and accountID', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, currentUserAccountID)).toEqual([{login: 'other@test.com', accountID: OTHER_ACCOUNT_ID}]);
+        });
+
+        it('should return an empty list for reports that are not 1:1 DMs', () => {
+            const roomReport: Report = {
+                ...createRandomReport(1, CONST.REPORT.CHAT_TYPE.POLICY_ADMINS),
+                participants: buildParticipantsFromAccountIDs([currentUserAccountID, OTHER_ACCOUNT_ID]),
+            };
+            expect(getOneOnOneChatParticipants(roomReport, personalDetailsList, currentUserAccountID)).toEqual([]);
+        });
+
+        it('should return an empty list when the other participant has no known login', () => {
+            expect(getOneOnOneChatParticipants(dmReport, {}, currentUserAccountID)).toEqual([]);
+        });
+
+        it('should return an empty list when currentUserAccountID is missing', () => {
+            expect(getOneOnOneChatParticipants(dmReport, personalDetailsList, undefined)).toEqual([]);
         });
     });
 

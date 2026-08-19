@@ -3638,6 +3638,17 @@ function getRequireCompanyCardsEnabledMessage(translate: LocalizedTranslate, act
     return translate('workspaceActions.updatedRequireCompanyCards', {enabled: !!enabled});
 }
 
+function getCurrencyConversionFeeMessage(translate: LocalizedTranslate, action: ReportAction): string {
+    const preference = isActionOfType(action, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) ? getOriginalMessage(action)?.preference : undefined;
+
+    // The employee pays until a company opts in, so an action without a preference means the employee pays.
+    const preferenceLabel = translate(
+        preference === CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY ? 'workflowsCurrencyConversionFeesPage.companyPays' : 'workflowsCurrencyConversionFeesPage.employeePays',
+    );
+
+    return translate('workspaceActions.updatedCurrencyConversionFee', {preferenceLabel});
+}
+
 function getAutoPayApprovedReportsEnabledMessage(translate: LocalizedTranslate, action: ReportAction): string {
     const {enabled} = getOriginalMessage(action as ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED>) ?? {};
 
@@ -5123,6 +5134,7 @@ export {
     getRequireCompanyCardsEnabledMessage,
     getRequiresCategoryMessage,
     getRequiresTagMessage,
+    getCurrencyConversionFeeMessage,
     getAutoPayApprovedReportsEnabledMessage,
     getAutoReimbursementMessage,
     getCategoryTaxRateMessage,
