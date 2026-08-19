@@ -6,7 +6,14 @@ import {setCustomUnitRateID, setMoneyRequestDistance, setMoneyRequestMerchant, s
 import {createDistanceRequest, resetSplitShares} from '@libs/actions/IOU/Split';
 import {trackExpense} from '@libs/actions/IOU/TrackExpense';
 import DistanceRequestUtils from '@libs/DistanceRequestUtils';
-import {calculateDefaultReimbursable, getExistingTransactionID, isLookingAroundSearchRoutingActive, isSelfDMSoleDestination, navigateToConfirmationPage, navigateToParticipantPage} from '@libs/IOUUtils';
+import {
+    calculateDefaultReimbursable,
+    getExistingTransactionID,
+    isLookingAroundSearchRoutingActive,
+    isSelfDMSoleDestination,
+    navigateToConfirmationPage,
+    navigateToParticipantPage,
+} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfterSkipConfirmSubmit';
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
