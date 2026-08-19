@@ -5,24 +5,18 @@
  * Mirrors web build options from config/rsbuild/rsbuild.common.ts.
  *
  * `panicThreshold: 'critical_errors'` is what splits the two kinds of diagnostic apart:
- * a Rules-of-React violation aborts the whole transform (`fatal`, severity `Error`), while a
- * compiler limitation the code can't do anything about -- unsupported syntax, an unhandled node
- * type -- stays a `Warning` and still emits code. Only the former counts as `failed`, so
- * contributors are never blocked by a gap in the compiler itself.
+ * a Rules-of-React violation aborts the whole transform, while a
+ * compiler limitation the code can't do anything about stays a `Warning` and still emits code.
+ * Only the former counts as `failed`, so contributors are never blocked by a gap in the compiler itself.
  *
- * Aborting on the first violation also keeps `memoized` conservative: a file where one function
- * violates the Rules of React reports `memoized: false` rather than the partial memoization the
- * compiler would otherwise emit for its remaining functions. `didBothCompilersMemoizeFile` relies
- * on that, since it may only suppress manual-memoization lint rules when the whole file is memoized.
- *
- * Memoization is detected purely from the emitted memo cache. Targeting React 19 the compiler can
- * only memoize by importing `react/compiler-runtime` and allocating `_c(n)` slots, so the marker
- * below is both necessary and sufficient -- verified across every `src/` file, none of which emits
- * a memo cache the marker misses.
+ * A file where one function violates the Rules of React reports `memoized: false`,
+ * rather than the partial memoization the compiler would otherwise emit for its remaining functions.
+ * `didBothCompilersMemoizeFile` relies on that, since it will only suppress manual-memoization lint rules when the whole file is memoized.
  */
 import path from 'node:path';
 import {transformSync} from 'oxc-transform-react';
 
+// Any file compiled by React Compiler will have a _c marker in it
 const REACT_COMPILER_MARKER_PATTERN = /_c\(|react\/compiler-runtime/;
 
 function getLang(ext) {
