@@ -2,14 +2,13 @@ import type {TransactionReportGroupListItemType} from '@components/Search/Search
 
 import * as ReportWorkflow from '@libs/actions/IOU/ReportWorkflow';
 import {handleActionButtonPress, handleBulkPayItemSelected} from '@libs/actions/Search';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 // eslint-disable-next-line no-restricted-imports -- namespace import needed to spy on hasViolations in the approve-action test
 import * as ReportUtils from '@libs/ReportUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
+import ROUTES from '@src/ROUTES';
 import type {LastPaymentMethod, Policy, Report, SearchResults, TransactionViolations} from '@src/types/onyx';
 
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -485,6 +484,7 @@ describe('handleBulkPayItemSelected', () => {
         ownerBillingGracePeriodEnd: undefined,
         currentUserAccountID: ownerAccountID,
         isOffline: false,
+        verifyAccountAndResume: jest.fn<void, [(() => void) | undefined]>(),
     };
 
     beforeEach(async () => {
@@ -593,7 +593,7 @@ describe('handleBulkPayItemSelected', () => {
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
-    it('should not navigate to verify account and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
+    it('should not trigger account verification and should call confirmPayment when user is unvalidated and item is Mark as paid (ELSEWHERE)', async () => {
         const policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
@@ -610,11 +610,11 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.ELSEWHERE, text: 'Pay elsewhere', icon: () => null},
         });
 
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
-    it('should navigate to verify account when user is unvalidated and item is a bank-funded payment type (VBBA)', async () => {
+    it('should defer to verifyAccountAndResume when user is unvalidated and item is a bank-funded payment type (VBBA), then resume the payment after validation', async () => {
         const policy = {
             ...createRandomPolicy(Number(policyID)),
             id: policyID,
@@ -631,8 +631,16 @@ describe('handleBulkPayItemSelected', () => {
             item: {key: CONST.IOU.PAYMENT_TYPE.VBBA, text: 'Pay with bank account', icon: () => null},
         });
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         expect(baseParams.confirmPayment).not.toHaveBeenCalled();
+
+        // Invoke the stored retry closure, which is what the hook runs once the user validates.
+        const retry = baseParams.verifyAccountAndResume.mock.calls.at(0)?.at(0);
+        retry?.();
+
+        expect(baseParams.verifyAccountAndResume).toHaveBeenCalledTimes(1);
+        expect(baseParams.confirmPayment).toHaveBeenCalled();
     });
 
     it('should call confirmPayment directly when an open business bank account is selected, even if it is not linked to the policy', async () => {
@@ -721,7 +729,8 @@ describe('handleBulkPayItemSelected', () => {
         });
 
         expect(baseParams.triggerKYCFlow).not.toHaveBeenCalled();
-        expect(Navigation.navigate).not.toHaveBeenCalledWith(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path));
+        expect(baseParams.verifyAccountAndResume).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
         // confirmPayment (onBulkPaySelected) is what surfaces the offline modal; the exact paymentType is not important here.
         expect(baseParams.confirmPayment).toHaveBeenCalled();
     });

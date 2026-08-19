@@ -2052,6 +2052,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Awatar profilu',
         customInstructions: 'Niestandardowe instrukcje',
         copilotIntoAccount: 'Copilot do konta',
+        viewUserHistory: 'Zobacz historię użytkownika',
+        viewAgentHistory: 'Zobacz historię agenta',
         publicSection: {
             title: 'Public',
             subtitle: 'Te dane są wyświetlane w Twoim publicznym profilu. Każdy może je zobaczyć.',
@@ -5669,8 +5671,11 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             billPaymentAccount: {label: 'Konto do opłacania rachunków', description: 'Wybierz, z którego konta chcesz opłacać rachunki, a my utworzymy płatność w Rillet.'},
             syncExpensifyCardSettlements: 'Synchronizuj rozliczenia Karty Expensify',
             settlementAccount: {label: 'Rachunek rozliczeniowy Karty Expensify', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
-            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia fakturowania podróży',
-            travelInvoicingSettlementAccount: {label: 'Konto rozliczeniowe fakturowania podróży', description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.'},
+            syncTravelInvoicingSettlements: 'Synchronizuj rozliczenia skonsolidowanego fakturowania podróży',
+            travelInvoicingSettlementAccount: {
+                label: 'Konto rozliczeniowe scentralizowanego rozliczania podróży',
+                description: 'Wybierz swoje konto rozliczeniowe, a my utworzymy płatność w Rillet.',
+            },
             exportToMultipleAccounts: 'Skonfiguruj eksport do wielu kont',
             cardProgramAccount: {
                 label: 'Konto programu kartowego',
@@ -7574,8 +7579,7 @@ Wymagaj szczegółów wydatków, takich jak paragony i opisy, ustawiaj limity i 
                 alwaysNonReimbursable: 'Zawsze niepodlegające zwrotowi',
                 alwaysNonReimbursableDescription: 'Wydatki nigdy nie są zwracane pracownikom',
                 billableDefault: 'Domyślne obciążenie klienta',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne. Fakturowanie wydatków jest włączane lub wyłączane w <a href="${tagsPageLink}">tagach</a>.</muted-text>`,
+                billableDefaultDescription: 'Wybierz, czy wydatki gotówkowe i kartą kredytową mają być domyślnie fakturowalne.',
                 billable: 'Fakturowalne',
                 billableDescription: 'Wydatki są najczęściej refakturowane klientom',
                 nonBillable: 'Nierozliczalne',
@@ -9963,6 +9967,11 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 onboardingChatTitle: (discountType: number) => `Oferta ograniczona czasowo: ${discountType}% zniżki na pierwszy rok!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Odbierz w ciągu ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {
+                title: 'Twoja faktura za podróż jest przeterminowana',
+                subtitle: (date: string) => `Opłać fakturę za podróż do ${date}, żeby móc dalej rezerwować podróże.`,
+            },
+            travelInvoiceOverdueLocked: {title: 'Rezerwacja podróży jest wstrzymana', subtitle: 'Twoja faktura za podróż jest przeterminowana. Opłać ją, żeby znowu móc rezerwować podróże.'},
         },
         cardSection: {
             title: 'Płatność',
