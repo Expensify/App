@@ -91,6 +91,7 @@ import {
     isActionableMentionWhisper,
     isActionOfType,
     isAddCommentAction,
+    isCardIssuedAction,
     isCategoryModificationAction,
     isClosedAction,
     isCreatedAction,
@@ -148,6 +149,7 @@ import {
     hasIOUWaitingOnCurrentUserBankAccount,
     isArchivedNonExpenseReport,
     isChatThread,
+    isDeprecatedGroupDM,
     isDM,
     isExpenseReport,
     isHiddenForCurrentUser,
@@ -165,6 +167,7 @@ import {
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
+    isThread as reportUtilsIsThread,
     shouldReportBeInOptionList,
     shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
@@ -472,6 +475,115 @@ function shouldShowLastActorDisplayName(
     return true;
 }
 
+const POLICY_CHANGE_LOG_ACTION_NAMES = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
+const ROOM_CHANGE_LOG_ACTION_NAMES = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
+const CUSTOM_ALTERNATE_TEXT_ACTION_NAMES = new Set<string>([
+    CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
+    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
+    CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
+    CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
+    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
+    CONST.REPORT.ACTIONS.TYPE.REOPENED,
+    CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
+    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
+    CONST.REPORT.ACTIONS.TYPE.REROUTE,
+    CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
+    CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
+]);
+
+/**
+ * Matches the actions that SidebarUtils.getOptionData renders with their own alternate text (without the
+ * `Name: ` actor prefix). Keep in sync with the if/else chain in getOptionData.
+ */
+function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): boolean {
+    const actionName = lastAction?.actionName;
+    if (!lastAction || !actionName) {
+        return false;
+    }
+    return (
+        isRenamedAction(lastAction) ||
+        isTaskAction(lastAction) ||
+        isInviteOrRemovedAction(lastAction) ||
+        isCardIssuedAction(lastAction) ||
+        isOldDotReportAction(lastAction) ||
+        isPolicyCopyReportAction(lastAction) ||
+        isMovedTransactionAction(lastAction) ||
+        (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && !!getOriginalMessage(lastAction)?.resolution) ||
+        POLICY_CHANGE_LOG_ACTION_NAMES.has(actionName) ||
+        ROOM_CHANGE_LOG_ACTION_NAMES.has(actionName) ||
+        CUSTOM_ALTERNATE_TEXT_ACTION_NAMES.has(actionName)
+    );
+}
+
+/**
+ * Returns the `Name: ` actor prefix that the LHN (SidebarUtils.getOptionData) shows before the last message
+ * preview, or an empty string when no prefix should be shown. Mirrors the two prefix regimes of getOptionData:
+ * rooms/threads/tasks/group chats show the actor for any regular message, everything else (DMs, expense reports)
+ * is gated by shouldShowLastActorDisplayName.
+ */
+function getChatPreviewActorPrefix({
+    report,
+    personalDetails,
+    isReportArchived,
+    translate,
+    visibleReportActionsData,
+    currentUserAccountID,
+}: {
+    report: OnyxEntry<Report>;
+    personalDetails: OnyxEntry<PersonalDetailsList>;
+    isReportArchived: boolean | undefined;
+    translate: LocalizedTranslate;
+    visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    currentUserAccountID: number | undefined;
+}): string {
+    if (!report || isReportArchived || currentUserAccountID === undefined) {
+        return '';
+    }
+    const lastAction = getLastVisibleAction(report.reportID, canUserPerformWriteAction(report, isReportArchived), {}, undefined, visibleReportActionsData);
+
+    // Resolve the actor the same way SidebarUtils.getOptionData does: prefer the action's actor and
+    // fall back to the action's `person` when the actor is missing from personal details.
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
+    let resolvedLastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
+    if (!resolvedLastActorDetails && lastAction?.person?.at(0)?.text) {
+        resolvedLastActorDetails = {
+            displayName: lastAction.person.at(0)?.text,
+            accountID: report.lastActorAccountID,
+        };
+    }
+    const lastActorDisplayName = getLastActorDisplayName(resolvedLastActorDetails, currentUserAccountID, translate);
+
+    const isThreadMessage =
+        reportUtilsIsThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const usesChatPrefixRules =
+        reportUtilsIsChatRoom(report) ||
+        reportUtilsIsPolicyExpenseChat(report) ||
+        isChatThread(report) ||
+        reportUtilsIsTaskReport(report) ||
+        isThreadMessage ||
+        reportUtilsIsGroupChat(report) ||
+        isDeprecatedGroupDM(report, isReportArchived);
+    const shouldShowActorPrefix = usesChatPrefixRules
+        ? lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !!lastActorDisplayName && !isActionWithCustomAlternateText(lastAction)
+        : shouldShowLastActorDisplayName(report, resolvedLastActorDetails, lastAction, currentUserAccountID, translate);
+    if (!shouldShowActorPrefix) {
+        return '';
+    }
+    const displayName =
+        getLastActorDisplayNameFromLastVisibleActions(
+            report,
+            resolvedLastActorDetails,
+            currentUserAccountID,
+            personalDetails,
+            isReportArchived,
+            translate,
+            visibleReportActionsData,
+            lastAction,
+        ) || lastActorDisplayName;
+    return displayName ? `${displayName}: ` : '';
+}
+
 type GetAlternateTextConfig = {
     dateFnsLocale: DateFnsLocale | undefined;
     isReportArchived: boolean | undefined;
@@ -519,8 +631,11 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
+    // Plain comments keep the raw text as typed: the LHN shows literal HTML-like text unparsed, while
+    // Parser.htmlToText would strip it (e.g. `<b>test</b>` -> `test`). Ref: https://github.com/Expensify/App/issues/82036
+    const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
     const formattedLastMessageText =
-        formatReportLastMessageText(Parser.htmlToText(option.lastMessageText ?? '')) ||
+        formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
         getLastMessageTextForReport({
             translate: translateFn,
             dateFnsLocale,
@@ -538,7 +653,19 @@ function getAlternateText(
             currentUserAccountID,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
-    const formattedLastMessageTextWithPrefix = reportPrefix + formattedLastMessageText;
+
+    const actorPrefix =
+        showChatPreviewLine && formattedLastMessageText
+            ? getChatPreviewActorPrefix({
+                  report,
+                  personalDetails,
+                  isReportArchived,
+                  translate: translateFn,
+                  visibleReportActionsData,
+                  currentUserAccountID,
+              })
+            : '';
+    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + formattedLastMessageText;
 
     if (isExpenseThread || option.isMoneyRequestReport) {
         return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
@@ -2617,7 +2744,7 @@ function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
     isOffline: boolean,
-    config: GetValidReportsConfig & {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined},
+    config: GetValidReportsConfig & {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; currentUserAccountID?: number},
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
@@ -2639,6 +2766,7 @@ function prepareReportOptionsForDisplay(
         shouldUnreadBeBold = false,
         personalDetails,
         translate,
+        currentUserAccountID,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2657,6 +2785,8 @@ function prepareReportOptionsForDisplay(
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
+        const lastActorDetails = personalDetails?.[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
+
         const alternateText = getAlternateText(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
@@ -2665,13 +2795,14 @@ function prepareReportOptionsForDisplay(
                 isReportArchived: !!option.private_isArchived,
                 personalDetails,
                 policy,
-                lastActorDetails: null,
+                lastActorDetails,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 sortedActions,
                 isTrackIntentUser,
+                currentUserAccountID,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2921,6 +3052,7 @@ function getValidOptions(
                     shouldShowGBR,
                     personalDetails,
                     translate,
+                    currentUserAccountID,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2948,6 +3080,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                currentUserAccountID,
             },
             conciergeReportID,
             sortedActions,
@@ -2971,6 +3104,7 @@ function getValidOptions(
                 shouldShowGBR,
                 personalDetails,
                 translate,
+                currentUserAccountID,
             },
             conciergeReportID,
             sortedActions,
