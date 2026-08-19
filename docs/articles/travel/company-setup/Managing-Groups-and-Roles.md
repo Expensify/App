@@ -5,7 +5,7 @@ keywords: [manage travel permissions, groups and roles, travel groups, travel ro
 internalScope: Audience is Travel Admins. Covers managing user access in Expensify Travel using groups, predefined roles, scopes, group membership, and direct role assignments. Does not cover traveler provisioning, traveler profile settings, or travel policy configuration.
 ---
 
-## How to access Expensify Travel
+# How to access Expensify Travel
 
 * **In New Expensify:** Click the **+** button in the bottom-left corner of your screen, then select **Book travel**.
 * **In Classic Expensify:** Click **Travel** in the left-hand menu, then select **Book or manage travel**.
@@ -164,7 +164,7 @@ To customize where a role's permissions apply, configure its scope when assignin
 
 ---
 
-## About the Company Admins group
+## How the Company Admins group works
 
 The **Company Admins** group is automatically managed by Expensify and provides full company management access in Expensify Travel.
 
