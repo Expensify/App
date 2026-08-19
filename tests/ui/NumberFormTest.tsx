@@ -40,6 +40,22 @@ function ContextReadout() {
     );
 }
 
+function RapidValueUpdater({onPreviousValue}: {onPreviousValue: (value: string) => void}) {
+    const {setValue} = useNumberFormContext();
+
+    return (
+        <PressableWithFeedback
+            accessibilityLabel="Set values rapidly"
+            accessibilityRole="button"
+            testID="ctx-setValuesRapidly"
+            onPress={() => {
+                setValue('7', {onPreviousValue});
+                setValue('99', {onPreviousValue});
+            }}
+        />
+    );
+}
+
 describe('NumberForm', () => {
     const onInputChange = jest.fn();
     const onBlur = jest.fn();
@@ -134,6 +150,40 @@ describe('NumberForm', () => {
 
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
             expect(onInputChange).not.toHaveBeenCalled();
+        });
+
+        it('reports the latest previous value when setValue is called more than once before a render', () => {
+            const onPreviousValue = jest.fn();
+            renderNumberForm(
+                {value: '1'},
+                <>
+                    <ContextReadout />
+                    <RapidValueUpdater onPreviousValue={onPreviousValue} />
+                </>,
+            );
+
+            fireEvent.press(screen.getByTestId('ctx-setValuesRapidly'));
+
+            expect(onPreviousValue).toHaveBeenNthCalledWith(1, '1');
+            expect(onPreviousValue).toHaveBeenNthCalledWith(2, '7');
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('99');
+        });
+
+        it('does not overwrite a local edit when the parent rerenders with the same external value', () => {
+            const {rerender} = renderNumberForm({value: '10'});
+
+            fireEvent.press(screen.getByTestId('ctx-setValue'));
+
+            rerender(
+                <NumberForm
+                    value="10"
+                    onInputChange={onInputChange}
+                >
+                    <ContextReadout />
+                </NumberForm>,
+            );
+
+            expect(screen.getByTestId('ctx-value')).toHaveTextContent('7');
         });
     });
 });

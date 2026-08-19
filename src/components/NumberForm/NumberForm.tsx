@@ -10,6 +10,9 @@ function NumberForm({value = '', onInputChange, negativeMode = 'none', errorText
     const [previousValue, setPreviousValue] = useState(value);
     const committedValueRef = useRef(value);
 
+    // Local edits can temporarily be ahead of the controlled prop, so previousValue tracks the last prop we saw instead of
+    // comparing currentValue with value. The ref tracks the latest internal value synchronously because state updates may be
+    // batched; this lets setValue report the correct previous value even when called more than once before a render.
     // Keep externally controlled form values in sync with the editing state.
     if (previousValue !== value) {
         setPreviousValue(value);
