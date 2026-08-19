@@ -15,7 +15,7 @@ import React from 'react';
 const mockIcon: React.FC<SvgProps> = () => null;
 
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
-const mockedUseResponsiveLayout = useResponsiveLayout as jest.MockedFunction<typeof useResponsiveLayout>;
+const mockedUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 
 jest.mock('@hooks/useLazyAsset', () => ({
     useMemoizedLazyExpensifyIcons: jest.fn(() => ({

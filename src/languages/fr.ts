@@ -1421,7 +1421,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} a approuvé :`,
         managerApprovedAmount: (manager: string, amount: number | string) => `${manager} a approuvé ${amount}`,
         payerSettled: (amount: number | string) => `payé ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `a payé ${amount}. Ajoutez un compte bancaire pour recevoir votre paiement.`,
         automaticallyApproved: `approuvé via les <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">règles de l'espace de travail</a>`,
         approvedAmount: (amount: number | string) => `${amount} approuvé`,
         approvedMessage: `approuvé`,
@@ -1699,6 +1698,7 @@ const translations: TranslationDeepObject<typeof en> = {
             couldNotReject: 'La note de frais n’a pas pu être rejetée. Veuillez réessayer.',
         },
         moveExpenses: 'Déplacer vers le rapport',
+        moveExpensesMaxTransactionsError: `Les rapports sont limités à ${CONST.REPORT.MAX_TRANSACTIONS} dépenses. Veuillez en déplacer certaines vers un autre rapport.`,
         moveExpensesError:
             'Vous ne pouvez pas déplacer des frais de per diem vers des notes de frais d’autres espaces de travail, car les taux de per diem peuvent varier d’un espace de travail à l’autre.',
         submitReportTo: {
@@ -1722,6 +1722,18 @@ const translations: TranslationDeepObject<typeof en> = {
                 bulkSubtitle: 'Choisissez un approbateur supplémentaire pour ces rapports avant que nous ne les transmettions pour le reste du flux de validation.',
             },
             bulkSubtitle: 'Choisissez une option pour changer l’approbateur de ces rapports.',
+            delegateSubmitNotOnPolicyForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de vous (son remplaçant de vacances), car vous n’êtes pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicyAsOriginalManager: (originalManager: string, delegate: string) =>
+                `Cette note de frais vous a été envoyée au lieu de votre remplaçant pendant les vacances <mention-user>@${delegate}</mention-user>, car il n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitNotOnPolicy: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> au lieu de son remplaçant de vacances <mention-user>@${delegate}</mention-user>, car cette personne n’est pas membre de la politique de cette note de frais`,
+            delegateSubmitCannotApproveOwnReportForWingman: (originalManager: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car vous ne pouvez pas approuver vos propres notes de frais`,
+            delegateSubmitCannotApproveOwnReportAsOriginalManager: (delegate: string) =>
+                `Cette note de frais vous a été envoyée pour approbation, car votre remplaçant pour congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
+            delegateSubmitCannotApproveOwnReport: (originalManager: string, delegate: string) =>
+                `Cette note de frais a été envoyée à <mention-user>@${originalManager}</mention-user> pour approbation, car son délégué de congés, <mention-user>@${delegate}</mention-user>, ne peut pas approuver ses propres notes de frais`,
         },
         chooseWorkspace: 'Choisir un espace de travail',
         routedDueToDEW: (to: string, reason?: string) => `note de frais acheminée vers ${to}${reason ? ` parce que ${reason}` : ''}`,
@@ -2055,6 +2067,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar de profil',
         customInstructions: 'Instructions personnalisées',
         copilotIntoAccount: 'Copilot dans le compte',
+        viewUserHistory: 'Voir l’historique de l’utilisateur',
+        viewAgentHistory: 'Voir l’historique de l’agent',
         publicSection: {
             title: 'Public',
             subtitle: 'Ces informations sont affichées sur votre profil public. Tout le monde peut les voir.',
@@ -2148,6 +2162,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Veuillez installer la dernière version d’Expensify',
         toGetLatestChanges: 'Sur mobile, téléchargez et installez la dernière version. Sur le web, actualisez votre navigateur.',
         newAppNotAvailable: 'Mettez à jour maintenant et vous nous remercierez plus tard.',
+        updateAvailable: 'Mise à jour disponible',
+        pleaseRefresh: 'Veuillez actualiser cette page pour obtenir la dernière version d’Expensify.',
+        refreshPage: 'Actualiser la page',
     },
     initialSettingsPage: {
         about: 'À propos',
@@ -3197,6 +3214,7 @@ ${amount} pour ${merchant} - ${date}`,
         accounting: {
             title: 'Utilisez-vous un logiciel de comptabilité ?',
             none: 'Aucun',
+            otherAccountingSoftware: 'Votre logiciel de comptabilité',
         },
         interestedFeatures: {
             title: 'Quelles fonctionnalités vous intéressent ?',
@@ -4666,6 +4684,7 @@ ${amount} pour ${merchant} - ${date}`,
             paymentsAdminAlternateText: 'Gérer les paiements de workflow.',
             readOnlyActionTitle: 'Pas si vite...',
             readOnlyActionPrompt: 'Votre rôle dans cet espace de travail peut afficher ces paramètres, mais ne peut pas les modifier.',
+            noAccessActionPrompt: 'Votre rôle dans l’espace de travail n’a pas accès à ces paramètres. Demandez à un administrateur si vous en avez besoin.',
         },
         createdForClient: {
             title: 'Vous avez créé un espace de travail pour votre client !',
@@ -5717,9 +5736,9 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             billPaymentAccount: {label: 'Compte de paiement des factures', description: 'Choisissez d’où payer les factures et nous créerons le paiement dans Rillet.'},
             syncExpensifyCardSettlements: 'Synchroniser les règlements de Carte Expensify',
             settlementAccount: {label: 'Compte de règlement de la Carte Expensify', description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.'},
-            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage',
+            syncTravelInvoicingSettlements: 'Synchroniser les règlements de facturation de voyage consolidée',
             travelInvoicingSettlementAccount: {
-                label: 'Compte de règlement de facturation de voyage',
+                label: 'Compte de règlement de facturation de voyage consolidée',
                 description: 'Choisissez votre compte de règlement et nous créerons le paiement dans Rillet.',
             },
             exportToMultipleAccounts: 'Configurer l’export vers plusieurs comptes',
@@ -5910,6 +5929,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             directFeed: 'Flux direct',
             whoNeedsCardAssigned: 'Qui doit se voir assigner une carte ?',
             chooseTheCardholder: 'Choisir le titulaire de la carte',
+            pleaseSelectACardholder: 'Veuillez sélectionner un titulaire de carte pour continuer',
             chooseCard: 'Choisir une carte',
             chooseCardFor: (assignee: string) =>
                 `Choisissez une carte pour <strong>${assignee}</strong>. Vous ne trouvez pas la carte que vous cherchez ? <concierge-link>Dites-le-nous.</concierge-link>`,
@@ -5995,6 +6015,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             settlementFrequencyDescription: 'Choisissez la fréquence à laquelle vous réglerez le solde de votre Carte Expensify.',
             settlementFrequencyInfo:
                 'Si vous souhaitez passer à un règlement mensuel, vous devrez connecter votre compte bancaire via Plaid et disposer d’un historique de solde positif sur 90 jours.',
+            monthlySettlementDate: (date: string) => `Les règlements des Cartes Expensify auront lieu le ${date} de chaque mois.`,
             applyCashbackToBill: 'Appliquer le cashback à ma facture Expensify',
             applyCashbackToBillDescription: 'Le cashback de la carte Expensify sera utilisé pour le paiement de votre facture Expensify.',
             frequency: {
@@ -6056,6 +6077,7 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             deleteFailureMessage: "Une erreur s'est produite lors de la suppression de la catégorie, veuillez réessayer",
             categoryName: 'Nom de la catégorie',
             requiresCategory: 'Les membres doivent catégoriser toutes les dépenses',
+            showCategoryGLCodes: 'Afficher les codes de grand livre lors de la catégorisation des dépenses',
             needCategoryForExportToIntegration: (connectionName: string) => `Toutes les dépenses doivent être catégorisées afin de pouvoir être exportées vers ${connectionName}.`,
             subtitle: 'Obtenez une meilleure vue d’ensemble de l’endroit où l’argent est dépensé. Utilisez nos catégories par défaut ou ajoutez les vôtres.',
             emptyCategories: {
@@ -7285,6 +7307,31 @@ ${reportName}`,
             confirmText: 'Oui, exporter à nouveau',
             cancelText: 'Annuler',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Attention !',
+            description: (connectionName: ConnectionName) =>
+                `Les notes de frais sélectionnées sont connectées à différentes entreprises ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais connectées à la même entreprise, puis réessayez.`,
+            confirmText: 'Compris',
+        },
+        exportPartialModal: {
+            title: (exportableCount: number, selectedCount: number, integration: ConnectionName) =>
+                `Exporter ${exportableCount}/${selectedCount} rapports vers ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
+            description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Seuls les rapports connectés à ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Seuls les rapports éligibles à l’exportation seront exportés.`);
+                }
+                return `${reasons.join('\n\n')}\n\nLes rapports suivants seront exportés :`;
+            },
+            confirmText: () => ({
+                one: `Exporter 1 rapport`,
+                other: (count: number) => `Exporter ${count} rapports`,
+            }),
+            cancelText: 'Annuler',
+        },
         upgrade: {
             reportFields: {
                 title: 'Champs de note de frais',
@@ -7623,8 +7670,7 @@ Rendez obligatoires des informations de dépense comme les reçus et les descrip
                 alwaysNonReimbursable: 'Toujours non remboursable',
                 alwaysNonReimbursableDescription: 'Les dépenses ne sont jamais remboursées aux employés',
                 billableDefault: 'Facturable par défaut',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut. Les dépenses facturables sont activées ou désactivées dans les <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                billableDefaultDescription: 'Choisissez si les dépenses en espèces et par carte de crédit doivent être facturables par défaut.',
                 billable: 'Facturable',
                 billableDescription: 'Les dépenses sont le plus souvent refacturées aux clients',
                 nonBillable: 'Non refacturable',
@@ -9078,6 +9124,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                 travelInvoicing: 'Facturation de voyages consolidée',
             },
             bankAccount: {banks: 'Comptes bancaires', closedBankAccounts: 'Comptes bancaires fermés'},
+            workspace: {active: 'Actif', archived: 'Archivé', selectAll: 'Tout sélectionner'},
             reportField: (name: string, value: string) => `${name} est ${value}`,
             current: 'Actuel',
             past: 'Passé',
@@ -9112,7 +9159,7 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Carte Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Remboursement',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Facturation de voyages consolidée',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Facturation de voyages consolidée',
             },
             is: 'Est',
             has: {submittedViolation: 'Infraction soumise'},
@@ -9510,7 +9557,6 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
         decline: 'Refuser',
     },
     actionableMentionTrackExpense: {
-        submit: 'Soumettre à quelqu’un',
         submitToFriend: 'Soumettre à un ami',
         submitToEmployer: 'Soumettre à mon employeur',
         categorize: 'Catégorisez-la',
@@ -10039,6 +10085,14 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
                     `<strong>${discountType} % de réduction sur votre première année !</strong> Ajoutez simplement une carte de paiement et commencez un abonnement annuel.`,
                 onboardingChatTitle: (discountType: number) => `Offre limitée : ${discountType} % de réduction sur votre première année !`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Réclamer dans ${days > 0 ? `${days}j :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
+            },
+            travelInvoiceOverdue: {
+                title: 'Votre facture de voyage est en retard de paiement',
+                subtitle: (date: string) => `Payez votre facture de voyage avant le ${date} pour continuer à réserver des voyages.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'La réservation de voyages est en pause',
+                subtitle: 'Votre facture de voyage est en retard de paiement. Payez-la pour pouvoir à nouveau réserver des voyages.',
             },
         },
         cardSection: {

@@ -3,22 +3,15 @@ import ThreeDotsMenu from '@components/ThreeDotsMenu';
 
 import CONST from '@src/CONST';
 import type AnchorAlignment from '@src/types/utils/AnchorAlignment';
-import type IconAsset from '@src/types/utils/IconAsset';
 
-import React from 'react';
+const DEFAULT_ANCHOR_ALIGNMENT: AnchorAlignment = {
+    horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
+    vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
+};
 
 type HeaderThreeDotsMenuProps = {
     /** Menu items. Config-array seam (wraps the v1 `ThreeDotsMenu`) until it migrates to `PopoverMenu/v2`. */
     items: PopoverMenuItem[];
-
-    /** Icon displayed on the three-dots trigger. */
-    icon?: IconAsset;
-
-    /** The fill color to pass into the trigger icon. */
-    iconFill?: string;
-
-    /** Whether the three-dots button is disabled. */
-    disabled?: boolean;
 
     /** Method to trigger when pressing the more options (three dots) button. */
     onIconPress?: () => void;
@@ -33,25 +26,11 @@ type HeaderThreeDotsMenuProps = {
     shouldSetModalVisibility?: boolean;
 };
 
-function HeaderThreeDotsMenu({
-    items,
-    icon,
-    iconFill,
-    disabled = false,
-    onIconPress = () => {},
-    shouldOverlay = false,
-    anchorAlignment = {
-        horizontal: CONST.MODAL.ANCHOR_ORIGIN_HORIZONTAL.RIGHT,
-        vertical: CONST.MODAL.ANCHOR_ORIGIN_VERTICAL.TOP,
-    },
-    shouldSetModalVisibility = true,
-}: HeaderThreeDotsMenuProps) {
+function HeaderThreeDotsMenu({items, onIconPress = () => {}, shouldOverlay = false, anchorAlignment = DEFAULT_ANCHOR_ALIGNMENT, shouldSetModalVisibility = true}: HeaderThreeDotsMenuProps) {
     return (
         <ThreeDotsMenu
             shouldSelfPosition
-            icon={icon}
-            iconFill={iconFill}
-            disabled={disabled}
+            disabled={false}
             menuItems={items}
             onIconPress={onIconPress}
             shouldOverlay={shouldOverlay}
@@ -63,3 +42,4 @@ function HeaderThreeDotsMenu({
 }
 
 export default HeaderThreeDotsMenu;
+export {DEFAULT_ANCHOR_ALIGNMENT};

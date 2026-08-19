@@ -8,10 +8,6 @@ import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
-
-import {useHeaderContext} from '../context';
-
 type HeaderIconProps = {
     /** Icon displayed on the left of the title. */
     src: IconAsset;
@@ -24,11 +20,13 @@ type HeaderIconProps = {
 
     /** Any additional styles to pass to the icon container. */
     style?: StyleProp<ViewStyle>;
+
+    /** Optional fill color for the icon. */
+    iconFill?: string;
 };
 
-function HeaderIcon({src, width, height, style}: HeaderIconProps) {
+function HeaderIcon({src, width, height, style, iconFill}: HeaderIconProps) {
     const styles = useThemeStyles();
-    const {iconFill} = useHeaderContext();
 
     return (
         <Icon
