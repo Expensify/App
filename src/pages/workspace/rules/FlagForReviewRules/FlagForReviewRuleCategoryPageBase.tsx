@@ -105,10 +105,7 @@ function FlagForReviewRuleCategoryPageBase({policyID, categoryName}: FlagForRevi
     } else if (arePolicyCategoriesLoading) {
         content = (
             <View style={[styles.flex1, styles.justifyContentCenter, styles.alignItemsCenter]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={{context: 'FlagForReviewRuleCategoryPageBase'}}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     } else {
