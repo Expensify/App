@@ -209,7 +209,7 @@ function IOURequestStepOdometerImage({
                     })
                     .then((photo: PhotoFile) => {
                         const imageObject: ImageObject = {file: photo, filename: photo.path, source: getPhotoSource(photo.path)};
-                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height, undefined, photo.orientation)
+                        cropImageToAspectRatio(imageObject, viewfinderLayout.current?.width, viewfinderLayout.current?.height)
                             .then(({file, filename, source}) =>
                                 ReceiptStorage.adopt(source, filename).then((durableName) => ({file, filename, source: ReceiptStorage.toLocalUri(durableName)})),
                             )

@@ -54,9 +54,6 @@ function cropImageToAspectRatio(
 
     /** Vertically align the crop to the top (true) or center (false) */
     shouldAlignTop?: boolean,
-
-    /** Image orientation determined by react-native-image-size that depends on device orientation */
-    orientation?: Orientation,
 ): Promise<ImageObject> {
     return ImageSize.getSize(image.source)
         .then((imageSize) => {
@@ -65,7 +62,7 @@ function cropImageToAspectRatio(
                 imageHeight,
                 aspectRatioWidth: ratioWidth,
                 aspectRatioHeight: ratioHeight,
-            } = getDeviceOrientationAwareImageSize({imageSize, orientation, aspectRatioWidth, aspectRatioHeight});
+            } = getDeviceOrientationAwareImageSize({imageSize, aspectRatioWidth, aspectRatioHeight});
 
             if (!imageWidth || !imageHeight || !ratioWidth || !ratioHeight) {
                 return image;
