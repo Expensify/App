@@ -9,6 +9,9 @@ import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
 import {getAuthorizationEndpoint, getOAuthRedirectURI, getQAOrigin, getTokenEndpoint} from './Config';
 
+/** A hung token endpoint would otherwise hold the cross-tab refresh lock indefinitely */
+const TOKEN_ENDPOINT_TIMEOUT_MS = 10_000;
+
 /** A protocol-reported error (or a malformed response); `code` is the OAuth code, e.g. `invalid_grant` */
 class OAuthError extends Error {
     constructor(
@@ -26,6 +29,8 @@ async function postTokenEndpoint(body: URLSearchParams): Promise<CloudflareSessi
         headers: [['Content-Type', 'application/x-www-form-urlencoded']],
         body: body.toString(),
         credentials: 'omit',
+        // Times out as a transient transport error (not an OAuthError), so the session stays intact
+        signal: AbortSignal.timeout(TOKEN_ENDPOINT_TIMEOUT_MS),
     });
 
     const json: unknown = await response.json().catch(() => null);

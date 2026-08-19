@@ -22,7 +22,8 @@ let sessionCache: CloudflareSession | null | undefined;
 
 /**
  * Bumped by sign-out. The async flows below cannot be cancelled, so each captures this at the start and
- * re-checks it after awaits — a mismatch makes the late result inert.
+ * re-checks it after awaits — a mismatch makes the late result inert. Every new `await` added to this
+ * module must re-check the captured generation afterwards.
  */
 let sessionGeneration = 0;
 

@@ -272,6 +272,8 @@ describe('oAuthClient', () => {
         expect(request?.init.method).toBe('POST');
         expect(request?.init.credentials).toBe('omit');
         expect(request?.init.headers).toEqual([['Content-Type', 'application/x-www-form-urlencoded']]);
+        // A hung endpoint must not hold the cross-tab refresh lock forever
+        expect(request?.init.signal).toBeInstanceOf(AbortSignal);
         expect(bodyParams(request?.init)).toEqual(
             Object.fromEntries([
                 ['grant_type', 'authorization_code'],
