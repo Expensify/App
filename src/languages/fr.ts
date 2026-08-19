@@ -3074,7 +3074,13 @@ ${amount} pour ${merchant} - ${date}`,
         prompt: (priorityModePageUrl: string) =>
             `Gardez le contrôle en n’affichant que les discussions non lues ou celles qui nécessitent votre attention. Ne vous inquiétez pas, vous pouvez modifier ce réglage à tout moment dans les <a href="${priorityModePageUrl}">paramètres</a>.`,
     },
-    inboxTabs: {all: 'Tout', todo: 'Tâches', unread: 'Non lu', markAllAsRead: 'Tout marquer comme lu', markAllAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer toutes les discussions comme lues ?'},
+    inboxTabs: {
+        all: 'Tout',
+        todo: 'Tâches',
+        unread: 'Non lu',
+        markAllAsRead: 'Tout marquer comme lu',
+        markAllAsReadConfirmationPrompt: 'Voulez-vous vraiment marquer toutes les discussions comme lues ?',
+    },
     reportDetailsPage: {
         inWorkspace: (policyName: string) => `dans ${policyName}`,
         generatingPDF: 'Générer le PDF',
