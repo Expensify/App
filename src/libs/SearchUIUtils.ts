@@ -3123,7 +3123,7 @@ function getReportSections({
                 const formattedTo = !shouldShowBlankTo ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: toDetails, translate, formatPhoneNumber}) : '';
                 const formattedFirstApprover = firstApproverAccountID ? temporaryGetDisplayNameOrDefault({passedPersonalDetails: firstApproverDetails, translate, formatPhoneNumber}) : '';
 
-                // The paid-by user is the actor on the latest payment action; blank until the report is paid.
+                // The paid-by user is the actor on the latest payment action. It stays blank until the report is paid.
                 const lastReimbursedAction = lastReimbursedActionByReportID.get(reportItem.reportID);
                 const paidByAccountID = lastReimbursedAction?.actorAccountID;
                 const paidByDetails = paidByAccountID ? mergedPersonalDetails?.[paidByAccountID] : undefined;
@@ -5814,6 +5814,7 @@ function getDisplayValue(
         key === FILTER_KEYS.TO_NOT ||
         key === FILTER_KEYS.ATTENDEE ||
         key === FILTER_KEYS.ASSIGNEE ||
+        key === FILTER_KEYS.PAID_BY ||
         key === FILTER_KEYS.TAX_RATE ||
         key === FILTER_KEYS.IN ||
         key === FILTER_KEYS.BANK_ACCOUNT ||
