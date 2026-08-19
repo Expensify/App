@@ -39,14 +39,15 @@ type ButtonBehaviorProps = {
     isLoading?: boolean;
 
     /**
-     * Opt-in: show the loading spinner the moment the button is pressed, ahead of `onPress`. Defaults to false.
+     * Shows the loading spinner the moment the button is pressed, ahead of `onPress`. Defaults to false.
      *
-     * The button owns the pressed state and paints the spinner before running `onPress`, so a JS-blocking handler still
-     * gives instant feedback. When an external `isLoading` turns true the button hands the spinner over to it; otherwise
-     * the pressed state clears once `onPress` settles. It wraps the whole handler, so a handler that needs the spinner on
-     * only some of its branches should call `usePressLoading` itself and drive the `isLoading` prop with it.
+     * The spinner is painted before `onPress` runs, so a JS-blocking handler still gives instant feedback. What clears it
+     * depends on `isLoading` being defined: without one it clears as `onPress` settles, with one the button hands it over,
+     * so pass a stable boolean that does turn true, or none at all.
+     *
+     * It wraps the whole handler; for a spinner on only some branches, drive `isLoading` from your own `usePressLoading`.
      */
-    showInstantLoadingOnPress?: boolean;
+    shouldShowLoadingImmediatelyOnPress?: boolean;
 
     /** Indicates whether the button should be disabled */
     isDisabled?: boolean;

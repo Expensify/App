@@ -71,7 +71,7 @@ function ReportCardLostPage({
     const [isReasonConfirmed, setIsReasonConfirmed] = useState(false);
     const [shouldShowAddressError, setShouldShowAddressError] = useState(false);
     const [shouldShowReasonError, setShouldShowReasonError] = useState(false);
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading});
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: formData?.isLoading ?? false});
 
     const physicalCard = cardList?.[cardID];
 

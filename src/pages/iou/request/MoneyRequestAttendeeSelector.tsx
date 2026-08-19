@@ -155,7 +155,7 @@ function MoneyRequestAttendeeSelector({attendees = [], onFinish, onAttendeesAdde
                 )}
                 <Button
                     variant={CONST.BUTTON_VARIANT.SUCCESS}
-                    onPress={() => confirmSelection()}
+                    onPress={confirmSelection}
                     size={CONST.BUTTON_SIZE.LARGE}
                     isDisabled={shouldShowErrorMessage}
                     sentryLabel={CONST.SENTRY_LABEL.MONEY_REQUEST.ATTENDEES_SAVE_BUTTON}

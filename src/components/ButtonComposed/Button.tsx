@@ -28,7 +28,7 @@ function Button({
     contentContainerStyle = [],
     size = CONST.BUTTON_SIZE.MEDIUM,
     isLoading: isOnyxLoading,
-    showInstantLoadingOnPress = false,
+    shouldShowLoadingImmediatelyOnPress = false,
     isDisabled = false,
     onLayout = () => {},
     onPress = () => {},
@@ -64,24 +64,21 @@ function Button({
         context: 'Button',
     };
 
-    // isLoading is the pressed flag combined with isOnyxLoading, and drives rendering, the press guard and the disabled state.
-    // isOnyxLoading is forwarded undefined when the consumer supplies none, so the hook knows there is no hand-over coming.
-    // resetOnFocus is scoped to the opt-in, so buttons that never engage the mechanism don't subscribe a navigation listener.
-    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading, resetOnFocus: showInstantLoadingOnPress});
+    // Merges the consumer's isLoading with the pressed state into the single flag that drives the spinner.
+    const {isLoading, startWithLoading} = usePressLoading({isLoading: isOnyxLoading, resetOnFocus: shouldShowLoadingImmediatelyOnPress});
 
     // Shared by a pointer press and the Enter shortcut, so both take the same route into onPress.
     const runPress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (isDisabled || isLoading) {
             return;
         }
-        // The opt-in wraps the whole handler. A handler that needs the spinner on only some branches calls usePressLoading
-        // itself and drives the isLoading prop with it, so onPress keeps the signature every other press handler already has.
-        if (showInstantLoadingOnPress) {
+        if (shouldShowLoadingImmediatelyOnPress) {
             return startWithLoading(() => onPress(event));
         }
         return onPress(event);
     };
 
+    // Entry point for a pointer press: drops focus from the pressed element and fires haptic feedback before the shared press logic.
     const handlePress = (event?: GestureResponderEvent | KeyboardEvent) => {
         if (event?.type === 'click') {
             const currentTarget = event?.currentTarget as HTMLElement;
@@ -95,9 +92,7 @@ function Button({
         return runPress(event);
     };
 
-    // The Enter shortcut is fired by ButtonKeyboardShortcut through the actions context. It shares runPress with a pointer press so the
-    // immediate spinner works on Enter too, and skips the mouse-only blur/haptic handling. Living in the actions context (functions only)
-    // keeps it clear of rulesdir/context-provider-split-values.
+    // Entry point for the Enter shortcut: same press logic as a pointer press, without the mouse-only blur and haptic feedback.
     const handleEnterPress = () => runPress();
 
     const buttonVariantStyles = useMemo(() => {

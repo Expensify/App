@@ -21,57 +21,42 @@ type UsePressLoadingReturn = {
 /**
  * Shows a spinner the moment a button is pressed, so the interaction feels responsive and the INP metric improves.
  *
- * On many submit buttons nothing visible happens for a while after the press, because the handler runs a
- * Onyx update that forces many components on the page to re-render before the new state appears.
- * This hook shows the loading and lets React paint it first, then runs the real work, so the user gets immediate
- * feedback instead of an unresponsive button. When a loading state already exists, pass it in as isLoading so the
- * spinner is guaranteed to render before the heavy work starts.
+ * Submit handlers often run an Onyx update that re-renders the whole page before anything appears, leaving the button
+ * dead in the meantime. This paints the spinner first, then runs the real work. Pass any loading state that already
+ * exists as isLoading, so the spinner is guaranteed to render before the heavy work starts.
  */
 function usePressLoading({isLoading, resetOnFocus = true}: UsePressLoadingOptions = {}): UsePressLoadingReturn {
     const [isPressed, setIsPressed] = useState(false);
 
-    // Whether someone else can take the loading state over once the work settles. Drives the clear below.
     const hasExternalLoading = isLoading !== undefined;
 
-    // Resetting here hands the loading state over from the local press flag to the external isLoading once it turns true.
     if (isPressed && isLoading) {
         setIsPressed(false);
     }
     // Defer the work by one macrotask so React can commit isPressed and paint the spinner before the consumer code that may block the JS thread runs.
-    // The work is awaited so the pressed state clears once it settles, whether it resolves or rejects. A rejection still propagates to the caller.
     const startWithLoading = async (runAfterPaint: () => void | Promise<void>) => {
         setIsPressed(true);
         await new Promise((resolve) => {
             setTimeout(resolve, 0);
         });
-        // Written as catch-and-rethrow rather than finally because the React Compiler cannot lower a try without a catch clause.
         try {
             await runAfterPaint();
         } catch (error) {
             setIsPressed(false);
             throw error;
         }
-        // Clearing on success only when there is no external isLoading to hand over to. The consumer is disabled while the flag is set, so a
-        // handler that returns without navigating (a validation bail-out) would otherwise leave it spinning and unpressable for good. Clearing
-        // unconditionally would be worse: the work is usually synchronous, so this resolves a microtask later, long before an Onyx-driven flag
-        // arrives — the spinner would blink off during exactly the wait it exists to cover, and the press guard would reopen with it.
         if (!hasExternalLoading) {
             setIsPressed(false);
         }
     };
 
-    // Reset on focus regain covers flows that navigate away and come back with no external isLoading to hand off to.
-    // NavigationContext is read directly because useNavigation (and so useFocusEffect) throws with no NavigationContainer above it, and this
-    // hook is also used by components that render outside one — there the reset is skipped, as there is nothing to focus.
     const navigationContext = useContext(NavigationContext);
 
-    // Subscribed for the hook's lifetime rather than only while a press is pending, so a press doesn't re-subscribe mid-flight.
-    // The functional updater keeps that cheap: returning the same value skips the re-render for consumers that are never pressed.
     useEffect(() => {
         if (!resetOnFocus || !navigationContext) {
             return;
         }
-        return navigationContext.addListener('focus', () => setIsPressed((wasPressed) => (wasPressed ? false : wasPressed)));
+        return navigationContext.addListener('focus', () => setIsPressed(false));
     }, [resetOnFocus, navigationContext]);
 
     return {isLoading: isPressed || !!isLoading, startWithLoading};
