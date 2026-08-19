@@ -17385,7 +17385,6 @@ describe('ReportUtils', () => {
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
                 const spanishResult = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimalsLocal);
 
-                // Text stored on a report action is English only, so the fallback must not switch to 'Oculto'
                 expect(spanishResult).toBe(englishResult);
                 expect(spanishResult).toContain('Hidden');
                 expect(spanishResult).not.toContain(translate(CONST.LOCALES.ES, 'common.hidden'));
