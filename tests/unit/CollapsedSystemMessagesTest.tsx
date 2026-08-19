@@ -1,7 +1,8 @@
 import {fireEvent, render, screen} from '@testing-library/react-native';
 
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
-import CollapsedSystemMessages from '@components/MoneyRequestReportView/CollapsedSystemMessages';
+
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 
 import React from 'react';
 
@@ -13,12 +14,12 @@ jest.mock('@hooks/useLazyAsset', () => ({
 }));
 
 jest.mock('@hooks/useLocalize', () => () => ({
-    translate: (_key: string, options?: {count?: number}) => {
+    translate: (_key: string, options?: {count?: number; isExpanded?: boolean}) => {
         const count = options?.count;
         if (count === undefined) {
             return 'New message line indicator';
         }
-        return count === 1 ? '1 action' : `${count} actions`;
+        return `${options?.isExpanded ? 'Hide' : 'Show'} ${count === 1 ? '1 action' : `${count} actions`}`;
     },
 }));
 
@@ -35,7 +36,7 @@ describe('CollapsedSystemMessages', () => {
             </LocaleContextProvider>,
         );
 
-        const control = screen.getByRole('button', {name: '4 actions'});
+        const control = screen.getByRole('button', {name: 'Show 4 actions'});
         expect(control.props.accessibilityState).toMatchObject({expanded: false});
 
         fireEvent.press(control);
@@ -53,7 +54,7 @@ describe('CollapsedSystemMessages', () => {
             </LocaleContextProvider>,
         );
 
-        expect(screen.getByRole('button', {name: '1 action'}).props.accessibilityState).toMatchObject({expanded: true});
+        expect(screen.getByRole('button', {name: 'Hide 1 action'}).props.accessibilityState).toMatchObject({expanded: true});
     });
 
     it('renders an unread marker for a member represented by the collapsed row', () => {

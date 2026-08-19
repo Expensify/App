@@ -1,8 +1,8 @@
 import {act, renderHook} from '@testing-library/react-native';
 
-import useMoneyRequestReportActionsPresentation from '@components/MoneyRequestReportView/useMoneyRequestReportActionsPresentation';
-
 import * as ReportActionsUtils from '@libs/ReportActionsUtils';
+
+import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 
 import CONST from '@src/CONST';
 import type {ReportAction} from '@src/types/onyx';
@@ -17,13 +17,13 @@ function makeAction(reportActionID: string): ReportAction {
     };
 }
 
-describe('useMoneyRequestReportActionsPresentation', () => {
+describe('useReportActionsPresentation', () => {
     const visibleReportActions = [makeAction('1'), makeAction('2'), makeAction('3')];
 
     it('expands a linked member once and permits an explicit collapse', () => {
         const {result, rerender} = renderHook(
             (props: {linkedReportActionID?: string}) =>
-                useMoneyRequestReportActionsPresentation({
+                useReportActionsPresentation({
                     visibleReportActions,
                     linkedReportActionID: props.linkedReportActionID,
                 }),
@@ -50,7 +50,7 @@ describe('useMoneyRequestReportActionsPresentation', () => {
         const separatedVisibleReportActions = [makeAction('1'), makeAction('2'), {...makeAction('3'), actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT}, makeAction('4'), makeAction('5')];
         const {result, rerender} = renderHook(
             (props: {linkedReportActionID?: string}) =>
-                useMoneyRequestReportActionsPresentation({
+                useReportActionsPresentation({
                     visibleReportActions: separatedVisibleReportActions,
                     linkedReportActionID: props.linkedReportActionID,
                 }),
@@ -74,7 +74,7 @@ describe('useMoneyRequestReportActionsPresentation', () => {
         const initialProps: {linkedReportActionID?: string} = {linkedReportActionID: '2'};
         const {result, rerender} = renderHook(
             (props: {linkedReportActionID?: string}) =>
-                useMoneyRequestReportActionsPresentation({
+                useReportActionsPresentation({
                     visibleReportActions,
                     linkedReportActionID: props.linkedReportActionID,
                 }),
@@ -97,7 +97,7 @@ describe('useMoneyRequestReportActionsPresentation', () => {
 
     it('keeps an unread member collapsed and maps its marker to the summary row', () => {
         const {result} = renderHook(() =>
-            useMoneyRequestReportActionsPresentation({
+            useReportActionsPresentation({
                 visibleReportActions,
                 unreadMarkerReportActionID: '2',
             }),

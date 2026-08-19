@@ -106,6 +106,29 @@ describe('system message presentation', () => {
             expect(isSystemMessageAction(makeAction('1', actionName))).toBe(true);
         });
 
+        it('classifies payment audit actions without sweeping in interactive money requests', () => {
+            const paymentAction = makeAction('1', CONST.REPORT.ACTIONS.TYPE.IOU, {
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.PAY,
+                    paymentType: CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                },
+            });
+            const requestAction = makeAction('2', CONST.REPORT.ACTIONS.TYPE.IOU, {
+                originalMessage: {
+                    type: CONST.IOU.REPORT_ACTION_TYPE.CREATE,
+                    amount: 10000,
+                    currency: CONST.CURRENCY.USD,
+                },
+            });
+
+            expect(isSystemMessageAction(paymentAction)).toBe(true);
+            expect(isCollapsibleSystemMessageAction(paymentAction)).toBe(true);
+            expect(isSystemMessageAction(requestAction)).toBe(false);
+            expect(isCollapsibleSystemMessageAction(requestAction)).toBe(false);
+        });
+
         it.each(OLD_DOT_SYSTEM_MESSAGE_ACTION_TYPES)('classifies the legacy audit action %s as a system message', (actionName) => {
             expect(isSystemMessageAction(makeAction('1', actionName))).toBe(true);
         });

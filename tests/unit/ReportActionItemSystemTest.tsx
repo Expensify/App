@@ -52,7 +52,7 @@ jest.mock('@hooks/useThemeStyles', () => {
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getCompactContentContainerStyles: () => ({alignItems: 'baseline'})})));
 
 describe('ReportActionItemSystem', () => {
-    it('renders the actor inline with the system action content', () => {
+    it('renders the actor and action together with the timestamp on a separate line', () => {
         const action: ReportAction = {
             reportActionID: '1',
             actionName: CONST.REPORT.ACTIONS.TYPE.SUBMITTED,
@@ -75,8 +75,14 @@ describe('ReportActionItemSystem', () => {
         expect(screen.getByText('Todd Clyde ')).toBeOnTheScreen();
         expect(screen.getByText('submitted')).toBeOnTheScreen();
         expect(screen.getByText('2026-07-30 00:00:00.000')).toBeOnTheScreen();
-        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000', isLowercase: true});
+        expect(jest.mocked(ReportActionItemDate).mock.calls.at(-1)?.[0]).toEqual({created: '2026-07-30 00:00:00.000'});
         expect(jest.mocked(useReportActionAvatars)).toHaveBeenLastCalledWith(expect.objectContaining({shouldUseRealActor: true}));
+
+        const actor = screen.getByText('Todd Clyde ');
+        const content = screen.getByText('submitted');
+        const timestamp = screen.getByText('2026-07-30 00:00:00.000');
+        expect(actor.parent).toBe(content.parent);
+        expect(timestamp.parent).not.toBe(content.parent);
     });
 
     it('preserves delegated actor attribution in the inline system row', () => {

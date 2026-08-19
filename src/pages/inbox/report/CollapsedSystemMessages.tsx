@@ -34,7 +34,7 @@ function CollapsedSystemMessages({count, isExpanded, onPress, unreadMarkerReport
     const theme = useTheme();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
-    const label = translate('report.collapsedSystemMessages', {count});
+    const label = translate('report.collapsedSystemMessages', {count, isExpanded});
 
     return (
         <View>

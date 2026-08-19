@@ -4,18 +4,18 @@ import type {ReportAction} from '@src/types/onyx';
 
 import {useState} from 'react';
 
-type MoneyRequestReportActionsPresentationProps = {
-    /** Canonical filtered report actions in chronological order. */
+type ReportActionsPresentationProps = {
+    /** Canonical filtered report actions in their rendered chronological direction. */
     visibleReportActions: ReportAction[];
 
     /** The action targeted by the current report route, if any. */
     linkedReportActionID?: string;
 
     /** The canonical action above which the unread marker belongs, if any. */
-    unreadMarkerReportActionID?: string;
+    unreadMarkerReportActionID?: string | null;
 };
 
-function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: MoneyRequestReportActionsPresentationProps) {
+function useReportActionsPresentation({visibleReportActions, linkedReportActionID, unreadMarkerReportActionID}: ReportActionsPresentationProps) {
     const [expandedSystemMessageReportActionIDs, setExpandedSystemMessageReportActionIDs] = useState<Set<string>>(() => new Set());
     const [manuallyCollapsedLinkedReportActionID, setManuallyCollapsedLinkedReportActionID] = useState<string>();
     const [previousLinkedReportActionID, setPreviousLinkedReportActionID] = useState(linkedReportActionID);
@@ -62,4 +62,4 @@ function useMoneyRequestReportActionsPresentation({visibleReportActions, linkedR
     };
 }
 
-export default useMoneyRequestReportActionsPresentation;
+export default useReportActionsPresentation;

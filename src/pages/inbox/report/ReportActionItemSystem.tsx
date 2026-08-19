@@ -36,31 +36,30 @@ function ReportActionItemSystemContent({children, action, report, iouReport, sho
     const actorName = avatarActorName?.length ? avatarActorName : fallbackActorName;
 
     return (
-        <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
-            {!!actorName && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${actorName} `}</Text>}
-            {!!delegateAccountID && (
-                <View style={styles.mr1}>
-                    <DelegateOnBehalfOfText
-                        mainAccountID={mainAccountID}
-                        fallbackLogin={details.login}
-                    />
-                </View>
-            )}
-            {!!humanAgentAccountID && (
-                <View style={styles.mr1}>
-                    <HumanAgentAssistedByText action={action} />
-                </View>
-            )}
-            {hasVacationDelegate && (
-                <View style={styles.mr1}>
-                    <VacationDelegateText action={action} />
-                </View>
-            )}
-            <View style={[styles.flexShrink1, styles.mr1]}>{children}</View>
-            <ReportActionItemDate
-                created={action.created ?? ''}
-                isLowercase
-            />
+        <View style={styles.flexShrink1}>
+            <View style={[styles.flexRow, styles.flexWrap, StyleUtils.getCompactContentContainerStyles()]}>
+                {!!actorName && <Text style={[styles.chatItemMessage, styles.colorMuted]}>{`${actorName} `}</Text>}
+                {!!delegateAccountID && (
+                    <View style={styles.mr1}>
+                        <DelegateOnBehalfOfText
+                            mainAccountID={mainAccountID}
+                            fallbackLogin={details.login}
+                        />
+                    </View>
+                )}
+                {!!humanAgentAccountID && (
+                    <View style={styles.mr1}>
+                        <HumanAgentAssistedByText action={action} />
+                    </View>
+                )}
+                {hasVacationDelegate && (
+                    <View style={styles.mr1}>
+                        <VacationDelegateText action={action} />
+                    </View>
+                )}
+                <View style={styles.flexShrink1}>{children}</View>
+            </View>
+            <ReportActionItemDate created={action.created ?? ''} />
         </View>
     );
 }

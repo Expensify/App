@@ -53,11 +53,13 @@ import ConciergeThinkingMessage from '@pages/home/report/ConciergeThinkingMessag
 import {useActionListContext, useActionListRef} from '@pages/inbox/ActionListContext';
 import {useAgentZeroStatus} from '@pages/inbox/AgentZeroStatusContext';
 import {useConciergeDraft} from '@pages/inbox/ConciergeDraftContext';
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
 import FloatingMessageCounter from '@pages/inbox/report/FloatingMessageCounter';
 import ReportActionIndexContext from '@pages/inbox/report/ReportActionIndexContext';
 import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
 import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 import {getUnreadMarkerReportAction} from '@pages/inbox/report/shouldDisplayNewMarkerOnReportAction';
+import useReportActionsPresentation from '@pages/inbox/report/useReportActionsPresentation';
 import useReportUnreadMessageScrollTracking from '@pages/inbox/report/useReportUnreadMessageScrollTracking';
 
 import {getOlderActions, openReport, readNewestAction, subscribeToNewActionEvent} from '@userActions/Report';
@@ -77,12 +79,10 @@ import isEmpty from 'lodash/isEmpty';
 import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
 import {DeviceEventEmitter, View} from 'react-native';
 
-import CollapsedSystemMessages from './CollapsedSystemMessages';
 import MoneyRequestReportTransactionList from './MoneyRequestReportTransactionList';
 import MoneyRequestViewReportFields from './MoneyRequestViewReportFields';
 import SearchMoneyRequestReportEmptyState from './SearchMoneyRequestReportEmptyState';
 import SelectionToolbar from './SelectionToolbar';
-import useMoneyRequestReportActionsPresentation from './useMoneyRequestReportActionsPresentation';
 
 /**
  * In this view we are not handling the special single transaction case, we're just handling the report
@@ -464,12 +464,11 @@ function MoneyRequestReportActionsList({onLayout}: MoneyRequestReportListProps) 
     });
     const unreadMarkerReportActionID = nullableUnreadMarkerReportActionID ?? undefined;
 
-    const {displayReportActions, runsByAnchorReportActionID, unreadMarkerReportActionIndex, expandedSystemMessageReportActionIDs, toggleSystemMessageRun} =
-        useMoneyRequestReportActionsPresentation({
-            visibleReportActions,
-            linkedReportActionID,
-            unreadMarkerReportActionID,
-        });
+    const {displayReportActions, runsByAnchorReportActionID, unreadMarkerReportActionIndex, expandedSystemMessageReportActionIDs, toggleSystemMessageRun} = useReportActionsPresentation({
+        visibleReportActions,
+        linkedReportActionID,
+        unreadMarkerReportActionID,
+    });
     const visibleReportActionIndexByID = new Map(visibleReportActions.map((reportAction, index) => [reportAction.reportActionID, index]));
 
     const {isFloatingMessageCounterVisible, setIsFloatingMessageCounterVisible, trackVerticalScrolling, onViewableItemsChanged} = useReportUnreadMessageScrollTracking({

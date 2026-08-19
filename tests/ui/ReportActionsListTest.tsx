@@ -19,7 +19,10 @@ import * as ReportActionsUtils from '@libs/ReportActionsUtils';
 
 import {useConciergeDraft, useConciergeDraftActions} from '@pages/inbox/ConciergeDraftContext';
 import {useConciergeSessionActions, useConciergeSessionState} from '@pages/inbox/ConciergeSessionContext';
+import CollapsedSystemMessages from '@pages/inbox/report/CollapsedSystemMessages';
+import ReportActionItemSystem from '@pages/inbox/report/ReportActionItemSystem';
 import ReportActionsList from '@pages/inbox/report/ReportActionsList';
+import ReportActionsListItemRenderer from '@pages/inbox/report/ReportActionsListItemRenderer';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -28,7 +31,7 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type * as ReactNavigation from '@react-navigation/native';
 
-import React from 'react';
+import React, {act} from 'react';
 import Onyx from 'react-native-onyx';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
@@ -169,7 +172,13 @@ const mockReportActionItemCreated: jest.Mock = jest.requireMock('@pages/inbox/re
 const getCapturedVisibleActions = (): OnyxTypes.ReportAction[] | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0)?.data;
 const getCapturedListProps = (): MockInvertedFlashListProps | undefined => mockInvertedFlashList.mock.calls.at(-1)?.at(0);
 
-const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): {shouldDisableContextMenuForConciergeDraft?: boolean} => {
+type CapturedReportActionsListItemProps = {
+    displayAsGroup?: boolean;
+    reportActionItemComponent?: React.ComponentType;
+    shouldDisableContextMenuForConciergeDraft?: boolean;
+};
+
+const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAction, index = 0): CapturedReportActionsListItemProps => {
     const renderedItem = getCapturedListProps()?.renderItem?.({item: reportAction, index});
 
     if (!React.isValidElement<{children: React.ReactNode}>(renderedItem)) {
@@ -177,8 +186,8 @@ const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAct
     }
 
     const child = React.Children.toArray(renderedItem.props.children).find(
-        (item): item is React.ReactElement<{shouldDisableContextMenuForConciergeDraft?: boolean}> =>
-            React.isValidElement<{shouldDisableContextMenuForConciergeDraft?: boolean}>(item) && 'shouldDisableContextMenuForConciergeDraft' in item.props,
+        (item): item is React.ReactElement<CapturedReportActionsListItemProps> =>
+            React.isValidElement<CapturedReportActionsListItemProps>(item) && item.type === ReportActionsListItemRenderer,
     );
 
     if (!child) {
@@ -188,7 +197,24 @@ const getRenderedReportActionsListItemProps = (reportAction: OnyxTypes.ReportAct
     return child.props;
 };
 
+const findRenderedElement = <Props,>(node: React.ReactNode, type: React.ElementType): React.ReactElement<Props> | undefined => {
+    if (React.isValidElement<Props>(node) && node.type === type) {
+        return node;
+    }
+    if (!React.isValidElement<{children?: React.ReactNode}>(node)) {
+        return undefined;
+    }
+    for (const child of React.Children.toArray(node.props.children)) {
+        const match = findRenderedElement<Props>(child, type);
+        if (match) {
+            return match;
+        }
+    }
+    return undefined;
+};
+
 const mockUseMarkAsRead: jest.Mock = jest.requireMock('@hooks/useMarkAsRead');
+const mockUseUnreadMarker: jest.Mock = jest.requireMock('@hooks/useUnreadMarker');
 const mockUseReportActionsScroll: jest.Mock = jest.requireMock('@hooks/useReportActionsScroll');
 const mockMarkOpenReportEnd: jest.Mock = jest.requireMock('@libs/telemetry/markOpenReportEnd');
 
@@ -248,6 +274,7 @@ describe('ReportActionsList (body)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockUseIsReportLoadPending.mockReturnValue(false);
+        mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: null, unreadMarkerReportActionIndex: -1});
 
         mockUseCurrentUserPersonalDetails.mockReturnValue({
             accountID: 100,
@@ -327,6 +354,104 @@ describe('ReportActionsList (body)', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    describe('System message presentation', () => {
+        const systemActions: OnyxTypes.ReportAction[] = [
+            {
+                reportID: mockReport.reportID,
+                reportActionID: 'system-newer',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2023-01-01 00:03:00.000',
+                actorAccountID: 123,
+                message: [{type: 'TEXT', html: 'changed the category', text: 'changed the category'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            },
+            {
+                reportID: mockReport.reportID,
+                reportActionID: 'system-older',
+                actionName: CONST.REPORT.ACTIONS.TYPE.MODIFIED_EXPENSE,
+                created: '2023-01-01 00:02:00.000',
+                actorAccountID: 123,
+                message: [{type: 'TEXT', html: 'changed the merchant', text: 'changed the merchant'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            },
+            {
+                reportID: mockReport.reportID,
+                reportActionID: 'chat-boundary',
+                actionName: CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT,
+                created: '2023-01-01 00:01:00.000',
+                actorAccountID: 123,
+                message: [{type: 'COMMENT', html: 'A chat message', text: 'A chat message'}],
+                originalMessage: {},
+                shouldShow: true,
+                person: [{type: 'TEXT', style: 'strong', text: 'Test User'}],
+                pendingAction: null,
+                errors: {},
+            },
+        ];
+
+        const renderSystemActions = (reportType?: OnyxTypes.Report['type']) => {
+            mockReport.type = reportType;
+            mockUseNetwork.mockReturnValue({isOffline: false});
+            mockUsePaginatedReportActions.mockReturnValue({...defaultPaginatedReportActionsResult, reportActions: systemActions});
+            return renderReportActionsList();
+        };
+
+        afterEach(() => {
+            mockReport.type = undefined;
+        });
+
+        it('collapses and re-expands passive system runs in the standard expense-report list', () => {
+            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'chat-boundary']);
+            expect(getRenderedReportActionsListItemProps(systemActions.at(2) as OnyxTypes.ReportAction, 1)).toMatchObject({displayAsGroup: false});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            const showControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+            expect(showControl?.props).toMatchObject({count: 2, isExpanded: false});
+
+            act(() => {
+                showControl?.props.onPress();
+            });
+
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+            const expandedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            const hideControl = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(expandedAnchor, CollapsedSystemMessages);
+            const systemItem = findRenderedElement<React.ComponentProps<typeof ReportActionsListItemRenderer>>(expandedAnchor, ReportActionsListItemRenderer);
+            expect(hideControl?.props).toMatchObject({count: 2, isExpanded: true});
+            expect(systemItem?.props).toMatchObject({displayAsGroup: true, reportActionItemComponent: ReportActionItemSystem});
+
+            act(() => {
+                hideControl?.props.onPress();
+            });
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'chat-boundary']);
+        });
+
+        it('maps an unread run member to the collapsed summary row', () => {
+            mockUseUnreadMarker.mockReturnValue({unreadMarkerReportActionID: 'system-older', unreadMarkerReportActionIndex: 1});
+            renderSystemActions(CONST.REPORT.TYPE.EXPENSE);
+
+            expect(mockUseReportActionsScroll.mock.calls.at(-1)?.at(0)).toMatchObject({unreadMarkerReportActionIndex: 0});
+            const collapsedAnchor = getCapturedListProps()?.renderItem?.({item: systemActions.at(0) as OnyxTypes.ReportAction, index: 0});
+            const summary = findRenderedElement<React.ComponentProps<typeof CollapsedSystemMessages>>(collapsedAnchor, CollapsedSystemMessages);
+            expect(summary?.props.unreadMarkerReportActionID).toBe('system-older');
+        });
+
+        it('does not collapse passive actions in ordinary chat reports', () => {
+            renderSystemActions(CONST.REPORT.TYPE.CHAT);
+
+            expect(getCapturedVisibleActions()?.map((action) => action.reportActionID)).toEqual(['system-newer', 'system-older', 'chat-boundary']);
+            expect(getRenderedReportActionsListItemProps(systemActions.at(0) as OnyxTypes.ReportAction).reportActionItemComponent).toBeUndefined();
+        });
     });
 
     describe('Concierge Draft Context Menu', () => {

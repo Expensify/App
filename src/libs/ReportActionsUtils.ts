@@ -660,6 +660,7 @@ function isSystemMessageAction(reportAction: OnyxInputOrEntry<ReportAction>): re
 
     return (
         isApprovalFlowAction(reportAction) ||
+        isPayAction(reportAction) ||
         isSimpleMessageAction(reportAction) ||
         isOldDotReportAction(reportAction) ||
         isMemberChangeAction(reportAction) ||
@@ -685,7 +686,7 @@ function isCollapsibleSystemMessageAction(reportAction: OnyxInputOrEntry<ReportA
 }
 
 /**
- * Creates the displayed money-request audit list while retaining a lookup from every canonical action to its rendered row.
+ * Creates a displayed report-action list while retaining a lookup from every canonical action to its rendered row.
  * A run stays expanded when pagination extends it as long as any prior member ID remains in expandedReportActionIDs.
  */
 function getSystemMessageDisplayState(
