@@ -94,16 +94,7 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
         },
     ];
 
-    if (item.isArchived) {
-        if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
-            menuItems.push({
-                icon: icons.Transfer,
-                text: translate('workspace.people.transferOwner'),
-                onSelected: () => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP),
-                shouldCallAfterModalHide: true,
-            });
-        }
-    } else {
+    if (!item.isArchived) {
         if (!isOwner && (item.policyID !== preferredPolicyID || !isRestrictedToPreferredPolicy)) {
             menuItems.push({
                 icon: icons.Exit,
@@ -164,15 +155,16 @@ function WorkspaceRowThreeDotsMenu({item, onDeleteWorkspace, pendingDeletePolicy
                 shouldCallAfterModalHide: !shouldCalculateBillNewDot || wouldBlockDeletion,
             });
         }
+    }
 
-        if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
-            menuItems.push({
-                icon: icons.Transfer,
-                text: translate('workspace.people.transferOwner'),
-                onSelected: () => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP),
-                shouldCallAfterModalHide: true,
-            });
-        }
+    // Transferring ownership applies to both active and archived workspaces, so it lives outside the split above.
+    if (isAdmin && !isOwner && canRenderTransferOwnerButton) {
+        menuItems.push({
+            icon: icons.Transfer,
+            text: translate('workspace.people.transferOwner'),
+            onSelected: () => setActiveAction(CONST.POLICY.THREE_DOT_MENU_ACTION.TRANSFER_OWNERSHIP),
+            shouldCallAfterModalHide: true,
+        });
     }
 
     return (
