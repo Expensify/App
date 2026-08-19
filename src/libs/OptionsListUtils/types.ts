@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 import type {Section as SelectionListSection} from '@components/SelectionList/SelectionListWithSections/types';
 
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
@@ -118,6 +118,7 @@ type LazyHydrationContext = {
 
     /** Locale used when the option list was built. */
     translate: LocalizedTranslate;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SearchOption<T> = SearchOptionData & {
