@@ -28,6 +28,7 @@ import {canSendInvoice, getDefaultChatEnabledPolicy, getGroupPoliciesWhereReport
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {getAllPolicyValues, getFilterFromQuery, isDefaultExpenseReportsQuery, isDefaultExpensesQuery, isSearchBeforeViolationsSnapshotStarted} from '@libs/SearchQueryUtils';
 import {TODO_SEARCH_KEYS} from '@libs/SearchUIUtils';
+import type {SearchTypeMenuSection} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import type {TranslationPaths} from '@src/languages/types';
@@ -59,6 +60,7 @@ type EmptySearchViewProps = {
 
 type EmptySearchViewContentProps = EmptySearchViewProps & {
     currentUserPersonalDetails: PersonalDetails;
+    typeMenuSections: SearchTypeMenuSection[];
     allPolicies: OnyxCollection<Policy>;
     activePolicy: OnyxEntry<Policy>;
     groupPoliciesWithChatEnabled: readonly never[] | Array<OnyxEntry<Policy>>;
@@ -78,6 +80,7 @@ type EmptySearchViewItem = {
 
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const typeMenuSections = useSearchTypeMenuSections();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
@@ -97,6 +100,7 @@ function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violat
                 type={type}
                 hasResults={hasResults}
                 currentUserPersonalDetails={currentUserPersonalDetails}
+                typeMenuSections={typeMenuSections}
                 allPolicies={allPolicies}
                 activePolicy={activePolicy}
                 groupPoliciesWithChatEnabled={groupPoliciesWithChatEnabled}
@@ -121,6 +125,7 @@ function EmptySearchViewContent({
     type,
     hasResults,
     currentUserPersonalDetails,
+    typeMenuSections,
     allPolicies,
     activePolicy,
     groupPoliciesWithChatEnabled,
@@ -136,7 +141,6 @@ function EmptySearchViewContent({
     const isInLandscapeMode = useIsInLandscapeMode();
 
     const illustrations = useMemoizedLazyIllustrations(['EmptyStateTravel']);
-    const typeMenuSections = useSearchTypeMenuSections();
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
