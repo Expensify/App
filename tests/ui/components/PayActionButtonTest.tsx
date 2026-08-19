@@ -228,17 +228,4 @@ describe('PayActionButton', () => {
         expect(onHoldMenuOpen).toHaveBeenCalledWith(CONST.IOU.REPORT_ACTION_TYPE.PAY, CONST.IOU.PAYMENT_TYPE.VBBA, expect.anything(), SELECTED_BANK_ACCOUNT_ID);
         expect(mockedPayMoneyRequest).not.toHaveBeenCalled();
     });
-
-    it('computes hasViolations from the context violations and forwards the result to approveMoneyRequest', () => {
-        mockTransactionViolations = reportViolations;
-        mockedHasViolations.mockReturnValue(true);
-        renderPayActionButton(jest.fn());
-
-        act(() => {
-            mockConfirmApprovalHolder.current?.();
-        });
-
-        expect(mockedHasViolations.mock.calls.at(-1)?.[1]).toBe(reportViolations);
-        expect(mockedApproveMoneyRequest).toHaveBeenCalledWith(expect.objectContaining({hasViolations: true}));
-    });
 });

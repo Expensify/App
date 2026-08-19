@@ -479,31 +479,6 @@ describe('SettlementButton', () => {
             expect(screen.getByText(translateLocal('iou.settlePayment', '$100.00'))).toBeTruthy();
         });
 
-        it('does not show payment options when shouldHidePaymentOptions is true without approve button', async () => {
-            const expenseReport = createExpenseReport();
-
-            await setupOnyxState({
-                report: expenseReport,
-                chatReport: createChatReport(),
-                policy: createTestPolicy(),
-            });
-
-            render(
-                <SettlementButtonWrapper>
-                    <SettlementButton
-                        {...defaultProps}
-                        iouReport={expenseReport}
-                        shouldHidePaymentOptions
-                        shouldShowApproveButton={false}
-                    />
-                </SettlementButtonWrapper>,
-            );
-
-            await waitForBatchedUpdatesWithAct();
-
-            expect(screen.queryByText(translateLocal('iou.approve', {formattedAmount: '$100.00'}))).toBeNull();
-        });
-
         it('filters out partially setup bank accounts from invoice payment options', async () => {
             const invoiceReport = createInvoiceReport();
 

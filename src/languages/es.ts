@@ -2838,7 +2838,6 @@ ${amount} para ${merchant} - ${date}`,
         cardLastFour: 'Tarjeta terminada en',
         addFirstPaymentMethod: 'Añade un método de pago para enviar y recibir pagos directamente desde la aplicación.',
         defaultPaymentMethod: 'Predeterminado',
-        bankAccountLastFour: (lastFour) => `Cuenta bancaria • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agentes',
