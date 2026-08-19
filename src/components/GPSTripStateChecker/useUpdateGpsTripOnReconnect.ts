@@ -6,7 +6,7 @@ import {addressFromGpsPoint, getGpsPoints} from '@libs/GPSDraftDetailsUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {GPSPoint, TrimmedGPSPoint} from '@src/types/onyx/GpsDraftDetails';
 
-import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
+import Onyx from 'react-native-onyx';
 
 function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
     // The trimmed end point is chosen in the Edit Stop screen. When trimmed while offline, its address is stored as
@@ -58,7 +58,7 @@ function useUpdateGpsTripOnReconnect({gpsPoints}: {gpsPoints: GPSPoint[][]}) {
         const waypointAddresses = (await Promise.all(waypointUpdates)).filter((waypoints) => !!waypoints.point.address);
 
         // To avoid race conditions, we need to get the latest gpsDraftDetails, because reverse geocoding may even take a few seconds
-        const latestGpsDraftDetails = OnyxUtils.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
+        const latestGpsDraftDetails = Onyx.get(ONYXKEYS.GPS_DRAFT_DETAILS) ?? undefined;
 
         const latestGpsPoints = getGpsPoints(latestGpsDraftDetails) ?? gpsPoints;
         const newGpsPoints = [...latestGpsPoints];

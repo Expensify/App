@@ -1,6 +1,8 @@
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {Report} from '@src/types/onyx';
 
+import type {OnyxCollection} from 'react-native-onyx';
+
 import Onyx from 'react-native-onyx';
 import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
@@ -174,7 +176,47 @@ describe('synchronous read in the same tick as a write', () => {
  * `Promise.all(promises.map((p) => p()))` invokes the thunks in array order, so array order is
  * execution order.
  */
-describe('update() operation ordering', () => {
+describe('A5: get() on the public Onyx export', () => {
+    // The five existing call sites reach in through `react-native-onyx/dist/OnyxUtils`, which is not part of
+    // the package's public surface. These two guard the patch hunk that puts `get` on the exported object,
+    // so a regenerated patch that drops it fails here rather than in whichever conversion imported it.
+    it('exposes get as a function', () => {
+        expect(typeof Onyx.get).toBe('function');
+    });
+
+    it('returns the same value as the deep import it replaces', async () => {
+        await Onyx.merge(KEY, {primaryLogin: 'public@example.com'});
+
+        expect(Onyx.get(KEY)).toEqual(OnyxUtils.get(KEY));
+        expect(Onyx.get(KEY)?.primaryLogin).toBe('public@example.com');
+    });
+
+    it('reads a whole collection when given a collection key, which the deep import does not', async () => {
+        await Onyx.merge(REPORT_A, {reportID: 'A', reportName: 'First'});
+        await Onyx.merge(REPORT_B, {reportID: 'B', reportName: 'Second'});
+
+        // For a collection key `OnyxValue<TKey>` resolves to `OnyxCollection<Report>`, so this assignment is
+        // what the signature always promised. It holds because the export delegates to `tryGetCachedValue`.
+        const collection: OnyxCollection<Report> = Onyx.get(ONYXKEYS.COLLECTION.REPORT);
+
+        expect(Object.keys(collection ?? {})).toEqual([REPORT_A, REPORT_B]);
+        expect(collection?.[REPORT_A]?.reportName).toBe('First');
+        // `OnyxUtils.get` reads the prefix as an ordinary cache key, so it answers undefined while claiming the
+        // same collection type. That gap is the reason the export does not point at it.
+        expect(OnyxUtils.get(ONYXKEYS.COLLECTION.REPORT)).toBeUndefined();
+    });
+
+    it('still matches the deep import on every single key, which is what the five converted call sites use', async () => {
+        await Onyx.merge(REPORT_A, {reportID: 'A', reportName: 'First'});
+
+        expect(Onyx.get(REPORT_A)).toEqual(OnyxUtils.get(REPORT_A));
+        expect(Onyx.get(REPORT_A)?.reportName).toBe('First');
+        expect(Onyx.get(REPORT_B)).toBeUndefined();
+        expect(OnyxUtils.get(REPORT_B)).toBeUndefined();
+    });
+});
+
+describe('A2: update() operation ordering', () => {
     it('applies a merge on top of a set on the same key in one batch', async () => {
         await Onyx.update([
             {onyxMethod: Onyx.METHOD.SET, key: REPORT_A, value: {reportID: 'A', total: 100}},
