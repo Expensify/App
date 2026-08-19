@@ -54,9 +54,9 @@ import {policyTypeSelector} from '@selectors/Policy';
 import React, {useCallback, useEffect, useMemo} from 'react';
 import {View} from 'react-native';
 
-type SplitExpensePageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE>;
+type SplitExpenseEditPageProps = PlatformStackScreenProps<SplitExpenseParamList, typeof SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT>;
 
-function SplitExpenseEditPage({route}: SplitExpensePageProps) {
+function SplitExpenseEditPage({route}: SplitExpenseEditPageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
