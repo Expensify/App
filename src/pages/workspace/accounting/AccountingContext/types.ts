@@ -5,6 +5,7 @@ import type {View} from 'react-native';
 
 type ActiveIntegration = {
     name: ConnectionName;
+    isIntuitEnterpriseSuite?: boolean;
     shouldDisconnectIntegrationBeforeConnecting?: boolean;
     integrationToDisconnect?: ConnectionName;
 };

@@ -52,6 +52,7 @@ type EditTaskAssigneeOptions = {
     assigneeAccountID?: number | null;
     assigneeChatReport?: OnyxEntry<OnyxTypes.Report>;
     isOptimisticReport?: boolean;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type OptimisticReport = Pick<OnyxTypes.Report, 'reportName' | 'managerID' | 'pendingFields' | 'participants'>;
@@ -84,6 +85,11 @@ type CreateTaskAndNavigateParams = {
     currentUserDisplayName: string | undefined;
     currentUserAvatar: AvatarSource | undefined;
     taskCreatorAndAssigneeDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
+};
+
+type DeleteTaskOptions = {
+    ancestors?: ReportUtils.Ancestor[];
+    shouldNavigateBack?: boolean;
 };
 
 /**
@@ -788,9 +794,15 @@ function editTaskAssignee({
     assigneeAccountID = 0,
     assigneeChatReport,
     isOptimisticReport,
+    formatPhoneNumber,
 }: EditTaskAssigneeOptions) {
     // Create the EditedReportAction on the task
-    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID, delegateEmail);
+    const editTaskReportAction = ReportUtils.buildOptimisticChangedTaskAssigneeReportAction(
+        assigneeAccountID ?? CONST.DEFAULT_NUMBER_ID,
+        currentUserAccountID,
+        delegateEmail,
+        formatPhoneNumber,
+    );
     const reportName = report.reportName?.trim();
 
     let assigneeChatReportOnyxData;
@@ -1127,7 +1139,7 @@ function getAssignee(
 
     return {
         icons: ReportUtils.getIconsForParticipants([details.accountID], personalDetails),
-        displayName: formatPhoneNumber(PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate})),
+        displayName: PersonalDetailsUtils.temporaryGetDisplayNameOrDefault({passedPersonalDetails: details, translate, formatPhoneNumber}),
         subtitle: details.login ?? '',
     };
 }
@@ -1144,6 +1156,7 @@ function getShareDestination(
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
     reportAttributes?: OnyxTypes.ReportAttributesDerivedValue['reports'],
+    pendingDeleteMemberAccountIDs?: string[],
 ): ShareDestination {
     const isOneOnOneChat = ReportUtils.isOneOnOneChat(report);
 
@@ -1169,7 +1182,19 @@ function getShareDestination(
         subtitle = ReportUtils.getChatRoomSubtitle(report, policy, conciergeReportID, translate) ?? '';
     }
     return {
-        icons: ReportUtils.getIcons(report, formatPhoneNumber, translate, personalDetails, FallbackAvatar),
+        icons: ReportUtils.getIcons(
+            report,
+            formatPhoneNumber,
+            translate,
+            personalDetails,
+            FallbackAvatar,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            pendingDeleteMemberAccountIDs,
+        ),
         displayName: deprecatedGetReportName(report, reportAttributes),
         subtitle,
         displayNamesWithTooltips,
@@ -1218,7 +1243,7 @@ function deleteTask(
     conciergeReportID: string | undefined,
     delegateEmail: string | undefined,
     reportActions: OnyxEntry<OnyxTypes.ReportActions>,
-    ancestors: ReportUtils.Ancestor[] = [],
+    {ancestors = [], shouldNavigateBack = true}: DeleteTaskOptions = {},
 ) {
     if (!report) {
         return;
@@ -1343,7 +1368,7 @@ function deleteTask(
     API.write(WRITE_COMMANDS.CANCEL_TASK, parameters, {optimisticData, successData, failureData});
     notifyNewAction(report.reportID, undefined, true);
 
-    const urlToNavigateBack = getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions);
+    const urlToNavigateBack = shouldNavigateBack ? getNavigationUrlOnTaskDelete(report, conciergeReportID, reportActions) : undefined;
     if (urlToNavigateBack) {
         Navigation.goBack();
         return urlToNavigateBack;

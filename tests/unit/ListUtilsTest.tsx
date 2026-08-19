@@ -6,8 +6,10 @@ import type {ThemeStyles} from '@styles/index';
 
 import {View} from 'react-native';
 
+import createMock from '../utils/createMock';
+
 describe('sortDefaultToTop', () => {
-    const styles = {} as ThemeStyles;
+    const styles = createMock<ThemeStyles>({});
     const items: ListItem[] = [
         {
             keyForList: 'roomA',

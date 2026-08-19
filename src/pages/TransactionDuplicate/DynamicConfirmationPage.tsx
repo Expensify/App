@@ -1,6 +1,7 @@
 import FullPageNotFoundView from '@components/BlockingViews/FullPageNotFoundView';
 import Button from '@components/ButtonComposed';
 import FixedFooter from '@components/FixedFooter';
+import FormHelpMessage from '@components/FormHelpMessage';
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MoneyRequestView from '@components/ReportActionItem/MoneyRequestView';
@@ -11,6 +12,7 @@ import Text from '@components/Text';
 import {useWideRHPState} from '@components/WideRHPContextProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -25,7 +27,7 @@ import isSearchTopmostFullScreenRoute from '@libs/Navigation/helpers/isSearchTop
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {TransactionDuplicateNavigatorParamList} from '@libs/Navigation/types';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 
 import variables from '@styles/variables';
 
@@ -44,7 +46,7 @@ import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useRoute} from '@react-navigation/native';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 function DynamicConfirmationPage() {
@@ -82,10 +84,11 @@ function DynamicConfirmationPage() {
     const duplicatedTransactionTaxCode = duplicatedTransaction?.taxCode;
     const taxRates = duplicatedTransactionPolicy?.taxRates?.taxes;
     const taxData = useMemo(() => {
-        const taxCode = reviewDuplicatesTaxCode ?? '';
+        const taxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, reviewDuplicatesTaxCode ?? '');
+        const currentDuplicatedTransactionTaxCode = resolveCurrentTaxCode(duplicatedTransactionPolicy, duplicatedTransactionTaxCode ?? '');
         const taxRate = taxCode ? taxRates?.[taxCode] : undefined;
         // Preserve taxAmount and taxValue if taxCode is deleted or remains unchanged compared to duplicatedTransaction?.taxCode.
-        if (!taxRate || (taxCode && duplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
+        if (!taxRate || (taxCode && currentDuplicatedTransactionTaxCode === taxCode) || reviewDuplicatesTaxAmount === undefined) {
             return;
         }
 
@@ -94,10 +97,12 @@ function DynamicConfirmationPage() {
             taxValue: taxRate?.value,
             taxCode,
         };
-    }, [reviewDuplicatesTaxCode, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
+    }, [reviewDuplicatesTaxCode, duplicatedTransactionPolicy, reviewDuplicatesTaxAmount, taxRates, duplicatedTransactionTaxCode]);
     const isReportOwner = iouReport?.ownerAccountID === currentUserPersonalDetails?.accountID;
+    const [mergeErrorMessage, setMergeErrorMessage] = useState('');
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserLogin = currentUserPersonalDetails?.login;
+    const delegateAccountID = useDelegateAccountID();
     const childReportID = reportAction?.childReportID;
 
     const handleMergeDuplicates = useCallback(() => {
@@ -123,9 +128,9 @@ function DynamicConfirmationPage() {
     }, [childReportID, transactionsMergeParams, taxData, currentUserAccountID, currentUserLogin, isSuperWideRHPDisplayed, allTransactionViolations, allReportActions]);
 
     const handleResolveDuplicates = useCallback(() => {
-        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions});
+        resolveDuplicates({...transactionsMergeParams, ...taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActionsList: allReportActions, delegateAccountID});
         Navigation.dismissToSuperWideRHP();
-    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActions]);
+    }, [transactionsMergeParams, taxData, transactionThreadReportIDMap, allTransactionViolations, allReportActions, delegateAccountID]);
 
     const contextMenuStateValue = useMemo(
         () => ({
@@ -157,13 +162,7 @@ function DynamicConfirmationPage() {
         (reviewDuplicatesResult.status === 'loaded' && (!newTransaction?.transactionID || !doesTransactionBelongToReport));
 
     if (isLoadingOnyxValue(reviewDuplicatesResult, reportResult) || !newTransaction?.transactionID) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'TransactionDuplicate.Confirmation',
-            isLoadingReviewDuplicates: isLoadingOnyxValue(reviewDuplicatesResult),
-            isLoadingReport: isLoadingOnyxValue(reportResult),
-            hasNewTransaction: !!newTransaction?.transactionID,
-        };
-        return <FullScreenLoadingIndicator reasonAttributes={reasonAttributes} />;
+        return <FullScreenLoadingIndicator />;
     }
 
     return (
@@ -204,14 +203,36 @@ function DynamicConfirmationPage() {
                         </ShowContextMenuStateContext.Provider>
                     </ScrollView>
                     <FixedFooter style={styles.mtAuto}>
+                        {!!mergeErrorMessage && (
+                            <FormHelpMessage
+                                message={mergeErrorMessage}
+                                style={styles.mb3}
+                            />
+                        )}
                         <Button
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             onPress={() => {
-                                isDismissingRef.current = true;
+                                // With every duplicate filtered out (e.g. all on approved/closed/reimbursed reports) there
+                                // is nothing to act on: merging would be rejected by Auth and resolving would only clear
+                                // the kept transaction, leaving the duplicate violation one-sided. Guard both paths.
+                                if (transactionsMergeParams.transactionIDList.length === 0) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
                                 if (!isReportOwner) {
+                                    setMergeErrorMessage('');
+                                    isDismissingRef.current = true;
                                     handleResolveDuplicates();
                                     return;
                                 }
+                                // Auth's MergeTransactions also rejects a merge when the kept expense's report is no
+                                // longer editable, so block it here and explain rather than failing server-side.
+                                if (!TransactionUtils.canMergeDuplicates(iouReport, transactionsMergeParams.transactionIDList)) {
+                                    setMergeErrorMessage(translate('violations.cannotMergeDuplicates'));
+                                    return;
+                                }
+                                setMergeErrorMessage('');
+                                isDismissingRef.current = true;
                                 handleMergeDuplicates();
                             }}
                             size={CONST.BUTTON_SIZE.LARGE}

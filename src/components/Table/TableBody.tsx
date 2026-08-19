@@ -23,6 +23,15 @@ type TableBodyProps = ViewProps & {
 };
 
 /**
+ * Whether `TableBody` still renders (keeping its `role="rowgroup"`) when the table has no data rows — i.e. an
+ * empty-state (`ListEmptyComponent`) or header (`ListHeaderComponent`) list slot is supplied. Single source of truth
+ * for that condition, mirrored by the early `return null` below and read by `Table`.
+ */
+function doesBodyRenderWhenEmpty(listProps: {ListEmptyComponent?: unknown; ListHeaderComponent?: unknown} | undefined): boolean {
+    return !!listProps?.ListEmptyComponent || !!listProps?.ListHeaderComponent;
+}
+
+/**
  * Renders the table body using FlashList.
  *
  * This component consumes the Table context to access processed data and FlashList props.
@@ -89,7 +98,7 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 
     useDebouncedAccessibilityAnnouncement(message, isEmptyResult, activeSearchString);
 
-    if ((isEmptyResult || !originalDataLength) && !ListEmptyComponent && !ListHeaderComponent) {
+    if ((isEmptyResult || !originalDataLength) && !doesBodyRenderWhenEmpty(listProps)) {
         return null;
     }
 
@@ -124,3 +133,4 @@ function TableBody<DataType extends TableData>({contentContainerStyle, style, ..
 }
 
 export default TableBody;
+export {doesBodyRenderWhenEmpty};

@@ -117,6 +117,7 @@ const renderMoneyRequestReportView = (onLayout: (event: LayoutChangeEvent) => vo
     render(
         <MoneyRequestReportView
             report={mockReport}
+            reportIDFromRoute={mockReport.reportID}
             reportLoadingState={mockReportLoadingState}
             shouldDisplayReportFooter={false}
             backToRoute={undefined}
@@ -167,6 +168,12 @@ describe('MoneyRequestReportView', () => {
     afterEach(async () => {
         await waitForBatchedUpdatesWithAct();
         await Onyx.clear();
+    });
+
+    it('passes report pending state to transaction readiness', () => {
+        renderMoneyRequestReportView(jest.fn());
+
+        expect(MoneyRequestReportUtils.shouldWaitForTransactions).toHaveBeenLastCalledWith(mockReport, [], mockReportLoadingState, false, false);
     });
 
     it('mounts the chat list body and the typing listener (not the table view) for a transaction-thread report', () => {

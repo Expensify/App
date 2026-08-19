@@ -77,6 +77,7 @@ type SelectionListPopover = {
     hasHeader?: boolean;
     hasButton?: boolean;
     isSearchable?: boolean;
+    isNegatable?: boolean;
     extraHeight?: number;
 };
 
@@ -950,7 +951,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonCTAIcon: {
-            marginRight: 22,
+            marginRight: 18,
             marginLeft: 8,
             // Align vertically with the Button text
             paddingBottom: 1,
@@ -967,8 +968,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            // This is to match production build after ButtonComposed migration.
+            ...spacing.ph6,
         },
 
         buttonSuccessText: {
@@ -1182,6 +1183,90 @@ const staticStyles = (theme: ThemeColors) =>
             }),
         },
 
+        // Positions the marketing window and centers the card when its narrow max width clamps below the viewport.
+        productMarketingWindowAnchor: {
+            ...positioning.pAbsolute,
+            alignItems: 'center',
+            // Keep the persistent window above route-backed side panels. Covering modals suppress it through ProductMarketingWindowManager.
+            zIndex: variables.modalBaseZIndex,
+        },
+        productMarketingWindowAnchorNarrow: {
+            left: variables.productMarketingWindowHorizontalOffsetNarrow,
+            right: variables.productMarketingWindowHorizontalOffsetNarrow,
+        },
+        productMarketingWindowAnchorWide: {
+            bottom: variables.productMarketingWindowOffset,
+            right: variables.productMarketingWindowOffset,
+        },
+        // The product marketing window intentionally contrasts with the app by using the opposite palette.
+        productMarketingWindowContainer: {
+            borderRadius: variables.componentBorderRadiusLarge,
+            boxShadow: theme.shadow,
+        },
+        productMarketingWindowContainerDark: {
+            backgroundColor: colors.green800,
+        },
+        productMarketingWindowContainerLight: {
+            backgroundColor: colors.productLight100,
+        },
+        productMarketingWindowContainerWide: {
+            width: variables.productMarketingWindowWidth,
+        },
+        // Full width on phones; capped and centered on mid-width narrow layouts (tablet portrait, resized windows).
+        productMarketingWindowContainerNarrow: {
+            width: '100%',
+            maxWidth: variables.productMarketingWindowMaxWidthNarrow,
+        },
+        // Keep the full card visible on short landscape viewports without changing its bottom anchor or cropping the illustration.
+        productMarketingWindowContainerNarrowCompact: {
+            maxWidth: variables.productMarketingWindowWidth,
+        },
+        productMarketingWindowIllustrationContainer: {
+            width: '100%',
+            alignItems: 'center',
+            justifyContent: 'center',
+            borderRadius: variables.componentBorderRadiusNormal,
+            aspectRatio: variables.productMarketingWindowVisualAspectRatio,
+            overflow: 'hidden',
+        },
+        productMarketingWindowImage: {
+            width: '100%',
+            height: '100%',
+        },
+        productMarketingWindowIllustrationContainerDark: {
+            backgroundColor: colors.productDark300,
+        },
+        productMarketingWindowIllustrationContainerLight: {
+            backgroundColor: colors.productLight300,
+        },
+        productMarketingWindowHeadingDark: {
+            color: colors.productDark900,
+        },
+        productMarketingWindowHeadingLight: {
+            color: colors.productLight900,
+        },
+        productMarketingWindowBodyDark: {
+            color: colors.productDark800,
+        },
+        productMarketingWindowBodyLight: {
+            color: colors.productLight800,
+        },
+        productMarketingWindowDismissButtonDark: {
+            backgroundColor: colors.productDark400,
+        },
+        productMarketingWindowDismissButtonLight: {
+            backgroundColor: colors.productLight400,
+        },
+        productMarketingWindowDismissButtonHovered: {
+            backgroundColor: theme.buttonHoveredBGReversed,
+        },
+        productMarketingWindowDismissButtonTextDark: {
+            color: colors.productDark900,
+        },
+        productMarketingWindowDismissButtonTextLight: {
+            color: colors.productLight900,
+        },
+
         cardBadgeText: {
             color: colors.white,
             fontSize: variables.fontSizeExtraSmall,
@@ -1218,6 +1303,11 @@ const staticStyles = (theme: ThemeColors) =>
             height: 'auto',
             minHeight: variables.editableCellHeight,
             overflow: 'hidden',
+            justifyContent: 'center',
+        },
+
+        editableCellColumn: {
+            alignSelf: 'stretch',
             justifyContent: 'center',
         },
 
@@ -1830,17 +1920,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarAvatar: {
-            borderRadius: variables.sidebarAvatarSize,
-            height: variables.sidebarAvatarSize,
-            width: variables.sidebarAvatarSize,
+            borderRadius: variables.avatarSizeSmall,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
         },
 
         selectedAvatarBorder: {
             padding: 1,
             borderWidth: 2,
             borderRadius: 20,
-            height: variables.sidebarAvatarSize + 6,
-            width: variables.sidebarAvatarSize + 6,
+            height: variables.avatarSizeSmall + 6,
+            width: variables.avatarSizeSmall + 6,
             borderColor: theme.success,
             right: -3,
             top: -3,
@@ -1896,7 +1986,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -1959,6 +2050,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojisWithTextFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
         },
 
         createMenuContainer: {
@@ -2061,13 +2161,6 @@ const staticStyles = (theme: ThemeColors) =>
         sidebarLinkTextBold: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
             color: theme.heading,
-        },
-
-        sidebarLinkActiveText: {
-            color: theme.textSupporting,
-            fontSize: variables.fontSizeNormal,
-            textDecorationLine: 'none',
-            overflow: 'hidden',
         },
 
         optionItemAvatarNameWrapper: {
@@ -2494,67 +2587,67 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusNormal,
         },
 
-        singleAvatar: {
-            height: 24,
-            width: 24,
+        singleAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
             backgroundColor: theme.icon,
-            borderRadius: 12,
+            borderRadius: variables.avatarSizeXSmall / 2,
         },
 
-        singleAvatarSmall: {
-            height: 16,
-            width: 16,
+        singleAvatarXxxSmall: {
+            height: variables.avatarSizeXxxSmall,
+            width: variables.avatarSizeXxxSmall,
             backgroundColor: theme.icon,
-            borderRadius: 8,
+            borderRadius: variables.avatarSizeXxxSmall / 2,
         },
 
-        singleAvatarMedium: {
-            height: 52,
-            width: 52,
+        singleAvatarXLarge: {
+            height: variables.avatarSizeXLarge,
+            width: variables.avatarSizeXLarge,
             backgroundColor: theme.icon,
-            borderRadius: 52,
+            borderRadius: variables.avatarSizeXLarge,
         },
 
-        singleAvatarMediumLarge: {
-            height: 60,
-            width: 60,
+        singleAvatarXxLarge: {
+            height: variables.avatarSizeXxLarge,
+            width: variables.avatarSizeXxLarge,
             backgroundColor: theme.icon,
-            borderRadius: 80,
+            borderRadius: variables.avatarSizeXxLarge,
         },
 
-        secondAvatar: {
+        secondAvatarXSmall: {
             position: 'absolute',
             right: -18,
             bottom: -18,
-            borderWidth: 2,
-            borderRadius: 14,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
-        secondAvatarSmall: {
+        secondAvatarXxxSmall: {
             position: 'absolute',
             right: -14,
             bottom: -14,
-            borderWidth: 2,
-            borderRadius: 10,
+            borderWidth: variables.avatarBorderWidthSmall,
+            borderRadius: (variables.avatarSizeXxxSmall + 2 * variables.avatarBorderWidthSmall) / 2,
             borderColor: 'transparent',
         },
 
-        secondAvatarMedium: {
+        secondAvatarXLarge: {
             position: 'absolute',
             right: -36,
             bottom: -36,
-            borderWidth: 3,
-            borderRadius: 52,
+            borderWidth: variables.avatarBorderWidthDefault,
+            borderRadius: variables.avatarSizeXLarge,
             borderColor: 'transparent',
         },
 
-        secondAvatarMediumLarge: {
+        secondAvatarXxLarge: {
             position: 'absolute',
             right: -42,
             bottom: -42,
-            borderWidth: 3,
-            borderRadius: 80,
+            borderWidth: variables.avatarBorderWidthDefault,
+            borderRadius: variables.avatarSizeXxLarge,
             borderColor: 'transparent',
         },
 
@@ -2564,22 +2657,16 @@ const staticStyles = (theme: ThemeColors) =>
             bottom: -6,
         },
 
-        secondAvatarSubscriptXLarge: {
+        secondAvatarSubscriptXxxxLarge: {
             position: 'absolute',
             right: -10,
             bottom: -10,
         },
 
-        secondAvatarSubscriptCompact: {
+        secondAvatarSubscriptSmall: {
             position: 'absolute',
             bottom: -4,
             right: -4,
-        },
-
-        secondAvatarSubscriptSmallNormal: {
-            position: 'absolute',
-            bottom: 0,
-            right: 0,
         },
 
         secondAvatarInline: {
@@ -2589,11 +2676,6 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: 18,
             borderColor: theme.cardBorder,
             backgroundColor: theme.appBG,
-        },
-
-        avatarXLarge: {
-            width: variables.avatarSizeXLarge,
-            height: variables.avatarSizeXLarge,
         },
 
         avatarInnerText: {
@@ -2614,8 +2696,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emptyAvatar: {
-            height: variables.avatarSizeNormal,
-            width: variables.avatarSizeNormal,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
         },
 
         emptyAvatarSmall: {
@@ -2623,24 +2705,24 @@ const staticStyles = (theme: ThemeColors) =>
             width: variables.avatarSizeSmall,
         },
 
-        emptyAvatarSmaller: {
-            height: variables.avatarSizeSmaller,
-            width: variables.avatarSizeSmaller,
-        },
-
-        emptyAvatarMedium: {
-            height: variables.avatarSizeMedium,
-            width: variables.avatarSizeMedium,
-        },
-
-        emptyAvatarLarge: {
-            height: variables.avatarSizeLarge,
-            width: variables.avatarSizeLarge,
+        emptyAvatarXSmall: {
+            height: variables.avatarSizeXSmall,
+            width: variables.avatarSizeXSmall,
         },
 
         emptyAvatarXLarge: {
             height: variables.avatarSizeXLarge,
             width: variables.avatarSizeXLarge,
+        },
+
+        emptyAvatarXxxLarge: {
+            height: variables.avatarSizeXxxLarge,
+            width: variables.avatarSizeXxxLarge,
+        },
+
+        emptyAvatarXxxxLarge: {
+            height: variables.avatarSizeXxxxLarge,
+            width: variables.avatarSizeXxxxLarge,
         },
 
         emptyAvatarMargin: {
@@ -2655,7 +2737,7 @@ const staticStyles = (theme: ThemeColors) =>
             marginRight: variables.avatarChatSpacing - 4,
         },
 
-        emptyAvatarMarginSmaller: {
+        emptyAvatarMarginXSmall: {
             marginRight: variables.avatarChatSpacing - 4,
         },
 
@@ -2698,6 +2780,71 @@ const staticStyles = (theme: ThemeColors) =>
 
         tableHeaderContentHeight: {
             minHeight: variables.tableHeaderContentHeight,
+        },
+
+        htmlTable: {
+            marginVertical: 8,
+            borderRadius: variables.componentBorderRadius,
+            backgroundColor: theme.highlightBG,
+            overflow: 'hidden',
+        },
+
+        htmlTableHeaderRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableHeaderRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableRow: {
+            flexDirection: 'row',
+            alignItems: 'center',
+            minHeight: variables.htmlTableRowMinHeight,
+            paddingHorizontal: variables.tableRowPaddingHorizontal,
+            borderBottomWidth: 1,
+            borderColor: theme.border,
+        },
+
+        htmlTableLastRow: {
+            borderBottomWidth: 0,
+        },
+
+        // A step past the hover background the surrounding comment uses, so a hovered row stays distinguishable
+        // while the whole comment is also highlighted.
+        htmlTableRowHovered: {
+            backgroundColor: theme.activeComponentBG,
+        },
+
+        htmlTableChevronCell: {
+            width: variables.htmlTableChevronColumnWidth,
+            alignItems: 'flex-end',
+        },
+
+        htmlTableCell: {
+            // A definite flexBasis with flexShrink: 0 gives every column a fixed width so a wide table keeps its size
+            // and can be scrolled horizontally, and columns stay aligned across rows; flexGrow: 1 still lets columns
+            // expand to fill the message width when the table is narrower than it.
+            flexGrow: 1,
+            flexShrink: 0,
+            flexBasis: variables.htmlTableColumnMaxWidth,
+            minWidth: variables.htmlTableColumnMinWidth,
+            paddingEnd: 8,
+        },
+
+        htmlTableCellMaxWidth: {
+            maxWidth: variables.htmlTableColumnMaxWidth,
+        },
+
+        htmlTableCellText: {
+            color: theme.text,
+            fontSize: variables.fontSizeNormal,
+        },
+
+        htmlTableHeaderCellText: {
+            color: theme.textSupporting,
+            fontSize: variables.fontSizeSmall,
         },
 
         borderBottom: {
@@ -2958,9 +3105,9 @@ const staticStyles = (theme: ThemeColors) =>
 
         roomHeaderAvatar: {
             backgroundColor: theme.appBG,
-            borderRadius: 100,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             borderColor: theme.componentBG,
-            borderWidth: 4,
+            borderWidth: variables.avatarBorderWidthLarge,
         },
 
         roomHeaderAvatarOverlay: {
@@ -2971,7 +3118,7 @@ const staticStyles = (theme: ThemeColors) =>
             left: 0,
             backgroundColor: theme.overlay,
             opacity: variables.overlayOpacity,
-            borderRadius: 88,
+            borderRadius: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
         },
 
         avatarInnerTextChat: {
@@ -2980,7 +3127,7 @@ const staticStyles = (theme: ThemeColors) =>
             ...FontUtils.fontFamily.platform.EXP_NEW_KANSAS_MEDIUM,
             textAlign: 'center',
             position: 'absolute',
-            width: 88,
+            width: variables.avatarSizeXxxLarge + 2 * variables.avatarBorderWidthLarge,
             left: -16,
         },
 
@@ -3011,8 +3158,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         conciergeAnimatedAvatar: {
-            width: variables.avatarSizeNormal,
-            height: variables.avatarSizeNormal,
+            width: variables.avatarSizeMedium,
+            height: variables.avatarSizeMedium,
         },
 
         accountSettingsSectionContainer: {
@@ -3336,7 +3483,9 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 12,
         },
 
-        moneyRequestAmountContainer: {minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8)},
+        moneyRequestAmountContainer: {
+            minHeight: variables.inputHeight + 2 * (variables.formErrorLineHeight + 8),
+        },
 
         requestPreviewBox: {
             marginTop: 12,
@@ -3355,9 +3504,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
+        moneyRequestPreviewParticipantsText: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -4100,6 +4258,15 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.sectionIllustrationHeight,
         },
 
+        cardSectionIllustrationInset: {
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
+        },
+
         twoFAIllustration: {
             width: 'auto',
             height: 140,
@@ -4238,6 +4405,19 @@ const staticStyles = (theme: ThemeColors) =>
             fontSize: 13,
             fontWeight: FontUtils.fontWeight.bold,
             color: colors.productLight100,
+        },
+
+        alternativeDistanceLabelWrapper: {
+            backgroundColor: colors.green100,
+            paddingHorizontal: 8,
+            paddingVertical: 4,
+            borderRadius: 4,
+            textAlign: 'center',
+        },
+        alternativeDistanceLabelText: {
+            fontSize: 13,
+            fontWeight: FontUtils.fontWeight.bold,
+            color: colors.green800,
         },
 
         productTrainingTooltipWrapper: {
@@ -4515,7 +4695,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         assigneeTextStyle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            minHeight: variables.avatarSizeSubscript,
+            minHeight: variables.avatarSizeXxSmall,
         },
 
         taskRightIconContainer: {
@@ -4884,17 +5064,17 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         sidebarStatusAvatarContainer: {
-            height: 40,
-            width: 40,
+            height: variables.avatarSizeMedium,
+            width: variables.avatarSizeMedium,
             backgroundColor: theme.componentBG,
             alignItems: 'center',
             justifyContent: 'center',
-            borderRadius: 20,
+            borderRadius: variables.avatarSizeMedium / 2,
         },
 
         sidebarStatusAvatarWithEmojiContainer: {
-            height: 28,
-            width: 28,
+            height: variables.avatarSizeSmall,
+            width: variables.avatarSizeSmall,
             top: -2,
         },
 
@@ -4902,14 +5082,14 @@ const staticStyles = (theme: ThemeColors) =>
             alignItems: 'center',
             justifyContent: 'center',
             backgroundColor: theme.border,
-            height: 20,
-            width: 20,
-            borderRadius: 10,
+            height: variables.avatarSizeXxSmall,
+            width: variables.avatarSizeXxSmall,
+            borderRadius: variables.avatarSizeXxSmall / 2,
             position: 'absolute',
             right: -6,
             bottom: -6,
             borderColor: theme.appBG,
-            borderWidth: 2,
+            borderWidth: variables.avatarBorderWidthSmall,
             overflow: 'hidden',
         },
 
@@ -5168,6 +5348,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5411,26 +5617,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: -2,
         },
 
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
@@ -5626,6 +5812,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.updateAnimationH,
         },
 
+        updateAnimationNarrowWeb: {
+            width: '100%',
+            // On web the dotlottie-react wrapper defaults to height: 100%, which would stretch the animation to fill the container.
+            // 'auto' lets the animation's aspect ratio determine the height instead.
+            height: 'auto',
+        },
+
         updateRequiredViewHeader: {
             height: variables.updateViewHeaderHeight,
         },
@@ -5722,7 +5915,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        travelInvoicingIcon: {
+        travelBillingIcon: {
             backgroundColor: colors.productLight700,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -6342,6 +6535,11 @@ const staticStyles = (theme: ThemeColors) =>
             width: 112,
             height: 160,
         },
+        commuterExclusionStaticIllustration: {
+            width: 160,
+            height: 140,
+            alignSelf: 'center',
+        },
         helpStaticIllustration: {
             width: 174,
             height: 156,
@@ -6384,7 +6582,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -6771,6 +6969,7 @@ const dynamicStyles = (theme: ThemeColors) =>
             hasHeader,
             hasButton = true,
             isSearchable,
+            isNegatable,
             extraHeight = 0,
         }: SelectionListPopover) => {
             const MODAL_VERTICAL_PADDING = 32;
@@ -6778,9 +6977,11 @@ const dynamicStyles = (theme: ThemeColors) =>
             const HEADER_HEIGHT = hasHeader ? 48 : 0;
             const TITLE_HEIGHT = hasTitle ? 34 : 0;
             const SEARCHBAR_HEIGHT = isSearchable ? 64 : 0;
+            const NEGATION_TOGGLE_BORDER_WIDTH = 1;
+            const NEGATION_TOGGLE_HEIGHT = isNegatable ? variables.componentSizeSmall + NEGATION_TOGGLE_BORDER_WIDTH * 2 + spacing.gap3.gap : 0;
 
             const ESTIMATED_LIST_HEIGHT = itemCount * itemHeight + SEARCHBAR_HEIGHT + extraHeight;
-            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING;
+            const ESTIMATED_NON_LIST_HEIGHT = BUTTON_HEIGHT + HEADER_HEIGHT + TITLE_HEIGHT + MODAL_VERTICAL_PADDING + NEGATION_TOGGLE_HEIGHT;
 
             const heightRatio = isInLandscapeMode ? CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO_LANDSCAPE_MODE : CONST.MODAL_MAX_HEIGHT_TO_WINDOW_HEIGHT_RATIO;
 
@@ -6853,7 +7054,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -7011,9 +7212,20 @@ const plainStyles = (theme: ThemeColors) =>
             lineCap: 'round',
         } satisfies MapDirectionStyle,
 
+        alternativeMapDirection: {
+            lineColor: colors.green200,
+            lineWidth: 6,
+            lineCap: 'round',
+        },
+
         mapDirectionLayer: {
             layout: {'line-join': 'round', 'line-cap': 'round'},
             paint: {'line-color': colors.green400, 'line-width': 6},
+        },
+
+        alternativeMapDirectionLayer: {
+            layout: {'line-join': 'round', 'line-cap': 'round'},
+            paint: {'line-color': colors.green200, 'line-width': 6},
         },
 
         mapDirectionLayerBorder: {
@@ -7056,11 +7268,19 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
