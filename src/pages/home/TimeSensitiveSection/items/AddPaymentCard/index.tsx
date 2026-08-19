@@ -24,7 +24,7 @@ function AddPaymentCard() {
             subtitle={translate('homePage.timeSensitiveSection.addPaymentCard.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.addPaymentCard.cta')}
             onCtaPress={navigateToSubscriptionPayment}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.SUCCESS}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

@@ -24,7 +24,7 @@ function FixFailedBilling() {
             subtitle={translate('homePage.timeSensitiveSection.fixFailedBilling.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={navigateToSubscriptionPayment}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.DANGER}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

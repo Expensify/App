@@ -55,7 +55,7 @@ function UnlockBankAccount({bankAccountID, policyName}: UnlockBankAccountProps) 
             subtitle={subtitle}
             ctaText={translate('homePage.timeSensitiveSection.ctaFix')}
             onCtaPress={handleCtaPress}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.DANGER}}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }

@@ -31,7 +31,7 @@ function AddBankAccount() {
             subtitle={translate('common.wallet')}
             ctaText={translate('common.add')}
             onCtaPress={() => openPersonalBankAccountSetupView({isUserValidated})}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.SUCCESS}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

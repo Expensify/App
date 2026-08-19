@@ -26,7 +26,7 @@ function ValidateAccount() {
             subtitle={translate('homePage.timeSensitiveSection.validateAccount.subtitle')}
             ctaText={translate('homePage.timeSensitiveSection.validateAccount.cta')}
             onCtaPress={() => Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.VERIFY_ACCOUNT.path))}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.SUCCESS}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

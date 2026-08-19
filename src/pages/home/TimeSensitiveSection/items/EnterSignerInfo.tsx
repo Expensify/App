@@ -40,7 +40,7 @@ function EnterSignerInfo({policyID, bankAccountID, bankAccountLastFour}: EnterSi
             subtitle={translate('homePage.timeSensitiveSection.enterSignerInfo.subtitle', {bankAccountLastFour})}
             ctaText={translate('homePage.forYouSection.begin')}
             onCtaPress={handleCtaPress}
-            buttonProps={{variant: CONST.BUTTON_VARIANT.SUCCESS}}
+            buttonVariant={CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }
