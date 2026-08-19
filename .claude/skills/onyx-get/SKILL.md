@@ -150,4 +150,4 @@ These cover read position within one file, per-key write ordering including the 
 
 Condition 1's caller half is the sweep in [caller-sweep.md](caller-sweep.md): forward when the diff adds a read, reverse when it adds a call. In CI it is `ONYX-1` in `coding-standards/rules/`.
 
-A read is done when all six conditions are accounted for at that call site, not when the commands are clean. The caller half of 1, plus 4, 6 and the deferral case, are unchecked, so name them one by one, in the PR description for a conversion or in the review comment for a diff: which value each covers, and why it holds here. Silence about a condition is the failure mode, not a pass.
+A read is done when all six conditions hold at that call site, not when the commands are clean. The caller half of 1, plus 4, 6 and the deferral case, have no command, so they are read off the code at review.
