@@ -3,6 +3,7 @@ import {render} from '@testing-library/react-native';
 
 import AlwaysPaintedView, {getAlwaysPaintedViewConfig} from '@components/AlwaysPaintedView/index.native';
 
+import {useEffect} from 'react';
 import {StyleSheet, View} from 'react-native';
 
 jest.mock('@hooks/useThemeStyles', () => () => ({
@@ -12,6 +13,12 @@ jest.mock('@hooks/useThemeStyles', () => () => ({
 type CreateAttributePayload = (props: Record<string, unknown>, validAttributes: ReturnType<typeof getAlwaysPaintedViewConfig>['validAttributes']) => Record<string, unknown> | null;
 
 const {create: createAttributePayload} = jest.requireActual<{create: CreateAttributePayload}>('react-native/Libraries/ReactNative/ReactFabricPublicInstance/ReactNativeAttributePayload');
+
+// A host View probe cannot detect a remount here, because React reuses a View fiber when the wrapper is also a View.
+function UnmountProbe({onUnmount}: {onUnmount: () => void}) {
+    useEffect(() => onUnmount, [onUnmount]);
+    return <View testID="content" />;
+}
 
 function getNativeNodes(toJSON: RenderAPI['toJSON']) {
     const host = toJSON();
@@ -65,7 +72,7 @@ describe('AlwaysPaintedView', () => {
         expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
     });
 
-    it('renders no node for inert on native when a caller leaves the prop out', () => {
+    it('treats a left-out prop as not covered', () => {
         const {child} = getNativeNodes(
             render(
                 <AlwaysPaintedView>
@@ -74,6 +81,28 @@ describe('AlwaysPaintedView', () => {
             ).toJSON,
         );
 
-        expect(child.props.testID).toBe('content');
+        expect(child.props['aria-hidden']).toBe(false);
+        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
+    });
+
+    it('keeps the children mounted when inert flips between left out and provided', () => {
+        const handleUnmount = jest.fn();
+        const {rerender} = render(
+            <AlwaysPaintedView>
+                <UnmountProbe onUnmount={handleUnmount} />
+            </AlwaysPaintedView>,
+        );
+        rerender(
+            <AlwaysPaintedView inert>
+                <UnmountProbe onUnmount={handleUnmount} />
+            </AlwaysPaintedView>,
+        );
+        rerender(
+            <AlwaysPaintedView>
+                <UnmountProbe onUnmount={handleUnmount} />
+            </AlwaysPaintedView>,
+        );
+
+        expect(handleUnmount).not.toHaveBeenCalled();
     });
 });

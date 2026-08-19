@@ -34,7 +34,7 @@ function getAlwaysPaintedViewConfig(): ReturnType<ViewConfigProvider> {
 /**
  * Native view registered with `display: 'contents'`.
  *
- * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) — validated with RN 0.85.3.
+ * Uses internal RN APIs (NativeComponentRegistry, ReactNativeStyleAttributes) - validated with RN 0.85.3.
  * Re-verify after upgrades.
  */
 const NativeAlwaysPaintedView = NativeComponentRegistry.get<NativeAlwaysPaintedViewProps>('AlwaysPaintedView', getAlwaysPaintedViewConfig);
@@ -44,25 +44,22 @@ const NativeAlwaysPaintedView = NativeComponentRegistry.get<NativeAlwaysPaintedV
  * underlay during swipe-back or Activity visibility toggles. Web pins the same value on a div (see index.tsx).
  *
  * A `display: contents` node has no box to hit test and nothing to expose to the accessibility tree, so `inert`
- * needs a node of its own. That node is the one that fills the screen, and it only exists for callers that pass
- * the prop. The flags have to be part of the rendered output, because a hidden Activity runs no effects.
+ * needs a node of its own. That node always renders, so toggling the prop never changes the tree shape and the
+ * children keep their state. The flags have to be part of the rendered output, because a hidden Activity runs
+ * no effects.
  */
-function AlwaysPaintedView({inert, children}: AlwaysPaintedViewProps) {
+function AlwaysPaintedView({inert = false, children}: AlwaysPaintedViewProps) {
     const styles = useThemeStyles();
 
     return (
         <NativeAlwaysPaintedView style={DISPLAY_CONTENTS}>
-            {inert === undefined ? (
-                children
-            ) : (
-                <View
-                    aria-hidden={inert}
-                    style={[styles.flex1, {pointerEvents: inert ? 'none' : 'box-none'}]}
-                    collapsable={false}
-                >
-                    {children}
-                </View>
-            )}
+            <View
+                aria-hidden={inert}
+                style={[styles.flex1, {pointerEvents: inert ? 'none' : 'box-none'}]}
+                collapsable={false}
+            >
+                {children}
+            </View>
         </NativeAlwaysPaintedView>
     );
 }
