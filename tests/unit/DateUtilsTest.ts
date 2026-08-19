@@ -1039,6 +1039,62 @@ describe('DateUtils', () => {
         });
     });
 
+    describe('toLocalDate parses the DB wire shapes explicitly (Hermes rejects what V8 accepts)', () => {
+        it.each([
+            ['2025-07-09', [2025, 6, 9, 0, 0, 0, 0]],
+            ['2025-07-09 14:30', [2025, 6, 9, 14, 30, 0, 0]],
+            ['2025-07-09 14:30:45', [2025, 6, 9, 14, 30, 45, 0]],
+            ['2025-07-09 14:30:45.123', [2025, 6, 9, 14, 30, 45, 123]],
+        ])('parses %s as local wall-clock', (wire, [y, mo, d, h, mi, sec, ms]) => {
+            const parsed = DateUtils.toLocalDate(wire);
+            expect([parsed.getFullYear(), parsed.getMonth(), parsed.getDate(), parsed.getHours(), parsed.getMinutes(), parsed.getSeconds(), parsed.getMilliseconds()]).toEqual([
+                y,
+                mo,
+                d,
+                h,
+                mi,
+                sec,
+                ms,
+            ]);
+        });
+
+        it('handles sub-millisecond precision, which some backends send', () => {
+            expect(DateUtils.toLocalDate('2025-07-09 14:30:45.123456').getSeconds()).toBe(45);
+        });
+
+        it('passes a Date through untouched', () => {
+            const date = new Date(2025, 6, 9);
+            expect(DateUtils.toLocalDate(date)).toBe(date);
+        });
+    });
+
+    describe('getStablePerDiemMerchantDateRange is a wire contract, not a display format', () => {
+        it('stays enUS-pinned under a non-English locale so the comma count consumers rely on never moves', async () => {
+            await IntlStore.load(CONST.LOCALES.ES);
+            const range = DateUtils.getStablePerDiemMerchantDateRange(new Date(2026, 0, 5), new Date(2026, 0, 8));
+            expect(range).toBe('Jan 5, 2026 - Jan 8, 2026');
+            // PerDiemEReceipt splits the merchant on ', ' and takes the last three parts as the range.
+            expect(`Berlin, ${range}`.split(', ').length).toBe(4);
+            await IntlStore.load(LOCALE);
+        });
+    });
+
+    describe('doesDateBelongToAPastYear reads the year off the wire string', () => {
+        afterEach(() => {
+            jest.useRealTimers();
+        });
+
+        it('does not suffix a year onto a same-year row viewed after the UTC day has rolled over', () => {
+            jest.useFakeTimers().setSystemTime(new Date(2025, 11, 31, 20, 0, 0));
+            expect(DateUtils.doesDateBelongToAPastYear('2025-12-31')).toBe(false);
+        });
+
+        it('flags a genuinely earlier year', () => {
+            jest.useFakeTimers().setSystemTime(new Date(2026, 5, 15, 12, 0, 0));
+            expect(DateUtils.doesDateBelongToAPastYear('2023-05-01')).toBe(true);
+        });
+    });
+
     describe('locale-aware helpers render localized output', () => {
         it('formatToShortMonthDay renders es as "9 jul"', () => {
             expect(DateUtils.formatToShortMonthDay('2025-07-09', 'es')).toBe('9 jul');
@@ -1049,6 +1105,38 @@ describe('DateUtils', () => {
             expect(result).toContain('Q3 2025');
             expect(result).toContain('jul');
             expect(result).toContain('sept');
+        });
+
+        it.each([
+            ['formatToLongMonth' as const, CONST.LOCALES.EN, 'July'],
+            ['formatToLongMonth' as const, CONST.LOCALES.ES, 'julio'],
+            ['formatToLongMonthYear' as const, CONST.LOCALES.EN, 'July 2025'],
+            ['formatToLongMonthYear' as const, CONST.LOCALES.ES, 'julio de 2025'],
+            ['formatToWeekdayLongDate' as const, CONST.LOCALES.EN, 'Wednesday, July 9, 2025'],
+            ['formatToWeekdayLongDate' as const, CONST.LOCALES.ES, 'mi\u00e9rcoles, 9 de julio de 2025'],
+            ['formatToShortMonthDayTime' as const, CONST.LOCALES.EN, 'Jul 9, 2:30 PM'],
+            ['formatToShortMonthDayTime' as const, CONST.LOCALES.ES, '9 jul, 14:30'],
+            ['formatToLocalDateTime' as const, CONST.LOCALES.EN, 'Jul 9, 2025, 2:30 PM'],
+            ['formatToLocalDateTime' as const, CONST.LOCALES.ES, '9 jul 2025, 14:30'],
+        ])('%s renders %s as %s', (fnName, locale, expected) => {
+            expect(DateUtils[fnName]('2025-07-09 14:30:00', locale)).toBe(expected);
+        });
+
+        it('the named wrappers accept a Date as well as a wire string', () => {
+            const wire = '2025-07-09 14:30:00';
+            expect(DateUtils.formatToLongMonthYear(DateUtils.toLocalDate(wire), CONST.LOCALES.ES)).toBe(DateUtils.formatToLongMonthYear(wire, CONST.LOCALES.ES));
+        });
+
+        it.each([
+            [CONST.LOCALES.EN, 'Mar 17-20'],
+            [CONST.LOCALES.ES, '17-20 mar'],
+            [CONST.LOCALES.FR, '17-20 mars'],
+            [CONST.LOCALES.DE, '17-20. M\u00e4rz'],
+            [CONST.LOCALES.JA, '3\u670817\u65e5-20\u65e5'],
+        ])('getFormattedDateRange puts the shared month where %s writes it', (locale, expected) => {
+            const start = new Date(2025, 2, 17);
+            const end = new Date(2025, 2, 20);
+            expect(DateUtils.getFormattedDateRange(translateLocal, start, end, locale)).toBe(expected);
         });
 
         it('getFormattedDateRangeForSearch returns empty rather than an orphan separator on an unparsable boundary', () => {

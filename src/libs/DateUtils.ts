@@ -1016,10 +1016,32 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
 }
 
 /**
+ * Whether the locale writes the day before the month, so a compressed range can keep the shared month on the side the
+ * language expects. Without this, `MONTH_DAY` + `DAY_ONLY` strands the month between the two days ("17 mar-20").
+ */
+function isDayBeforeMonth(locale: Locale, date: Date): boolean {
+    const formatter = getIntlDateTimeFormat(locale, 'MONTH_DAY');
+    if (!formatter) {
+        return false;
+    }
+    let parts: Intl.DateTimeFormatPart[];
+    try {
+        // `formatToParts` is absent on some ICU-stripped engines, and this runs on the trip-preview render path.
+        parts = formatter.formatToParts(date);
+    } catch (error) {
+        Log.warn('[DateUtils] Intl.DateTimeFormat.formatToParts unavailable', {locale, error});
+        return false;
+    }
+    const dayIndex = parts.findIndex((part) => part.type === 'day');
+    const monthIndex = parts.findIndex((part) => part.type === 'month');
+    return dayIndex > -1 && monthIndex > -1 && dayIndex < monthIndex;
+}
+
+/**
  * Returns a formatted date range from date 1 to date 2.
  * Dates are formatted as follows:
  * 1. When both dates refer to the same day: Mar 17
- * 2. When both dates refer to the same month: Mar 17-20
+ * 2. When both dates refer to the same month: Mar 17-20 (en) / 17-20 mar (es)
  * 3. When both dates refer to the same year: Feb 28 to Mar 1
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
@@ -1029,10 +1051,11 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
         return formatIntl(locale, 'MONTH_DAY', date1);
     }
     if (isSameMonth(date1, date2)) {
-        // Dates in the same month and year, differ by days
-        const monthDay = formatIntl(locale, 'MONTH_DAY', date1);
-        const dayOnly = formatIntl(locale, 'DAY_ONLY', date2);
-        return monthDay && dayOnly ? `${monthDay}-${dayOnly}` : '';
+        // The shared month goes where the locale puts it, so day-first languages read "17-20 mar" rather than "17 mar-20".
+        const isDayFirst = isDayBeforeMonth(locale, date1);
+        const startPart = isDayFirst ? formatIntl(locale, 'DAY_ONLY', date1) : formatIntl(locale, 'MONTH_DAY', date1);
+        const endPart = isDayFirst ? formatIntl(locale, 'MONTH_DAY', date2) : formatIntl(locale, 'DAY_ONLY', date2);
+        return startPart && endPart ? `${startPart}-${endPart}` : '';
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
