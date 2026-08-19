@@ -113,20 +113,12 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
 
     useEffect(() => {
-        if (!isSelectorDispatched || isSelectorLoading || hasSubmitted || isSelectingAccount || !resolvedTarget) {
+        if (!isSelectorDispatched || isSelectorLoading || hasSubmitted || !resolvedAccount) {
             return;
         }
-        if (resolvedTarget === 'needs-selection') {
-            setIsSelectingAccount(true);
-            const firstAccountID = plaidBankAccounts.at(0)?.plaidAccountID;
-            if (firstAccountID) {
-                setSelectedPlaidAccountID(firstAccountID);
-            }
-            return;
-        }
-        submit(resolvedTarget);
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [resolvedTarget, isSelectorDispatched, isSelectorLoading, hasSubmitted, isSelectingAccount]);
+        setHasSubmitted(true);
+        linkPlaidToBankAccount(bankAccountID, plaidAccessToken, resolvedAccount.plaidAccountID, resolvedAccount.mask, policyID);
+    }, [resolvedAccount, isSelectorDispatched, isSelectorLoading, hasSubmitted, bankAccountID, plaidAccessToken, policyID]);
 
     if (isLoading || isSelectorLoading || !plaidLinkToken) {
         return (
