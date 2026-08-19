@@ -8,7 +8,6 @@ import type {TabSelectorBaseItem} from '@components/TabSelector/types';
 import useConfirmModal from '@hooks/useConfirmModal';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
-import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import {useSidebarOrderedReportsActions, useSidebarOrderedReportsState} from '@hooks/useSidebarOrderedReports';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -18,9 +17,8 @@ import markAllMessagesAsRead from '@libs/actions/Report/MarkAllMessageAsRead';
 import type {AnchorPosition} from '@styles/index';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
 
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
 const anchorAlignment = {
@@ -33,7 +31,6 @@ function InboxTabSelector() {
     const styles = useThemeStyles();
     const {activeTab, inboxTabCounts} = useSidebarOrderedReportsState();
     const {setActiveTab} = useSidebarOrderedReportsActions();
-    const [reportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
     const icons = useMemoizedLazyExpensifyIcons(['Checkmark']);
     const {showConfirmModal} = useConfirmModal();
 
@@ -44,21 +41,18 @@ function InboxTabSelector() {
 
     const getBadgeText = (count: number) => (count > 0 ? count.toString() : undefined);
 
-    const openMarkAllAsReadMenu = useCallback(
-        (key: string) => {
-            // The bulk "mark all as read" affordance only makes sense on the Unread tab.
-            if (key !== CONST.INBOX_TAB.UNREAD) {
-                return;
-            }
-            calculatePopoverPosition(anchorRef, anchorAlignment).then((position) => {
-                setPopoverPosition(position);
-                setIsMenuVisible(true);
-            });
-        },
-        [calculatePopoverPosition],
-    );
+    const openMarkAllAsReadMenu = (key: string) => {
+        // The bulk "mark all as read" affordance only makes sense on the Unread tab.
+        if (key !== CONST.INBOX_TAB.UNREAD) {
+            return;
+        }
+        calculatePopoverPosition(anchorRef, anchorAlignment).then((position) => {
+            setPopoverPosition(position);
+            setIsMenuVisible(true);
+        });
+    };
 
-    const confirmMarkAllAsRead = useCallback(() => {
+    const confirmMarkAllAsRead = () => {
         showConfirmModal({
             title: translate('inboxTabs.markAllAsRead'),
             prompt: translate('inboxTabs.markAllAsReadConfirmationPrompt'),
@@ -68,9 +62,9 @@ function InboxTabSelector() {
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            markAllMessagesAsRead(reportNameValuePairs);
+            markAllMessagesAsRead();
         });
-    }, [reportNameValuePairs, showConfirmModal, translate]);
+    };
 
     const menuItems: PopoverMenuItem[] = [
         {
