@@ -6908,6 +6908,7 @@ export {
     getSections,
     getSuggestedSearchesVisibility,
     getSortedSections,
+    getSortedTransactionData,
     getViolationsFromSearchData,
     getTransactionsByReportID,
     isTransactionMatchWithGroupItem,
