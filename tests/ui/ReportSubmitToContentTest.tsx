@@ -4,8 +4,6 @@ import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 
 import CONST from '@src/CONST';
-import ONYXKEYS from '@src/ONYXKEYS';
-import type Policy from '@src/types/onyx/Policy';
 import type Report from '@src/types/onyx/Report';
 
 import {submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -14,14 +12,15 @@ import ReportSubmitToContent from '@pages/ReportSubmitToContent';
 
 import React from 'react';
 
+import createRandomPolicy from '../utils/collections/policies';
+
 const mockUseState = React.useState;
 
 const SUBMITTER_EMAIL = 'submitter@example.com';
 const MANAGER_EMAIL = 'manager@example.com';
-const mockPersonalDetailsList = {
-    1: {accountID: 1, login: SUBMITTER_EMAIL, displayName: 'Submitter'},
-    2: {accountID: 2, login: MANAGER_EMAIL, displayName: 'Manager'},
-};
+const mockPersonalDetailsList: Record<number, {accountID: number; login: string; displayName: string}> = {};
+mockPersonalDetailsList[1] = {accountID: 1, login: SUBMITTER_EMAIL, displayName: 'Submitter'};
+mockPersonalDetailsList[2] = {accountID: 2, login: MANAGER_EMAIL, displayName: 'Manager'};
 
 jest.mock('@components/SelectionList', () => jest.fn(() => null));
 jest.mock('@components/SelectionList/ListItem/InviteMemberListItem', () => jest.fn(() => null));
@@ -54,16 +53,10 @@ jest.mock('@hooks/useLocalize', () =>
     })),
 );
 jest.mock('@hooks/useNetwork', () => jest.fn(() => ({isOffline: false})));
-jest.mock('@hooks/useOnyx', () =>
-    jest.fn((key: string, options?: {selector?: unknown}) => {
-        const keys = jest.requireActual<typeof import('@src/ONYXKEYS')>('@src/ONYXKEYS').default;
-        if (key === keys.PERSONAL_DETAILS_LIST) {
-            // The submitter-login read passes a selector; the plain read returns the whole map.
-            return options?.selector ? ['submitter@example.com'] : [mockPersonalDetailsList];
-        }
-        return [undefined];
-    }),
-);
+// The only selector-based read that matters here is the submitter login; every plain read that the two
+// tested paths touch either wants the personal-details map or ignores its value, so returning the map by
+// default is safe. Reads that pass a selector get the submitter login string.
+jest.mock('@hooks/useOnyx', () => jest.fn((key: string, options?: {selector?: unknown}) => (options?.selector ? ['submitter@example.com'] : [mockPersonalDetailsList])));
 jest.mock('@hooks/usePermissions', () => jest.fn(() => ({isBetaEnabled: jest.fn(() => false)})));
 jest.mock('@hooks/useSearchShouldCalculateTotals', () => jest.fn(() => false));
 jest.mock('@hooks/useStyleUtils', () => jest.fn(() => ({getMinimumHeight: () => ({})})));
@@ -82,7 +75,7 @@ jest.mock('@libs/PersonalDetailsUtils', () => ({
 }));
 jest.mock('@libs/PolicyUtils', () => ({
     getSubmitToEmail: jest.fn(() => 'submitter@example.com'),
-    getMemberAccountIDsForWorkspace: jest.fn(() => ({'manager@example.com': 2, 'submitter@example.com': 1})),
+    getMemberAccountIDsForWorkspace: jest.fn(() => ({['manager@example.com']: 2, ['submitter@example.com']: 1})),
     getAccountIDForSubmitManagerEmail: jest.fn(() => 2),
 }));
 jest.mock('@libs/ReportUtils', () => ({
@@ -110,12 +103,12 @@ type MockSelectionListProps = {
 
 const report = {reportID: '1', ownerAccountID: 1} as Report;
 const policy = {
-    id: 'policy1',
+    ...createRandomPolicy(1, CONST.POLICY.TYPE.TEAM),
     employeeList: {
         [SUBMITTER_EMAIL]: {email: SUBMITTER_EMAIL},
         [MANAGER_EMAIL]: {email: MANAGER_EMAIL},
     },
-} as unknown as Policy;
+};
 
 function renderContent() {
     return render(
