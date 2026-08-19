@@ -11,6 +11,7 @@ import {
     getValidConnectedIntegration,
     hasDynamicExternalWorkflow,
     hasIntegrationAutoSync,
+    isArchivedPolicy,
     isPreferredExporter,
     isSubmitterApproveBlockedOnSubmitWorkspace,
 } from './PolicyUtils';
@@ -37,7 +38,6 @@ import {hasOnlyPendingCardTransactions, hasSmartScanFailedWithMissingFields, has
 
 function canSubmit(
     report: Report,
-    isReportArchived: boolean,
     currentUserAccountID: number,
     currentUserEmail: string,
     ownerLogin: string | undefined,
@@ -45,7 +45,9 @@ function canSubmit(
     policy?: Policy,
     transactions?: Transaction[],
 ) {
-    if (isReportArchived) {
+    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedPolicy(policy)) {
         return false;
     }
 
@@ -77,6 +79,10 @@ function canSubmit(
 }
 
 function canApprove(report: Report, currentUserAccountID: number, reportMetadata: OnyxEntry<ReportMetadata>, policy?: Policy, transactions?: Transaction[]) {
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
+
     if (isSubmitterApproveBlockedOnSubmitWorkspace(policy, report.ownerAccountID, currentUserAccountID)) {
         return false;
     }
@@ -122,7 +128,12 @@ function canPay(
     policy?: Policy,
     invoiceReceiverPolicy?: Policy,
 ) {
-    if (isReportArchived) {
+    const isExpense = isExpenseReport(report);
+
+    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
+    // no policy archived state, so an archived report blocks payment instead.
+    if (isExpense ? isArchivedPolicy(policy) : isReportArchived) {
         return false;
     }
 
@@ -130,7 +141,6 @@ function canPay(
     const canPayReport =
         isReportPayer ||
         (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
-    const isExpense = isExpenseReport(report);
     const isPaymentsEnabled = arePaymentsEnabled(policy);
     const isProcessing = isProcessingReport(report);
     const isApprovalEnabled = policy ? policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL : false;
@@ -263,7 +273,7 @@ function getReportPreviewAction({
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
     }
 
-    if (canSubmit(report, isReportArchived, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
+    if (canSubmit(report, currentUserAccountID, currentUserLogin, ownerLogin, violationsData, policy, transactions)) {
         return CONST.REPORT.REPORT_PREVIEW_ACTIONS.SUBMIT;
     }
     if (canApprove(report, currentUserAccountID, reportMetadata, policy, transactions)) {

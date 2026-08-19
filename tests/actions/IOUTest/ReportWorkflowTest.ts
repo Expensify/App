@@ -666,6 +666,21 @@ describe('actions/IOU/ReportWorkflow', () => {
                         () =>
                             new Promise<void>((resolve) => {
                                 const connection = Onyx.connect({
+                                    key: ONYXKEYS.COLLECTION.POLICY,
+                                    callback: (allPolicies) => {
+                                        Onyx.disconnect(connection);
+                                        policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policy?.id);
+                                        // Deleting the workspace archives its policy
+                                        expect(policy?.archivedDate).toBeTruthy();
+                                        resolve();
+                                    },
+                                });
+                            }),
+                    )
+                    .then(
+                        () =>
+                            new Promise<void>((resolve) => {
+                                const connection = Onyx.connect({
                                     key: ONYXKEYS.COLLECTION.REPORT,
                                     callback: (allReports) => {
                                         Onyx.disconnect(connection);

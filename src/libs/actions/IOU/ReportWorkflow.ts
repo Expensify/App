@@ -24,6 +24,7 @@ import {
     getAccountIDForSubmitManagerEmail,
     getSubmitReportManagerAccountID,
     hasDynamicExternalWorkflow,
+    isArchivedPolicy,
     isPaidGroupPolicy,
     isSubmitAndClose,
     isSubmitPolicy,
@@ -156,6 +157,12 @@ function canApproveIOU(
         return false;
     }
 
+    // State transitions are blocked only on archived policies. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still move through the workflow.
+    if (isArchivedPolicy(policy)) {
+        return false;
+    }
+
     // On a Submit workspace the submitter is also the report manager, so hide Approve for reports they submitted.
     // Mark as paid stays available via the pay flow. This is checked before the paid-group gate so it keeps hiding
     // Approve for the submitter even though Submit workspaces now show Approve (which routes to the upgrade modal) for other users.
@@ -184,8 +191,6 @@ function canApproveIOU(
     const isOpenExpenseReport = isOpenExpenseReportReportUtils(iouReport);
     const isApproved = isReportApproved({report: iouReport});
     const iouSettled = isSettled(iouReport);
-    const reportNameValuePairs = getAllReportNameValuePairs()?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${iouReport?.reportID}`];
-    const isArchivedExpenseReport = isArchivedReport(reportNameValuePairs);
     const reportTransactions = iouTransactions ?? getReportTransactions(iouReport?.reportID);
     const hasOnlyPendingCardOrScanningTransactions = reportTransactions.length > 0 && reportTransactions.every((transaction) => isScanning(transaction) || isPending(transaction));
     if (hasOnlyPendingCardOrScanningTransactions) {
@@ -193,9 +198,7 @@ function canApproveIOU(
     }
     const isPayAtEndExpenseReport = isPayAtEndExpenseReportReportUtils(iouReport ?? undefined, reportTransactions);
     const isClosedReport = isClosedReportUtil(iouReport);
-    return (
-        reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isArchivedExpenseReport && !isPayAtEndExpenseReport && !isClosedReport
-    );
+    return reportTransactions.length > 0 && isCurrentUserManager && !isOpenExpenseReport && !isApproved && !iouSettled && !isPayAtEndExpenseReport && !isClosedReport;
 }
 
 function canIOUBePaid(
@@ -265,12 +268,17 @@ function canIOUBePaid(
         return false;
     }
 
+    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still be paid. IOU reports have no policy
+    // archived state, so an archived chat blocks payment instead.
+    const isBlockedByArchivedState = isExpenseReport(iouReport) ? isArchivedPolicy(policy) : isChatReportArchived;
+
     return (
         canPay &&
         isReportFinished &&
         !iouSettled &&
         (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
-        !isChatReportArchived &&
+        !isBlockedByArchivedState &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
         (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))

@@ -222,9 +222,9 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    // Expense reports on archived policies cannot be paid, but reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can. IOU and invoice reports have no policy
-    // archived state, so they keep the archived report/chat restriction.
+    // Expense reports cannot be paid when their policy is archived. Reports archived for other reasons
+    // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
+    // no policy archived state, so an archived report or chat blocks payment instead.
     if (isExpenseReport ? isArchivedPolicy(policy) : isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
         return false;
     }
