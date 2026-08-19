@@ -36,6 +36,7 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -72,23 +73,26 @@ function ExportedToSelector({value = [], policyID, selectionListTextInputStyle, 
             .filter((connectionName) => connectedIntegrationNames.has(connectionName))
             .flatMap((connectionName) => {
                 const searchValues = getExportLabelsForConnection(connectionName, policiesToLoadTemplatesFrom);
-                const icon = getIntegrationIcon(connectionName, expensifyIcons);
-                return searchValues.map((searchValue) => ({
-                    text: searchValue,
-                    value: searchValue,
-                    leftElement: icon ? (
-                        <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                            <Icon
-                                src={icon}
-                                width={variables.iconSizeXLarge}
-                                height={variables.iconSizeXLarge}
-                                additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
-                            />
-                        </View>
-                    ) : (
-                        tableIconForExportOption(expensifyIcons.Table)
-                    ),
-                }));
+                return searchValues.map((searchValue) => {
+                    const isIntuitEnterpriseSuite = searchValue === CONST.EXPORT_LABELS.INTUIT_ENTERPRISE_SUITE;
+                    const icon = isIntuitEnterpriseSuite ? expensifyIcons.IntuitSquare : getIntegrationIcon(connectionName, expensifyIcons);
+                    return {
+                        text: searchValue,
+                        value: searchValue,
+                        leftElement: icon ? (
+                            <View style={[styles.mr3, styles.alignItemsCenter, styles.justifyContentCenter]}>
+                                <Icon
+                                    src={icon}
+                                    width={variables.iconSizeXLarge}
+                                    height={variables.iconSizeXLarge}
+                                    additionalStyles={[StyleUtils.getAvatarBorderStyle(CONST.AVATAR_SIZE.DEFAULT, CONST.ICON_TYPE_AVATAR)]}
+                                />
+                            </View>
+                        ) : (
+                            tableIconForExportOption(expensifyIcons.Table)
+                        ),
+                    };
+                });
             });
 
         const usedPickerValueKeys = new Set(connectedIntegrationPickerItems.map((item) => item.value));

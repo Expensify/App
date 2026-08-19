@@ -182,7 +182,7 @@ jest.mock('@hooks/useDefaultExpensePolicy', () => ({
 }));
 
 jest.mock('@hooks/useLazyAsset', () => ({
-    useMemoizedLazyExpensifyIcons: () => ({}),
+    useMemoizedLazyExpensifyIcons: (icons: string[]) => Object.fromEntries(icons.map((icon) => [icon, icon])),
 }));
 
 jest.mock('@hooks/useCurrencyList', () => ({
@@ -614,9 +614,13 @@ describe('useSearchBulkActions - export options', () => {
 
         const subMenuItems = getExportSubMenuItems(result.current.headerButtonsOptions) ?? [];
 
-        // Both QBO and IES export options are present
-        expect(subMenuItems.some((item) => item.text === QBO_FRIENDLY_NAME)).toBe(true);
-        expect(subMenuItems.some((item) => item.text === IES_FRIENDLY_NAME)).toBe(true);
+        // Both QBO and IES export options are present with their respective icons
+        const exportQBOOption = subMenuItems.find((item) => item.text === QBO_FRIENDLY_NAME);
+        const exportIESOption = subMenuItems.find((item) => item.text === IES_FRIENDLY_NAME);
+        expect(exportQBOOption).toBeDefined();
+        expect(exportIESOption).toBeDefined();
+        expect(exportQBOOption?.icon).toBe('QBOSquare');
+        expect(exportIESOption?.icon).toBe('IntuitSquare');
         expect(subMenuItems.filter((item) => item.text === 'workspace.common.markAsExported')).toHaveLength(2);
 
         const integrationOptionTexts = subMenuItems

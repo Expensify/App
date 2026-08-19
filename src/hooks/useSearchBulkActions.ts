@@ -528,6 +528,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         'ReportCopy',
         'RotateLeft',
         'QBOSquare',
+        'IntuitSquare',
         'XeroSquare',
         'NetSuiteSquare',
         'IntacctSquare',
@@ -1973,7 +1974,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             for (const [, {integration, integrationPolicy, reports: reportsForIntegration}] of reportsByIntegration) {
                 const integrationGroupSize = reportsForIntegration.length;
                 const connectionNameFriendly = getAccountingIntegrationDisplayName(integrationPolicy, integration, translate);
-                const integrationIcon = getIntegrationIcon(integration, expensifyIcons);
+                const integrationIcon = getIntegrationIcon(integration, expensifyIcons, integrationPolicy);
 
                 // Show the option when AT LEAST ONE report in the group is eligible, and act only on the eligible
                 // subset. Mixing eligible + ineligible reports naturally triggers the partial-export confirmation.

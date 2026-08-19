@@ -51,6 +51,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -60,7 +61,7 @@ function DynamicReportDetailsExportPage({route}: DynamicReportDetailsExportPageP
         'GustoSquare',
     ]);
 
-    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons, policy);
     const canBeExported = canBeExportedUtil(report);
     const isExported = isExportedUtil(reportActions, report);
     const connectionNameFriendly = getAccountingIntegrationDisplayName(policy, connectionName, translate);

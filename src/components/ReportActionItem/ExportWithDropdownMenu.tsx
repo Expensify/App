@@ -62,6 +62,7 @@ function ExportWithDropdownMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons([
         'XeroSquare',
         'QBOSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'IntacctSquare',
         'QBDSquare',
@@ -71,7 +72,7 @@ function ExportWithDropdownMenu({
         'GustoSquare',
     ]);
 
-    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons);
+    const iconToDisplay = getIntegrationIcon(connectionName, expensifyIcons, policy);
     const canBeExported = canBeExportedUtils(report);
     const isExported = isExportedUtils(reportActions, report);
     const flattenedWrapperStyle = StyleSheet.flatten([styles.flex1, wrapperStyle]);
