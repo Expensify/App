@@ -218,7 +218,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);
     }
     if (backTo) {
         Navigation.goBack(backTo);

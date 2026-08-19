@@ -88,7 +88,7 @@ function WorkspaceUpgradePage({route}: WorkspaceUpgradePageProps) {
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     // A submit2026 policy can only be upgraded via the UpgradeSubmit command (the server rejects
     // UpgradeToCorporate for it with a 402), and its owner holds the editor role, so the upgrade
-    // flow below must key off the policy type rather than the SUBMIT_2026 beta or admin checks.
+    // flow below must key off the policy type rather than admin checks.
     const isUpgradingFromSubmitPolicy = isSubmitPolicy(policy);
     const featureNameAlias = route.params?.featureName && getFeatureNameAlias(route.params.featureName);
     const upgradingFromSubmitLatchPolicyIDRef = useRef<string | undefined>(undefined);

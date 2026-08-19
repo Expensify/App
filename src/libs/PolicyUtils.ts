@@ -118,7 +118,7 @@ function getActivePolicies(policies: OnyxCollection<Policy> | null, currentUserL
  * These will be policies that has expense chat enabled.
  * These are policies that we can use to create reports with in NewDot.
  */
-function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined, isSubmit2026BetaEnabled = false): Policy[] {
+function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | null, currentUserLogin: string | undefined): Policy[] {
     return Object.values(policies ?? {}).filter<Policy>(
         (policy): policy is Policy =>
             !!policy &&
@@ -126,7 +126,7 @@ function getActivePoliciesWithExpenseChat(policies: OnyxCollection<Policy> | nul
             !!policy.name &&
             !!policy.id &&
             !!getPolicyRole(policy, currentUserLogin) &&
-            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
+            (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) &&
             !isArchivedPolicy(policy),
     );
 }
@@ -1375,15 +1375,6 @@ function isSubmitterApproveBlockedOnSubmitWorkspace(policy: OnyxInputOrEntry<Pol
     return isSubmitPolicy(policy) && reportOwnerAccountID === approverAccountID;
 }
 
-/**
- * We only allow users to access Submit feature if they have the SUBMIT_2026 beta enabled.
- *
- * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
- */
-function canAccessSubmitWorkspaceFeatures(policy: OnyxInputOrEntry<Policy>, isSubmit2026BetaEnabled: boolean): boolean {
-    return isSubmitPolicy(policy) && isSubmit2026BetaEnabled;
-}
-
 const isPolicyEditor = (policy: OnyxInputOrEntry<Policy>, login?: string): boolean => getPolicyRole(policy, login) === CONST.POLICY.ROLE.EDITOR;
 
 /**
@@ -2012,14 +2003,30 @@ function hasDependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<Po
     if (!policy?.hasMultipleTagLists) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
+    // An empty tag list arrives without the `tags` key, despite the type.
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).some((tag) => !!tag.rules?.parentTagsFilter || !!tag.parentTagsFilter));
 }
 
 function hasIndependentTags(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
     if (!policy?.hasMultipleTagLists || hasDependentTags(policy, policyTagList)) {
         return false;
     }
-    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags).length > 0);
+    return Object.values(policyTagList ?? {}).some((tagList) => Object.values(tagList.tags ?? {}).length > 0);
+}
+
+/**
+ * Whether Required lives on each tag list rather than on the policy-wide requiresTag flag.
+ *
+ * Deliberately not hasIndependentTags: this gates on the tag list count instead of the hasMultipleTagLists flag, and it
+ * must stay true for a multi-level workspace whose lists are still empty, otherwise the per-level rows would disappear.
+ */
+function hasPerTagListRequired(policy: OnyxEntry<Policy>, policyTagList: OnyxEntry<PolicyTagLists>) {
+    return isMultiLevelTags(policyTagList) && !hasDependentTags(policy, policyTagList);
+}
+
+/** Admins name their tag lists, so prefer that name and fall back to the caller's generic label. */
+function getTagListLabel(tagListName: string | undefined, fallbackLabel: string) {
+    return (tagListName ? getCleanedTagName(tagListName) : '') || fallbackLabel;
 }
 
 /** Get the Xero organizations connected to the policy */
@@ -2731,22 +2738,15 @@ function hasAnyPaidPolicy(policies: OnyxCollection<Policy> | null) {
 
 /**
  * Returns the group workspaces where the user can create a report: paid (Team/Corporate) workspaces,
- * plus Submit workspaces when the SUBMIT_2026 beta is enabled. Submit workspaces are free but still
- * support report creation, so they belong here even though they're excluded from
- * `getGroupPaidPolicies`.
- *
- * @param isSubmit2026BetaEnabled - Prefer `isBetaEnabled(CONST.BETAS.SUBMIT_2026)` from `usePermissions()`, not raw betas from Onyx.
+ * plus Submit workspaces. Submit workspaces are free but still support report creation, so they belong
+ * here even though they're excluded from `getGroupPaidPolicies`.
  */
-function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, isSubmit2026BetaEnabled: boolean, currentUserLogin?: string) {
+function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy> | null, currentUserLogin?: string) {
     if (isEmptyObject(policies)) {
         return CONST.EMPTY_ARRAY;
     }
     return Object.values(policies).filter(
-        (policy): policy is Policy =>
-            !!policy &&
-            !policy.isJoinRequestPending &&
-            (isPaidGroupPolicy(policy) || canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled)) &&
-            shouldShowPolicy(policy, false, currentUserLogin),
+        (policy): policy is Policy => !!policy && !policy.isJoinRequestPending && (isPaidGroupPolicy(policy) || isSubmitPolicy(policy)) && shouldShowPolicy(policy, false, currentUserLogin),
     );
 }
 
@@ -2756,7 +2756,7 @@ function getGroupPoliciesWhereReportCanBeCreated(policies: OnyxCollection<Policy
  */
 function getDefaultChatEnabledPolicy(groupPoliciesWithChatEnabled: Array<OnyxInputOrEntry<Policy>>, activePolicy?: OnyxInputOrEntry<Policy> | null): OnyxInputOrEntry<Policy> | undefined {
     // Only default to the active policy when it's actually eligible, so we never pick an ineligible policy
-    // (e.g. a Submit workspace when the SUBMIT_2026 beta is off) over an eligible fallback.
+    // (e.g. a personal or free workspace) over an eligible fallback.
     if (activePolicy && isGroupPolicy(activePolicy) && groupPoliciesWithChatEnabled.some((policy) => policy?.id === activePolicy.id)) {
         return activePolicy;
     }
@@ -3034,6 +3034,7 @@ export {
     getActivePoliciesWithExpenseChat,
     getAdminEmployees,
     getCleanedTagName,
+    getTagListLabel,
     getCommaSeparatedTagNameWithSanitizedColons,
     getConnectedIntegration,
     getConnectionExporters,
@@ -3212,6 +3213,7 @@ export {
     getActiveEmployeeWorkspaces,
     getPolicyRole,
     hasIndependentTags,
+    hasPerTagListRequired,
     getLengthOfTag,
     getTagGLCode,
     getGLCodeFromPolicyTag,
@@ -3232,7 +3234,6 @@ export {
     getPolicyApproverLogins,
     tryNavigateToSubmitWorkspaceUpgrade,
     tryNavigateToControlPolicyUpgrade,
-    canAccessSubmitWorkspaceFeatures,
     getRulesDocumentSourceURL,
     isSubmitPolicy,
     isSubmitterApproveBlockedOnSubmitWorkspace,

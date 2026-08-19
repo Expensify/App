@@ -1526,6 +1526,10 @@ function getChangeTransactionsReportOnyxData({
                             IOUTransactionID: null,
                         },
                         errors: undefined,
+                        // The expense gets its own action on the new report, so this one is retired: clear its pending
+                        // state too, since `shouldReportActionBeVisible` keeps a pending action on screen.
+                        // `failureData` below restores the whole action.
+                        pendingAction: null,
                     },
                     ...(trackExpenseActionableWhisper ? {[trackExpenseActionableWhisper.reportActionID]: null} : {}),
                 },
