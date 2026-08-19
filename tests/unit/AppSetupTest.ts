@@ -1,4 +1,5 @@
 import appSetup from '@src/setup';
+import platformSetup from '@src/setup/platformSetup';
 
 import Onyx from 'react-native-onyx';
 
@@ -15,15 +16,20 @@ jest.mock('@src/setup/platformSetup', () => jest.fn());
 jest.mock('@src/setup/telemetry', () => jest.fn());
 
 describe('app setup', () => {
-    it('starts report action pagination registration after initializing Onyx', async () => {
+    it('registers report action pagination after initializing Onyx and before platform setup', async () => {
         const onyxInitSpy = jest.spyOn(Onyx, 'init');
 
-        appSetup();
-        await Promise.resolve();
+        const setupPromise = appSetup();
+
+        expect(platformSetup).not.toHaveBeenCalled();
+
+        await setupPromise;
 
         expect(mockRegisterReportActionsPagination).toHaveBeenCalledTimes(1);
         const [onyxInitOrder] = onyxInitSpy.mock.invocationCallOrder;
         const [paginationRegistrationOrder] = mockRegisterReportActionsPagination.mock.invocationCallOrder;
+        const [platformSetupOrder] = jest.mocked(platformSetup).mock.invocationCallOrder;
         expect(onyxInitOrder).toBeLessThan(paginationRegistrationOrder);
+        expect(paginationRegistrationOrder).toBeLessThan(platformSetupOrder);
     });
 });
