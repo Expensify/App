@@ -2049,6 +2049,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Avatar do perfil',
         customInstructions: 'Instruções personalizadas',
         copilotIntoAccount: 'Copilot na conta',
+        viewUserHistory: 'Ver histórico do usuário',
+        viewAgentHistory: 'Ver histórico do agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Esses detalhes são exibidos no seu perfil público. Qualquer pessoa pode vê-los.',
@@ -5686,8 +5688,11 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             billPaymentAccount: {label: 'Conta de pagamento de contas', description: 'Escolha de onde pagar as contas e nós vamos criar o pagamento no Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidações do Cartão Expensify',
             settlementAccount: {label: 'Conta de liquidação do Cartão Expensify', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidações de faturamento de viagens',
-            travelInvoicingSettlementAccount: {label: 'Conta de liquidação de faturamento de viagem', description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidações de cobrança consolidada de viagens',
+            travelInvoicingSettlementAccount: {
+                label: 'Conta de liquidação de faturamento consolidado de viagens',
+                description: 'Escolha sua conta de liquidação e nós criaremos o pagamento no Rillet.',
+            },
             exportToMultipleAccounts: 'Configurar exportação para várias contas',
             cardProgramAccount: {
                 label: 'Conta do programa de cartão',
@@ -7592,8 +7597,7 @@ Exija dados de despesas como recibos e descrições, defina limites e padrões e
                 alwaysNonReimbursable: 'Sempre não reembolsável',
                 alwaysNonReimbursableDescription: 'Despesas nunca são reembolsadas aos funcionários',
                 billableDefault: 'Cobrável por padrão',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão. As despesas faturáveis são ativadas ou desativadas em <a href="${tagsPageLink}">tags</a>.</muted-text>`,
+                billableDefaultDescription: 'Escolha se as despesas em dinheiro e cartão de crédito devem ser faturáveis por padrão.',
                 billable: 'Faturável',
                 billableDescription: 'As despesas são mais frequentemente refaturadas aos clientes',
                 nonBillable: 'Não faturável',
@@ -9986,6 +9990,8 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 onboardingChatTitle: (discountType: number) => `Oferta por tempo limitado: ${discountType}% de desconto no seu primeiro ano!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Solicite em até ${days > 0 ? `${days}d :` : ''}${hours}h : ${minutes}m : ${seconds}s`,
             },
+            travelInvoiceOverdue: {title: 'Sua fatura de viagem está vencida', subtitle: (date: string) => `Pague sua fatura de viagem até ${date} para continuar reservando viagens.`},
+            travelInvoiceOverdueLocked: {title: 'Reserva de viagem está pausada', subtitle: 'Sua fatura de viagem está vencida. Pague-a para voltar a reservar viagens.'},
         },
         cardSection: {
             title: 'Pagamento',

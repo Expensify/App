@@ -121,7 +121,17 @@ function PolicyAccountingPage({policy}: PolicyAccountingPageProps) {
     const allCardSettings = useExpensifyCardFeeds(policyID);
     const isSyncInProgress = isConnectionInProgress(connectionSyncProgress, policy);
     const icons = useMemoizedLazyExpensifyIcons(['ArrowRight', 'CircularArrowBackwards', 'ExpensifyCard', 'Gear', 'Key', 'NewWindow', 'Pencil', 'QuestionMark', 'Send', 'Sync', 'Trashcan']);
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare', 'DualEntrySquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+    ]);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
     const connectionSyncStage = connectionSyncProgress?.stageInProgress;
