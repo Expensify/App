@@ -7,7 +7,6 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import * as API from '@libs/API';
 import type {CompleteSplitBillParams, CreateDistanceRequestParams, SplitBillParams, StartSplitBillParams} from '@libs/API/parameters';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import {getCurrencyDecimals as getLegacyCurrencyDecimals, getCurrencySymbol as getLegacyCurrencySymbol} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
@@ -87,7 +86,7 @@ import {
     buildOnyxDataForMoneyRequest,
     getMoneyRequestInformation,
     getReceiptError,
-    getReportPreviewAction,
+    getReportPreviewReportAction,
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
@@ -122,6 +121,9 @@ type DistanceRequestTransactionParams = BaseTransactionParams & {
     odometerEnd?: number;
     gpsCoordinates?: string;
     distanceRequestType?: string;
+
+    /** Distance in meters of the alternate map route the user picked, so the backend doesn't fall back to the primary route */
+    selectedRouteDistance?: number;
 };
 
 type CreateDistanceRequestInformation = {
@@ -1006,8 +1008,8 @@ function completeSplitBill({
     const currency = updatedTransaction?.modifiedCurrency;
 
     // Exclude the current user when calculating the split amount, `calculateAmount` takes it into account
-    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false);
-    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false);
+    const splitAmount = calculateIOUAmount(splitParticipants.length - 1, amount ?? 0, currency ?? '', false, false, getCurrencyDecimals);
+    const splitTaxAmount = calculateIOUAmount(splitParticipants.length - 1, updatedTransaction?.taxAmount ?? 0, currency ?? '', false, false, getCurrencyDecimals);
 
     const splits: Split[] = [{email: currentUserEmailForIOUSplit}];
     for (const participant of splitParticipants) {
@@ -1142,7 +1144,7 @@ function completeSplitBill({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
@@ -1257,7 +1259,15 @@ function completeSplitBill({
 /**
  * Sets the `splitShares` map that holds individual shares of a split bill
  */
-function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: number, currency: string, newAccountIDs: number[], currentUserAccountID: number, isDraft = true) {
+function setSplitShares(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    amount: number,
+    currency: string,
+    newAccountIDs: number[],
+    currentUserAccountID: number,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    isDraft = true,
+) {
     if (!transaction) {
         return;
     }
@@ -1290,7 +1300,7 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
 
         const isPayer = accountID === currentUserAccountID;
         const participantsLength = newAccountIDs.includes(currentUserAccountID) ? newAccountIDs.length - 1 : newAccountIDs.length;
-        const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer);
+        const splitAmount = calculateIOUAmount(participantsLength, amount, currency, isPayer, false, getCurrencyDecimals);
         acc[accountID] = {
             amount: splitAmount,
             isModified: false,
@@ -1301,7 +1311,14 @@ function setSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, amount: n
     Onyx.merge(`${collectionKey}${transaction.transactionID}`, {splitShares});
 }
 
-function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmount: number | undefined, currency: string | undefined, currentUserAccountID: number, isDraft = true) {
+function resetSplitShares(
+    transaction: OnyxEntry<OnyxTypes.Transaction>,
+    newAmount: number | undefined,
+    currency: string | undefined,
+    currentUserAccountID: number,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    isDraft = true,
+) {
     if (!transaction) {
         return;
     }
@@ -1309,19 +1326,18 @@ function resetSplitShares(transaction: OnyxEntry<OnyxTypes.Transaction>, newAmou
     if (accountIDs.length === 0) {
         return;
     }
-    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, isDraft);
+    setSplitShares(transaction, newAmount ?? transaction.amount, currency ?? transaction.currency, accountIDs, currentUserAccountID, getCurrencyDecimals, isDraft);
 }
 
 function setDraftSplitTransaction(
     transactionID: string | undefined,
     splitTransactionDraft: OnyxEntry<OnyxTypes.Transaction>,
-    transactionChanges: TransactionChanges = {},
+    transactionChanges: TransactionChanges,
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'],
     policy?: OnyxEntry<OnyxTypes.Policy>,
     personalPolicyOutputCurrency?: string,
     policies?: OnyxCollection<OnyxTypes.Policy>,
-    // Callers that don't edit amount-related fields don't have the currency context wired up yet, so fall back to the legacy helpers.
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'] = getLegacyCurrencyDecimals,
-    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'] = getLegacyCurrencySymbol,
 ) {
     if (!transactionID) {
         return undefined;
@@ -1354,7 +1370,7 @@ function setDraftSplitTransaction(
  * Adjusts remaining unmodified shares when another share is modified
  * E.g. if total bill is $100 and split between 3 participants, when the user changes the first share to $50, the remaining unmodified shares will become $25 each.
  */
-function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transaction>) {
+function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transaction>, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']) {
     const modifiedShares = Object.keys(transaction.splitShares ?? {}).filter((key: string) => transaction?.splitShares?.[Number(key)]?.isModified);
 
     if (!modifiedShares.length) {
@@ -1375,7 +1391,7 @@ function adjustRemainingSplitShares(transaction: NonNullable<OnyxTypes.Transacti
     }
 
     const splitShares: SplitShares = unmodifiedSharesAccountIDs.reduce((acc: SplitShares, accountID: number, index: number): SplitShares => {
-        const splitAmount = calculateIOUAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0);
+        const splitAmount = calculateIOUAmount(unmodifiedSharesAccountIDs.length - 1, remainingTotal, transaction.currency, index === 0, false, getCurrencyDecimals);
         acc[accountID] = {
             amount: splitAmount,
         };
@@ -1694,8 +1710,8 @@ function createSplitsAndOnyxData({
     }
 
     // Loop through participants creating individual chats, iouReports and reportActionIDs as needed
-    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, true);
-    const currentUserTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, true);
+    const currentUserAmount = splitShares?.[currentUserAccountID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, true, false, getCurrencyDecimals);
+    const currentUserTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, true, false, getCurrencyDecimals);
     const isPendingDistanceSplitBill = isDistanceRequest && isEmptyObject(splitShares);
 
     const splits: Split[] = [
@@ -1707,8 +1723,9 @@ function createSplitsAndOnyxData({
     for (const participant of participants) {
         // In a case when a participant is a workspace, even when a current user is not an owner of the workspace
         const isPolicyExpenseChat = isPolicyExpenseChatReportUtil(participant);
-        const splitAmount = splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false);
-        const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false);
+        const splitAmount =
+            splitShares?.[participant.accountID ?? CONST.DEFAULT_NUMBER_ID]?.amount ?? calculateIOUAmount(participants.length, amount, currency, false, false, getCurrencyDecimals);
+        const splitTaxAmount = calculateIOUAmount(participants.length, taxAmount, currency, false, false, getCurrencyDecimals);
 
         // In case the participant is a workspace, email & accountID should remain undefined and won't be used in the rest of this code
         // participant.login is undefined when the request is initiated from a group DM with an unknown user, so we need to add a default
@@ -1883,7 +1900,7 @@ function createSplitsAndOnyxData({
             redundantParticipants[accountID] = null;
         }
 
-        let oneOnOneReportPreviewAction = getReportPreviewAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
+        let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
             oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
         } else {
@@ -2068,6 +2085,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
         isFromGlobalCreate,
         gpsCoordinates,
         distanceRequestType,
+        selectedRouteDistance,
     } = transactionParams;
 
     // If the report is an iou or expense report, we should get the linked chat report to be passed to the getMoneyRequestInformation function
@@ -2161,6 +2179,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             odometerEnd,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
         };
     } else {
         const participant = participants.at(0) ?? {};
@@ -2287,6 +2306,7 @@ function createDistanceRequest(distanceRequestInformation: CreateDistanceRequest
             attendees: attendees ? JSON.stringify(attendees) : undefined,
             gpsCoordinates,
             distanceRequestType,
+            selectedRouteDistance,
             shouldDeferAutoSubmit,
         };
     }

@@ -1,6 +1,6 @@
 import type {SubstitutionMap} from '@components/Search/SearchRouter/getQueryWithSubstitutions';
 
-import {getSearchValueForConnection, getStandardExportTemplateDisplayName} from '@libs/AccountingUtils';
+import {getSearchValueForConnection, getStandardExportTemplateDisplayName, isStandardExportTemplate, isStandardExportTemplateLabel} from '@libs/AccountingUtils';
 import {getParsableSearchValue, getTrimmedUserSearchQueryPreservingComma, parseForLiveMarkdown} from '@libs/SearchAutocompleteUtils';
 
 import CONST from '@src/CONST';
@@ -554,9 +554,37 @@ describe('SearchAutocompleteUtils', () => {
                 expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT);
             });
 
+            it('returns display name for the Canadian multiple tax export template', () => {
+                expect(getStandardExportTemplateDisplayName(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT);
+            });
+
             it('returns template name as-is when no standard mapping', () => {
                 const customName = 'Custom Export Layout';
                 expect(getStandardExportTemplateDisplayName(customName)).toBe(customName);
+            });
+        });
+
+        describe('isStandardExportTemplate', () => {
+            it('returns true for every standard export template ID', () => {
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.EXPENSE_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.REPORT_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplate(CONST.REPORT.EXPORT_OPTIONS.MULTIPLE_TAX_EXPORT)).toBe(true);
+            });
+
+            it('returns false for a custom template ID', () => {
+                expect(isStandardExportTemplate('Custom Export Layout')).toBe(false);
+            });
+        });
+
+        describe('isStandardExportTemplateLabel', () => {
+            it('returns true for every standard export template label', () => {
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.EXPENSE_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.REPORT_LEVEL_EXPORT)).toBe(true);
+                expect(isStandardExportTemplateLabel(CONST.REPORT.EXPORT_OPTION_LABELS.MULTIPLE_TAX_EXPORT)).toBe(true);
+            });
+
+            it('returns false for a custom template label', () => {
+                expect(isStandardExportTemplateLabel('Custom Export Layout')).toBe(false);
             });
         });
     });

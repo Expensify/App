@@ -21,7 +21,7 @@ import CONST from '@src/CONST';
 
 import React from 'react';
 
-import WorkspaceTravelInvoicingSection from './WorkspaceTravelInvoicingSection';
+import WorkspaceTravelBillingSection from './WorkspaceTravelBillingSection';
 
 type GetStartedTravelProps = {
     policyID: string;
@@ -96,7 +96,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
                     wrapperStyle={styles.mt3}
                 />
             </Section>
-            <WorkspaceTravelInvoicingSection policyID={policyID} />
+            <WorkspaceTravelBillingSection policyID={policyID} />
         </>
     );
 }
