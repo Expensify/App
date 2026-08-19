@@ -7865,6 +7865,7 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
                 restrictMerchantsBlockSubtitle: 'Obciążenia są zatwierdzane dla dozwolonych walut, które nie przekraczają maksymalnej kwoty, lub gdy pasuje sprzedawca albo typ sprzedawcy.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Dozwolone ${shownCount > 1 ? 'waluty' : 'waluta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} więcej` : ''}`,
+                defaultRulesCannotBeDeleted: 'Domyślnych reguł nie można usunąć',
             },
             agentRules: {
                 title: 'Zasady agenta',
