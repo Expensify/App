@@ -10589,13 +10589,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Mapeo de proveedores mejorado',
-                body: 'Crea proveedores y reglas personalizadas para asignarlos fácilmente a los principales sistemas de contabilidad.',
+                heading: 'Asignación de proveedores mejorada',
+                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
                 cta: 'Pruébalo',
             },
             member: {
-                heading: 'Agentes prediseñados para ti',
-                body: 'Usa agentes prediseñados o personalizados para codificar, dividir y enviar gastos automáticamente en tu nombre.',
+                heading: 'Agentes preconfigurados para ti',
+                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
                 cta: 'Pruébalo',
             },
         },

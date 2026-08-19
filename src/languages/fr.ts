@@ -10426,13 +10426,13 @@ Ajoutez davantage de règles de dépenses pour protéger la trésorerie de l’e
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Mise en correspondance améliorée des fournisseurs',
-                body: 'Créez des fournisseurs et des règles personnalisées pour les associer facilement aux principaux logiciels de comptabilité.',
+                heading: 'Mappage de fournisseur amélioré',
+                body: 'Créez des fournisseurs et des règles personnalisées pour faciliter la mise en correspondance avec les principaux logiciels de comptabilité.',
                 cta: 'Essayer',
             },
             member: {
                 heading: 'Agents préconfigurés pour vous',
-                body: 'Utilisez des agents préconfigurés ou personnalisés pour coder, fractionner et soumettre automatiquement des dépenses en votre nom.',
+                body: 'Utilisez des agents prédéfinis ou personnalisés pour coder, répartir et soumettre automatiquement les dépenses en votre nom.',
                 cta: 'Essayer',
             },
         },

@@ -10327,12 +10327,12 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Mapeamento aprimorado de fornecedores',
-                body: 'Crie fornecedores e regras personalizadas para mapeá-los facilmente nos principais sistemas de contabilidade.',
+                heading: 'Mapeamento de fornecedor aprimorado',
+                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
                 cta: 'Experimente',
             },
             member: {
-                heading: 'Agentes prontos para você',
+                heading: 'Agentes pré-configurados para você',
                 body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
                 cta: 'Experimente',
             },

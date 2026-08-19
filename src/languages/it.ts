@@ -10364,13 +10364,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Mappatura avanzata dei fornitori',
-                body: 'Crea fornitori e regole personalizzate per associarli facilmente ai principali software di contabilità.',
+                heading: 'Mappatura fornitori avanzata',
+                body: 'Crea fornitori e regole personalizzate per mappare facilmente le principali suite contabili.',
                 cta: 'Provalo',
             },
             member: {
-                heading: 'Agenti predefiniti per te',
-                body: 'Usa agenti predefiniti o personalizzati per codificare, suddividere e inviare automaticamente le spese per tuo conto.',
+                heading: 'Agenti preconfigurati per te',
+                body: 'Usa agenti preconfigurati o personalizzati per codificare, suddividere e inviare automaticamente le spese per tuo conto.',
                 cta: 'Provalo',
             },
         },

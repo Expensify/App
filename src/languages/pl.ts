@@ -10304,12 +10304,12 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
         roleTypes: {
             admin: {
                 heading: 'Ulepszone mapowanie dostawców',
-                body: 'Twórz dostawców i niestandardowe reguły, aby łatwo mapować ich do najpopularniejszych systemów księgowych.',
-                cta: 'Wypróbuj',
+                body: 'Twórz dostawców i własne reguły, żeby łatwo mapować je do głównych pakietów księgowych.',
+                cta: 'Wypróbuj to',
             },
             member: {
-                heading: 'Gotowi agenci dla Ciebie',
-                body: 'Używaj gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
+                heading: 'Gotowe agenty dla ciebie',
+                body: 'Korzystaj z gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
                 cta: 'Wypróbuj',
             },
         },

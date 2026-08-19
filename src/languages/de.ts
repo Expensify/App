@@ -10393,13 +10393,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Verbesserte Lieferantenzuordnung',
-                body: 'Erstelle Lieferanten und benutzerdefinierte Regeln, um sie einfach den wichtigsten Buchhaltungssystemen zuzuordnen.',
-                cta: 'Ausprobieren',
+                heading: 'Erweiterte Lieferanten-Zuordnung',
+                body: 'Erstellen Sie Lieferanten und benutzerdefinierte Regeln für eine einfache Zuordnung zu den wichtigsten Buchhaltungspaketen.',
+                cta: 'Probieren Sie es aus',
             },
             member: {
-                heading: 'Vorgefertigte Agenten für dich',
-                body: 'Verwende vorgefertigte oder benutzerdefinierte Agenten, um Ausgaben in deinem Namen automatisch zu kontieren, aufzuteilen und einzureichen.',
+                heading: 'Vorgefertigte Agents für Sie',
+                body: 'Verwenden Sie vorgefertigte oder benutzerdefinierte Agenten, um Ausgaben automatisch in Ihrem Namen zu kodieren, aufzuteilen und einzureichen.',
                 cta: 'Ausprobieren',
             },
         },
