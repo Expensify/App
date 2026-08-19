@@ -53,6 +53,7 @@ type ConnectionStatusDetails = {
     onActionPress?: () => void;
     isActionDisabled?: boolean;
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -308,6 +309,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
+                                        brickRoadIndicator={connectionStatus.brickRoadIndicator}
                                         onLinkPress={connectionStatus.onLinkPress}
                                     />
                                 </View>
