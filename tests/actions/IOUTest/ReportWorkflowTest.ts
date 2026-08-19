@@ -1132,8 +1132,8 @@ describe('actions/IOU/ReportWorkflow', () => {
                         return waitForBatchedUpdates();
                     })
                     .then(() => {
-                        // The backend archives the policy when the workspace is deleted. Simulate its
-                        // response since the optimistic data doesn't set archivedDate.
+                        // Delete workspace action will be replaced with archive workspace.
+                        // Simulate archive workspace response with merging archivedDate to the policy.
                         return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, {archivedDate: DateUtils.getDBTime()});
                     })
                     .then(
