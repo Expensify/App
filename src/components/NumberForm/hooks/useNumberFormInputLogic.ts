@@ -3,6 +3,7 @@ import type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent} from '@comp
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
+import usePrevious from '@hooks/usePrevious';
 
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
@@ -23,7 +24,8 @@ import CONST from '@src/CONST';
 import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
-import {useEffect, useImperativeHandle, useRef, useState} from 'react';
+import {useIsFocused} from '@react-navigation/native';
+import {useEffect, useImperativeHandle, useLayoutEffect, useRef, useState} from 'react';
 
 type NumberSelection = {
     start: number;
@@ -67,6 +69,8 @@ function useNumberFormInputLogic({
     const willSelectionBeUpdatedManually = useRef(false);
     const previousDecimals = useRef<number | undefined>(undefined);
     const [selection, setSelection] = useState<NumberSelection>({start: value.length, end: value.length});
+    const isFocused = useIsFocused();
+    const wasFocused = usePrevious(isFocused);
 
     const shouldAllowNegativeInput = negativeMode === 'inValue';
     const shouldFlipNegative = negativeMode === 'external';
@@ -76,6 +80,17 @@ function useNumberFormInputLogic({
     const clearSelection = () => {
         setSelection((currentSelection) => ({start: currentSelection.end, end: currentSelection.end}));
     };
+
+    // Clears text selection if user visits symbol (currency) selector and comes back
+    useEffect(() => {
+        if (!isFocused || wasFocused) {
+            return;
+        }
+
+        // Focus regain is a navigation lifecycle event; collapse stale selection after returning from a child screen.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
+        clearSelection();
+    }, [isFocused, wasFocused, clearSelection]);
 
     /**
      * Normalizes and validates raw input, then commits it. This is the single normalization point for every input path:
@@ -93,8 +108,8 @@ function useNumberFormInputLogic({
             return;
         }
 
-        // Only handleSelectionChange clears this: on native the controlled input can emit onSelectionChange with the
-        // stale caret in the same batch as this change, and that one event has to be dropped.
+        // Keep this set through the current batch so a stale native selection event is dropped; it is cleared after the
+        // committed value render so a later legitimate selection event is applied.
         willSelectionBeUpdatedManually.current = true;
         numberRef.current = numberWithLeadingZero;
 
@@ -126,6 +141,13 @@ function useNumberFormInputLogic({
         // Keep the existing behavior when a currency or unit changes its decimal precision. This intentionally updates the root value from an effect.
         setNumber(stripDecimalsFromAmount(value));
     }, [decimals, externalValue, maxLength, setNumber, shouldAllowNegativeInput, shouldFlipNegative, value]);
+
+    useLayoutEffect(() => {
+        // A manual update can change only the selection (for example, when setNumber() or updateNumber() receives the
+        // value that is already committed). In that case `value` does not change, so include `selection` to ensure the
+        // guard is still cleared after the manually controlled selection has committed.
+        willSelectionBeUpdatedManually.current = false;
+    }, [selection, value]);
 
     const updateNumber = (newNumber: string) => {
         const updatedNumber = handleNegativeAmountFlipping(newNumber, shouldFlipNegative, toggleNegative);

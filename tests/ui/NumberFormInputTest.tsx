@@ -7,19 +7,21 @@ import type {NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
-import type * as NativeNavigation from '@react-navigation/native';
-
+import * as NativeNavigation from '@react-navigation/native';
 import React from 'react';
 
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@react-navigation/native', () => ({
     ...jest.requireActual<typeof NativeNavigation>('@react-navigation/native'),
+    useIsFocused: jest.fn(() => true),
     useNavigation: jest.fn(() => ({
         navigate: jest.fn(),
         addListener: jest.fn(() => jest.fn()),
     })),
 }));
+
+const mockUseIsFocused = jest.mocked(NativeNavigation.useIsFocused);
 
 type RootProps = {
     value?: string;
@@ -51,6 +53,26 @@ function renderTextInput(inputProps: Partial<NumberFormTextInputProps> = {}, roo
 }
 
 const INPUT_TEST_ID = 'number-form-input';
+
+type FocusInputType = 'symbol' | 'text';
+
+function FocusInput({inputType}: {inputType: FocusInputType}) {
+    if (inputType === 'symbol') {
+        return <NumberForm.SymbolInput testID={INPUT_TEST_ID} />;
+    }
+
+    return <NumberForm.TextInput testID={INPUT_TEST_ID} />;
+}
+
+function FocusInputForm({inputType}: {inputType: FocusInputType}) {
+    return (
+        <ComposeProviders components={[OnyxListItemProvider, LocaleContextProvider]}>
+            <NumberForm value="1234">
+                <FocusInput inputType={inputType} />
+            </NumberForm>
+        </ComposeProviders>
+    );
+}
 
 // selectionForRender is new NumberForm logic: it clamps the selection passed to the input at render time.
 // NumberWithSymbolForm only clamped selection inside handleSelectionChange and passed raw `selection` to the input.
@@ -113,6 +135,36 @@ describe('NumberForm selection handling', () => {
 
         expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
         expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 2, end: 2});
+    });
+});
+
+describe('NumberForm navigation focus selection handling', () => {
+    afterEach(() => {
+        jest.clearAllMocks();
+        mockUseIsFocused.mockReturnValue(true);
+    });
+
+    it.each<FocusInputType>(['symbol', 'text'])('clears the selection when focus is regained (%s)', async (inputType) => {
+        const {rerender} = render(<FocusInputForm inputType={inputType} />);
+        await waitForBatchedUpdatesWithAct();
+
+        const input = screen.getByTestId(INPUT_TEST_ID);
+        fireEvent(input, 'selectionChange', {
+            nativeEvent: {selection: {start: 1, end: 3}},
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        expect(input.props.selection).toEqual({start: 1, end: 3});
+
+        mockUseIsFocused.mockReturnValue(false);
+        rerender(<FocusInputForm inputType={inputType} />);
+        await waitForBatchedUpdatesWithAct();
+
+        mockUseIsFocused.mockReturnValue(true);
+        rerender(<FocusInputForm inputType={inputType} />);
+        await waitForBatchedUpdatesWithAct();
+
+        expect(screen.getByTestId(INPUT_TEST_ID).props.selection).toEqual({start: 3, end: 3});
     });
 });
 
