@@ -7,6 +7,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getHeaderMessageForNonUserList} from '@libs/OptionsListUtils';
 import {getTagList} from '@libs/PolicyUtils';
 import type {OptionData} from '@libs/ReportUtils';
@@ -62,6 +63,9 @@ type TagPickerProps = {
      * `showTagGLCodes && glCodes` from the policy in Onyx.
      */
     shouldShowGLCode?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 const getSelectedOptions = (selectedTag: string): SelectedTagOption[] => {
@@ -90,6 +94,7 @@ function TagPicker({
     additionalTagsToInclude,
     addBottomSafeAreaPadding = false,
     shouldShowGLCode: shouldShowGLCodeProp,
+    shouldAutoFocusSearchInput = false,
 }: TagPickerProps) {
     const [policyTags] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`);
     const [shouldShowGLCodeFromPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`, {
@@ -176,7 +181,8 @@ function TagPicker({
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList((sections?.at(0)?.data?.length ?? 0) > 0, searchValue),
         label: translate('common.search'),
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
@@ -200,3 +206,4 @@ function TagPicker({
 }
 
 export default TagPicker;
+export type {TagPickerProps};

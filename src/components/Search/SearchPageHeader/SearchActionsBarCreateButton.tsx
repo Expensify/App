@@ -1,4 +1,4 @@
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import type {PopoverMenuItem} from '@components/PopoverMenu';
 import PopoverMenu from '@components/PopoverMenu';
 
@@ -55,9 +55,8 @@ function SearchActionsBarCreateButton() {
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
     const [groupPoliciesWithChatEnabled = CONST.EMPTY_ARRAY] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, email),
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => getGroupPoliciesWhereReportCanBeCreated(policies, email),
     });
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
@@ -153,13 +152,15 @@ function SearchActionsBarCreateButton() {
                             const freshReportID = generateReportID();
                             const freshTransactionID = generateReportID();
                             Navigation.navigate(
-                                ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
-                                    action: CONST.IOU.ACTION.CREATE,
-                                    iouType: CONST.IOU.TYPE.CREATE,
-                                    transactionID: freshTransactionID,
-                                    reportID: freshReportID,
-                                    upgradePath: CONST.UPGRADE_PATHS.REPORTS,
-                                }),
+                                createDynamicRoute(
+                                    DYNAMIC_ROUTES.MONEY_REQUEST_UPGRADE.getRoute({
+                                        action: CONST.IOU.ACTION.CREATE,
+                                        iouType: CONST.IOU.TYPE.CREATE,
+                                        transactionID: freshTransactionID,
+                                        reportID: freshReportID,
+                                        upgradePath: CONST.UPGRADE_PATHS.REPORTS,
+                                    }),
+                                ),
                             );
                             return;
                         }
@@ -240,12 +241,13 @@ function SearchActionsBarCreateButton() {
             />
             <Button
                 ref={createButtonRef}
-                success
-                small
-                icon={expensifyIcons.Plus}
-                text={translate('common.create')}
+                variant={CONST.BUTTON_VARIANT.SUCCESS}
+                size={CONST.BUTTON_SIZE.SMALL}
                 onPress={showCreateMenu}
-            />
+            >
+                <Button.Icon src={expensifyIcons.Plus} />
+                <Button.Text>{translate('common.create')}</Button.Text>
+            </Button>
         </View>
     );
 }

@@ -135,6 +135,7 @@ function FABPopoverMenu({isVisible, onClose, onItemSelected, anchorRef, animatio
                 <FocusTrapForModal
                     active={isVisible}
                     shouldReturnFocus
+                    launcherRef={anchorRef}
                 >
                     <CompactMenuContext.Provider value>
                         <Activity mode={contentActivityMode}>

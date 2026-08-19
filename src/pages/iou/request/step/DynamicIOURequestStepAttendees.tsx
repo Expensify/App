@@ -1,3 +1,4 @@
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
@@ -59,6 +60,7 @@ function DynamicIOURequestStepAttendees({
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
     const previousAttendees = usePrevious(attendees);
     const {translate} = useLocalize();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const transactionViolations = useTransactionViolations(transactionID);
     useRestartOnReceiptFailure(transaction, reportID, iouType, action);
     const currentUserAccountIDParam = currentUserPersonalDetails.accountID;
@@ -98,6 +100,8 @@ function DynamicIOURequestStepAttendees({
                     delegateAccountID,
                     reportPolicyTags,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
             } else {
                 setMoneyRequestAttendees(transactionID, attendees, !isEditing);
@@ -124,6 +128,8 @@ function DynamicIOURequestStepAttendees({
         delegateAccountID,
         reportPolicyTags,
         isTrackIntentUser,
+        getCurrencyDecimals,
+        getCurrencySymbol,
     ]);
 
     const navigateBack = () => {

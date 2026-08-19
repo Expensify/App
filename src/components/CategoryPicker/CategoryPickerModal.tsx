@@ -83,6 +83,7 @@ function CategoryPickerModal({
                     policyID={policyID}
                     onSubmit={handleCategorySelect}
                     addBottomSafeAreaPadding
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>

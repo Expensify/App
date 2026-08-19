@@ -108,6 +108,7 @@ function TagPickerModal({
                     shouldShowGLCode={shouldShowGLCode}
                     onSubmit={handleTagSelected}
                     addBottomSafeAreaPadding
+                    shouldAutoFocusSearchInput
                 />
             </View>
         </PopoverWithMeasuredContent>

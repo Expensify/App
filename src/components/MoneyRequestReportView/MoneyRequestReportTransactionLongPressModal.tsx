@@ -1,4 +1,4 @@
-import MenuItem from '@components/MenuItem';
+import MenuItemAction from '@components/MenuItem/presets/MenuItemAction';
 import Modal from '@components/Modal';
 
 import useBottomSafeSafeAreaPaddingStyle from '@hooks/useBottomSafeSafeAreaPaddingStyle';
@@ -53,7 +53,7 @@ function MoneyRequestReportTransactionLongPressModal({isMobileSelectionModeEnabl
             enableEdgeToEdgeBottomSafeAreaPadding
         >
             <View style={bottomSafeAreaPaddingStyle}>
-                <MenuItem
+                <MenuItemAction
                     title={translate('common.select')}
                     icon={expensifyIcons.CheckSquare}
                     onPress={() => {
