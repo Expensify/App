@@ -1476,7 +1476,6 @@ const translations: TranslationDeepObject<typeof en> = {
         managerApproved: (manager: string) => `${manager} ενέκρινε:`,
         managerApprovedAmount: (manager: string, amount: number | string) => `Ο/Η ${manager} ενέκρινε ${amount}`,
         payerSettled: (amount: number | string) => `πληρώθηκαν ${amount}`,
-        payerSettledWithMissingBankAccount: (amount: number | string) => `πληρώθηκαν ${amount}. Προσθέστε έναν τραπεζικό λογαριασμό για να λάβετε την πληρωμή σας.`,
         automaticallyApproved: `εγκρίθηκε μέσω των <a href="${CONST.CONFIGURE_EXPENSE_REPORT_RULES_HELP_URL}">κανόνων χώρου εργασίας</a>`,
         approvedAmount: (amount: number | string) => `εγκρίθηκε ${amount}`,
         approvedMessage: `εγκεκριμένο`,
@@ -2114,6 +2113,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Εικόνα προφίλ',
         customInstructions: 'Προσαρμοσμένες οδηγίες',
         copilotIntoAccount: 'Οδηγός εντός λογαριασμού',
+        viewUserHistory: 'Προβολή ιστορικού χρήστη',
+        viewAgentHistory: 'Προβολή ιστορικού αντιπροσώπου',
         publicSection: {
             title: 'Δημόσιο',
             subtitle: 'Αυτές οι πληροφορίες εμφανίζονται στο δημόσιο προφίλ σας. Μπορεί να τις δει οποιοσδήποτε.',
@@ -2211,6 +2212,9 @@ const translations: TranslationDeepObject<typeof en> = {
         pleaseInstallExpensifyClassic: 'Παρακαλούμε εγκαταστήστε την πιο πρόσφατη έκδοση του Expensify',
         toGetLatestChanges: 'Σε κινητό, κάντε λήψη και εγκαταστήστε την πιο πρόσφατη έκδοση. Σε web, ανανεώστε το πρόγραμμα περιήγησής σας.',
         newAppNotAvailable: 'Ενημερώστε τώρα και θα μας ευχαριστήσετε αργότερα.',
+        updateAvailable: 'Διαθέσιμη ενημέρωση',
+        pleaseRefresh: 'Παρακαλούμε ανανεώστε αυτή τη σελίδα για να λάβετε την πιο πρόσφατη έκδοση του Expensify.',
+        refreshPage: 'Ανανεώστε τη σελίδα',
     },
     initialSettingsPage: {
         about: 'Πληροφορίες',
@@ -3261,6 +3265,7 @@ ${amount} για ${merchant} - ${date}`,
         accounting: {
             title: 'Χρησιμοποιείτε κάποιο λογιστικό λογισμικό;',
             none: 'Κανένα',
+            otherAccountingSoftware: 'Το λογιστικό σας λογισμικό',
         },
         interestedFeatures: {
             title: 'Σε ποιες δυνατότητες ενδιαφέρεστε;',
@@ -5838,9 +5843,9 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
                 label: 'Λογαριασμός διακανονισμού κάρτας Expensify',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
             },
-            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών τιμολόγησης ταξιδιών',
+            syncTravelInvoicingSettlements: 'Συγχρονισμός διακανονισμών συγκεντρωτικής χρέωσης ταξιδιών',
             travelInvoicingSettlementAccount: {
-                label: 'Λογαριασμός διακανονισμού τιμολόγησης ταξιδιών',
+                label: 'λογαριασμός διακανονισμού ενοποιημένης χρέωσης ταξιδιών',
                 description: 'Επιλέξτε τον λογαριασμό διακανονισμού σας και θα δημιουργήσουμε την πληρωμή στο Rillet.',
             },
             exportToMultipleAccounts: 'Ρυθμίστε την εξαγωγή σε πολλούς λογαριασμούς',
@@ -6035,6 +6040,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             directFeed: 'Άμεση ροή',
             whoNeedsCardAssigned: 'Ποιος χρειάζεται να του ανατεθεί κάρτα;',
             chooseTheCardholder: 'Επιλέξτε τον κατόχο κάρτας',
+            pleaseSelectACardholder: 'Παρακαλώ επιλέξτε έναν κάτοχο κάρτας για να συνεχίσετε',
             chooseCard: 'Επιλέξτε μια κάρτα',
             chooseCardFor: (assignee: string) =>
                 `Επιλέξτε μια κάρτα για τον/την <strong>${assignee}</strong>. Δεν μπορείτε να βρείτε την κάρτα που αναζητάτε; <concierge-link>Ενημερώστε μας.</concierge-link>`,
@@ -6184,6 +6190,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             deleteFailureMessage: 'Παρουσιάστηκε σφάλμα κατά τη διαγραφή της κατηγορίας, δοκιμάστε ξανά',
             categoryName: 'Όνομα κατηγορίας',
             requiresCategory: 'Τα μέλη πρέπει να κατηγοριοποιούν όλες τις δαπάνες',
+            showCategoryGLCodes: 'Εμφάνιση κωδικών GL κατά την κατηγοριοποίηση δαπανών',
             needCategoryForExportToIntegration: (connectionName: string) => `Όλες οι δαπάνες πρέπει να κατηγοριοποιηθούν για να γίνει η εξαγωγή στο ${connectionName}.`,
             subtitle: 'Αποκτήστε μια καλύτερη εικόνα για το πού ξοδεύονται τα χρήματα. Χρησιμοποιήστε τις προεπιλεγμένες κατηγορίες μας ή προσθέστε τις δικές σας.',
             emptyCategories: {
@@ -7535,6 +7542,30 @@ ${reportName}`,
             confirmText: 'Ναι, εξαγωγή ξανά',
             cancelText: 'Άκυρο',
         },
+        exportDifferentCompaniesModal: {
+            title: 'Προσοχή!',
+            description: (connectionName) =>
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+            confirmText: 'Το κατάλαβα',
+        },
+        exportPartialModal: {
+            title: (exportableCount, selectedCount, integration) => `Εξαγωγή ${exportableCount}/${selectedCount} αναφορών στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]};`,
+            description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports) => {
+                const reasons: string[] = [];
+                if (hasReportsOnOtherIntegrations) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                }
+                if (hasIneligibleReports) {
+                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                }
+                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+            },
+            confirmText: () => ({
+                one: `Εξαγωγή 1 αναφοράς`,
+                other: (count: number) => `Εξαγωγή ${count} αναφορών`,
+            }),
+            cancelText: 'Άκυρο',
+        },
         upgrade: {
             reportFields: {
                 title: 'Πεδία αναφοράς',
@@ -7939,8 +7970,7 @@ ${reportName}`,
                 alwaysNonReimbursable: 'Πάντα μη αποζημιώσιμες',
                 alwaysNonReimbursableDescription: 'Τα έξοδα δεν αποζημιώνονται ποτέ στους υπαλλήλους',
                 billableDefault: 'Προεπιλογή χρεώσιμων',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή. Οι χρεώσιμες δαπάνες ενεργοποιούνται ή απενεργοποιούνται στις <a href="${tagsPageLink}">ετικέτες</a>.</muted-text>`,
+                billableDefaultDescription: 'Επιλέξτε αν οι δαπάνες με μετρητά και με πιστωτική κάρτα θα είναι χρεώσιμες από προεπιλογή.',
                 billable: 'Χρεώσιμη',
                 billableDescription: 'Οι δαπάνες συνήθως τιμολογούνται ξανά στους πελάτες',
                 nonBillable: 'Μη χρεώσιμο',
@@ -9319,7 +9349,7 @@ ${reportName}`,
             withdrawalType: {
                 [CONST.SEARCH.WITHDRAWAL_TYPE.EXPENSIFY_CARD]: 'Κάρτα Expensify',
                 [CONST.SEARCH.WITHDRAWAL_TYPE.REIMBURSEMENT]: 'Επιστροφή χρημάτων',
-                [CONST.SEARCH.WITHDRAWAL_TYPE.CENTRAL_TRAVEL_INVOICING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
+                [CONST.SEARCH.WITHDRAWAL_TYPE.TRAVEL_BILLING]: 'Ενοποιημένη τιμολόγηση ταξιδιών',
             },
             is: 'Είναι',
             action: {
@@ -10257,6 +10287,14 @@ ${reportName}`,
                     `<strong>${discountType}% έκπτωση για τον πρώτο σας χρόνο!</strong> Απλώς προσθέστε μια κάρτα πληρωμής και ξεκινήστε μια ετήσια συνδρομή.`,
                 onboardingChatTitle: (discountType: number) => `Προσφορά περιορισμένου χρόνου: ${discountType}% έκπτωση για τον πρώτο σας χρόνο!`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `Διεκδικήστε μέσα σε ${days > 0 ? `${days}η :` : ''}${hours}ώ : ${minutes}λ : ${seconds}δ`,
+            },
+            travelInvoiceOverdue: {
+                title: 'Το τιμολόγιο του ταξιδιού σας είναι ληξιπρόθεσμο',
+                subtitle: (date: string) => `Πληρώστε το τιμολόγιο ταξιδιού σας έως ${date} για να συνεχίσετε να κλείνετε ταξίδια.`,
+            },
+            travelInvoiceOverdueLocked: {
+                title: 'Η κράτηση ταξιδιών έχει τεθεί σε παύση',
+                subtitle: 'Το τιμολόγιο ταξιδιού σας έχει λήξει. Πληρώστε το για να μπορείτε να κλείνετε ξανά ταξίδια.',
             },
         },
         cardSection: {
