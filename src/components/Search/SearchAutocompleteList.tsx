@@ -301,6 +301,7 @@ function SearchAutocompleteList({
         isTrackIntentUser,
         translate,
         dateFnsLocale,
+        formatPhoneNumber,
     ]);
 
     const [isInitialRender, setIsInitialRender] = useState(true);

@@ -300,6 +300,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             reportAttributes,
             isTrackIntentUser,
             dateFnsLocale,
+            formatPhoneNumber,
         ],
     );
 

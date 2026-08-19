@@ -144,6 +144,7 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             sortedActions,
             currentUserAccountID,
             dateFnsLocale,
+            formatPhoneNumber,
         ],
     );
 
