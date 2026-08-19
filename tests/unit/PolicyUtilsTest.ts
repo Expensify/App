@@ -15,6 +15,7 @@ import {
     canMemberWrite,
     canSendInvoiceFromWorkspace,
     findVendorByID,
+    getAccessiblePolicyBankAccount,
     getActivePolicies,
     getActivePoliciesWithExpenseChat,
     getActivePoliciesWithExpenseChatAndPerDiemEnabled,
@@ -4307,27 +4308,76 @@ describe('canAccessPolicyBankAccount', () => {
         },
     };
 
-    it('returns true for the designated payer even when the workspace account is missing from their bank account list', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, PAYER_EMAIL, {})).toBe(true);
+    const bankAccountListWithPolicyAccount = {
+        [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+    };
+
+    // The designated payer is the case that produced the original bug: the workspace account was advertised on their Pay
+    // button but never shared with them, so the backend debited a different account.
+    it('returns false for the designated payer when the workspace account is missing from their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, {})).toBe(false);
     });
 
-    it('returns false for an admin who is not the payer and does not have the workspace account', () => {
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, NON_PAYER_ADMIN_EMAIL, {})).toBe(false);
+    it('returns true for the designated payer when the workspace account is in their bank account list', () => {
+        expect(canAccessPolicyBankAccount(policyWithBankAccount, bankAccountListWithPolicyAccount)).toBe(true);
     });
 
-    it('returns true for an admin who is not the payer but has the workspace account in their bank account list', () => {
-        const bankAccountList = {
-            [POLICY_BANK_ACCOUNT_ID]: {methodID: POLICY_BANK_ACCOUNT_ID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
-        };
-        expect(canAccessPolicyBankAccount(policyWithBankAccount, NON_PAYER_ADMIN_EMAIL, bankAccountList)).toBe(true);
+    it('returns false when the bank account list only holds other accounts', () => {
+        const otherAccountID = POLICY_BANK_ACCOUNT_ID + 1;
+        expect(
+            canAccessPolicyBankAccount(policyWithBankAccount, {
+                [otherAccountID]: {methodID: otherAccountID, bankCurrency: CONST.CURRENCY.USD, bankCountry: CONST.COUNTRY.US},
+            }),
+        ).toBe(false);
     });
 
     it('returns false when the workspace has no connected bank account', () => {
-        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, PAYER_EMAIL, {})).toBe(false);
+        expect(canAccessPolicyBankAccount({...policyWithBankAccount, achAccount: undefined}, bankAccountListWithPolicyAccount)).toBe(false);
     });
 
     it('returns false when there is no policy', () => {
-        expect(canAccessPolicyBankAccount(undefined, PAYER_EMAIL, {})).toBe(false);
+        expect(canAccessPolicyBankAccount(undefined, bankAccountListWithPolicyAccount)).toBe(false);
+    });
+});
+
+describe('getAccessiblePolicyBankAccount', () => {
+    const POLICY_BANK_ACCOUNT_ID = 1111;
+
+    // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
+    // That desync is real, and reading the number off `achAccount` is what makes a Pay button name an account other than
+    // the one the payment debits.
+    const policyWithStaleAccountNumber: Policy = {
+        ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+        achAccount: {
+            bankAccountID: POLICY_BANK_ACCOUNT_ID,
+            accountNumber: 'XXXXXX9999',
+            routingNumber: '123456789',
+            addressName: 'Test bank account',
+            bankName: 'Test bank',
+            reimburser: 'payer@test.com',
+            state: CONST.BANK_ACCOUNT.STATE.OPEN,
+        },
+    };
+
+    const bankAccountList = {
+        [POLICY_BANK_ACCOUNT_ID]: {
+            methodID: POLICY_BANK_ACCOUNT_ID,
+            bankCurrency: CONST.CURRENCY.USD,
+            bankCountry: CONST.COUNTRY.US,
+            accountData: {accountNumber: 'XXXXXX1234'},
+        },
+    };
+
+    it('resolves the account number through the bank account list rather than the stale one on achAccount', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, bankAccountList)?.accountData?.accountNumber).toBe('XXXXXX1234');
+    });
+
+    it('returns undefined when the workspace account is not shared with the user', () => {
+        expect(getAccessiblePolicyBankAccount(policyWithStaleAccountNumber, {})).toBeUndefined();
+    });
+
+    it('returns undefined when the workspace has no connected bank account', () => {
+        expect(getAccessiblePolicyBankAccount({...policyWithStaleAccountNumber, achAccount: undefined}, bankAccountList)).toBeUndefined();
     });
 });
 

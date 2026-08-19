@@ -7,6 +7,7 @@ import ROUTES from '@src/ROUTES';
 import INPUT_IDS from '@src/types/form/NetSuiteCustomFieldForm';
 import type {PolicyType} from '@src/types/form/WorkspaceConfirmationForm';
 import type {
+    BankAccount,
     BankAccountList,
     OnyxInputOrEntry,
     PersonalDetailsList,
@@ -737,21 +738,34 @@ function canAdminPayReport(policy: OnyxInputOrEntry<Policy>, currentUserLogin: s
 }
 
 /**
- * Whether the user can actually pay from the workspace's connected bank account.
+ * The workspace's connected bank account as it appears in the current user's own `bankAccountList`, or undefined when
+ * the account is not shared with them.
  *
- * Any workspace admin can pay reports, but only the designated payer/owner and the members the account is shared with
- * may use the workspace bank account itself. This gates every place that would otherwise default a payment to
- * `policy.achAccount` — paying with, or displaying, an account the user has no access to is always wrong.
+ * Membership in `bankAccountList` is the only reliable signal, and it is deliberately not softened for the designated
+ * payer: the backend only enumerates an account for the users it is shared with, and it debits some other account when
+ * asked to pay from one it did not share. Being the payer (or even the workspace owner) does not imply that share.
+ *
+ * Read the account number off the returned account rather than off `policy.achAccount`. The two disagree in practice —
+ * `achAccount.accountNumber` goes stale while `achAccount.bankAccountID` already points at a different account — and
+ * printing the stale number is how the button ends up naming an account other than the one that gets debited.
  */
-function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, currentUserLogin: string | undefined, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+function getAccessiblePolicyBankAccount(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): BankAccount | undefined {
     const policyBankAccountID = policy?.achAccount?.bankAccountID;
 
     if (!policyBankAccountID) {
-        return false;
+        return undefined;
     }
 
-    // The designated payer/owner pays from the workspace account even when it isn't enumerated in their own bank account list.
-    return isPolicyPayer(policy, currentUserLogin) || !!bankAccountList?.[policyBankAccountID];
+    return bankAccountList?.[policyBankAccountID];
+}
+
+/**
+ * Whether the user can actually pay from the workspace's connected bank account. This gates every place that would
+ * otherwise default a payment to `policy.achAccount` — paying with, or displaying, an account the user has no access to
+ * is always wrong. See `getAccessiblePolicyBankAccount` for why `bankAccountList` is the authority.
+ */
+function canAccessPolicyBankAccount(policy: OnyxEntry<Policy>, bankAccountList: OnyxEntry<BankAccountList>): boolean {
+    return !!getAccessiblePolicyBankAccount(policy, bankAccountList);
 }
 
 /**
@@ -3173,6 +3187,7 @@ export {
     isPolicyPayer,
     canAdminPayReport,
     canAccessPolicyBankAccount,
+    getAccessiblePolicyBankAccount,
     wasPaidWithPolicyBankAccount,
     getReimburserEmail,
     arePaymentsEnabled,

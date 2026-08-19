@@ -29,7 +29,7 @@ import {approveMoneyRequest} from './actions/IOU/ReportWorkflow';
 import {isBankAccountPartiallySetup} from './BankAccountUtils';
 import BankAccountModel from './models/BankAccount';
 import Navigation from './Navigation/Navigation';
-import {wasPaidWithPolicyBankAccount} from './PolicyUtils';
+import {getAccessiblePolicyBankAccount, wasPaidWithPolicyBankAccount} from './PolicyUtils';
 import {shouldRestrictUserBillableActions} from './SubscriptionUtils';
 
 type KYCFlowEvent = GestureResponderEvent | KeyboardEvent | undefined;
@@ -377,7 +377,11 @@ function getBankAccountLastFourDigits(
         return '';
     }
 
-    return policy?.achAccount?.accountNumber?.slice(-4) ?? '';
+    // Resolve the workspace account through `bankAccountList` when we can. `achAccount.accountNumber` goes stale while
+    // `achAccount.bankAccountID` moves on, so the two can name different accounts; the ID is the one that was debited.
+    const policyBankAccount = getAccessiblePolicyBankAccount(policy, bankAccountList);
+
+    return (policyBankAccount?.accountData?.accountNumber ?? policy?.achAccount?.accountNumber)?.slice(-4) ?? '';
 }
 
 export {

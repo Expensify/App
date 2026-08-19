@@ -637,11 +637,11 @@ function getPayActionCallback({
     }
 
     if (lastPolicyPaymentMethod !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {
-        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone who
-        // can use that account. Any workspace admin can pay, but a non-payer admin has to pay from an account of their
-        // own, so open the report and let them pick it instead of silently paying with (and reporting) the workspace one.
-        // Prefer the live policy so the role/reimburser used by the check is current; fall back to the search snapshot.
-        if (!canAccessPolicyBankAccount(policy ?? snapshotPolicy, currentUserLogin, getBankAccountList())) {
+        // One-tap pay here always funds the payment from the workspace bank account, so it's only valid for someone the
+        // account is actually shared with. Anyone else has to pay from an account of their own, so open the report and let
+        // them pick it instead of silently paying with (and reporting) the workspace one.
+        // Prefer the live policy so the ACH account the check reads is current; fall back to the search snapshot.
+        if (!canAccessPolicyBankAccount(policy ?? snapshotPolicy, getBankAccountList())) {
             goToItem();
             return;
         }

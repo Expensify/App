@@ -30,7 +30,7 @@ import {isBankAccountPartiallySetup} from '@libs/BankAccountUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {formatPaymentMethods, getActivePaymentType, getBusinessBankAccountOptions, matchesCurrency} from '@libs/PaymentUtils';
-import {canAccessPolicyBankAccount, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
+import {getAccessiblePolicyBankAccount, isPaidGroupPolicy, isPolicyAdmin, sortPoliciesByName} from '@libs/PolicyUtils';
 import {hasRequestFromCurrentAccount} from '@libs/ReportActionsUtils';
 import {
     doesReportBelongToWorkspace,
@@ -166,10 +166,12 @@ function SettlementButton({
     const hasSinglePolicy = !isExpenseReport && activeAdminPolicies.length === 1;
     const hasMultiplePolicies = !isExpenseReport && activeAdminPolicies.length > 1;
     const formattedPaymentMethods = formatPaymentMethods(bankAccountList ?? {}, fundList ?? {}, styles, translate);
-    // Any workspace admin can pay, but only the members who can actually access the workspace bank account may see it.
-    // Without this, a non-payer admin is shown (and defaulted to) an account they can't use, and tapping Pay just asks
-    // them to add a new one. The dropdown already scopes itself to `bankAccountList`, which is why it stays correct.
-    const canUsePolicyBankAccount = canAccessPolicyBankAccount(policy, email, bankAccountList);
+    // Any workspace admin can pay, but the workspace account may only be shown to the members it is shared with — being
+    // the designated payer is not enough. Without this, the button advertises the workspace account to someone who cannot
+    // use it, and the payment then debits a different account. The dropdown already scopes itself to `bankAccountList`,
+    // which is why it stays correct.
+    const policyBankAccount = getAccessiblePolicyBankAccount(policy, bankAccountList);
+    const canUsePolicyBankAccount = !!policyBankAccount;
     const hasIntentToPay =
         ((formattedPaymentMethods.length === 1 && isIOUReport(iouReport)) ||
             (canUsePolicyBankAccount && (policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.OPEN || policy?.achAccount?.state === CONST.BANK_ACCOUNT.STATE.LOCKED))) &&
@@ -622,9 +624,12 @@ function SettlementButton({
 
         // Handle bank account payments first (expense reports require bank account, never wallet)
         if ((lastPaymentMethod === CONST.IOU.PAYMENT_TYPE.VBBA || (hasIntentToPay && isExpenseReport)) && !!policy?.achAccount) {
-            if (canUsePolicyBankAccount && policy?.achAccount?.accountNumber) {
-                secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', policy?.achAccount?.accountNumber?.slice(-4));
-                isLabelledWithPolicyBankAccount = !!policy?.achAccount?.bankAccountID;
+            if (policyBankAccount?.accountData?.accountNumber) {
+                // Deliberately not `policy.achAccount.accountNumber`: that field goes stale while `bankAccountID` moves on,
+                // so it can name a different account than the one the payment will debit. `policyBankAccount` is the
+                // account that `bankAccountID` actually resolves to, so its number is the one that will be charged.
+                secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', policyBankAccount.accountData.accountNumber.slice(-4));
+                isLabelledWithPolicyBankAccount = true;
             } else if (bankAccountToDisplay?.accountData?.accountNumber) {
                 secondaryTextRaw = translate('paymentMethodList.bankAccountLastFour', bankAccountToDisplay?.accountData?.accountNumber?.slice(-4));
             }
