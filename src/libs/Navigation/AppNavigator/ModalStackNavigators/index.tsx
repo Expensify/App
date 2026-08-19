@@ -62,6 +62,12 @@ import type {Screen} from '@src/SCREENS';
 import SCREENS from '@src/SCREENS';
 import type ReactComponentModule from '@src/types/utils/ReactComponentModule';
 
+import type {ParamListBase} from '@react-navigation/routers';
+import type {ViewStyle} from 'react-native';
+
+import React, {useCallback, useMemo} from 'react';
+import {View} from 'react-native';
+
 import useModalStackScreenOptions from './useModalStackScreenOptions';
 
 const loadAttachmentModalScreen = () => require<ReactComponentModule>('../../../../pages/media/AttachmentModalScreen').default;
