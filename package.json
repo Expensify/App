@@ -239,6 +239,7 @@
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11",
     "@babel/plugin-transform-export-namespace-from": "^7.27.1",
     "@babel/traverse": "^7.22.20",
+    "@babel/types": "^7.22.19",
     "@callstack/reassure-compare": "^1.0.0-rc.4",
     "@dword-design/eslint-plugin-import-alias": "^5.0.0",
     "@fullstory/babel-plugin-annotate-react": "^2.4.0",
