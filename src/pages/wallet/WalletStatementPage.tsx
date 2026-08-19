@@ -49,7 +49,8 @@ function WalletStatementPage({route}: WalletStatementPageProps) {
 
     const yearMonth = route.params.yearMonth ?? null;
     const year = yearMonth?.substring(0, 4) || getYear(new Date());
-    const month = yearMonth?.substring(4) || getMonth(new Date());
+    // `getMonth` is 0-indexed but the `yearMonth` param is 1-indexed, and both feed the same `- 1` below.
+    const month = yearMonth?.substring(4) || getMonth(new Date()) + 1;
     const monthName = DateUtils.formatToLongMonth(new Date(Number(year), Number(month) - 1), preferredLocale);
     const encryptedAuthToken = session?.encryptedAuthToken ?? '';
     const baseURL = addTrailingForwardSlash(getOldDotURLFromEnvironment(environment));

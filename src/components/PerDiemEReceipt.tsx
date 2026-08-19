@@ -42,8 +42,19 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
     return subRateComments.join(', ');
 }
 
-/** Last three comma parts are the date range, the rest is the location. `computePerDiemExpenseMerchant` pins that shape. */
-function getPerDiemDestination(merchant: string) {
+/**
+ * Strips the trailing date range that `computePerDiemExpenseMerchant` appended, leaving the location. Rebuilding the
+ * range from the structured dates identifies it exactly; the positional split is only for rows stored before the range
+ * was pinned to enUS, whose comma count depends on the locale that wrote them.
+ */
+function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string) {
+    const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
+    if (start && end) {
+        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(DateUtils.toLocalDate(start), DateUtils.toLocalDate(end))}`;
+        if (merchant.endsWith(dateRangeSuffix)) {
+            return merchant.slice(0, -dateRangeSuffix.length);
+        }
+    }
     const merchantParts = merchant.split(', ');
     if (merchantParts.length < 3) {
         return '';
@@ -77,7 +88,7 @@ function PerDiemEReceipt({transactionID}: PerDiemEReceiptProps) {
     const {amount: transactionAmount, currency: transactionCurrency, merchant: transactionMerchant} = getTransactionDetails(transaction) ?? {};
     const ratesDescription = computeDefaultPerDiemExpenseRates(transaction?.comment?.customUnit ?? {}, transactionCurrency ?? '');
     const datesDescription = getPerDiemDates(transaction, transactionMerchant ?? '', preferredLocale);
-    const destination = getPerDiemDestination(transactionMerchant ?? '');
+    const destination = getPerDiemDestination(transaction, transactionMerchant ?? '');
     const formattedAmount = convertToDisplayStringWithoutCurrency(transactionAmount ?? 0, transactionCurrency);
     const currency = getCurrencySymbol(transactionCurrency ?? '');
 

@@ -113,9 +113,10 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  */
 function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
     if (!IntlStore.hasLocale(locale)) {
-        // Requested locale not loaded yet. Fall back to the loaded one, so callers never persist a raw dotted path.
+        // Beats a raw dotted path, but it is the wrong language, so warn: a caller that persists it cannot correct it later.
         const currentLocale = IntlStore.getCurrentLocale();
         if (currentLocale !== locale && IntlStore.hasLocale(currentLocale)) {
+            Log.warn('[Localize] Translating in a fallback locale because the requested one is not loaded', {requested: locale, used: currentLocale, path});
             return translate(currentLocale, path, ...parameters);
         }
         return Array.isArray(path) ? path.join('.') : path;

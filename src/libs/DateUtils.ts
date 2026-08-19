@@ -71,40 +71,49 @@ function isWeekDay(value: number): value is WeekDay {
 }
 
 /**
- * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry). Returns `null` and caches that when no candidate
- * constructs, so subsequent calls short-circuit instead of re-throwing every render. The key space is ~19 presets x the
- * active locale x however many timezones are on screen, which a long LHN of `ParticipantLocalTime` rows can push into the
- * hundreds, so the bound has to sit above that to cache rather than thrash. All three args are primitives, so shallow
- * equality avoids a deep comparison on every formatted cell in a long transaction list.
+ * Bounded because `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry. Keyed on a string rather than the argument
+ * tuple: this runs for every formatted cell in a long list, and the shared `memoize` cache scans its entries linearly, so
+ * a bound high enough to hold the ~19 presets x active locale x on-screen timezones would make each miss walk all of them.
+ * Insertion order is eviction order.
  */
-const getIntlDateTimeFormat = memoize(
-    (locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null => {
-        const preset = CONST.DATE.INTL_FORMATS[formatKey];
-        const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
-        // Degrade one dimension at a time, because either can be the one the engine rejects. Timezone first (older
-        // iOS/macOS know only the backward-mapped IANA name), then locale (Hermes implements DateTimeFormat, so the
-        // realistic remaining failure is one bad tag). Dropping the timezone is never a candidate: it would render UTC
-        // wall-clock as if it were local, which is worse than the empty string callers already handle.
-        const timeZoneCandidates = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
-        const localeCandidates: Locale[] = locale === CONST.LOCALES.DEFAULT ? [locale] : [locale, CONST.LOCALES.DEFAULT];
-        for (const candidateLocale of localeCandidates) {
-            for (const candidateTimeZone of timeZoneCandidates) {
-                try {
-                    const formatter = new Intl.DateTimeFormat(candidateLocale, candidateTimeZone ? {...preset, timeZone: candidateTimeZone} : preset);
-                    if (candidateLocale !== locale || candidateTimeZone !== timeZone) {
-                        Log.warn('[DateUtils] Intl.DateTimeFormat constructed on a fallback candidate', {locale, formatKey, timeZone, candidateLocale, candidateTimeZone});
-                    }
-                    return formatter;
-                } catch {
-                    // Next candidate.
+const INTL_FORMAT_CACHE_MAX_SIZE = 256;
+const intlDateTimeFormatCache = new Map<string, Intl.DateTimeFormat>();
+
+function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null {
+    const cacheKey = `${locale}|${formatKey}|${timeZone ?? ''}`;
+    const cached = intlDateTimeFormatCache.get(cacheKey);
+    if (cached) {
+        return cached;
+    }
+    const preset = CONST.DATE.INTL_FORMATS[formatKey];
+    const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
+    // Timezone first, then locale, since either can be the rejected one. Dropping the timezone is never a candidate.
+    const timeZoneCandidates = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
+    const localeCandidates: Locale[] = locale === CONST.LOCALES.DEFAULT ? [locale] : [locale, CONST.LOCALES.DEFAULT];
+    for (const candidateLocale of localeCandidates) {
+        for (const candidateTimeZone of timeZoneCandidates) {
+            try {
+                const formatter = new Intl.DateTimeFormat(candidateLocale, candidateTimeZone ? {...preset, timeZone: candidateTimeZone} : preset);
+                if (candidateLocale !== locale || candidateTimeZone !== timeZone) {
+                    Log.warn('[DateUtils] Intl.DateTimeFormat constructed on a fallback candidate', {locale, formatKey, timeZone, candidateLocale, candidateTimeZone});
                 }
+                if (intlDateTimeFormatCache.size >= INTL_FORMAT_CACHE_MAX_SIZE) {
+                    const oldestKey = intlDateTimeFormatCache.keys().next().value;
+                    if (oldestKey !== undefined) {
+                        intlDateTimeFormatCache.delete(oldestKey);
+                    }
+                }
+                intlDateTimeFormatCache.set(cacheKey, formatter);
+                return formatter;
+            } catch {
+                // Next candidate.
             }
         }
-        Log.warn('[DateUtils] Intl.DateTimeFormat construction failed for every candidate', {locale, formatKey, timeZone, backwardTimeZone});
-        return null;
-    },
-    {maxSize: 256, equality: 'shallow'},
-);
+    }
+    // Not cached: failure can be transient, and a cached `null` has no invalidation path for the rest of the session.
+    Log.warn('[DateUtils] Intl.DateTimeFormat construction failed for every candidate', {locale, formatKey, timeZone, backwardTimeZone});
+    return null;
+}
 
 /**
  * Cached Intl formatter with the ICU 72+ narrow no-break space stripped before AM/PM.
@@ -553,8 +562,7 @@ const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
  */
 const getLocalizedDatePlaceholder = memoize(
     (locale: Locale): string => {
-        // Pass the third arg explicitly: the memo key is arity-sensitive, so omitting it caches a second identical formatter.
-        const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE', undefined);
+        const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE');
         // Field order is CLDR data we cannot derive without Intl, so fall back to the most common order rather than guessing per-locale.
         const fallback = FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? 'MM/DD/YYYY';
         if (!formatter) {
@@ -1425,8 +1433,10 @@ function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezo
  * falls back to UTC + warn rather than throwing — render-path callers have no error boundaries.
  */
 function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: string, formatStr: string, options?: Parameters<typeof formatInTimeZone>[3]): string {
+    // Validation only, via `formatInTimeZone`'s own parser: `new Date` rejects the wire shape on Hermes, and an unzoned string is wall-clock in the target zone, not UTC.
+    const validationDate = typeof date === 'string' ? toDate(date) : date;
     // An invalid date throws in every timezone, so the UTC fallback below cannot rescue it. Bail before trying.
-    if (!isValid(new Date(date))) {
+    if (!isValid(validationDate)) {
         Log.warn('[DateUtils] formatInTimeZoneWithFallback received an invalid date', {date, timeZone});
         return '';
     }
@@ -1722,4 +1732,4 @@ const DateUtils = {
 export default DateUtils;
 
 export {EMPTY_TWELVE_HOUR_TIME};
-export type {MachineDateFormat, TwelveHourTimeObject};
+export type {MachineDateFormat};

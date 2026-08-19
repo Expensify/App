@@ -5,13 +5,13 @@ const meta = {
     type: 'problem',
     docs: {
         description:
-            "Ban date-fns from user-visible date rendering. Use `DateUtils.formatIntl` and the `CONST.DATE.INTL_FORMATS` presets so `Intl.DateTimeFormat` picks the locale's native structure (day/month order, 12h/24h clock, ordinals), not just translated tokens.",
+            "Ban date-fns from user-visible date rendering. Use the `DateUtils` `formatTo*`/`formatIn*` helpers so `Intl.DateTimeFormat` picks the locale's native structure (day/month order, 12h/24h clock, ordinals), not just translated tokens.",
         recommended: 'error',
     },
     schema: [],
     messages: {
         preferIntl:
-            'This date format contains {{tokens}}, which render differently per language. Use `DateUtils.formatIntl(preferredLocale, PRESET, date)` (or the matching `formatIn*`/`formatTo*` helper); the presets in `CONST.DATE.INTL_FORMATS` cover the standard shapes.\n\n' +
+            'This date format contains {{tokens}}, which render differently per language. Use the matching `DateUtils.formatTo*`/`formatIn*` helper, e.g. `DateUtils.formatToMediumDate(date, preferredLocale)`; they cover the shapes in `CONST.DATE.INTL_FORMATS`.\n\n' +
             'If the output is never read by a user, use a format without these tokens or `DateUtils.formatMachineDateWithUTCTimeZone`.',
     },
 };
@@ -167,7 +167,7 @@ function resolvePattern(node) {
 }
 
 /**
- * Flags date-fns calls whose output is locale-sensitive, so callers are pushed to `DateUtils.formatIntl`.
+ * Flags date-fns calls whose output is locale-sensitive, so callers are pushed to the `DateUtils` Intl helpers.
  *
  * @param {import('eslint').Rule.RuleContext} context
  * @returns {import('eslint').Rule.RuleListener}

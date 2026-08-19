@@ -4,6 +4,8 @@
  * Kept out of `useNow.ts` so its React Compiler memoization stays consistent across Babel/OXC.
  */
 
+import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
+
 const MS_PER_MINUTE = 60_000;
 
 const listeners = new Set<() => void>();
@@ -67,15 +69,25 @@ function getSnapshot(): Date {
     return snapshot;
 }
 
-/** Test-only reset so suites that manipulate the wall clock start from a clean module state. */
-function resetForTests(): void {
+/**
+ * Drops the timer and its subscribers on sign-out. The timer already stops once the last `useNow` consumer unsubscribes,
+ * so this only matters when the tree is torn down without running effect cleanups, as the OldDot handoff can do.
+ */
+function stop(): void {
     if (timeoutId !== null) {
         clearTimeout(timeoutId);
         timeoutId = null;
     }
     listeners.clear();
+}
+
+/** Test-only reset so suites that manipulate the wall clock start from a clean module state. */
+function resetForTests(): void {
+    stop();
     snapshot = new Date();
     lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
 }
+
+registerSessionCleanupCallback(stop);
 
 export {subscribe, getSnapshot, resetForTests};

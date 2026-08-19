@@ -309,8 +309,10 @@ function Expensify() {
             <AppleAuthWrapper />
             {/* Wait for the initial URL to resolve before mounting NavigationRoot, because its initialState
                 is computed once on mount. In HybridApp, getInitialURL() may never resolve (OldDot native
-                bridge), so we skip this guard to avoid blocking the app. */}
-            {hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
+                bridge), so we skip this guard to avoid blocking the app.
+                Translations are required too: `preferredLocale` keeps its identity once the cache fills, so anything
+                memoized on it during a pre-load render would hold the raw translation paths for good. */}
+            {hasAnyTranslations && hasAttemptedToOpenPublicRoom && (CONFIG.IS_HYBRID_APP || initialUrl !== undefined) && (
                 <NavigationRoot
                     onReady={setNavigationReady}
                     authenticated={isAuthenticated}
