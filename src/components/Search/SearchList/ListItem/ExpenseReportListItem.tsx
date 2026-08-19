@@ -1,3 +1,4 @@
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import Icon from '@components/Icon';
 import {
@@ -34,7 +35,7 @@ import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
 import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
-import {isOnHold, isViolationDismissed, shouldShowViolation, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import variables from '@styles/variables';
 
@@ -109,8 +110,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const areAllReportTransactionsSelected =
         transactionsWithoutPendingDelete.length > 0 && transactionsWithoutPendingDelete.every((transaction) => selectedTransactions[transaction.keyForList]?.isSelected);
     const isSelected = liveRowSelected || areAllReportTransactionsSelected;
-    const {translate} = useLocalize();
-    const {convertToDisplayString} = useCurrencyListActions();
+    const {translate, dateFnsLocale} = useLocalize();
+    const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -245,6 +246,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
 
     const handleOnButtonPress = useCallback(() => {
         handleActionButtonPress({
+            getCurrencyDecimals,
             hash: currentSearchHash,
             item: liveReportItem,
             goToItem: () => onSelectRow(reportItem as unknown as TItem),
@@ -289,6 +291,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -302,6 +305,10 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            // Pass the row-scoped, live violations (keyed by this report's snapshot transactions) instead of the
+            // whole TRANSACTION_VIOLATIONS collection, so the Approve action reads live data without re-rendering
+            // every row on unrelated violation changes.
+            allViolations: liveViolationsForSnapshotTransactions,
             conciergeChat,
         });
     }, [
@@ -332,6 +339,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         showConfirmModal,
         translate,
         convertToDisplayString,
+        getCurrencyDecimals,
         currentUserAccountID,
         currentUserLogin,
         introSelected,
@@ -343,6 +351,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         delegateEmail,
         delegateAccountID,
         isTrackIntentUser,
+        liveViolationsForSnapshotTransactions,
         conciergeChat,
     ]);
 
@@ -458,7 +467,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     ]);
 
     // Full label for the button (its whole announcement); just a row identifier for the group, whose cells are reachable.
-    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, convertToDisplayString});
+    const rowAccessibilityLabel = canSelectMultiple ? liveReportItem.reportName : getExpenseReportRowAccessibilityLabel(liveReportItem, {translate, dateFnsLocale, convertToDisplayString});
 
     // Keep nested controls reachable: a group on web, and accessible={false} on iOS (which otherwise collapses children).
     return (
@@ -505,25 +514,26 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
                             isSelected={isSelected}
                         />
                     )}
-                    <ExpenseReportListItemRow
-                        item={liveReportItem}
-                        columns={columns}
-                        reportActions={reportActions}
-                        isActionLoading={isActionLoading ?? isLoading}
-                        showTooltip={showTooltip}
-                        canSelectMultiple={canSelectMultiple}
-                        onCheckboxPress={handleSelectionButtonPress}
-                        onButtonPress={handleOnButtonPress}
-                        chatReport={chatReport}
-                        isSelectAllChecked={isSelected}
-                        isIndeterminate={false}
-                        isDisabledCheckbox={isDisabledCheckbox}
-                        isHovered={hovered}
-                        isFocused={isFocused}
-                        isPendingDelete={isPendingDelete}
-                        shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                        isMarkAsDone={shouldUseMarkAsDoneCopy}
-                    />
+                    <AvatarTooltipsProvider isEnabled={showTooltip}>
+                        <ExpenseReportListItemRow
+                            item={liveReportItem}
+                            columns={columns}
+                            reportActions={reportActions}
+                            isActionLoading={isActionLoading ?? isLoading}
+                            canSelectMultiple={canSelectMultiple}
+                            onCheckboxPress={handleSelectionButtonPress}
+                            onButtonPress={handleOnButtonPress}
+                            chatReport={chatReport}
+                            isSelectAllChecked={isSelected}
+                            isIndeterminate={false}
+                            isDisabledCheckbox={isDisabledCheckbox}
+                            isHovered={hovered}
+                            isFocused={isFocused}
+                            isPendingDelete={isPendingDelete}
+                            shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
+                            isMarkAsDone={shouldUseMarkAsDoneCopy}
+                        />
+                    </AvatarTooltipsProvider>
                     {getDescription}
                 </View>
             )}

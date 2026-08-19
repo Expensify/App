@@ -9,7 +9,7 @@ import {settingsPendingAction} from '@libs/PolicyUtils';
 
 import Navigation from '@navigation/Navigation';
 
-import TravelInvoicingVendorSelectPage from '@pages/workspace/accounting/common/TravelInvoicingVendorSelectPage';
+import TravelBillingVendorSelectPage from '@pages/workspace/accounting/common/TravelBillingVendorSelectPage';
 import {getQuickbooksOnlineIntegrationName} from '@pages/workspace/accounting/utils';
 import type {WithPolicyConnectionsProps} from '@pages/workspace/withPolicyConnections';
 import withPolicyConnections from '@pages/workspace/withPolicyConnections';
@@ -26,7 +26,7 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
     const qboConfig = policy?.connections?.quickbooksOnline?.config;
 
     const policyID = policy?.id ?? String(CONST.DEFAULT_NUMBER_ID);
-    const backPath = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION.getRoute(policyID);
+    const backPath = ROUTES.POLICY_ACCOUNTING_QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION.getRoute(policyID);
     const data: Array<SelectorType<string>> =
         vendors?.map((vendor) => ({
             value: vendor.id,
@@ -43,19 +43,19 @@ function QuickbooksExportTravelVendorSelectPage({policy}: WithPolicyConnectionsP
     };
 
     return (
-        <TravelInvoicingVendorSelectPage
+        <TravelBillingVendorSelectPage
             policyID={policyID}
             displayName="QuickbooksExportTravelVendorSelectPage"
             data={data}
             connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
             emptyStateTitle="workspace.qbo.noAccountsFound"
             emptyStateSubtitle="workspace.qbo.noAccountsFoundDescription"
-            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+            emptyStateSubtitleAlreadyTranslated={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             onSelect={selectVendor}
             onBack={() => Navigation.goBack(backPath)}
-            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR], qboConfig?.pendingFields)}
-            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR)}
-            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_INVOICING_VENDOR)}
+            pendingAction={settingsPendingAction([CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR], qboConfig?.pendingFields)}
+            errors={getLatestErrorField(qboConfig, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR)}
+            onClose={() => clearQBOErrorField(policyID, CONST.QUICKBOOKS_CONFIG.TRAVEL_BILLING_VENDOR)}
         />
     );
 }

@@ -68,6 +68,9 @@ type WorkspaceCompanyCardsTableProps = {
     /** Whether the current member can edit company cards */
     canWriteCompanyCards: boolean;
 
+    /** Whether the narrow-layout selection mode is active */
+    isSelectionModeEnabled: boolean;
+
     /** On assign card callback */
     onAssignCard: (cardID: string, encryptedCardNumber: string) => void;
 
@@ -87,6 +90,7 @@ function WorkspaceCompanyCardsTable({
     onAssignCard,
     isAssigningCardDisabled,
     canWriteCompanyCards,
+    isSelectionModeEnabled,
     onReloadPage,
     onReloadFeed,
 }: WorkspaceCompanyCardsTableProps) {
@@ -111,7 +115,10 @@ function WorkspaceCompanyCardsTable({
 
     const {cardFeedErrors} = useCardFeedErrors();
     const illustrations = useMemoizedLazyIllustrations(['LaptopAssignCard', 'BrokenMagnifyingGlass']);
-    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.isFeedConnectionBroken : false;
+    // Per-row errors are hidden while we surface the connection error for the whole feed instead. Keyed on the prompting flag
+    // so that past the grace period an actionable card error (e.g. a failed unassignment) becomes visible and dismissible
+    // again rather than being suppressed forever.
+    const isFeedConnectionBroken = feedName ? cardFeedErrors[feedName]?.shouldPromptBrokenConnection : false;
 
     const [countryByIp] = useOnyx(ONYXKEYS.COUNTRY);
     const [customCardNames] = useOnyx(ONYXKEYS.NVP_EXPENSIFY_COMPANY_CARDS_CUSTOM_NAMES);
@@ -361,17 +368,18 @@ function WorkspaceCompanyCardsTable({
         addBottomSafeAreaPadding: true,
     });
 
-    const headerButtonsComponent = showTableHeaderButtons ? (
-        <View style={styles.mb3}>
-            <WorkspaceCompanyCardsTableHeaderButtons
-                isLoading={isLoading}
-                policyID={policyID}
-                feedName={feedName}
-                canWriteCompanyCards={canWriteCompanyCards}
-                CardFeedIcon={cardFeedIcon}
-            />
-        </View>
-    ) : undefined;
+    const headerButtonsComponent =
+        showTableHeaderButtons && !isSelectionModeEnabled ? (
+            <View style={styles.mb3}>
+                <WorkspaceCompanyCardsTableHeaderButtons
+                    isLoading={isLoading}
+                    policyID={policyID}
+                    feedName={feedName}
+                    canWriteCompanyCards={canWriteCompanyCards}
+                    CardFeedIcon={cardFeedIcon}
+                />
+            </View>
+        ) : undefined;
 
     return (
         <Table
@@ -392,7 +400,7 @@ function WorkspaceCompanyCardsTable({
         >
             {headerButtonsComponent}
 
-            {isLoading && <Table.LoadingState context="WorkspaceCompanyCardsTable" />}
+            {isLoading && <Table.LoadingState />}
 
             {!isLoading && isFeedPending && !feedErrorKey && (
                 <ScrollView addBottomSafeAreaPadding>
@@ -447,11 +455,12 @@ function WorkspaceCompanyCardsTable({
                         bankName={bankName}
                         canWriteCompanyCards={canWriteCompanyCards}
                         clearCardSelection={clearCardSelection}
+                        isSelectionModeEnabled={isSelectionModeEnabled}
                     />
                     {hasPendingUnassignment && cardsData.length === 0 ? (
                         // While bulk unassign requests are in flight, the pending rows are hidden and the feed can momentarily
                         // have no cards. Show the loading state instead of the empty-feed state until the rows settle.
-                        <Table.LoadingState context="WorkspaceCompanyCardsTable" />
+                        <Table.LoadingState />
                     ) : (
                         <>
                             <Table.EmptyState

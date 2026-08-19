@@ -80,7 +80,7 @@ function QuickbooksNonReimbursableVendorSelectPage({policy, configKey, updateVen
             iconWidth={variables.emptyListIconWidth}
             iconHeight={variables.emptyListIconHeight}
             title={translate('workspace.qbo.noAccountsFound')}
-            subtitle={translate('workspace.qbo.noAccountsFoundDescription', {integrationName})}
+            subtitle={translate('workspace.qbo.noAccountsFoundDescription', integrationName)}
             containerStyle={styles.pb10}
         />
     );

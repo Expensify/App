@@ -20,7 +20,6 @@ import getPlatform from '@libs/getPlatform';
 import localFileDownload from '@libs/localFileDownload';
 import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import {toggleTwoFactorAuth} from '@userActions/Session';
 import {quitAndNavigateBack, setCodesAreCopied} from '@userActions/TwoFactorAuthActions';
@@ -64,7 +63,7 @@ function DynamicTwoFactorAuthPage() {
 
     const isUserValidated = account?.validated ?? false;
     const is2FAEnabled = !!account?.requiresTwoFactorAuth;
-    const accountLoadingReasonAttributes: SkeletonSpanReasonAttributes = {context: 'DynamicTwoFactorAuthPage', isLoading: !!account?.isLoading};
+    const is2FASetupInProgress = !!account?.twoFactorAuthSetupInProgress;
 
     const recoveryCodes = account?.recoveryCodes;
 
@@ -76,14 +75,16 @@ function DynamicTwoFactorAuthPage() {
             return;
         }
 
-        if (isFocused && is2FAEnabled) {
+        // Skip redirect to the enabled page while setup is still in progress (e.g. post-verify handoff
+        // during forced onboarding, when requiresTwoFactorAuth becomes true before Got it clears progress).
+        if (isFocused && is2FAEnabled && !is2FASetupInProgress) {
             Navigation.isNavigationReady().then(() => {
                 Navigation.navigate(ROUTES.SETTINGS_2FA_ENABLED, {forceReplace: true});
             });
             return;
         }
 
-        if (isLoadingOnyxValue(accountMetadata) || is2FAEnabled || account?.recoveryCodes || !isUserValidated) {
+        if (isLoadingOnyxValue(accountMetadata) || (is2FAEnabled && !is2FASetupInProgress) || account?.recoveryCodes || !isUserValidated) {
             return;
         }
 
@@ -93,7 +94,7 @@ function DynamicTwoFactorAuthPage() {
 
         toggleTwoFactorAuth(true);
         // eslint-disable-next-line react-hooks/exhaustive-deps -- We want to run this when component mounts
-    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled]);
+    }, [isUserValidated, accountMetadata.status, isFocused, is2FAEnabled, is2FASetupInProgress]);
 
     return (
         <TwoFactorAuthWrapper
@@ -119,7 +120,7 @@ function DynamicTwoFactorAuthPage() {
                         <View style={[styles.twoFactorAuthCodesBox, styles.twoFactorAuthCodesBoxPadding({isExtraSmallScreenWidth, isSmallScreenWidth})]}>
                             {account?.isLoading ? (
                                 <View style={styles.twoFactorLoadingContainer}>
-                                    <ActivityIndicator reasonAttributes={accountLoadingReasonAttributes} />
+                                    <ActivityIndicator />
                                 </View>
                             ) : (
                                 <>
