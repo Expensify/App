@@ -34,7 +34,7 @@ const ONYXKEYS = {
     /** Contains the default rate and unit to use for P2P distance expenses, based on the user's personal policy outputCurrency (default / report currency). */
     DEFAULT_P2P_MILEAGE_RATE: 'defaultP2PMileageRate',
 
-    /** Government-published reference mileage rates for the country derived from the policy's output currency, returned by OpenPolicyDistanceRatesPage */
+    /** Government-published reference mileage rates, returned by OpenPolicyDistanceRatesPage */
     GOVERNMENT_MILEAGE_RATES: 'governmentMileageRates',
 
     /** A unique ID for the device */

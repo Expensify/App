@@ -15,7 +15,7 @@ import type {
 import {READ_COMMANDS, WRITE_COMMANDS} from '@libs/API/types';
 import * as ErrorUtils from '@libs/ErrorUtils';
 import getIsNarrowLayout from '@libs/getIsNarrowLayout';
-import {generateHexadecimalValue} from '@libs/NumberUtils';
+import Log from '@libs/Log';
 import {buildOnyxDataForPolicyDistanceRateUpdates, getExpectedUnitForCurrency} from '@libs/PolicyDistanceRatesUtils';
 import {goBackWhenEnableFeature, removePendingFieldsFromCustomUnit} from '@libs/PolicyUtils';
 
@@ -30,12 +30,7 @@ import type {NullishDeep, OnyxCollection, OnyxUpdate} from 'react-native-onyx';
 
 import Onyx from 'react-native-onyx';
 
-/**
- * Returns a client generated 13 character hexadecimal value for a custom unit rate ID
- */
-function generateCustomUnitID(): string {
-    return generateHexadecimalValue(13);
-}
+import {generateCustomUnitID} from './Policy';
 
 /**
  * Takes array of customUnitRates and removes pendingFields and errorFields from each rate - we don't want to send those via API
@@ -640,18 +635,11 @@ function disablePolicyCommuterExclusions(policyID: string, previousCommuterExclu
 }
 
 /**
- * Turn the auto-updating of government distance rates on or off for a workspace.
+ * Turn the auto-updating of government distance rates on or off for a policy.
  *
- * When enabling, the government reference rates loaded on the distance settings page are copied optimistically so the new
- * rows show up right away. Each optimistic rate gets a client-generated `customUnitRateID` which is sent to the server in
- * `optimisticRateIDs` (keyed by `sourceRateID`) so the persisted rates keep the same IDs and row navigation stays stable.
- *
- * The distance unit is corrected in the same write when the workspace unit doesn't match the unit the government publishes
- * its rates in (e.g. the workspace tracks miles but the currency is CAD, which expects kilometers).
- *
- * `outputCurrency` is the policy's output currency, which is what the server derives the target country from. Reference rates
- * for any other currency are ignored: `ONYXKEYS.GOVERNMENT_MILEAGE_RATES` is a single key shared by every workspace, so it can
- * still hold the rates of the last workspace whose distance rates page was opened.
+ * On enable, government reference rates for `outputCurrency` are copied optimistically. `optimisticRateIDs` sends the
+ * client-generated IDs so the persisted rates keep them. The distance unit is corrected in the same write when it doesn't match
+ * the country's unit - only the unit, not the rate amounts, same as the manual unit change.
  */
 function setWorkspaceDistanceAutoUpdate(
     policyID: string,
@@ -672,12 +660,18 @@ function setWorkspaceDistanceAutoUpdate(
         const copiedSourceRateIDs = new Set(Object.values(customUnit.rates ?? {}).map((rate) => rate.attributes?.governmentRate?.sourceRateID));
 
         for (const governmentMileageRate of governmentMileageRates) {
-            // Reference rates for another currency belong to a different workspace, so copying them here would create a rate the server never persists
+            // GOVERNMENT_MILEAGE_RATES is one key shared by every policy, so it can still hold another policy's rates
             if (governmentMileageRate.currency !== outputCurrency) {
+                Log.warn('[setWorkspaceDistanceAutoUpdate] Skipping a government reference rate loaded for another currency', {
+                    policyID,
+                    outputCurrency,
+                    rateCurrency: governmentMileageRate.currency,
+                    sourceRateID: governmentMileageRate.sourceRateID,
+                });
                 continue;
             }
 
-            // The server skips reference rates the workspace already has, so we skip them optimistically too
+            // The server de-dupes by sourceRateID, so skip what the policy already has
             if (copiedSourceRateIDs.has(governmentMileageRate.sourceRateID)) {
                 continue;
             }
@@ -690,13 +684,13 @@ function setWorkspaceDistanceAutoUpdate(
                 rate: governmentMileageRate.rate,
                 currency: governmentMileageRate.currency,
                 enabled: governmentMileageRate.enabled ?? true,
-                ...(governmentMileageRate.startDate ? {startDate: governmentMileageRate.startDate} : {}),
+                startDate: governmentMileageRate.startDate,
                 ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
                 attributes: {
                     governmentRate: {
                         sourceRateID: governmentMileageRate.sourceRateID,
                         rate: governmentMileageRate.rate,
-                        ...(governmentMileageRate.startDate ? {startDate: governmentMileageRate.startDate} : {}),
+                        startDate: governmentMileageRate.startDate,
                         ...(governmentMileageRate.endDate ? {endDate: governmentMileageRate.endDate} : {}),
                     },
                 },

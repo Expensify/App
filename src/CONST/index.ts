@@ -4611,14 +4611,14 @@ const CONST = {
         // Rate amounts are stored as `Number(value) * 100` cents, which can introduce tiny floating-point errors. Meaningful
         // amounts differ by at least 0.01 cents, so this tolerance safely absorbs the float noise when matching government rates.
         GOVERNMENT_RATE_MATCH_TOLERANCE: 0.001,
-        // Currencies whose government mileage rates Expensify can auto-update, mapped to the country that publishes them
+        // Currencies we can auto-update government mileage rates for, mapped to the publishing country
         GOVERNMENT_RATE_CURRENCY_TO_COUNTRY: {
             USD: 'US',
             CAD: 'CA',
             GBP: 'GB',
             AUD: 'AU',
         },
-        // The distance unit each supported government rate country publishes its rates in
+        // Unit each country publishes its rates in
         GOVERNMENT_RATE_COUNTRY_TO_UNIT: {
             US: 'mi',
             GB: 'mi',

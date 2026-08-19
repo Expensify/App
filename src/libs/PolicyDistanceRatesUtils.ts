@@ -206,9 +206,7 @@ function isGovernmentRateUnmodified(rate: Rate): boolean {
     return isRateAmountMatching && (rate.startDate ?? undefined) === governmentRate.startDate && (rate.endDate ?? undefined) === governmentRate.endDate;
 }
 
-/**
- * The country that publishes the government mileage rates for a currency, or undefined when Expensify can't auto-update rates for it.
- */
+/** The country publishing government mileage rates for a currency, or undefined when we can't auto-update them. */
 function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateCountry | undefined {
     if (!currency) {
         return undefined;
@@ -218,38 +216,25 @@ function getGovernmentRateCountryForCurrency(currency?: string): GovernmentRateC
     return currencyToCountry[currency];
 }
 
-/**
- * Whether Expensify can auto-update government distance rates for a workspace with this output currency.
- */
+/** Whether we can auto-update government distance rates for this output currency. */
 function isCurrencySupportedForAutoUpdate(currency?: string): boolean {
     return !!getGovernmentRateCountryForCurrency(currency);
 }
 
-/**
- * The distance unit the government of the given currency's country publishes its mileage rates in.
- */
+/** The unit the currency's country publishes its mileage rates in. */
 function getExpectedUnitForCurrency(currency?: string): Unit | undefined {
     const country = getGovernmentRateCountryForCurrency(currency);
     return country ? CONST.CUSTOM_UNITS.GOVERNMENT_RATE_COUNTRY_TO_UNIT[country] : undefined;
 }
 
-/**
- * Translation key for the country phrase used in the auto-update copy, e.g. "the United States".
- */
+/** Translation key for the country phrase in the auto-update copy, e.g. "the United States". */
 function getGovernmentRateCountryPhraseTranslationKey(currency?: string): TranslationPaths | undefined {
     const country = getGovernmentRateCountryForCurrency(currency);
     if (!country) {
         return undefined;
     }
 
-    const countryPhraseTranslationKeys: Record<GovernmentRateCountry, TranslationPaths> = {
-        US: 'workspace.distanceRates.governmentRateCountries.US',
-        CA: 'workspace.distanceRates.governmentRateCountries.CA',
-        GB: 'workspace.distanceRates.governmentRateCountries.GB',
-        AU: 'workspace.distanceRates.governmentRateCountries.AU',
-    };
-
-    return countryPhraseTranslationKeys[country];
+    return `workspace.distanceRates.governmentRateCountries.${country}`;
 }
 
 function isCommuterExclusionEnabled(policy: Policy | null | undefined): policy is Policy & {id: string; commuterExclusions: NonNullable<Policy['commuterExclusions']>} {

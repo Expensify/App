@@ -44,7 +44,7 @@ import type SCREENS from '@src/SCREENS';
 import type {CustomUnit} from '@src/types/onyx/Policy';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type PolicyDistanceRatesSettingsPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.WORKSPACE.DISTANCE_RATES_SETTINGS>;
@@ -81,9 +81,10 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
     const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
 
-    const fetchDistanceRates = useCallback(() => {
+    // Loads the government reference rates the toggle copies optimistically, since this page can be opened without the list page
+    const fetchDistanceRates = () => {
         openPolicyDistanceRatesPage(policyID);
-    }, [policyID]);
+    };
 
     useNetwork({onReconnect: fetchDistanceRates});
 
