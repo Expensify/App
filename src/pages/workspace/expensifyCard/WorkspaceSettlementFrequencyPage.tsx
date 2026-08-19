@@ -7,11 +7,12 @@ import Text from '@components/Text';
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
 import useSelectedExpensifyCardProgram from '@hooks/useSelectedExpensifyCardProgram';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {updateSettlementFrequency as updateSettlementFrequencyUtil} from '@libs/actions/Card';
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardSettings, getIssuedCardFeedCountry} from '@libs/CardUtils';
 import Log from '@libs/Log';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 
@@ -39,6 +40,7 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
 
     const [cardSettings] = useOnyx(`${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${defaultFundID}`);
     const programKey = useSelectedExpensifyCardProgram(policyID, defaultFundID);
+    const {isBetaEnabled} = usePermissions();
     const settings = getCardSettings(cardSettings, programKey);
 
     const shouldShowMonthlyOption = settings?.isMonthlySettlementAllowed ?? false;
@@ -72,7 +74,8 @@ function WorkspaceSettlementFrequencyPage({route}: WorkspaceSettlementFrequencyP
             Log.alert('[WorkspaceSettlementFrequencyPage] updateSettlementFrequency called without a detected card program key');
             return;
         }
-        updateSettlementFrequencyUtil(defaultFundID, programKey, value, settings?.monthlySettlementDate);
+        const feedCountry = getIssuedCardFeedCountry(isBetaEnabled(CONST.BETAS.EXPENSIFY_CARD_EU_UK), programKey);
+        updateSettlementFrequencyUtil(defaultFundID, programKey, feedCountry, value, settings?.monthlySettlementDate);
     };
 
     return (

@@ -16,6 +16,7 @@ import type {
     SetPersonalCardReimbursableParams,
     StartIssueNewCardFlowParams,
     UnassignCardParams,
+    UpdateCardSettlementFrequencyParams,
     UpdateCardTransactionStartDateParams,
     UpdateCompanyCardNameParams,
     UpdateExpensifyCardLimitParams,
@@ -661,6 +662,7 @@ function revealTravelCardDetails(cardID: number, validateCode: string): Promise<
 function updateSettlementFrequency(
     workspaceAccountID: number,
     programKey: CardProgramKey,
+    feedCountry: string,
     settlementFrequency: ValueOf<typeof CONST.EXPENSIFY_CARD.FREQUENCY_SETTING>,
     currentFrequency?: Date,
 ) {
@@ -693,9 +695,10 @@ function updateSettlementFrequency(
         },
     ];
 
-    const parameters = {
+    const parameters: UpdateCardSettlementFrequencyParams = {
         policyAccountID: workspaceAccountID,
         settlementFrequency,
+        feedCountry,
     };
 
     API.write(WRITE_COMMANDS.UPDATE_CARD_SETTLEMENT_FREQUENCY, parameters, {optimisticData, successData, failureData});
