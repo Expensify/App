@@ -6,6 +6,7 @@ import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {generatePKCEPair, generateState} from '@libs/CloudflareAccess/generatePKCE';
 import {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} from '@libs/CloudflareAccess/OAuthClient';
 import {clearPendingAuthFlow, savePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStorage';
+import Log from '@libs/Log';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -113,10 +114,13 @@ function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; cod
                 // Signed out mid-exchange: these tokens were minted for the session that was just torn down
                 return;
             }
-            // Cache first: a request fired during this boot must see the token before disk I/O settles. If
-            // Onyx.set rejects, the cache keeps the (real, usable) session and a reload self-heals.
+            // Cache first: a request fired during this boot must see the token before disk I/O settles. A
+            // rejected Onyx.set is only logged — the cache keeps the (real, usable) session and a reload
+            // self-heals, so a failed persist must not surface as a failed sign-in.
             sessionCache = session;
-            return Onyx.set(ONYXKEYS.CF_SESSION, session);
+            return Onyx.set(ONYXKEYS.CF_SESSION, session).catch((error: unknown) => {
+                Log.warn('[CloudflareSession] Failed to persist the exchanged session', {error});
+            });
         })
         .finally(() => {
             redirectCompletionPromise = null;
@@ -185,26 +189,27 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
             throw error;
         }
         if (generation !== sessionGeneration) {
-            // Sign-out already dropped the session; there is nothing left to clear
+            // Signed out during the round trip — terminal rather than skipped, so the caller stops retrying
             return 'reauth-required';
         }
         if (sessionCache?.refreshToken !== submittedRefreshToken) {
             // The token we submitted is no longer the stored one, so another tab rotated it and this failure
-            // is about a token that is already spent. Clearing here would destroy that tab's session; the
-            // caller retries with the newer one instead.
+            // is about a token that is already spent — the caller retries with the newer one instead
             return 'skipped-newer-token';
         }
         // Both codes mean the token we submitted is spent (invalid_response = a 2xx arrived, so CF rotated
-        // even though the new pair was unreadable). Keeping it would trap every future attempt in the
-        // refresh branch instead of reaching the no-session redirect.
-        await clearCloudflareSession();
+        // even though the new pair was unreadable). The dead session is deliberately kept: the store is
+        // shared across tabs and another tab may hold a working rotation this one has not received yet, so
+        // recovery is by replacement — the caller surfaces reauth-required and a fresh authorize round trip
+        // overwrites the session for every tab.
         return 'reauth-required';
     }
 }
 
 /**
  * Single-flight refresh, serialised across tabs; the rotated pair is persisted before it resolves. Resolves
- * `'reauth-required'` only for terminal failures (session already cleared) — transient ones reject and keep
+ * `'reauth-required'` only for terminal failures — the spent session is deliberately left in place (see
+ * performCloudflareRefresh) and recovery is a fresh authorize round trip. Transient ones reject and keep
  * the session alive. Pass the token a 401 was seen with to get `'skipped-newer-token'` when rotation already
  * happened, in this tab or another one.
  */
@@ -221,20 +226,14 @@ function refreshCloudflareSession(staleAccessToken?: string): Promise<Cloudflare
     return refreshPromise;
 }
 
+/**
+ * Deletes the session for every tab. The one deliberate deletion left: it only runs from the test tool's
+ * Clear-session button, where wiping the shared state is exactly what the user asked for — automatic
+ * failure paths recover by replacing the session instead.
+ */
 function clearCloudflareSession(): Promise<void> {
     sessionCache = null; // synchronous — a probe pressed right after Clear must not read the dead session
     return Onyx.set(ONYXKEYS.CF_SESSION, null);
-}
-
-/**
- * Drops a session that still got 401 after a refresh, so the next attempt starts a fresh authorize round
- * trip. Guarded on the rejected token so a concurrently established session isn't collateral damage.
- */
-function markCloudflareSessionRejected(rejectedAccessToken: string): Promise<void> {
-    if (sessionCache?.accessToken !== rejectedAccessToken) {
-        return Promise.resolve();
-    }
-    return clearCloudflareSession();
 }
 
 export {
@@ -244,7 +243,6 @@ export {
     getCloudflareSession,
     getPendingCloudflareAuthCompletion,
     isSessionNearExpiry,
-    markCloudflareSessionRejected,
     refreshCloudflareSession,
     waitForCloudflareSessionHydration,
 };

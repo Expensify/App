@@ -6,12 +6,11 @@ import type * as ConfigModule from '@libs/CloudflareAccess/Config';
 import {isQAServerRequest} from '@libs/CloudflareAccess/Config';
 import fetchWithQAAuth, {CF_REAUTH_REQUIRED} from '@libs/CloudflareAccess/fetchWithQAAuth';
 
-import {getCloudflareSession, markCloudflareSessionRejected, refreshCloudflareSession} from '@userActions/CloudflareSession';
+import {getCloudflareSession, refreshCloudflareSession} from '@userActions/CloudflareSession';
 
 jest.mock('@userActions/CloudflareSession', () => ({
     __esModule: true,
     getCloudflareSession: jest.fn(),
-    markCloudflareSessionRejected: jest.fn(),
     refreshCloudflareSession: jest.fn(),
 }));
 
@@ -49,7 +48,6 @@ beforeEach(() => {
     jest.mocked(isQAServerRequest).mockImplementation((url: string) => url.startsWith(QA_API_ROOT));
     jest.mocked(getCloudflareSession).mockReturnValue(SESSION_A);
     jest.mocked(refreshCloudflareSession).mockResolvedValue('refreshed');
-    jest.mocked(markCloudflareSessionRejected).mockResolvedValue(undefined);
 });
 
 describe('fetchWithQAAuth', () => {
@@ -90,7 +88,6 @@ describe('fetchWithQAAuth', () => {
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).rejects.toThrow(CF_REAUTH_REQUIRED);
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(markCloudflareSessionRejected).not.toHaveBeenCalled();
     });
 
     it('propagates a transient refresh failure as-is — the session is still alive', async () => {
@@ -101,10 +98,9 @@ describe('fetchWithQAAuth', () => {
         await expect(fetchWithQAAuth(QA_URL, {method: 'post'})).rejects.toBe(transientError);
 
         expect(fetchMock).toHaveBeenCalledTimes(1);
-        expect(markCloudflareSessionRejected).not.toHaveBeenCalled();
     });
 
-    it('on a second 401: drops the rejected session and rejects with the re-auth sentinel', async () => {
+    it('on a second 401: rejects with the re-auth sentinel and leaves the shared session alone', async () => {
         jest.mocked(getCloudflareSession).mockReturnValueOnce(SESSION_A).mockReturnValue(SESSION_B);
         const {fetchMock} = mockFetchSequence(response(401), response(401));
 
@@ -112,8 +108,6 @@ describe('fetchWithQAAuth', () => {
 
         expect(fetchMock).toHaveBeenCalledTimes(2);
         expect(refreshCloudflareSession).toHaveBeenCalledTimes(1);
-        expect(markCloudflareSessionRejected).toHaveBeenCalledTimes(1);
-        expect(markCloudflareSessionRejected).toHaveBeenCalledWith(SESSION_B.accessToken);
     });
 
     it('leaves a 401 from any other origin alone — no refresh, no retry', async () => {

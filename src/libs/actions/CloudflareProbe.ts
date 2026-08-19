@@ -17,7 +17,7 @@ import {
     waitForCloudflareSessionHydration,
 } from './CloudflareSession';
 
-type CloudflareAuthProbeStatus = 'success' | 'reauthRequired' | 'error';
+type CloudflareAuthProbeStatus = 'success' | 'reauthRequired' | 'signInFailed' | 'error';
 
 type CloudflareAuthProbeResult = {
     /** Semantic outcome — the UI translates these */
@@ -27,17 +27,32 @@ type CloudflareAuthProbeResult = {
     detail?: string;
 };
 
+type CloudflareAuthProbeOptions = {
+    /**
+     * The user already saw a reauthRequired result and pressed Run again — that press consents to
+     * navigation, so a terminal refresh failure starts the authorize round trip instead of reporting
+     * reauthRequired a second time.
+     */
+    shouldRedirectOnReauthRequired?: boolean;
+};
+
 /**
  * Never rejects — every failure comes back as a semantic result, so the UI consumes it with `.then` only.
- * With no session it navigates the tab away and never settles.
+ * With no session (or on a consented re-auth, see the options) it navigates the tab away and never settles.
  */
-async function runCloudflareAuthProbe(): Promise<CloudflareAuthProbeResult> {
+async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: CloudflareAuthProbeOptions = {}): Promise<CloudflareAuthProbeResult> {
     try {
         await waitForCloudflareSessionHydration();
         // A callback boot may still be exchanging the code — join it instead of starting a second round trip
         const pendingCompletion = getPendingCloudflareAuthCompletion();
         if (pendingCompletion) {
-            await pendingCompletion;
+            try {
+                await pendingCompletion;
+            } catch (error) {
+                // The sign-in failed, not the probe — the authorization code is burned, so the only way
+                // forward is running again, which starts a fresh authorize round trip
+                return {status: 'signInFailed', detail: error instanceof Error ? error.message : undefined};
+            }
         }
 
         const session = getCloudflareSession();
@@ -48,7 +63,11 @@ async function runCloudflareAuthProbe(): Promise<CloudflareAuthProbeResult> {
             // Transient failures throw and land in the catch below as a plain 'error', session intact
             const refreshResult = await refreshCloudflareSession();
             if (refreshResult === 'reauth-required') {
-                // No redirect from here: a background failure must not navigate the tab away
+                if (shouldRedirectOnReauthRequired) {
+                    // Never settles — the informed second press is what authorized this navigation
+                    await beginCloudflareAuthRedirect();
+                }
+                // No redirect otherwise: an unannounced failure must not navigate the tab away
                 return {status: 'reauthRequired'};
             }
         }
@@ -64,7 +83,14 @@ async function runCloudflareAuthProbe(): Promise<CloudflareAuthProbeResult> {
         return {status: 'success', detail: `authenticatedVia: ${authenticatedVia ?? 'null'}`};
     } catch (error) {
         if (error instanceof Error && error.message === CF_REAUTH_REQUIRED) {
-            // Whoever threw this already dropped the dead session
+            if (shouldRedirectOnReauthRequired) {
+                try {
+                    // Same consent rule as the refresh branch above
+                    await beginCloudflareAuthRedirect();
+                } catch (redirectError) {
+                    return {status: 'error', detail: redirectError instanceof Error ? redirectError.message : undefined};
+                }
+            }
             return {status: 'reauthRequired'};
         }
         return {status: 'error', detail: error instanceof Error ? error.message : undefined};

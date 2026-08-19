@@ -79,11 +79,11 @@ describe('runCloudflareAuthProbe', () => {
         expect(beginCloudflareAuthRedirect).not.toHaveBeenCalled();
     });
 
-    it('surfaces a failed callback-boot exchange as a semantic error', async () => {
+    it('surfaces a failed callback-boot exchange as signInFailed, with no redirect', async () => {
         jest.mocked(getCloudflareSession).mockReturnValue(null);
         jest.mocked(getPendingCloudflareAuthCompletion).mockReturnValue(Promise.reject(new Error('invalid_grant')));
 
-        await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'error', detail: 'invalid_grant'});
+        await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'signInFailed', detail: 'invalid_grant'});
 
         expect(beginCloudflareAuthRedirect).not.toHaveBeenCalled();
         expect(mockFetchWithQAAuth).not.toHaveBeenCalled();
@@ -108,6 +108,40 @@ describe('runCloudflareAuthProbe', () => {
         // A background failure must never navigate the tab away
         expect(beginCloudflareAuthRedirect).not.toHaveBeenCalled();
         expect(mockFetchWithQAAuth).not.toHaveBeenCalled();
+    });
+
+    it('near expiry with a terminal refresh and consent: starts the redirect and never settles', async () => {
+        jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
+        jest.mocked(isSessionNearExpiry).mockReturnValue(true);
+        jest.mocked(refreshCloudflareSession).mockResolvedValue('reauth-required');
+        jest.mocked(beginCloudflareAuthRedirect).mockReturnValue(new Promise<never>(() => {}));
+
+        let isSettled = false;
+        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: true}).then(() => {
+            isSettled = true;
+            return undefined;
+        });
+        await waitForBatchedUpdates();
+
+        expect(beginCloudflareAuthRedirect).toHaveBeenCalledTimes(1);
+        expect(mockFetchWithQAAuth).not.toHaveBeenCalled();
+        expect(isSettled).toBe(false);
+    });
+
+    it('maps the request-level re-auth rejection to a redirect when consented', async () => {
+        jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
+        mockFetchWithQAAuth.mockRejectedValue(new Error(CF_REAUTH_REQUIRED));
+        jest.mocked(beginCloudflareAuthRedirect).mockReturnValue(new Promise<never>(() => {}));
+
+        let isSettled = false;
+        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: true}).then(() => {
+            isSettled = true;
+            return undefined;
+        });
+        await waitForBatchedUpdates();
+
+        expect(beginCloudflareAuthRedirect).toHaveBeenCalledTimes(1);
+        expect(isSettled).toBe(false);
     });
 
     it('near expiry with a transient refresh failure: reports a plain error, keeps advice honest', async () => {

@@ -1,8 +1,10 @@
 type CloudflareAuthRedirectOutcome =
     /** Every normal boot, every native boot, and every boot without QA auth configured */
     | 'not-a-callback'
-    /** The code exchange started; join it with getPendingCloudflareAuthCompletion() */
+    /** The code exchange started at boot. Terminal only for success or sign-out — a rejected exchange moves on to 'exchange-failed' */
     | 'exchanging'
+    /** The exchange started and rejected — the reason is in errorMessage */
+    | 'exchange-failed'
     /** State mismatch or no authorization code — nothing was exchanged */
     | 'invalid-callback'
     /** Cloudflare reported an OAuth error (e.g. access_denied) */

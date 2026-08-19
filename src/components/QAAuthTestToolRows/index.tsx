@@ -10,7 +10,7 @@ import {getCloudflareAuthRedirectOutcome} from '@libs/CloudflareAccess/handleAut
 
 import type {CloudflareAuthProbeResult, CloudflareAuthProbeStatus} from '@userActions/CloudflareProbe';
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
-import {clearCloudflareSession} from '@userActions/CloudflareSession';
+import {clearCloudflareSession, getCloudflareSession} from '@userActions/CloudflareSession';
 
 import CONST from '@src/CONST';
 
@@ -20,16 +20,24 @@ import {useState} from 'react';
 const PROBE_STATUS_TRANSLATION_KEYS = {
     success: 'qaAuthStatusSuccess',
     reauthRequired: 'qaAuthStatusReauthRequired',
+    signInFailed: 'qaAuthStatusSignInFailed',
     error: 'qaAuthStatusError',
 } as const satisfies Record<CloudflareAuthProbeStatus, string>;
 
 /** A failed round trip is otherwise invisible: the handler ran during boot, long before this mounts */
 function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
+    // A live session (this boot's exchange, or another tab's) outranks a recorded failure — the failure is
+    // history at that point, and re-showing it on every remount would contradict a working sign-in
+    if (getCloudflareSession()) {
+        return null;
+    }
     const {outcome, errorMessage} = getCloudflareAuthRedirectOutcome();
     if (outcome === 'not-a-callback' || outcome === 'exchanging') {
         return null;
     }
-    return {status: 'error', detail: errorMessage};
+    // Every terminal outcome means the same thing to the user: the sign-in round trip did not complete and
+    // running again retries it — the raw detail keeps the causes distinguishable
+    return {status: 'signInFailed', detail: errorMessage};
 }
 
 /**
@@ -43,7 +51,8 @@ function QAAuthTestToolRows() {
     const {translate} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome, not an effect: it is fixed for the lifetime of the page
+    // Seeded from the boot-time redirect outcome, not an effect. Not quite fixed for the page's lifetime —
+    // an in-flight exchange settles after mount — but a failure missed here still surfaces when Run joins it
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<Date | null>(null);
@@ -61,8 +70,9 @@ function QAAuthTestToolRows() {
                     isLoading={isOperationRunning}
                     onPress={() => {
                         setIsOperationRunning(true);
-                        // Never rejects — failures come back as semantic results
-                        runCloudflareAuthProbe()
+                        // Never rejects — failures come back as semantic results. A press made after seeing
+                        // reauthRequired consents to the sign-in navigation, so the probe may redirect.
+                        runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
                             .then((result) => {
                                 setProbeResult(result);
                                 setProbeCompletedAt(new Date());

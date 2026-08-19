@@ -155,12 +155,14 @@ describe('refreshCloudflareSession', () => {
         expect(oAuthClient.refreshTokens).not.toHaveBeenCalled();
     });
 
-    it.each(['invalid_grant', 'invalid_response'])('clears the session and resolves reauth-required on the terminal %s', async (code) => {
+    it.each(['invalid_grant', 'invalid_response'])('keeps the session and resolves reauth-required on the terminal %s', async (code) => {
         await seedSession(SESSION_A);
         jest.mocked(oAuthClient.refreshTokens).mockRejectedValue(new oAuthClient.OAuthError(code));
 
         await expect(SessionActions.refreshCloudflareSession()).resolves.toBe('reauth-required');
-        expect(SessionActions.getCloudflareSession()).toBeNull();
+        // Deliberately not cleared: the store is shared across tabs and recovery is by replacement — a
+        // deletion here could destroy a working rotation another tab persisted moments earlier
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
     });
 
     it('rethrows transient failures and keeps the session', async () => {
@@ -224,20 +226,6 @@ describe('refreshCloudflareSession', () => {
         await expect(refresh).resolves.toBe('reauth-required');
         // The cache is written before Onyx, so a null cache is proof the rotated pair never reached the store
         expect(SessionActions.getCloudflareSession()).toBeNull();
-    });
-});
-
-describe('markCloudflareSessionRejected', () => {
-    it('drops the session when the rejected token matches', async () => {
-        await seedSession(SESSION_A);
-        await SessionActions.markCloudflareSessionRejected(SESSION_A.accessToken);
-        expect(SessionActions.getCloudflareSession()).toBeNull();
-    });
-
-    it('leaves a newer session untouched', async () => {
-        await seedSession(SESSION_B);
-        await SessionActions.markCloudflareSessionRejected(SESSION_A.accessToken);
-        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_B);
     });
 });
 
@@ -378,6 +366,16 @@ describe('completeCloudflareAuthRedirect', () => {
         await completion;
         // The cache is written before Onyx, so a null cache is proof the exchanged pair never reached the store
         expect(SessionActions.getCloudflareSession()).toBeNull();
+    });
+
+    it('resolves and keeps the usable session in cache when the exchange succeeded but Onyx.set rejected', async () => {
+        jest.mocked(oAuthClient.exchangeCode).mockResolvedValue(SESSION_A);
+        const setSpy = jest.spyOn(Onyx, 'set').mockRejectedValue(new Error('QuotaExceededError'));
+
+        await expect(SessionActions.completeCloudflareAuthRedirect({code: 'auth-code-1', codeVerifier: PAIR_1.codeVerifier})).resolves.toBeUndefined();
+        // A failed persist is not a failed sign-in — the cache keeps the session and a reload self-heals
+        expect(SessionActions.getCloudflareSession()).toEqual(SESSION_A);
+        setSpy.mockRestore();
     });
 
     it('exposes no pending completion before an exchange starts', () => {

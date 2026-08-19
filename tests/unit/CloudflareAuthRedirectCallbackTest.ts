@@ -95,6 +95,18 @@ describe('handleCloudflareAuthRedirectCallback', () => {
         expect(sessionActions.completeCloudflareAuthRedirect).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: FLOW.codeVerifier});
     });
 
+    it('records a rejected exchange as the observable exchange-failed outcome', async () => {
+        arrangeCallbackURL('?code=auth-code-1&state=state-1');
+        pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
+        jest.mocked(sessionActions.completeCloudflareAuthRedirect).mockReturnValue(Promise.reject(new Error('invalid_grant')));
+
+        expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('exchanging');
+        // The rejection handler runs on a later microtask — asserting synchronously would still read 'exchanging'
+        await Promise.resolve();
+
+        expect(authRedirectCallback.getCloudflareAuthRedirectOutcome()).toEqual({outcome: 'exchange-failed', errorMessage: 'invalid_grant'});
+    });
+
     it('validates state first: a foreign callback is discarded wholesale, even with error and code present', () => {
         arrangeCallbackURL('?state=WRONG&error=access_denied&code=evil-code');
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);

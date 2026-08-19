@@ -90,9 +90,11 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
         return lastOutcome;
     }
 
-    // Fire and forget; the catch only prevents an unhandled rejection. Callers joining via
-    // getPendingCloudflareAuthCompletion() still see the failure on their own handler.
+    // Fire and forget; the catch records the failure as the observable outcome — the completion promise
+    // clears as it settles, so a caller arriving later could never see the rejection itself. The handler
+    // runs on a later microtask, so it always lands after the synchronous 'exchanging' below.
     completeCloudflareAuthRedirect({code, codeVerifier: flow.codeVerifier}).catch((error: unknown) => {
+        lastOutcome = 'exchange-failed';
         lastErrorMessage = error instanceof Error ? error.message : String(error);
     });
 
