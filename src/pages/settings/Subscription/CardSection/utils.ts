@@ -205,7 +205,6 @@ function getBillingStatus({
     }
 }
 
-/** Next billing date formatted with the user's preferred locale. */
 function getNextBillingDate(preferredLocale: Locale): string {
     const today = new Date();
 

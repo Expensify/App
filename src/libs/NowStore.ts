@@ -8,13 +8,13 @@ const MS_PER_MINUTE = 60_000;
 
 const listeners = new Set<() => void>();
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
-// Seeded at module load. Refreshed by `tick` and by `subscribe`. Never advanced from `getSnapshot` so the useSyncExternalStore purity contract holds (repeated reads in one render return the same reference).
+// Advanced by `tick` and `subscribe`, never by `getSnapshot`, which must stay pure for `useSyncExternalStore`.
 let snapshot: Date = new Date();
 let lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
 
 function advanceIfStale(): boolean {
     const now = new Date();
-    // Monotonic minute index (not `getMinutes()` 0-59) so sleep/wake gaps that land on the same minute-of-hour (10:30 → 11:30) still count as changes.
+    // Monotonic index rather than `getMinutes()`, so a sleep/wake gap landing on the same minute-of-hour still counts.
     const currentMinute = Math.floor(now.getTime() / MS_PER_MINUTE);
     if (currentMinute === lastMinute) {
         return false;
@@ -24,7 +24,7 @@ function advanceIfStale(): boolean {
     return true;
 }
 
-/** Schedule the next tick aligned to the upcoming minute boundary, with a small safety margin so drift does not accumulate. */
+/** Aligned to the next minute boundary, with a small margin so drift does not accumulate. */
 function scheduleNextTick() {
     const msUntilNextMinute = MS_PER_MINUTE - (Date.now() % MS_PER_MINUTE);
     timeoutId = setTimeout(tick, msUntilNextMinute + 10);
@@ -44,7 +44,7 @@ function tick() {
 }
 
 function subscribe(listener: () => void): () => void {
-    // Refresh (and notify existing siblings) BEFORE adding the new listener, so the fresh subscriber does not receive a redundant onStoreChange in addition to React's mount-time getSnapshot comparison.
+    // Refresh before adding the listener, so the new subscriber is not notified on top of React's own mount-time check.
     if (advanceIfStale()) {
         for (const other of listeners) {
             other();

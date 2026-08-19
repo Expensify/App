@@ -7,7 +7,7 @@ import {resetForTests as resetNowStore} from '@libs/NowStore';
 describe('useNow', () => {
     beforeEach(() => {
         jest.useFakeTimers();
-        // Reset NowStore module state so a prior test's leftover `lastMinute` cannot mask a stale snapshot in the next test.
+        // Reset the module, else a leftover `lastMinute` masks a stale snapshot in the next test.
         resetNowStore();
     });
 
@@ -28,7 +28,7 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
-        // Advance the fake clock past the next minute boundary. This also fires the aligned setTimeout the store scheduled at subscribe time.
+        // Past the next minute boundary, which also fires the timer scheduled at subscribe time.
         act(() => {
             jest.advanceTimersByTime(60_100);
         });
@@ -43,7 +43,7 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
-        // Advance by an hour so multiple scheduled timers can fire back-to-back. Even though the minute-of-hour is the same, the monotonic minute index changed.
+        // An hour, so the minute-of-hour repeats but the monotonic minute index still changes.
         act(() => {
             jest.advanceTimersByTime(3600_000);
         });
@@ -58,7 +58,7 @@ describe('useNow', () => {
         const {result, unmount} = renderHook(() => useNow());
         const initial = result.current;
 
-        // Advance wall-clock time without firing the pending minute-boundary timer, so no notify fires and the subscriber keeps its cached snapshot.
+        // Advance the clock without firing the pending timer, so the subscriber keeps its cached snapshot.
         act(() => {
             jest.setSystemTime(new Date('2026-05-24T10:30:45Z'));
         });

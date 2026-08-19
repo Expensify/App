@@ -42,7 +42,7 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
     return subRateComments.join(', ');
 }
 
-/** Last three comma parts of the merchant are the date range, the rest is the location. See `computePerDiemExpenseMerchant` for why that holds. */
+/** Last three comma parts are the date range, the rest is the location. `computePerDiemExpenseMerchant` pins that shape. */
 function getPerDiemDestination(merchant: string) {
     const merchantParts = merchant.split(', ');
     if (merchantParts.length < 3) {

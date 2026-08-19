@@ -15,31 +15,13 @@ import type {Report} from '@src/types/onyx';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type createIntlStoreMock from '../../utils/createIntlStoreMock';
+
 import {signInWithTestUser} from '../../utils/TestHelper';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../utils/waitForBatchedUpdatesWithAct';
 
-jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const flatten: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
-    const cache = new Map<string, Record<string, unknown>>();
-    cache.set('en', flatten(en));
-    // Same reference on every call so `useSyncExternalStore` does not loop the render.
-    const snapshot = {locale: 'en', loaded: cache.has('en')};
-    return {
-        getCurrentLocale: jest.fn(() => 'en'),
-        load: jest.fn(() => Promise.resolve()),
-        get: jest.fn((key: string, locale?: string) => {
-            const translations = cache.get(locale ?? 'en');
-            return translations?.[key] ?? null;
-        }),
-        subscribe: jest.fn(() => () => {}),
-        getSnapshot: jest.fn(() => snapshot),
-        hasLocale: jest.fn((locale: string) => cache.has(locale)),
-    };
-});
+jest.mock('@src/languages/IntlStore', () => ({__esModule: true, default: jest.requireActual<{default: typeof createIntlStoreMock}>('../../utils/createIntlStoreMock').default()}));
 
 jest.mock('@rnmapbox/maps', () => ({
     default: jest.fn(),

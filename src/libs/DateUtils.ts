@@ -58,12 +58,6 @@ type MachineDateFormat =
 
 const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
-/**
- * Offset shapes `new Date()` accepts at the end of an ISO string: `±HHMM` and `±HH:MM`. V8 and Hermes reject bare `±HH`,
- * so this pattern requires the minutes component. Used by `isAlreadyZoned` to decide whether to append `Z`.
- */
-const ISO_OFFSET_PATTERN = /[+-]\d{2}:?\d{2}$/;
-
 type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
 /** Narrows an arbitrary timezone string to one our backward-mapping table knows about. */
@@ -77,43 +71,39 @@ function isWeekDay(value: number): value is WeekDay {
 }
 
 /**
- * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry). Returns `null` and caches that on any
- * construction failure (bad locale on old engines, missing IANA name) so subsequent calls short-circuit instead of
- * re-throwing every render. Retries with the backward-mapped IANA name on older iOS/macOS (e.g. `Europe/Kyiv`).
- * Key space is ~19 presets x the active locale x a few timezones, and all three args are primitives, so a small
- * shallow-equality cache avoids a deep comparison on every formatted cell in a long transaction list.
+ * LRU-bounded (Intl.DateTimeFormat holds 10-50 KB ICU state per entry). Returns `null` and caches that when no candidate
+ * constructs, so subsequent calls short-circuit instead of re-throwing every render. The key space is ~19 presets x the
+ * active locale x however many timezones are on screen, which a long LHN of `ParticipantLocalTime` rows can push into the
+ * hundreds, so the bound has to sit above that to cache rather than thrash. All three args are primitives, so shallow
+ * equality avoids a deep comparison on every formatted cell in a long transaction list.
  */
 const getIntlDateTimeFormat = memoize(
     (locale: Locale, formatKey: IntlFormatKey, timeZone?: string): Intl.DateTimeFormat | null => {
         const preset = CONST.DATE.INTL_FORMATS[formatKey];
-        const options = timeZone ? {...preset, timeZone} : preset;
-        try {
-            return new Intl.DateTimeFormat(locale, options);
-        } catch (error) {
-            const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
-            if (backwardTimeZone && backwardTimeZone !== timeZone) {
+        const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
+        // Degrade one dimension at a time, because either can be the one the engine rejects. Timezone first (older
+        // iOS/macOS know only the backward-mapped IANA name), then locale (Hermes implements DateTimeFormat, so the
+        // realistic remaining failure is one bad tag). Dropping the timezone is never a candidate: it would render UTC
+        // wall-clock as if it were local, which is worse than the empty string callers already handle.
+        const timeZoneCandidates = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
+        const localeCandidates: Locale[] = locale === CONST.LOCALES.DEFAULT ? [locale] : [locale, CONST.LOCALES.DEFAULT];
+        for (const candidateLocale of localeCandidates) {
+            for (const candidateTimeZone of timeZoneCandidates) {
                 try {
-                    return new Intl.DateTimeFormat(locale, {...preset, timeZone: backwardTimeZone});
-                } catch (retryError) {
-                    Log.warn('[DateUtils] Intl.DateTimeFormat retry with backward timezone also failed', {locale, formatKey, timeZone, backwardTimeZone, retryError});
-                    return null;
+                    const formatter = new Intl.DateTimeFormat(candidateLocale, candidateTimeZone ? {...preset, timeZone: candidateTimeZone} : preset);
+                    if (candidateLocale !== locale || candidateTimeZone !== timeZone) {
+                        Log.warn('[DateUtils] Intl.DateTimeFormat constructed on a fallback candidate', {locale, formatKey, timeZone, candidateLocale, candidateTimeZone});
+                    }
+                    return formatter;
+                } catch {
+                    // Next candidate.
                 }
             }
-            // Hermes implements DateTimeFormat, so the realistic failure is one bad locale tag. Retry on the default locale so dates degrade to English rather than blank.
-            if (locale !== CONST.LOCALES.DEFAULT) {
-                try {
-                    Log.warn('[DateUtils] Intl.DateTimeFormat construction failed; retrying on the default locale', {locale, formatKey, timeZone, error});
-                    return new Intl.DateTimeFormat(CONST.LOCALES.DEFAULT, options);
-                } catch (defaultLocaleError) {
-                    Log.warn('[DateUtils] Intl.DateTimeFormat default-locale retry also failed', {locale, formatKey, timeZone, defaultLocaleError});
-                    return null;
-                }
-            }
-            Log.warn('[DateUtils] Intl.DateTimeFormat construction failed', {locale, formatKey, timeZone, error});
-            return null;
         }
+        Log.warn('[DateUtils] Intl.DateTimeFormat construction failed for every candidate', {locale, formatKey, timeZone, backwardTimeZone});
+        return null;
     },
-    {maxSize: 64, equality: 'shallow'},
+    {maxSize: 256, equality: 'shallow'},
 );
 
 /**
@@ -179,21 +169,20 @@ const getWeekStartsOn = memoize(
         } catch {
             // Fall through to the static map below.
         }
-        // Total over the Locale union, so this is exhaustive by construction rather than a partial lookup with a default.
-        return WEEK_STARTS_ON_BY_LOCALE[locale];
+        // Total over the `Locale` union, but the tag reaches here from an Onyx NVP, so a malformed persisted value would
+        // otherwise return undefined and collapse the calendar via `WEEK_DAYS[NaN]` in `getWeekEndsOn`.
+        return WEEK_STARTS_ON_BY_LOCALE[locale] ?? CONST.WEEK_STARTS_ON;
     },
     {maxSize: 16, equality: 'shallow'},
 );
 
-/**
- * Get the day of the week that the week ends on for the given locale (derived from `getWeekStartsOn` so they stay in lockstep).
- */
+/** Derived from `getWeekStartsOn` so the two stay in lockstep. */
 function getWeekEndsOn(locale: Locale): WeekDay {
     return WEEK_DAYS[(getWeekStartsOn(locale) + 6) % 7];
 }
 
 /**
- * Returns a zoned Date for the given datetime. `string` parses as ISO (with legacy `Z`-suffix fallback);
+ * Returns a zoned Date for the given datetime. Unzoned `string` values are the DB wire format and read as UTC;
  * `Date`/`number` passes through; `undefined` reads `Date.now()` — only safe outside render.
  * `locale` is unused; kept on the signature for compat with LocaleContextProvider's wrapper.
  */
@@ -204,16 +193,12 @@ function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: strin
     if (datetime instanceof Date || typeof datetime === 'number') {
         return toZonedSafe(datetime, currentSelectedTimezone);
     }
-    let parsedDatetime: Date;
-    // Skip the `Z` on already-zoned strings — appending produces `...ZZ` / `...+05:00Z` (Invalid Date). Runs every minute in useNow consumers.
-    const isAlreadyZoned = datetime.endsWith('Z') || ISO_OFFSET_PATTERN.test(datetime);
-    try {
-        parsedDatetime = new Date(isAlreadyZoned ? datetime : `${datetime}Z`);
-        parsedDatetime.toISOString();
-    } catch (e) {
-        parsedDatetime = new Date(datetime);
-    }
-    return toZonedSafe(parsedDatetime, currentSelectedTimezone);
+    // `toDate` reads an unzoned value as UTC, honours an embedded offset when there is one, and parses the space-separated
+    // wire shape on every engine. Appending `Z` to that shape instead relied on a V8 leniency Hermes lacks, which left
+    // every chat timestamp showing the current time. It only understands ISO-like input, so non-ISO strings (a
+    // `Date.prototype.toString()` value, which an engine is required to parse back) still need the engine's own parser.
+    const isoParsed = toDate(datetime, {timeZone: 'UTC'});
+    return toZonedSafe(Number.isNaN(isoParsed.getTime()) ? new Date(datetime) : isoParsed, currentSelectedTimezone);
 }
 
 function toZonedSafe(date: Date | number, timeZone: string): Date {
@@ -290,7 +275,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): s
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
-    // Capture the mapped tz once. Passing the unmapped tz into isToday/isYesterday/toZonedTime after formatting `date` with the mapped tz would let the "today" branch and the display disagree on the reference zone if a legacy alias with a divergent offset is ever added to `timezoneNewToBackwardMap`. The map's backward IANA values are valid tz identifiers that date-fns accepts, they just aren't in the tight `SelectedTimezone` union, so the cast is safe.
+    // Map once and reuse, so the isToday/isYesterday branches and the rendered string cannot resolve against different zones.
+    // The backward IANA values are real tz identifiers, just outside the tighter `SelectedTimezone` union.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const mappedTimezone = fallbackToSupportedTimezone(currentSelectedTimezone) as SelectedTimezone;
     const date = getLocalDateFromDatetime(locale, mappedTimezone, datetime);
@@ -496,7 +482,7 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
 const FALLBACK_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 
 function monthNamesIn(locale: Locale): string[] {
-    // Fixed-year UTC mid-month dates. Month name is year-independent, so UTC + mid-month sidesteps any local-tz boundary that could shift a January-1 or December-31 endpoint into the neighbouring month on extreme timezones.
+    // Mid-month in UTC, so no timezone can shift a month-edge date into the neighbouring month.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
     return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
@@ -1127,8 +1113,8 @@ function getCancellationDateTimezoneLabel(venueTimezone: string): string {
 }
 
 /**
- * Captures the trailing offset so this helper can do the shift itself. Wider than `ISO_OFFSET_PATTERN` (it also matches a
- * bare `±HH`) because the offset is stripped before parsing, so shapes `new Date` would reject still work here.
+ * Captures the trailing offset so this helper can do the shift itself. Matches a bare `±HH` too, because the offset is
+ * stripped before parsing, so shapes `new Date` would reject still work here.
  */
 const CANCELLATION_OFFSET_PATTERN = /([+-])(\d{2}):?(\d{2})?$/;
 
@@ -1203,7 +1189,8 @@ function formatCountdownTimer(translateParam: LocaleContextProps['translate'], h
 const WIRE_YEAR_PREFIX = /^(\d{4})/;
 
 function doesDateBelongToAPastYear(date: string): boolean {
-    // Extract the year from the wire string directly, so a "2023-12-31" transaction viewed on Dec 31 evening (Jan 1 UTC) still compares 2023 vs 2023 and does not spuriously suffix ", 2023" onto today's row. Falls back to UTC parsing when the input is not a leading-year string.
+    // Read the year off the wire string, so a Dec 31 transaction viewed that evening (already Jan 1 in UTC) is not
+    // suffixed with a year on what is still today's row.
     const yearMatch = date.match(WIRE_YEAR_PREFIX);
     const transactionYear = yearMatch ? Number(yearMatch[1]) : toUTCDate(date).getUTCFullYear();
     return transactionYear !== new Date().getFullYear();
@@ -1300,8 +1287,9 @@ function toLocalDate(date: Date | string): Date {
 }
 
 /**
- * Like `toLocalDate` but anchors the value to UTC midnight, so downstream UTC-zone formatters render the intended
- * calendar day for viewers east of UTC.
+ * Like `toLocalDate` but resolves the value in UTC, so downstream UTC-zone formatters render the intended calendar day
+ * for viewers east of UTC. A `Date` is re-read as the calendar fields it displays locally, which is what the date-only
+ * callers want and what an instant-valued caller would not: pass those a string.
  */
 function toUTCDate(date: Date | string): Date {
     if (typeof date !== 'string') {
@@ -1315,9 +1303,7 @@ function toUTCDate(date: Date | string): Date {
     return toDate(date, {timeZone: 'UTC'});
 }
 
-/**
- * Converts a date to a locale-aware long date string (e.g. "March 1, 2025" in English).
- */
+/** @returns March 1, 2025 (en) / 1 de marzo de 2025 (es) */
 function formatToReadableString(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date));
 }

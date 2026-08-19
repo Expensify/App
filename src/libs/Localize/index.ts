@@ -113,7 +113,7 @@ const memoizedGetTranslatedPhrase = memoize(getTranslatedPhrase, {
  */
 function translate<TPath extends TranslationPaths>(locale: Locale, path: TPath, ...parameters: TranslationParameters<TPath>): string {
     if (!IntlStore.hasLocale(locale)) {
-        // Requested locale not loaded yet. Fall back to the currently loaded locale so callers (OnyxDerived, etc.) get a real string instead of a raw dotted path they might persist into derived state.
+        // Requested locale not loaded yet. Fall back to the loaded one, so callers never persist a raw dotted path.
         const currentLocale = IntlStore.getCurrentLocale();
         if (currentLocale !== locale && IntlStore.hasLocale(currentLocale)) {
             return translate(currentLocale, path, ...parameters);

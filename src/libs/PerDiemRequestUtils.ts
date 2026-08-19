@@ -222,10 +222,10 @@ function formatDateTimeTo12Hour(dateTimeString: string, locale: Locale): string 
     if (!dateTimeString) {
         return '';
     }
-    // Medium form ("Jan 5, 2026") matches the adjacent Time badges and existing per-diem UI copy. Short form is locale-ambiguous (MM/DD/YYYY vs DD/MM/YYYY vs YYYY/MM/DD).
+    // Medium rather than short, which is locale-ambiguous (MM/DD/YYYY vs DD/MM/YYYY vs YYYY/MM/DD).
     const time = DateUtils.formatToLocalTime(dateTimeString, locale);
     const day = DateUtils.formatToMediumDate(dateTimeString, locale);
-    // Both halves required, else the hard-coded separator survives on its own and the row renders a bare ", ".
+    // Both halves required, else the hard-coded separator renders on its own.
     if (!time || !day) {
         return '';
     }
@@ -236,7 +236,7 @@ function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) 
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
     const start = formatDateTimeTo12Hour(customUnitRateDate.start, locale);
     const end = formatDateTimeTo12Hour(customUnitRateDate.end, locale);
-    // Guard the formatted output, not the raw input. An unparsable timestamp is truthy but formats to '', which would leave the bare " - " separator on its own.
+    // Guard the formatted output, not the raw input: an unparsable timestamp is truthy but formats to ''.
     if (!start || !end) {
         return '';
     }
@@ -245,8 +245,9 @@ function getTimeForDisplay(transaction: OnyxEntry<Transaction>, locale: Locale) 
 
 function getTimeDifferenceIntervals(transaction: OnyxEntry<Transaction>) {
     const customUnitRateDate = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    const startDate = new Date(customUnitRateDate.start);
-    const endDate = new Date(customUnitRateDate.end);
+    // Bare `new Date` yields Invalid Date on Hermes for this wire shape, and every diff below turns NaN.
+    const startDate = DateUtils.toLocalDate(customUnitRateDate.start);
+    const endDate = DateUtils.toLocalDate(customUnitRateDate.end);
 
     if (isSameDay(startDate, endDate)) {
         const hourDiff = differenceInMinutes(endDate, startDate) / 60;

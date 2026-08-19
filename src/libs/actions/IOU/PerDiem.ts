@@ -195,7 +195,8 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    const formattedTime = DateUtils.getStablePerDiemMerchantDateRange(new Date(startDate), new Date(endDate));
+    // `attributes.dates` holds space-separated wire timestamps, which Hermes parses as Invalid Date and date-fns `format` then throws on.
+    const formattedTime = DateUtils.getStablePerDiemMerchantDateRange(DateUtils.toLocalDate(startDate), DateUtils.toLocalDate(endDate));
     return `${locationName}, ${formattedTime}`;
 }
 

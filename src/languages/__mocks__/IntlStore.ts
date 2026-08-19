@@ -50,7 +50,7 @@ class IntlStore {
 
     private static listeners = new Set<() => void>();
 
-    // One cached snapshot so repeated `useSyncExternalStore` reads return the same reference and never trigger an infinite render loop. Replaced (not mutated) on locale change so subscribers see a fresh identity.
+    // One cached snapshot, so repeated `useSyncExternalStore` reads return the same reference. Replaced, never mutated.
     private static snapshot: {locale: Locale; loaded: boolean; hasAnyTranslations: boolean} = {
         locale: IntlStore.currentLocale,
         loaded: IntlStore.localeCache.has(IntlStore.currentLocale),
@@ -62,7 +62,7 @@ class IntlStore {
     }
 
     static load(locale?: Locale): Promise<void> {
-        // Real behaviour: mutate currentLocale, replace the snapshot, notify subscribers. Otherwise tests exercising a locale switch see no effect and coverage silently fails-open.
+        // Real behaviour, otherwise a suite exercising a locale switch sees no effect and passes for the wrong reason.
         if (locale && IntlStore.localeCache.has(locale)) {
             IntlStore.currentLocale = locale;
             IntlStore.snapshot = {locale, loaded: true, hasAnyTranslations: true};

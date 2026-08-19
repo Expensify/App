@@ -20,37 +20,13 @@ import {NavigationContainer} from '@react-navigation/native';
 import React from 'react';
 import Onyx from 'react-native-onyx';
 
+import type createIntlStoreMock from '../../utils/createIntlStoreMock';
+
 import createMock from '../../utils/createMock';
 import {getFakeReport} from '../../utils/LHNTestUtils';
 
 // Mock dynamic imports that break without --experimental-vm-modules
-jest.mock('@src/languages/IntlStore', () => {
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const en: Record<string, unknown> = require('@src/languages/en').default;
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access
-    const flattenObject: (obj: Record<string, unknown>) => Record<string, unknown> = require('@src/languages/flattenObject').default;
-
-    const cache = new Map<string, Record<string, unknown>>([['en', flattenObject(en)]]);
-
-    return {
-        __esModule: true,
-        default: {
-            getCurrentLocale: () => 'en',
-            load: () => Promise.resolve(),
-            get: (key: string, locale?: string) => {
-                const translations = cache.get(locale ?? 'en');
-                return translations?.[key] ?? null;
-            },
-            subscribe: () => () => {},
-            // Same reference on every call so `useSyncExternalStore` does not loop the render.
-            getSnapshot: (() => {
-                const snapshot = {locale: 'en', loaded: cache.has('en')};
-                return () => snapshot;
-            })(),
-            hasLocale: (locale: string) => cache.has(locale),
-        },
-    };
-});
+jest.mock('@src/languages/IntlStore', () => ({__esModule: true, default: jest.requireActual<{default: typeof createIntlStoreMock}>('../../utils/createIntlStoreMock').default()}));
 jest.mock('@assets/emojis', () => ({
     importEmojiLocale: jest.fn(() => Promise.resolve()),
     getEmojiCodeWithSkinColor: jest.fn(),
