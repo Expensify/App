@@ -75,7 +75,7 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
 
     const oauthError = params.get('error');
     if (oauthError) {
-        // e.g. access_denied — the provider refused; never attempt the exchange
+        // e.g. access_denied — never attempt the exchange
         lastOutcome = 'provider-error';
         lastErrorMessage = new OAuthError(oauthError, params.get('error_description') ?? undefined).message;
         return lastOutcome;

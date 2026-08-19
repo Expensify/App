@@ -34,7 +34,6 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
     if (outcome === 'not-a-callback' || outcome === 'exchanging') {
         return null;
     }
-    // Every terminal outcome means the same to the user — sign-in didn't complete, running again retries it
     return {status: 'signInFailed', detail: errorMessage};
 }
 
@@ -47,8 +46,7 @@ function QAAuthTestToolRows() {
     const {translate} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome, not an effect. An in-flight exchange settles after mount,
-    // but a failure missed here still surfaces when Run joins it
+    // Seeded from the boot-time redirect outcome; an in-flight exchange's failure surfaces when Run joins it
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<Date | null>(null);
@@ -66,8 +64,7 @@ function QAAuthTestToolRows() {
                     isLoading={isOperationRunning}
                     onPress={() => {
                         setIsOperationRunning(true);
-                        // Never rejects — failures come back as semantic results. A press made after seeing
-                        // reauthRequired consents to the sign-in navigation, so the probe may redirect.
+                        // Never rejects — failures come back as semantic results
                         runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
                             .then((result) => {
                                 setProbeResult(result);

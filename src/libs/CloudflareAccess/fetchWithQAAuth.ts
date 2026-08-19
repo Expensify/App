@@ -39,17 +39,14 @@ async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, 
     }
 
     if (isRetry) {
-        // Refresh demonstrably can't fix this session — the caller has to start a fresh authorize round trip
         throw new Error(CF_REAUTH_REQUIRED);
     }
 
     const refreshResult = await refreshCloudflareSession(accessToken);
     if (refreshResult === 'reauth-required') {
-        // Terminal — refresh cannot recover this session
         throw new Error(CF_REAUTH_REQUIRED);
     }
 
-    // Retry once, picking up the rotated token from the cache
     return fetchWithQAAuth(url, options, true);
 }
 

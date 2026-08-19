@@ -45,7 +45,6 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             try {
                 await pendingCompletion;
             } catch (error) {
-                // A sign-in failure, not a probe failure — running again starts a fresh authorize round trip
                 return {status: 'signInFailed', detail: error instanceof Error ? error.message : undefined};
             }
         }
@@ -55,14 +54,11 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             // Never settles — nothing below runs
             await beginCloudflareAuthRedirect();
         } else if (isSessionNearExpiry(session)) {
-            // Transient failures throw and land in the catch below as a plain 'error', session intact
             const refreshResult = await refreshCloudflareSession();
             if (refreshResult === 'reauth-required') {
                 if (shouldRedirectOnReauthRequired) {
-                    // Never settles — the informed second press is what authorized this navigation
                     await beginCloudflareAuthRedirect();
                 }
-                // No redirect otherwise: an unannounced failure must not navigate the tab away
                 return {status: 'reauthRequired'};
             }
         }
@@ -71,7 +67,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         if (!response.ok) {
             return {status: 'error', detail: `HTTP ${response.status}`};
         }
-        // The origin echoes back how the request authenticated. Read loosely — a diagnostic, not a contract
+        // Diagnostic echo of how the request authenticated — read loosely
         const body: unknown = await response.json().catch(() => null);
         const authenticatedVia = isRecord(body) && typeof body.authenticatedVia === 'string' ? body.authenticatedVia : null;
         return {status: 'success', detail: `authenticatedVia: ${authenticatedVia ?? 'null'}`};
@@ -79,7 +75,6 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         if (error instanceof Error && error.message === CF_REAUTH_REQUIRED) {
             if (shouldRedirectOnReauthRequired) {
                 try {
-                    // Same consent rule as the refresh branch above
                     await beginCloudflareAuthRedirect();
                 } catch (redirectError) {
                     return {status: 'error', detail: redirectError instanceof Error ? redirectError.message : undefined};

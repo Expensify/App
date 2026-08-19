@@ -32,7 +32,6 @@ const hydrationPromise = new Promise<void>((resolve) => {
     resolveHydration = resolve;
 });
 
-// This module loads on every app start — an unconfigured build must not pay for the subscription
 if (isQAAuthConfigured()) {
     // We have used `connectWithoutView` here because this module-level cache is not connected to any UI component
     Onyx.connectWithoutView({
@@ -43,8 +42,7 @@ if (isQAAuthConfigured()) {
         },
     });
 
-    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously. Clearing the
-    // in-flight refs wouldn't cancel their work — the generation bump is what makes late results inert.
+    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously
     registerSessionCleanupCallback(() => {
         sessionGeneration++;
         sessionCache = null;
@@ -106,11 +104,11 @@ function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; cod
     redirectCompletionPromise ??= exchangeCode({code, codeVerifier})
         .then((session) => {
             if (generation !== sessionGeneration) {
-                // Signed out mid-exchange: these tokens were minted for the session that was just torn down
+                // Signed out mid-exchange
                 return;
             }
-            // Cache first: a request fired during this boot must see the token before disk I/O settles. A
-            // failed persist is logged, not surfaced — the cache keeps the usable session, a reload self-heals.
+            // Cache first: requests during this boot must see the token before disk I/O settles; a failed
+            // persist is only logged — the cache keeps the usable session and a reload self-heals
             sessionCache = session;
             return Onyx.set(ONYXKEYS.CF_SESSION, session).catch((error: unknown) => {
                 Log.warn('[CloudflareSession] Failed to persist the exchanged session', {error});
@@ -132,31 +130,24 @@ type CloudflareRefreshResult = 'refreshed' | 'skipped-newer-token' | 'reauth-req
 let refreshPromise: Promise<CloudflareRefreshResult> | null = null;
 
 /**
- * Cloudflare rotates the refresh token on every call, so two tabs refreshing at once each spend a token the
- * other still needs. Web Locks serialize the read-refresh-persist across the origin's tabs; where the API
- * is missing, the in-context single-flight and the guards in performCloudflareRefresh are what remain.
+ * Cloudflare rotates the refresh token on every call, so two tabs refreshing at once each spend a token
+ * the other still needs — Web Locks serialize the read-refresh-persist across the origin's tabs.
  */
 function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult>): Promise<CloudflareRefreshResult> {
     if (!navigator.locks) {
         return callback();
     }
-    // The name is origin-scoped, so it serializes across every tab of this app
     return navigator.locks.request('cloudflareSessionRefresh', callback);
 }
 
-/**
- * Runs with the cross-tab lock held, so everything it read before queueing may have changed: the session is
- * re-read here rather than captured by the caller.
- */
+/** Runs with the cross-tab lock held — the session is re-read here rather than captured by the caller */
 async function performCloudflareRefresh(staleAccessToken: string | undefined): Promise<CloudflareRefreshResult> {
-    // Captured with the lock held, so the checks below only have to detect a sign-out landing mid round trip
     const generation = sessionGeneration;
     const current = sessionCache;
     if (!current?.refreshToken) {
-        // Signed out, or another tab's rotation already left this tab without a usable session
         return 'reauth-required';
     }
-    // Rotation already completed — here or in another tab — while this caller's request was in flight
+    // Rotation already completed, here or in another tab, while this caller's request was in flight
     if (staleAccessToken && current.accessToken !== staleAccessToken) {
         return 'skipped-newer-token';
     }
@@ -165,7 +156,7 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
     try {
         const session = await refreshTokens(submittedRefreshToken);
         if (generation !== sessionGeneration) {
-            // Signed out mid-refresh: persisting the rotated pair would resurrect the dead session
+            // Signed out mid-refresh — persisting the rotated pair would resurrect the dead session
             return 'reauth-required';
         }
         sessionCache = session;
@@ -177,7 +168,7 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
             throw error;
         }
         if (generation !== sessionGeneration) {
-            // Signed out during the round trip — terminal rather than skipped, so the caller stops retrying
+            // Signed out during the round trip
             return 'reauth-required';
         }
         if (sessionCache?.refreshToken !== submittedRefreshToken) {
