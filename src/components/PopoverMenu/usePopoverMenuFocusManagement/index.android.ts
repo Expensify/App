@@ -1,1 +1,3 @@
-export {default} from './noop';
+import usePopoverMenuFocusManagement from './noop';
+
+export default usePopoverMenuFocusManagement;
