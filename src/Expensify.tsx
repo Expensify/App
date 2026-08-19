@@ -158,6 +158,7 @@ function Expensify() {
         hasAttemptedToOpenPublicRoom,
         isNavigationReady,
         preferredLocale,
+        hasAnyTranslations,
         shouldInit,
         shouldHideSplash,
         isAuthenticated,

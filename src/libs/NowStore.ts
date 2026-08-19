@@ -1,10 +1,8 @@
 /**
- * Minute clock consumed by `useNow`. Only notifies on minute boundaries so consumers (`HH:mm`, day-of-week)
- * re-render at most once per minute.
- * Kept out of `useNow.ts` so its React Compiler memoization stays consistent across Babel/OXC.
+ * Minute clock consumed by `useNow`, notifying only on minute boundaries. Kept out of `useNow.ts` so its React Compiler
+ * memoization stays consistent across Babel/OXC. Unsubscribing is the only teardown: React re-runs `subscribe` just when
+ * its identity changes, so clearing `listeners` from outside would strand every mounted consumer.
  */
-
-import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
 
 const MS_PER_MINUTE = 60_000;
 
@@ -28,11 +26,16 @@ function advanceIfStale(): boolean {
 
 /** Aligned to the next minute boundary, with a small margin so drift does not accumulate. */
 function scheduleNextTick() {
+    if (timeoutId !== null) {
+        return;
+    }
     const msUntilNextMinute = MS_PER_MINUTE - (Date.now() % MS_PER_MINUTE);
     timeoutId = setTimeout(tick, msUntilNextMinute + 10);
 }
 
 function tick() {
+    // Release the fired timer first, else a resubscribe during the notify loop below schedules a second chain.
+    timeoutId = null;
     if (advanceIfStale()) {
         for (const listener of listeners) {
             listener();
@@ -40,8 +43,6 @@ function tick() {
     }
     if (listeners.size > 0) {
         scheduleNextTick();
-    } else {
-        timeoutId = null;
     }
 }
 
@@ -69,25 +70,15 @@ function getSnapshot(): Date {
     return snapshot;
 }
 
-/**
- * Drops the timer and its subscribers on sign-out. The timer already stops once the last `useNow` consumer unsubscribes,
- * so this only matters when the tree is torn down without running effect cleanups, as the OldDot handoff can do.
- */
-function stop(): void {
+/** Test-only reset so suites that manipulate the wall clock start from a clean module state. */
+function resetForTests(): void {
     if (timeoutId !== null) {
         clearTimeout(timeoutId);
         timeoutId = null;
     }
     listeners.clear();
-}
-
-/** Test-only reset so suites that manipulate the wall clock start from a clean module state. */
-function resetForTests(): void {
-    stop();
     snapshot = new Date();
     lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
 }
-
-registerSessionCleanupCallback(stop);
 
 export {subscribe, getSnapshot, resetForTests};

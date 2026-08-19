@@ -1050,6 +1050,18 @@ describe('DateUtils', () => {
             expect(result).toContain('jul');
             expect(result).toContain('sept');
         });
+
+        it('getFormattedDateRangeForSearch returns empty rather than an orphan separator on an unparsable boundary', () => {
+            expect(DateUtils.getFormattedDateRangeForSearch('not-a-date', '2025-07-09', false, false, LOCALE)).toBe('');
+            expect(DateUtils.getFormattedDateRangeForSearch('2025-07-09', 'not-a-date', false, false, LOCALE)).toBe('');
+        });
+
+        it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
+            jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
+                throw new RangeError('no Intl');
+            });
+            expect(DateUtils.getFormattedQuarterForSearch(2025, 3, LOCALE)).toBe('Q3 2025');
+        });
     });
 
     // #97796: under a non-English date-fns default, localized meridiems (vorm./nachm.) failed Per Diem save.

@@ -522,22 +522,14 @@ function getFilteredMonthItems(monthNames: string[], currentMonth: number) {
 }
 
 /**
- * @returns Narrow weekday labels — en ["M","T","W","T","F","S","S"], zh-hans ["一","二","三","四","五","六","日"].
- * Slicing `getDaysOfWeek(…)[0]` collapses in CJK (Chinese long names all start with `星`).
+ * Narrow weekday labels in the locale's week order, for the CalendarPicker header. A fixed reference week keeps the
+ * result stable across a midnight tick. Narrow rather than sliced, because Chinese long names all start with `星`.
+ * @returns en ["M","T","W","T","F","S","S"], zh-hans ["一","二","三","四","五","六","日"].
  */
-/**
- * Weekday labels in the locale's week order. Built from a fixed reference week rather than `new Date()`: the seven names
- * depend only on where the locale starts its week, so pinning the date keeps the result stable across a midnight tick.
- * Not memoized. Its only consumer is CalendarPicker, which React Compiler already memoizes on `preferredLocale`.
- */
-function weekdayNamesIn(locale: Locale, formatKey: 'LONG_WEEKDAY' | 'SHORT_WEEKDAY' | 'NARROW_WEEKDAY'): string[] {
+function getDaysOfWeekNarrow(locale: Locale): string[] {
     const weekStartsOn = getWeekStartsOn(locale);
     const reference = new Date(Date.UTC(2023, 0, 4));
-    return eachDayOfInterval({start: startOfWeek(reference, {weekStartsOn}), end: endOfWeek(reference, {weekStartsOn})}).map((date) => formatIntl(locale, formatKey, date));
-}
-
-function getDaysOfWeekNarrow(locale: Locale): string[] {
-    return weekdayNamesIn(locale, 'NARROW_WEEKDAY');
+    return eachDayOfInterval({start: startOfWeek(reference, {weekStartsOn}), end: endOfWeek(reference, {weekStartsOn})}).map((date) => formatIntl(locale, 'NARROW_WEEKDAY', date));
 }
 
 /** CLDR field order + separator per supported locale, used only when Intl is unavailable so a German user is not shown a US-ordered placeholder. */
@@ -860,15 +852,15 @@ const combineDateAndTime = (updatedTime: string, inputDateTime: string): string 
     return format(updatedDateTime, 'yyyy-MM-dd HH:mm:ss');
 };
 
-type TwelveHourTimeObject = {hour: string; minute: string; seconds: string; milliseconds: string; period: string};
+type TwelveHourTimeObject = {hour: string; minute: string; seconds: string; milliseconds: string; period: ValueOf<typeof CONST.TIME_PERIOD>};
 
 /** Frozen: this single object seeds every TimePicker's initial state, so a mutation would change the default for the rest of the session. */
-const EMPTY_TWELVE_HOUR_TIME: Readonly<TwelveHourTimeObject> = Object.freeze({hour: '12', minute: '00', seconds: '00', milliseconds: '000', period: 'PM'});
+const EMPTY_TWELVE_HOUR_TIME: Readonly<TwelveHourTimeObject> = Object.freeze({hour: '12', minute: '00', seconds: '00', milliseconds: '000', period: CONST.TIME_PERIOD.PM});
 
 /**
- * Parses a `hh:mm a` (or `hh:mm:ss.SSS a`) string into its parts. Returns `undefined` on empty or unparsable input so
- * TimePicker can distinguish "no valid input" from "user selected 12:00 PM" and apply its own placeholder rather than
- * silently commit noon. `enUS` pinning + hour-derived period keeps the German #97796 fix intact regardless of locale.
+ * Parses a `hh:mm a` (or `hh:mm:ss.SSS a`) string into its parts. Returns `undefined` on unparsable input, so the
+ * fallback is the caller's choice rather than a noon baked into the parser. The `enUS` pin and the hour-derived period
+ * keep the output on English AM/PM whatever the user's locale, which is what the time picker round-trips.
  * example {hour: '11', minute: '10', seconds: '10', milliseconds: '123', period: 'AM'}
  */
 function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): TwelveHourTimeObject | undefined {
@@ -885,7 +877,7 @@ function get12HourTimeObjectFromDate(dateTime: string, isFullFormat = false): Tw
         minute: format(parsedTime, 'mm'),
         seconds: isFullFormat ? format(parsedTime, 'ss') : '00',
         milliseconds: isFullFormat ? format(parsedTime, 'SSS') : '000',
-        period: parsedTime.getHours() >= 12 ? 'PM' : 'AM',
+        period: parsedTime.getHours() >= 12 ? CONST.TIME_PERIOD.PM : CONST.TIME_PERIOD.AM,
     };
 }
 
@@ -1149,13 +1141,11 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale, now
     if (Number.isNaN(instant.getTime())) {
         return '';
     }
-    // `civil` is already the venue wall-clock, parsed as UTC, so it needs no further shift. Formatting it in UTC below
-    // means the rendered time cannot contradict `venueTimezoneLabel`, and Intl still drives field order and clock.
-    const venueInstant = instant;
+    // `instant` already holds the venue wall-clock, so formatting it in UTC cannot contradict `venueTimezoneLabel`.
     const nowInVenue = new Date(now.getTime() + offsetMinutes * 60_000);
-    const datePreset = venueInstant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    const datePart = formatIntl(locale, datePreset, venueInstant, 'UTC');
-    const time = formatIntl(locale, 'SHORT_TIME', venueInstant, 'UTC');
+    const datePreset = instant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
+    const datePart = formatIntl(locale, datePreset, instant, 'UTC');
+    const time = formatIntl(locale, 'SHORT_TIME', instant, 'UTC');
     if (!datePart || !time) {
         return '';
     }
@@ -1577,13 +1567,20 @@ function isDateStringInMonth(dateString: string, year: number, month: number): b
 function getFormattedDateRangeForSearch(startDate: string, endDate: string, shouldShowFullYear: boolean, shouldOmitCurrentYear: boolean, locale: Locale): string {
     const start = parse(startDate, 'yyyy-MM-dd', new Date());
     const end = parse(endDate, 'yyyy-MM-dd', new Date());
+    let startFormat: IntlFormatKey = 'MONTH_DAY';
+    let endFormat: IntlFormatKey = 'MEDIUM_DATE';
     if (shouldShowFullYear || !isSameYear(start, end)) {
-        return `${formatIntl(locale, 'MEDIUM_DATE', start)} - ${formatIntl(locale, 'MEDIUM_DATE', end)}`;
+        startFormat = 'MEDIUM_DATE';
+    } else if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
+        endFormat = 'MONTH_DAY';
     }
-    if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
-        return `${formatIntl(locale, 'MONTH_DAY', start)} - ${formatIntl(locale, 'MONTH_DAY', end)}`;
+    const formattedStart = formatIntl(locale, startFormat, start);
+    const formattedEnd = formatIntl(locale, endFormat, end);
+    // Both halves required, else an unparsable boundary renders the separator on its own.
+    if (!formattedStart || !formattedEnd) {
+        return '';
     }
-    return `${formatIntl(locale, 'MONTH_DAY', start)} - ${formatIntl(locale, 'MEDIUM_DATE', end)}`;
+    return `${formattedStart} - ${formattedEnd}`;
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1614,7 +1611,12 @@ function getQuarterDateRange(year: number, quarter: number): {start: string; end
 
 function getFormattedQuarterForSearch(year: number, quarter: number, locale: Locale): string {
     const {start, end} = getQuarterDateBounds(year, quarter);
-    return `Q${quarter} ${year} (${formatIntl(locale, 'MONTH_DAY', start)} - ${formatIntl(locale, 'MONTH_DAY', end)})`;
+    const formattedStart = formatIntl(locale, 'MONTH_DAY', start);
+    const formattedEnd = formatIntl(locale, 'MONTH_DAY', end);
+    if (!formattedStart || !formattedEnd) {
+        return `Q${quarter} ${year}`;
+    }
+    return `Q${quarter} ${year} (${formattedStart} - ${formattedEnd})`;
 }
 
 function isDate(arg: unknown): arg is Date {

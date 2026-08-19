@@ -231,7 +231,10 @@ class IntlStore {
         return IntlStore.cache.has(locale);
     }
 
-    /** Test-only cache seed. Skips `load()`'s side effects (Onyx write, telemetry span) that pollute unrelated suites' mocks. Prod uses `load()`. */
+    /**
+     * Seeds the real singleton from `jest/setupAfterEnv.ts`, so suites that never mock this module still translate. The
+     * two mock modules replace it rather than seed it, so neither can do this. Skips `load()`'s Onyx write and span.
+     */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
         // Snapshot's `loaded` derives from cache membership, and the splash gate reads the snapshot rather than the Onyx

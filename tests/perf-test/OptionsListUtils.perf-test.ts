@@ -174,7 +174,9 @@ describe('OptionsListUtils', () => {
             translateLocal,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, SEARCH_VALUE, COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
         });
     });
     test('[OptionsListUtils] getFilteredOptions with empty search value', async () => {
@@ -191,7 +193,7 @@ describe('OptionsListUtils', () => {
             translateLocal,
         );
         await measureFunction(() => {
-            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails);
+            filterAndOrderOptions(formattedOptions, '', COUNTRY_CODE, loginList, MOCK_CURRENT_USER_EMAIL, MOCK_CURRENT_USER_ACCOUNT_ID, personalDetails, {preferredLocale: CONST.LOCALES.EN});
         });
     });
 

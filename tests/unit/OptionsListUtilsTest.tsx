@@ -1392,7 +1392,9 @@ describe('OptionsListUtils', () => {
             // The contact must survive getValidOptions' pre-filter so the final filter can return it.
             expect(preFilteredOptions.personalDetails).toEqual(expect.arrayContaining([expect.objectContaining({login: 'contact1003@example.com'})]));
 
-            const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails);
+            const filteredOptions = filterAndOrderOptions(preFilteredOptions, searchString, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, personalDetails, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             expect(filteredOptions.personalDetails).toEqual([expect.objectContaining({login: 'contact1003@example.com'})]);
         });
@@ -1921,7 +1923,9 @@ describe('OptionsListUtils', () => {
                 {preferredLocale: CONST.LOCALES.EN, searchString, includeP2P: true},
                 translateLocal,
             );
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then the report must survive both filtering stages
             expect(filteredOptions.recentReports).toEqual(expect.arrayContaining([expect.objectContaining({reportID: report.reportID, text: reportText})]));
@@ -3193,7 +3197,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then all options should be returned
             expect(filteredOptions.recentReports.length + filteredOptions.personalDetails.length).toBe(14);
@@ -3255,7 +3261,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3292,7 +3300,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3356,7 +3366,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3383,7 +3395,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only one report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3419,7 +3433,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we pass the returned options to filterAndOrderOptions with a search value
-            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filterOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only two reports should be returned
             expect(filterOptions.recentReports.length).toBe(2);
@@ -3446,7 +3462,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -3475,7 +3493,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then the user to invite should be returned
             expect(filteredOptions.userToInvite?.login).toBe(searchText);
@@ -3590,7 +3610,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchText, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then there should be one matching result
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -3635,7 +3657,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'mutants', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -3683,7 +3707,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that matches the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'Avengers Room', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then one recent report should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -3731,7 +3757,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we pass the returned options to filterAndOrderOptions with a search value that does not match the group chat name
-            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'Mutants Lair', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -3751,7 +3779,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that matches a personal detail with no existing report
-            const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'hulk', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4027,7 +4057,9 @@ describe('OptionsListUtils', () => {
             });
 
             // When we pass the returned options to filterAndOrderOptions with any search value
-            const filteredOptions = filterAndOrderOptions(options, 'Unknown', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'Unknown', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then the report should still be found by its reportName even if participantsList is empty
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -4048,7 +4080,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4071,7 +4105,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'marc@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4094,7 +4130,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'peter.parker@expensify.com', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4116,7 +4154,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value without accent mark
-            const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'Timothee', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then one personalDetails with accent mark should be returned
             expect(filteredOptions.personalDetails.length).toBe(1);
@@ -4136,7 +4176,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '5005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4161,7 +4203,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '+15005550006', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4186,7 +4230,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports but matches user to invite
-            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '+1 (800)324-3233', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4211,7 +4257,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details or reports
-            const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '998243aaaa', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no recent reports or personal details should be returned
             expect(filteredOptions.recentReports.length).toBe(0);
@@ -4282,7 +4330,9 @@ describe('OptionsListUtils', () => {
                 translateLocal,
             );
             // When we call filterAndOrderOptions with a search value that does not match any personal details
-            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'magneto', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then no personal details should be returned
             expect(filteredOptions.personalDetails.length).toBe(0);
@@ -4362,7 +4412,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches a personal detail
-            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then one personal detail should be returned
             expect(filteredOptions.recentReports.length).toBe(1);
@@ -4387,7 +4439,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value that matches multiple items
-            const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'fantastic', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then only three reports should be returned
             expect(filteredOptions.recentReports.length).toBe(3);
@@ -4462,7 +4516,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a an empty search value
-            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, '', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
             const matchingEntries = filteredOptions.personalDetails.filter((detail) => detail.login === login);
 
             // Then there should be 2 unique login entries
@@ -4496,7 +4552,9 @@ describe('OptionsListUtils', () => {
                 conciergeReportID: undefined,
             });
             // When we call filterAndOrderOptions with a search value
-            const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, searchTerm, COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then the self dm should be on top.
             expect(filteredOptions.recentReports.at(0)?.isSelfDM).toBe(true);
@@ -10103,7 +10161,9 @@ describe('OptionsListUtils', () => {
             );
 
             // When we call filterAndOrderOptions with the reports parameter
-            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS);
+            const filteredOptions = filterAndOrderOptions(options, 'spider', COUNTRY_CODE, loginList, CURRENT_USER_EMAIL, CURRENT_USER_ACCOUNT_ID, PERSONAL_DETAILS, {
+                preferredLocale: CONST.LOCALES.EN,
+            });
 
             // Then the function should complete without errors and return valid results
             expect(filteredOptions).toBeDefined();

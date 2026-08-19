@@ -276,12 +276,13 @@ export default createOnyxDerivedValueConfig({
             previousPolicies = policies;
         }
 
-        // A full recompute is needed when locale changes (report names are locale-dependent) or display names change.
-        // We compare preferredLocale against currentValue?.locale so that the first locale load on startup
-        // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
+        // Report names are locale-dependent, so a locale change needs a full recompute, but only once the new chunk has
+        // landed. Comparing against the stored locale skips the no-op first load; `hasLocale` skips the NVP write and the
+        // loading-flag tick, which would both recompute every name in the language the user just left.
         const needsFullRecompute =
             ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&
-                activeLocale !== currentValue?.locale) ||
+                activeLocale !== currentValue?.locale &&
+                IntlStore.hasLocale(activeLocale)) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);

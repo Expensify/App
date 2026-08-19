@@ -3566,10 +3566,10 @@ function filterOptions<T extends SearchOptionData>(
     currentUserEmail: string,
     currentUserAccountID: number,
     personalDetailsCollection: OnyxEntry<PersonalDetailsList>,
-    config?: FilterUserToInviteConfig,
+    config: FilterUserToInviteConfig,
 ): Options<T> {
     const trimmedSearchInput = searchInputValue.trim();
-    const searchInputValueForInvite = config?.searchInputValue ?? trimmedSearchInput;
+    const searchInputValueForInvite = config.searchInputValue ?? trimmedSearchInput;
 
     const parsedPhoneNumber = parsePhoneNumber(appendCountryCode(Str.removeSMSDomain(trimmedSearchInput), countryCode || CONST.DEFAULT_COUNTRY_CODE));
     const searchValue = parsedPhoneNumber.possible && parsedPhoneNumber.number?.e164 ? parsedPhoneNumber.number.e164 : trimmedSearchInput.toLowerCase();
@@ -3591,8 +3591,6 @@ function filterOptions<T extends SearchOptionData>(
         countryCode,
         {
             ...config,
-            // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
-            preferredLocale: config?.preferredLocale ?? IntlStore.getCurrentLocale(),
             searchInputValue: searchInputValueForInvite,
         },
     );
@@ -3656,7 +3654,7 @@ function filterAndOrderOptions<T extends SearchOptionData>(
     currentUserEmail: string,
     currentUserAccountID: number,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    config?: FilterAndOrderConfig,
+    config: FilterAndOrderConfig,
 ): Options<T> {
     let filterResult = options;
     if (searchInputValue.trim().length > 0) {

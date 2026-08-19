@@ -77,17 +77,17 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
             },
         });
     }
+    const eventTime = latestScheduledCall?.eventTime;
+    const weekday = eventTime ? DateUtils.formatInTimeZoneToWeekday(eventTime, userTimezone, preferredLocale) : '';
+    const longDate = eventTime ? DateUtils.formatInTimeZoneToLong(eventTime, userTimezone, preferredLocale) : '';
+    const startTime = eventTime ? DateUtils.formatInTimeZoneToShortTime(eventTime, userTimezone, preferredLocale) : '';
 
-    if (hasActiveScheduledCall && latestScheduledCall) {
-        const eventDate = DateUtils.toLocalDate(latestScheduledCall.eventTime);
-        const weekday = DateUtils.formatInTimeZoneToWeekday(eventDate, userTimezone, preferredLocale);
-        const longDate = DateUtils.formatInTimeZoneToLong(eventDate, userTimezone, preferredLocale);
-        const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
-        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
+    if (hasActiveScheduledCall && eventTime && weekday && longDate && startTime) {
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(DateUtils.toLocalDate(eventTime), 30), userTimezone, preferredLocale);
         options.push({
             text: `${weekday}, ${longDate}`,
             value: CONST.ONBOARDING_HELP.EVENT_TIME,
-            description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventDate, userTimezone)}`,
+            description: `${startTime} - ${endTime} ${DateUtils.getZoneAbbreviation(eventTime, userTimezone)}`,
             descriptionTextStyle: [styles.themeTextColor, styles.ml2],
             displayInDefaultIconColor: true,
             icon: illustrations.HeadSet,
