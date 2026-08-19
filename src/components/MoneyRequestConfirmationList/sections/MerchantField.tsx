@@ -19,7 +19,7 @@ import type {IOUAction, IOUType} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 import {merchantStateSelector} from './selectors';
@@ -65,23 +65,25 @@ function MerchantField({
     const displayMerchantValue = !merchantState?.isMerchantSet && isInvalidMerchantValue(merchantValue) ? '' : merchantValue;
     const transactionHasReceipt = merchantState?.hasReceipt ?? false;
 
-    // The new-flow Merchant field is a fully controlled plain TextInput whose persisted value only comes back
-    // asynchronously through Onyx. Feeding that lagging value straight to `value` snaps the caret to the end of
-    // the field on every keystroke (see #98647). To avoid that, we mirror the text in local state and update it
-    // synchronously as the user types, so the controlled value always matches what is in the input and the caret
-    // is preserved.
-    const isMerchantInputFocused = useRef(false);
+    // Mirror the persisted merchant in local state so the controlled input updates synchronously as the user types;
+    // feeding the async Onyx value straight to `value` snaps the caret to the end on every keystroke (see #98647).
+    const [isMerchantInputFocused, setIsMerchantInputFocused] = useState(false);
     const [merchantInput, setMerchantInput] = useState(displayMerchantValue);
+    const [prevDisplayValue, setPrevDisplayValue] = useState(displayMerchantValue);
+    const [prevTransactionID, setPrevTransactionID] = useState(transactionID);
 
-    // Re-sync the local mirror from the persisted value only while the field is not being edited, so external
-    // updates (SmartScan, drafts, switching transactions) still flow in without overwriting text the user is
-    // actively typing.
-    useEffect(() => {
-        if (isMerchantInputFocused.current) {
-            return;
-        }
+    // Sync the mirror during render (not in an effect) to avoid an extra render pass. Reset on transaction change
+    // even while focused; otherwise sync external updates (SmartScan, drafts) only when the field isn't being edited.
+    if (transactionID !== prevTransactionID) {
+        setPrevTransactionID(transactionID);
+        setPrevDisplayValue(displayMerchantValue);
         setMerchantInput(displayMerchantValue);
-    }, [displayMerchantValue]);
+    } else if (displayMerchantValue !== prevDisplayValue) {
+        setPrevDisplayValue(displayMerchantValue);
+        if (!isMerchantInputFocused) {
+            setMerchantInput(displayMerchantValue);
+        }
+    }
 
     // Determine if the merchant error should be displayed
     const merchantErrorText = (() => {
@@ -138,10 +140,10 @@ function MerchantField({
                     readOnly={didConfirm}
                     onChangeText={handleMerchantInputChange}
                     onFocus={() => {
-                        isMerchantInputFocused.current = true;
+                        setIsMerchantInputFocused(true);
                     }}
                     onBlur={() => {
-                        isMerchantInputFocused.current = false;
+                        setIsMerchantInputFocused(false);
                     }}
                     label={translate('common.merchant')}
                     accessibilityLabel={translate('common.merchant')}
