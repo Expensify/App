@@ -20,10 +20,6 @@ const write = jest.requireActual<{default: typeof baseWrite}>('@libs/API/write')
  * This runs the write inline through the same `write()` the real implementation delegates to, so a test observes
  * the Onyx state the flow settles on once its barrier resolves. Both exports stay `jest.fn`s, so a suite that
  * cares about the deferral itself can still assert on the recorded command and barrier.
- *
- * Opting in is suite-wide, not per-flow: `jest.mock('@libs/API/writeWhenReady')` un-defers every caller in the
- * suite. Today `SplitTransactionUpdate.ts` is the only production caller, but `deferOrExecuteWrite` is being
- * migrated onto this module - once those flows land, this mock will silently un-defer them and no test will fail.
  */
 const writeWhenReady = jest.fn(
     <TCommand extends WriteCommand, TKey extends OnyxKey>(command: TCommand, apiCommandParameters: ApiRequestCommandParameters[TCommand], onyxData?: OnyxData<TKey>) =>

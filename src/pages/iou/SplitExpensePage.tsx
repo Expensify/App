@@ -30,7 +30,6 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getAllPersonalDetails, getAllReportNameValuePairs, getAllSnapshots} from '@libs/actions/IOU';
 import {getIOUActionForTransactions} from '@libs/actions/IOU/Duplicate';
 import {getIOURequestPolicyID} from '@libs/actions/IOU/MoneyRequest';
 import {
@@ -111,6 +110,9 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const isLoadingDraftTransaction = isLoadingOnyxValue(draftTransactionMetadata);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+    const [allReportNameValuePairs] = useOnyx(ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS);
+    const [allSnapshots] = useOnyx(ONYXKEYS.COLLECTION.SNAPSHOT);
+    const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const draftTransactionReport = useReportOrReportDraft(draftTransaction?.reportID);
     const parentTransactionReport = useReportOrReportDraft(draftTransactionReport?.parentReportID);
     const expenseReport = draftTransactionReport?.type === CONST.REPORT.TYPE.EXPENSE ? draftTransactionReport : parentTransactionReport;
@@ -371,8 +373,8 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
-            allReportNameValuePairsList: getAllReportNameValuePairs(),
-            allSnapshots: getAllSnapshots(),
+            allReportNameValuePairsList: allReportNameValuePairs,
+            allSnapshots,
             allPolicyTags,
             transactionData: {
                 reportID: draftTransaction?.reportID ?? String(CONST.DEFAULT_NUMBER_ID),
@@ -393,7 +395,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
             policyRecentlyUsedCurrencies: policyRecentlyUsedCurrencies ?? [],
             quickAction,
             betas,
-            personalDetails: getAllPersonalDetails(),
+            personalDetails,
             transactionReport: draftTransactionReport,
             expenseReport,
             isOffline,
