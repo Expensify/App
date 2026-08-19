@@ -10,13 +10,7 @@ import Onyx from 'react-native-onyx';
 jest.mock('@libs/actions/OnyxUpdateManager/utils/applyUpdates');
 
 const OnyxUpdatesImplementation = jest.requireActual<typeof OnyxUpdatesImport>('@libs/actions/OnyxUpdates');
-const {
-    doesClientNeedToBeUpdated,
-    getEffectiveLastUpdateID,
-    requestsToIgnoreLastUpdateID,
-    saveUpdateInformation,
-    INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates: applyHTTPSOnyxUpdates,
-} = OnyxUpdatesImplementation;
+const {doesClientNeedToBeUpdated, getEffectiveLastUpdateID, saveUpdateInformation, INTERNAL_DO_NOT_USE_applyHTTPSOnyxUpdates: applyHTTPSOnyxUpdates} = OnyxUpdatesImplementation;
 
 type OnyxUpdatesMock<TKey extends OnyxKey> = typeof OnyxUpdatesImport & {
     apply: jest.Mock<Promise<Response<TKey> | void>, [OnyxUpdatesFromServer<TKey>]>;
@@ -48,7 +42,6 @@ export {
     // Actual OnyxUpdates implementation
     doesClientNeedToBeUpdated,
     getEffectiveLastUpdateID,
-    requestsToIgnoreLastUpdateID,
     saveUpdateInformation,
 };
 
