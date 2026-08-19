@@ -1,7 +1,7 @@
+import MultiAccountAvatar from '@components/Avatar/connected/MultiAccountAvatar';
 import Button from '@components/ButtonComposed';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
-import ReportActionAvatars from '@components/ReportActionAvatars';
 import {ReportPreviewDataContext} from '@components/ReportActionItem/MoneyRequestReportPreview/MoneyRequestReportPreviewContext';
 import ReportActionItemImages from '@components/ReportActionItem/ReportActionItemImages';
 import UserInfoCellsWithArrow from '@components/Search/SearchList/ListItem/UserInfoCellsWithArrow';
@@ -380,12 +380,12 @@ function TransactionPreviewContent({
                                     {isBillSplit && (
                                         <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentBetween, styles.gap2]}>
                                             <View style={styles.moneyRequestPreviewBoxAvatar}>
-                                                <ReportActionAvatars
+                                                <MultiAccountAvatar
                                                     accountIDs={participantAccountIDs}
-                                                    horizontalStacking={{
+                                                    horizontalOptions={{
                                                         avatarBorderColor: theme.cardBG,
                                                     }}
-                                                    sort={CONST.REPORT_ACTION_AVATARS.SORT_BY.ID}
+                                                    sortBy={[CONST.REPORT_ACTION_AVATARS.SORT_BY.ID]}
                                                     size={CONST.AVATAR_SIZE.XX_SMALL}
                                                 />
                                             </View>

@@ -326,7 +326,6 @@ function ReportActionsListContent({reportID, onLayout}: ReportActionsListContent
         reportID,
         actionTargetReportActionID: reportAttributes?.actionTargetReportActionID,
         actionBadgeTargetIndex,
-        actionBadge: reportAttributes?.actionBadge,
         renderedVisibleReportActions,
         scrollToActionBadgeTarget,
     });
