@@ -19,7 +19,14 @@ import {isCategoryMissing} from './CategoryUtils';
 import DateUtils from './DateUtils';
 import createDynamicRoute from './Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import {hasDynamicExternalWorkflow, isGroupPolicy as isGroupPolicyUtil} from './PolicyUtils';
-import {getMostRecentActiveDEWSubmitFailedAction, getOriginalMessage, isDynamicExternalWorkflowSubmitFailedAction, isMessageDeleted, isMoneyRequestAction} from './ReportActionsUtils';
+import {
+    getMostRecentActiveDEWSubmitFailedAction,
+    getOriginalMessage,
+    isDeletedAction,
+    isDynamicExternalWorkflowSubmitFailedAction,
+    isMessageDeleted,
+    isMoneyRequestAction,
+} from './ReportActionsUtils';
 import {hasActionWithErrorsForTransaction, hasReceiptError, isExpenseReport, isReportApproved, isSettled} from './ReportUtils';
 import StringUtils from './StringUtils';
 import {
@@ -378,8 +385,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     let displayAmountText: TranslationPathOrText = isTransactionScanning ? {translationPath: 'iou.receiptStatusTitle'} : {text: convertToDisplayString(amount, requestCurrency)};
     if (isFetchingWaypoints && !requestAmount) {
         displayAmountText = {translationPath: 'iou.fieldPending'};
-    } else if (hasFieldErrors && isAmountMissing(transaction, isExpenseReport(iouReport))) {
-        displayAmountText = {text: ''};
     }
 
     const iouOriginalMessage: OnyxEntry<OnyxTypes.OriginalMessageIOU> = isMoneyRequestAction(action) ? (getOriginalMessage(action) ?? undefined) : undefined;
@@ -449,7 +454,7 @@ function createTransactionPreviewConditionals({
     const isFullySettled = isMoneyRequestSettled && !isSettlementOrApprovalPartial;
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
-    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
+    const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
     const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
 
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
