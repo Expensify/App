@@ -83,7 +83,8 @@ function ConnectionStatusMessage({
     const actionButton = shouldShowActionButton ? (
         <Button
             small
-            danger
+            danger={isDangerStatus}
+            success={statusTone === 'success'}
             style={styles.alignSelfStart}
             text={actionText}
             onPress={onActionPress}
