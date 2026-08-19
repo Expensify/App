@@ -102,7 +102,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
     }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
 
     useEffect(() => {
-        if (hasSubmittedRef.current || plaidData?.isLoading || !plaidAccessToken || !resolvedAccount) {
+        if (hasSubmittedRef.current || plaidData?.isLoading || !plaidAccessToken || isFixMode || !resolvedAccount) {
             return;
         }
         hasSubmittedRef.current = true;
