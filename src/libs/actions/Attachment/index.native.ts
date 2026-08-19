@@ -85,7 +85,7 @@ async function getCachedAttachment({attachmentID, attachment, currentSource}: Ge
     const localSource = attachment?.source;
     if (localSource) {
         // The OS can purge Caches while the Onyx record survives, so verify the file still
-        // exists; if it was purged, fall back to the current source and re-cache it
+        // exists. If it was purged, fall back to the current source and re-cache it.
         const localFileExists = await RNFS.exists(localSource);
         if (localFileExists) {
             return localSource;

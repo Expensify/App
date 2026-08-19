@@ -70,7 +70,7 @@ const postDownloadFile = (translate: LocalizedTranslate, url: string, fileName?:
             return RNFS.mkdir(expensifyDir).then(() => {
                 return (
                     RNFS.writeFile(localPath, fileData, 'utf8')
-                        // The share sheet lets the user save the file to the Files app; the staged copy is removed afterwards
+                        // The share sheet lets the user save the file to the Files app. The staged copy is removed afterwards.
                         .then(() => Share.open({url: localPath, failOnCancel: false, saveToFiles: true}))
                         .then(() => RNFS.unlink(localPath))
                 );

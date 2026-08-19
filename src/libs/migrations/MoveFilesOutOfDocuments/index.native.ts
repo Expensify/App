@@ -133,8 +133,8 @@ export default function (): Promise<void> {
     return (
         Promise.all([moveAttachmentCache().then(() => updateAttachmentRecordPaths()), removeStaleOnyxDump(), removeStaleExportStagingDir()])
             .then(() => undefined)
-            // A failed cleanup must never block app startup; new files already go to the new
-            // locations, and the cleanup runs again on the next launch
+            // A failed cleanup must never block app startup. New files already go to the new
+            // locations, and the cleanup runs again on the next launch.
             .catch((error) => {
                 Log.warn('[Migrate Onyx] MoveFilesOutOfDocuments failed', {error: error instanceof Error ? error.message : String(error)});
             })
