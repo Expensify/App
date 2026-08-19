@@ -281,7 +281,7 @@ export default createOnyxDerivedValueConfig({
         // (where both equal the same persisted value) does not trigger an unnecessary full recompute.
         const needsFullRecompute =
             ((hasKeyTriggeredCompute(ONYXKEYS.NVP_PREFERRED_LOCALE, triggeredKeys) || hasKeyTriggeredCompute(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, triggeredKeys)) &&
-                preferredLocale !== currentValue?.locale) ||
+                activeLocale !== currentValue?.locale) ||
             displayNameChanges === RECOMPUTE_ALL ||
             hasKeyTriggeredCompute(ONYXKEYS.CONCIERGE_REPORT_ID, triggeredKeys) ||
             hasKeyTriggeredCompute(ONYXKEYS.NVP_INTRO_SELECTED, triggeredKeys);
@@ -737,10 +737,9 @@ export default createOnyxDerivedValueConfig({
 
         return {
             reports: reportAttributes,
-            // Record the locale the names were actually rendered in. `translate` falls back to the loaded locale while a
-            // chunk is still downloading, so storing the requested locale here would claim a translation that never happened
-            // and suppress the recompute that should follow when the chunk lands.
-            locale: preferredLocale && IntlStore.hasLocale(preferredLocale) ? preferredLocale : null,
+            // The locale the names were actually rendered in. Storing the requested one would claim a translation that never
+            // happened, and storing null for the no-NVP case leaves `undefined !== null` true and forces endless recomputes.
+            locale: IntlStore.hasLocale(activeLocale) ? activeLocale : null,
         };
     },
     // On Onyx clear, drop the cross-compute baselines so the first post-clear pass is treated as a full

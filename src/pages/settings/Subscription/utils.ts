@@ -44,11 +44,11 @@ function formatSubscriptionEndDate(date: string | undefined, preferredLocale: Lo
 
     const dateWithMidnightTime = appendMidnightTime(date);
 
-    return DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', new Date(dateWithMidnightTime));
+    return DateUtils.formatToMediumDate(new Date(dateWithMidnightTime), preferredLocale);
 }
 
 function getNewSubscriptionRenewalDate(preferredLocale: Locale): string {
-    return DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', startOfMonth(addMonths(new Date(), 12)));
+    return DateUtils.formatToMediumDate(startOfMonth(addMonths(new Date(), 12)), preferredLocale);
 }
 
 export {getNewSubscriptionRenewalDate, formatSubscriptionEndDate, getPrivatePromoDiscountInfo};

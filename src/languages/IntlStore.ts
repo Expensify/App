@@ -28,8 +28,15 @@ import type zhHans from './zh-hans';
 import flattenObject from './flattenObject';
 import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPluralRules, shouldPolyfillRelativeTimeFormat} from './shouldPolyfill';
 
+// Mirrors the Onyx key so a no-op write cannot wake a reportAttributes recompute.
+let areTranslationsLoadingValue: boolean | undefined;
+
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {
+    if (areTranslationsLoadingValue === areTranslationsLoading) {
+        return;
+    }
+    areTranslationsLoadingValue = areTranslationsLoading;
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
@@ -223,15 +230,16 @@ class IntlStore {
      * only the cache changed (locale stayed the same). Returning `getCurrentLocale` directly would let React bail on
      * the same-string check and swallow the cache-fill event.
      */
-    private static snapshot: {locale: Locale; loaded: boolean} = {locale: LOCALES.DEFAULT, loaded: false};
+    private static snapshot: {locale: Locale; loaded: boolean; hasAnyTranslations: boolean} = {locale: LOCALES.DEFAULT, loaded: false, hasAnyTranslations: false};
 
-    public static getSnapshot(this: void): {locale: Locale; loaded: boolean} {
+    public static getSnapshot(this: void): {locale: Locale; loaded: boolean; hasAnyTranslations: boolean} {
         return IntlStore.snapshot;
     }
 
     /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale)};
+        // `hasAnyTranslations` is monotonic because the cache never shrinks, which is what the boot splash gate needs.
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, loaded: IntlStore.cache.has(IntlStore.currentLocale), hasAnyTranslations: IntlStore.cache.size > 0};
         for (const listener of IntlStore.listeners) {
             listener();
         }

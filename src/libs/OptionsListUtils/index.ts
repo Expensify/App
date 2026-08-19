@@ -3520,10 +3520,10 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
-    config?: FilterUserToInviteConfig,
+    countryCode: number,
+    config: FilterUserToInviteConfig,
 ): SearchOptionData | null {
-    const {canInviteUser = true, excludeLogins = {}, preferredLocale = IntlStore.getCurrentLocale()} = config ?? {};
+    const {canInviteUser = true, excludeLogins = {}} = config;
     if (!canInviteUser) {
         return null;
     }
@@ -3544,7 +3544,6 @@ function filterUserToInvite(
         ...excludeLogins,
     };
     return getUserToInviteOption({
-        preferredLocale,
         searchValue,
         personalDetails,
         loginsToExclude,

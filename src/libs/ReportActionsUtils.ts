@@ -4193,7 +4193,7 @@ function getActionableCardFraudAlertMessage(
     const formattedAmount = convertToDisplayString(fraudMessage?.triggerAmount ?? 0, fraudMessage?.currency ?? CONST.CURRENCY.USD);
     const resolution = fraudMessage?.resolution;
     // Intl composes date + time with the locale-correct separator, so a hard-coded " - " cannot force English shape onto other locales.
-    const formattedDate = reportAction?.created ? DateUtils.formatIntl(preferredLocale, 'MONTH_DAY_SHORT_TIME', getLocalDateFromDatetime(reportAction.created)) : '';
+    const formattedDate = reportAction?.created ? DateUtils.formatToShortMonthDayTime(getLocalDateFromDatetime(reportAction.created), preferredLocale) : '';
 
     if (resolution === CONST.CARD_FRAUD_ALERT_RESOLUTION.RECOGNIZED) {
         return translate('cardPage.cardFraudAlert.clearedMessage', {cardLastFour});

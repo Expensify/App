@@ -353,13 +353,15 @@ function datetimeToRelative(locale: Locale, datetime: string, currentSelectedTim
     return formatRelative(locale, date, now);
 }
 
-/** Buckets mirror date-fns `formatDistance`: no `second` (it never surfaced seconds, and `useNow` ticks per minute) and no `week` (it counts days up to about a month, then months). */
-const RELATIVE_TIME_UNITS: ReadonlyArray<[thresholdSecs: number, divisor: number, unit: Intl.RelativeTimeFormatUnit]> = [
-    [3_600, 60, 'minute'],
-    [86_400, 3_600, 'hour'],
-    [2_592_000, 86_400, 'day'],
-    [31_536_000, 2_592_000, 'month'],
-    [Number.POSITIVE_INFINITY, 31_536_000, 'year'],
+/**
+ * Buckets mirror date-fns `formatDistance`, which surfaced neither seconds nor weeks. `maxCount` caps what a unit may
+ * render, because a bare threshold lets rounding spill into the next unit ("60 minutes ago", "12 months ago").
+ */
+const RELATIVE_TIME_UNITS: ReadonlyArray<[divisor: number, unit: Intl.RelativeTimeFormatUnit, maxCount: number]> = [
+    [60, 'minute', 59],
+    [3_600, 'hour', 23],
+    [86_400, 'day', 29],
+    [2_592_000, 'month', 11],
 ];
 
 /**
@@ -397,10 +399,11 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
     if (abs < 60) {
         return rtf.format(sign, 'minute');
     }
-    // Round the magnitude, then reapply the sign. `Math.round(-1.5)` is -1, which would render 90 seconds ago as "1 minute ago".
-    for (const [threshold, divisor, unit] of RELATIVE_TIME_UNITS) {
-        if (abs < threshold) {
-            return rtf.format(sign * Math.round(abs / divisor), unit);
+    // Round the magnitude before reapplying the sign, because `Math.round(-1.5)` is -1. The rounded value picks the bucket.
+    for (const [divisor, unit, maxCount] of RELATIVE_TIME_UNITS) {
+        const rounded = Math.round(abs / divisor);
+        if (rounded <= maxCount) {
+            return rtf.format(sign * rounded, unit);
         }
     }
     return rtf.format(sign * Math.round(abs / 31_536_000), 'year');
@@ -1283,9 +1286,11 @@ function toLocalDate(date: Date | string): Date {
     }
     // Space-separated DB timestamps: V8 accepts the shape, Hermes rejects it, so parse explicitly rather than relying on engine leniency.
     if (DB_WIRE_TIMESTAMP_PATTERN.test(date)) {
+        // The pattern admits any precision and some backends send microseconds, but date-fns rejects unconsumed characters.
+        const fraction = /\.(\d+)$/.exec(date)?.[1];
         let wireFormat = 'yyyy-MM-dd HH:mm';
-        if (date.includes('.')) {
-            wireFormat = 'yyyy-MM-dd HH:mm:ss.SSS';
+        if (fraction) {
+            wireFormat = `yyyy-MM-dd HH:mm:ss.${'S'.repeat(fraction.length)}`;
         } else if (date.length > 16) {
             wireFormat = 'yyyy-MM-dd HH:mm:ss';
         }
@@ -1315,6 +1320,21 @@ function toUTCDate(date: Date | string): Date {
  */
 function formatToReadableString(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date));
+}
+
+/** @returns July 2025 (en) / julio de 2025 (es) */
+function formatToLongMonthYear(date: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'LONG_MONTH_YEAR', toLocalDate(date));
+}
+
+/** @returns Wednesday, July 9, 2025 (en) / miércoles, 9 de julio de 2025 (es) */
+function formatToWeekdayLongDate(date: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', toLocalDate(date));
+}
+
+/** @returns Jul 9, 2:30 PM (en) / 9 jul, 14:30 (es) */
+function formatToShortMonthDayTime(date: Date | string, locale: Locale): string {
+    return formatIntl(locale, 'MONTH_DAY_SHORT_TIME', toLocalDate(date));
 }
 
 /** @returns Jul 9, 2023 (en) / 9 jul 2023 (es) */
@@ -1621,14 +1641,16 @@ function getNextNthOfMonth(nth: number) {
 }
 
 const DateUtils = {
-    formatIntl,
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
     formatToShortMonth,
     formatToLongMonth,
     formatToReadableString,
+    formatToLongMonthYear,
     formatToMediumDate,
+    formatToShortMonthDayTime,
+    formatToWeekdayLongDate,
     formatToLocalizedShortDate,
     formatToLocalDateTime,
     formatInUTCToMedium,
@@ -1670,6 +1692,7 @@ const DateUtils = {
     getMonthNames,
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
+    toLocalDate,
     toUTCDate,
     getLocalizedDatePlaceholder,
     formatMachineDateWithUTCTimeZone,

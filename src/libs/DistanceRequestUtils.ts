@@ -828,15 +828,15 @@ function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['tran
     try {
         if (rate.startDate && rate.endDate) {
             return translate('iou.rateValidDateRange', {
-                startDate: DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', parseISO(rate.startDate)),
-                endDate: DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', parseISO(rate.endDate)),
+                startDate: DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale),
+                endDate: DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale),
             });
         }
         if (rate.startDate) {
-            return translate('iou.rateValidFrom', {startDate: DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', parseISO(rate.startDate))});
+            return translate('iou.rateValidFrom', {startDate: DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale)});
         }
         if (rate.endDate) {
-            return translate('iou.rateValidUntil', {endDate: DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', parseISO(rate.endDate))});
+            return translate('iou.rateValidUntil', {endDate: DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale)});
         }
     } catch {
         return '';

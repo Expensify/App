@@ -3723,7 +3723,7 @@ function getMonthSections(data: OnyxTypes.SearchResults['data'], queryJSON: Sear
             const transactionsQueryJSON = dateResult?.transactionsQueryJSON;
 
             const monthDate = new Date(monthGroup.year, monthGroup.month - 1, 1);
-            const formattedMonth = DateUtils.formatIntl(preferredLocale, 'LONG_MONTH_YEAR', monthDate);
+            const formattedMonth = DateUtils.formatToLongMonthYear(monthDate, preferredLocale);
 
             monthSections[key] = {
                 groupedBy: CONST.SEARCH.GROUP_BY.MONTH,

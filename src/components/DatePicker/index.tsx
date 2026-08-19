@@ -229,7 +229,7 @@ function DatePicker({
                     accessibilityLabel={label}
                     role={CONST.ROLE.COMBOBOX}
                     accessibilityState={{expanded: isModalVisible}}
-                    value={selectedDate ? DateUtils.formatToLocalizedShortDate(selectedDate, preferredLocale) : ''}
+                    value={selectedDate ? DateUtils.formatToLocalizedShortDate(selectedDate, preferredLocale) || selectedDate : ''}
                     placeholder={placeholder ?? DateUtils.getLocalizedDatePlaceholder(preferredLocale)}
                     errorText={errorText}
                     inputStyle={styles.pointerEventsNone}

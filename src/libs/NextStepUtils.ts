@@ -89,7 +89,7 @@ function buildNextStepMessage(
         eta =
             nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
                 ? toLocaleOrdinal(preferredLocale, etaDate.getDate())
-                : DateUtils.formatIntl(preferredLocale, 'WEEKDAY_LONG_MONTH_DAY_YEAR', etaDate);
+                : DateUtils.formatToWeekdayLongDate(etaDate, preferredLocale);
         etaType = CONST.NEXT_STEP.ETA_TYPE.DATE_TIME;
     }
 

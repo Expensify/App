@@ -2,7 +2,7 @@ import type * as Sentry from '@sentry/react-native';
 import type {NativeEventSubscription} from 'react-native';
 
 import HybridAppModule from '@expensify/react-native-hybrid-app';
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState, useSyncExternalStore} from 'react';
 import {AppState, Platform} from 'react-native';
 import Onyx from 'react-native-onyx';
 
@@ -23,14 +23,15 @@ import useDebugShortcut from './hooks/useDebugShortcut';
 import useIsAuthenticated from './hooks/useIsAuthenticated';
 import useLocalize from './hooks/useLocalize';
 import useOnyx from './hooks/useOnyx';
+import IntlStore from './languages/IntlStore';
 import {updateLastRoute} from './libs/actions/App';
 import {initReconnect} from './libs/actions/Reconnect';
 import * as ActiveClientManager from './libs/ActiveClientManager';
 import {isSafari} from './libs/Browser';
 import Log from './libs/Log';
-import migrateOnyx from './libs/migrateOnyx';
 // This lib needs to be imported for its module-level NetInfo and Onyx subscriptions
 import './libs/NetworkState';
+import migrateOnyx from './libs/migrateOnyx';
 import Navigation from './libs/Navigation/Navigation';
 import NavigationRoot from './libs/Navigation/NavigationRoot';
 import PushNotification from './libs/Notification/PushNotification';
@@ -65,7 +66,6 @@ function Expensify() {
     const [isCheckingPublicRoom = true] = useOnyx(ONYXKEYS.RAM_ONLY_IS_CHECKING_PUBLIC_ROOM);
     const [updateRequired] = useOnyx(ONYXKEYS.RAM_ONLY_UPDATE_REQUIRED);
     const [lastVisitedPath] = useOnyx(ONYXKEYS.LAST_VISITED_PATH);
-    const [areTranslationsLoading] = useOnyx(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING);
     useDebugShortcut();
 
     useEffect(() => {
@@ -131,17 +131,22 @@ function Expensify() {
         });
     }, [isCheckingPublicRoom]);
 
+    // Monotonic, unlike `areTranslationsLoading`, which a language switch re-raises and would tear the app shell back down.
+    const {hasAnyTranslations} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    const hasEndedLocaleSpan = useRef(false);
     useEffect(() => {
-        if (areTranslationsLoading !== false) {
+        if (!hasAnyTranslations || hasEndedLocaleSpan.current) {
             return;
         }
+        // Startup span, so it ends once rather than on every subsequent locale load.
+        hasEndedLocaleSpan.current = true;
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [areTranslationsLoading]);
+    }, [hasAnyTranslations]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && areTranslationsLoading === false;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && hasAnyTranslations;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
     // We store this in a ref to get the latest values in BootsplashMonitor callback

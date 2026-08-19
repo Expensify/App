@@ -53,7 +53,7 @@ function formatDate(dateString: string | null | undefined, preferredLocale: Loca
     if (!dateString) {
         return '';
     }
-    return DateUtils.formatIntl(preferredLocale, 'MEDIUM_DATE', parseISO(dateString));
+    return DateUtils.formatToMediumDate(parseISO(dateString), preferredLocale);
 }
 
 function getRateStatusColors(status: string, theme: ReturnType<typeof useTheme>, isSelected?: boolean) {

@@ -211,7 +211,7 @@ function getNextBillingDate(preferredLocale: Locale): string {
 
     const nextBillingDate = startOfMonth(addMonths(today, 1));
 
-    return DateUtils.formatIntl(preferredLocale, 'LONG_DATE', nextBillingDate);
+    return DateUtils.formatToReadableString(nextBillingDate, preferredLocale);
 }
 
 export default {getBillingStatus, getNextBillingDate};

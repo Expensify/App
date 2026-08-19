@@ -79,9 +79,9 @@ function OnboardingHelpDropdownButton({reportID, shouldUseNarrowLayout, shouldSh
     }
 
     if (hasActiveScheduledCall && latestScheduledCall) {
-        const eventDate = new Date(latestScheduledCall.eventTime);
+        const eventDate = DateUtils.toLocalDate(latestScheduledCall.eventTime);
         const weekday = DateUtils.formatInTimeZoneToWeekday(eventDate, userTimezone, preferredLocale);
-        const longDate = DateUtils.formatIntl(preferredLocale, 'LONG_DATE', eventDate, userTimezone);
+        const longDate = DateUtils.formatInTimeZoneToLong(eventDate, userTimezone, preferredLocale);
         const startTime = DateUtils.formatInTimeZoneToShortTime(eventDate, userTimezone, preferredLocale);
         const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(eventDate, 30), userTimezone, preferredLocale);
         options.push({
