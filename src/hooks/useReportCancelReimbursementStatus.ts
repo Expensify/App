@@ -16,26 +16,26 @@ export default function useReportCancelReimbursementStatus(report: OnyxEntry<Rep
     const {isOffline} = useNetwork();
     // Auth only allows cancelling in BILLING + REIMBURSED, so there is nothing to ask about in any other state.
     const isReimbursementSubmitted = isExpenseReport(report) && report?.stateNum === CONST.REPORT.STATE_NUM.BILLING && report?.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED;
-    const statusKey = isReimbursementSubmitted && !isOffline ? report?.reportID : undefined;
-    const [fetchedStatus, setFetchedStatus] = useState<{key: string; status: ReportCancelReimbursementStatus | undefined}>();
+    const reportIDToFetch = isReimbursementSubmitted && !isOffline ? report?.reportID : undefined;
+    const [fetchedStatus, setFetchedStatus] = useState<{reportID: string; status: ReportCancelReimbursementStatus | undefined}>();
 
     useEffect(() => {
-        if (!statusKey) {
+        if (!reportIDToFetch) {
             return;
         }
 
         let isCurrentRequest = true;
-        getReportCancelReimbursementStatus(statusKey).then((status) => {
+        getReportCancelReimbursementStatus(reportIDToFetch).then((status) => {
             if (!isCurrentRequest) {
                 return;
             }
-            setFetchedStatus({key: statusKey, status});
+            setFetchedStatus({reportID: reportIDToFetch, status});
         });
 
         return () => {
             isCurrentRequest = false;
         };
-    }, [statusKey]);
+    }, [reportIDToFetch]);
 
-    return fetchedStatus?.key === statusKey ? fetchedStatus?.status : undefined;
+    return fetchedStatus?.reportID === reportIDToFetch ? fetchedStatus?.status : undefined;
 }
