@@ -56,6 +56,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
@@ -137,6 +138,24 @@ function getChatReportForSearchPay(chatReport: OnyxEntry<Report>, snapshotReport
     const snapshotChatReport = chatReportID ? searchData?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
 
     return chatReport ?? snapshotChatReport ?? (chatReportID ? getReportOrDraftReport(chatReportID) : undefined);
+}
+
+/**
+ * Returns the chat report to pay with. When the chat isn't loaded, builds a fallback from the known IDs so the
+ * payment isn't blocked; isFallbackChatReport tells payMoneyRequest to skip the optimistic chat updates.
+ */
+function getChatReportWithFallback(
+    loadedChatReport: OnyxEntry<Report>,
+    fallbackChatReportID: string | undefined,
+    fallbackPolicyID: string | undefined,
+): {chatReport: OnyxEntry<Report>; isFallbackChatReport: boolean} {
+    if (loadedChatReport) {
+        return {chatReport: loadedChatReport, isFallbackChatReport: false};
+    }
+    if (!fallbackChatReportID) {
+        return {chatReport: undefined, isFallbackChatReport: false};
+    }
+    return {chatReport: {reportID: fallbackChatReportID, policyID: fallbackPolicyID}, isFallbackChatReport: true};
 }
 
 function getReportFromSearchSnapshot(reportID: string | undefined, searchData: SearchResultDataType | undefined, allReports: OnyxCollection<Report> | undefined): OnyxEntry<Report> {
@@ -222,6 +241,7 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
+    onAllHeldExpensesBlock?: () => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -263,6 +283,7 @@ function handleActionButtonPress({
     onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
+    onAllHeldExpensesBlock,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -381,6 +402,10 @@ function handleActionButtonPress({
             }
             if (hasOnlyPendingCardTransactions(allReportTransactions)) {
                 onPendingCardTransactionsBlock?.();
+                return;
+            }
+            if (hasOnlyHeldExpenses(allReportTransactions)) {
+                onAllHeldExpensesBlock?.();
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
@@ -2302,6 +2327,7 @@ export {
     setSearchContext,
     deleteSavedSearch,
     getSearchPayOnyxData,
+    getChatReportWithFallback,
     getSearchApproveOnyxData,
     handleActionButtonPress,
     submitMoneyRequestOnSearch,
