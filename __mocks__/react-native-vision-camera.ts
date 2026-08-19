@@ -1,4 +1,5 @@
 const useCameraDevice = jest.fn(() => null);
+const useCameraDevices = jest.fn(() => []);
 const useCameraFormat = jest.fn(() => null);
 const useCameraPermission = jest.fn(() => ({hasPermission: false, requestPermission: jest.fn(() => Promise.resolve(false))}));
 
@@ -10,4 +11,4 @@ const Camera = Object.assign(
     },
 );
 
-export {Camera, useCameraDevice, useCameraFormat, useCameraPermission};
+export {Camera, useCameraDevice, useCameraDevices, useCameraFormat, useCameraPermission};
