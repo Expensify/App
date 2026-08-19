@@ -25,7 +25,6 @@ import useWindowDimensions from '@hooks/useWindowDimensions';
 import {isSafari} from '@libs/Browser';
 import getPlatform from '@libs/getPlatform';
 import {addKeyDownPressListener, removeKeyDownPressListener} from '@libs/KeyboardShortcut/KeyDownPressListener';
-import {acquireBackgroundInputFocusSuppression} from '@libs/ModalFocusManager';
 
 import variables from '@styles/variables';
 
@@ -41,8 +40,10 @@ import type {ReactNode, RefObject} from 'react';
 import type {GestureResponderEvent, LayoutChangeEvent, StyleProp, TextStyle, ViewStyle} from 'react-native';
 
 import {deepEqual} from 'fast-equals';
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useMemo, useState} from 'react';
 import {StyleSheet, View} from 'react-native';
+
+import usePopoverMenuFocusManagement from './usePopoverMenuFocusManagement';
 
 type PopoverMenuItem = MenuItemProps & {
     /** Text label */
@@ -211,15 +212,6 @@ type PopoverMenuProps = Partial<ModalAnimationProps> & {
     enableEdgeToEdgeBottomSafeAreaPadding?: boolean;
 };
 
-type PendingClose = {
-    onModalClose: () => void | Promise<void>;
-    shouldCloseAllModals?: boolean;
-};
-
-function hasFocusRestoreSuppressionOption(items: PopoverMenuItem[]): boolean {
-    return items.some((item) => item.shouldSkipFocusRestore ?? (item.subMenuItems ? hasFocusRestoreSuppressionOption(item.subMenuItems) : false));
-}
-
 type PopoverMenuContentProps = {
     shouldUseScrollView: boolean;
     contentContainerStyle: StyleProp<ViewStyle>;
@@ -366,8 +358,7 @@ function BasePopoverMenu({
     const [currentMenuItems, setCurrentMenuItems] = useState(menuItems);
     const currentMenuItemsFocusedIndex = getSelectedItemIndex(currentMenuItems);
     const [enteredSubMenuIndexes, setEnteredSubMenuIndexes] = useState<readonly number[]>(CONST.EMPTY_ARRAY);
-    const platform = getPlatform();
-    const isWeb = platform === CONST.PLATFORM.WEB;
+    const isWeb = getPlatform() === CONST.PLATFORM.WEB;
     const [focusedIndex, setFocusedIndex] = useArrowKeyFocusManager({
         initialFocusedIndex: currentMenuItemsFocusedIndex,
         maxIndex: currentMenuItems.length - 1,
@@ -376,12 +367,13 @@ function BasePopoverMenu({
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['BackArrow', 'ReceiptScan', 'MoneyCircle']);
     const prevMenuItems = usePrevious(menuItems);
     const [hasKeyBeenPressed, setHasKeyBeenPressed] = useState(false);
-    const [restoreFocusTypeOverride, setRestoreFocusTypeOverride] = useState<BaseModalProps['restoreFocusType'] | null>(null);
-    const [pendingClose, setPendingClose] = useState<PendingClose | null>(null);
-    const releaseBackgroundInputFocusSuppressionRef = useRef<(() => void) | null>(null);
-    const isVisibleRef = useRef(isVisible);
-    const shouldUseNewFocusManagement = shouldEnableNewFocusManagement ? true : platform === CONST.PLATFORM.IOS && hasFocusRestoreSuppressionOption(menuItems);
-    const effectiveRestoreFocusType = restoreFocusTypeOverride ?? restoreFocusType;
+    const {
+        effectiveRestoreFocusType,
+        handleModalHide: handleFocusManagementModalHide,
+        prepareForSelection,
+        requestCloseAfterFocusPolicyCommit,
+        shouldUseNewFocusManagement,
+    } = usePopoverMenuFocusManagement({isVisible, menuItems, restoreFocusType, shouldEnableNewFocusManagement});
 
     const getPreviousSubMenu = () => {
         let currentItems = menuItems;
@@ -437,53 +429,21 @@ function BasePopoverMenu({
             onItemSelected?.(selectedItem, index, event);
             selectedItem.onSelected?.();
             setFocusedIndex(-1);
-        } else if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException) && !(platform === CONST.PLATFORM.IOS && selectedItem.shouldSkipFocusRestore)) {
-            onItemSelected?.(selectedItem, index, event);
-            close(
-                () => {
-                    selectedItem.onSelected?.();
-                },
-                undefined,
-                selectedItem.shouldCloseAllModals,
-            );
         } else {
-            const shouldSuppressFocusRestore = platform === CONST.PLATFORM.IOS && selectedItem.shouldSkipFocusRestore;
-            if (shouldSuppressFocusRestore && !releaseBackgroundInputFocusSuppressionRef.current) {
-                releaseBackgroundInputFocusSuppressionRef.current = acquireBackgroundInputFocusSuppression();
-            }
-            setRestoreFocusTypeOverride(shouldSuppressFocusRestore ? CONST.MODAL.RESTORE_FOCUS_TYPE.DELETE : null);
+            const shouldSuppressFocusRestore = prepareForSelection(selectedItem);
             onItemSelected?.(selectedItem, index, event);
-            if (shouldSuppressFocusRestore && selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
-                // Wait for the focus policy state to commit before beginning the global modal close lifecycle.
-                setPendingClose({
-                    onModalClose: () => selectedItem.onSelected?.(),
-                    shouldCloseAllModals: selectedItem.shouldCloseAllModals,
-                });
+            if (selectedItem.shouldCallAfterModalHide && (!isSafari() || shouldAvoidSafariException)) {
+                const onModalClose = () => selectedItem.onSelected?.();
+                if (shouldSuppressFocusRestore) {
+                    requestCloseAfterFocusPolicyCommit(onModalClose, selectedItem.shouldCloseAllModals);
+                } else {
+                    close(onModalClose, undefined, selectedItem.shouldCloseAllModals);
+                }
             } else {
                 selectedItem.onSelected?.();
             }
         }
     };
-
-    useLayoutEffect(() => {
-        isVisibleRef.current = isVisible;
-    }, [isVisible]);
-
-    useLayoutEffect(() => {
-        if (!pendingClose) {
-            return;
-        }
-
-        close(pendingClose.onModalClose, undefined, pendingClose.shouldCloseAllModals);
-    }, [pendingClose]);
-
-    useEffect(
-        () => () => {
-            releaseBackgroundInputFocusSuppressionRef.current?.();
-            releaseBackgroundInputFocusSuppressionRef.current = null;
-        },
-        [],
-    );
 
     const renderBackButtonItem = () => {
         const previousMenuItems = getPreviousSubMenu();
@@ -628,13 +588,7 @@ function BasePopoverMenu({
     const handleModalHide = () => {
         onModalHide?.();
         setHasKeyBeenPressed(false);
-        if (isVisibleRef.current) {
-            return;
-        }
-        releaseBackgroundInputFocusSuppressionRef.current?.();
-        releaseBackgroundInputFocusSuppressionRef.current = null;
-        setRestoreFocusTypeOverride(null);
-        setPendingClose(null);
+        handleFocusManagementModalHide();
         const keyPath = buildKeyPathFromIndexPath(menuItems, enteredSubMenuIndexes);
         const resolved = resolveIndexPathByKeyPath(menuItems, keyPath);
 

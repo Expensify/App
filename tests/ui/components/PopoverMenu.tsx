@@ -606,6 +606,66 @@ describe('PopoverMenu integration — focus policy and close lifecycle', () => {
         expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
     });
 
+    it('keeps suppression through a stale hide after reopen and releases it after the real hide', () => {
+        const menuItems: PopoverMenuItem[] = [
+            {
+                text: 'Delete',
+                shouldCallAfterModalHide: true,
+                shouldSkipFocusRestore: true,
+                onSelected: jest.fn(),
+            },
+        ];
+        const renderMenu = (isVisible: boolean) => (
+            <PopoverMenu
+                isVisible={isVisible}
+                menuItems={menuItems}
+                onClose={() => {}}
+                onItemSelected={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />
+        );
+        const {rerender} = render(renderMenu(true));
+
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Delete'));
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+
+        rerender(renderMenu(false));
+        rerender(renderMenu(true));
+        act(() => getLatestMeasuredPopoverProps().onModalHide?.());
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+
+        rerender(renderMenu(false));
+        act(() => getLatestMeasuredPopoverProps().onModalHide?.());
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+    });
+
+    it('releases acquired suppression when the popover unmounts before modal hide', () => {
+        const {unmount} = render(
+            <PopoverMenu
+                isVisible
+                menuItems={[
+                    {
+                        text: 'Delete',
+                        shouldCallAfterModalHide: true,
+                        shouldSkipFocusRestore: true,
+                        onSelected: jest.fn(),
+                    },
+                ]}
+                onClose={() => {}}
+                onItemSelected={() => {}}
+                anchorPosition={anchorPosition}
+                anchorRef={anchorRef}
+            />,
+        );
+
+        fireEvent.press(screen.getByTestId('PopoverMenuItem-Delete'));
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(true);
+
+        unmount();
+        expect(getShouldSuppressBackgroundInputFocus()).toBe(false);
+    });
+
     it('keeps legacy focus management for a marked option outside iOS', () => {
         mockGetPlatform.mockReturnValue(CONST.PLATFORM.WEB);
         renderLifecycleMenu([

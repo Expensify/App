@@ -131,6 +131,9 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
     const shouldApplyBodyRowGroup = isTableSemanticsEnabled && !tableListMetadata.hasPageHeader;
     const semanticTableHasHeader = !tableListMetadata.hasPageHeader || tableListMetadata.shouldRenderStickyHeader;
     const semanticColumnCount = columns.length + (selectionEnabled ? 1 : 0);
+    const tableBodyAccessibilityProps = tableListMetadata.hasPageHeader
+        ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
+        : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup);
     const currentListState = {shouldRenderFlashList, shouldRenderStickyHeader};
     const [previousListState, setPreviousListState] = useState(currentListState);
     const shouldResetListLoad = previousListState.shouldRenderFlashList !== shouldRenderFlashList;
@@ -151,7 +154,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
 
     useEffect(() => {
         if (!hasRows || !tableListMetadata.shouldRenderStickyHeader || !isListLoaded || hasActivatedStickyHeader) {
-            return undefined;
+            return;
         }
 
         const frame = requestAnimationFrame(() => setHasActivatedStickyHeader(true));
@@ -318,9 +321,7 @@ function TableBodyList({contentContainerStyle, emptyMessage, onLayout, style, ..
             ref={listContainerRef}
             style={[styles.flex1, styles.mnh0, style]}
             onLayout={onLayout}
-            {...(tableListMetadata.hasPageHeader
-                ? getTableContainerAccessibilityProps(shouldApplyPageHeaderTable, title, filteredAndSortedData.length, semanticColumnCount, semanticTableHasHeader)
-                : getRowGroupAccessibilityProps(shouldApplyBodyRowGroup))}
+            {...tableBodyAccessibilityProps}
             {...props}
         >
             <FlashList<TableData>
