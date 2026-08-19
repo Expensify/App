@@ -1,13 +1,8 @@
 import ActivityIndicator from '@components/ActivityIndicator';
 import FullPageOfflineBlockingView from '@components/BlockingViews/FullPageOfflineBlockingView';
-import Button from '@components/ButtonComposed';
 import ConfirmationPage from '@components/ConfirmationPage';
-import FixedFooter from '@components/FixedFooter';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import Icon from '@components/Icon';
-import getBankIcon from '@components/Icon/BankIcons';
 import PlaidLink from '@components/PlaidLink';
-import RadioButtons from '@components/RadioButtons';
 import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
@@ -102,16 +97,10 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         openPlaidBankAccountSelector(publicToken, bankName, true, bankAccountID);
     };
 
-    // Resolve the target Plaid account (or 'needs-selection') from the server-returned list plus the
-    // stored BBA mask. Doing this in useMemo keeps the effect body free of derivation logic so it can
-    // stay focused on syncing the Onyx PLAID_DATA subsystem into local UI state / API dispatch.
-    const resolvedTarget = useMemo<PlaidBankAccount | 'needs-selection' | null>(() => {
+    // Find the target BBA based on last four mask
+    const resolvedAccount = useMemo<PlaidBankAccount | null>(() => {
         if (plaidBankAccounts.length === 0) {
             return null;
-        }
-        if (plaidBankAccounts.length === 1) {
-            const only = plaidBankAccounts.at(0);
-            return only ?? null;
         }
         const storedMask = getLastFourDigits(bankAccount?.accountData?.accountNumber ?? '');
         if (storedMask) {
@@ -120,7 +109,7 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
                 return matched;
             }
         }
-        return 'needs-selection';
+        return plaidBankAccounts.at(0) ?? null;
     }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
 
     useEffect(() => {
