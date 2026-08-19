@@ -6,9 +6,6 @@ type ContainerStyleParams = {
     /** Whether the header uses the headline style (taller bar). */
     shouldUseHeadlineHeader?: boolean;
 
-    /** Whether the bar should overlay the current view. */
-    shouldOverlay?: boolean;
-
     /** Additional styles to add to the outer bar. */
     style?: StyleProp<ViewStyle>;
 };
@@ -23,10 +20,7 @@ function useHeaderStyles({shouldUseHeadlineHeader = false, style}: ContainerStyl
     /** Inner flex row that lays out the three zones. */
     const innerRowStyle: StyleProp<ViewStyle> = [styles.dFlex, styles.flexRow, styles.alignItemsCenter, styles.flexGrow1, styles.justifyContentBetween, styles.overflowHidden, styles.mr3];
 
-    /** Right-hand actions container. */
-    const rightZoneStyle: StyleProp<ViewStyle> = [styles.reportOptions, styles.flexRow, styles.alignItemsCenter];
-
-    return {containerStyle, innerRowStyle, rightZoneStyle};
+    return {containerStyle, innerRowStyle};
 }
 
 export default useHeaderStyles;
