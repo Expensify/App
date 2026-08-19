@@ -16,7 +16,7 @@ import {getReportIDFromLink} from './libs/ReportUtils';
 import {endSpan} from './libs/telemetry/activeSpans';
 import {hasSecureLinkKey} from './libs/Url';
 import ONYXKEYS from './ONYXKEYS';
-import {hasSeenTourSelector} from './selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from './selectors/Onboarding';
 import isLoadingOnyxValue from './types/utils/isLoadingOnyxValue';
 
 type DeepLinkHandlerProps = {
@@ -40,7 +40,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     const [session, sessionMetadata] = useOnyx(ONYXKEYS.SESSION);
     const [conciergeReportID, conciergeReportIDMetadata] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const [introSelected, introSelectedMetadata] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
-    const [isSelfTourViewed, isSelfTourViewedMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasSeenTourSelector});
+    const [guidedSetupAndTourStatus, guidedSetupAndTourStatusMetadata] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [betas, betasMetadata] = useOnyx(ONYXKEYS.BETAS);
     const isAuthenticated = useIsAuthenticated();
 
@@ -56,7 +56,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
     }, []);
 
     useEffect(() => {
-        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, isSelfTourViewedMetadata, betasMetadata)) {
+        if (isLoadingOnyxValue(allReportsMetadata, sessionMetadata, conciergeReportIDMetadata, introSelectedMetadata, guidedSetupAndTourStatusMetadata, betasMetadata)) {
             return;
         }
 
@@ -110,7 +110,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
                         isCurrentlyAuthenticated,
                         conciergeReportID,
                         introSelected,
-                        isSelfTourViewed,
+                        guidedSetupAndTourStatus?.isSelfTourViewed,
                         betas,
                         session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
                     );
@@ -147,7 +147,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             if (hasSecureLinkKey(state.url)) {
                 onInitialUrl(state.url as Route);
             }
-            openReportFromDeepLink(state.url, allReports, isCurrentlyAuthenticated, conciergeReportID, introSelected, isSelfTourViewed, betas, session?.accountID ?? CONST.DEFAULT_NUMBER_ID);
+            openReportFromDeepLink(
+                state.url,
+                allReports,
+                isCurrentlyAuthenticated,
+                conciergeReportID,
+                introSelected,
+                guidedSetupAndTourStatus?.isSelfTourViewed,
+                betas,
+                session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            );
             trackPendingPublicRoomFromDeepLink(state.url, isCurrentlyAuthenticated);
         });
 
@@ -165,7 +174,7 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
         sessionMetadata.status,
         conciergeReportIDMetadata.status,
         introSelectedMetadata.status,
-        isSelfTourViewedMetadata.status,
+        guidedSetupAndTourStatusMetadata.status,
         betasMetadata.status,
     ]);
 
@@ -200,8 +209,16 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             return;
         }
         hasRefetchedPublicRoom.current = true;
-        Report.openReport({reportID, introSelected, betas, hasReportActions: false, currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID});
-    }, [isLoadingApp, allReports, introSelected, betas, session?.accountID]);
+        Report.openReport({
+            reportID,
+            introSelected,
+            betas,
+            hasReportActions: false,
+            currentUserAccountID: session?.accountID ?? CONST.DEFAULT_NUMBER_ID,
+            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+        });
+    }, [isLoadingApp, allReports, introSelected, betas, session?.accountID, guidedSetupAndTourStatus?.isSelfTourViewed, guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow]);
 
     return null;
 }

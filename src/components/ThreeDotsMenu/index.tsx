@@ -215,6 +215,8 @@ function ThreeDotsMenu({
                 shouldSetModalVisibility={shouldSetModalVisibility}
                 anchorRef={buttonRef}
                 shouldEnableNewFocusManagement
+                // The button blurs itself before opening and is not a text input, so ComposerFocusManager has nothing to restore — the trap has to return focus.
+                shouldReturnFocus
                 restoreFocusType={restoreFocusType}
                 enableEdgeToEdgeBottomSafeAreaPadding
             />
