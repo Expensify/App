@@ -2925,7 +2925,6 @@ ${amount} voor ${merchant} - ${date}`,
         cardLastFour: 'Kaart eindigend op',
         addFirstPaymentMethod: 'Voeg een betaalmethode toe om rechtstreeks in de app betalingen te versturen en te ontvangen.',
         defaultPaymentMethod: 'Standaard',
-        bankAccountLastFour: (lastFour: string) => `Bankrekening • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenten',

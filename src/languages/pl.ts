@@ -2912,7 +2912,6 @@ ${amount} dla ${merchant} - ${date}`,
         cardLastFour: 'Karta kończąca się na',
         addFirstPaymentMethod: 'Dodaj metodę płatności, aby wysyłać i odbierać płatności bezpośrednio w aplikacji.',
         defaultPaymentMethod: 'Domyślne',
-        bankAccountLastFour: (lastFour: string) => `Konto bankowe • ${lastFour}`,
     },
     agentsPage: {
         title: 'Agenci',
