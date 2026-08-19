@@ -1808,9 +1808,10 @@ function updateSplitTransactions({
         for (const searchHash of forwardSplitSnapshotHashes) {
             const snapshotKey = `${ONYXKEYS.COLLECTION.SNAPSHOT}${searchHash}` as const;
             const previousSnapshotData = allSnapshots?.[snapshotKey]?.data;
+            const isCurrentSearchSnapshot = searchHash === searchContext?.currentSearchHash;
 
-            // Skip unloaded group snapshots; current search snapshot always gets patched.
-            if (!previousSnapshotData && searchHash !== searchContext?.currentSearchHash) {
+            // Only patch a grouped snapshot that actually contains the original transaction's group.
+            if (!isCurrentSearchSnapshot && (!previousSnapshotData || !Object.hasOwn(previousSnapshotData, originalTransactionSnapshotKey))) {
                 continue;
             }
 
@@ -1832,12 +1833,12 @@ function updateSplitTransactions({
                 ...rescaledChildSnapshotEntries,
             };
 
-            // On failure, restore the original transaction and remove the child transactions
+            // On failure, restore the original transaction and revert each child to its previous value.
             // Initializing as an empty typed object to allow dynamic key assignment resolves TypeScript type inference issue
             const failureSnapshotData: NullishDeep<SearchResultDataType> = {};
             failureSnapshotData[originalTransactionSnapshotKey] = previousSnapshotData?.[originalTransactionSnapshotKey] ?? originalTransaction ?? null;
             for (const childKey of optimisticChildSnapshotKeys) {
-                failureSnapshotData[childKey] = null;
+                failureSnapshotData[childKey] = previousSnapshotData?.[childKey] ?? null;
             }
 
             onyxData.optimisticData?.push({
