@@ -76,10 +76,10 @@ Restrictions will block travelers from booking specific types of travel. If a re
 
 Booking restrictions let you test Expensify Travel with a small group before rolling it out to the whole company:
 
-1. Enable Expensify Travel on your workspace.
-2. Create a user restriction that includes everyone **except** your test group. For larger companies, restrict by legal entity rather than adding users one by one.
+1. Make sure Expensify Travel is enabled on your Workspace. If it isn't, reach out to your Account Manager or Concierge to get it enabled.
+2. Create a user restriction that includes everyone **except** your test group. For larger companies, you can restrict by legal entity instead of adding members one by one. Only do this if your test group belongs to a separate legal entity that isn't part of the restriction. If your pilot members share a legal entity with the rest of the company, select the non-pilot members individually so your test group isn't blocked.
 3. Add a reason, such as *"Expensify Travel is in a limited test. Please continue using your current travel booking process."* Restricted members see this message if they attempt to book.
-4. When testing is complete, delete the restriction. All members can book immediately.
+4. When testing is complete, click **Delete** to remove the restriction. All members can book immediately.
 
 ---
 
