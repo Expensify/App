@@ -3138,8 +3138,8 @@ function getValidOptions(
             loginList,
             currentUserEmail,
             personalDetails,
-            countryCode,
             formatPhoneNumber,
+            countryCode,
             {
                 dateFnsLocale,
                 excludeLogins: loginsToExclude,
@@ -3576,8 +3576,8 @@ function filterUserToInvite(
     loginList: OnyxEntry<Login>,
     currentUserEmail: string,
     personalDetails: OnyxEntry<PersonalDetailsList>,
-    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    countryCode: number = CONST.DEFAULT_COUNTRY_CODE,
     config?: FilterUserToInviteConfig,
 ): SearchOptionData | null {
     const {canInviteUser = true, excludeLogins = {}, dateFnsLocale} = config ?? {};
@@ -3648,8 +3648,8 @@ function filterOptions<T extends SearchOptionData>(
         loginList,
         currentUserEmail,
         personalDetailsCollection,
-        countryCode,
         formatPhoneNumber,
+        countryCode,
         {
             ...config,
             // `config` is optional, so the required locale has to be set explicitly rather than relying on the spread.
