@@ -1,10 +1,11 @@
-import {getProductMarketingAnnouncementVariant, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
+import {getProductMarketingAnnouncementVariant, isBrandNewUser, isProductMarketingAnnouncementDismissed} from '@libs/ProductMarketingWindowUtils';
 import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUtils';
 
 import ROUTES from '@src/ROUTES';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
     updateKey: 'productUpdateJuly2026',
+    returningUserCutoffDate: new Date(2026, 6, 1),
     admin: {
         visual: {type: 'illustration', name: 'Rules'},
         heading: 'productMarketingWindow.roleTypes.admin.heading',
@@ -21,6 +22,10 @@ const activeAnnouncement: ProductMarketingAnnouncement = {
     },
 };
 const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
+    updateKey: activeAnnouncement.updateKey,
+    admin: activeAnnouncement.admin,
+};
+const announcementWithoutCutoff: ProductMarketingAnnouncement = {
     updateKey: activeAnnouncement.updateKey,
     admin: activeAnnouncement.admin,
 };
@@ -44,6 +49,30 @@ describe('ProductMarketingWindowUtils', () => {
 
         it('returns false when the last dismissed key belongs to an older update', () => {
             expect(isProductMarketingAnnouncementDismissed(activeAnnouncement, OLDER_UPDATE_KEY)).toBe(false);
+        });
+    });
+
+    describe('isBrandNewUser', () => {
+        it('returns false when there is no announcement', () => {
+            expect(isBrandNewUser(null, '2026-08-01')).toBe(false);
+        });
+
+        it('returns false when the announcement has no returning-user cutoff', () => {
+            expect(isBrandNewUser(announcementWithoutCutoff, '2026-08-01')).toBe(false);
+        });
+
+        it('returns false when the first workspace creation date is unknown', () => {
+            expect(isBrandNewUser(activeAnnouncement, undefined)).toBe(false);
+            expect(isBrandNewUser(activeAnnouncement, '')).toBe(false);
+        });
+
+        it('returns false for returning users whose first workspace predates the cutoff', () => {
+            expect(isBrandNewUser(activeAnnouncement, '2026-06-15')).toBe(false);
+        });
+
+        it('returns true for brand-new users whose first workspace was created on or after the cutoff', () => {
+            expect(isBrandNewUser(activeAnnouncement, '2026-07-01')).toBe(true);
+            expect(isBrandNewUser(activeAnnouncement, '2026-08-15')).toBe(true);
         });
     });
 
