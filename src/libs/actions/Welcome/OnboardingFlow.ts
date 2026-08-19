@@ -437,6 +437,7 @@ const getOnboardingMessages = (locale?: Locale) => {
 
     return {
         onboardingMessages: {
+            [CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.EMPLOYER]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.SUBMIT]: onboardingEmployerOrSubmitMessage,
             [CONST.ONBOARDING_CHOICES.MANAGE_TEAM]: onboardingManageTeamMessage,
