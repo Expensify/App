@@ -1534,6 +1534,7 @@ const translations: TranslationDeepObject<typeof en> = {
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             unableToSubmitReport: 'Impossibile inviare il report',
             allTransactionsPendingDescription: 'Non puoi inviare questo report perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
+            allExpensesOnHoldDescription: 'Non puoi inviare questo report perché tutte le spese sono in sospeso. Rimuovi il blocco per inviarlo.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
@@ -8858,6 +8859,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di categorizzazione della spesa`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di assegnazione etichette alle spese`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ha aggiornato l’impostazione della commissione di conversione valuta a "${preferenceLabel}"`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },

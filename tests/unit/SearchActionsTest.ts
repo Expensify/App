@@ -3,6 +3,7 @@ import type {LocalizedTranslate} from '@components/LocaleContextProvider';
 import {
     deleteSavedSearch,
     exportSearchItemsToCSV,
+    getChatReportWithFallback,
     getExportTemplates,
     getFooterConvertedAmounts,
     openSearch,
@@ -21,7 +22,7 @@ import type {SearchKey} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ExportTemplate, Policy} from '@src/types/onyx';
+import type {ExportTemplate, Policy, Report} from '@src/types/onyx';
 import type {AnyOnyxUpdate} from '@src/types/onyx/Request';
 
 import Onyx from 'react-native-onyx';
@@ -448,6 +449,22 @@ describe('SearchActions', () => {
                 includePartiallySetupBankAccounts: false,
                 includeLockedBankAccounts: false,
             });
+        });
+    });
+
+    describe('getChatReportWithFallback', () => {
+        const loadedChatReport = {reportID: 'chat1', policyID: 'policyA', type: CONST.REPORT.TYPE.CHAT} as Report;
+
+        it('returns the loaded chat report when it is available', () => {
+            expect(getChatReportWithFallback(loadedChatReport, 'chat2', 'policyB')).toEqual({chatReport: loadedChatReport, isFallbackChatReport: false});
+        });
+
+        it('builds a fallback chat report from the known IDs when the chat is not loaded', () => {
+            expect(getChatReportWithFallback(undefined, 'chat2', 'policyB')).toEqual({chatReport: {reportID: 'chat2', policyID: 'policyB'}, isFallbackChatReport: true});
+        });
+
+        it('returns no chat report when the chat is not loaded and there is no fallback chatReportID', () => {
+            expect(getChatReportWithFallback(undefined, undefined, 'policyB')).toEqual({chatReport: undefined, isFallbackChatReport: false});
         });
     });
 });

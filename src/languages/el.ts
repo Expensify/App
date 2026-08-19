@@ -1563,6 +1563,7 @@ const translations: TranslationDeepObject<typeof en> = {
             unableToSubmitReport: 'Δεν είναι δυνατή η υποβολή της αναφοράς',
             allTransactionsPendingDescription:
                 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι συναλλαγές είναι σε εκκρεμότητα. Μπορεί να χρειαστούν λίγες ημέρες για να καταχωριστούν.',
+            allExpensesOnHoldDescription: 'Δεν μπορείτε να υποβάλετε αυτήν την αναφορά, επειδή όλες οι δαπάνες είναι σε αναμονή. Αφαιρέστε την αναμονή για να την υποβάλετε.',
             failedToSaveOdometerDraft: 'Δεν ήταν δυνατή η αποθήκευση του πρόχειρου χιλιομετρητή σας. Παρακαλούμε δοκιμάστε ξανά.',
             invalidIntegerAmount: 'Παρακαλούμε εισαγάγετε ένα ακέραιο ποσό σε δολάρια πριν συνεχίσετε',
             invalidTaxAmount: (amount: string) => `Το μέγιστο ποσό φόρου είναι ${amount}`,
@@ -8934,6 +8935,7 @@ ${reportName}`,
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} η απαίτηση για αγορές με εταιρική κάρτα`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} η απαίτηση κατηγοριοποίησης δαπανών`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'ανενεργό'} στην απαίτηση κατηγοριοποίησης δαπανών`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ενημέρωσε τη ρύθμιση προμήθειας μετατροπής νομίσματος σε «${preferenceLabel}»`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'ενεργοποιημένο' : 'απενεργοποιημένο'} εγκεκριμένες αναφορές αυτόματης πληρωμής`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `ορίστε το όριο για αυτόματη πληρωμή των εγκεκριμένων αναφορών σε «${newLimit}»`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>

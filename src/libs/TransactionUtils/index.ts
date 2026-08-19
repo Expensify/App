@@ -1727,6 +1727,21 @@ function showPendingCardTransactionsBlockModal(
 }
 
 /**
+ * Show a confirm modal explaining that a report with only held expenses cannot be submitted.
+ */
+function showHeldExpensesBlockModal(
+    showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
+    translate: LocaleContextProps['translate'],
+) {
+    showConfirmModal({
+        title: translate('iou.error.unableToSubmitReport'),
+        prompt: translate('iou.error.allExpensesOnHoldDescription'),
+        confirmText: translate('common.buttonConfirm'),
+        shouldShowCancelButton: false,
+    });
+}
+
+/**
  * The transaction is considered scanning if it is a partial transaction, has a receipt, and the receipt is being scanned.
  * Note that this does not include receipts that are being scanned in the background for auditing / smart scan everything, because there should be no indication to the user that the receipt is being scanned.
  */
@@ -3452,6 +3467,7 @@ export {
     hasOnlyPendingCardTransactions,
     getSupersededPendingCardTransactionIDs,
     showPendingCardTransactionsBlockModal,
+    showHeldExpensesBlockModal,
     isOnHold,
     getWaypoints,
     isAmountMissing,

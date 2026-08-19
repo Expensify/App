@@ -1478,6 +1478,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `日期范围不能超过 ${CONST.IOU.SPLITS_LIMIT} 天。`,
             unableToSubmitReport: '无法提交报表',
             allTransactionsPendingDescription: '您无法提交此报表，因为所有交易都在待处理。它们可能需要几天时间才会入账。',
+            allExpensesOnHoldDescription: '你无法提交此报表，因为所有费用都已被暂挂。请取消暂挂后再提交。',
             stitchOdometerImagesFailed: '合并里程表图片失败。请稍后重试。',
             failedToSaveOdometerDraft: '无法保存你的里程表草稿。请重试。',
         },
@@ -8516,6 +8517,7 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用分类要求`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '已启用' : '已禁用'} 费用标签要求`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `将货币转换费用设置更新为“${preferenceLabel}”`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `将“${categoryName}”类别的出席者更改为 ${newValue ? '必填' : '非必填'}（之前为 ${newValue ? '非必填' : '必填'}）`;
         },
