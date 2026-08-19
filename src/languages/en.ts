@@ -2677,7 +2677,7 @@ const translations = {
             confirmTestTransactions: 'Please confirm test transactions',
             accountRequiresAttention: 'This account requires attention',
             unlock: 'Unlock',
-            plaidBrokenReconnect: 'Your connection to Plaid is broken. Reconnect for a more accurate domain limit',
+            plaidBrokenReconnect: 'Fix your Plaid connection for a more accurate Expensify Card limit',
             plaidConnectForLimit: 'Connect to Plaid for a more accurate Expensify Card limit',
             connect: 'Connect',
         },
