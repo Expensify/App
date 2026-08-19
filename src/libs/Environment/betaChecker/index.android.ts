@@ -59,10 +59,12 @@ function isBetaBuild(): IsBetaBuild {
             .then((json: GithubReleaseJSON) => {
                 const productionVersion = json.tag_name;
 
-                // A rate limited or malformed response carries no usable tag. That tells us nothing about this
-                // build, so keep the last saved verdict rather than reporting production.
+                // A rate limited or malformed response carries no usable tag. Production is the safe answer when
+                // we cannot tell — the missing `return` here used to fall through into semver.gt(version, undefined),
+                // which threw and left the verdict to the catch below.
                 if (!productionVersion || !semver.valid(productionVersion)) {
-                    resolve(isLastSavedBeta);
+                    AppUpdate.setIsAppInBeta(false);
+                    resolve(false);
                     return;
                 }
 
