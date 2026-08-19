@@ -241,7 +241,7 @@ import type {
     Transaction,
     TransactionViolation,
 } from '@src/types/onyx';
-import type {OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
+import type {Icon, OnyxValueWithOfflineFeedback} from '@src/types/onyx/OnyxCommon';
 import type {ACHAccount, PolicyReportField} from '@src/types/onyx/Policy';
 import type {Participant, Participants, ReportCollectionDataSet} from '@src/types/onyx/Report';
 import type {ReportActionsCollectionDataSet} from '@src/types/onyx/ReportAction';
@@ -1335,6 +1335,35 @@ describe('ReportUtils', () => {
             expect(sortedParticipants.at(1)?.name).toBe('floki@vikings.net');
             expect(sortedParticipants.at(1)?.id).toBe(2);
             expect(sortedParticipants.at(1)?.type).toBe('avatar');
+        });
+
+        it('sorts by the display name embedded in the icon without a personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Ragnar Lothbrok'},
+                {id: 3, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Lagertha Lothbrok'},
+            ];
+
+            const sortedIcons = sortIconsByName(icons, undefined, localeCompare);
+
+            // Sorted by display name first, then by accountID for identical names
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 3, 1]);
+        });
+
+        it('prefers the embedded display name over the personal details lookup', () => {
+            const icons: Icon[] = [
+                {id: 1, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Zed'},
+                {id: 2, source: '', type: CONST.ICON_TYPE_AVATAR, displayName: 'Abe'},
+            ];
+
+            // Personal details would put account 1 first, but the embedded names must win
+            const details: PersonalDetailsList = {
+                1: {accountID: 1, displayName: 'Aaa'},
+                2: {accountID: 2, displayName: 'Zzz'},
+            };
+            const sortedIcons = sortIconsByName(icons, details, localeCompare);
+
+            expect(sortedIcons.map((icon) => icon.id)).toEqual([2, 1]);
         });
     });
 
@@ -9522,6 +9551,66 @@ describe('ReportUtils', () => {
             // the function should filter it out and return the normal report
             expect(result?.reportID).toBe(ownedReport.reportID);
             expect(result?.reportID).not.toBe(nonOwnedReport.reportID);
+        });
+    });
+
+    describe('findLastAccessedReport with a caller-provided reports collection', () => {
+        const buildOwnedReport = (reportID: string, lastReadTime: string): Report => ({
+            ...LHNTestUtils.getFakeReport(),
+            reportID,
+            lastReadTime,
+            lastVisibleActionCreated: lastReadTime,
+            ownerAccountID: currentUserAccountID,
+            participants: {
+                [currentUserAccountID]: {
+                    notificationPreference: CONST.REPORT.NOTIFICATION_PREFERENCE.ALWAYS,
+                },
+            },
+        });
+
+        const providedReport = buildOwnedReport('2001', '2024-03-01 04:56:47.233');
+        const storedReport = buildOwnedReport('2002', '2024-03-02 04:56:47.233');
+
+        beforeEach(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+            return waitForBatchedUpdates();
+        });
+
+        afterAll(async () => {
+            await Onyx.clear();
+            await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});
+        });
+
+        it('should resolve a report from the passed collection while the stored reports are still empty', () => {
+            // Nothing is in Onyx yet, so the copy the function reads by default holds no reports.
+            expect(findLastAccessedReport(false)).toBeUndefined();
+
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
+            };
+
+            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+        });
+
+        it('should prefer the passed collection over the stored reports', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
+            await waitForBatchedUpdates();
+
+            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
+
+            const reports: OnyxCollection<Report> = {
+                [`${ONYXKEYS.COLLECTION.REPORT}${providedReport.reportID}`]: providedReport,
+            };
+
+            expect(findLastAccessedReport(false, false, undefined, undefined, reports)?.reportID).toBe(providedReport.reportID);
+        });
+
+        it('should fall back to the stored reports when no collection is passed', async () => {
+            await Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}${storedReport.reportID}`, storedReport);
+            await waitForBatchedUpdates();
+
+            expect(findLastAccessedReport(false)?.reportID).toBe(storedReport.reportID);
         });
     });
 
