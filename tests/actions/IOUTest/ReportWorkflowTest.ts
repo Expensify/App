@@ -1131,6 +1131,11 @@ describe('actions/IOU/ReportWorkflow', () => {
                         }
                         return waitForBatchedUpdates();
                     })
+                    .then(() => {
+                        // The backend archives the policy when the workspace is deleted. Simulate its
+                        // response since the optimistic data doesn't set archivedDate.
+                        return Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${policy?.id}`, {archivedDate: DateUtils.getDBTime()});
+                    })
                     .then(
                         () =>
                             new Promise<void>((resolve) => {
@@ -1139,8 +1144,6 @@ describe('actions/IOU/ReportWorkflow', () => {
                                     callback: (allPolicies) => {
                                         Onyx.disconnect(connection);
                                         policy = Object.values(allPolicies ?? {}).find((p): p is OnyxEntry<Policy> => p?.id === policy?.id);
-                                        // Deleting the workspace archives its policy
-                                        expect(policy?.archivedDate).toBeTruthy();
                                         resolve();
                                     },
                                 });

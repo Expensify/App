@@ -461,9 +461,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: '',
                 pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
-                // Deleting a workspace archives its policy, and report state transitions (Submit, Approve,
-                // Pay, ...) are gated on the policy archived state, so mark it archived right away.
-                archivedDate: DateUtils.getDBTime(),
                 errors: null,
             },
         },
@@ -530,7 +527,6 @@ function deleteWorkspace(params: DeleteWorkspaceActionParams) {
             value: {
                 avatarURL: policy?.avatarURL,
                 pendingAction: null,
-                archivedDate: policy?.archivedDate ?? null,
             },
         },
         {
