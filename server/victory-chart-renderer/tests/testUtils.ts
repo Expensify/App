@@ -3,7 +3,7 @@ import {expect} from 'bun:test';
 import {readdirSync, readFileSync} from 'node:fs';
 import {arch, platform} from 'node:os';
 import {join} from 'node:path';
-import pixelmatch from 'pixelmatch';
+import blazediff from '@blazediff/core';
 import {PNG} from 'pngjs';
 
 const packageRoot = join(import.meta.dir, '..');
@@ -122,7 +122,7 @@ function comparePng(actualPath: string, goldenPath: string, expectedSize?: {widt
     }
 
     const diff = new PNG({width: actual.width, height: actual.height});
-    const mismatchedPixels = pixelmatch(actual.data, golden.data, diff.data, actual.width, actual.height, {
+    const mismatchedPixels = blazediff(actual.data, golden.data, diff.data, actual.width, actual.height, {
         threshold: 0.1,
     });
 

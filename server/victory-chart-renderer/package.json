@@ -17,8 +17,8 @@
         "react-native-render-html": "6.3.1"
     },
     "devDependencies": {
+        "@blazediff/core": "^1.10.0",
         "@types/pngjs": "^6.0.5",
-        "pixelmatch": "^7.2.0",
         "pngjs": "^7.0.0"
     },
     "installConfig": {
