@@ -16,6 +16,7 @@ type KYBVerificationResponses = NonNullable<ACHData['verifications']>['externalA
 type BankAccountConnectionStatus = {
     labelKey: TranslationPaths;
     tone: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     messageKey?: TranslationPaths;
     actionKey?: TranslationPaths;
     requiresUnlockHandler?: boolean;

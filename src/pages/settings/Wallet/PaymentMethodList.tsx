@@ -249,6 +249,7 @@ function PaymentMethodList({
     ): PaymentMethodItem['connectionStatus'] => ({
         statusText: translate(status.labelKey),
         statusTone: status.tone,
+        statusBadgeTone: status.statusBadgeTone,
         tooltipText: status.tooltipKey ? translate(status.tooltipKey) : undefined,
         message: status.messageKey ? translate(status.messageKey) : undefined,
         actionText: status.actionKey ? translate(status.actionKey) : undefined,

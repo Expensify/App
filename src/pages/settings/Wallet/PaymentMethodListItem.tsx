@@ -47,6 +47,7 @@ import {View} from 'react-native';
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
@@ -220,7 +221,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             return (
                 <ConnectionStatusBadge
                     text={item.connectionStatus.statusText}
-                    tone={item.connectionStatus.statusTone}
+                    tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
                     tooltipText={item.connectionStatus.tooltipText}
                 />
             );
