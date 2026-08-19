@@ -4344,8 +4344,8 @@ describe('getAccessiblePolicyBankAccount', () => {
     const POLICY_BANK_ACCOUNT_ID = 1111;
 
     // `achAccount.accountNumber` is deliberately a different account's number than the one `bankAccountID` resolves to.
-    // That desync is real, and reading the number off `achAccount` is what makes a Pay button name an account other than
-    // the one the payment debits.
+    // The two really do fall out of sync, and reading the number off `achAccount` is what makes a Pay button name an
+    // account other than the one the payment debits.
     const policyWithStaleAccountNumber: Policy = {
         ...createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
         achAccount: {

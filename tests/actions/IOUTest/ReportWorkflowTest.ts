@@ -2227,8 +2227,8 @@ describe('actions/IOU/ReportWorkflow', () => {
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
             expect(parameters.managerAccountID).toBe(adminAccountID);
 
-            const parentreportKey = `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`;
-            const optimisticParentReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', parentreportKey, Onyx.METHOD.MERGE, true);
+            const parentReportKey = `${ONYXKEYS.COLLECTION.REPORT}${workspaceChatReportID}`;
+            const optimisticParentReportUpdate = getRequiredOnyxUpdate(onyxData, 'optimisticData', parentReportKey, Onyx.METHOD.MERGE, true);
             expect(optimisticParentReportUpdate.value.hasOutstandingChildRequest).toBe(true);
             expect(optimisticParentReportUpdate.value.iouReportID).toBeNull();
         });
