@@ -27,7 +27,7 @@ function useDefaultWorkspaceTravelGuard() {
     const [travelSettings] = useOnyx(ONYXKEYS.NVP_TRAVEL_SETTINGS);
 
     const blockIfDefaultWorkspaceLacksTravel = () => {
-        if (!defaultPolicy || hasAcceptedTravelTerms(defaultPolicy, travelSettings)) {
+        if (!defaultPolicy || (defaultPolicy.isTravelEnabled && hasAcceptedTravelTerms(defaultPolicy, travelSettings))) {
             return false;
         }
 

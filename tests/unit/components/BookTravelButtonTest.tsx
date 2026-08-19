@@ -83,6 +83,7 @@ const provisionedPolicy: Policy = {
 
 const travelEnabledPolicy: Policy = {
     ...provisionedPolicy,
+    isTravelEnabled: true,
     travelSettings: {
         spotnanaCompanyID: 'spotnana-company-uuid',
         associatedTravelDomainAccountID: 'spotnana-entity-uuid',
@@ -172,10 +173,10 @@ describe('BookTravelButton', () => {
     });
 
     describe('when the workspace being booked with is not the default workspace', () => {
-        const seedWorkspaces = async (bookingPolicy: Policy, defaultPolicyID: string) => {
+        const seedWorkspaces = async (bookingPolicy: Policy, defaultPolicyID: string, defaultPolicy: Policy = workspaceWithoutTravel) => {
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, bookingPolicy);
-                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`, workspaceWithoutTravel);
+                await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${DEFAULT_POLICY_ID}`, defaultPolicy);
                 await Onyx.set(ONYXKEYS.NVP_ACTIVE_POLICY_ID, defaultPolicyID);
                 await Onyx.merge(ONYXKEYS.ACCOUNT, {validated: true, primaryLogin: USER_LOGIN});
                 await Onyx.merge(ONYXKEYS.NVP_TRAVEL_SETTINGS, {hasAcceptedTerms: false});
@@ -207,6 +208,18 @@ describe('BookTravelButton', () => {
 
             expect(openTravelDotLink).toHaveBeenCalledWith(POLICY_ID);
             expect(mockShowConfirmModal).not.toHaveBeenCalled();
+        });
+
+        it('asks the user to switch defaults when the default workspace accepted travel terms but has travel switched off', async () => {
+            await seedWorkspaces(travelEnabledPolicy, DEFAULT_POLICY_ID, {...travelEnabledPolicy, id: DEFAULT_POLICY_ID, isTravelEnabled: false});
+            renderBookTravelButton();
+            await waitForBatchedUpdatesWithAct();
+
+            fireEvent.press(screen.getByText('Book a trip'));
+            await waitForBatchedUpdatesWithAct();
+
+            expect(mockShowConfirmModal).toHaveBeenCalled();
+            expect(openTravelDotLink).not.toHaveBeenCalled();
         });
 
         it('still lets an admin enable travel on a workspace while their default workspace has no travel', async () => {
