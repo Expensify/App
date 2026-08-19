@@ -8,9 +8,9 @@ import {HeaderContext} from './context';
 import useHeaderStyles from './styles';
 
 /** Composed counterpart of `HeaderWithBackButton` — content is composed from `Header.Left`/`Center`/`Right` zones and blocks (see the barrel for a full example). */
-function Header({children, shouldShowBorderBottom = false, shouldUseHeadlineHeader = false, style}: HeaderProps) {
+function Header({children, shouldUseHeadlineHeader = false, style}: HeaderProps) {
     const isInLandscapeMode = useIsInLandscapeMode();
-    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, shouldShowBorderBottom, style});
+    const {containerStyle, innerRowStyle} = useHeaderStyles({shouldUseHeadlineHeader, style});
 
     return (
         <View

@@ -6,9 +6,6 @@ type HeaderProps = {
     /** The composed content of the header — `Header.Left` / `Header.Center` / `Header.Right` zones. */
     children: ReactNode;
 
-    /** Whether we should show a border on the bottom of the Header. */
-    shouldShowBorderBottom?: boolean;
-
     /** Whether the header should use the headline header style (taller bar + headline title font). */
     shouldUseHeadlineHeader?: boolean;
 

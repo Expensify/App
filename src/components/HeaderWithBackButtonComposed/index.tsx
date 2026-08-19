@@ -139,8 +139,7 @@ function HeaderWithBackButton({
 
     return (
         <Header
-            shouldShowBorderBottom={shouldShowBorderBottom}
-            style={style}
+            style={[shouldShowBorderBottom && styles.borderBottom, style]}
             shouldUseHeadlineHeader={shouldUseHeadlineHeader}
         >
             {shouldShowBackButton && (
