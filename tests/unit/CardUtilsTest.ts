@@ -33,6 +33,7 @@ import {
     getCompanyCardCustomName,
     getCompanyCardDescription,
     getCompanyCardFeed,
+    getCompanyCardFeedWithDomainIDForCard,
     getCompanyFeeds,
     getConnectionBankAccountsForReconciliation,
     getCSVFeedType,
@@ -4887,6 +4888,26 @@ describe('getCardConnectionStatusDisplay', () => {
             shouldUseCompanyCardsLink: true,
             shouldUseReauthMessage: false,
         });
+    });
+});
+
+describe('getCompanyCardFeedWithDomainIDForCard', () => {
+    it('returns the feed key of the card feed the card belongs to', () => {
+        const card = createMock<Card>({cardID: 1, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBe(`${CONST.COMPANY_CARD.FEED_BANK_NAME.AMEX_DIRECT}#7001`);
+    });
+
+    it('returns undefined for a personal card, which has no fundID', () => {
+        const card = createMock<Card>({cardID: 2, bank: CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE, fundID: '0'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
+    });
+
+    it('returns undefined for an Expensify Card, which has no company card feed', () => {
+        const card = createMock<Card>({cardID: 3, bank: CONST.EXPENSIFY_CARD.BANK, fundID: '7001'});
+
+        expect(getCompanyCardFeedWithDomainIDForCard(card)).toBeUndefined();
     });
 });
 
