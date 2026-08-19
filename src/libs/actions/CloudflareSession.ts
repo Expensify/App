@@ -21,9 +21,8 @@ const ACCESS_TOKEN_EXPIRY_BUFFER_MS = 60_000;
 let sessionCache: CloudflareSession | null | undefined;
 
 /**
- * Bumped by sign-out. None of the async work below can be cancelled — a PKCE generation, a code exchange and
- * a token refresh all run to completion — so the generation they captured at the start is what makes their
- * late results inert instead of navigating a signed-out tab or writing the old account's session back.
+ * Bumped by sign-out. The async flows below cannot be cancelled, so each captures this at the start and
+ * re-checks it after awaits — a mismatch makes the late result inert.
  */
 let sessionGeneration = 0;
 
@@ -33,8 +32,7 @@ const hydrationPromise = new Promise<void>((resolve) => {
     resolveHydration = resolve;
 });
 
-// Gated: this module loads on every app start, so an unconfigured build must not pay for a subscription
-// and a sign-out callback it can never use
+// This module loads on every app start — an unconfigured build must not pay for the subscription
 if (isQAAuthConfigured()) {
     // We have used `connectWithoutView` here because this module-level cache is not connected to any UI component
     Onyx.connectWithoutView({
@@ -45,9 +43,8 @@ if (isQAAuthConfigured()) {
         },
     });
 
-    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously. The in-flight refs
-    // below are deliberately left alone — clearing them wouldn't cancel the work, it would just let a second
-    // flight overlap; the generation bump is what neutralizes whatever is still running.
+    // Onyx.clear wipes the key but its callback is async, so drop the cache synchronously. Clearing the
+    // in-flight refs wouldn't cancel their work — the generation bump is what makes late results inert.
     registerSessionCleanupCallback(() => {
         sessionGeneration++;
         sessionCache = null;
@@ -74,9 +71,8 @@ function isSessionNearExpiry(session: CloudflareSession): boolean {
 let isRedirectInFlight = false;
 
 /**
- * Navigates this tab to Cloudflare to start the authorize round trip. Never settles once the navigation is
- * requested — the page is leaving, so callers must run nothing after it. Rejects only if the flow couldn't
- * be stored, since navigating away without the verifier would strand the exchange.
+ * Navigates this tab to Cloudflare to start the authorize round trip. Never settles once navigation is
+ * requested — the page is leaving. Rejects only if the flow record couldn't be stored.
  */
 async function beginCloudflareAuthRedirect(returnURL: string = window.location.href): Promise<never> {
     if (isRedirectInFlight) {
@@ -89,8 +85,7 @@ async function beginCloudflareAuthRedirect(returnURL: string = window.location.h
         const pkce = await generatePKCEPair();
         const state = generateState();
         if (generation !== sessionGeneration) {
-            // Signed out while the key material was being generated: navigating now would take the tab
-            // through Cloudflare and back onto a returnURL belonging to an account that is already gone
+            // Signed out while the key material was generated — do not navigate a signed-out tab
             throw new Error('Cloudflare auth flow was cancelled by sign-out');
         }
         // Must be stored before the navigation — module memory does not survive the unload
@@ -115,8 +110,7 @@ function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; cod
                 return;
             }
             // Cache first: a request fired during this boot must see the token before disk I/O settles. A
-            // rejected Onyx.set is only logged — the cache keeps the (real, usable) session and a reload
-            // self-heals, so a failed persist must not surface as a failed sign-in.
+            // failed persist is logged, not surfaced — the cache keeps the usable session, a reload self-heals.
             sessionCache = session;
             return Onyx.set(ONYXKEYS.CF_SESSION, session).catch((error: unknown) => {
                 Log.warn('[CloudflareSession] Failed to persist the exchanged session', {error});
@@ -138,14 +132,9 @@ type CloudflareRefreshResult = 'refreshed' | 'skipped-newer-token' | 'reauth-req
 let refreshPromise: Promise<CloudflareRefreshResult> | null = null;
 
 /**
- * `refreshPromise` only deduplicates this JS context, but the session is shared across tabs through Onyx and
- * Cloudflare rotates the refresh token on every call — so two tabs refreshing at once each spend a token the
- * other still needs, and the loser's `invalid_grant` would clear the winner's freshly persisted session.
- *
- * Web Locks serialize the read-refresh-persist across the tabs of this origin, which also leaves the second
- * tab a full network round trip for Onyx's (event-driven, hence async) cross-tab update to reach its cache
- * before it re-reads it. Where the API is missing the in-context single-flight and the guards in
- * `performCloudflareRefresh` are what remain.
+ * Cloudflare rotates the refresh token on every call, so two tabs refreshing at once each spend a token the
+ * other still needs. Web Locks serialize the read-refresh-persist across the origin's tabs; where the API
+ * is missing, the in-context single-flight and the guards in performCloudflareRefresh are what remain.
  */
 function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult>): Promise<CloudflareRefreshResult> {
     if (!navigator.locks) {
@@ -160,8 +149,7 @@ function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult
  * re-read here rather than captured by the caller.
  */
 async function performCloudflareRefresh(staleAccessToken: string | undefined): Promise<CloudflareRefreshResult> {
-    // Captured with the lock held: a sign-out that landed while this call queued has already nulled the cache,
-    // so the checks below only have to detect one that lands during the round trip
+    // Captured with the lock held, so the checks below only have to detect a sign-out landing mid round trip
     const generation = sessionGeneration;
     const current = sessionCache;
     if (!current?.refreshToken) {
@@ -193,29 +181,22 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
             return 'reauth-required';
         }
         if (sessionCache?.refreshToken !== submittedRefreshToken) {
-            // The token we submitted is no longer the stored one, so another tab rotated it and this failure
-            // is about a token that is already spent — the caller retries with the newer one instead
+            // Another tab already rotated the token this call submitted — the caller retries with the newer one
             return 'skipped-newer-token';
         }
-        // Both codes mean the token we submitted is spent (invalid_response = a 2xx arrived, so CF rotated
-        // even though the new pair was unreadable). The dead session is deliberately kept: the store is
-        // shared across tabs and another tab may hold a working rotation this one has not received yet, so
-        // recovery is by replacement — the caller surfaces reauth-required and a fresh authorize round trip
-        // overwrites the session for every tab.
+        // Both codes mean the submitted token is spent (invalid_response = CF rotated but the new pair was
+        // unreadable). Never delete the shared session here — another tab may hold a working rotation.
         return 'reauth-required';
     }
 }
 
 /**
- * Single-flight refresh, serialized across tabs; the rotated pair is persisted before it resolves. Resolves
- * `'reauth-required'` only for terminal failures — the spent session is deliberately left in place (see
- * performCloudflareRefresh) and recovery is a fresh authorize round trip. Transient ones reject and keep
- * the session alive. Pass the token a 401 was seen with to get `'skipped-newer-token'` when rotation already
- * happened, in this tab or another one.
+ * Single-flight refresh, serialized across tabs; the rotated pair is persisted before it resolves. Terminal
+ * failures resolve 'reauth-required' (recovery is a fresh authorize round trip), transient ones reject with
+ * the session intact. Pass the token a 401 was seen with to get 'skipped-newer-token' after a rotation.
  */
 function refreshCloudflareSession(staleAccessToken?: string): Promise<CloudflareRefreshResult> {
-    // Join before anything else: resolution guarantees the rotated pair already hit Onyx. Every other
-    // precondition is checked inside the lock, where the session has been re-read.
+    // Joining guarantees the rotated pair already hit Onyx; preconditions are re-checked inside the lock
     if (refreshPromise) {
         return refreshPromise;
     }
@@ -226,11 +207,7 @@ function refreshCloudflareSession(staleAccessToken?: string): Promise<Cloudflare
     return refreshPromise;
 }
 
-/**
- * Deletes the session for every tab. The one deliberate deletion left: it only runs from the test tool's
- * Clear-session button, where wiping the shared state is exactly what the user asked for — automatic
- * failure paths recover by replacing the session instead.
- */
+/** Deletes the session for every tab. Only the test tool's Clear-session button calls this — failure paths recover by replacement */
 function clearCloudflareSession(): Promise<void> {
     sessionCache = null; // synchronous — a probe pressed right after Clear must not read the dead session
     return Onyx.set(ONYXKEYS.CF_SESSION, null);

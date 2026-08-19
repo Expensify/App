@@ -1,9 +1,7 @@
 /**
  * Callback-boot half of the same-tab OAuth redirect: Cloudflare delivers the authorization code as this
- * document's own location, so it has to be picked up during boot, before any render.
- *
- * The URL is also rewritten back to where the user came from — no app route lives at the redirect path, so
- * otherwise React Navigation boots straight into /not-found.
+ * document's own location, so it is picked up during boot, before any render, and the URL is rewritten
+ * back to where the user came from (no app route lives at the redirect path).
  */
 import {getOAuthRedirectURI, isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {OAuthError} from '@libs/CloudflareAccess/OAuthClient';
@@ -90,9 +88,8 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
         return lastOutcome;
     }
 
-    // Fire and forget; the catch records the failure as the observable outcome — the completion promise
-    // clears as it settles, so a caller arriving later could never see the rejection itself. The handler
-    // runs on a later microtask, so it always lands after the synchronous 'exchanging' below.
+    // Fire and forget; the catch records the failure as the observable outcome, since the completion promise
+    // clears as it settles. It runs a microtask later, so it always lands after the synchronous 'exchanging'.
     completeCloudflareAuthRedirect({code, codeVerifier: flow.codeVerifier}).catch((error: unknown) => {
         lastOutcome = 'exchange-failed';
         lastErrorMessage = error instanceof Error ? error.message : String(error);

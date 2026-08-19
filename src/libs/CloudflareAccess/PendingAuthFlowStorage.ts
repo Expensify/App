@@ -1,9 +1,7 @@
 /**
  * Parks the in-flight authorize round trip across the page unload: navigating to Cloudflare destroys module
- * memory, so the verifier, state and return URL have to survive in storage.
- *
- * sessionStorage because it is synchronous (readable before the first render), scoped to the tab that started
- * the flow (making the state check a per-tab provenance check) and dropped when the tab closes.
+ * memory, so the verifier, state and return URL survive here. sessionStorage because it is synchronous,
+ * scoped to the tab that started the flow and dropped when the tab closes.
  */
 import {isRecord} from '@libs/ObjectUtils';
 
@@ -60,10 +58,8 @@ function consumePendingAuthFlow(): PendingAuthFlow | null {
         return null;
     }
 
-    // Reaching the object and using it are separate permissions: a hardened configuration hands back a real
-    // Storage whose methods still throw SecurityError. This runs during boot, so a throw here would take the
-    // whole app start down. A record that could not be removed is reported absent too — refusing to exchange
-    // a verifier we failed to consume is what keeps the record single-use.
+    // A hardened configuration can hand back a Storage whose methods throw SecurityError, and this runs
+    // during boot. A record that could not be removed is reported absent too, keeping it single-use.
     let raw: string | null;
     try {
         raw = storage.getItem(CONST.SESSION_STORAGE_KEYS.QA_AUTH_REDIRECT_FLOW);

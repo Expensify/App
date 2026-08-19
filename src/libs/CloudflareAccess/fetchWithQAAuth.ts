@@ -1,9 +1,7 @@
 /**
  * `fetch` against the Cloudflare Access-protected QA origin: attaches the bearer token and recovers from an
- * expired one.
- *
- * Standalone on purpose — nothing in the app routes to QA yet, so HttpUtils stays untouched and no app
- * request can grow a QA header by accident. This is the logic that moves there once QA routing lands.
+ * expired one. Standalone on purpose — nothing in the app routes to QA yet, so HttpUtils stays untouched;
+ * this logic moves there once QA routing lands.
  */
 import {getCloudflareSession, refreshCloudflareSession} from '@userActions/CloudflareSession';
 
@@ -41,14 +39,13 @@ async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, 
     }
 
     if (isRetry) {
-        // Refresh demonstrably can't fix this session. It is deliberately not deleted — the store is shared
-        // across tabs — the caller starts a fresh authorize round trip and its result overwrites it.
+        // Refresh demonstrably can't fix this session — the caller has to start a fresh authorize round trip
         throw new Error(CF_REAUTH_REQUIRED);
     }
 
     const refreshResult = await refreshCloudflareSession(accessToken);
     if (refreshResult === 'reauth-required') {
-        // Terminal; refreshCloudflareSession already cleared the dead session
+        // Terminal — refresh cannot recover this session
         throw new Error(CF_REAUTH_REQUIRED);
     }
 

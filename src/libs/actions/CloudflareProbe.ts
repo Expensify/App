@@ -28,11 +28,7 @@ type CloudflareAuthProbeResult = {
 };
 
 type CloudflareAuthProbeOptions = {
-    /**
-     * The user already saw a reauthRequired result and pressed Run again — that press consents to
-     * navigation, so a terminal refresh failure starts the authorize round trip instead of reporting
-     * reauthRequired a second time.
-     */
+    /** A press made after seeing reauthRequired — it consents to navigation, so a terminal refresh failure redirects instead of reporting again */
     shouldRedirectOnReauthRequired?: boolean;
 };
 
@@ -49,8 +45,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
             try {
                 await pendingCompletion;
             } catch (error) {
-                // The sign-in failed, not the probe — the authorization code is burned, so the only way
-                // forward is running again, which starts a fresh authorize round trip
+                // A sign-in failure, not a probe failure — running again starts a fresh authorize round trip
                 return {status: 'signInFailed', detail: error instanceof Error ? error.message : undefined};
             }
         }
@@ -76,8 +71,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         if (!response.ok) {
             return {status: 'error', detail: `HTTP ${response.status}`};
         }
-        // Cloudflare resolves the token at the edge and injects the user's JWT, so the origin can echo back
-        // how the request authenticated. Read loosely — it's a diagnostic, not a contract.
+        // The origin echoes back how the request authenticated. Read loosely — a diagnostic, not a contract
         const body: unknown = await response.json().catch(() => null);
         const authenticatedVia = isRecord(body) && typeof body.authenticatedVia === 'string' ? body.authenticatedVia : null;
         return {status: 'success', detail: `authenticatedVia: ${authenticatedVia ?? 'null'}`};

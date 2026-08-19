@@ -26,8 +26,7 @@ const PROBE_STATUS_TRANSLATION_KEYS = {
 
 /** A failed round trip is otherwise invisible: the handler ran during boot, long before this mounts */
 function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
-    // A live session (this boot's exchange, or another tab's) outranks a recorded failure — the failure is
-    // history at that point, and re-showing it on every remount would contradict a working sign-in
+    // A live session (this boot's or another tab's) outranks a recorded failure — it is history at that point
     if (getCloudflareSession()) {
         return null;
     }
@@ -35,24 +34,21 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
     if (outcome === 'not-a-callback' || outcome === 'exchanging') {
         return null;
     }
-    // Every terminal outcome means the same thing to the user: the sign-in round trip did not complete and
-    // running again retries it — the raw detail keeps the causes distinguishable
+    // Every terminal outcome means the same to the user — sign-in didn't complete, running again retries it
     return {status: 'signInFailed', detail: errorMessage};
 }
 
 /**
- * Test-tool rows for the QA server auth flow, rendered only when the QA credentials are configured.
- *
- * With no session, Run navigates the whole tab to Cloudflare, so its spinner stays up until the page
- * unloads and the result of a completed round trip only shows on the next press.
+ * Test-tool rows for the QA server auth flow, rendered only when the QA credentials are configured. With no
+ * session, Run navigates the whole tab to Cloudflare, so a round trip's result only shows on the next press.
  */
 function QAAuthTestToolRows() {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome, not an effect. Not quite fixed for the page's lifetime —
-    // an in-flight exchange settles after mount — but a failure missed here still surfaces when Run joins it
+    // Seeded from the boot-time redirect outcome, not an effect. An in-flight exchange settles after mount,
+    // but a failure missed here still surfaces when Run joins it
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
     const [probeCompletedAt, setProbeCompletedAt] = useState<Date | null>(null);
