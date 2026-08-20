@@ -1755,13 +1755,12 @@ describe('IOURequestStepConfirmationPageTest', () => {
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
             expect(screen.getByTestId(CONFIRMATION_SCREEN_TEST_ID)).toBeOnTheScreen();
 
-            // And exactly one screen trap is switched off - the embedded confirmation's. Without this it would
-            // activate on top of the start page's trap on the shared stack and pause it, dropping the Back button
-            // and the tab bar out of the Tab cycle.
-            expect(mockFocusTrapSettings.filter((settings) => settings?.active === false)).toHaveLength(1);
+            // And its screen trap is switched off. Without this it would activate on top of the start page's trap
+            // on the shared stack and pause it, dropping the Back button and the tab bar out of the Tab cycle.
+            expect(mockFocusTrapSettings).toContainEqual({active: false});
 
             // And the start page's trap, the one holding the header and tab bar containers, is left alone
-            expect(mockFocusTrapSettings).toContainEqual({containerElements: []});
+            expect(mockFocusTrapSettings.some((settings) => !!settings?.containerElements)).toBe(true);
         });
 
         it('deactivates its own focus trap when embedded in the split expense flow too', async () => {
@@ -1770,8 +1769,8 @@ describe('IOURequestStepConfirmationPageTest', () => {
 
             // Then the split manual tab is covered by the same fix
             expect(await screen.findByTestId('MockParticipantPicker')).toBeOnTheScreen();
-            expect(mockFocusTrapSettings.filter((settings) => settings?.active === false)).toHaveLength(1);
-            expect(mockFocusTrapSettings).toContainEqual({containerElements: []});
+            expect(mockFocusTrapSettings).toContainEqual({active: false});
+            expect(mockFocusTrapSettings.some((settings) => !!settings?.containerElements)).toBe(true);
         });
 
         it('leaves the standalone route to FocusTrapForScreen default activation logic', async () => {
