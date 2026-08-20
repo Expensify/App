@@ -27,12 +27,10 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type SCREENS from '@src/SCREENS';
 
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {View} from 'react-native';
 
 type AddCardToDigitalWalletPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.CARD_ADD_TO_DIGITAL_WALLET>;
-
-type Step = 'confirm' | 'verify' | 'success' | 'denied';
 
 function AddCardToDigitalWalletPage({
     route: {
@@ -49,7 +47,7 @@ function AddCardToDigitalWalletPage({
     const validateError = getLatestErrorMessageField(card);
     const latestErrorMessage = getLatestErrorMessage(card);
 
-    const [step, setStep] = useState<Step>('confirm');
+    const [isVerifying, setIsVerifying] = useState(false);
     const [submittedAnswer, setSubmittedAnswer] = useState<'approve' | 'deny'>();
 
     const pendingApproval = card?.nameValuePairs?.pendingDigitalWalletApproval;
@@ -68,15 +66,8 @@ function AddCardToDigitalWalletPage({
 
     // The backend clears the pending approval once it resolves the request, so that's when we know the answer landed
     const hasPendingApproval = isCardPendingDigitalWalletApproval(card);
-    useEffect(() => {
-        if (!submittedAnswer || hasPendingApproval || card?.isLoading) {
-            return;
-        }
-
-        setStep(submittedAnswer === 'approve' ? 'success' : 'denied');
-    }, [submittedAnswer, hasPendingApproval, card?.isLoading]);
-
     const isResolvingRequest = !!submittedAnswer && !!card?.isLoading;
+    const isRequestResolved = !!submittedAnswer && !hasPendingApproval && !card?.isLoading;
 
     const denyRequest = () => {
         setSubmittedAnswer('deny');
@@ -88,7 +79,7 @@ function AddCardToDigitalWalletPage({
         approveDigitalWalletCardAddition(Number(cardID), true, validateCode);
     };
 
-    if (step === 'verify') {
+    if (isVerifying && !isRequestResolved) {
         return (
             <ValidateCodeActionContent
                 validateCodeActionErrorField="approveDigitalWalletCardAddition"
@@ -99,13 +90,13 @@ function AddCardToDigitalWalletPage({
                 sendValidateCode={() => requestValidateCodeAction({reasonCode: CONST.EXPENSIFY_CARD.APPROVE_DIGITAL_WALLET_VALIDATE_CODE_REASON, reasonCardID: Number(cardID)})}
                 validateError={validateError}
                 clearError={() => clearCardListErrors(Number(cardID))}
-                onClose={() => setStep('confirm')}
+                onClose={() => setIsVerifying(false)}
             />
         );
     }
 
-    if (step === 'success' || step === 'denied') {
-        const isSuccess = step === 'success';
+    if (isRequestResolved) {
+        const isSuccess = submittedAnswer === 'approve';
 
         return (
             <ScreenWrapper
@@ -170,7 +161,7 @@ function AddCardToDigitalWalletPage({
                             variant={CONST.BUTTON_VARIANT.SUCCESS}
                             size={CONST.BUTTON_SIZE.LARGE}
                             style={styles.flex1}
-                            onPress={() => setStep('verify')}
+                            onPress={() => setIsVerifying(true)}
                         >
                             <Button.Text>{translate('addCardToDigitalWallet.confirm')}</Button.Text>
                         </Button>

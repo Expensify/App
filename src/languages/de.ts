@@ -935,6 +935,14 @@ const translations: TranslationDeepObject<typeof en> = {
             addPaymentCard: {title: 'Fügen Sie eine Zahlungskarte hinzu, um Expensify weiter zu nutzen', subtitle: 'Konto > Abonnement', cta: 'Hinzufügen'},
             addBankAccount: {title: 'Fügen Sie ein Bankkonto hinzu, um eine Erstattung zu erhalten'},
             activateCard: {title: 'Aktivieren Sie Ihre Expensify Karte', subtitle: 'Validieren Sie Ihre Karte und beginnen Sie mit dem Ausgeben.', cta: 'Aktivieren'},
+            confirmDigitalWalletAddition: {
+                title: ({walletName}: {walletName: string}) => `Anforderung der Kartenhinzufügung zu ${walletName} erfordert Ihre Genehmigung`,
+                subtitle: 'Expensify Karte',
+                cta: 'Überprüfen',
+                appleWallet: 'Apple Wallet',
+                googleWallet: 'Google Wallet',
+                digitalWallet: 'Digital wallet',
+            },
             reviewCardFraud: {
                 title: 'Möglichen Betrug mit Ihrer Expensify Karte überprüfen',
                 titleWithDetails: ({amount, merchant}: {amount: string; merchant: string}) => `Überprüfe mögliche betrügerische ${amount} bei ${merchant}`,
@@ -2622,6 +2630,24 @@ const translations: TranslationDeepObject<typeof en> = {
             accountRequiresAttention: 'Dieses Konto erfordert Ihre Aufmerksamkeit',
             unlock: 'Entsperren',
         },
+    },
+    addCardToDigitalWallet: {
+        title: ({walletName}: {walletName: string}) => `Karte zu ${walletName} hinzufügen`,
+        appleWallet: 'Apple Wallet',
+        googleWallet: 'Google Wallet',
+        digitalWallet: 'deine digitale Wallet',
+        confirmHeading: 'Bestätige deine Anfrage',
+        confirmDescription: ({walletName, lastFourDigits}: {walletName: string; lastFourDigits: string}) =>
+            `Möchtest du deine Expensify Karte (endet mit ${lastFourDigits}) zu ${walletName} hinzufügen?`,
+        deny: 'Ablehnen',
+        confirm: 'Bestätigen',
+        verifyTitle: 'Lass uns überprüfen, dass es du bist',
+        enterSecurityCode: (contactMethod: string) =>
+            `Bitte gib den Sicherheitscode ein, der an ${contactMethod} gesendet wurde, um diese Anfrage zu bestätigen. Er sollte innerhalb von ein bis zwei Minuten ankommen.`,
+        successHeading: 'Erledigt!',
+        successDescription: ({walletName}: {walletName: string}) => `Deine Karte ist jetzt in ${walletName} einsatzbereit.`,
+        deniedHeading: 'Anfrage abgelehnt',
+        deniedDescription: ({walletName}: {walletName: string}) => `Deine Karte wurde nicht zu ${walletName} hinzugefügt.`,
     },
     cardPage: {
         expensifyCard: 'Expensify Karte',
