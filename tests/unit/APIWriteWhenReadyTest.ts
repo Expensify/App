@@ -728,19 +728,19 @@ describe('API.writeWhenReady', () => {
         it("keeps the armed TransitionTracker registration alive after a consumer's own safety timeout", async () => {
             jest.useFakeTimers();
             try {
+                // Given a write deferred on an armed barrier, with the transition never completing
                 const {cancel} = mockTransitionRegistration();
                 const armed = armBarrier();
-
                 deferWrite(armed.barrier);
                 await flushMicrotasks();
                 expect(cancel).not.toHaveBeenCalled();
 
-                // The transition never completes, so this write's own safety timeout releases it. The
-                // registration made at arm time must survive - a later write attaching to the same armed
-                // barrier still needs it, and only explicit cancel() is allowed to drop it early.
+                // When that write's own safety timeout releases it before the transition ever finishes
                 await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
                 await flushMicrotasks(pushHappened);
 
+                // Then the TransitionTracker registration is left alive rather than cancelled, because a
+                // later write could still attach to the same armed barrier and needs the real release
                 expect(mockPush).toHaveBeenCalledTimes(1);
                 expect(cancel).not.toHaveBeenCalled();
             } finally {
