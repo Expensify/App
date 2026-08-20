@@ -42,6 +42,7 @@ import type {ValueOf} from 'type-fest';
 
 /**
  * Icons used by Workspace menu items. They are injected instead of imported from Expensicons so the page keeps lazy-loading them and this helper remains unit-testable.
+ * Keep this map in sync with the icons referenced by the menu items below.
  */
 type WorkspaceMenuIconMap = Record<
     | 'Building'
