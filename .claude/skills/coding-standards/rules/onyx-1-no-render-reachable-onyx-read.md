@@ -7,11 +7,17 @@ title: Keep synchronous Onyx reads off the render path and out of a written tick
 
 ### Reasoning
 
-`Onyx.get()` reads the cache synchronously and never subscribes. `no-unsafe-onyx-read` catches the shapes of that going wrong which are visible in one file and one function body. Two shapes are not, and this rule is those two.
+`Onyx.get()` reads the cache synchronously and never subscribes. `no-unsafe-onyx-read` catches the shapes of that going wrong which are visible in one file and one function body. The others are not, and this rule is the others.
 
-**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (`returnsJSX`, `eslint-plugin-local-rules/no-unsafe-onyx-read.js:89-105`). So it is silent on a read in a library function a hook calls, and silent on a helper that returns JSX from inside an `if` or a `switch`. Silence is not a verdict. Classify by position.
+**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (`returnsJSX`, `eslint-plugin-local-rules/no-unsafe-onyx-read.js:89-105`). So it is silent on a read in a library function a hook calls, silent on a helper that returns JSX from inside an `if` or a `switch`, and silent on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
 
 **B. Tick.** `Onyx.merge` and `Onyx.update` apply a microtask later, so a read after one returns the pre-write value, and a derived key lags every write to its sources whether or not that write landed at once. Lint pairs writes with reads inside a single enclosing body (`callsByBody`, same file, lines 423 and 539). A write in the caller with the read in a callee is the same defect and it is invisible there.
+
+**C. Trigger.** A `useOnyx` binding whose value is only forwarded still re-renders the component when its key changes, and sometimes that re-render is the point: an effect keyed on the value, or a dependency array that carries it. Replacing such a binding with a read inside the same body deletes the trigger. The finished file looks correct, so this shape is only visible in the diff.
+
+**D. Hydration.** `Onyx.init` hydrates the cache asynchronously and runs outside the React lifecycle (`src/setup/index.ts:38`), so a read that beats it returns `undefined` for every key still only on disk, indistinguishable from an absent value. Lint catches module scope. A mount-only effect, an exported `init*`, and anything else the boot path reaches are the quiet ones.
+
+**E. Output.** A read is also wrong when its value reaches the screen on a later hop: parked in state, in a ref, or in a module variable that a component renders. The rendered value is then a snapshot that never updates. A1 and A3 catch the caller-is-render case; this is the stash-then-render case.
 
 ### Incorrect
 
@@ -67,6 +73,40 @@ function getReportAttributes(reportID: string) {
 }
 ```
 
+**C. The subscription was the trigger, and the diff deleted it.**
+
+```diff
+ function useReportSeen(reportID: string) {
+-    const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+     useEffect(() => {
+-        markReportSeen(report);
++        markReportSeen(Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)); // never re-runs when the report changes
+-    }, [report]);
++    }, [reportID]);
+ }
+```
+
+**D. The boot path reaches the read, and it is not at module scope.**
+
+```ts
+// src/libs/actions/App.ts, called from src/setup/index.ts on a cold start
+function initializeApp() {
+    const locale = Onyx.get(ONYXKEYS.NVP_PREFERRED_LOCALE); // undefined until hydration finishes, and lint is silent
+    setLocale(locale ?? CONST.LOCALES.DEFAULT);
+}
+```
+
+**E. The value is stashed at event time and rendered afterwards.**
+
+```tsx
+function ReportTitle({reportID}: {reportID: string}) {
+    const [title, setTitle] = useState<string>();
+    // The title renders below, so it has to stay reactive. This freezes it at the moment of the tap.
+    const onPress = () => setTitle(Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.reportName);
+    return <Text onPress={onPress}>{title}</Text>;
+}
+```
+
 ### Correct
 
 ```tsx
@@ -85,6 +125,17 @@ function submitReport(reportID: string) {
     const attributes = ReportUtils.getReportAttributes(reportID);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED});
 }
+
+// C: the effect re-runs on the key, so the subscription stays.
+const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+useEffect(() => markReportSeen(report), [report]);
+
+// D: the boot path sequences the read after hydration instead of racing it.
+Onyx.init({keys: ONYXKEYS}).then(() => setLocale(Onyx.get(ONYXKEYS.NVP_PREFERRED_LOCALE)));
+
+// E: anything rendered stays on useOnyx.
+const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
+return <Text>{report?.reportName}</Text>;
 ```
 
 ---
@@ -93,7 +144,7 @@ function submitReport(reportID: string) {
 
 Search with the Grep tool, not `Bash`: this workflow allows `Bash` only for `gh pr diff`, `gh pr view` and `check-compiler.sh`. A denied command is not an empty result.
 
-#### A. Position. Three triggers, a PR can arrive as any of them.
+#### A. Position. Four triggers, a PR can arrive as any of them.
 
 **A1. Forward, the diff adds a synchronous read to a function.** Flag when ALL are true:
 
@@ -115,6 +166,14 @@ Callers of a read: Grep `src/` over `**/*.{ts,tsx}` for the function's name, ign
 - The added call sits at a render position, not in a handler or an effect
 - Comment on the added call
 
+**A4. Prop, the read leaves in a function handed to a child.** Flag when ALL are true:
+
+- The diff adds a read to a function passed as a prop, or adds a JSX attribute passing a function whose file contains `Onyx.get`
+- The receiving component invokes that prop anywhere render reaches: its body at statement level, its JSX, a `useMemo`, or a local function the body calls
+- Resolve the receiver before deciding: take the component name off the JSX attribute, open its file, Grep the prop's name followed by `(`. A prop only forwarded to another component is not a verdict, repeat on that one
+- Comment on the JSX attribute, naming the receiving file and the line that calls it
+- If the receiver cannot be resolved, because the prop arrives in a spread or the component comes from a variable, say that in the comment and ask the author to confirm nothing calls it during render
+
 #### B. Tick. Two triggers.
 
 **B1. Forward, the diff adds an un-awaited write.** Writes are `Onyx.merge`, `update`, `set`, `multiSet`, `mergeCollection`, `setCollection` and `clear`. For every call the body makes after that write in the same tick, Grep the callee's file for `Onyx.get`. Flag when the callee reads:
@@ -127,6 +186,35 @@ A callee that is itself a plain function is not a verdict: repeat on the functio
 
 **B2. Reverse, the diff adds a read into a function callers already write around.** Grep `src/` for the function's name, then flag any caller that writes Onyx before the call in the same tick, by the B1 key test.
 
+#### C. Trigger. Two triggers, both read from the diff rather than the final file.
+
+**C1. The diff moves a read into an effect body.** Flag when ALL are true:
+
+- The diff removes a `useOnyx` for a key, and adds a read of that key inside a `useEffect`, `useLayoutEffect` or `useFocusEffect` body in the same file
+- Comment on the effect, not the read: the defect is that it no longer re-runs when the key changes
+
+**C2. The diff strips the value out of a dependency array or out of JSX.** Flag when ALL are true:
+
+- The diff removes a `useOnyx` binding, and the same diff removes that variable's name from a dependency array (`useEffect`, `useCallback`, `useMemo`, `useAnimatedStyle`, `useDerivedValue`) or from JSX
+- Search the removed lines for the variable name before accepting the conversion. A binding that appeared in either place was doing more than supplying a value
+
+#### D. Hydration. Two triggers.
+
+**D1. The diff adds a read the boot path can reach.** Flag when the read lands in `index.js`, `src/setup/`, `src/App.tsx`, `src/Expensify.tsx`, `src/libs/actions/App.ts`, or in an exported function named `init*`, and ask the author to name what guarantees hydration finished first. Walk callers as in A1: a plain function is not a verdict.
+
+**D2. The diff adds a read that runs before its key is hydrated.** Flag when either holds:
+
+- The read sits in a `useEffect(..., [])` in a component that mounts before the splash screen hides
+- The read sits in an `Onyx.connect` or `connectWithoutView` callback and reads a key other than the one subscribed. Arrival of one key says nothing about another
+
+#### E. Output. One trigger.
+
+**E1. The diff parks the value somewhere render reads.** Flag when ALL are true:
+
+- The read's value is passed to a `useState` setter, assigned to a `useRef`, or written to a module-level variable
+- A render position in the same file reads that target
+- Comment on the read: the rendered value is frozen at event time and the key changing will not update it
+
 #### DO NOT flag if
 
 Position:
@@ -134,7 +222,24 @@ Position:
 - The read sits in a `useCallback` body, an effect body, an event handler, a promise continuation or a timer that render does not invoke. A `useCallback` and a handler passed as a prop cut both ways, since a component can invoke either during render: read the body holding the call, not the wrapper
 - The reading function is not exported, nothing in its own file calls it from a render position, and it is neither a render body by A2 nor passed as a render callback
 - The read is `useOnyx`, `Onyx.connect` or `Onyx.connectWithoutView`
+- The prop holding the reading function is named `on*` or `handle*` and every receiver either passes it to an event prop or calls it from a handler, an effect or a promise continuation
 - The value only reaches a handler argument or a request field and is never rendered
+
+Trigger:
+
+- The removed `useOnyx` value appears nowhere in the diff but the argument list of the converted call
+- The effect keeps a dependency that changes whenever the read key changes, such as the collection member id
+- The removed binding had a selector whose output the diff still subscribes to
+
+Hydration:
+
+- The boot path only registers the reading function, and something later calls it
+- The author names a hydration gate the call sits behind: an `Onyx.init` continuation, an awaited write, or a splash-screen state check
+
+Output:
+
+- The value is meant to be a snapshot of the moment of the event, and nothing downstream depends on it updating
+- The target is written and read in the same event, and no render position reads it
 
 Tick:
 
@@ -147,3 +252,6 @@ Tick:
 - `Onyx.get(`
 - `Onyx.merge(`, `Onyx.update(`, `Onyx.set(`, `Onyx.mergeCollection(`
 - `ONYXKEYS.DERIVED`
+- removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff
+- `useEffect(`, `useLayoutEffect(`, `useFocusEffect(`, `useRef(`, `useState(`
+- `Onyx.init`, `init` as a function-name prefix
