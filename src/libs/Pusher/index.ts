@@ -43,6 +43,7 @@ Onyx.connectWithoutView({
 
 let socket: PusherWithAuthParams | null;
 let pusherSocketID: string | undefined;
+let didSocketGoUnavailable = false;
 const socketEventCallbacks: SocketEventCallback[] = [];
 let customAuthorizer: ChannelAuthorizerGenerator;
 
@@ -110,6 +111,7 @@ function init(args: Args): Promise<void> {
         });
 
         socket?.connection.bind('state_change', (states: States) => {
+            didSocketGoUnavailable ||= states.current === 'unavailable';
             callSocketEventCallbacks('state_change', states);
         });
     }).then(resolveInitPromise);
@@ -504,6 +506,13 @@ function getPusherSocketID(): string | undefined {
     return pusherSocketID;
 }
 
+// pusher-js only enters `unavailable` after unavailableTimeout of failed connects, so a socket that came back without reaching it merely blipped.
+function consumeDidSocketGoUnavailable(): boolean {
+    const didGoUnavailable = didSocketGoUnavailable;
+    didSocketGoUnavailable = false;
+    return didGoUnavailable;
+}
+
 if (window) {
     /**
      * Pusher socket for debugging purposes
@@ -524,6 +533,7 @@ const WebPusher: PusherModule = {
     reconnect,
     registerSocketEventCallback,
     registerCustomAuthorizer,
+    consumeDidSocketGoUnavailable,
     TYPE,
     getPusherSocketID,
 };

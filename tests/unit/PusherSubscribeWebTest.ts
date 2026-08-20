@@ -32,6 +32,7 @@ type FakeChannel = {
 };
 
 const mockChannels = new Map<string, FakeChannel>();
+const mockConnectionHandlers = new Map<string, Array<(data?: unknown) => void>>();
 
 jest.mock('pusher-js/with-encryption', () => {
     function createChannel(channelName: string): FakeChannel {
@@ -111,11 +112,12 @@ jest.mock('pusher-js/with-encryption', () => {
             state: 'connected',
 
             // jest/setupAfterEnv.ts calls useRealTimers, so a deferred connect would never fire.
-            bind: (eventName: string, callback: () => void) => {
-                if (eventName !== 'connected') {
+            bind: (eventName: string, callback: (data?: unknown) => void) => {
+                if (eventName === 'connected') {
+                    callback();
                     return;
                 }
-                callback();
+                mockConnectionHandlers.set(eventName, [...(mockConnectionHandlers.get(eventName) ?? []), callback]);
             },
         };
 
@@ -155,6 +157,12 @@ jest.mock('pusher-js/with-encryption', () => {
 describe('Pusher.subscribe on web', () => {
     const CHANNEL = 'private-encrypted-user-accountID-1';
 
+    function goUnavailable() {
+        for (const callback of mockConnectionHandlers.get('state_change') ?? []) {
+            callback({previous: 'connecting', current: 'unavailable'});
+        }
+    }
+
     beforeEach(async () => {
         await Pusher.init({
             appKey: CONFIG.PUSHER.APP_KEY,
@@ -166,6 +174,7 @@ describe('Pusher.subscribe on web', () => {
     afterEach(() => {
         Pusher.disconnect();
         mockChannels.clear();
+        mockConnectionHandlers.clear();
         jest.clearAllMocks();
         jest.restoreAllMocks();
     });
@@ -359,12 +368,14 @@ describe('Pusher.subscribe on web', () => {
         channel?.completeHandshake();
         await jest.runAllTimersAsync();
 
-        // When the app sets the same channel up a second time and the socket then drops
+        // When the app sets the same channel up a second time and the socket then goes down long enough
+        // for pusher-js to give up on it
         PusherUtils.onPrivateUserChannelResubscribe(accountID);
         PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
         await jest.runAllTimersAsync();
 
         channel?.dropConnection();
+        goUnavailable();
         channel?.startSubscription();
         channel?.completeHandshake();
 
@@ -387,11 +398,63 @@ describe('Pusher.subscribe on web', () => {
         channel?.completeHandshake();
         await jest.runAllTimersAsync();
 
-        // When the socket drops and the channel shakes hands again
+        // When the socket goes down past pusher-js's unavailableTimeout and the channel shakes hands again
         channel?.dropConnection();
+        goUnavailable();
         channel?.completeHandshake();
 
         // Then one reconnect follows the drop, whatever the number of subscribed events
+        expect(reconnect).toHaveBeenCalledTimes(1);
+    });
+
+    it('should trigger no reconnect when the socket came back without ever going unavailable', async () => {
+        // Given a private user channel on a socket that only blipped, because pusher-js recovers from
+        // those on its own and the sync that followed was discarded as older than current state
+        const accountID = '1';
+        const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(userChannel);
+        channel?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        // When the channel shakes hands again without the socket having reached unavailable
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        // Then no reconnect follows, so OnyxUpdateManager gap detection covers anything that was missed
+        expect(reconnect).not.toHaveBeenCalled();
+    });
+
+    it('should trigger one reconnect per outage, however many times the channel shakes hands', async () => {
+        // Given an outage that already triggered a sync, because the latch has to die on the resubscribe
+        // that reads it and not on the next connect
+        const accountID = '1';
+        const userChannel = `${CONST.PUSHER.PRIVATE_USER_CHANNEL_PREFIX}${accountID}${CONFIG.PUSHER.SUFFIX}`;
+
+        PusherUtils.onPrivateUserChannelResubscribe(accountID);
+        PusherUtils.subscribeToPrivateUserChannelEvent(Pusher.TYPE.MULTIPLE_EVENTS, accountID, () => {});
+        await jest.runAllTimersAsync();
+
+        const channel = mockChannels.get(userChannel);
+        channel?.completeHandshake();
+        await jest.runAllTimersAsync();
+
+        channel?.dropConnection();
+        goUnavailable();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        // When the channel shakes hands a second time without a new outage
+        channel?.dropConnection();
+        channel?.startSubscription();
+        channel?.completeHandshake();
+
+        // Then the sync is not repeated, so one outage costs one ReconnectApp
         expect(reconnect).toHaveBeenCalledTimes(1);
     });
 });
