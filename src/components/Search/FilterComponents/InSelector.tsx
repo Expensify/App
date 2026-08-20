@@ -12,7 +12,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePrivateIsArchivedMap from '@hooks/usePrivateIsArchivedMap';
 import useReportAttributes from '@hooks/useReportAttributes';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 
 import {searchInServer} from '@libs/actions/Report';
 import {canUseTouchScreen} from '@libs/DeviceCapabilities';
@@ -62,7 +62,10 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
 
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -90,6 +93,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                     privateIsArchived,
                     policy: reportPolicy,
                     sortedActions,
+                    transactionThreadIDs,
+                    lastActions,
                     conciergeReportID,
                     reportAttributesDerived,
                     isTrackIntentUser,
@@ -131,6 +136,8 @@ function InSelector({value = [], selectionListTextInputStyle, selectionListStyle
                   personalDetails,
                   policyCollection: allPolicies,
                   sortedActions,
+                  transactionThreadIDs,
+                  lastActions,
                   conciergeReportID,
                   isTrackIntentUser,
                   translate,

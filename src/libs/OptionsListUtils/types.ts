@@ -281,6 +281,10 @@ type GetOptionsConfig = {
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     sortedActions?: Record<string, ReportAction[]>;
+    /** Derived one-transaction-thread reportIDs (RAM_ONLY_SORTED_REPORT_ACTIONS.transactionThreadIDs). */
+    transactionThreadIDs?: Record<string, string | undefined>;
+    /** Derived last (unfiltered) actions per report (RAM_ONLY_SORTED_REPORT_ACTIONS.lastActions). */
+    lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     /** TODO: Should be required field in the future. Refactor issue: https://github.com/Expensify/App/issues/66407 */
     isOffline?: boolean;

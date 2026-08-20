@@ -498,6 +498,8 @@ function getLastMessageTextForReport({
     // eslint-disable-next-line @typescript-eslint/no-deprecated
     sortedActions = deprecatedAllSortedReportActions,
     currentUserAccountID,
+    oneTransactionThreadReportID,
+    lastOriginalAction,
 }: {
     translate: LocalizedTranslate;
     dateFnsLocale: DateFnsLocale | undefined;
@@ -521,13 +523,17 @@ function getLastMessageTextForReport({
     sortedActions?: Record<string, ReportAction[]>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    /** Derived one-transaction-thread reportID; when absent, falls back to the deprecated module cache. */
+    oneTransactionThreadReportID?: string;
+    /** Derived last (unfiltered) action for the report; when absent, falls back to the deprecated module cache. */
+    lastOriginalAction?: OnyxEntry<ReportAction>;
 }): string {
     const reportID = report?.reportID;
     const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
     let lastReportAction = lastAction ?? getLastVisibleAction(reportID, canUserPerformWrite, {}, undefined, visibleReportActionsDataParam);
 
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const transactionThreadReportID = reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined;
+    const transactionThreadReportID = oneTransactionThreadReportID ?? (reportID ? deprecatedCachedOneTransactionThreadReportIDs[reportID] : undefined);
 
     if (reportID && !lastAction && transactionThreadReportID) {
         lastReportAction =
@@ -558,7 +564,7 @@ function getLastMessageTextForReport({
 
     // some types of actions are filtered out for lastReportAction, in some cases we need to check the actual last action
     // eslint-disable-next-line @typescript-eslint/no-deprecated
-    const lastOriginalReportAction = reportID ? deprecatedLastReportActions[reportID] : undefined;
+    const lastOriginalReportAction = lastOriginalAction ?? (reportID ? deprecatedLastReportActions[reportID] : undefined);
     let lastMessageTextFromReport = '';
 
     if (isArchivedNonExpenseReport(report, isReportArchived)) {
@@ -1126,6 +1132,11 @@ type GetReportAlternateTextParams = {
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
+    sortedActions?: Record<string, ReportAction[]>;
+    /** Derived one-transaction-thread reportID for the report; forwarded to getLastMessageTextForReport. */
+    oneTransactionThreadReportID?: string;
+    /** Derived last (unfiltered) action for the report; forwarded to getLastMessageTextForReport. */
+    lastOriginalAction?: OnyxEntry<ReportAction>;
     currentUserAccountID: number;
     currentUserLogin: string;
     isTrackIntentUser?: boolean;
@@ -1157,6 +1168,9 @@ function getReportAlternateText({
     conciergeReportID,
     reportAttributesDerived,
     visibleReportActionsData,
+    sortedActions,
+    oneTransactionThreadReportID,
+    lastOriginalAction,
     currentUserAccountID,
     currentUserLogin,
     isTrackIntentUser,
@@ -1217,6 +1231,9 @@ function getReportAlternateText({
             lastAction,
             isTrackIntentUser,
             currentUserAccountID,
+            sortedActions,
+            oneTransactionThreadReportID,
+            lastOriginalAction,
         });
     }
 

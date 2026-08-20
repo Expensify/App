@@ -10,7 +10,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useScreenWrapperTransitionStatus from '@hooks/useScreenWrapperTransitionStatus';
-import useSortedActions from '@hooks/useSortedActions';
+import useSortedReportActionsData from '@hooks/useSortedReportActionsData';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {getOptimisticChatReport, saveReportDraft, searchInServer} from '@libs/actions/Report';
@@ -49,7 +49,10 @@ function ShareTab() {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [draftComments] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
-    const sortedActions = useSortedActions();
+    const sortedReportActionsData = useSortedReportActionsData();
+    const sortedActions = sortedReportActionsData?.sortedActions;
+    const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
+    const lastActions = sortedReportActionsData?.lastActions;
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
@@ -88,6 +91,8 @@ function ShareTab() {
               policyCollection: allPolicies,
               personalDetails,
               sortedActions,
+              transactionThreadIDs,
+              lastActions,
               conciergeReportID,
               isTrackIntentUser,
               translate,

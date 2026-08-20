@@ -420,6 +420,8 @@ type GetAlternateTextConfig = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
@@ -443,6 +445,8 @@ function getAlternateText(
         policyTags,
         conciergeReportID,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         isTrackIntentUser,
         currentUserAccountID,
     }: GetAlternateTextConfig,
@@ -473,6 +477,8 @@ function getAlternateText(
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            oneTransactionThreadReportID: report?.reportID ? transactionThreadIDs?.[report.reportID] : undefined,
+            lastOriginalAction: report?.reportID ? lastActions?.[report.reportID] : undefined,
         });
     const reportPrefix = getReportSubtitlePrefix(report);
 
@@ -554,6 +560,8 @@ type CreateOptionParams = {
     conciergeReportID: string | undefined;
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
 };
@@ -596,6 +604,8 @@ function createOption({
     isTrackIntentUser,
     conciergeReportID,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
     currentUserAccountID,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
@@ -685,6 +695,8 @@ function createOption({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
+            lastOriginalAction: lastActions?.[report.reportID],
         });
         result.alternateText =
             showPersonalDetails && personalDetail?.login
@@ -703,6 +715,10 @@ function createOption({
                           reportAttributesDerived,
                           policyTags,
                           conciergeReportID,
+                          sortedActions,
+                          transactionThreadIDs,
+                          lastActions,
+                          isTrackIntentUser,
                           currentUserAccountID,
                       },
                   );
@@ -1047,6 +1063,8 @@ function processReport(
         visibleReportActionsData = {},
         isTrackIntentUser,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
     }: {
         currentUserAccountID: number;
@@ -1056,6 +1074,8 @@ function processReport(
         isTrackIntentUser?: boolean;
         // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
         sortedActions?: Record<string, ReportAction[]>;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
     },
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
@@ -1093,6 +1113,8 @@ function processReport(
                 visibleReportActionsData,
                 isTrackIntentUser,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 currentUserAccountID,
             }),
         },
@@ -1281,6 +1303,8 @@ function createFilteredOptionList(
     isTrackIntentUser?: boolean,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
+    transactionThreadIDs?: Record<string, string | undefined>,
+    lastActions?: Record<string, ReportAction>,
 ): OptionList {
     const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
 
@@ -1315,6 +1339,8 @@ function createFilteredOptionList(
         // The RAM_ONLY_SORTED_REPORT_ACTIONS derived value produces a new object on every recompute,
         // so its reference signals that the underlying report actions changed.
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         currentUserAccountID,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
@@ -1375,6 +1401,8 @@ function createFilteredOptionList(
             visibleReportActionsData,
             isTrackIntentUser,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
             currentUserAccountID,
         });
         if (reportMapEntry) {
@@ -1447,6 +1475,8 @@ type CreateOptionFromReportParams = {
     privateIsArchived: boolean | undefined;
     policy: OnyxEntry<Policy>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     config?: PreviewConfig;
@@ -1462,6 +1492,8 @@ function createOptionFromReport({
     privateIsArchived,
     policy,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
     conciergeReportID,
     reportAttributesDerived,
     config,
@@ -1486,6 +1518,8 @@ function createOptionFromReport({
             policyTags,
             visibleReportActionsData,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
             isTrackIntentUser,
         }),
     };
@@ -2036,6 +2070,8 @@ function prepareReportOptionsForDisplay(
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
     isTrackIntentUser?: boolean,
+    transactionThreadIDs?: Record<string, string | undefined>,
+    lastActions?: Record<string, ReportAction>,
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2086,6 +2122,8 @@ function prepareReportOptionsForDisplay(
                 policyTags: reportPolicyTags,
                 conciergeReportID,
                 sortedActions,
+                transactionThreadIDs,
+                lastActions,
                 isTrackIntentUser,
                 currentUserAccountID,
             },
@@ -2194,6 +2232,8 @@ function getValidOptions(
         visibleReportActionsData = {},
         reportAttributesDerived,
         sortedActions,
+        transactionThreadIDs,
+        lastActions,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2345,6 +2385,8 @@ function getValidOptions(
                 reportAttributesDerived,
                 allPolicyTags,
                 isTrackIntentUser,
+                transactionThreadIDs,
+                lastActions,
             ).at(0);
         }
 
@@ -2373,6 +2415,8 @@ function getValidOptions(
             reportAttributesDerived,
             allPolicyTags,
             isTrackIntentUser,
+            transactionThreadIDs,
+            lastActions,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2397,6 +2441,8 @@ function getValidOptions(
             reportAttributesDerived,
             allPolicyTags,
             isTrackIntentUser,
+            transactionThreadIDs,
+            lastActions,
         );
 
         if (reportIDsToExclude.size > 0) {
@@ -2557,6 +2603,8 @@ type SearchOptionsConfig = {
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     allPolicyTags?: OnyxCollection<PolicyTagLists>;
     sortedActions: Record<string, ReportAction[]> | undefined;
+    transactionThreadIDs?: Record<string, string | undefined>;
+    lastActions?: Record<string, ReportAction>;
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2590,6 +2638,8 @@ function getSearchOptions({
     personalDetails,
     allPolicyTags,
     sortedActions,
+    transactionThreadIDs,
+    lastActions,
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
@@ -2630,6 +2680,8 @@ function getSearchOptions({
             reportAttributesDerived,
             allPolicyTags,
             sortedActions,
+            transactionThreadIDs,
+            lastActions,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
         },
