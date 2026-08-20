@@ -315,7 +315,15 @@ describe('getOptionData alternateText parity snapshots', () => {
             expect(
                 getAlternateText({
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.CARD_ISSUED, {originalMessage: {assigneeAccountID: 2, cardID: 11}}),
-                    card: {cardID: 11, state: 2, bank: CONST.EXPENSIFY_CARD.BANK, domainName: 'test.com', lastFourPAN: '1234'} as Card,
+                    card: {
+                        cardID: 11,
+                        state: CONST.EXPENSIFY_CARD.STATE.STATE_NOT_ISSUED,
+                        bank: CONST.EXPENSIFY_CARD.BANK,
+                        domainName: 'test.com',
+                        lastUpdated: '2024-01-01',
+                        fraud: CONST.EXPENSIFY_CARD.FRAUD_TYPES.NONE,
+                        lastFourPAN: '1234',
+                    },
                 }),
             ).toMatchSnapshot();
         });
@@ -393,7 +401,7 @@ describe('getOptionData alternateText parity snapshots', () => {
                     lastAction: makeAction(CONST.REPORT.ACTIONS.TYPE.MOVED_TRANSACTION, {originalMessage: {toReportID: '300', fromReportID: '100'}}),
                     reportAttributesDerived: {
                         '300': {reportName: 'Target Expense Report', isEmpty: false, brickRoadStatus: undefined, requiresAttention: false, reportErrors: {}},
-                    } as unknown as ReportAttributesDerivedValue['reports'],
+                    },
                 }),
             ).toMatchSnapshot();
         });
