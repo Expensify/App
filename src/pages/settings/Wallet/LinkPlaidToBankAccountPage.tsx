@@ -168,22 +168,25 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         );
     }
 
-    if (isPlaidDisabled) {
+    if (plaidLinkToken) {
         return (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5]}>
-                <Text style={styles.formError}>{translate('bankAccount.error.tooManyAttempts')}</Text>
-            </View>
+            <PlaidLink
+                token={plaidLinkToken}
+                onSuccess={({publicToken}) => {
+                    Log.info('[PlaidLink] Success!');
+                    linkPlaidToBankAccount(bankAccountID, publicToken, policyID);
+                }}
+                onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
+                onEvent={() => {}}
+                onExit={() => Navigation.goBack(backPath)}
+            />
         );
     }
 
     return (
-        <PlaidLink
-            token={plaidLinkToken}
-            onSuccess={({publicToken, metadata}) => onPlaidSuccess({publicToken, bankName: metadata?.institution?.name ?? ''})}
-            onError={(error) => Log.hmmm('[LinkPlaidToBankAccount] PlaidLink error: ', error?.message)}
-            onEvent={() => {}}
-            onExit={() => Navigation.goBack(backPath)}
-        />
+        <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
+            <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+        </View>
     );
 }
 
