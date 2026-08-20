@@ -178,6 +178,7 @@ function getReportActionsFromSearchSnapshot(
     }
 
     const key = `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}` as const;
+
     // Prefer live report actions so local changes made after the snapshot was taken are respected; fall back to the search snapshot.
     return allReportActions?.[key] ?? searchData?.[key];
 }
