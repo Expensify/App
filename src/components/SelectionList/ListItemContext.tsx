@@ -15,10 +15,10 @@ type ListItemContextValue = {
     isFocusVisible?: boolean;
 
     /** Whether text in the row should show a tooltip on overflow */
-    showTooltip?: boolean;
+    shouldShowTooltip?: boolean;
 };
 
-const ListItemContext = createContext<ListItemContextValue>({isFocused: false, isFocusVisible: false, showTooltip: false});
+const ListItemContext = createContext<ListItemContextValue>({isFocused: false, isFocusVisible: false, shouldShowTooltip: false});
 
 function useListItemContext() {
     return useContext(ListItemContext);

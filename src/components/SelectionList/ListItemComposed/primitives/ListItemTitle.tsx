@@ -20,11 +20,11 @@ type ListItemTitleProps = {
 
 function ListItemTitle({text, numberOfLines, style}: ListItemTitleProps) {
     const styles = useThemeStyles();
-    const {showTooltip} = useListItemContext();
+    const {shouldShowTooltip} = useListItemContext();
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={!!showTooltip}
+            shouldShowTooltip={!!shouldShowTooltip}
             text={text}
             numberOfLines={numberOfLines}
             style={[styles.optionDisplayName, styles.sidebarLinkText, styles.sidebarLinkTextBold, styles.pre, style]}

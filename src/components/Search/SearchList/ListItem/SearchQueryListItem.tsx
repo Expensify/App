@@ -53,7 +53,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
     const shouldShowBrickRoadIndicator = !item.isSelected || !!item.canShowSeveralIndicators;
 
     return (
-        <ListItemComposed.Pressable
+        <ListItemComposed
             item={item}
             pressableStyle={[styles.searchQueryListItemStyle, item.isSelected && styles.activeComponentBG, item.cursorStyle]}
             isFocused={isFocused}
@@ -64,7 +64,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
             shouldSyncFocus={shouldSyncFocus}
             shouldDisableHoverStyle={shouldDisableHoverStyle}
             shouldHighlightSelectedItem
-            showTooltip={showTooltip}
+            shouldShowTooltip={showTooltip}
         >
             <View style={[styles.flexRow, styles.flex1, styles.justifyContentBetween, styles.userSelectNone, styles.alignItemsCenter]}>
                 {!!item.singleIcon && (
@@ -85,7 +85,7 @@ function SearchQueryListItem({item, isFocused, showTooltip, onSelectRow, onFocus
                 {!!item.rightElement && <View style={[styles.ml2, styles.flexShrink1, styles.mw50]}>{item.rightElement}</View>}
                 {!!item.brickRoadIndicator && shouldShowBrickRoadIndicator && <ListItemComposed.RBRIndicator brickRoadIndicator={item.brickRoadIndicator} />}
             </View>
-        </ListItemComposed.Pressable>
+        </ListItemComposed>
     );
 }
 

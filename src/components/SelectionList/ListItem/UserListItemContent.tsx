@@ -51,7 +51,7 @@ type UserListItemContentProps<TItem extends ListItem> = {
 function UserListItemContent<TItem extends ListItem>({
     item,
     isFocused,
-    showTooltip,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     shouldDisableHoverStyle,
     shouldDisableAccessibleGrouping,
@@ -96,7 +96,7 @@ function UserListItemContent<TItem extends ListItem>({
             style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}
         >
             {(!!reportExists || !!itemAccountID || !!policyID) && (
-                <AvatarTooltipsProvider isEnabled={showTooltip}>
+                <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
                     {!reportExists && !policyID && !!itemAccountID ? (
                         <AccountAvatar
                             accountID={itemAccountID}
@@ -122,20 +122,20 @@ function UserListItemContent<TItem extends ListItem>({
             )}
             <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                 <TextWithTooltip
-                    shouldShowTooltip={showTooltip}
+                    shouldShowTooltip={shouldShowTooltip}
                     text={Str.removeSMSDomain(item.text ?? '')}
                     style={[styles.optionDisplayName, styles.sidebarLinkText, item.isBold !== false && styles.sidebarLinkTextBold, styles.pre, item.alternateText ? styles.mb1 : null]}
                 />
                 {!!item.alternateText && (
                     <TextWithTooltip
-                        shouldShowTooltip={showTooltip}
+                        shouldShowTooltip={shouldShowTooltip}
                         text={Str.removeSMSDomain(item.alternateText ?? '')}
                         style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                         forwardedFSClass={forwardedFSClass}
                     />
                 )}
             </View>
-            {!!item.rightElement && <ListItemContext.Provider value={{isFocused, showTooltip}}>{item.rightElement}</ListItemContext.Provider>}
+            {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
             {!!item.shouldShowRightCaret && (
                 <View style={[styles.popoverMenuIcon, styles.pointerEventsAuto, isDisabled && styles.cursorDisabled]}>
                     <Icon

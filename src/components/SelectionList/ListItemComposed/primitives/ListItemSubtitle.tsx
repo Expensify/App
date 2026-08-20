@@ -25,11 +25,11 @@ type ListItemSubtitleProps = {
 
 function ListItemSubtitle({text, numberOfLines, forwardedFSClass, style}: ListItemSubtitleProps) {
     const styles = useThemeStyles();
-    const {showTooltip} = useListItemContext();
+    const {shouldShowTooltip} = useListItemContext();
 
     return (
         <TextWithTooltip
-            shouldShowTooltip={!!showTooltip}
+            shouldShowTooltip={!!shouldShowTooltip}
             text={text}
             numberOfLines={numberOfLines}
             style={[styles.textLabelSupporting, styles.lh16, styles.pre, style]}

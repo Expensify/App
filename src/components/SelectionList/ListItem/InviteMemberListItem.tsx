@@ -27,7 +27,7 @@ function InviteMemberListItem<TItem extends ListItem>({
     item,
     isFocused,
     isFocusVisible,
-    showTooltip,
+    showTooltip: shouldShowTooltip,
     isDisabled,
     canSelectMultiple,
     onSelectRow,
@@ -62,7 +62,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             isFocused={isFocused}
             isFocusVisible={isFocusVisible}
             isDisabled={isDisabled}
-            showTooltip={showTooltip}
+            showTooltip={shouldShowTooltip}
             canSelectMultiple={canSelectMultiple}
             onSelectRow={onSelectRow}
             onDismissError={onDismissError}
@@ -84,7 +84,7 @@ function InviteMemberListItem<TItem extends ListItem>({
             {(hovered?: boolean) => (
                 <View style={[styles.flexRow, styles.alignItemsCenter, styles.flex1]}>
                     {(!!item.reportID || !!accountID || !!item.text || !!item.alternateText) && (
-                        <AvatarTooltipsProvider isEnabled={showTooltip}>
+                        <AvatarTooltipsProvider isEnabled={shouldShowTooltip}>
                             {accountID ? (
                                 <AccountAvatar
                                     accountID={accountID}
@@ -109,7 +109,7 @@ function InviteMemberListItem<TItem extends ListItem>({
                     <View style={[styles.flex1, styles.flexColumn, styles.justifyContentCenter, styles.alignItemsStretch, styles.optionRow]}>
                         <View style={[styles.flexRow, styles.alignItemsCenter]}>
                             <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 text={Str.removeSMSDomain(item.text ?? '')}
                                 numberOfLines={isMultilineSupported ? 2 : 1}
                                 style={[
@@ -123,13 +123,13 @@ function InviteMemberListItem<TItem extends ListItem>({
                         </View>
                         {!!item.alternateText && (
                             <TextWithTooltip
-                                shouldShowTooltip={showTooltip}
+                                shouldShowTooltip={shouldShowTooltip}
                                 text={Str.removeSMSDomain(item.alternateText ?? '')}
                                 style={[styles.textLabelSupporting, styles.lh16, styles.pre]}
                             />
                         )}
                     </View>
-                    {!!item.rightElement && <ListItemContext.Provider value={{isFocused, showTooltip}}>{item.rightElement}</ListItemContext.Provider>}
+                    {!!item.rightElement && <ListItemContext.Provider value={{isFocused, shouldShowTooltip}}>{item.rightElement}</ListItemContext.Provider>}
                 </View>
             )}
         </ListItemWrapper>

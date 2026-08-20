@@ -50,8 +50,10 @@ type ListItemPressableProps<TItem extends ListItem> = Pick<
     | 'accessibilityRole'
     | 'shouldUseOptionRole'
     | 'isSelected'
-    | 'showTooltip'
 > & {
+    /** Whether content inside the row should show tooltips (provided to children via ListItemContext) */
+    shouldShowTooltip: boolean;
+
     /** Row content */
     children?: ReactNode;
 };
@@ -90,12 +92,14 @@ function ListItemPressable<TItem extends ListItem>({
     accessibilityRole = getButtonRole(true),
     shouldUseOptionRole,
     isSelected,
-    showTooltip,
+    shouldShowTooltip,
 }: ListItemPressableProps<TItem>) {
     const theme = useTheme();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
-    const {bind} = useHover();
+    const {
+        bind: {onMouseEnter, onMouseLeave},
+    } = useHover();
     const {isMouseDownOnInput} = useMouseState();
     const {setMouseUp} = useMouseActions();
     const pressableRef = useRef<View>(null);
@@ -107,7 +111,7 @@ function ListItemPressable<TItem extends ListItem>({
     // When the list-level keyboard shortcut is disabled (disableKeyboardShortcuts), we handle
     // Enter activation here at the item level so each row can still be activated individually
     // without interfering with other focusable controls (e.g. footer inputs) on the same screen.
-    const handleKeyDown = (event: React.KeyboardEvent) => {
+    const selectRowOnEnterKey = (event: React.KeyboardEvent) => {
         if (
             shouldPreventEnterKeySubmit ||
             accessible === false ||
@@ -124,8 +128,8 @@ function ListItemPressable<TItem extends ListItem>({
         onSelectRow(item);
     };
 
-    const handleMouseLeave = (e: React.MouseEvent<Element, MouseEvent>) => {
-        bind.onMouseLeave();
+    const clearHoverAndMouseDownState = (e: React.MouseEvent<Element, MouseEvent>) => {
+        onMouseLeave();
         e.stopPropagation();
         setMouseUp();
     };
@@ -155,7 +159,7 @@ function ListItemPressable<TItem extends ListItem>({
         >
             <PressableWithFeedback
                 sentryLabel={CONST.SENTRY_LABEL.SELECTION_LIST.BASE_LIST_ITEM}
-                {...bind}
+                onMouseEnter={onMouseEnter}
                 ref={pressableRef}
                 lang={item.lang}
                 accessibilityLanguage={item.lang}
@@ -205,13 +209,13 @@ function ListItemPressable<TItem extends ListItem>({
                 {...accessibleAndAccessibilityLabel}
                 accessibilityState={accessibilityState}
                 aria-current={ariaCurrent}
-                onMouseLeave={handleMouseLeave}
+                onMouseLeave={clearHoverAndMouseDownState}
                 // When the list-level Enter shortcut is disabled (disableKeyboardShortcuts), items with role="option"
                 // won't natively fire click on Enter, so we handle it manually via onKeyDown.
-                onKeyDown={!shouldPreventEnterKeySubmit ? handleKeyDown : undefined}
+                onKeyDown={!shouldPreventEnterKeySubmit ? selectRowOnEnterKey : undefined}
                 wrapperStyle={pressableWrapperStyle}
             >
-                <ListItemContext.Provider value={{isFocusVisible: !!isFocusVisible, showTooltip}}>{children}</ListItemContext.Provider>
+                <ListItemContext.Provider value={{isFocusVisible: !!isFocusVisible, shouldShowTooltip}}>{children}</ListItemContext.Provider>
             </PressableWithFeedback>
         </OfflineWithFeedback>
     );
