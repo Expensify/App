@@ -1,3 +1,5 @@
+import {useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
+
 import {createFilteredOptionList} from '@libs/OptionsListUtils';
 import type {OptionList} from '@libs/OptionsListUtils/types';
 
@@ -97,7 +99,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
     const sortedActions = sortedReportActionsData?.sortedActions;
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
     const lastActions = sortedReportActionsData?.lastActions;
-    const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
+    const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
+    const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
+    const [visibleReportActionsData] = useOnyx(ONYXKEYS.DERIVED.VISIBLE_REPORT_ACTIONS);
 
     const privateIsArchivedMap = usePrivateIsArchivedMap();
 
@@ -113,13 +119,25 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
                       reportAttributesDerived,
                       privateIsArchivedMap,
                       allPolicies,
-                      {currentUserAccountID, dateFnsLocale, conciergeReportID, maxRecentReports: reportsLimit, includeP2P, isSearching, deferContactsUntilSearch, locale: preferredLocale},
-                      undefined,
-                      undefined,
+                      {
+                          currentUserAccountID,
+                          currentUserLogin,
+                          cardList,
+                          workspaceCardList,
+                          transactionThreadIDs,
+                          lastActions,
+                          dateFnsLocale,
+                          conciergeReportID,
+                          maxRecentReports: reportsLimit,
+                          includeP2P,
+                          isSearching,
+                          deferContactsUntilSearch,
+                          locale: preferredLocale,
+                      },
+                      allPolicyTags,
+                      visibleReportActionsData,
                       isTrackIntentUser,
                       sortedActions,
-                      transactionThreadIDs,
-                      lastActions,
                   )
                 : null,
         [
@@ -136,6 +154,11 @@ function useFilteredOptions(config: UseFilteredOptionsConfig): UseFilteredOption
             deferContactsUntilSearch,
             preferredLocale,
             isTrackIntentUser,
+            currentUserLogin,
+            cardList,
+            workspaceCardList,
+            allPolicyTags,
+            visibleReportActionsData,
             sortedActions,
             transactionThreadIDs,
             lastActions,

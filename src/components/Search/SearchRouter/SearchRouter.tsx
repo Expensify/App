@@ -1,5 +1,5 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {useCardList, usePersonalDetails, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 import type {AnimatedTextInputRef} from '@components/RNTextInput';
 import DeferredAutocompleteList from '@components/Search/DeferredSearchAutocompleteList';
 import type {GetAdditionalSectionsCallback} from '@components/Search/SearchAutocompleteList';
@@ -79,7 +79,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale, localeCompare} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -91,6 +91,8 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
     const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const [searchContext] = useOnyx(ONYXKEYS.SEARCH_CONTEXT);
     const personalDetails = usePersonalDetails();
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
     const sortedReportActionsData = useSortedReportActionsData();
     const sortedActions = sortedReportActionsData?.sortedActions;
     const transactionThreadIDs = sortedReportActionsData?.transactionThreadIDs;
@@ -228,6 +230,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     sortedActions,
                     transactionThreadIDs,
                     lastActions,
+                    currentUserAccountID,
+                    currentUserLogin: currentUserPersonalDetails.login,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     reportAttributesDerived: reportAttributes,
                     config: {
@@ -301,6 +309,12 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             sortedActions,
             transactionThreadIDs,
             lastActions,
+            currentUserAccountID,
+            currentUserPersonalDetails.login,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
             contextualReportNVP,
             contextualReportPolicy,
             reportAttributes,

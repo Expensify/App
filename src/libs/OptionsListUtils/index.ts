@@ -2,9 +2,11 @@ import FallbackAvatar from '@assets/images/avatars/fallback-avatar.svg';
 
 import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
+import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 import type {PrivateIsArchivedMap} from '@hooks/usePrivateIsArchivedMap';
 
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
+import {convertToDisplayString as convertToDisplayStringUtil} from '@libs/CurrencyUtils';
 import filterArrayByMatch from '@libs/filterArrayByMatch';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from '@libs/LocalePhoneNumber';
@@ -12,9 +14,9 @@ import {translate as translateWithLocale, translateLocal} from '@libs/Localize';
 import {appendCountryCode, getPhoneNumberWithoutSpecialChars} from '@libs/LoginUtils';
 import MaxHeap from '@libs/MaxHeap';
 import MinHeap from '@libs/MinHeap';
+import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
 import Navigation from '@libs/Navigation/Navigation';
 import {getIsOffline} from '@libs/NetworkState';
-import Parser from '@libs/Parser';
 import type {OptionData as PersonalDetailOptionData} from '@libs/PersonalDetailOptionsListUtils/types';
 import {getLoginByAccountID, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
 import {addSMSDomainIfPhoneNumber, parsePhoneNumber} from '@libs/PhoneNumber';
@@ -45,11 +47,13 @@ import {
     isTaskAction,
 } from '@libs/ReportActionsUtils';
 import {
+    getExpensifyCardFromReportAction,
     getLastActorDisplayName,
     getLastActorDisplayNameFromLastVisibleActions,
     getLastMessageTextForReport,
     getPersonalDetailForAccountID,
     getPersonalDetailsForAccountIDs,
+    getReportAlternateText,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
 import {deprecatedGetReportName, getReportName} from '@libs/ReportNameUtils';
@@ -65,7 +69,6 @@ import {
     getPolicyName,
     getReportNotificationPreference,
     getReportOrDraftReport,
-    getReportSubtitlePrefix,
     getViolatingReportIDForRBRInLHN,
     hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
@@ -98,6 +101,7 @@ import IntlStore from '@src/languages/IntlStore';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Beta,
+    CardList,
     Locale,
     Login,
     OnyxInputOrEntry,
@@ -112,6 +116,7 @@ import type {
     ReportAction,
     ReportAttributesDerivedValue,
     VisibleReportActionsDerivedValue,
+    WorkspaceCardsList,
 } from '@src/types/onyx';
 import type {Participant} from '@src/types/onyx/IOU';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
@@ -412,7 +417,7 @@ type GetAlternateTextConfig = {
     personalDetails: OnyxEntry<PersonalDetailsList>;
     // We'll make it required in the next PR. Ref: https://github.com/Expensify/App/issues/66415
     policy?: OnyxEntry<Policy>;
-    lastActorDetails?: Partial<PersonalDetails> | null;
+    invoiceReceiverPolicy?: OnyxEntry<Policy>;
     visibleReportActionsData?: VisibleReportActionsDerivedValue;
     translate?: LocalizedTranslate;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -425,7 +430,21 @@ type GetAlternateTextConfig = {
     isTrackIntentUser?: boolean;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    currentUserLogin?: string;
+    cardList?: OnyxEntry<CardList>;
+    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
+
+/**
+ * Fallback for non-React callers that cannot provide the hook-bound localeCompare.
+ * Mirrors LocaleContextProvider's collator options against the active locale.
+ */
+function fallbackLocaleCompare(a: string, b: string): number {
+    return new Intl.Collator(IntlStore.getCurrentLocale(), {usage: 'sort', sensitivity: 'variant', numeric: true, caseFirst: 'upper'}).compare(a, b);
+}
 
 /**
  * Update alternate text for the option when applicable
@@ -437,7 +456,7 @@ function getAlternateText(
         isReportArchived,
         personalDetails,
         policy,
-        lastActorDetails = {},
+        invoiceReceiverPolicy,
         visibleReportActionsData = {},
         translate,
         dateFnsLocale,
@@ -449,6 +468,12 @@ function getAlternateText(
         lastActions,
         isTrackIntentUser,
         currentUserAccountID,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
+        convertToDisplayString,
     }: GetAlternateTextConfig,
 ) {
     const report = getReportOrDraftReport(option.reportID);
@@ -457,73 +482,84 @@ function getAlternateText(
     const isGroupChat = reportUtilsIsGroupChat(report);
     const isExpenseThread = isMoneyRequest(report);
     const translateFn = translate ?? translateLocal;
-    // Keep Plain comments as they're typed (example: `<b>test</b>` stays `<b>test</b>`).
-    // Parser.htmlToText would strip it to `test`. Ref: https://github.com/Expensify/App/issues/82036
-    const isLastActionAddComment = report?.lastActionType === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT;
-    const formattedLastMessageText =
-        formatReportLastMessageText(isLastActionAddComment ? (option.lastMessageText ?? '') : Parser.htmlToText(option.lastMessageText ?? '')) ||
-        getLastMessageTextForReport({
-            translate: translateFn,
-            dateFnsLocale,
-            report,
-            personalDetails,
-            lastActorDetails,
-            policy,
-            isReportArchived,
-            visibleReportActionsDataParam: visibleReportActionsData,
-            reportAttributesDerived,
-            policyTags,
-            conciergeReportID,
-            sortedActions,
-            isTrackIntentUser,
-            currentUserAccountID,
-            oneTransactionThreadReportID: report?.reportID ? transactionThreadIDs?.[report.reportID] : undefined,
-            lastOriginalAction: report?.reportID ? lastActions?.[report.reportID] : undefined,
-        });
-    const reportPrefix = getReportSubtitlePrefix(report);
 
-    const {actorPrefix, customAlternateText} =
-        showChatPreviewLine && formattedLastMessageText
-            ? getChatPreviewParts({
-                  report,
-                  personalDetails,
-                  isReportArchived,
-                  translate: translateFn,
-                  visibleReportActionsData,
-                  currentUserAccountID,
-                  sortedActions,
-                  reportAttributesDerived,
-              })
-            : {actorPrefix: '', customAlternateText: undefined};
-    const formattedLastMessageTextWithPrefix = reportPrefix + actorPrefix + (customAlternateText ?? formattedLastMessageText);
+    // The chat preview line must match the LHN row for the same report, so it is computed by the shared
+    // getReportAlternateText pipeline. forcePolicyNamePreview keeps the workspace-name subtitle for policy
+    // chats and admin/announce rooms (existing picker semantics).
+    const forcePolicyName = forcePolicyNamePreview && ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom);
+    if (showChatPreviewLine && !forcePolicyName && report) {
+        // TODO: Make currentUserAccountID required and remove the fallback. Refactor issue: https://github.com/Expensify/App/issues/66408
+        const resolvedCurrentUserAccountID = currentUserAccountID ?? CONST.DEFAULT_NUMBER_ID;
+        const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
+        const sortedActionsForReport = sortedActions?.[report.reportID];
+        const lastAction = sortedActionsForReport
+            ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, resolvedCurrentUserAccountID))
+            : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
+        let lastActionReport: OnyxEntry<Report>;
+        if (isInviteOrRemovedAction(lastAction)) {
+            const lastActionOriginalMessage = getOriginalMessage(lastAction);
+            lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
+        }
+        const movedFromReport = getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.FROM));
+        const movedToReport = getReportOrDraftReport(getMovedReportID(lastAction, CONST.REPORT.MOVE_TYPE.TO));
+        const card = isCardIssuedAction(lastAction) ? getExpensifyCardFromReportAction({reportAction: lastAction, policy, cardList, workspaceCardList}) : undefined;
+        return getReportAlternateText({
+            report,
+            lastAction,
+            lastActionReport,
+            movedFromReport,
+            movedToReport,
+            card,
+            personalDetails,
+            policy,
+            invoiceReceiverPolicy,
+            policyTags,
+            isReportArchived,
+            // The Search path has no separate report NVP source here; the archived flag and private_isArchived
+            // both derive from the same NVP, so the option's archived flag is the equivalent input.
+            privateIsArchived: !!isReportArchived,
+            conciergeReportID,
+            reportAttributesDerived,
+            visibleReportActionsData,
+            sortedActions,
+            oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
+            lastOriginalAction: lastActions?.[report.reportID],
+            currentUserAccountID: resolvedCurrentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
+            isTrackIntentUser,
+            translate: translateFn,
+            localeCompare: localeCompare ?? fallbackLocaleCompare,
+            formatPhoneNumber: formatPhoneNumber ?? formatPhoneNumberPhoneUtils,
+            dateFnsLocale,
+            convertToDisplayString: convertToDisplayString ?? convertToDisplayStringUtil,
+        });
+    }
 
     if (isExpenseThread || option.isMoneyRequestReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('iou.expense');
+        return translateFn('iou.expense');
     }
 
     if (option.isThread) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('threads.thread');
+        return translateFn('threads.thread');
     }
 
     if (option.isChatRoom && !isAdminRoom && !isAnnounceRoom) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if ((option.isPolicyExpenseChat ?? false) || isAdminRoom || isAnnounceRoom) {
-        return showChatPreviewLine && !forcePolicyNamePreview && formattedLastMessageText ? formattedLastMessageTextWithPrefix : option.subtitle;
+        return option.subtitle;
     }
 
     if (option.isTaskReport) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('task.task');
+        return translateFn('task.task');
     }
 
     if (isGroupChat) {
-        return showChatPreviewLine && formattedLastMessageText ? formattedLastMessageTextWithPrefix : translateFn('common.group');
+        return translateFn('common.group');
     }
 
-    return showChatPreviewLine && formattedLastMessageText
-        ? formattedLastMessageTextWithPrefix
-        : formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
+    return formatPhoneNumberPhoneUtils(option.participantsList && option.participantsList.length > 0 ? (option.participantsList.at(0)?.login ?? '') : '');
 }
 
 /**
@@ -564,6 +600,12 @@ type CreateOptionParams = {
     lastActions?: Record<string, ReportAction>;
     // TODO: Remove optional (?) once all callers pass currentUserAccountID. Refactor issue: https://github.com/Expensify/App/issues/66408
     currentUserAccountID?: number;
+    currentUserLogin?: string;
+    cardList?: OnyxEntry<CardList>;
+    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
 };
 
 /** Shared by createOption and shells so filtering uses the final display text. */
@@ -607,6 +649,12 @@ function createOption({
     transactionThreadIDs,
     lastActions,
     currentUserAccountID,
+    currentUserLogin,
+    cardList,
+    workspaceCardList,
+    localeCompare,
+    formatPhoneNumber,
+    convertToDisplayString,
 }: CreateOptionParams): SearchOptionData {
     const {showChatPreviewLine = false, forcePolicyNamePreview = false, showPersonalDetails = false, selected, isSelected, isDisabled} = config ?? {};
     const translateFn = translate ?? translateLocal;
@@ -695,6 +743,7 @@ function createOption({
             sortedActions,
             isTrackIntentUser,
             currentUserAccountID,
+            currentUserLogin,
             oneTransactionThreadReportID: transactionThreadIDs?.[report.reportID],
             lastOriginalAction: lastActions?.[report.reportID],
         });
@@ -709,7 +758,6 @@ function createOption({
                           isReportArchived: !!result.private_isArchived,
                           personalDetails,
                           policy,
-                          lastActorDetails,
                           visibleReportActionsData,
                           translate: translateFn,
                           reportAttributesDerived,
@@ -720,6 +768,12 @@ function createOption({
                           lastActions,
                           isTrackIntentUser,
                           currentUserAccountID,
+                          currentUserLogin,
+                          cardList,
+                          workspaceCardList,
+                          localeCompare,
+                          formatPhoneNumber,
+                          convertToDisplayString,
                       },
                   );
 
@@ -1066,6 +1120,12 @@ function processReport(
         transactionThreadIDs,
         lastActions,
         currentUserAccountID,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
+        convertToDisplayString,
     }: {
         currentUserAccountID: number;
         reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
@@ -1076,6 +1136,12 @@ function processReport(
         sortedActions?: Record<string, ReportAction[]>;
         transactionThreadIDs?: Record<string, string | undefined>;
         lastActions?: Record<string, ReportAction>;
+        currentUserLogin?: string;
+        cardList?: OnyxEntry<CardList>;
+        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+        localeCompare?: LocaleContextProps['localeCompare'];
+        formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+        convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     },
 ): {
     reportMapEntry?: [number, Report]; // The entry to add to reportMapForAccountIDs if applicable
@@ -1116,6 +1182,12 @@ function processReport(
                 transactionThreadIDs,
                 lastActions,
                 currentUserAccountID,
+                currentUserLogin,
+                cardList,
+                workspaceCardList,
+                localeCompare,
+                formatPhoneNumber,
+                convertToDisplayString,
             }),
         },
     };
@@ -1283,6 +1355,11 @@ function createFilteredOptionList(
     policiesCollection: OnyxCollection<Policy>,
     options: {
         currentUserAccountID: number;
+        currentUserLogin?: string;
+        cardList?: OnyxEntry<CardList>;
+        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
         dateFnsLocale: DateFnsLocale | undefined;
         conciergeReportID: string | undefined;
         maxRecentReports?: number;
@@ -1303,10 +1380,21 @@ function createFilteredOptionList(
     isTrackIntentUser?: boolean,
     // TODO: Remove optional (?) once all callers pass sortedActions. Refactor issue: https://github.com/Expensify/App/issues/66381
     sortedActions?: Record<string, ReportAction[]>,
-    transactionThreadIDs?: Record<string, string | undefined>,
-    lastActions?: Record<string, ReportAction>,
 ): OptionList {
-    const {currentUserAccountID, conciergeReportID, maxRecentReports = 500, includeP2P = true, isSearching = false, deferContactsUntilSearch = false, locale} = options;
+    const {
+        currentUserAccountID,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
+        transactionThreadIDs,
+        lastActions,
+        conciergeReportID,
+        maxRecentReports = 500,
+        includeP2P = true,
+        isSearching = false,
+        deferContactsUntilSearch = false,
+        locale,
+    } = options;
 
     // Use the cache-key locale for translated contact fields.
     const activeLocale = locale ?? IntlStore.getCurrentLocale();
@@ -1342,6 +1430,9 @@ function createFilteredOptionList(
         transactionThreadIDs,
         lastActions,
         currentUserAccountID,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
     ];
     const cachedEntry = shouldUseCache ? filteredOptionListCache.get(cacheEntryKey) : undefined;
     if (cachedEntry && cacheInputs.every((value, index) => value === cachedEntry.inputs.at(index))) {
@@ -1404,6 +1495,9 @@ function createFilteredOptionList(
             transactionThreadIDs,
             lastActions,
             currentUserAccountID,
+            currentUserLogin,
+            cardList,
+            workspaceCardList,
         });
         if (reportMapEntry) {
             const [accountID, reportValue] = reportMapEntry;
@@ -1477,6 +1571,13 @@ type CreateOptionFromReportParams = {
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
+    currentUserAccountID?: number;
+    currentUserLogin?: string;
+    cardList?: OnyxEntry<CardList>;
+    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeReportID: string | undefined;
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
     config?: PreviewConfig;
@@ -1494,6 +1595,13 @@ function createOptionFromReport({
     sortedActions,
     transactionThreadIDs,
     lastActions,
+    currentUserAccountID,
+    currentUserLogin,
+    cardList,
+    workspaceCardList,
+    localeCompare,
+    formatPhoneNumber,
+    convertToDisplayString,
     conciergeReportID,
     reportAttributesDerived,
     config,
@@ -1520,6 +1628,13 @@ function createOptionFromReport({
             sortedActions,
             transactionThreadIDs,
             lastActions,
+            currentUserAccountID,
+            currentUserLogin,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
+            convertToDisplayString,
             isTrackIntentUser,
         }),
     };
@@ -2063,15 +2178,25 @@ function prepareReportOptionsForDisplay(
     options: Array<SearchOption<Report>>,
     policiesCollection: OnyxCollection<Policy>,
     isOffline: boolean,
-    config: GetValidReportsConfig & {translate: LocalizedTranslate; dateFnsLocale: DateFnsLocale | undefined; currentUserAccountID?: number},
+    config: GetValidReportsConfig & {
+        translate: LocalizedTranslate;
+        dateFnsLocale: DateFnsLocale | undefined;
+        currentUserAccountID?: number;
+        currentUserLogin?: string;
+        cardList?: OnyxEntry<CardList>;
+        workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+        localeCompare?: LocaleContextProps['localeCompare'];
+        formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+        convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
+        transactionThreadIDs?: Record<string, string | undefined>;
+        lastActions?: Record<string, ReportAction>;
+    },
     conciergeReportID: string | undefined,
     sortedActions: Record<string, ReportAction[]> | undefined,
     visibleReportActionsData: VisibleReportActionsDerivedValue = {},
     reportAttributesDerived?: ReportAttributesDerivedValue['reports'],
     policyTags?: OnyxCollection<PolicyTagLists>,
     isTrackIntentUser?: boolean,
-    transactionThreadIDs?: Record<string, string | undefined>,
-    lastActions?: Record<string, ReportAction>,
 ): Array<SearchOption<Report>> {
     const {
         showChatPreviewLine = false,
@@ -2088,6 +2213,14 @@ function prepareReportOptionsForDisplay(
         personalDetails,
         translate,
         currentUserAccountID,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
+        convertToDisplayString,
+        transactionThreadIDs,
+        lastActions,
     } = config;
 
     const validOptions: Array<SearchOption<Report>> = [];
@@ -2106,8 +2239,6 @@ function prepareReportOptionsForDisplay(
          * By default, generated options does not have the chat preview line enabled.
          * If showChatPreviewLine or forcePolicyNamePreview are true, let's generate and overwrite the alternate text.
          */
-        const lastActorDetails = personalDetails?.[report.lastActorAccountID ?? CONST.DEFAULT_NUMBER_ID] ?? null;
-
         const alternateText = getAlternateText(
             option,
             {showChatPreviewLine, forcePolicyNamePreview},
@@ -2116,7 +2247,6 @@ function prepareReportOptionsForDisplay(
                 isReportArchived: !!option.private_isArchived,
                 personalDetails,
                 policy,
-                lastActorDetails,
                 visibleReportActionsData,
                 reportAttributesDerived,
                 policyTags: reportPolicyTags,
@@ -2126,6 +2256,12 @@ function prepareReportOptionsForDisplay(
                 lastActions,
                 isTrackIntentUser,
                 currentUserAccountID,
+                currentUserLogin,
+                cardList,
+                workspaceCardList,
+                localeCompare,
+                formatPhoneNumber,
+                convertToDisplayString,
             },
         );
         const isSelected = isReportSelected(option, selectedOptions);
@@ -2234,6 +2370,12 @@ function getValidOptions(
         sortedActions,
         transactionThreadIDs,
         lastActions,
+        currentUserLogin,
+        cardList,
+        workspaceCardList,
+        localeCompare,
+        formatPhoneNumber,
+        convertToDisplayString,
         isTrackIntentUser,
         isOffline,
         ...config
@@ -2378,6 +2520,14 @@ function getValidOptions(
                     personalDetails,
                     translate,
                     currentUserAccountID,
+                    currentUserLogin: currentUserLogin ?? currentUserEmail,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
+                    convertToDisplayString,
+                    transactionThreadIDs,
+                    lastActions,
                 },
                 conciergeReportID,
                 sortedActions,
@@ -2385,8 +2535,6 @@ function getValidOptions(
                 reportAttributesDerived,
                 allPolicyTags,
                 isTrackIntentUser,
-                transactionThreadIDs,
-                lastActions,
             ).at(0);
         }
 
@@ -2408,6 +2556,14 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                cardList,
+                workspaceCardList,
+                localeCompare,
+                formatPhoneNumber,
+                convertToDisplayString,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2415,8 +2571,6 @@ function getValidOptions(
             reportAttributesDerived,
             allPolicyTags,
             isTrackIntentUser,
-            transactionThreadIDs,
-            lastActions,
         );
 
         workspaceChats = prepareReportOptionsForDisplay(
@@ -2434,6 +2588,14 @@ function getValidOptions(
                 personalDetails,
                 translate,
                 currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? currentUserEmail,
+                cardList,
+                workspaceCardList,
+                localeCompare,
+                formatPhoneNumber,
+                convertToDisplayString,
+                transactionThreadIDs,
+                lastActions,
             },
             conciergeReportID,
             sortedActions,
@@ -2441,8 +2603,6 @@ function getValidOptions(
             reportAttributesDerived,
             allPolicyTags,
             isTrackIntentUser,
-            transactionThreadIDs,
-            lastActions,
         );
 
         if (reportIDsToExclude.size > 0) {
@@ -2605,6 +2765,12 @@ type SearchOptionsConfig = {
     sortedActions: Record<string, ReportAction[]> | undefined;
     transactionThreadIDs?: Record<string, string | undefined>;
     lastActions?: Record<string, ReportAction>;
+    currentUserLogin?: string;
+    cardList?: OnyxEntry<CardList>;
+    workspaceCardList?: OnyxCollection<WorkspaceCardsList>;
+    localeCompare?: LocaleContextProps['localeCompare'];
+    formatPhoneNumber?: LocaleContextProps['formatPhoneNumber'];
+    convertToDisplayString?: CurrencyListActionsContextType['convertToDisplayString'];
     conciergeReportID: string | undefined;
     excludeFromSuggestionsOnly?: Record<string, boolean>;
     isTrackIntentUser?: boolean;
@@ -2640,6 +2806,12 @@ function getSearchOptions({
     sortedActions,
     transactionThreadIDs,
     lastActions,
+    currentUserLogin,
+    cardList,
+    workspaceCardList,
+    localeCompare,
+    formatPhoneNumber,
+    convertToDisplayString,
     conciergeReportID,
     excludeFromSuggestionsOnly = {},
     isTrackIntentUser,
@@ -2682,6 +2854,12 @@ function getSearchOptions({
             sortedActions,
             transactionThreadIDs,
             lastActions,
+            currentUserLogin: currentUserLogin ?? currentUserEmail,
+            cardList,
+            workspaceCardList,
+            localeCompare,
+            formatPhoneNumber,
+            convertToDisplayString,
             excludeFromSuggestionsOnly,
             isTrackIntentUser,
         },

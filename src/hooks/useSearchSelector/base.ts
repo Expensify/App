@@ -1,4 +1,4 @@
-import {usePersonalDetails} from '@components/OnyxListItemProvider';
+import {usePersonalDetails, useCardList, useWorkspaceCardList} from '@components/OnyxListItemProvider';
 
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebounce from '@hooks/useDebounce';
@@ -195,7 +195,7 @@ function useSearchSelectorBase({
     shouldKeepSelectedInAvailableOptions = false,
     shouldSeparateNonExistingSelectedOptions = false,
 }: UseSearchSelectorConfig): UseSearchSelectorReturn {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, localeCompare, formatPhoneNumber} = useLocalize();
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [reportAttributesDerived] = useOnyx(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
@@ -213,6 +213,8 @@ function useSearchSelectorBase({
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const currentUserAccountID = currentUserPersonalDetails.accountID;
     const currentUserEmail = currentUserPersonalDetails.email ?? '';
+    const cardList = useCardList();
+    const workspaceCardList = useWorkspaceCardList();
     const personalDetails = usePersonalDetails();
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
@@ -310,6 +312,10 @@ function useSearchSelectorBase({
                     sortedActions,
                     transactionThreadIDs,
                     lastActions,
+                    cardList,
+                    workspaceCardList,
+                    localeCompare,
+                    formatPhoneNumber,
                     conciergeReportID,
                     isTrackIntentUser,
                     translate,
@@ -346,6 +352,10 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
@@ -385,6 +395,10 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
@@ -422,6 +436,10 @@ function useSearchSelectorBase({
                         sortedActions,
                         transactionThreadIDs,
                         lastActions,
+                        cardList,
+                        workspaceCardList,
+                        localeCompare,
+                        formatPhoneNumber,
                         isTrackIntentUser,
                         ...appliedGetValidOptionsConfig,
                     },
