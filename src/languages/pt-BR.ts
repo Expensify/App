@@ -970,7 +970,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
-        announcements: 'Comunicados',
         discoverSection: {
             title: 'Descobrir',
             menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',
@@ -5737,11 +5736,62 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             subsidiarySelectDescription: 'Escolha a subsidiária no DualEntry da qual você gostaria de importar dados.',
             noCompaniesFound: 'Nenhuma empresa encontrada',
             noCompaniesFoundDescription: 'Adicione uma empresa no DualEntry e sincronize a conexão novamente',
+            noVendorsFound: 'Nenhum fornecedor encontrado',
+            noVendorsFoundDescription: 'Adicione fornecedores no DualEntry e sincronize a conexão novamente',
+            noAccountsFound: 'Nenhuma conta encontrada',
+            noAccountsFoundDescription: 'Adicione contas no DualEntry e sincronize a conexão novamente',
             accountTypesDescription: 'Suas contas DualEntry serão importadas como categorias.',
             enableNewAccountsTitle: 'Ativar contas recém-importadas',
             enableNewAccountsDescription: 'Novas contas DualEntry estarão disponíveis como categorias.',
             classificationsImport: 'Todas as classificações DualEntry são importadas como etiquetas',
             importDescription: 'Escolha quais configurações de codificação importar do DualEntry.',
+            exportDescription: 'Configure como os dados do Expensify são exportados para o DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar despesas reembolsáveis como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Faturas de fornecedores',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Data da fatura do fornecedor',
+                description: 'Use esta data ao exportar relatórios para o DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data da última despesa',
+                        description: 'Data da despesa mais recente no relatório.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data de exportação',
+                        description: 'Data em que o relatório foi exportado para o DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data de envio',
+                        description: 'Data em que o relatório foi enviado para aprovação.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar despesas de cartão corporativo como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Despesas diretas',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Fornecedor padrão para todos os cartões corporativos',
+                description: 'Escolha um fornecedor DualEntry padrão para despesas que não forem correspondidas automaticamente.',
+            },
+            companyCardAccount: {
+                label: 'Conta de cartão corporativo',
+                description: 'Escolha para onde exportar as transações do cartão corporativo.',
+            },
+            expensifyCardAccount: {
+                label: 'Conta do Expensify Card',
+                description: 'Escolha para onde exportar as transações do Expensify Card.',
+            },
         },
         type: {
             free: 'Grátis',
