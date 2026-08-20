@@ -8,7 +8,12 @@ import ONYXKEYS from '@src/ONYXKEYS';
 
 import {hasCompletedGuidedSetupFlowSelector} from '@selectors/Onboarding';
 import {isSupportalSessionSelector} from '@selectors/Session';
-import {useEffect, useRef} from 'react';
+import {useEffect} from 'react';
+
+// Module scope rather than a ref so it survives this component remounting. The deeplink is read from the initial URL,
+// which the provider above the navigator keeps for the life of the process, so signing out and into another account
+// remounts this component with the same intent still readable and would create a workspace for that second account.
+let hasAppliedIntent = false;
 
 /**
  * Creates the Submit workspace requested by an `intent=submit` onboarding deeplink.
@@ -26,13 +31,11 @@ function ApplySubmitOnboardingIntent() {
     const [isOnboardingCompleted] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: hasCompletedGuidedSetupFlowSelector});
     const [isSupportalSession] = useOnyx(ONYXKEYS.SESSION, {selector: isSupportalSessionSelector});
 
-    const hasRun = useRef(false);
-
     useEffect(() => {
-        if (hasRun.current || !hasLoadedApp || isOnboardingCompleted === undefined || isSupportalSession) {
+        if (hasAppliedIntent || !hasLoadedApp || isOnboardingCompleted === undefined || isSupportalSession) {
             return;
         }
-        hasRun.current = true;
+        hasAppliedIntent = true;
 
         if (!isOnboardingCompleted) {
             return;
