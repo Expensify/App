@@ -968,7 +968,6 @@ const translations: TranslationDeepObject<typeof en> = {
             addVirtualCardPersonalDetails: {title: 'Dodaj swoje dane, aby wyświetlić i zacząć używać swojej Karty Expensify.', subtitle: 'Karta Expensify', cta: 'Dodaj szczegóły'},
             enterSignerInfo: {title: 'Wymagane dane podpisującego', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Konto bankowe ${bankAccountLastFour}`},
         },
-        announcements: 'Ogłoszenia',
         discoverSection: {
             title: 'Odkryj',
             menuItemTitleNonAdmin: 'Dowiedz się, jak tworzyć wydatki i wysyłać raporty.',
@@ -4472,6 +4471,10 @@ ${amount} dla ${merchant} - ${date}`,
             railCard:
                 'Wiesz, że możesz rezerwować i zarządzać przejazdami pociągiem bezpośrednio w Expensify? I że paragony są automatycznie przesyłane za Ciebie? Następnym razem po prostu zarezerwuj przez <a href="https://travel.expensify.com">Expensify Travel</a>',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Podróże są wyłączone',
+            message: 'Aby dokonać rezerwacji, włącz podróże w swojej domyślnej przestrzeni roboczej lub ustaw jako domyślną inną przestrzeń roboczą, w której podróże są włączone.',
+        },
     },
     workspace: {
         common: {
@@ -5716,11 +5719,62 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             subsidiarySelectDescription: 'Wybierz jednostkę zależną w DualEntry, z której chcesz zaimportować dane.',
             noCompaniesFound: 'Nie znaleziono firm',
             noCompaniesFoundDescription: 'Dodaj proszę firmę w DualEntry i zsynchronizuj połączenie ponownie',
+            noVendorsFound: 'Nie znaleziono dostawców',
+            noVendorsFoundDescription: 'Dodaj proszę dostawców w DualEntry i zsynchronizuj połączenie ponownie',
+            noAccountsFound: 'Nie znaleziono kont',
+            noAccountsFoundDescription: 'Dodaj proszę konta w DualEntry i zsynchronizuj połączenie ponownie',
             accountTypesDescription: 'Twoje konta DualEntry zostaną zaimportowane jako kategorie.',
             enableNewAccountsTitle: 'Włącz nowo zaimportowane konta',
             enableNewAccountsDescription: 'Nowe konta DualEntry będą dostępne jako kategorie.',
             classificationsImport: 'Wszystkie klasyfikacje DualEntry są importowane jako tagi',
             importDescription: 'Wybierz, które konfiguracje kodowania zaimportować z DualEntry.',
+            exportDescription: 'Skonfiguruj sposób eksportowania danych Expensify do DualEntry.',
+            exportReimbursable: {
+                label: 'Eksportuj wydatki podlegające zwrotowi jako',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Faktury od dostawców',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Data rachunku od dostawcy',
+                description: 'Użyj tej daty podczas eksportowania raportów do DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Data ostatniego wydatku',
+                        description: 'Data ostatniego wydatku w raporcie.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Data eksportu',
+                        description: 'Data wyeksportowania raportu do DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Data przesłania',
+                        description: 'Data przesłania raportu do zatwierdzenia.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Eksportuj wydatki z firmowej karty jako',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Wydatki bezpośrednie',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Domyślny dostawca karty firmowej',
+                description: 'Wybierz domyślnego dostawcę DualEntry dla wydatków, które nie dopasują się automatycznie.',
+            },
+            companyCardAccount: {
+                label: 'Konto karty firmowej',
+                description: 'Wybierz miejsce eksportu transakcji z kart firmowych.',
+            },
+            expensifyCardAccount: {
+                label: 'Konto karty Expensify',
+                description: 'Wybierz miejsce eksportu transakcji kartą Expensify.',
+            },
         },
         type: {
             free: 'Darmowy',
@@ -8697,6 +8751,9 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `zaktualizował(a) regułę agenta „${title}” na: ${prompt}` : `zaktualizowano regułę agenta na: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `usunął(-ęła) regułę agenta „${title}”` : 'usunięto regułę agenta'),
         },
+        addedRule: 'dodano regułę',
+        updatedRule: 'zaktualizowano regułę',
+        removedRule: 'usunięto regułę',
         expensifyCardRule: {
             actionVerb: {block: 'zablokowane', allow: 'dozwolone'},
             amountOperator: {over: 'ponad', under: 'pod'},
@@ -10315,9 +10372,14 @@ Dodaj więcej zasad wydatków, żeby chronić płynność finansową firmy.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nowe typy ról dla administratorów',
-                body: 'Daj swojemu zespołowi bardziej szczegółowe uprawnienia dzięki nowym rolom administratora kart, osób i płatności.',
+                heading: 'Ulepszone mapowanie dostawców',
+                body: 'Twórz dostawców i własne reguły, żeby łatwo mapować je do głównych pakietów księgowych.',
                 cta: 'Wypróbuj to',
+            },
+            member: {
+                heading: 'Gotowe agenty dla ciebie',
+                body: 'Korzystaj z gotowych lub niestandardowych agentów, aby automatycznie kodować, dzielić i przesyłać wydatki w Twoim imieniu.',
+                cta: 'Wypróbuj',
             },
         },
     },

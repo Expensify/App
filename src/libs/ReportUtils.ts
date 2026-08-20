@@ -174,6 +174,7 @@ import {
     isPolicyOwner,
     isSubmitAndClose,
     isSubmitterApproveBlockedOnSubmitWorkspace,
+    resolveCurrentTaxCode,
     shouldShowPolicy,
 } from './PolicyUtils';
 import {
@@ -4015,7 +4016,12 @@ function getIconsForIOUReport(report: OnyxInputOrEntry<Report>, personalDetails:
 /**
  * Helper function to get the icons for a group chat. Only to be used in getIcons().
  */
-function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumber: LocaleContextProps['formatPhoneNumber'], translate: LocalizedTranslate): Icon[] {
+function getIconsForGroupChat(
+    report: OnyxInputOrEntry<Report>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    translate: LocalizedTranslate,
+    pendingDeleteMemberAccountIDs?: string[],
+): Icon[] {
     if (!report) {
         return [];
     }
@@ -4024,7 +4030,7 @@ function getIconsForGroupChat(report: OnyxInputOrEntry<Report>, formatPhoneNumbe
         source: report.avatarUrl || getDefaultGroupAvatar(report.reportID),
         id: -1,
         type: CONST.ICON_TYPE_AVATAR,
-        name: getGroupChatName(formatPhoneNumber, translate, undefined, true, report),
+        name: getGroupChatName(formatPhoneNumber, translate, undefined, true, report, pendingDeleteMemberAccountIDs),
     };
     return [groupChatIcon];
 }
@@ -4089,7 +4095,11 @@ function getIconsForUserCreatedPolicyRoom(report: OnyxInputOrEntry<Report>, poli
 /**
  * Returns the appropriate icons for the given chat report using the stored personalDetails.
  * The Avatar sources can be URLs or Icon components according to the chat type.
+ *
+ * TODO: Make `pendingDeleteMemberAccountIDs` a required param once https://github.com/Expensify/App/issues/66421 is done
  */
+// TODO: Refactor to use options object parameter to reduce parameter count https://github.com/Expensify/App/issues/66421
+// eslint-disable-next-line @typescript-eslint/max-params
 function getIcons(
     report: OnyxInputOrEntry<Report>,
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
@@ -4101,6 +4111,7 @@ function getIcons(
     policy?: OnyxInputOrEntry<Policy>,
     invoiceReceiverPolicy?: OnyxInputOrEntry<Policy>,
     isReportArchived = false,
+    pendingDeleteMemberAccountIDs?: string[],
 ): Icon[] {
     if (isEmptyObject(report)) {
         return [
@@ -4149,7 +4160,7 @@ function getIcons(
         return getIconsForParticipants([CONST.ACCOUNT_ID.NOTIFICATIONS ?? 0], personalDetails);
     }
     if (isGroupChat(report)) {
-        return getIconsForGroupChat(report, formatPhoneNumber, translate);
+        return getIconsForGroupChat(report, formatPhoneNumber, translate, pendingDeleteMemberAccountIDs);
     }
     if (isOneOnOneChat(report)) {
         const otherParticipantsAccountIDs = Object.keys(report.participants ?? {})
@@ -6304,8 +6315,8 @@ function getModifiedExpenseOriginalMessage(
     // Tax rate can change as a result of currency update. In such cases, we want to skip displaying a system message, as discussed.
     const didTaxCodeChange = 'taxCode' in transactionChanges;
     if (didTaxCodeChange && !didAmountOrCurrencyChange) {
-        originalMessage.oldTaxRate = policy?.taxRates?.taxes[getTaxCode(oldTransaction)]?.value;
-        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[transactionChanges?.taxCode]?.value;
+        originalMessage.oldTaxRate = policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, getTaxCode(oldTransaction))]?.value;
+        originalMessage.taxRate = transactionChanges?.taxCode && policy?.taxRates?.taxes[resolveCurrentTaxCode(policy, transactionChanges.taxCode)]?.value;
     }
 
     // We only want to display a tax amount update system message when tax amount is updated by user.

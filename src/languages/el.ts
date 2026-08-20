@@ -1033,7 +1033,6 @@ const translations: TranslationDeepObject<typeof en> = {
             recentTransactions: ({lastFour}: {lastFour: string}) => `Πρόσφατες συναλλαγές • ${lastFour}`,
         },
         seeMore: ({count}: {count: number}) => `Δείτε ακόμα ${count}`,
-        announcements: 'Ανακοινώσεις',
         discoverSection: {
             title: 'Ανακαλύψτε',
             menuItemTitleNonAdmin: 'Μάθετε πώς να δημιουργείτε δαπάνες και να υποβάλλετε αναφορές.',
@@ -4584,6 +4583,11 @@ ${amount} για ${merchant} - ${date}`,
             railCard:
                 'Γνωρίζατε ότι μπορείτε να κλείνετε και να διαχειρίζεστε ταξίδια με τρένο απευθείας στο Expensify; Και ότι ανεβάζει αυτόματα τις αποδείξεις για εσάς; Την επόμενη φορά απλώς κάντε κράτηση μέσω του <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Η ταξιδιωτική λειτουργία δεν είναι ενεργοποιημένη',
+            message:
+                'Για να κάνετε κράτηση, ενεργοποιήστε τα ταξίδια στον προεπιλεγμένο χώρο εργασίας σας ή αλλάξτε τον προεπιλεγμένο χώρο εργασίας σε κάποιον όπου τα ταξίδια είναι ενεργοποιημένα.',
+        },
     },
     proactiveAppReview: {
         title: 'Σας αρέσει το νέο Expensify;',
@@ -5888,11 +5892,62 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             subsidiarySelectDescription: 'Επιλέξτε τη θυγατρική στο DualEntry από την οποία θέλετε να εισαγάγετε δεδομένα.',
             noCompaniesFound: 'Δεν βρέθηκαν εταιρείες',
             noCompaniesFoundDescription: 'Παρακαλούμε προσθέστε μια εταιρεία στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noVendorsFound: 'Δεν βρέθηκαν προμηθευτές',
+            noVendorsFoundDescription: 'Παρακαλούμε προσθέστε προμηθευτές στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
+            noAccountsFound: 'Δεν βρέθηκαν λογαριασμοί',
+            noAccountsFoundDescription: 'Παρακαλούμε προσθέστε λογαριασμούς στο DualEntry και συγχρονίστε ξανά τη σύνδεση',
             accountTypesDescription: 'Οι λογαριασμοί DualEntry θα εισαχθούν ως κατηγορίες.',
             enableNewAccountsTitle: 'Ενεργοποίηση νέων εισαγόμενων λογαριασμών',
             enableNewAccountsDescription: 'Οι νέοι λογαριασμοί DualEntry θα είναι διαθέσιμοι ως κατηγορίες.',
             classificationsImport: 'Όλες οι κατηγοριοποιήσεις DualEntry εισάγονται ως ετικέτες',
             importDescription: 'Επιλέξτε ποιες ρυθμίσεις κωδικοποίησης θέλετε να εισαγάγετε από το DualEntry.',
+            exportDescription: 'Ρυθμίστε τον τρόπο με τον οποίο τα δεδομένα του Expensify εξάγονται στο DualEntry.',
+            exportReimbursable: {
+                label: 'Εξαγωγή αποζημιώσιμων εξόδων ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Τιμολόγια προμηθευτών',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Ημερομηνία τιμολογίου προμηθευτή',
+                description: 'Χρησιμοποιήστε αυτήν την ημερομηνία κατά την εξαγωγή αναφορών στο DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Ημερομηνία τελευταίας δαπάνης',
+                        description: 'Ημερομηνία της πιο πρόσφατης δαπάνης στην αναφορά.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Ημερομηνία εξαγωγής',
+                        description: 'Ημερομηνία εξαγωγής της αναφοράς στο DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Ημερομηνία υποβολής',
+                        description: 'Ημερομηνία που η αναφορά υποβλήθηκε για έγκριση.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Εξαγωγή εξόδων εταιρικής κάρτας ως',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Άμεσα έξοδα',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Προεπιλεγμένος προμηθευτής για όλες τις εταιρικές κάρτες',
+                description: 'Επιλέξτε έναν προεπιλεγμένο προμηθευτή DualEntry για έξοδα που δεν αντιστοιχίζονται αυτόματα.',
+            },
+            companyCardAccount: {
+                label: 'Λογαριασμός εταιρικής κάρτας',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές εταιρικής κάρτας.',
+            },
+            expensifyCardAccount: {
+                label: 'Λογαριασμός Expensify Card',
+                description: 'Επιλέξτε πού θα εξαχθούν οι συναλλαγές της Expensify Card.',
+            },
         },
         type: {
             free: 'Δωρεάν',
@@ -8670,6 +8725,9 @@ ${reportName}`,
                 title ? `ενημέρωσε τον κανόνα πράκτορα «${title}» σε: ${prompt}` : `ενημέρωσε έναν κανόνα πράκτορα σε: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `αφαίρεσε τον κανόνα πράκτορα «${title}»` : 'αφαίρεσε έναν κανόνα πράκτορα'),
         },
+        addedRule: 'πρόσθεσε έναν κανόνα',
+        updatedRule: 'ενημέρωσε έναν κανόνα',
+        removedRule: 'αφαίρεσε έναν κανόνα',
         expensifyCardRule: {
             actionVerb: {
                 block: 'μπλοκαρισμένο',
@@ -10960,8 +11018,13 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Νέοι τύποι ρόλων για διαχειριστές',
-                body: 'Δώστε στην ομάδα σας πιο λεπτομερή δικαιώματα με νέους ρόλους διαχειριστή καρτών, ατόμων και πληρωμών.',
+                heading: 'Βελτιωμένη αντιστοίχιση προμηθευτών',
+                body: 'Δημιουργήστε προμηθευτές και προσαρμοσμένους κανόνες για εύκολη αντιστοίχιση με τα κύρια λογιστικά πακέτα.',
+                cta: 'Δοκιμάστε το',
+            },
+            member: {
+                heading: 'Προκατασκευασμένοι πράκτορες για εσάς',
+                body: 'Χρησιμοποιήστε προκατασκευασμένους ή προσαρμοσμένους agents για να κωδικοποιείτε, να χωρίζετε και να υποβάλλετε αυτόματα τις δαπάνες εκ μέρους σας.',
                 cta: 'Δοκιμάστε το',
             },
         },
