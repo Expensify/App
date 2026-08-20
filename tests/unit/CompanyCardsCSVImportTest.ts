@@ -1,7 +1,9 @@
 import {findColumnName} from '@components/ImportColumn';
 import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import {getCompanyCardImportColumnRoles} from '@pages/workspace/companyCards/addNew/CompanyCardsImportedPage';
 import {CSV_TEMPLATE_CONTENT, CSV_TEMPLATE_FILE_NAME} from '@pages/workspace/companyCards/addNew/ImportFromFileStep';
+
 import CONST from '@src/CONST';
 
 // The assertions only inspect each role's `value`, so a passthrough translate that echoes the path is enough.
@@ -64,9 +66,12 @@ describe('findColumnName auto-mapping for company card imports', () => {
     // The renamed fields (Purchase amount, Purchase currency, Description) and Original transaction date
     // have no auto-detect logic and must stay manual-select — auto-detection matches raw header text,
     // not the display labels.
-    it.each(['Purchase amount', 'Original amount', 'Purchase currency', 'Original currency', 'Original transaction date', 'Description'])('leaves the "%s" header unmapped so it stays manual-select', (header) => {
-        expect(findColumnName(header, columnRoles)).toBe('');
-    });
+    it.each(['Purchase amount', 'Original amount', 'Purchase currency', 'Original currency', 'Original transaction date', 'Description'])(
+        'leaves the "%s" header unmapped so it stays manual-select',
+        (header) => {
+            expect(findColumnName(header, columnRoles)).toBe('');
+        },
+    );
 });
 
 describe('Downloadable CSV template', () => {
