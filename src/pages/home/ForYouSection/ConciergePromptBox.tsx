@@ -246,14 +246,17 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                         </Text>
                     </View>
                 </View>
-                <SubmitDraftButton
-                    accessibilityLabel={translate('common.send')}
-                    sentryLabel="ConciergePromptBox-Send"
-                    isDisabled={!canSubmit}
-                    icon={icons.Send}
-                    label={translate('common.send')}
-                    onPress={submit}
-                />
+                {/* Mirror ComposerSendButton: the justifyContentEnd wrapper stretches to the row height and anchors the send button to the bottom. */}
+                <View style={styles.justifyContentEnd}>
+                    <SubmitDraftButton
+                        accessibilityLabel={translate('common.send')}
+                        sentryLabel="ConciergePromptBox-Send"
+                        isDisabled={!canSubmit}
+                        icon={icons.Send}
+                        label={translate('common.send')}
+                        onPress={submit}
+                    />
+                </View>
             </View>
             {PDFValidationComponent}
         </View>
