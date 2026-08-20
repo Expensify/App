@@ -8105,6 +8105,7 @@ ${reportName}`,
             authenticationError: (providerName: string) => `有効期限が切れた接続のため、${providerName} に接続できません。`,
             reconnect: '再接続',
             reconnectLink: '再接続する',
+            findIntegration: '連携を検索',
         },
         emptyDomain: {
             title: 'ドメインでセキュリティを強化しましょう',

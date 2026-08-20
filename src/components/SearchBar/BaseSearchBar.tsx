@@ -55,7 +55,6 @@ function BaseSearchBar({ref, label, style, inputValue, onChangeText, onSubmitEdi
                     onSubmitEditing={() => onSubmitEditing?.(inputValue)}
                     shouldShowClearButton
                     shouldHideClearButton={!inputValue?.length}
-                    // eslint-disable-next-line react/jsx-props-no-spreading
                     {...textInputProps}
                 />
             </View>

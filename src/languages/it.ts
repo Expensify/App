@@ -8205,6 +8205,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
             authenticationError: (providerName: string) => `Impossibile connettersi a ${providerName} a causa di una connessione scaduta.`,
             reconnect: 'Riconnetti',
             reconnectLink: 'Riconnetti.',
+            findIntegration: 'Trova integrazione',
         },
         emptyDomain: {
             title: 'Migliora la tua sicurezza con i domini',
