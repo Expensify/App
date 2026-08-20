@@ -76,8 +76,7 @@ function AddDomainPage() {
         }
     }, [form?.hasCreationSucceeded, allDomains]);
 
-    // Must be a layout effect - a passive one runs after the paint, so the generic BE error flashes on the form before we redirect.
-    useLayoutEffect(() => {
+    useEffect(() => {
         const domainAccountID = form?.domainAccountID;
         if (!domainAccountID) {
             return;
