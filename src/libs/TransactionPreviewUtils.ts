@@ -210,7 +210,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails,
     isBillSplit,
     shouldShowRBR,
-    shouldShowCanceledStatus,
     violationMessage,
     reportActions,
     originalTransaction,
@@ -225,8 +224,6 @@ function getTransactionPreviewTextAndTranslationPaths({
     transactionDetails: Partial<TransactionDetails>;
     isBillSplit: boolean;
     shouldShowRBR: boolean;
-    /** Whether a cancelled payment has to be reported on this line, because the enclosing surface doesn't show it anywhere else */
-    shouldShowCanceledStatus: boolean;
     violationMessage?: string;
     reportActions?: OnyxTypes.ReportActions;
     originalTransaction?: OnyxEntry<OnyxTypes.Transaction>;
@@ -329,18 +326,15 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewDateText = {text: date};
     }
 
-    // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the
-    // RBR row already show them, so repeating them on this line is noise. Canceled is the exception: it can't be derived from
-    // stateNum/statusNum, so surfaces without their own report status badge have to report it here.
+    // Paid, Approved, Review required, Canceled and the hold message are intentionally omitted here because the report status badge
+    // and the RBR row already show them, so repeating them on this line is noise.
     const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
         previewStatusText.push({translationPath: 'iou.pending'});
     }
 
-    if (shouldShowCanceledStatus && iouReport?.isCancelledIOU) {
-        previewStatusText.push({translationPath: 'iou.canceled'});
-    } else if (hasPendingRTERViolation(violations)) {
+    if (hasPendingRTERViolation(violations)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
     }
 
