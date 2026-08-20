@@ -1170,9 +1170,10 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             return;
         }
         const validTransactions = Object.fromEntries(Object.entries(allTransactions ?? {}).filter((entry): entry is [string, Transaction] => entry[1] !== undefined));
+        const searchData = searchResults?.data;
         if (isExpenseReportType) {
             for (const reportID of selectedReportIDs) {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
                 deleteAppReport({
                     report,
                     reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
@@ -1222,7 +1223,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
 
             // Whole-report deletions keep their existing path.
             for (const reportID of wholeReportIDs) {
-                const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+                const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
                 deleteAppReport({
                     report,
                     reportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`],
@@ -1254,6 +1255,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         bankAccountList,
         clearSelectedTransactions,
         allReports,
+        searchResults?.data,
         selfDMReport,
         email,
         isExpenseReportType,

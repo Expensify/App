@@ -1,6 +1,6 @@
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
-import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
+import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
@@ -32,6 +32,7 @@ type SearchRejectReasonPageProps =
 function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {selectedTransactionIDs, selectedTransactions} = useSearchSelectionContext();
     const {currentSearchHash} = useSearchQueryContext();
+    const {currentSearchResults} = useSearchResultsContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
@@ -68,6 +69,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 comment,
                 allPolicies,
                 allReports,
+                currentSearchResults?.data,
                 currentUserAccountID,
                 currentUserLogin ?? '',
                 betas,
@@ -90,6 +92,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             selectedTransactionsForReject,
             allPolicies,
             allReports,
+            currentSearchResults?.data,
             currentUserAccountID,
             currentUserLogin,
             betas,

@@ -1677,6 +1677,7 @@ function rejectMoneyRequestsOnSearch(
     comment: string,
     allPolicies: OnyxCollection<Policy>,
     allReports: OnyxCollection<Report>,
+    searchData: SearchResultDataType | undefined,
     currentUserAccountIDParam: number,
     currentUserLogin: string,
     betas: OnyxEntry<Beta[]>,
@@ -1704,7 +1705,7 @@ function rejectMoneyRequestsOnSearch(
     const isSingleReport = Object.keys(transactionsByReport).length === 1;
     let urlToNavigateBack;
     for (const [reportID, selectedTransactionIDs] of Object.entries(transactionsByReport)) {
-        const report = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${reportID}`];
+        const report = getReportFromSearchSnapshot(reportID, searchData, allReports);
         const totalReportTransactions = report?.transactionCount ?? 0;
 
         // Subtract pending deletes to get accurate count when transactions are deleted offline
