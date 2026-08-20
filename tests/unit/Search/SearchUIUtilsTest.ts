@@ -12807,4 +12807,15 @@ describe('getSavedSearchIconName', () => {
         // misses and the icon must still resolve to the fallback rather than to `undefined`.
         expect(SearchUIUtils.getSavedSearchIconName('type:test')).toBe('Bookmark');
     });
+
+    it.each([[''], [undefined]])('falls back to the bookmark icon for a missing/empty query (%p) so every render path stays consistent', (query) => {
+        // A missing query must resolve to the fallback everywhere. Without the guard, '' would parse to the
+        // grammar default (type:expense -> ReceiptBookmark) while an undefined query would throw and log a
+        // console error, so the static twin and the interactive menus would disagree for the same search.
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON');
+        expect(SearchUIUtils.getSavedSearchIconName(query as string)).toBe('Bookmark');
+        // The guard short-circuits before buildSearchQueryJSON, so no parse (and no console error) happens.
+        expect(spy).not.toHaveBeenCalled();
+        spy.mockRestore();
+    });
 });

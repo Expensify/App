@@ -5072,6 +5072,13 @@ const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.value
  * but outside the supported set (e.g. a hand-edited `type:test` URL), which have no entry in the map.
  */
 function getSavedSearchIconName(query: string): SavedSearchIconName {
+    // A missing/empty query resolves to the generic fallback for every caller: this keeps the static
+    // twin (which coerces a missing query to '') and the interactive menus (which pass query untouched)
+    // visually identical, and avoids passing an empty/undefined query into buildSearchQueryJSON - which
+    // would parse '' as the grammar default (type:expense) or throw on undefined and log a console error.
+    if (!query) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
     const type = buildSearchQueryJSON(query)?.type;
     if (!type) {
         return SAVED_SEARCH_FALLBACK_ICON_NAME;
