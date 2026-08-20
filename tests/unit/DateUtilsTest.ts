@@ -661,7 +661,7 @@ describe('DateUtils', () => {
                     return;
                 }
                 for (const locale of Object.values(CONST.LOCALES)) {
-                    // DEFAULT is 'en', which is pinned to Monday on purpose even though CLDR en-US is Sunday-start.
+                    // `en` carries a product override, asserted on its own below against both sides.
                     if (locale === CONST.LOCALES.DEFAULT) {
                         continue;
                     }
@@ -669,6 +669,16 @@ describe('DateUtils', () => {
                     const intlFirstDay = weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay;
                     expect({locale, fallback: getWeekStartsOnWith(throwOnConstruction, locale)}).toEqual({locale, fallback: intlFirstDay});
                 }
+            });
+
+            it('pins en to Monday, deliberately against CLDR', () => {
+                const probe = new Intl.Locale(CONST.LOCALES.EN);
+                if (typeof probe.getWeekInfo !== 'function') {
+                    return;
+                }
+                const weekInfo = probe.getWeekInfo();
+                expect(weekInfo.firstDay === 7 ? 0 : weekInfo.firstDay).toBe(0);
+                expect(DateUtils.getWeekStartsOn(CONST.LOCALES.EN)).toBe(1);
             });
         });
     });

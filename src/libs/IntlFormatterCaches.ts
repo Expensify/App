@@ -1,6 +1,9 @@
 /**
  * Kept in their own module so `IntlStore` can drop them without importing `DateUtils`, which imports `Localize`,
- * which imports `IntlStore`. A formatter built before a locale's polyfill data landed resolves against English.
+ * which imports `IntlStore`.
+ *
+ * Only a cache over a polyfilled API can go stale: `@formatjs` installs locale data asynchronously, so a formatter
+ * built before its data arrived stays English. `Intl.DateTimeFormat` is native on both engines, so it cannot.
  */
 import type {Locale} from '@src/CONST/LOCALES';
 
@@ -17,6 +20,7 @@ function registerDerivedIntlCache(reset: () => void): void {
     derivedCacheResets.add(reset);
 }
 
+/** Only failures: dropping working formatters rebuilds every on-screen one. */
 function dropFailedDateTimeFormatters(): void {
     for (const [key, formatter] of intlDateTimeFormatCache) {
         if (formatter === null) {
@@ -26,7 +30,6 @@ function dropFailedDateTimeFormatters(): void {
 }
 
 function refreshIntlFormatterCaches(): void {
-    // `Intl.DateTimeFormat` is never polyfilled here, so only its failures can be wrong. The rest wrap polyfilled APIs.
     dropFailedDateTimeFormatters();
     relativeTimeFormatCache.clear();
     for (const reset of derivedCacheResets) {

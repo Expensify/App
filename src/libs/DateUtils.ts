@@ -140,9 +140,14 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
     return formatter.format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
 
-/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo`. `en` is unreachable: `getWeekStartsOn` pins it first. */
-const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
+/** `en` resolves to en-US and therefore Sunday, which would move the calendar for every existing English user. */
+const WEEK_STARTS_ON_OVERRIDES: Partial<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.EN]: 1,
+};
+
+/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo`. */
+const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
+    [CONST.LOCALES.EN]: 0,
     [CONST.LOCALES.FR]: 1,
     [CONST.LOCALES.DE]: 1,
     [CONST.LOCALES.IT]: 1,
@@ -155,14 +160,12 @@ const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.PT_BR]: 0,
 };
 
-/**
- * `'en'` is pinned to Monday against CLDR, which maps it to en-US and Sunday.
- * Memoized for the callers React Compiler does not cover, where each miss constructs an `Intl.Locale`.
- */
+/** Memoized for the callers React Compiler does not cover, where each miss constructs an `Intl.Locale`. */
 const getWeekStartsOn = memoize(
     (locale: Locale): WeekDay => {
-        if (locale === CONST.LOCALES.EN) {
-            return 1;
+        const override = WEEK_STARTS_ON_OVERRIDES[locale];
+        if (override !== undefined) {
+            return override;
         }
         try {
             const intlLocale = new Intl.Locale(locale);
