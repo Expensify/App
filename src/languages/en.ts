@@ -4558,8 +4558,10 @@ const translations = {
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Travel is not enabled',
+            title: "You can't book travel yet",
             message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
+            messageOnWorkspace:
+                "You're on a travel-enabled workspace, but it's not your default workspace. To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.",
         },
         verifyCompany: {
             title: "We're reviewing your request...",

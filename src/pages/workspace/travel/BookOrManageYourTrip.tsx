@@ -38,7 +38,7 @@ function GetStartedTravel({policyID}: GetStartedTravelProps) {
     const illustrations = useMemoizedLazyIllustrations(['RocketDude']);
     const {isBetaEnabled} = usePermissions();
     const {showConfirmModal} = useConfirmModal();
-    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldMentionCurrentWorkspace: true});
     const isPreventSpotnanaTravelEnabled = isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL);
 
     const autoAddTripName = policy?.travelSettings?.autoAddTripName !== false;
