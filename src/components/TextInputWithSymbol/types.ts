@@ -15,9 +15,9 @@ type BaseTextInputWithSymbolProps = {
 
     /**
      * Whether locale digits are converted and a leading zero is padded before `onChangeAmount` is called.
-     * Consumers that normalize the raw text themselves (NumberForm) must set this to `false` to avoid converting twice,
-     * which would swap the decimal and group separators back in locales where they are inverted.
-     * Only kept for the deprecated NumberWithSymbolForm, which relies on this component to normalize for it.
+     * Defaults to `false` because consumers such as NumberForm normalize the raw text themselves; enabling this
+     * twice would swap the decimal and group separators back in locales where they are inverted.
+     * Only the deprecated NumberWithSymbolForm should set this to `true`.
      */
     shouldNormalizeAmountOnChange?: boolean;
 

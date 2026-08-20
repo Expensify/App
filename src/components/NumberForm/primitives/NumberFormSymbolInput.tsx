@@ -100,7 +100,6 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
                 ref={mergeRefs(textInput, handleInputRefFromLogic)}
                 selection={selectionForRender}
                 shouldAllowFocusInLandscapeMode={rest.shouldAllowFocusInLandscapeMode}
-                shouldNormalizeAmountOnChange={false}
                 style={style}
                 symbol={symbol}
                 symbolPosition={inputPosition}
