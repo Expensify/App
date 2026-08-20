@@ -61,6 +61,7 @@ import {
     isOpenExpenseReport as isOpenExpenseReportReportUtils,
     isOpenInvoiceReport as isOpenInvoiceReportReportUtils,
     isPayAtEndExpenseReport as isPayAtEndExpenseReportReportUtils,
+    isPayBlockedByArchivedState,
     isPayer as isPayerReportUtils,
     isProcessingReport,
     isReportApproved,
@@ -276,17 +277,12 @@ function canIOUBePaid(
         return false;
     }
 
-    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can still be paid. IOU reports have no policy
-    // archived state, so an archived chat blocks payment instead.
-    const isBlockedByArchivedState = isExpenseReport(iouReport) ? isArchivedOrPendingDeletePolicy(policy) : isChatReportArchived;
-
     return (
         canPay &&
         isReportFinished &&
         !iouSettled &&
         (reimbursableSpend > 0 || canShowMarkedAsPaidForNegativeAmount || isOnlyNonReimbursablePayElsewhere) &&
-        !isBlockedByArchivedState &&
+        !isPayBlockedByArchivedState(iouReport, policy, isChatReportArchived) &&
         !isAutoReimbursable &&
         !isPayAtEndExpenseReport &&
         (!isExpenseReport(iouReport) || arePaymentsEnabled(policy as OnyxEntry<OnyxTypes.Policy>))

@@ -30,6 +30,7 @@ import {
     isInvoiceReport,
     isIOUReport,
     isOpenReport,
+    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport,
     isReportApproved,
@@ -131,10 +132,7 @@ function canPay(
 ) {
     const isExpense = isExpenseReport(report);
 
-    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
-    // no policy archived state, so an archived report blocks payment instead.
-    if (isExpense ? isArchivedOrPendingDeletePolicy(policy) : isReportArchived) {
+    if (isPayBlockedByArchivedState(report, policy, isReportArchived)) {
         return false;
     }
 

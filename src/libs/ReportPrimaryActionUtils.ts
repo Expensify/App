@@ -49,6 +49,7 @@ import {
     isInvoiceReport as isInvoiceReportUtils,
     isIOUReport as isIOUReportUtils,
     isOpenReport as isOpenReportUtils,
+    isPayBlockedByArchivedState,
     isPayer,
     isProcessingReport as isProcessingReportUtils,
     isReportApproved as isReportApprovedUtils,
@@ -222,10 +223,7 @@ function isPrimaryPayAction({
 }: IsPrimaryPayActionParams) {
     const isExpenseReport = isExpenseReportUtils(report);
 
-    // Expense reports cannot be paid when their policy is archived or pending delete. Reports archived for other reasons
-    // (e.g. the submitter was unshared from the policy) can still be paid. IOU and invoice reports have
-    // no policy archived state, so an archived report or chat blocks payment instead.
-    if (isExpenseReport ? isArchivedOrPendingDeletePolicy(policy) : isArchivedReport(reportNameValuePairs) || isChatReportArchived) {
+    if (isPayBlockedByArchivedState(report, policy, isArchivedReport(reportNameValuePairs) || !!isChatReportArchived)) {
         return false;
     }
     if (isExpenseReport && !isPaidGroupPolicy(policy)) {
