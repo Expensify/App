@@ -282,16 +282,11 @@ function useSearchSnapshot({queryJSON, searchResults, newSearchResultKeys, trans
                 reportActions: exportReportActions,
                 reportAttributesDerivedValue: undefined,
             });
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
+            const typedGroupTransactions = groupTransactions as TransactionListItemType[];
             return {
                 ...item,
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- group children are flat transactions
-                transactions: getSortedTransactionData(
-                    groupTransactions as TransactionListItemType[],
-                    localeCompare,
-                    translate,
-                    CONST.SEARCH.TABLE_COLUMNS.DATE,
-                    CONST.SEARCH.SORT_ORDER.DESC,
-                ),
+                transactions: getSortedTransactionData(typedGroupTransactions, localeCompare, translate, CONST.SEARCH.TABLE_COLUMNS.DATE, CONST.SEARCH.SORT_ORDER.DESC),
             };
         });
     }, [
