@@ -1,5 +1,5 @@
 import getHadTabNavigation, {resetForTests, setupHadTabNavigation} from '@libs/hadTabNavigation';
-import moveMiniToolbarFocusWithArrowKey, {getAdjacentHorizontalIndex} from '@libs/moveMiniToolbarFocusWithArrowKey';
+import moveMiniToolbarFocusWithArrowKey, {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey} from '@libs/moveMiniToolbarFocusWithArrowKey';
 
 import CONST from '@src/CONST';
 
@@ -155,5 +155,34 @@ describe('moveMiniToolbarFocusWithArrowKey', () => {
 
         expect(document.activeElement).toBe(getToolbarButton(buttons, 0));
         expect(enterEvent.defaultPrevented).toBe(false);
+    });
+});
+
+describe('moveFullContextMenuFocusWithArrowKey', () => {
+    it('moves focus with ArrowRight after Tab', () => {
+        simulateTab();
+        const toolbar = createMiniToolbar();
+        const buttons = getToolbarButtons(toolbar);
+        getToolbarButton(buttons, 0).focus();
+
+        const event = new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, bubbles: true, cancelable: true});
+        Object.defineProperty(event, 'currentTarget', {value: toolbar});
+        moveFullContextMenuFocusWithArrowKey(event);
+
+        expect(document.activeElement).toBe(getToolbarButton(buttons, 1));
+    });
+
+    it('does not move focus with ArrowDown so the vertical list manager can handle it', () => {
+        simulateTab();
+        const toolbar = createMiniToolbar();
+        const buttons = getToolbarButtons(toolbar);
+        getToolbarButton(buttons, REPLY_INDEX).focus();
+
+        const event = new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey, bubbles: true, cancelable: true});
+        Object.defineProperty(event, 'currentTarget', {value: toolbar});
+        moveFullContextMenuFocusWithArrowKey(event);
+
+        expect(document.activeElement).toBe(getToolbarButton(buttons, REPLY_INDEX));
+        expect(event.defaultPrevented).toBe(false);
     });
 });
