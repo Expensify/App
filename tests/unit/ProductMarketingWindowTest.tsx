@@ -361,6 +361,7 @@ describe('ProductMarketingWindowManager', () => {
     it('hides the window for a centered covering modal through closing and shows it again after final hide', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
+            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
             await waitForBatchedUpdatesWithAct();
         });
 
@@ -592,7 +593,6 @@ describe('ProductMarketingWindowManager', () => {
     it('stores the current update key before navigating after the CTA is pressed', async () => {
         await act(async () => {
             await setupOnyxBaseline({isAdmin: true});
-            await Onyx.set(ONYXKEYS.NVP_LAST_DISMISSED_MARKETING_WINDOW, OLDER_UPDATE_KEY);
             await waitForBatchedUpdatesWithAct();
         });
 

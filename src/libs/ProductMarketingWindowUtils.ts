@@ -103,7 +103,7 @@ const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null
  */
 function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
     const isAnnouncementDismissed = !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
-    const isStale = !!lastDismissedMarketingWindow && (Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[]).includes(lastDismissedMarketingWindow);
+    const isStale = !!lastDismissedMarketingWindow && !(Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[]).includes(lastDismissedMarketingWindow);
     return isAnnouncementDismissed || isStale;
 }
 
