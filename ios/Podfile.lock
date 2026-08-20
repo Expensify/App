@@ -410,7 +410,7 @@ PODS:
     - ReactCommon/turbomodule/core
     - ReactNativeDependencies
     - Yoga
-  - NWWebSocket (0.5.7)
+  - NWWebSocket (0.5.10)
   - Onfido (32.6.2)
   - onfido-react-native-sdk (15.1.0):
     - Onfido (~> 32.6.0)
@@ -3456,6 +3456,7 @@ DEPENDENCIES:
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - NitroFetch (from `../node_modules/react-native-nitro-fetch`)
   - NitroModules (from `../node_modules/react-native-nitro-modules`)
+  - NWWebSocket (~> 0.5.10)
   - "onfido-react-native-sdk (from `../node_modules/@onfido/react-native-sdk`)"
   - "pusher-websocket-react-native (from `../node_modules/@pusher/pusher-websocket-react-native`)"
   - QuickCrypto (from `../node_modules/react-native-quick-crypto`)
@@ -3981,9 +3982,9 @@ SPEC CHECKSUMS:
   MapboxCoreMaps: de1a4461d0ab5d65d907f06e8d82fdbe06bb3213
   MapboxMaps: 22340ae0e0d47b2e4761019b1d6c569ab04e088d
   nanopb: fad817b59e0457d11a5dfbde799381cd727c1275
-  NitroFetch: 12ce0e5ad0471fda148796f9201f37e86844da2b
-  NitroModules: 700826960c37e38380b0840d675946b1ae54e90b
-  NWWebSocket: b4741420f1976e1dff4da3edad00c401e4f1d769
+  NitroFetch: 4941ca1e41fc72ebdad33c50c85fee59a3dd6871
+  NitroModules: 1961fff19baf1f4a5221dd2fea7d4de95941f9e4
+  NWWebSocket: 873eb4b18acd0317da70cdba388d792a3187ce00
   Onfido: 65454f91d10758193c857fd149417f6efbea84c5
   onfido-react-native-sdk: bb8cfd9198e2e97978461d969497d18b37e45ca7
   OpenSSL-Universal: ecee7b138fa75a74ecf00d7ffd248fb584739b9e
@@ -4120,6 +4121,6 @@ SPEC CHECKSUMS:
   VisionCamera: 30b358b807324c692064f78385e9a732ce1bebfe
   Yoga: c30c859b7e9b75e547b600b486fe33165f60de00
 
-PODFILE CHECKSUM: b14033bdc31e26edfbbc81b22b06ad2c642bfc5f
+PODFILE CHECKSUM: 17fe7fe9f7b6bd46e93d7d63cb6b7c3c2c0ad7cf
 
 COCOAPODS: 1.16.2

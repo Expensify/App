@@ -819,6 +819,14 @@ function isInvalidMerchantValue(merchant?: string): boolean {
 }
 
 /**
+ * Checks if a merchant is a placeholder the user never typed: the flow seeded the "Expense" / "(none)" value,
+ * so it should be treated as empty rather than as an invalid entry the user is responsible for.
+ */
+function isUntypedPlaceholderMerchant(isMerchantSet: boolean | undefined, merchant?: string): boolean {
+    return !isMerchantSet && isInvalidMerchantValue(merchant);
+}
+
+/**
  * Validates a 4-digit PIN for UK/EU Expensify Card.
  * PIN must be exactly 4 digits and not in the list of invalid/weak PINs.
  */
@@ -926,6 +934,7 @@ export {
     isValidInputLength,
     isValidTaxIDEINNumber,
     isInvalidMerchantValue,
+    isUntypedPlaceholderMerchant,
     isValidPIN,
     containsHtmlTag,
 };

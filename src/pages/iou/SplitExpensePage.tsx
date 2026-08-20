@@ -292,14 +292,33 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
         if (draftTransaction?.errors) {
             clearSplitTransactionDraftErrors(transactionID);
         }
-        addSplitExpenseField(transaction, draftTransaction, transactionReport, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
+        addSplitExpenseField(
+            transaction,
+            draftTransaction,
+            transactionReport,
+            effectivePolicy,
+            isDraftSelfDMContext,
+            personalPolicy?.outputCurrency,
+            getCurrencySymbol,
+            getCurrencyDecimals,
+            allPolicies,
+        );
     };
 
     const onMakeSplitsEven = () => {
         if (!draftTransaction) {
             return;
         }
-        evenlyDistributeSplitExpenseAmounts(draftTransaction, transaction, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol);
+        evenlyDistributeSplitExpenseAmounts(
+            draftTransaction,
+            transaction,
+            effectivePolicy,
+            isDraftSelfDMContext,
+            personalPolicy?.outputCurrency,
+            getCurrencySymbol,
+            getCurrencyDecimals,
+            allPolicies,
+        );
     };
 
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS, {selector: passthroughPolicyTagListSelector});
@@ -369,6 +388,7 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
 
         updateSplitTransactionsFromSplitExpensesFlow({
             getCurrencyDecimals,
+            getCurrencySymbol,
             allTransactionsList: allTransactions,
             allReportsList: allReports,
             allReportActionsList: allReportActions,
@@ -407,10 +427,30 @@ function SplitExpensePage({route}: SplitExpensePageProps) {
     const onSplitExpenseValueChange = (id: string, value: number, mode: ValueOf<typeof CONST.TAB.SPLIT>) => {
         if (mode === CONST.TAB.SPLIT.AMOUNT || mode === CONST.TAB.SPLIT.DATE) {
             const amountInCents = convertToBackendAmount(value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
+            updateSplitExpenseAmountField(
+                draftTransaction,
+                id,
+                amountInCents,
+                effectivePolicy,
+                isDraftSelfDMContext,
+                personalPolicy?.outputCurrency,
+                getCurrencySymbol,
+                getCurrencyDecimals,
+                allPolicies,
+            );
         } else {
             const amountInCents = calculateSplitAmountFromPercentage(transactionDetailsAmount, value);
-            updateSplitExpenseAmountField(draftTransaction, id, amountInCents, effectivePolicy, isDraftSelfDMContext, personalPolicy?.outputCurrency, getCurrencySymbol, allPolicies);
+            updateSplitExpenseAmountField(
+                draftTransaction,
+                id,
+                amountInCents,
+                effectivePolicy,
+                isDraftSelfDMContext,
+                personalPolicy?.outputCurrency,
+                getCurrencySymbol,
+                getCurrencyDecimals,
+                allPolicies,
+            );
         }
     };
 
