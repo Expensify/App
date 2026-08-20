@@ -175,7 +175,7 @@ function WorkspaceInitialPage({policyDraft, policy: policyProp, route}: Workspac
         policyID,
         currentUserLogin: currentUserLogin ?? undefined,
         icons: expensifyIcons,
-        connectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
+        isConnectionInProgress: isConnectionInProgress(connectionSyncProgress, policy),
         policyCategories,
         previousPendingFields: prevPendingFields,
         shouldShowEnterCredentialsError,

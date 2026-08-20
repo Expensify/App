@@ -168,13 +168,13 @@ describe('getWorkspaceMenuItems', () => {
                 },
             },
         });
-        const buildItems = (connectionInProgress: boolean) =>
+        const buildItems = (isConnectionInProgress: boolean) =>
             getWorkspaceMenuItems({
                 policy,
                 policyID: policy.id,
                 currentUserLogin,
                 icons,
-                connectionInProgress,
+                isConnectionInProgress,
                 convertToDisplayString: () => '',
             });
 
@@ -210,6 +210,85 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.companyCards')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an error indicator when categories have errors', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areCategoriesEnabled: true});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            policyCategories: {Food: {name: 'Food', enabled: true, errors: {error: 'Whoops'}}},
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.categories')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an error indicator when tax rates have errors', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            tax: {trackingEnabled: true},
+            taxRates: {
+                name: 'Tax',
+                defaultExternalID: '',
+                defaultValue: '',
+                foreignTaxDefault: '',
+                taxes: {TAX: {name: 'Tax', value: '10', errors: {error: 'Whoops'}}},
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.taxes')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an error indicator when workflows have a reimburser error', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), areWorkflowsEnabled: true, errorFields: {reimburser: {error: 'Whoops'}}});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.workflows')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an error indicator when rules have errors', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areRulesEnabled: true,
+            rules: {
+                codingRules: {
+                    rule: {
+                        ruleID: 'rule',
+                        filters: {left: 'merchant', operator: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO, right: 'Acme'},
+                        errors: {error: 'Whoops'},
+                    },
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.rules')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
     it('shows an information indicator when Merge HR setup is incomplete', () => {

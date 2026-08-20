@@ -94,7 +94,7 @@ type GetWorkspaceMenuItemsParams = {
     /** Lazily loaded icons used by the menu items. */
     icons: WorkspaceMenuIconMap;
     /** Whether an accounting connection is currently syncing. */
-    connectionInProgress?: boolean;
+    isConnectionInProgress?: boolean;
     /** Categories used to determine category-related errors. */
     policyCategories?: OnyxTypes.PolicyCategories;
     /** Previous pending fields used to identify the most recently enabled feature. */
@@ -116,7 +116,7 @@ function getWorkspaceMenuItems({
     policyID,
     currentUserLogin,
     icons,
-    connectionInProgress = false,
+    isConnectionInProgress = false,
     policyCategories,
     previousPendingFields,
     shouldShowEnterCredentialsError = false,
@@ -143,8 +143,8 @@ function getWorkspaceMenuItems({
     ].some(canReadPolicyFeature);
 
     const accountingConnectionNames = CONST.POLICY.CONNECTIONS.ACCOUNTING_CONNECTION_NAMES;
-    const hasSyncError = shouldShowSyncError(policy, connectionInProgress, accountingConnectionNames);
-    const hasHRError = shouldShowHRConnectionError(policy, connectionInProgress, isPolicyAdmin(policy));
+    const hasSyncError = shouldShowSyncError(policy, isConnectionInProgress, accountingConnectionNames);
+    const hasHRError = shouldShowHRConnectionError(policy, isConnectionInProgress, isPolicyAdmin(policy));
     const getHRBrickRoadIndicator = () => {
         if (hasHRError) {
             return CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR;
