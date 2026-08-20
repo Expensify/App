@@ -1,4 +1,10 @@
-import type {State} from '@navigation/types';
+import getParamsFromRoute from '@libs/Navigation/helpers/getParamsFromRoute';
+import {isSplitNavigatorName} from '@libs/Navigation/helpers/isNavigatorName';
+import {SPLIT_TO_SIDEBAR} from '@libs/Navigation/linkingConfig/RELATIONS';
+
+import type {NavigationRoute, State} from '@navigation/types';
+
+import CONST from '@src/CONST';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {Writable} from 'type-fest';
@@ -9,6 +15,34 @@ type MinimalAction = {
     action: Writable<NavigationAction>;
     targetState: State | undefined;
 };
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+    return typeof value === 'object' && value !== null && !Array.isArray(value);
+}
+
+function isNamedActionPayload(payload: unknown): payload is ActionPayload & {name: string} {
+    return isRecord(payload) && typeof payload.name === 'string';
+}
+
+function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPayload): boolean {
+    if (!isSplitNavigatorName(currentRoute.name) || !currentRoute.state) {
+        return false;
+    }
+
+    const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
+    const scopeParams = getParamsFromRoute(sidebarScreen);
+    const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
+    const targetParams = payload.params?.params;
+    if (!isRecord(sidebarRoute?.params) || !isRecord(targetParams)) {
+        return false;
+    }
+
+    return scopeParams.some((param) => {
+        const currentValue = sidebarRoute.params[param];
+        const targetValue = targetParams[param];
+        return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
+    });
+}
 
 /**
  * Motivation for this function is described in NAVIGATION.md
@@ -22,15 +56,23 @@ function getMinimalAction(action: NavigationAction, state: NavigationState): Min
     let currentState: State | undefined = state;
     let currentTargetKey: string | undefined;
 
-    while (currentAction.payload && 'name' in currentAction.payload && currentState?.routes[currentState.index ?? -1].name === currentAction.payload.name) {
-        if (!currentState?.routes[currentState.index ?? -1].state) {
+    while (isNamedActionPayload(currentAction.payload) && currentState) {
+        const currentRoute: NavigationRoute | undefined = currentState.routes.at(currentState.index ?? -1);
+        if (!currentRoute || currentRoute.name !== currentAction.payload.name) {
             break;
         }
 
-        currentState = currentState?.routes[currentState.index ?? -1].state;
-        currentTargetKey = currentState?.key;
+        const payload = currentAction.payload;
+        const isDifferentSplitScope = hasDifferentSplitScope(currentRoute, payload);
+        if (!currentRoute.state || isDifferentSplitScope) {
+            if (isDifferentSplitScope) {
+                currentAction = {...currentAction, type: CONST.NAVIGATION.ACTION_TYPE.PUSH};
+            }
+            break;
+        }
 
-        const payload = currentAction.payload as ActionPayload;
+        currentState = currentRoute.state;
+        currentTargetKey = currentState?.key;
 
         // Creating new smaller action
         currentAction = {
