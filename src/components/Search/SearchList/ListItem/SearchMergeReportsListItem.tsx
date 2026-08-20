@@ -14,7 +14,7 @@ import type {ExpenseReportListItemType} from './types';
 import ExpenseReportListItemRowNarrow from './ExpenseReportListItemRow/ExpenseReportListItemRowNarrow';
 import UserInfoAndActionButtonRow from './UserInfoAndActionButtonRow';
 
-function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, isLastItem, isFirstItem}: ListItemProps<TItem>) {
+function SearchMergeReportsListItem<TItem extends ListItem>({item, isFocused, showTooltip, onSelectRow, onFocus, shouldSyncFocus, isLastItem, isFirstItem}: ListItemProps<TItem>) {
     const reportItem = item as unknown as ExpenseReportListItemType;
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -42,7 +42,6 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
             wrapperStyle={listItemWrapperStyle}
             isFocused={isFocused}
             showTooltip={showTooltip}
-            canSelectMultiple={false}
             onSelectRow={onSelectRow}
             pendingAction={item.pendingAction}
             keyForList={item.keyForList}
@@ -56,8 +55,6 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
                 !isLastItem && StyleUtils.getSelectedBorderBottomStyle(isSelected),
             ]}
             accessible={false}
-            shouldShowRightCaret={false}
-            isDisabled={false}
             shouldDisableHoverStyle={false}
         >
             {() => (
@@ -94,6 +91,4 @@ function SearchReportsMergeReportsListItem<TItem extends ListItem>({item, isFocu
     );
 }
 
-SearchReportsMergeReportsListItem.displayName = 'SearchReportsMergeReportsListItem';
-
-export default SearchReportsMergeReportsListItem;
+export default SearchMergeReportsListItem;

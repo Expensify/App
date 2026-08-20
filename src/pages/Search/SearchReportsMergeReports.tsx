@@ -1,7 +1,7 @@
 import FormAlertWithSubmitButton from '@components/FormAlertWithSubmitButton';
 import {usePersonalDetails, useSession} from '@components/OnyxListItemProvider';
 import {useSearchQueryContext, useSearchResultsContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
-import SearchReportsMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchReportsMergeReportsListItem';
+import SearchMergeReportsListItem from '@components/Search/SearchList/ListItem/SearchMergeReportsListItem';
 import SelectionList from '@components/SelectionList';
 import type {ListItem} from '@components/SelectionList/types';
 import Text from '@components/Text';
@@ -31,7 +31,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import React, {useMemo, useState} from 'react';
 
-function SearchReportsMergeReports() {
+function SearchMergeReports() {
     const {selectedReports} = useSearchSelectionContext();
     const {clearSelectedTransactions} = useSearchSelectionActions();
     const {currentSearchResults} = useSearchResultsContext();
@@ -39,7 +39,7 @@ function SearchReportsMergeReports() {
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
-    const [allPolicyCategories] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}`);
+    const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [bankAccountList] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST);
@@ -119,7 +119,6 @@ function SearchReportsMergeReports() {
                     keyForList: reportID,
                     text: report.reportName ?? '',
                     isSelected: reportID === destinationReportID,
-                    policyID: report.policyID,
                     from: getPersonalDetailsForAccountID(report.ownerAccountID, personalDetails) ?? {},
                     to: getPersonalDetailsForAccountID(report.managerID, personalDetails) ?? {},
                     totalDisplaySpend,
@@ -193,14 +192,14 @@ function SearchReportsMergeReports() {
             headerTitle={translate('search.mergeReports.title')}
             onBackButtonPress={() => Navigation.goBack()}
             shouldShowWrapper
-            testID="SearchReportsMergeReport"
+            testID="SearchMergeReports"
             includeSafeAreaPaddingBottom
         >
             <Text style={[styles.ph5, styles.pb5, styles.textLabelSupporting]}>{translate('search.mergeReports.description')}</Text>
             <SelectionList
                 data={reportItems}
                 onSelectRow={onSelection}
-                ListItem={SearchReportsMergeReportsListItem}
+                ListItem={SearchMergeReportsListItem}
                 isRowMultilineSupported
                 shouldSingleExecuteRowSelect
                 canSelectMultiple={false}
@@ -217,6 +216,4 @@ function SearchReportsMergeReports() {
     );
 }
 
-SearchReportsMergeReports.displayName = 'SearchReportsMergeReports';
-
-export default SearchReportsMergeReports;
+export default SearchMergeReports;
