@@ -386,8 +386,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
-            // Deleting the last child of a split from the report details page redirects into the split edit
-            // flow, whose back path is this overview route.
+            // Deleting the last split child from report details redirects into the edit flow, whose back path is this route.
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
         // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
@@ -410,8 +409,6 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.REPORT_DETAILS.DYNAMIC_ROOT,
         ],
-        // `splitReportID` is deliberately not named `reportID` so it cannot inherit the base path's report:
-        // the split is always scoped to the transaction's report, which may differ from the screen underneath.
         getRoute: (splitReportID: string | undefined, originalTransactionID: string | undefined, splitExpenseTransactionID?: string) => {
             if (!splitReportID || !originalTransactionID) {
                 Log.warn(`Invalid ${splitReportID}(reportID) or ${originalTransactionID}(transactionID) is used to build the MONEY_REQUEST_SPLIT_EXPENSE_SEARCH route`);
@@ -422,9 +419,8 @@ const DYNAMIC_ROUTES = {
         queryParams: ['splitReportID', 'transactionID', 'splitExpenseTransactionID'],
     },
     MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE: {
+        // No query params of its own: `splitReportID`/`transactionID` are inherited from the overview screen underneath.
         path: 'split-expense-create-date-range',
-        // `splitReportID` and `transactionID` are inherited from the split overview screen underneath, so this
-        // route declares no query params of its own (re-declaring them would collide in createDynamicRoute).
         entryScreens: [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
     },
     MONEY_REQUEST_STEP_TAG: {

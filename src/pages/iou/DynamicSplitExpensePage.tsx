@@ -155,8 +155,8 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
         Object.keys(DistanceRequestUtils.getMileageRates(policyWithAvailableRates)).length > 0 ||
         (shouldSelectPolicy && Object.values(allPolicies ?? {}).some((policyItem) => Object.keys(DistanceRequestUtils.getMileageRates(policyItem)).length > 0));
 
-    const isSearchBackToRoute = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
-    const activeGroupSearchHashes = isSearchBackToRoute ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
+    const isSearchBackPath = backPath.replace(/^\//, '').startsWith(ROUTES.SEARCH_ROOT.route);
+    const activeGroupSearchHashes = isSearchBackPath ? getActiveGroupSearchHashes(currentSearchResults?.data, currentSearchQueryJSON) : [];
 
     const isSplitExpenseEditable = (splitExpense: SplitExpense) => {
         const currentTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${splitExpense?.transactionID}`];
@@ -410,7 +410,7 @@ function DynamicSplitExpensePage({route}: DynamicSplitExpensePageProps) {
                 splitExpenses,
                 splitExpensesTotal: draftTransaction?.comment?.splitExpensesTotal ?? 0,
             },
-            searchContext: {currentSearchHash: isSearchBackToRoute ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
+            searchContext: {currentSearchHash: isSearchBackPath ? currentSearchHash : undefined, activeGroupSearchHashes, clearSelectedTransactions},
             policyCategories,
             policy: expenseReportPolicy,
             policyRecentlyUsedCategories,

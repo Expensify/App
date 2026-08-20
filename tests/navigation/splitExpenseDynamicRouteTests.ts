@@ -16,8 +16,7 @@ const TRANSACTION_ID = '1234567890123456';
 const SPLIT_TRANSACTION_ID = '6543210987654321';
 
 function getFocusedRoute(path: string) {
-    // The URLs here are composed at runtime (base path + dynamic suffix + tab segment), so they are not entries in the production Route union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- Deliberately pass composed route paths through the production parser.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- these URLs are composed at runtime, so they are not entries in the production Route union
     return findFocusedRouteWithOnyxTabGuard(getStateFromPath(path as Route) as State);
 }
 
@@ -26,12 +25,12 @@ describe('split expense dynamic routes', () => {
         ['the overview route', DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE],
         ['the search overview route', DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH, SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH],
     ])('resolves %s with the split params carried in the query', (_label, dynamicRoute, screen) => {
-        const basePath = screen === SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH ? '/search?q=type%3Aexpense' : `/r/${CHAT_REPORT_ID}`;
+        const basePath = screen === SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH ? `/search?q=${encodeURIComponent('type:expense')}` : `/r/${CHAT_REPORT_ID}`;
         const url = createDynamicRoute(dynamicRoute.getRoute(SPLIT_REPORT_ID, TRANSACTION_ID, SPLIT_TRANSACTION_ID), basePath);
         const route = getFocusedRoute(url);
 
-        expect(route.name).toBe(screen);
-        expect(route.params).toMatchObject({
+        expect(route?.name).toBe(screen);
+        expect(route?.params).toMatchObject({
             splitReportID: SPLIT_REPORT_ID,
             transactionID: TRANSACTION_ID,
             splitExpenseTransactionID: SPLIT_TRANSACTION_ID,
@@ -39,9 +38,8 @@ describe('split expense dynamic routes', () => {
     });
 
     /**
-     * A dynamic route inherits the params of the screen underneath, so naming the split report `reportID` would let the
-     * base screen's report win whenever it is absent — and would also collide with the report details route, which
-     * already carries `reportID` in its query, making `createDynamicRoute` throw.
+     * Naming the split report `reportID` would collide with the report details route, which already carries `reportID`
+     * in its query, making `createDynamicRoute` throw.
      */
     it('does not collide with the report details route, which also carries a report in its query', () => {
         const detailsPath = createDynamicRoute(DYNAMIC_ROUTES.REPORT_DETAILS.getRoute(CHAT_REPORT_ID), `/r/${CHAT_REPORT_ID}`);
@@ -49,8 +47,8 @@ describe('split expense dynamic routes', () => {
         const url = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE.getRoute(SPLIT_REPORT_ID, TRANSACTION_ID), detailsPath);
         const route = getFocusedRoute(url);
 
-        expect(route.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE);
-        expect(route.params).toMatchObject({reportID: CHAT_REPORT_ID, splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
+        expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE);
+        expect(route?.params).toMatchObject({reportID: CHAT_REPORT_ID, splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
     });
 
     it('restores the active tab from the URL', () => {
@@ -58,8 +56,8 @@ describe('split expense dynamic routes', () => {
         const [path, query] = url.split('?');
         const route = getFocusedRoute(`${path}/${CONST.TAB.SPLIT.PERCENTAGE}?${query}`);
 
-        expect(route.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE);
-        expect(route.state?.routes.at(0)?.name).toBe(CONST.TAB.SPLIT.PERCENTAGE);
+        expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE);
+        expect(route?.state?.routes.at(0)?.name).toBe(CONST.TAB.SPLIT.PERCENTAGE);
     });
 
     it('strips the suffix and its query params to build the back path', () => {
@@ -80,7 +78,7 @@ describe('split expense dynamic routes', () => {
         const url = createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_CREATE_DATE_RANGE.path, `${path}/${CONST.TAB.SPLIT.DATE}?${query}`);
         const route = getFocusedRoute(url);
 
-        expect(route.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE);
-        expect(route.params).toMatchObject({splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
+        expect(route?.name).toBe(SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_CREATE_DATE_RANGE);
+        expect(route?.params).toMatchObject({splitReportID: SPLIT_REPORT_ID, transactionID: TRANSACTION_ID});
     });
 });

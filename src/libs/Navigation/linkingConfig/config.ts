@@ -1834,8 +1834,6 @@ const config: LinkingOptions<RootNavigatorParamList>['config'] = {
                         [SCREENS.MONEY_REQUEST.DYNAMIC_SPLIT_EXPENSE_SEARCH]: {
                             path: DYNAMIC_ROUTES.MONEY_REQUEST_SPLIT_EXPENSE_SEARCH.path,
                             screens: {
-                                // The tab paths stay nested under the dynamic route pattern (no `exact: true`)
-                                // because `amount`/`date` are not globally unique patterns on their own.
                                 [CONST.TAB.SPLIT.AMOUNT]: {
                                     path: CONST.TAB.SPLIT.AMOUNT,
                                 },
