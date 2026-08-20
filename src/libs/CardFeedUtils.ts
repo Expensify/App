@@ -196,7 +196,7 @@ function getExpensifyCardFeedsForDisplay(
 /**
  * Resolves the domain/workspace supporting text for a company card feed shown in the Spend page feed filter.
  *
- * Workspace-level feeds show the origin workspace name via `preferredPolicy` — the workspace where the feed
+ * Workspace-level feeds show the origin workspace name via `preferredPolicy`. That is the workspace where the feed
  * was originally configured, even when it is shared to several workspaces. Domain-level feeds (no
  * `preferredPolicy`) fall back to the domain backing the feed's fund. Returns `undefined` when there is
  * nothing to disambiguate with.
@@ -224,7 +224,7 @@ function getCompanyFeedSubtitle(
  *
  * The `allCards` parameter is only used to determine if we should add the "Expensify Card" feeds.
  * `policies`, `domains` and `expensifyCardSettings` are optional and only used to resolve each feed's
- * domain/workspace supporting text (`subtitle`); omit them when the subtitle isn't needed.
+ * domain/workspace supporting text (`subtitle`). Omit them when the subtitle isn't needed.
  */
 function getCardFeedsForDisplay(
     allCardFeeds: OnyxCollection<CardFeeds>,

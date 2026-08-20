@@ -199,7 +199,7 @@ describe('defaultExpensifyCardSelector', () => {
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
-        // Expensify Card feeds now also carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence.
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
         expect(typeof result?.subtitle).toBe('string');
     });
 
@@ -217,7 +217,7 @@ describe('defaultExpensifyCardSelector', () => {
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
-        // Expensify Card feeds now also carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence.
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
         expect(typeof result?.subtitle).toBe('string');
     });
 
@@ -233,7 +233,7 @@ describe('defaultExpensifyCardSelector', () => {
             fundID: '5555',
             name: CONST.EXPENSIFY_CARD.BANK,
         });
-        // Expensify Card feeds now also carry a domain/workspace subtitle; its exact value is derived from mock data, so we only assert its presence.
+        // Expensify Card feeds now also carry a domain/workspace subtitle. Its exact value is derived from mock data, so we only assert its presence.
         expect(typeof result?.subtitle).toBe('string');
     });
 });
