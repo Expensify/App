@@ -32,13 +32,23 @@ function clearPending(forGeneration: number) {
     safetyTimeoutID = undefined;
 }
 
+function startSafetyTimeout(reportID: string, forGeneration: number) {
+    clearTimeout(safetyTimeoutID);
+    safetyTimeoutID = setTimeout(() => {
+        Log.warn('[pendingSubmitWrite] Pending write signal cleared by its safety timeout - the submission never released it', {reportID});
+        clearPending(forGeneration);
+    }, SAFETY_TIMEOUT_MS);
+}
+
 /**
  * Mark a submit write as pending for `reportID`, and return the function that clears it. Calling the
  * returned function more than once, or after a later submission replaced this one, is a no-op.
  *
  * The signal also clears itself after `SAFETY_TIMEOUT_MS` - the same bound `writeWhenReady` uses to
  * guarantee the write goes out - so a caller that never gets to clear cannot leave a report stuck
- * showing a loading skeleton.
+ * showing a loading skeleton. That timer starts here, at mark time, which is normally earlier than the
+ * write itself is constructed - call `restartPendingSubmitWriteSafetyTimeout` once the write attaches
+ * so the two windows stay aligned instead of this one expiring first.
  */
 function markPendingSubmitWriteForReport(reportID: string | undefined): () => void {
     if (!reportID) {
@@ -49,13 +59,24 @@ function markPendingSubmitWriteForReport(reportID: string | undefined): () => vo
     const forGeneration = generation;
     pendingReportID = reportID;
 
-    clearTimeout(safetyTimeoutID);
-    safetyTimeoutID = setTimeout(() => {
-        Log.warn('[pendingSubmitWrite] Pending write signal cleared by its safety timeout - the submission never released it', {reportID});
-        clearPending(forGeneration);
-    }, SAFETY_TIMEOUT_MS);
+    startSafetyTimeout(reportID, forGeneration);
 
     return () => clearPending(forGeneration);
+}
+
+/**
+ * Restart the safety timeout from the point the actual write attaches, rather than from
+ * `markPendingSubmitWriteForReport`'s call time. Without this, the two equal-length timers can start
+ * several seconds apart, and this signal (loading skeleton / empty-state-animation suppression) can
+ * clear well before the write it was guarding actually goes out.
+ *
+ * A no-op if `reportID` no longer matches the currently pending report (already cleared or superseded).
+ */
+function restartPendingSubmitWriteSafetyTimeout(reportID: string | undefined) {
+    if (!reportID || pendingReportID !== reportID) {
+        return;
+    }
+    startSafetyTimeout(reportID, generation);
 }
 
 /**
@@ -80,4 +101,4 @@ function resetForTesting() {
     generation = 0;
 }
 
-export {markPendingSubmitWriteForReport, hasPendingSubmitWriteForReport, resetForTesting};
+export {markPendingSubmitWriteForReport, restartPendingSubmitWriteSafetyTimeout, hasPendingSubmitWriteForReport, resetForTesting};

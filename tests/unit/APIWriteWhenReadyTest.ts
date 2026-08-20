@@ -725,7 +725,7 @@ describe('API.writeWhenReady', () => {
             }
         });
 
-        it("forwards the write's early release to the armed TransitionTracker registration", async () => {
+        it("keeps the armed TransitionTracker registration alive after a consumer's own safety timeout", async () => {
             jest.useFakeTimers();
             try {
                 const {cancel} = mockTransitionRegistration();
@@ -735,14 +735,14 @@ describe('API.writeWhenReady', () => {
                 await flushMicrotasks();
                 expect(cancel).not.toHaveBeenCalled();
 
-                // The transition never completes, so the safety timeout releases the write. The
-                // registration made at arm time has to be dropped even though it was not created by
-                // writeWhenReady itself.
+                // The transition never completes, so this write's own safety timeout releases it. The
+                // registration made at arm time must survive - a later write attaching to the same armed
+                // barrier still needs it, and only explicit cancel() is allowed to drop it early.
                 await jest.advanceTimersByTimeAsync(SAFETY_TIMEOUT_MS);
                 await flushMicrotasks(pushHappened);
 
                 expect(mockPush).toHaveBeenCalledTimes(1);
-                expect(cancel).toHaveBeenCalledTimes(1);
+                expect(cancel).not.toHaveBeenCalled();
             } finally {
                 jest.useRealTimers();
             }

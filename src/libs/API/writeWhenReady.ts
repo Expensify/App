@@ -134,7 +134,10 @@ type ArmedTransitionBarrier = {
  * immediately.
  *
  * The same armed barrier can gate several writes from one interaction (e.g. one write per receipt in a
- * split); they all release at the same point rather than racing separate barriers.
+ * split); they all release at the same point rather than racing separate barriers. Consumers can attach
+ * at different times - nothing but `cancel()` ever drops the `TransitionTracker` registration early, so
+ * a write that attaches after an earlier one already hit its own safety timeout still gets the real
+ * transition-completion release instead of being pushed onto its own safety timeout too.
  *
  * `cancel()` is for the abandoned path - the code armed a barrier and then decided not to write. It
  * leaves the barrier permanently pending, matching `createTransitionBarrier`'s abort contract, so a
@@ -144,28 +147,9 @@ type ArmedTransitionBarrier = {
 function armTransitionBarrier(waitFor: true | 'navigation' = true): ArmedTransitionBarrier {
     const armController = new AbortController();
     const armed = createTransitionBarrier(waitFor)(armController.signal);
-    let consumerCount = 0;
-    let abortedConsumerCount = 0;
 
     return {
-        barrier: (signal) => {
-            consumerCount++;
-            // Forward writeWhenReady's own abort (safety timeout / app background) so the TransitionTracker
-            // registration is dropped instead of being left dangling after the write already went out.
-            //
-            // Only once every consumer has aborted, though: aborting leaves `armed` permanently pending by
-            // design, so cancelling on the first consumer's timeout would strand the writes still waiting on
-            // it until their own safety timeouts. With several writes from one interaction, one hitting its
-            // timeout must not push the others onto the slow path.
-            signal.addEventListener('abort', () => {
-                abortedConsumerCount++;
-                if (abortedConsumerCount < consumerCount) {
-                    return;
-                }
-                armController.abort();
-            });
-            return armed;
-        },
+        barrier: () => armed,
         cancel: () => armController.abort(),
     };
 }

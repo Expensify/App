@@ -68,6 +68,9 @@ function clearPending(generation: number) {
         return;
     }
     clearTimeout(pending.safetyTimeoutID);
+    // Release any write already waiting on `pending.barrier` - otherwise it sits until its own
+    // writeWhenReady safety timeout instead of releasing here, alongside the signal coming down.
+    pending.release();
     pending = undefined;
 }
 
@@ -129,18 +132,31 @@ function acquireSearchWriteBarrier(optimisticWatchKey?: OnyxKey): WriteReadyBarr
     }
 
     setSearchWriteWatchKey(optimisticWatchKey);
+    return consumePendingSearchWrite();
+}
+
+/**
+ * Counts a write against the pending signal and returns its barrier, without touching the watch key -
+ * split out of `acquireSearchWriteBarrier` so a write that bypasses Search's barrier (an explicit
+ * barrier already won) can still be accounted for, without publishing a watch key for a signal it is
+ * not actually waiting on.
+ */
+function consumePendingSearchWrite(): WriteReadyBarrier {
+    if (!pending) {
+        return () => Promise.resolve();
+    }
+
+    const {barrier, generation, isFlushRequested} = pending;
     pending.consumerCount += 1;
 
     // Search flushed before this write existed, so it has nothing left to wait for. The signal was
     // held up until now (see flushPendingSearchWrite) and comes down here, once there is a write to
     // hand the release to.
-    if (pending.isFlushRequested) {
-        const {barrier, generation} = pending;
+    if (isFlushRequested) {
         clearPending(generation);
-        return barrier;
     }
 
-    return pending.barrier;
+    return barrier;
 }
 
 /**
@@ -198,4 +214,13 @@ function resetForTesting() {
     watchKey = undefined;
 }
 
-export {markPendingSearchWrite, hasPendingSearchWrite, acquireSearchWriteBarrier, flushPendingSearchWrite, setSearchWriteWatchKey, getSearchWriteWatchKey, resetForTesting};
+export {
+    markPendingSearchWrite,
+    hasPendingSearchWrite,
+    acquireSearchWriteBarrier,
+    consumePendingSearchWrite,
+    flushPendingSearchWrite,
+    setSearchWriteWatchKey,
+    getSearchWriteWatchKey,
+    resetForTesting,
+};

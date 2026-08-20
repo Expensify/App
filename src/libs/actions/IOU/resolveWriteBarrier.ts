@@ -1,5 +1,5 @@
 import type {WriteReadyBarrier} from '@libs/API';
-import {acquireSearchWriteBarrier, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {acquireSearchWriteBarrier, consumePendingSearchWrite, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -43,6 +43,16 @@ type ResolveWriteBarrierParams = {
 function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}: ResolveWriteBarrierParams = {}): WriteReadyBarrier {
     if (writeBarrier) {
         addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+
+        // The explicit barrier wins over Search's, but the signal Search raised is still up. Count this
+        // write as the consumer it was waiting for - otherwise `flushPendingSearchWrite` keeps the
+        // signal pending for a consumer that will never arrive, and Search sits on its skeleton until
+        // its own safety timeout instead of releasing immediately. Not `acquireSearchWriteBarrier`: this
+        // write isn't waiting on Search's layout, so its watch key must not be published either.
+        if (hasPendingSearchWrite()) {
+            consumePendingSearchWrite();
+        }
+
         return writeBarrier;
     }
 
