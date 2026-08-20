@@ -145,7 +145,6 @@ function DeepLinkHandler({onInitialUrl}: DeepLinkHandlerProps) {
             // A Submit-via-PDF secure access link, or an onboarding deeplink carrying an intent, can arrive while the
             // app is already running (warm), where getInitialURL() is empty. Record it so the handlers reading the
             // initial URL have a session-sticky signal, the same way the cold path does via onInitialUrl above.
-            // Scoped to those two link shapes so other deep links are unaffected.
             if (hasSecureLinkKey(state.url) || getOnboardingIntentFromUrl(state.url)) {
                 onInitialUrl(state.url as Route);
             }

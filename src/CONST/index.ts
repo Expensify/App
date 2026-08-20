@@ -143,9 +143,8 @@ const createExpenseOnboardingChoices = {
     SUBMIT: backendOnboardingChoices.SUBMIT,
 } as const;
 
-// Values accepted by the `intent` param on the onboarding deeplink (e.g. `onboarding?intent=submit`). These are
-// short, stable, marketing-friendly aliases rather than the internal onboarding choice strings, because they are
-// embedded in emails and other links we can't redeploy.
+// Values accepted by the `intent` param on the onboarding deeplink. Kept separate from the internal onboarding
+// choice strings because they are embedded in emails we can't redeploy.
 const onboardingIntents = {
     SUBMIT: 'submit',
 } as const;

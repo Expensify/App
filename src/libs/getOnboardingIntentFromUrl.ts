@@ -1,14 +1,8 @@
 /**
- * Reads the `intent` param of the onboarding deeplink (e.g. `onboarding?intent=submit`), which lets a one-click
- * link pre-select an onboarding outcome instead of asking the recipient to pick it in the UI.
+ * Reads the `intent` param of the onboarding deeplink (e.g. `onboarding?intent=submit`).
  *
- * The param arrives in one of two shapes:
- * - directly, when the recipient is already signed in: `/onboarding?intent=submit`
- * - nested in the `exitTo` of an auth handoff link, where `onboarding?intent=submit` is URL-encoded:
- *   `/transition?...&exitTo=<encoded>` or `/v/<accountID>/<validateCode>?exitTo=<encoded>`
- *
- * Nesting it in `exitTo` is what carries the intent across the logged-out -> logged-in transition: the deeplink
- * outlives the sign-in itself, so the intent is still readable once the authenticated screens mount.
+ * It arrives either directly, or nested in the `exitTo` of a transition or magic link. Nesting it in `exitTo` is what
+ * carries the intent across the logged-out to logged-in transition, since the deeplink outlives the sign-in itself.
  */
 import type {OnboardingIntent} from '@src/CONST';
 import CONST from '@src/CONST';
@@ -28,9 +22,8 @@ function getOnboardingIntentFromUrl(url: string | null | undefined): OnboardingI
         return undefined;
     }
 
-    // getRouteFromLink strips whichever linking-config prefix matched, so every shape the deeplink can arrive in
-    // reduces to the same route: web URLs, the dev server's port, the desktop `app://-/` origin and the native
-    // `new-expensify://` scheme. It only drops the leading slash when a prefix matched, so in-app paths keep theirs.
+    // getRouteFromLink strips whichever linking-config prefix matched, so web URLs, the desktop `app://-/` origin and
+    // the native scheme all reduce to the same route. It leaves the leading slash on in-app paths.
     const pathWithQuery = getRouteFromLink(url).replace(/^\/+/, '');
     const onboardingPathWithQuery = pathWithQuery.startsWith(ROUTES.ONBOARDING_ROOT.route) ? pathWithQuery : getSearchParamFromPath(pathWithQuery, 'exitTo');
 

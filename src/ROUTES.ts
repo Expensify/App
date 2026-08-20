@@ -3939,10 +3939,6 @@ const ROUTES = {
     ONBOARDING_ROOT: {
         route: 'onboarding',
 
-        /**
-         * @param intent - Pre-selects an onboarding outcome so a one-click link can land the user on the
-         * matching workspace instead of making them pick the intent in the UI.
-         */
         getRoute: (intent?: OnboardingIntent) => (intent ? (`onboarding?intent=${intent}` as const) : ('onboarding' as const)),
     },
     ONBOARDING_PERSONAL_DETAILS: {
