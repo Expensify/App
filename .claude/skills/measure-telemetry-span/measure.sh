@@ -124,18 +124,32 @@ run_replay() {
   node "$REPLAY_RUNNER" "$flow" --timeout "$REPLAY_TIMEOUT_MS" "$@"
 }
 
+is_logbox_visible() {
+  local snapshot="$1"
+  [[ "$snapshot" == *"React Native warning/error overlay detected"* ]] && return 0
+  # The LogBox error screen is the only surface carrying all three controls at once.
+  [[ "$snapshot" == *'"Dismiss"'* && "$snapshot" == *'"Minimize"'* && "$snapshot" == *'"Copy"'* ]]
+}
+
 dismiss_react_native_overlays() {
-  local output
-  for _ in $(seq 1 5); do
-    output="$(agent-device react-native dismiss-overlay 2>&1)"
-    printf '%s\n' "$output" >&2
-    if [[ "$output" == *"verified gone"* || "$output" == *"No React Native overlay detected"* ]]; then
+  local snapshot
+  for _ in $(seq 1 8); do
+    snapshot="$(agent-device snapshot -i 2>&1 || true)"
+    if ! is_logbox_visible "$snapshot"; then
       return
+    fi
+
+    # `react-native dismiss-overlay` reports "verified gone" while an Android LogBox
+    # error screen is still up, so trust the snapshot and press LogBox's own control.
+    if [[ "$snapshot" == *'"Dismiss"'* ]]; then
+      agent-device press 'label="Dismiss"' >&2 2>/dev/null || true
+    else
+      agent-device react-native dismiss-overlay >&2 2>/dev/null || true
     fi
     sleep 1
   done
 
-  echo "React Native overlay still present after 5 dismissal attempts." >&2
+  echo "React Native overlay still present after 8 dismissal attempts." >&2
   return 1
 }
 
