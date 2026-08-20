@@ -22,7 +22,12 @@ import {
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
-import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
+import {
+    hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils,
+    hasOnlyPendingCardTransactions,
+    showHeldExpensesBlockModal,
+    showPendingCardTransactionsBlockModal,
+} from '@libs/TransactionUtils';
 
 import {cancelPayment, markReportPaymentReceived} from '@userActions/IOU/PayMoneyRequest';
 import {approveMoneyRequest, canIOUBePaid as canIOUBePaidAction, reopenReport, retractReport, submitReport, unapproveExpenseReport} from '@userActions/IOU/ReportWorkflow';
@@ -262,6 +267,11 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             return;
         }
 
+        if (hasOnlyHeldExpenses) {
+            showHeldExpensesBlockModal(showConfirmModal, translate);
+            return;
+        }
+
         const doSubmit = () => {
             if (isSubmitPolicy(policy)) {
                 openReportSubmitToPopover({
@@ -283,6 +293,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 currentUserEmailParam: email ?? '',
                 hasViolations,
                 isASAPSubmitBetaEnabled,
+                betas,
                 userBillingGracePeriodEnds,
                 amountOwed,
                 onSubmitted: () => {
@@ -293,6 +304,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 },
                 ownerBillingGracePeriodEnd,
                 delegateEmail,
+                delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
             });
