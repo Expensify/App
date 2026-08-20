@@ -123,7 +123,6 @@ export default {
     uploadViewMargin: 20,
     chooseFilesViewMargin: 8,
     sideBarWithLHBWidth: 320,
-    superWideRHPLeftMargin: 147,
     // Floating RHP card experiment (wide layout / web+desktop only): inset from the screen edges.
     rhpFloatingCardMargin: 12,
     // RHP panel width. Decoupled from sideBarWidth (the LHN) so the RHP can be sized independently.
