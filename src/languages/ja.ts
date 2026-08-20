@@ -4458,8 +4458,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: '出張機能は有効になっていません',
+            title: 'まだ旅行を予約できません',
             message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+            messageOnWorkspace:
+                '現在、旅行機能が有効なワークスペースを使用していますが、これはあなたのデフォルトワークスペースではありません。予約を行うには、デフォルトワークスペースで旅行機能を有効にするか、旅行機能が有効なワークスペースをデフォルトワークスペースに切り替えてください。',
         },
     },
     workspace: {
