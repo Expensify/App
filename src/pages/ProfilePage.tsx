@@ -346,7 +346,7 @@ function ProfilePage({route}: ProfilePageProps) {
                                         type: CONST.SEARCH.DATA_TYPES.CHAT,
                                         from: [String(accountID)],
                                     });
-                                    Navigation.navigate(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
+                                    Navigation.revealRouteBeforeDismissingModal(ROUTES.SEARCH_ROOT.getRoute({query, rawQuery: query}));
                                 }}
                             />
                         )}

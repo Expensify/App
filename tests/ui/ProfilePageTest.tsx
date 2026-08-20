@@ -39,6 +39,7 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 jest.mock('@libs/Navigation/Navigation', () => ({
     navigate: jest.fn(),
+    revealRouteBeforeDismissingModal: jest.fn(),
     goBack: jest.fn(),
     getActiveRoute: jest.fn(() => ''),
     getActiveRouteWithoutParams: jest.fn(() => ''),
@@ -583,7 +584,7 @@ describe('ProfilePage - View user history', () => {
         fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
         await waitForBatchedUpdatesWithAct();
 
-        expect(Navigation.navigate).toHaveBeenCalledWith(
+        expect(Navigation.revealRouteBeforeDismissingModal).toHaveBeenCalledWith(
             ROUTES.SEARCH_ROOT.getRoute({
                 query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
                 rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
