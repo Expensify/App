@@ -256,7 +256,7 @@ function BaseOnboardingPersonalDetails({currentUserPersonalDetails, shouldUseNat
                     }
 
                     if (onboardingPurposeSelected === CONST.ONBOARDING_CHOICES.JOIN_WORKSPACE) {
-                        Navigation.goBack(ROUTES.ONBOARDING_WORK_EMAIL.getRoute());
+                        Navigation.goBack();
                         return;
                     }
 

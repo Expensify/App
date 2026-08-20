@@ -217,7 +217,7 @@ function BaseOnboardingWorkEmail({shouldUseNativeStyles}: BaseOnboardingWorkEmai
             {/* This screen normally opens onboarding, so there is nothing to go back to unless the intent list sent us here. */}
             <OnboardingHeader
                 shouldShowBackButton={isJoiningCompanyWorkspace}
-                onBackButtonPress={() => Navigation.goBack(ROUTES.ONBOARDING_PURPOSE.getRoute())}
+                onBackButtonPress={() => Navigation.goBack()}
             />
             {onboardingValues?.isMergingAccountBlocked ? (
                 <View style={[styles.flex1, onboardingIsMediumOrLargerScreenWidth && styles.mt5, onboardingIsMediumOrLargerScreenWidth ? styles.mh8 : styles.mh5]}>
