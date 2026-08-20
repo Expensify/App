@@ -67,13 +67,6 @@ const pendingTransactionIDsSelector = (transactions: OnyxCollection<Transaction>
 
 const getLocalTransaction = (localTransactions: OnyxCollection<Transaction>, transactionID: string) => localTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
 
-/**
- * How many expenses to ask the server for. The slot renders at most SECTION_VISIBLE_LIMIT rows, but the rows below are
- * filtered client-side (split originals and expenses on reports owned by someone else drop out), so fetching exactly
- * the visible count could leave fewer. Sent as a string because that is what the filter form values take.
- */
-const FETCH_LIMIT = String(CONST.HOME.SECTION_VISIBLE_LIMIT * 3);
-
 /** What the Recently added slot needs to render itself. */
 type RecentlyAddedData = {
     /** The expenses to show, most recently inserted first, capped at CONST.HOME.SECTION_VISIBLE_LIMIT */
@@ -117,8 +110,6 @@ function useRecentlyAddedData(): RecentlyAddedData {
             buildQueryStringFromFilterFormValues({
                 type: CONST.SEARCH.DATA_TYPES.EXPENSE,
                 from: [String(accountID)],
-                // Without this the server returns its default page (~50 rows), which is wasted payload for a 5 row slot.
-                limit: FETCH_LIMIT,
             }),
         [accountID],
     );
@@ -147,7 +138,6 @@ function useRecentlyAddedData(): RecentlyAddedData {
             queryJSON,
             searchKey: undefined,
             offset: 0,
-            isOffline,
             isLoading: false,
             shouldCalculateTotals: false,
             shouldUpdateLastSearchParams: false,
@@ -170,7 +160,7 @@ function useRecentlyAddedData(): RecentlyAddedData {
     // Whether a result may still arrive, which is the only situation where the slot should withhold its verdict.
     // Everything below is terminal and must resolve to real rows or to the empty state, never to an endless skeleton:
     //   - `state: loaded` is the ordinary terminal write, but it is also set for failures, so it can't be read alone
-    //   - snapshot data with no `state` is terminal too: the IOU optimistic fan-out writes data without the state field
+    //   - snapshot data with no `state` is terminal too: the IOU optimistic update writes data without the state field
     //   - errors mean the search failed and nothing will retry until Home is focused again
     //   - offline, or no `queryJSON`, means `fireSearch` returned without issuing a request, so nothing is coming
     //

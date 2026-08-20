@@ -36,8 +36,6 @@ const SNAPSHOT_HASH = 1;
 const OTHER_SNAPSHOT_HASH = 2;
 /** Onyx keys error entries by microsecond timestamp; the exact value is irrelevant, only that an entry exists. */
 const ERROR_TIMESTAMP = '1787000000000000';
-/** Rows requested per fetch: SECTION_VISIBLE_LIMIT (5) times the client-filtering headroom the hook applies. */
-const EXPECTED_FETCH_LIMIT = 15;
 /** The ordinary terminal state a resolved search writes. */
 const LOADED: Partial<SearchResults['search']> = {state: CONST.SEARCH.SNAPSHOT_STATE.LOADED};
 
@@ -115,7 +113,6 @@ function makeQueryJSON(hash: number): SearchQueryJSON {
         view: CONST.SEARCH.VIEW.TABLE,
         filters: {operator: CONST.SEARCH.SYNTAX_OPERATORS.AND, left: CONST.SEARCH.SYNTAX_FILTER_KEYS.FROM, right: String(ACCOUNT_ID)},
         flatFilters: [],
-        limit: EXPECTED_FETCH_LIMIT,
     };
 }
 
@@ -648,14 +645,5 @@ describe('useRecentlyAddedData — awaiting the first result', () => {
 
         expect(resultTransactionIDs(result.current.transactions)).toEqual(['t1']);
         expect(result.current.isAwaitingFirstResult).toBe(false);
-    });
-});
-
-describe('useRecentlyAddedData — query', () => {
-    it('asks the server for a bounded number of expenses instead of the default page', () => {
-        renderHook(() => useRecentlyAddedData());
-
-        // The slot renders 5 rows; fetching the server default (~50) is wasted payload.
-        expect(mockedBuildQueryStringFromFilterFormValues).toHaveBeenCalledWith(expect.objectContaining({limit: String(EXPECTED_FETCH_LIMIT)}));
     });
 });
