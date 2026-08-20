@@ -81,9 +81,6 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
     const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
     const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
 
-    // Only Control workspaces can auto-update government rates, so anything else gets a locked toggle that opens the upgrade flow
-    const isAutoUpdateUnavailable = !isControlPolicy(policy);
-
     const navigateToUpgrade = () => {
         Navigation.navigate(
             ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.alias, ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)),
@@ -104,6 +101,12 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const toggleAutoUpdateGovernmentRate = (isOn: boolean) => {
         if (!customUnit) {
+            return;
+        }
+
+        // Only Control can auto-update government rates, so turning it on anywhere else goes to the upgrade flow instead of erroring on the server
+        if (isOn && !isControlPolicy(policy)) {
+            navigateToUpgrade();
             return;
         }
 
@@ -215,9 +218,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                                 isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                                 accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
                                                 onToggle={toggleAutoUpdateGovernmentRate}
-                                                disabled={!canWriteDistanceRates || isAutoUpdateUnavailable}
-                                                disabledAction={withReadOnlyFallback(isAutoUpdateUnavailable ? navigateToUpgrade : undefined)}
-                                                showLockIcon={!canWriteDistanceRates || isAutoUpdateUnavailable}
+                                                disabled={!canWriteDistanceRates}
+                                                disabledAction={withReadOnlyFallback()}
+                                                showLockIcon={!canWriteDistanceRates}
                                             />
                                         </View>
                                         <Text style={[styles.textLabel, styles.colorMuted]}>
