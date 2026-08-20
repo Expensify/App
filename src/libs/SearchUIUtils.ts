@@ -4490,12 +4490,13 @@ function getCustomColumnDefault(value?: SearchDataTypes | SearchGroupBy): Search
     }
 }
 
-function getSearchColumnTranslationKey(column: SearchSortBy): TranslationPaths {
+function getSearchColumnTranslationKey(column: SearchSortBy, type?: SearchDataTypes): TranslationPaths {
     switch (column) {
         case CONST.SEARCH.TABLE_COLUMNS.AVATAR:
             return 'common.avatar';
         case CONST.SEARCH.TABLE_COLUMNS.DATE:
-            return 'search.filters.created';
+            // The date column reads "Created" only for expense reports; every other type keeps "Date".
+            return type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 'search.filters.created' : 'common.date';
         case CONST.SEARCH.TABLE_COLUMNS.SUBMITTED:
             return 'common.submitted';
         case CONST.SEARCH.TABLE_COLUMNS.APPROVED:
@@ -5056,11 +5057,11 @@ function getTypeOptions(translate: LocalizedTranslate, policies: OnyxCollection<
     return shouldHideInvoiceOption ? typeOptions.filter((typeOption) => typeOption.value !== CONST.SEARCH.DATA_TYPES.INVOICE) : typeOptions;
 }
 
-function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate) {
+function getSortByOptions(columns: SearchColumnType[], translate: LocalizedTranslate, type?: SearchDataTypes) {
     const sortableColumns: Array<SingleSelectItem<SearchSortBy>> = [];
     for (const column of columns) {
         if (isColumnSortable(column)) {
-            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column)), value: getSortByForColumn(column)});
+            sortableColumns.push({text: translate(getSearchColumnTranslationKey(column, type)), value: getSortByForColumn(column)});
         }
     }
     return sortableColumns;
@@ -5469,7 +5470,7 @@ const FILTER_VIEW_MAP = {
         icon: 'Coins',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE]: {
-        labelKey: 'search.filters.createdDate',
+        labelKey: 'common.date',
         icon: 'CalendarSolid',
     },
     [CONST.SEARCH.SYNTAX_FILTER_KEYS.APPROVED]: {
@@ -5771,6 +5772,17 @@ function isMappedFilterKey(key: string): key is MappedFilterKey {
     return hasKey(FILTER_VIEW_MAP, removeNegation(key));
 }
 
+/**
+ * Returns the label key for a filter, accounting for the active Search type.
+ * The date filter reads "Created date" only for expense reports; every other type keeps its base label ("Date").
+ */
+function getFilterViewLabelKey(filterKey: keyof typeof FILTER_VIEW_MAP, type?: SearchDataTypes): TranslationPaths {
+    if (filterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.DATE && type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT) {
+        return 'search.filters.createdDate';
+    }
+    return FILTER_VIEW_MAP[filterKey].labelKey;
+}
+
 function mapFiltersFormToLabelValueList(
     searchAdvancedFiltersForm: Partial<SearchAdvancedFiltersForm>,
     skipFilters: Set<SearchAdvancedFiltersKey> | undefined,
@@ -5817,7 +5829,7 @@ function mapFiltersFormToLabelValueList(
             const displayValue = isAmountFilterKey(syntax)
                 ? getAmountDisplayValue(syntax, searchAdvancedFiltersForm, translate, convertToDisplayStringWithoutCurrency)
                 : getDateDisplayValue(syntax, searchAdvancedFiltersForm, translate, dateFnsLocale);
-            const label = FILTER_VIEW_MAP[syntax].labelKey;
+            const label = getFilterViewLabelKey(syntax, type);
 
             if (displayValue && label) {
                 addedGroups.add(syntax);
@@ -6598,8 +6610,8 @@ function getTableMinWidth(columns: SearchColumnType[], type?: SearchDataTypes, i
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.ACTION) {
             minWidth += (isActionColumnWide ?? type === CONST.SEARCH.DATA_TYPES.TASK) ? 80 : 68;
         } else if (column === CONST.SEARCH.TABLE_COLUMNS.DATE) {
-            // Matches the sibling date columns below: the "Created" header needs the same room as "Submitted"/"Approved".
-            minWidth += 72;
+            // Only the expense-report "Created" header needs the sibling date-column room ("Submitted"/"Approved"); other types keep "Date" narrower.
+            minWidth += type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT ? 72 : 48;
         } else if (
             column === CONST.SEARCH.TABLE_COLUMNS.SUBMITTED ||
             column === CONST.SEARCH.TABLE_COLUMNS.APPROVED ||
@@ -6897,6 +6909,7 @@ export {
     MONTHLY_ACCRUAL_SEARCH_KEYS,
     RECONCILIATION_SEARCH_KEYS,
     FILTER_VIEW_MAP,
+    getFilterViewLabelKey,
     doesSearchItemMatchSort,
     isPolicyEligibleForSpendOverTime,
     hasFlexColumn,

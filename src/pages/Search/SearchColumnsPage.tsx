@@ -69,6 +69,7 @@ function SearchColumnsPage() {
             groupColumns={allGroupCustomColumns}
             defaultGroupColumns={defaultGroupCustomColumns}
             onSave={applyChanges}
+            type={queryType}
         />
     );
 }

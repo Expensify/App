@@ -43,7 +43,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'search.filters.created',
+        translationKey: 'common.date',
         canEdit: true,
     },
     {
@@ -203,7 +203,7 @@ const getExpenseHeaders = (groupBy?: SearchGroupBy): SearchColumnConfig[] => [
 const taskHeaders: SearchColumnConfig[] = [
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.DATE,
-        translationKey: 'search.filters.created',
+        translationKey: 'common.date',
     },
     {
         columnName: CONST.SEARCH.TABLE_COLUMNS.TITLE,
@@ -618,6 +618,7 @@ function SearchTableHeader({
         <SortableTableHeader
             columns={orderedColumnConfig}
             shouldShowColumn={shouldShowColumn}
+            isDateColumnCreated={type === CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT}
             dateColumnSize={shouldShowYear ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             submittedColumnSize={shouldShowYearSubmitted ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
             approvedColumnSize={shouldShowYearApproved ? CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE : CONST.SEARCH.TABLE_COLUMN_SIZES.NORMAL}
