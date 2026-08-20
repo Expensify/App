@@ -38,7 +38,7 @@ function NumberFormTextInput(props: NumberFormTextInputProps) {
             autoGrowExtraSpace={rest.autoGrowExtraSpace}
             autoGrowMarginSide={rest.autoGrowMarginSide}
             disabled={rest.disabled}
-            disableKeyboard={disableKeyboard ?? false}
+            disableKeyboard={disableKeyboard}
             errorText={errorText}
             inputMode={inputMode ?? (!keyboardType ? CONST.INPUT_MODE.DECIMAL : undefined)}
             inputStyle={style}

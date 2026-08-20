@@ -81,7 +81,7 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
                 autoGrowExtraSpace={rest.autoGrowExtraSpace}
                 autoGrowMarginSide={rest.autoGrowMarginSide}
                 containerStyle={containerStyle}
-                disableKeyboard={disableKeyboard ?? true}
+                disableKeyboard={disableKeyboard}
                 formattedAmount={formattedNumber}
                 hideFocusedState={hideFocusedState}
                 hideSymbol={hideSymbol}
