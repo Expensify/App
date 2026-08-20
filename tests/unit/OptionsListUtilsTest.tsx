@@ -7119,7 +7119,6 @@ describe('OptionsListUtils', () => {
                 dateFnsLocale: undefined,
                 conciergeReportID: undefined,
                 currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
-                formatPhoneNumber,
                 personalDetails: undefined,
                 translate: translateLocal,
                 report,
@@ -7128,6 +7127,7 @@ describe('OptionsListUtils', () => {
                 isReportArchived: false,
 
                 currentUserLogin: CURRENT_USER_EMAIL,
+                formatPhoneNumber,
             });
             expect(lastMessage).toBe(getUpdatedAutoHarvestingMessage(translateLocal, action));
         });
