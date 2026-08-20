@@ -5,7 +5,6 @@ import SearchAutocompleteList from '@components/Search/SearchAutocompleteList';
 import useIsFocusedUntilTransitionEnd from '@hooks/useIsFocusedUntilTransitionEnd';
 
 import {endSpan} from '@libs/telemetry/activeSpans';
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
 
 import CONST from '@src/CONST';
 
@@ -44,11 +43,6 @@ function DeferredAutocompleteList(props: SearchAutocompleteListProps) {
                 shouldStyleAsTable
                 onLayout={markLayoutComplete}
                 speed={CONST.TIMING.SKELETON_ANIMATION_SPEED}
-                reasonAttributes={
-                    {
-                        context: 'DeferredSearchAutocompleteList',
-                    } satisfies SkeletonSpanReasonAttributes
-                }
             />
         );
     }

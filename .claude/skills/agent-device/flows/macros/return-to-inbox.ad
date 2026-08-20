@@ -1,7 +1,0 @@
-# @desc Return from a child screen to the Inbox and wait for its sidebar anchor.
-# @pre role="button" label="Back"
-# @post id="BaseSidebarScreen"
-press "role=\"button\" label=\"Back\""
-wait "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true" 10000
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-wait "id=\"BaseSidebarScreen\"" 10000

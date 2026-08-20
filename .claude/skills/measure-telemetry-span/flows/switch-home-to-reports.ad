@@ -1,10 +1,7 @@
-# @desc   Switch the bottom navigation tab from Home to Spend. Triggers the ManualNavigateToReports Sentry span end-to-end (BottomTab click -> Spend screen layout completion). Assumes the user is signed in and the bottom nav bar is visible.
-# @pre    role="tab" label="Home" || label="Home" hittable=true
-# @pre    role="tab" label="Spend" || label="Spend" hittable=true
-# @post   id="SearchPageNarrow" || id="Search"
+# @desc   Switch the bottom navigation tab from Home to Spend (legacy name: Reports). Triggers the ManualNavigateToReports Sentry span end-to-end (BottomTab click -> Spend screen layout completion). Assumes the user is signed in and the bottom nav bar is visible.
+# @pre    text="Home"
+# @pre    text="Spend"
+# @post   text="Spend"
 # @span   ManualNavigateToReports
-is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-is exists "role=\"tab\" label=\"Spend\" || label=\"Spend\" hittable=true"
-press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-press "role=\"tab\" label=\"Spend\" || label=\"Spend\" hittable=true"
-wait "id=\"SearchPageNarrow\" || id=\"Search\"" 10000
+press "label=\"Home\""
+press "label=\"Spend\""

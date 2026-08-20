@@ -7,8 +7,6 @@ import useReimbursementAccountStepFormSubmit from '@hooks/useReimbursementAccoun
 import type {SubPageProps} from '@hooks/useSubPage/types';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
-
 import HelpLinks from '@pages/ReimbursementAccount/USD/Requestor/PersonalInfo/HelpLinks';
 
 import CONST from '@src/CONST';
@@ -39,16 +37,9 @@ function DateOfBirth({onNext, onMove, isEditing}: SubPageProps) {
     });
 
     if (isLoadingReimbursementAccount) {
-        const reasonAttributes: SkeletonSpanReasonAttributes = {
-            context: 'DateOfBirth',
-            isLoadingReimbursementAccount,
-        };
         return (
             <View style={[styles.flex1, styles.fullScreenLoading]}>
-                <ActivityIndicator
-                    size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE}
-                    reasonAttributes={reasonAttributes}
-                />
+                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
             </View>
         );
     }

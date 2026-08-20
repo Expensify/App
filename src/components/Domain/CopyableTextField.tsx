@@ -1,5 +1,5 @@
 import ActivityIndicator from '@components/ActivityIndicator';
-import Button from '@components/Button';
+import Button from '@components/ButtonComposed';
 import CopyTextToClipboard from '@components/CopyTextToClipboard';
 import Text from '@components/Text';
 
@@ -8,7 +8,7 @@ import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import type {SkeletonSpanReasonAttributes} from '@libs/telemetry/useSkeletonSpan';
+import CONST from '@src/CONST';
 
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
@@ -40,17 +40,10 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
     const [expanded, setExpanded] = useState(false);
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
 
-    const copyableTextFieldLoadingReasonAttributes: SkeletonSpanReasonAttributes = {
-        context: 'CopyableTextField',
-    };
-
     return (
         <View style={[styles.qbdSetupLinkBox, styles.border, styles.gap4, styles.justifyContentCenter, styles.alignItemsCenter, style]}>
             {isLoading ? (
-                <ActivityIndicator
-                    color={theme.text}
-                    reasonAttributes={copyableTextFieldLoadingReasonAttributes}
-                />
+                <ActivityIndicator color={theme.text} />
             ) : (
                 <>
                     <View style={[styles.w100, styles.flexRow, styles.gap2, styles.justifyContentBetween, styles.alignItemsCenter]}>
@@ -71,12 +64,12 @@ function CopyableTextField({value, isLoading = false, style, textStyle, shouldDi
                     </View>
                     {shouldDisplayShowMoreButton && (
                         <Button
-                            small
-                            text={translate(expanded ? 'common.showLess' : 'common.showMore')}
+                            size={CONST.BUTTON_SIZE.SMALL}
                             onPress={() => setExpanded((current) => !current)}
-                            shouldShowRightIcon
-                            iconRight={expanded ? icons.UpArrow : icons.DownArrow}
-                        />
+                        >
+                            <Button.Text>{translate(expanded ? 'common.showLess' : 'common.showMore')}</Button.Text>
+                            <Button.Icon src={expanded ? icons.UpArrow : icons.DownArrow} />
+                        </Button>
                     )}
                 </>
             )}

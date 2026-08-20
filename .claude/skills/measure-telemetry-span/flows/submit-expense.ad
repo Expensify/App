@@ -1,10 +1,4 @@
-# @desc   Tap the submit button on the IOU confirmation page. Triggers ManualCreateExpenseSubmit, ManualSubmitToDestinationVisible, and ManualCreateExpenseServerResponse. If location permission is granted, ManualGeolocationWait also fires as a child of Submit.
-# @pre    id="IOURequestStepConfirmation"
-# @post   id="SearchPageNarrow" || id="Search"
-# @post   role="tab" label="Expenses" || role="button" label="Expenses" || label="Expenses" hittable=true
-# @param  AMOUNT Whole-number amount shown in the submit CTA (for example `22`).
-# @param  CURRENCY Currency symbol shown in the submit CTA (for example `PLN` or `USD`).
-is exists "id=\"IOURequestStepConfirmation\""
-press "role=\"button\" label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" || role=\"button\" label=\"Create expense\" || label=\"Create ${CURRENCY} ${AMOUNT}.00 expense\" hittable=true || label=\"Create expense\" hittable=true"
-wait "id=\"SearchPageNarrow\" || id=\"Search\"" 15000
-is exists "role=\"tab\" label=\"Expenses\" || role=\"button\" label=\"Expenses\" || label=\"Expenses\" hittable=true"
+# @desc   Tap the submit button on the IOU confirmation page (IOURequestStepConfirmation). Triggers ManualCreateExpenseSubmit, ManualSubmitToDestinationVisible, and ManualCreateExpenseServerResponse. If the device has location permission granted, ManualGeolocationWait also fires as a child of Submit. Requires being on the confirmation page already.
+# @pre    role="button" label="Upload receipt" || role="button" label="Create expense"
+# @post   role="button" label="Open actions menu"
+press "role=\"button\" label=\"Create expense\" || label=\"Create expense\""

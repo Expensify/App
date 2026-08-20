@@ -5,16 +5,27 @@ This file is the reference for every `.ad` file in the repository: the metadata 
 ## Directory layout
 
 1. `macros/` contains reusable setup and navigation helpers for interactive work. These are the only flows an interactive agent may propose.
-2. `lib/` contains bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express. Each file documents its own contract; the caller owns session lifecycle.
+2. `macros/<platform>/` contains platform-specific overrides of a `macros/` flow, for flows whose selectors differ per platform. See [Platform scoping](#platform-scoping).
 
 `macros/` contains composable `.ad` snippets. The caller owns application startup, authentication, platform selection, session state, and cleanup. A flow may span one or multiple screens as long as it represents a coherent action with clear start (`@pre`) and completion (`@post`) checkpoints.
+
+## Platform scoping
+
+Most flows are platform-neutral and live directly in `macros/`. A flow whose selectors genuinely differ per platform gets a copy per platform under `macros/<platform>/`, where `<platform>` is the value passed to `--platform`.
+
+A caller driving platform `P` resolves a macro by name:
+
+1. `macros/<P>/<name>.ad` when that file exists.
+2. `macros/<name>.ad` otherwise.
+
+Split flows today: `sign-in.ad`, `send-message.ad`, `complete-onboarding.ad`. All three fill text inputs, whose accessibility shape differs between web and native. The unscoped copy of a split flow stays in `macros/` as the fallback for platforms that have no folder yet; it is not the contract for any platform that does have one. (Exception: `sign-in.ad` is fully platform-scoped - `web` and `android` only - and has no unscoped fallback; a new platform such as iOS must add its own `macros/<platform>/sign-in.ad`.) Everything else stays shared - split a flow only after confirming the divergence per platform with `agent-device is visible "<selector>"`.
 
 ## Agent decision loop (interactive)
 
 Before manually navigating, use this human-in-the-loop loop:
 
 1. `agent-device snapshot -i` - see current state.
-2. `grep -H '^# @' .claude/skills/agent-device/flows/macros/*.ad` - interactive catalog.
+2. `grep -H '^# @' .claude/skills/agent-device/flows/macros/*.ad .claude/skills/agent-device/flows/macros/<platform>/*.ad` - interactive catalog. Where both list the same name, the platform copy wins.
 3. For each candidate flow, run `agent-device is exists "<selector>"` per `@pre`. Keep flows where every `@pre` passes.
 4. Rank survivors by goal closeness and present top macro candidates to the user with a short "why this flow" note:
    - Prefer flows whose `@post` selectors literally match destination language from the user request (same `text`, `label`, or selector phrase).
@@ -69,7 +80,8 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **No `open`, no `close`, no `context` header.** Caller owns lifecycle.
 - **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
 - **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
-- **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. For shared navigation controls, put the iOS role selector before the Android `label=... hittable=true` fallback. Avoid `@eN` refs.
+- **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. Avoid `@eN` refs.
+- **Confirm every selector on the platform it is written for.** `snapshot -i` prints display tags, which are not selector values - a node printed as `[text-field]` may only match `role="textbox"`. Check the exit code of `agent-device is visible "<selector>"` before committing a selector, and never carry one across platforms unchecked.
 - **Every flow declares `@desc` and `@pre`.** Measurement flows also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`.
 - **Every declared `@pre` and `@post` runs as a body assertion.** Use `is exists` or `wait`. Metadata documents the contract but does not execute it.
 - **Assertion order decides whether a pass means anything.** Enforce every `@pre` before the first mutation and every `@post` after the last one. An assertion on the wrong side of a mutation lets a flow report success from the screen it started on.

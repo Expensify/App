@@ -1,10 +1,7 @@
 # @desc   Switch the bottom navigation tab from Home to Inbox. Triggers the ManualNavigateToInboxTab Sentry span end-to-end (BottomTab click -> Inbox layout completion). Assumes the user is signed in and the bottom nav bar is visible.
-# @pre    role="tab" label="Home" || label="Home" hittable=true
-# @pre    role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true
-# @post   id="BaseSidebarScreen"
+# @pre    text="Home"
+# @pre    text="Inbox"
+# @post   text="Inbox"
 # @span   ManualNavigateToInboxTab
-is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-wait "id=\"BaseSidebarScreen\"" 10000
+press "label=\"Home\""
+press "label=\"Inbox\" || label=\"Inbox. Your review is required\""

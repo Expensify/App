@@ -1,6 +1,0 @@
-# @desc Switch to the Inbox from a screen where the bottom navigation is visible.
-# @pre role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true
-# @post id="BaseSidebarScreen"
-is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
-wait "id=\"BaseSidebarScreen\"" 10000

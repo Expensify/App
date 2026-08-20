@@ -1,4 +1,4 @@
-import type {LocalizedTranslate} from '@components/LocaleContextProvider';
+import type {LocaleContextProps, LocalizedTranslate} from '@components/LocaleContextProvider';
 
 import {
     getLoginByAccountID,
@@ -25,26 +25,18 @@ const personalDetailsListSelector = (accountIDs: Array<number | undefined> | und
 
 const personalDetailsLoginSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginByAccountID(accountID, personalDetailsList);
 
-const personalDetailByLoginSelector =
-    (login: string | undefined) =>
-    (personalDetailsList: OnyxEntry<PersonalDetailsList>): PersonalDetails | undefined => {
-        if (!login) {
-            return undefined;
-        }
-        const lowerLogin = login.toLowerCase();
-        return Object.values(personalDetailsList ?? {}).find((detail) => detail?.login?.toLowerCase() === lowerLogin) ?? undefined;
-    };
-
 const avatarStyleColorSelector = (accountID: number | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     accountID ? personalDetailsList?.[accountID]?.avatarStyle?.color : undefined;
 
 const personalDetailsLoginsSelector = (accountIDs: number[] | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) => getLoginsByAccountIDs(accountIDs, personalDetailsList);
 
-const personalDetailsDisplayNameSelector = (accountID: number, translate: LocalizedTranslate) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
-    temporaryGetDisplayNameOrDefault({
-        passedPersonalDetails: personalDetails?.[accountID],
-        translate,
-    });
+const personalDetailsDisplayNameSelector =
+    (accountID: number, translate: LocalizedTranslate, formatPhoneNumber: LocaleContextProps['formatPhoneNumber']) => (personalDetails: OnyxEntry<PersonalDetailsList>) =>
+        temporaryGetDisplayNameOrDefault({
+            passedPersonalDetails: personalDetails?.[accountID],
+            translate,
+            formatPhoneNumber,
+        });
 
 const conciergePersonalDetailSelector = personalDetailsSelector(CONST.ACCOUNT_ID.CONCIERGE);
 
@@ -105,6 +97,8 @@ const isOptimisticPersonalDetailSelector =
 const newAccountIDsAndLoginsSelector = (invitedEmailsToAccountIDs: InvitedEmailsToAccountIDs | undefined) => (personalDetailsList: OnyxEntry<PersonalDetailsList>) =>
     getNewAccountIDsAndLogins(invitedEmailsToAccountIDs, personalDetailsList);
 
+const displayNameSelector = (personalDetails: PersonalDetails | undefined) => personalDetails?.displayName;
+
 export {
     avatarStyleColorSelector,
     personalDetailsSelector,
@@ -112,7 +106,6 @@ export {
     personalDetailsListSelector,
     personalDetailsDisplayNameSelector,
     personalDetailsLoginSelector,
-    personalDetailByLoginSelector,
     personalDetailsLoginsSelector,
     conciergePersonalDetailSelector,
     doesPersonalDetailExistSelector,
@@ -120,4 +113,5 @@ export {
     isOptimisticPersonalDetailSelector,
     createDisplayDetailsByAccountIDsSelector,
     newAccountIDsAndLoginsSelector,
+    displayNameSelector,
 };
