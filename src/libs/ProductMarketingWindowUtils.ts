@@ -96,9 +96,15 @@ const ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT: ProductMarketingAnnouncement | null
     },
 };
 
-/** Whether the given announcement was already dismissed by the user. */
+/**
+ * Whether the given announcement was already dismissed by the user.
+ * If the dismissed key from the BE doesn't exist in the client-side keys, we know that the user is on an older client
+ * (and has seen a newer announcement on a different client), so we dont need to show the modal
+ */
 function isProductMarketingAnnouncementDismissed(announcement: ProductMarketingAnnouncement | null, lastDismissedMarketingWindow: OnyxEntry<string>): boolean {
-    return !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+    const isAnnouncementDismissed = !!announcement && announcement.updateKey === lastDismissedMarketingWindow;
+    const isStale = !!lastDismissedMarketingWindow && (Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[]).includes(lastDismissedMarketingWindow);
+    return isAnnouncementDismissed || isStale;
 }
 
 /**

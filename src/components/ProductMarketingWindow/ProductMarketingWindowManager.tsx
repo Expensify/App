@@ -8,7 +8,6 @@ import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {dismissMarketingWindow} from '@libs/actions/User';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
-import {getObjectValues} from '@libs/ObjectUtils';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
 import CONST from '@src/CONST';
@@ -107,10 +106,6 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     }
 
     const persistDismissal = () => {
-        const pastUpdateKeys = Object.values(CONST.MARKETING_WINDOW_UPDATE_KEYS) as string[];
-        if (!lastDismissedMarketingWindow || pastUpdateKeys.includes(lastDismissedMarketingWindow)) {
-            return;
-        }
         dismissMarketingWindow(announcement.updateKey);
     };
 
