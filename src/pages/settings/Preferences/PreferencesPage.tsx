@@ -125,6 +125,14 @@ function PreferencesPage() {
                             />
                             <MenuItemWithTopDescription
                                 shouldShowRightIcon
+                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
+                                description={translate('themePage.theme')}
+                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
+                                wrapperStyle={styles.sectionMenuItemTopDescription}
+                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
+                            />
+                            <MenuItemWithTopDescription
+                                shouldShowRightIcon
                                 title={preferredLocale ? LOCALE_TO_LANGUAGE_STRING[preferredLocale] : undefined}
                                 description={translate('languagePage.language')}
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_LANGUAGE)}
@@ -139,14 +147,6 @@ function PreferencesPage() {
                                 onPress={() => Navigation.navigate(ROUTES.SETTINGS_PAYMENT_CURRENCY)}
                                 wrapperStyle={styles.sectionMenuItemTopDescription}
                                 sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.PAYMENT_CURRENCY}
-                            />
-                            <MenuItemWithTopDescription
-                                shouldShowRightIcon
-                                title={translate(`themePage.themes.${getBaseTheme(preferredTheme ?? CONST.THEME.DEFAULT)}.label`)}
-                                description={translate('themePage.theme')}
-                                onPress={() => Navigation.navigate(ROUTES.SETTINGS_THEME)}
-                                wrapperStyle={styles.sectionMenuItemTopDescription}
-                                sentryLabel={CONST.SENTRY_LABEL.SETTINGS_PREFERENCES.THEME}
                             />
                         </View>
                     </Section>
