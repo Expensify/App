@@ -41,6 +41,9 @@ jest.mock('@libs/openTravelDotLink', () => ({
     shouldOpenTravelDotLinkWeb: jest.fn(() => true),
 }));
 
+const mockShowConfirmModal = jest.fn<void, [{prompt?: string}]>();
+jest.mock('@hooks/useConfirmModal', () => jest.fn().mockImplementation(() => ({showConfirmModal: mockShowConfirmModal, closeModal: jest.fn()})));
+
 jest.mock('@libs/Navigation/helpers/isSearchTopmostFullScreenRoute', () => () => false);
 
 const CURRENT_USER_ACCOUNT_ID = 1;
@@ -185,12 +188,17 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('hides the travel button when the default workspace has no travel, even if another workspace does', async () => {
+    it('explains the wrong default workspace instead of opening travel for another workspace', async () => {
         await seedTravelWorkspaces(MOCK_POLICY_ID);
         renderComponent();
         await waitForBatchedUpdatesWithAct();
 
-        expect(screen.queryByText(translateLocal('workspace.common.travel'))).toBeNull();
+        fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
+        await waitForBatchedUpdatesWithAct();
+
+        expect(mockShowConfirmModal.mock.lastCall?.[0].prompt).toBe(translateLocal('travel.defaultWorkspaceTravelDisabled.message'));
+        expect(openTravelDotLink).not.toHaveBeenCalled();
+        expect(Navigation.navigate).not.toHaveBeenCalled();
     });
 
     it('sends the user to set up travel on their default workspace rather than on another workspace', async () => {
@@ -216,6 +224,7 @@ describe('QuickCreationActionsBar - travel', () => {
         fireEvent.press(screen.getByText(translateLocal('workspace.common.travel')));
         await waitForBatchedUpdatesWithAct();
 
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
         expect(openTravelDotLink).not.toHaveBeenCalled();
         expect(Navigation.navigate).toHaveBeenCalledWith(ROUTES.TRAVEL_MY_TRIPS.getRoute(DEFAULT_POLICY_AWAITING_SETUP_ID));
     });
@@ -229,5 +238,6 @@ describe('QuickCreationActionsBar - travel', () => {
         await waitForBatchedUpdatesWithAct();
 
         expect(openTravelDotLink).toHaveBeenCalledWith(TRAVEL_POLICY_ID);
+        expect(mockShowConfirmModal).not.toHaveBeenCalled();
     });
 });

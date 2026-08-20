@@ -3,6 +3,7 @@ import Button from '@components/ButtonComposed';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -60,6 +61,7 @@ function QuickCreationActionsBar() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
@@ -76,7 +78,11 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const shouldShowBookTravel = !!activePolicy?.isTravelEnabled;
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<OnyxTypes.Policy>) => Object.values(policies ?? {}).some((policy) => !!policy?.isTravelEnabled),
+    });
+
+    const shouldShowBookTravel = !!hasTravelEnabledPolicy;
 
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
@@ -198,13 +204,17 @@ function QuickCreationActionsBar() {
     const handleBookTravel = useCallback(
         () =>
             interceptAnonymousUser(() => {
+                if (blockIfDefaultWorkspaceLacksTravel()) {
+                    return;
+                }
+
                 if (isTravelReady) {
                     openTravelDotLink(activePolicy?.id);
                     return;
                 }
                 Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
             }),
-        [activePolicy?.id, isTravelReady],
+        [activePolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
     );
 
     return (

@@ -1,3 +1,4 @@
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -15,6 +16,9 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import {primaryLoginSelector} from '@src/selectors/Account';
 import {emailSelector} from '@src/selectors/Session';
+import type {Policy} from '@src/types/onyx';
+
+import type {OnyxCollection} from 'react-native-onyx';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -30,9 +34,13 @@ function TravelMenuItem() {
     const [primaryLogin] = useOnyx(ONYXKEYS.ACCOUNT, {selector: primaryLoginSelector});
     const [sessionEmail] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
+    const [hasTravelEnabledPolicy] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<Policy>) => Object.values(policies ?? {}).some((policy) => !!policy?.isTravelEnabled),
+    });
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup: false});
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? sessionEmail ?? '';
-    const isVisible = !!activePolicy?.isTravelEnabled;
+    const isVisible = !!hasTravelEnabledPolicy;
 
     const isTravelEnabled =
         !isBlockedFromSpotnanaTravel &&
@@ -42,6 +50,10 @@ function TravelMenuItem() {
         hasAcceptedTravelTerms(activePolicy, travelSettings);
 
     const openTravel = () => {
+        if (blockIfDefaultWorkspaceLacksTravel()) {
+            return;
+        }
+
         if (isTravelEnabled) {
             openTravelDotLink(activePolicy?.id);
             return;
