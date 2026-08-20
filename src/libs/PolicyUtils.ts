@@ -1557,27 +1557,31 @@ function arePaymentsEnabled(policy: OnyxEntry<Policy>): boolean {
     return policy?.reimbursementChoice !== CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_NO;
 }
 
+/** Whether the user is an admin or auditor of a group workspace. */
+function isPolicyManager(policy: OnyxEntry<Policy>): boolean {
+    return isGroupPolicy(policy) && (policy?.role === CONST.POLICY.ROLE.ADMIN || policy?.role === CONST.POLICY.ROLE.AUDITOR);
+}
+
 /**
- * Returns true when the user is both a submitter and an approver, mirroring the Submit/Approve suggested-search eligibility in
- * `getSuggestedSearchesVisibility` (SearchUIUtils): a submitter is a member of any group workspace, and an approver is a member of a
- * group workspace with a non-optional approval flow whom `isPolicyApprover` recognizes (named approver or someone reports submit/forward to).
+ * Whether the user both submits and approves expenses. Any member of a group workspace can submit, so the submit half is
+ * covered by managing one; the two roles need not be held on the same workspace.
  */
 function isSubmitterAndApprover(policies: OnyxCollection<Policy> | null | undefined, currentUserEmail: string | undefined): boolean {
     if (!policies || !currentUserEmail) {
         return false;
     }
-    let isSubmitter = false;
+    let isManager = false;
     let isApprover = false;
     for (const policy of Object.values(policies)) {
         if (!policy) {
             continue;
         }
-        isSubmitter = isSubmitter || isGroupPolicy(policy);
+        isManager = isManager || isPolicyManager(policy);
         if (!isApprover) {
             const hasApprovalFlow = isGroupPolicy(policy) && !!policy.approvalMode && policy.approvalMode !== CONST.POLICY.APPROVAL_MODE.OPTIONAL;
             isApprover = hasApprovalFlow && isPolicyApprover(policy, currentUserEmail);
         }
-        if (isSubmitter && isApprover) {
+        if (isManager && isApprover) {
             return true;
         }
     }
