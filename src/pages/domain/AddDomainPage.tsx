@@ -8,6 +8,7 @@ import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 
 import useAutoFocusInput from '@hooks/useAutoFocusInput';
+import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -24,7 +25,7 @@ import INPUT_IDS from '@src/types/form/CreateDomainForm';
 import isLoadingOnyxValue from '@src/types/utils/isLoadingOnyxValue';
 
 import {Str} from 'expensify-common';
-import React, {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
+import React, {useCallback, useEffect, useRef} from 'react';
 
 function AddDomainPage() {
     const styles = useThemeStyles();
@@ -33,6 +34,7 @@ function AddDomainPage() {
 
     const [form] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
     const [allDomains, allDomainsResult] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
+    const isAppLoadPending = useIsAppLoadPending();
 
     const validate = useCallback(
         (values: FormOnyxValues<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>) => {
@@ -135,7 +137,7 @@ function AddDomainPage() {
                         }
                         submitDomain();
                     }}
-                    isLoading={form?.isLoading}
+                    isLoading={!!form?.isLoading || isAppLoadPending}
                 >
                     <InputWrapper
                         InputComponent={TextInput}

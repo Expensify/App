@@ -7,8 +7,7 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
-import Navigation from '@libs/Navigation/Navigation';
-import {navigationRef} from '@libs/Navigation/Navigation';
+import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
 
@@ -218,5 +217,22 @@ describe('AddDomainPage', () => {
 
         // Then the domain is created with the submitted name, without a second Continue press
         expect(apiWriteSpy).toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DOMAIN, {domainName: DOMAIN_NAME}, expect.anything());
+    });
+
+    it('holds the submit back while the initial app load is still fetching the domains', async () => {
+        // Given a validated user who opened the page before OpenApp delivered their domains
+        mockIsUserValidated = true;
+        await act(async () => {
+            await Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {command: WRITE_COMMANDS.OPEN_APP});
+        });
+        renderAddDomainPage();
+        await waitForBatchedUpdatesWithAct();
+
+        // When they try to submit a domain name
+        await submitDomainName(DOMAIN_NAME);
+
+        // Then nothing is created, so no snapshot is taken against domains that have not arrived yet
+        expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
+        expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DOMAIN, expect.anything(), expect.anything());
     });
 });
