@@ -30,17 +30,20 @@ jobs:
       - name: Setup Node
         uses: ./.github/actions/composite/setupNode
 
-      - name: Cache Jest cache
-        id: cache-jest-cache
-        # v5.0.1
-        uses: actions/cache@9255dc7a253b0ccc959486e2bca901246202afeb
+      - name: Mount Jest sticky disk
+        # Persistent NVMe-backed disk on the runner (3s mount vs ~66s actions/cache download).
+        # Key is stable (no lockfile/babel hash) - a hashed key would spin up a brand-new disk
+        # on every lockfile bump, each billed for 7 idle days, and throw away the warm cache.
+        # Jest versions its own transform-cache subdir by config hash inside this same mount, so
+        # a config bump just adds a new subdir here instead of a new disk; run `jest --clearCache`
+        # on a schedule to prune stale subdirs so the disk doesn't grow unbounded.
+        # Branch Protection (Blacksmith dashboard, not a YAML input) must be enabled for this repo:
+        # only push/schedule/workflow_dispatch on main can commit writes back to the disk; PR jobs
+        # read the latest snapshot but their writes are discarded without failing the job.
+        uses: useblacksmith/stickydisk@v1
         with:
           path: .jest-cache
-          # Per-shard key: each shard only instruments the ~1/8 of suites it runs, so a single
-          # shared key freezes one shard's partial cache for all shards. The hash refreshes the
-          # cache when dependencies or Babel config change; restore-keys warms it in between.
-          key: ${{ runner.os }}-jest-${{ matrix.chunk }}-${{ hashFiles('package-lock.json', 'patches/**', 'babel.config.js') }}
-          restore-keys: ${{ runner.os }}-jest-${{ matrix.chunk }}-
+          key: ${{ runner.os }}-jest-${{ matrix.chunk }}
 
       - name: Jest tests
         run: npm test -- --silent --shard=${{ fromJSON(matrix.chunk) }}/${{ strategy.job-total }} --maxWorkers=6 --coverage --coverageDirectory=coverage/shard-${{ matrix.chunk }}
