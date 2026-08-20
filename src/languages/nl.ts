@@ -5999,6 +5999,7 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             settleBalanceConfirmationTitle: 'Saldo vereffenen?',
             settleBalanceConfirmationPrompt:
                 'Hiermee wordt je huidige saldo op de volgende werkdag vereffend. Zodra dit is gelukt, wordt het bedrag weer aan je resterende limiet toegevoegd.',
+            settleBalancePaymentQueued: (amount: string) => `Betaling van ${amount} staat in de wachtrij en wordt binnenkort verwerkt.`,
             cardLimit: 'Kaartlimiet',
             remaining: 'Resterend',
             remainingLimit: 'Resterende limiet',

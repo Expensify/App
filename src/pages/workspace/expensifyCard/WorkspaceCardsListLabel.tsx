@@ -19,7 +19,7 @@ import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 import useWindowDimensions from '@hooks/useWindowDimensions';
 
-import {getCardSettings} from '@libs/CardUtils';
+import {getCardProgramKey, getCardSettings} from '@libs/CardUtils';
 import getClickedTargetLocation from '@libs/getClickedTargetLocation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import {buildQueryStringFromFilterFormValues} from '@libs/SearchQueryUtils';
@@ -44,7 +44,7 @@ import type {ValueOf} from 'type-fest';
 import {useRoute} from '@react-navigation/native';
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import {addDays, format} from 'date-fns';
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {View} from 'react-native';
 
 type WorkspaceCardsListLabelProps = {
@@ -89,13 +89,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isLessThanMediumScreen = isMediumScreenWidth || shouldUseNarrowLayout;
 
-    const isConnectedWithPlaid = useMemo(() => {
-        const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
+    const bankAccountData = bankAccountList?.[paymentBankAccountID ?? CONST.DEFAULT_NUMBER_ID]?.accountData;
 
-        // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
-        // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
-        return !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
-    }, [bankAccountList, paymentBankAccountID]);
+    // TODO: remove the extra check when plaidAccountID storing is aligned in https://github.com/Expensify/App/issues/47944
+    // Right after adding a bank account plaidAccountID is stored inside the accountData and not in the additionalData
+    const isConnectedWithPlaid = !!bankAccountData?.plaidAccountID || !!bankAccountData?.additionalData?.plaidAccountID;
 
     useEffect(() => {
         if (!anchorRef.current || !isVisible) {
@@ -119,7 +117,14 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
 
     const isCurrentBalanceType = type === CONST.WORKSPACE_CARDS_LIST_LABEL_TYPE.CURRENT_BALANCE;
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
-    const isSettleBalanceButtonDisplayed = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && !cardManualBilling && isCurrentBalanceType;
+    const isMonthlySettlement = settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY;
+
+    // Once a settlement is queued the backend surfaces the in-flight amount here; we hide the button and show a queued message instead
+    const pendingSettlementAmount = settings?.pendingSettlementAmount ?? 0;
+    const hasPendingSettlement = pendingSettlementAmount > 0;
+
+    const isSettleBalanceButtonDisplayed = isMonthlySettlement && !cardManualBilling && isCurrentBalanceType && !hasPendingSettlement;
+    const isSettlementQueuedTextDisplayed = isMonthlySettlement && !cardManualBilling && isCurrentBalanceType && hasPendingSettlement;
     const isSettleDateTextDisplayed = !!cardManualBilling && isCurrentBalanceType;
 
     const settlementDate = isSettleDateTextDisplayed ? format(addDays(new Date(), 1), CONST.DATE.FNS_FORMAT_STRING) : '';
@@ -134,7 +139,7 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
             if (action !== ModalActions.CONFIRM) {
                 return;
             }
-            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID);
+            queueExpensifyCardForBilling(CONST.COUNTRY.US, defaultFundID, getCardProgramKey(cardSettings), value);
         });
     };
 
@@ -184,6 +189,11 @@ function WorkspaceCardsListLabel({type, value, style}: WorkspaceCardsListLabelPr
                         </View>
                     )}
                 </View>
+                {isSettlementQueuedTextDisplayed && (
+                    <Text style={[styles.textLabelSupporting, styles.mt1]}>
+                        {translate('workspace.expensifyCard.settleBalancePaymentQueued', convertToDisplayString(pendingSettlementAmount, settlementCurrency))}
+                    </Text>
+                )}
                 {isCurrentBalanceType && (
                     <TextLink
                         onPress={handleViewTransactionsPress}

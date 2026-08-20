@@ -5997,6 +5997,7 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             settleBalance: 'Quitar saldo',
             settleBalanceConfirmationTitle: 'Quitar saldo?',
             settleBalanceConfirmationPrompt: 'Isso quitará seu saldo atual no próximo dia útil. Após a conclusão, o valor será adicionado novamente ao seu limite restante.',
+            settleBalancePaymentQueued: (amount: string) => `O pagamento de ${amount} está na fila e será processado em breve.`,
             cardLimit: 'Limite do cartão',
             remaining: 'Restante',
             remainingLimit: 'Limite restante',

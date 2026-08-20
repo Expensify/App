@@ -6163,6 +6163,7 @@ _Για πιο αναλυτικές οδηγίες, [επισκεφθείτε τ
             settleBalance: 'Εξόφληση υπολοίπου',
             settleBalanceConfirmationTitle: 'Εξόφληση υπολοίπου;',
             settleBalanceConfirmationPrompt: 'Αυτό θα εξοφλήσει το τρέχον υπόλοιπό σας την επόμενη εργάσιμη ημέρα. Μόλις ολοκληρωθεί, το ποσό θα προστεθεί ξανά στο υπόλοιπο όριό σας.',
+            settleBalancePaymentQueued: (amount: string) => `Η πληρωμή ποσού ${amount} είναι σε αναμονή και θα διεκπεραιωθεί σύντομα.`,
             cardLimit: 'Όριο κάρτας',
             remainingLimit: 'Υπόλοιπο ορίου',
             requestLimitIncrease: 'Αίτημα αύξησης ορίου',
