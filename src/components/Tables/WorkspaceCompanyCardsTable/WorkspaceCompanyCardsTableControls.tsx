@@ -125,7 +125,7 @@ function WorkspaceCompanyCardsTableControls({
             prompt: translate(isSingleAssignedCard ? 'workspace.moreFeatures.companyCards.unassignCardDescription' : 'workspace.moreFeatures.companyCards.unassignCardsDescription'),
             confirmText: translate('workspace.moreFeatures.companyCards.unassign'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action !== ModalActions.CONFIRM) {

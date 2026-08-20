@@ -113,7 +113,7 @@ function DynamicExpensifyCardLimitPage({route}: DynamicExpensifyCardLimitPagePro
                 prompt: translate(getPromptTextKey, convertToDisplayString(newLimit, currency)),
                 confirmText: translate('workspace.expensifyCard.changeLimit'),
                 cancelText: translate('common.cancel'),
-                danger: true,
+                variant: CONST.BUTTON_VARIANT.DANGER,
                 shouldEnableNewFocusManagement: true,
             }).then(({action}) => {
                 if (action !== ModalActions.CONFIRM) {

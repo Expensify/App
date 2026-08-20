@@ -100,7 +100,7 @@ function CardSection() {
             confirmText: translate('subscription.cardSection.requestRefundModal.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
     };

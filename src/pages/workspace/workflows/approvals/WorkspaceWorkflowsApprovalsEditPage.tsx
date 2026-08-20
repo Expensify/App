@@ -200,7 +200,7 @@ function WorkspaceWorkflowsApprovalsEditPage({policy, isLoadingReportData = true
                                         prompt: translate('workflowsEditApprovalsPage.deletePrompt'),
                                         confirmText: translate('common.delete'),
                                         cancelText: translate('common.cancel'),
-                                        danger: true,
+                                        variant: CONST.BUTTON_VARIANT.DANGER,
                                     });
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;

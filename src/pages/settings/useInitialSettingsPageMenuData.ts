@@ -188,7 +188,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             confirmText: confirmModalConfirmText,
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 
@@ -214,7 +214,7 @@ function useInitialSettingsPageMenuData(currentUserPersonalDetails: CurrentUserP
             confirmText: translate('initialSettingsPage.saveReceiptsAndSignOutConfirmation.confirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 

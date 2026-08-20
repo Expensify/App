@@ -197,7 +197,7 @@ function WorkspaceEditTaxPage({
                                     prompt: translate('workspace.taxes.deleteTaxConfirmation'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    variant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteTaxRate();

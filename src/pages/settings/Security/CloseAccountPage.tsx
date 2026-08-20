@@ -51,7 +51,7 @@ function CloseAccountPage() {
             confirmText: translate('common.yesContinue'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
             shouldDisableConfirmButtonWhenOffline: true,
         });
     };

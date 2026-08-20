@@ -148,7 +148,7 @@ function DynamicReportParticipantsPage({report}: DynamicReportParticipantsPagePr
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (action === ModalActions.CONFIRM) {

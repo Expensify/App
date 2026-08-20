@@ -449,7 +449,7 @@ function WorkspaceCategoriesPage({route}: WorkspaceCategoriesPageProps) {
                             prompt: translate(selectedCategoryKeys.length === 1 ? 'workspace.categories.deleteCategoryPrompt' : 'workspace.categories.deleteCategoriesPrompt'),
                             confirmText: translate('common.delete'),
                             cancelText: translate('common.cancel'),
-                            danger: true,
+                            variant: CONST.BUTTON_VARIANT.DANGER,
                         });
                         if (action === ModalActions.CONFIRM) {
                             handleDeleteCategories();

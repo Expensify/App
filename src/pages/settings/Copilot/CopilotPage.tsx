@@ -86,7 +86,7 @@ function CopilotPage() {
             confirmText: translate('delegate.removeCopilot'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
     }, [showConfirmModal, translate]);
 
@@ -100,7 +100,7 @@ function CopilotPage() {
             confirmText: translate('delegate.removeCopilotAccessConfirm'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
     };
 

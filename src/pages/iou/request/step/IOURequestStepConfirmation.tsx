@@ -880,7 +880,7 @@ function IOURequestStepConfirmation({
             prompt: translate('iou.removeExpenseConfirmation'),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;

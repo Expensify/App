@@ -627,7 +627,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                         prompt: translate(selectedTagKeys.length === 1 ? 'workspace.tags.deleteTagConfirmation' : 'workspace.tags.deleteTagsConfirmation'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        danger: true,
+                        variant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         deleteTags();

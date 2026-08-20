@@ -259,7 +259,7 @@ function DynamicTagSettingsPage({route, navigation}: DynamicTagSettingsPageProps
                                     prompt: translate('workspace.tags.deleteTagConfirmation'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    danger: true,
+                                    variant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     if (!currentPolicyTag?.name) {

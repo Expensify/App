@@ -299,7 +299,7 @@ function WorkspaceReportFieldsPage({
                                 onToggle={(isEnabled) => {
                                     if (!isEnabled) {
                                         showConfirmModal({
-                                            danger: true,
+                                            variant: CONST.BUTTON_VARIANT.DANGER,
                                             title: translate('workspace.reportFields.disableReportFields'),
                                             prompt: translate('workspace.reportFields.disableReportFieldsConfirmation'),
                                             confirmText: translate('common.disable'),

@@ -288,7 +288,7 @@ function ReportActionItem({
             confirmText: translate('common.dismiss'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action === ModalActions.CONFIRM) {
             dismissError();

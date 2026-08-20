@@ -252,7 +252,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
 
     const showRemoveMemberModal = async () => {
         const result = await showConfirmModal({
-            danger: true,
+            variant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.people.removeMemberTitle'),
             prompt: confirmModalPrompt,
             confirmText: translate('common.remove'),
@@ -273,7 +273,7 @@ function WorkspaceMemberDetailsPage({personalDetails, policy, route}: WorkspaceM
         if (isReimburser) {
             showConfirmModal({
                 shouldShowCancelButton: false,
-                success: true,
+                variant: CONST.BUTTON_VARIANT.SUCCESS,
                 title: translate('workspace.people.removeMemberTitle'),
                 prompt: confirmModalPrompt,
                 confirmText: translate('common.buttonConfirm'),

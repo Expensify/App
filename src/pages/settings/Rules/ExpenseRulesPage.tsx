@@ -213,7 +213,7 @@ function ExpenseRulesPage() {
                 prompt={translate(selectedRules.length === 1 ? 'expenseRulesPage.deleteRule.deleteSinglePrompt' : 'expenseRulesPage.deleteRule.deleteMultiplePrompt')}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                danger
+                variant={CONST.BUTTON_VARIANT.DANGER}
             />
         </ScreenWrapper>
     );
