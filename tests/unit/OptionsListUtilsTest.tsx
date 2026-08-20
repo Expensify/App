@@ -6725,7 +6725,6 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
-
                 currentUserLogin: CURRENT_USER_EMAIL,
                 formatPhoneNumber,
             });
@@ -8133,7 +8132,6 @@ describe('OptionsListUtils', () => {
             // Then it should return the display name from reportAction.person
             expect(result).toBe('Unknown User');
         });
-        formatPhoneNumber;
 
         it('should return "You" when the last actor is the current user', async () => {
             // Given a report with current user as the last actor
@@ -8763,7 +8761,6 @@ describe('OptionsListUtils', () => {
             });
 
             expect(option.isDisabled).toBe(true);
-            formatPhoneNumber;
         });
 
         it('should handle self DM reports correctly', async () => {
