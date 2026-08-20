@@ -39,11 +39,22 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
     const [activeIntegration, setActiveIntegration] = useState<ActiveIntegrationState>();
     const {translate} = useLocalize();
     const policyID = policy?.id;
-    const accountingIcons = useMemoizedLazyExpensifyIcons(['IntacctSquare', 'QBOSquare', 'XeroSquare', 'NetSuiteSquare', 'QBDSquare', 'CertiniaSquare', 'RilletSquare']);
+    const accountingIcons = useMemoizedLazyExpensifyIcons([
+        'IntacctSquare',
+        'IntuitSquare',
+        'QBOSquare',
+        'XeroSquare',
+        'NetSuiteSquare',
+        'QBDSquare',
+        'CertiniaSquare',
+        'RilletSquare',
+        'DualEntrySquare',
+    ]);
     const hasReusablePoliciesConnectedToSageIntacct = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT, policyID);
     const hasReusablePoliciesConnectedToQBD = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.QBD, policyID);
     const hasReusablePoliciesConnectedToCertinia = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.CERTINIA, policyID);
     const hasReusablePoliciesConnectedToRillet = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.RILLET, policyID);
+    const hasReusablePoliciesConnectedToDualEntry = useHasReusablePoliciesConnectedTo(CONST.POLICY.CONNECTIONS.NAME.DUALENTRY, policyID);
     const [cardFeeds] = useCardFeeds(policyID);
     const [cardLists] = useCardsLists();
 
@@ -66,6 +77,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                     qbd: hasReusablePoliciesConnectedToQBD,
                     certinia: hasReusablePoliciesConnectedToCertinia,
                     rillet: hasReusablePoliciesConnectedToRillet,
+                    dualEntry: hasReusablePoliciesConnectedToDualEntry,
                 },
                 undefined,
                 undefined,
@@ -98,6 +110,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
             hasReusablePoliciesConnectedToQBD,
             hasReusablePoliciesConnectedToCertinia,
             hasReusablePoliciesConnectedToRillet,
+            hasReusablePoliciesConnectedToDualEntry,
             accountingIcons,
             cardFeeds,
             cardLists,
@@ -146,6 +159,7 @@ function AccountingContextProvider({children, policy}: AccountingContextProvider
                 qbd: hasReusablePoliciesConnectedToQBD,
                 certinia: hasReusablePoliciesConnectedToCertinia,
                 rillet: hasReusablePoliciesConnectedToRillet,
+                dualEntry: hasReusablePoliciesConnectedToDualEntry,
             },
             policy,
             activeIntegration.key,

@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react-native';
 
+import {AvatarTooltipsProvider} from '@components/Avatar/tooltips/AvatarTooltipContext';
 import type {UserAvatarProps} from '@components/Avatar/UserAvatar';
 import type {WorkspaceAvatarProps} from '@components/Avatar/WorkspaceAvatar';
 import ExpenseReportListItemAvatar from '@components/Search/SearchList/ListItem/ExpenseReportListItemRow/ExpenseReportListItemAvatar';
@@ -24,13 +25,14 @@ import {actionR14932} from '../../../../__mocks__/reportData/actions';
 import personalDetails from '../../../../__mocks__/reportData/personalDetails';
 import {policy420A} from '../../../../__mocks__/reportData/policies';
 import {chatReportR14932, iouReportR14932} from '../../../../__mocks__/reportData/reports';
+import createMock from '../../../utils/createMock';
 import {translateLocal} from '../../../utils/TestHelper';
 import waitForBatchedUpdates from '../../../utils/waitForBatchedUpdates';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
 type AvatarData = {
     uri: string;
-    avatarID?: number;
+    avatarID?: UserAvatarProps['accountID'] | WorkspaceAvatarProps['avatarID'];
     name?: string;
     parent: string;
 };
@@ -39,9 +41,8 @@ const parseSource = (source: AvatarSource | IconAsset): string => {
     if (typeof source === 'string') {
         return source;
     }
-    if (typeof source === 'object' && 'name' in source) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        return source.name as string;
+    if (typeof source === 'object' && 'name' in source && typeof source.name === 'string') {
+        return source.name;
     }
     if (typeof source === 'object' && 'uri' in source) {
         return source.uri ?? 'No Source';
@@ -221,32 +222,50 @@ const onyxState = {
 function buildSearchListItem(report: Report, policyForReport: typeof policy): ExpenseReportListItemType {
     const avatarProps = getSearchReportAvatarProps(report, formatPhoneNumber, translateLocal, personalDetails, policyForReport);
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    return {
+    return createMock<ExpenseReportListItemType>({
         keyForList: report.reportID,
         isDisabled: false,
         groupedBy: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
         ...avatarProps,
-    } as ExpenseReportListItemType;
+    });
 }
 
 async function retrieveAvatarData(item: ExpenseReportListItemType) {
     render(
-        <ExpenseReportListItemAvatar
-            item={item}
-            showTooltip={false}
-        />,
+        <AvatarTooltipsProvider isEnabled={false}>
+            <ExpenseReportListItemAvatar item={item} />
+        </AvatarTooltipsProvider>,
     );
 
     await waitForBatchedUpdatesWithAct();
 
     const images = screen.queryAllByTestId('MockedAvatarData');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-    const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => fragment.props.testID as string);
+    const fragments = screen.queryAllByTestId('ReportActionAvatars-', {exact: false}).map((fragment) => {
+        const testID: unknown = fragment.props.testID;
+        if (typeof testID !== 'string') {
+            throw new Error('Rendered report action avatar fragment is missing its test ID');
+        }
+        return testID;
+    });
 
     return {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-        images: images.map((img) => img.props.dataSet as AvatarData),
+        images: images.map((img): AvatarData => {
+            const dataSet: unknown = img.props.dataSet;
+            if (typeof dataSet !== 'object' || dataSet === null || !('uri' in dataSet) || typeof dataSet.uri !== 'string' || !('parent' in dataSet) || typeof dataSet.parent !== 'string') {
+                throw new Error('Rendered avatar data is missing its URI or parent');
+            }
+
+            const avatarID = 'avatarID' in dataSet ? dataSet.avatarID : undefined;
+            const name = 'name' in dataSet ? dataSet.name : undefined;
+            if (avatarID !== undefined && typeof avatarID !== 'number' && typeof avatarID !== 'string') {
+                throw new Error('Rendered avatar data has an invalid avatar ID');
+            }
+            if (name !== undefined && typeof name !== 'string') {
+                throw new Error('Rendered avatar data has an invalid name');
+            }
+
+            return {uri: dataSet.uri, parent: dataSet.parent, avatarID, name};
+        }),
         fragments,
     };
 }
@@ -318,7 +337,7 @@ describe('ExpenseReportListItemAvatar', () => {
 
             expect(item.avatarType).toBe(CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE);
 
-            const singleAvatar = images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar');
+            const singleAvatar = images.find((img) => img.parent === 'SingleAvatar');
             expect(singleAvatar).toBeDefined();
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
         });
@@ -327,11 +346,9 @@ describe('ExpenseReportListItemAvatar', () => {
     describe('handles edge cases', () => {
         it('returns nothing when primaryAvatar is undefined', async () => {
             render(
-                <ExpenseReportListItemAvatar
-                    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-                    item={{keyForList: 'empty', isDisabled: false} as ExpenseReportListItemType}
-                    showTooltip={false}
-                />,
+                <AvatarTooltipsProvider isEnabled={false}>
+                    <ExpenseReportListItemAvatar item={createMock<ExpenseReportListItemType>({keyForList: 'empty', isDisabled: false})} />
+                </AvatarTooltipsProvider>,
             );
 
             await waitForBatchedUpdatesWithAct();
@@ -342,13 +359,14 @@ describe('ExpenseReportListItemAvatar', () => {
 
         it('returns nothing when primaryAvatar is undefined but secondaryAvatar is provided', async () => {
             const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const {images} = await retrieveAvatarData({
-                keyForList: expenseReport.reportID,
-                isDisabled: false,
-                secondaryAvatar: avatarIcons.at(1),
-                avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
-            } as ExpenseReportListItemType);
+            const {images} = await retrieveAvatarData(
+                createMock<ExpenseReportListItemType>({
+                    keyForList: expenseReport.reportID,
+                    isDisabled: false,
+                    secondaryAvatar: avatarIcons.at(1),
+                    avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SUBSCRIPT,
+                }),
+            );
 
             // The secondary avatar must not be promoted into the primary slot
             expect(images).toHaveLength(0);
@@ -356,19 +374,20 @@ describe('ExpenseReportListItemAvatar', () => {
 
         it('renders single avatar when avatarType is SINGLE even if secondaryAvatar is provided', async () => {
             const avatarIcons = getIcons(expenseReport, formatPhoneNumber, translateLocal, personalDetails, null, '', -1, policy);
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
-            const {images, fragments} = await retrieveAvatarData({
-                keyForList: expenseReport.reportID,
-                isDisabled: false,
-                primaryAvatar: avatarIcons.at(0),
-                secondaryAvatar: avatarIcons.at(1),
-                avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
-            } as ExpenseReportListItemType);
+            const {images, fragments} = await retrieveAvatarData(
+                createMock<ExpenseReportListItemType>({
+                    keyForList: expenseReport.reportID,
+                    isDisabled: false,
+                    primaryAvatar: avatarIcons.at(0),
+                    secondaryAvatar: avatarIcons.at(1),
+                    avatarType: CONST.REPORT_ACTION_AVATARS.TYPE.SINGLE,
+                }),
+            );
 
             const subscriptFragments = fragments.filter((f) => f.startsWith('ReportActionAvatars-Subscript'));
             expect(subscriptFragments).toHaveLength(0);
 
-            const singleAvatar = images.find((img) => img.parent === 'ReportActionAvatars-SingleAvatar');
+            const singleAvatar = images.find((img) => img.parent === 'SingleAvatar');
             expect(singleAvatar).toBeDefined();
             expect(singleAvatar?.uri).toBe(USER_AVATAR);
         });
