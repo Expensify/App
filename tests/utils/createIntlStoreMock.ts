@@ -11,7 +11,7 @@ type MockedIntlStore = Pick<typeof IntlStore, 'getCurrentLocale' | 'load' | 'get
  *
  *     jest.mock('@src/languages/IntlStore', () => ({__esModule: true, default: require('../../utils/createIntlStoreMock').default()}));
  *
- * Typed against the real store, so a field added there (`hasAnyTranslations` was one) fails to compile here rather than
+ * Typed against the real store, so a field added there (`isCurrentLocaleLoaded` was one) fails to compile here rather than
  * reading `undefined` in each hand-rolled copy of this shape.
  */
 export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlStore {
@@ -23,7 +23,7 @@ export default function createIntlStoreMock(locale: Locale = 'en'): MockedIntlSt
 
     const cache = new Map<Locale, FlatTranslationsObject>([[locale, flattenObject(translations)]]);
     // Same reference on every call so `useSyncExternalStore` does not loop the render.
-    const snapshot = {locale, hasAnyTranslations: cache.size > 0};
+    const snapshot = {locale, isCurrentLocaleLoaded: cache.has(locale)};
 
     return {
         getCurrentLocale: () => locale,

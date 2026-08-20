@@ -132,21 +132,21 @@ function Expensify() {
     }, [isCheckingPublicRoom]);
 
     // Monotonic, unlike `areTranslationsLoading`, which a language switch re-raises and would tear the app shell back down.
-    const {hasAnyTranslations} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
+    const {isCurrentLocaleLoaded} = useSyncExternalStore(IntlStore.subscribe, IntlStore.getSnapshot, IntlStore.getSnapshot);
     const hasEndedLocaleSpan = useRef(false);
     useEffect(() => {
-        if (!hasAnyTranslations || hasEndedLocaleSpan.current) {
+        if (!isCurrentLocaleLoaded || hasEndedLocaleSpan.current) {
             return;
         }
         // Startup span, so it ends once rather than on every subsequent locale load.
         hasEndedLocaleSpan.current = true;
         endSpan(CONST.TELEMETRY.SPAN_BOOTSPLASH.LOCALE);
-    }, [hasAnyTranslations]);
+    }, [isCurrentLocaleLoaded]);
 
     const isSplashReadyToBeHidden = splashScreenState === CONST.BOOT_SPLASH_STATE.READY_TO_BE_HIDDEN;
     const isSplashVisible = splashScreenState === CONST.BOOT_SPLASH_STATE.VISIBLE;
 
-    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && hasAnyTranslations;
+    const shouldInit = isNavigationReady && hasAttemptedToOpenPublicRoom && isCurrentLocaleLoaded;
     const shouldHideSplash = shouldInit && (CONFIG.IS_HYBRID_APP ? isSplashReadyToBeHidden : isSplashVisible);
 
     // We store this in a ref to get the latest values in BootsplashMonitor callback
@@ -158,7 +158,7 @@ function Expensify() {
         hasAttemptedToOpenPublicRoom,
         isNavigationReady,
         preferredLocale,
-        hasAnyTranslations,
+        isCurrentLocaleLoaded,
         shouldInit,
         shouldHideSplash,
         isAuthenticated,

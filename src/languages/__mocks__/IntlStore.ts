@@ -51,7 +51,10 @@ class IntlStore {
     private static listeners = new Set<() => void>();
 
     // One cached snapshot, so repeated `useSyncExternalStore` reads return the same reference. Replaced, never mutated.
-    private static snapshot: {locale: Locale; hasAnyTranslations: boolean} = {locale: IntlStore.currentLocale, hasAnyTranslations: IntlStore.localeCache.size > 0};
+    private static snapshot: {locale: Locale; isCurrentLocaleLoaded: boolean} = {
+        locale: IntlStore.currentLocale,
+        isCurrentLocaleLoaded: IntlStore.localeCache.has(IntlStore.currentLocale),
+    };
 
     static getCurrentLocale() {
         return IntlStore.currentLocale;
@@ -64,7 +67,7 @@ class IntlStore {
         // Real behaviour, otherwise a suite exercising a locale switch sees no effect and passes for the wrong reason.
         if (locale && IntlStore.localeCache.has(locale)) {
             IntlStore.currentLocale = locale;
-            IntlStore.snapshot = {locale, hasAnyTranslations: true};
+            IntlStore.snapshot = {locale, isCurrentLocaleLoaded: true};
             for (const listener of IntlStore.listeners) {
                 listener();
             }
@@ -85,7 +88,7 @@ class IntlStore {
         };
     }
 
-    static getSnapshot(): {locale: Locale; hasAnyTranslations: boolean} {
+    static getSnapshot(): {locale: Locale; isCurrentLocaleLoaded: boolean} {
         return IntlStore.snapshot;
     }
 

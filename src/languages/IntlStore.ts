@@ -232,21 +232,21 @@ class IntlStore {
     private static loadToken = 0;
 
     /** An object, not the locale string: React bails on `Object.is`, which would swallow a cache fill under one locale. */
-    private static snapshot: {locale: Locale; hasAnyTranslations: boolean} = {locale: LOCALES.DEFAULT, hasAnyTranslations: false};
+    private static snapshot: {locale: Locale; isCurrentLocaleLoaded: boolean} = {locale: LOCALES.DEFAULT, isCurrentLocaleLoaded: false};
 
-    public static getSnapshot(this: void): {locale: Locale; hasAnyTranslations: boolean} {
+    public static getSnapshot(this: void): {locale: Locale; isCurrentLocaleLoaded: boolean} {
         return IntlStore.snapshot;
     }
 
     /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
-        // Monotonic because the cache never shrinks, which is what the boot splash gate needs.
-        const hasAnyTranslations = IntlStore.cache.size > 0;
+        // A superseded load caches a locale nothing renders in, so `size > 0` would lift the splash onto path strings.
+        const isCurrentLocaleLoaded = IntlStore.cache.has(IntlStore.currentLocale);
         // Compared by reference, so an identical snapshot would re-render the app root for nothing.
-        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.hasAnyTranslations === hasAnyTranslations) {
+        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.isCurrentLocaleLoaded === isCurrentLocaleLoaded) {
             return;
         }
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, hasAnyTranslations};
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, isCurrentLocaleLoaded};
         for (const listener of IntlStore.listeners) {
             listener();
         }

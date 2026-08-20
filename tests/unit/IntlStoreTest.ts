@@ -124,6 +124,25 @@ describe('IntlStore', () => {
             expect(flag).toBe(false);
         });
 
+        it('keeps the boot gate closed when a superseded load caches a locale nothing renders in', async () => {
+            // The shared EN seed leaves a committed and cached locale, which is the state this test needs absent.
+            await jest.isolateModulesAsync(async () => {
+                const ColdStore = (await import('@src/languages/IntlStore')).default;
+
+                const [{default: esTranslations}, {default: flattenObject}] = await Promise.all([import('@src/languages/es'), import('@src/languages/flattenObject')]);
+                ColdStore.seedForTests(CONST.LOCALES.ES, flattenObject(esTranslations));
+
+                expect(ColdStore.getCurrentLocale()).toBe(CONST.LOCALES.DEFAULT);
+                expect(ColdStore.getSnapshot().isCurrentLocaleLoaded).toBe(false);
+
+                await ColdStore.load(CONST.LOCALES.FR);
+                await waitForBatchedUpdates();
+
+                expect(ColdStore.getCurrentLocale()).toBe(CONST.LOCALES.FR);
+                expect(ColdStore.getSnapshot().isCurrentLocaleLoaded).toBe(true);
+            });
+        });
+
         it('subscribe and getCurrentLocale are callable as useSyncExternalStore inputs', async () => {
             await IntlStore.load(CONST.LOCALES.EN);
 
