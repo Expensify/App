@@ -55,6 +55,10 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 
 `agent-device boot --platform android` (optional `--device "<AVD name>"`). For iOS, `agent-device boot --platform ios` or `agent-device ensure-simulator --boot` when you need a created simulator instance.
 
+## Platform coverage
+
+`switch-home-to-inbox` and `switch-home-to-reports` are verified on Android only. On iOS the bottom tab items carry no durable selector: they are not `role="tab"`, not `role="button"`, and not `hittable=true`, while a bare `label="Home"` resolves to an unrelated node such as a chat row. Both flows therefore fail their `@post` on iOS rather than producing a wrong number. Measuring them on iOS needs a `testID` on each tab item first.
+
 ## Contract
 
 - App logs: `[Sentry][<SpanName>] Ending span (<N>ms)` via `console.debug`.
