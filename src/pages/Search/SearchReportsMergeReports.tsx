@@ -38,6 +38,7 @@ function SearchMergeReports() {
     const {currentSearchHash, currentSearchQueryJSON} = useSearchQueryContext();
 
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allPolicyCategories] = useOnyx(ONYXKEYS.COLLECTION.POLICY_CATEGORIES);
     const [allPolicyTags] = useOnyx(ONYXKEYS.COLLECTION.POLICY_TAGS);
@@ -159,7 +160,8 @@ function SearchMergeReports() {
             policyCategories: policyID ? allPolicyCategories?.[`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${policyID}`] : undefined,
             policyTagList: policyID ? (allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyID}`] ?? {}) : {},
             allTransactionViolation: transactionViolations,
-            allReports: allReports ?? {},
+            allReports,
+            allReportActions,
             allReportsTransactions,
             bankAccountList,
             hash: currentSearchHash,
