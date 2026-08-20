@@ -180,8 +180,8 @@ const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) =>
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    // The supporting line carries the date, then the category and any status. These transactions have neither, so the date is the
-    // whole line and is asserted exactly - a prefix match would let an unexpected category or status slip through.
+    // These transactions have no category and no status, so the date is the whole supporting line. Asserted exactly, so an
+    // unexpected category or status can't slip through.
     const transactionSupportingText = date;
     const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);

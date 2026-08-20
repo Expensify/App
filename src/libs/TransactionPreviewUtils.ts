@@ -326,8 +326,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewDateText = {text: date};
     }
 
-    // Paid, Approved, Review required, Canceled and the hold message are intentionally omitted here because the report status badge,
-    // the report preview header and the RBR row already show them, so repeating them on this line is noise.
+    // Paid, Approved, Review required, Canceled and the hold message are omitted here: the status badge, the preview header and the
+    // RBR row already show them.
     const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
