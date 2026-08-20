@@ -21761,10 +21761,8 @@ describe('ReportUtils', () => {
         });
 
         it('should NOT flag a split-bill action when its linked transaction is pending deletion (revert split / delete)', () => {
-            // Repro of the RBR-persists-after-revert class (cf. #96967 / PR #97706, which only fixed the
-            // violations path in getViolatingReportIDForRBRInLHN). The missing-smartscan-fields path never
-            // excludes DELETE-pending transactions, so a reverted/deleted expense with missing fields keeps
-            // lighting the LHN red-dot until the server confirms removal.
+            // The missing-smartscan-fields path never excluded DELETE-pending transactions (#97706 only fixed
+            // the violations path), so a reverted expense with missing fields kept lighting the RBR (#96967).
             const splitTransactionID = '550';
             const splitAction: ReportAction = {
                 ...createRandomReportAction(Number(splitTransactionID)),

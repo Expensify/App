@@ -11407,9 +11407,8 @@ function getReportActionWithSmartscanError(
 
         const transactionID = isSplitOrTrackAction ? getOriginalMessage(action)?.IOUTransactionID : undefined;
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
-        // A transaction queued for deletion (e.g. after reverting a split) still lives in Onyx until the
-        // server confirms removal. It must not keep lighting the RBR red-dot. This mirrors the DELETE-pending
-        // filtering added to the violations path in getViolatingReportIDForRBRInLHN.
+        // A transaction queued for deletion still lives in Onyx until the server confirms removal, so it must
+        // not keep lighting the RBR. This mirrors the DELETE-pending filter in getViolatingReportIDForRBRInLHN.
         const isTransactionPendingDelete = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
         const isTransactionThreadError = isSplitOrTrackAction && !isTransactionPendingDelete && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
 
