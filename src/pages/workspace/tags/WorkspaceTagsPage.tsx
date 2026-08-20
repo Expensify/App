@@ -410,6 +410,7 @@ function WorkspaceTagsPage({route}: WorkspaceTagsPageProps) {
                 disabled: isDisabled,
                 errors: tag.errors ?? undefined,
                 pendingAction: tag.pendingAction,
+                pending: tag.pendingFields?.enabled === CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE,
                 isLocked: !canWriteTags || isLastEnabledTagAndEnabled,
                 showEnabledSwitch: true,
                 showRequiredSwitch: false,

@@ -37,6 +37,8 @@ type WorkspaceTagTableRowData = TableData & {
     disabled?: boolean;
     errors?: OnyxCommon.Errors;
     pendingAction?: OnyxCommon.PendingAction;
+    /** Whether the enabled toggle has an optimistic update in flight (shows a spinner on the Switch) */
+    pending?: boolean;
     isLocked: boolean;
     isSwitchDisabled?: boolean;
     showEnabledSwitch: boolean;

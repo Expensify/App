@@ -170,6 +170,7 @@ export default function WorkspaceTagsTableRow({
                                 isOn={switchValue}
                                 showLockIcon={item.isLocked}
                                 disabled={isSwitchControlDisabled}
+                                pending={item.pending}
                                 accessibilityLabel={`${switchAccessibilityLabel}: ${item.name}`}
                                 onToggle={handleSwitchToggle}
                             />
