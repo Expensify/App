@@ -9,13 +9,13 @@ title: Keep synchronous Onyx reads off the render path and out of a written tick
 
 `Onyx.get()` reads the cache synchronously and never subscribes. `no-unsafe-onyx-read` catches the shapes of that going wrong which are visible in one file and one function body. The others are not, and this rule is the others.
 
-**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (`returnsJSX`, `eslint-plugin-local-rules/no-unsafe-onyx-read.js:89-105`). So it is silent on a read in a library function a hook calls, silent on a helper that returns JSX from inside an `if` or a `switch`, and silent on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
+**A. Position.** A read is a render read when render reaches it, wherever it is written. Lint decides that syntactically: a function is a render body only when it is named like a component or a hook, or has a top-level `return <JSX>` (the `returnsJSX` check in `eslint-plugin-local-rules/no-unsafe-onyx-read.js`). So it is silent on a read in a library function a hook calls, silent on a helper that returns JSX from inside an `if` or a `switch`, and silent on a function handed to a child as a prop, because the body that invokes it is in another file. Silence is not a verdict. Classify by position.
 
-**B. Tick.** `Onyx.merge` and `Onyx.update` apply a microtask later, so a read after one returns the pre-write value, and a derived key lags every write to its sources whether or not that write landed at once. Lint pairs writes with reads inside a single enclosing body (`callsByBody`, same file, lines 423 and 539). A write in the caller with the read in a callee is the same defect and it is invisible there.
+**B. Tick.** `Onyx.merge` and `Onyx.update` apply a microtask later, so a read after one returns the pre-write value. Not every write defers, though: `set` and its collection variants land in the cache at once, so a read after those is already current. A derived key lags every write to its sources either way. Lint pairs writes with reads inside a single enclosing body, via the `callsByBody` map in that same rule file. A write in the caller with the read in a callee is the same defect and it is invisible there.
 
 **C. Trigger.** A `useOnyx` binding whose value is only forwarded still re-renders the component when its key changes, and sometimes that re-render is the point: an effect keyed on the value, or a dependency array that carries it. Replacing such a binding with a read inside the same body deletes the trigger. The finished file looks correct, so this shape is only visible in the diff.
 
-**D. Hydration.** `Onyx.init` hydrates the cache asynchronously and runs outside the React lifecycle (`src/setup/index.ts:38`), so a read that beats it returns `undefined` for every key still only on disk, indistinguishable from an absent value. Lint catches module scope. A mount-only effect, an exported `init*`, and anything else the boot path reaches are the quiet ones.
+**D. Hydration.** `Onyx.init` hydrates the cache asynchronously and runs outside the React lifecycle, from `src/setup/index.ts`, so a read that beats it returns `undefined` for every key still only on disk, indistinguishable from an absent value. Lint catches module scope. A mount-only effect, an exported `init*`, and anything else the boot path reaches are the quiet ones.
 
 **E. Output.** A read is also wrong when its value reaches the screen on a later hop: parked in state, in a ref, or in a module variable that a component renders. The rendered value is then a snapshot that never updates. A1 and A3 catch the caller-is-render case; this is the stash-then-render case.
 
@@ -119,11 +119,23 @@ function useOwnerName(reportID: string) {
 // A2: the render body takes the report it draws.
 function renderReportIcon(report: OnyxEntry<Report>) { ... }
 
-// B: every read happens before the first write.
+// B: every read happens before the first write. Straight-line code in one tick is where the hoist belongs.
 function submitReport(reportID: string) {
     const total = ReportUtils.getReportTotal(reportID);
     const attributes = ReportUtils.getReportAttributes(reportID);
     Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`, {stateNum: CONST.REPORT.STATE_NUM.SUBMITTED});
+}
+
+// B, the other half: a read in a deferred continuation stays there. Hoisting it above the write freezes it,
+// and the actions arriving while the callback waits are lost.
+function replaceReport(reportID: string) {
+    Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`, {[actionID]: null});
+    TransitionTracker.runAfterTransitions({
+        callback: () => {
+            const action = Onyx.get(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${reportID}`)?.[actionID];
+            if (action && !action.isOptimisticAction) { ... }
+        },
+    });
 }
 
 // C: the effect re-runs on the key, so the subscription stays.
@@ -176,10 +188,17 @@ Callers of a read: Grep `src/` over `**/*.{ts,tsx}` for the function's name, ign
 
 #### B. Tick. Two triggers.
 
-**B1. Forward, the diff adds an un-awaited write.** Writes are `Onyx.merge`, `update`, `set`, `multiSet`, `mergeCollection`, `setCollection` and `clear`. For every call the body makes after that write in the same tick, Grep the callee's file for `Onyx.get`. Flag when the callee reads:
+**B1. Forward, the diff adds an un-awaited write.** Which write it is decides what a same-tick read can see:
+
+- `merge`, `update` and `clear` are deferred, so a later read in the same tick returns the pre-write value
+- `set`, `multiSet`, `setCollection` and `mergeCollection` land in the cache immediately, so a same-tick read of the written key is already current and is not a finding. After one of these, flag only a read of a key *derived* from the written one, which lags either way
+
+The split does not follow the names, `mergeCollection` behaves like `set` and not like `merge`, so do not extend either list by guessing.
+
+For every call the body makes after a deferred write in the same tick, Grep the callee's file for `Onyx.get`. Flag when the callee reads:
 
 - The written key, or a member of the written collection
-- A key derived from it. Derived keys are `ONYXKEYS.DERIVED.*` (`src/ONYXKEYS.ts:1298-1307`); the sources of one are the `dependencies` array in its config under `src/libs/actions/OnyxDerived/configs/`. Grep that directory for the written key. A derived read lags even a write that lands immediately, because the derivation's own write does not
+- A key derived from it. Derived keys are the `DERIVED` block in `src/ONYXKEYS.ts`; the sources of one are the `dependencies` array in its config under `src/libs/actions/OnyxDerived/configs/`. Grep that directory for the written key. A derived read lags even a write that lands immediately, because the derivation's own write does not
 - Comment on the write, naming the callee and the key
 
 A callee that is itself a plain function is not a verdict: repeat on the functions it calls.
@@ -244,7 +263,9 @@ Output:
 Tick:
 
 - The write is awaited, or the read runs in its `.then`
-- The call runs in a later tick: after an `await`, `runAfterTransitions`, `InteractionManager.runAfterInteractions` or a timer. That stretch is meant to see the write, so re-reading there is the fix, not the defect
+- The read sits inside something the author deliberately deferred: a `.then`, a timer, `runAfterTransitions`, `runAfterInteractions`, or a callback passed to an async API. Reading there is the point, the value should be whatever is current once that body finally runs. Still exempt when the wrapper happens to run inline on a given call, because the placement is deliberate either way
+- Do not answer B by moving a read out of one of those bodies. Hoisting is the fix for straight-line code; here it pins the value to the moment before the wait, so anything arriving during the wait is lost. If such a read still looks wrong, the write is what is misplaced, not the read
+- The write is `set`, `multiSet`, `setCollection` or `mergeCollection` and the read is of the key just written, since those land in the cache immediately. A read of a key *derived* from that write is still a finding
 - The write and the call are in mutually exclusive branches, or the write's branch returns before the call
 - The keys are provably different and the read key is not derived from the written one
 
@@ -255,3 +276,4 @@ Tick:
 - removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff
 - `useEffect(`, `useLayoutEffect(`, `useFocusEffect(`, `useRef(`, `useState(`
 - `Onyx.init`, `init` as a function-name prefix
+- before flagging a read that follows a write, the body enclosing it: `runAfterTransitions`, `runAfterInteractions`, `.then(`, `setTimeout(`, `callback:`. A read inside one is exempt, and a read the diff moved *out* of one is its own finding

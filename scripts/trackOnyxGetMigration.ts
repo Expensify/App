@@ -20,14 +20,14 @@
  *     after the write, where `merge` and `update` have not applied yet. That is the proposal's third
  *     condition.
  *
- * What a `CERTAIN` verdict does and does not claim. It claims the four mechanical conditions hold for
- * the conversion that keeps the read in this file: the value never reaches rendered output, every
- * reference sits in event-position code, no reference is an effect trigger, and the consuming function
- * performs no Onyx write the read could land behind. It does not claim anything about pushing the read
- * further down into a callee in another file, which changes that callee's safety class and needs the
- * forward sweep in the onyx-get skill; `--callee-names` prints every callee to sweep. And it
- * cannot speak to the proposal's fourth condition, mixing a source key with a key derived from it,
- * because that depends on which keys the converted function ends up reading.
+ * What a `CERTAIN` verdict does and does not claim. It claims the mechanical conditions hold: the value
+ * never reaches rendered output, every reference sits in event-position code, no reference is an effect
+ * trigger, the consuming function performs no Onyx write the read could land behind, the binding reads no
+ * `selector` the read site would have to reproduce, and no file calls the callee it forwards to during
+ * render. That last one is a cross-file sweep, so it only runs over the whole list: `--file` reports the
+ * in-file verdict alone, and `--callees` prints what the sweep found. It still cannot speak to the
+ * proposal's fourth condition, mixing a source key with a key derived from it, because that depends on
+ * which keys the converted function ends up reading.
  *
  * The analysis is syntactic, one file at a time, with no type-checker, so references resolve by name
  * inside the declaring function. A shadowed name is over-counted, which pushes a binding towards
@@ -39,6 +39,7 @@
  *   bun scripts/trackOnyxGetMigration.ts                 # summary, then the whole-file candidates
  *   bun scripts/trackOnyxGetMigration.ts --certain       # just the CERTAIN bindings, one per line
  *   bun scripts/trackOnyxGetMigration.ts --verdicts      # every non-render binding and why
+ *   bun scripts/trackOnyxGetMigration.ts --callees       # each callee a CERTAIN binding feeds, and its caller set
  *   bun scripts/trackOnyxGetMigration.ts --callee-names  # every callee to run the caller sweep on
  *   bun scripts/trackOnyxGetMigration.ts --file <path>   # one file, per-binding verdict
  *   bun scripts/trackOnyxGetMigration.ts --json
@@ -189,6 +190,8 @@ type Binding = {
     readsSingleMemberOnly: boolean;
     /** Functions the value is handed to, as `name` or `object.name`. Where the read would move. */
     calleeNames: string[];
+    /** The binding reads through a `selector`, so the read site has to reproduce it rather than copy the key. */
+    hasSelector: boolean;
     /** Onyx write methods called inside a consuming function, ahead of the reference. */
     writesAhead: string[];
     /** Deferral points inside the consuming function, which split it into several synchronous stretches. */
@@ -1057,6 +1060,105 @@ function isNamePositionOnly(id: ts.Identifier): boolean {
     return ts.isVariableDeclaration(parent) && parent.name === id;
 }
 
+/** Where a shared callee is called from, across every file. */
+type CalleeSweep = {
+    callSites: number;
+    /** `file:line` of every call that runs during a component or hook render. */
+    renderCallSites: string[];
+    /** Files holding a call site, so a callee's caller set can be compared with its `CERTAIN` set. */
+    files: Set<string>;
+};
+
+/** True for a function whose body runs during render: a component or a hook. Nothing else does. */
+function isRenderScope(fn: ts.Node): boolean {
+    let named: ts.Node | undefined = fn;
+    // `const Foo = forwardRef(() => ...)` and `const useFoo = () => ...` both put the name one or two hops up.
+    if (named.parent && ts.isCallExpression(named.parent)) {
+        named = named.parent;
+    }
+    if (ts.isFunctionDeclaration(fn) && fn.name) {
+        return /^[A-Z]/.test(fn.name.text) || /^use[A-Z]/.test(fn.name.text);
+    }
+    const declaration = named?.parent;
+    if (declaration && ts.isVariableDeclaration(declaration) && ts.isIdentifier(declaration.name)) {
+        return /^[A-Z]/.test(declaration.name.text) || /^use[A-Z]/.test(declaration.name.text);
+    }
+    return false;
+}
+
+/**
+ * True when this call runs during a render pass, so a read moved inside the callee would run there too.
+ *
+ * Deliberately not `classifyReference`: that returns `render` for anything under a JSX expression, which
+ * is the safe direction for a value reference but wrong for a call, since `onPress={() => f()}` is an
+ * event. Here a function boundary wins over JSX position, and the walk only reports render once it
+ * reaches a component or hook, so a call at statement level in `src/libs/` is not mistaken for one.
+ */
+function callRunsDuringRender(call: ts.CallExpression, renderInvoked: Set<ts.Node>): boolean {
+    let node: ts.Node | undefined = call.parent;
+
+    while (node) {
+        if (isFunctionLike(node) && !runsImmediately(node) && !renderInvoked.has(node)) {
+            const hook = enclosingHookCall(node);
+            const transparent = (!!hook && RENDER_TIME_HOOKS.has(hook)) || isSelectorCallback(node) || isRenderTimeInitializer(node);
+            if (!transparent) {
+                // A handler, an effect callback, a deferred callback: the call does not run at render time.
+                return isRenderScope(node);
+            }
+        }
+        node = node.parent;
+    }
+
+    return false;
+}
+
+/**
+ * The forward sweep the per-file analysis cannot do. A `CERTAIN` verdict clears keeping the read in the
+ * file it is already in; moving it down into a shared callee is a different question, because that
+ * callee's own callers decide whether the read would then run during render. Matching is by bare callee
+ * name with no type resolution, so a same-named local function in another file also matches: that
+ * over-counts render call sites, which pushes bindings out of the candidate set rather than into it.
+ */
+function sweepCallees(files: string[], names: Set<string>): Map<string, CalleeSweep> {
+    const sweeps = new Map<string, CalleeSweep>();
+    const shortNames = new Map<string, string>();
+    for (const name of names) {
+        sweeps.set(name, {callSites: 0, renderCallSites: [], files: new Set()});
+        shortNames.set(name, name.split('.').at(-1) ?? name);
+    }
+
+    for (const file of files) {
+        const absolute = path.isAbsolute(file) ? file : path.join(projectRoot, file);
+        const text = fs.readFileSync(absolute, 'utf8');
+        if (![...shortNames.values()].some((shortName) => text.includes(shortName))) {
+            continue;
+        }
+
+        const sourceFile = parse(file);
+        // Whole file at once: the walk leaves the nearest scope, so a set built per scope would leave an
+        // outer render-invoked function looking like a real boundary, which is the permissive direction.
+        const renderInvoked = renderInvokedFunctions(sourceFile);
+
+        forEachDescendant(sourceFile, (node) => {
+            if (!ts.isCallExpression(node)) {
+                return;
+            }
+            const sweep = sweeps.get(calleeName(node));
+            if (!sweep) {
+                return;
+            }
+
+            sweep.callSites += 1;
+            sweep.files.add(file);
+            if (callRunsDuringRender(node, renderInvoked)) {
+                sweep.renderCallSites.push(`${file}:${sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1}`);
+            }
+        });
+    }
+
+    return sweeps;
+}
+
 function analyzeFile(file: string): Binding[] {
     const sourceFile = parse(file);
     const bindings: Binding[] = [];
@@ -1086,6 +1188,9 @@ function analyzeFile(file: string): Binding[] {
         indirectEffectScopes.set(scope, indirectEffects);
         const escaping = escapingScopes.get(scope) ?? escapingFunctions(scope);
         escapingScopes.set(scope, escaping);
+
+        const options = node.arguments.at(1);
+        const hasSelector = !!options && ts.isObjectLiteralExpression(options) && options.properties.some((property) => property.name?.getText(sourceFile) === 'selector');
 
         const kinds = new Set<ReferenceKind>();
         const calleeNames = new Set<string>();
@@ -1161,6 +1266,10 @@ function analyzeFile(file: string): Binding[] {
                 verdict = 'REVIEW';
                 reasons.push('file is on the boot path, where a read can precede hydration');
             }
+            if (hasSelector) {
+                verdict = 'REVIEW';
+                reasons.push('binding reads through a selector, so the read site has to reproduce it rather than copy the key');
+            }
         }
 
         bindings.push({
@@ -1172,6 +1281,7 @@ function analyzeFile(file: string): Binding[] {
             kinds: [...kinds],
             readsSingleMemberOnly: referenceCount > 0 && referenceCount === indexedReferenceCount,
             calleeNames: [...calleeNames],
+            hasSelector,
             writesAhead: [...priorWrites],
             deferrals: [...deferrals],
             verdict,
@@ -1230,6 +1340,31 @@ function main(): void {
     const files = singleFile ? [singleFile] : listSourceFiles();
     const bindings = files.flatMap(analyzeFile);
 
+    // Second pass: a binding can clear every in-file condition and still forward its value to a function
+    // that some other file calls during render, where a read moved inside it would run at render time.
+    // Only reachable with the whole file list, so `--file` reports the in-file verdict on its own.
+    const sweepFiles = singleFile ? listSourceFiles() : files;
+    // Swept for every off-render binding, not only the `CERTAIN` ones, so `--callees` also answers the
+    // question for a callee a later wave wants: can a read live inside it at all. Only `CERTAIN` verdicts
+    // are changed by the result.
+    const sweepNames = new Set(bindings.filter((binding) => binding.verdict !== 'NOT_CANDIDATE').flatMap((binding) => binding.calleeNames));
+    const sweeps = sweepCallees(sweepFiles, sweepNames);
+
+    for (const binding of bindings) {
+        if (binding.verdict !== 'CERTAIN') {
+            continue;
+        }
+        for (const callee of binding.calleeNames) {
+            const sweep = sweeps.get(callee);
+            const renderCallSite = sweep?.renderCallSites.at(0);
+            if (!renderCallSite) {
+                continue;
+            }
+            binding.verdict = 'REVIEW';
+            binding.reasons.push(`callee ${callee} runs during render at ${renderCallSite}, so the read cannot move into it`);
+        }
+    }
+
     const nonRender = bindings.filter((binding) => binding.verdict !== 'NOT_CANDIDATE');
     const certain = bindings.filter((binding) => binding.verdict === 'CERTAIN');
     const review = bindings.filter((binding) => binding.verdict === 'REVIEW');
@@ -1257,6 +1392,8 @@ function main(): void {
         console.log(row('      CERTAIN, mechanically clear', certain.length));
         console.log(row('      REVIEW, a condition needs a person', review.length));
         console.log(row('      DEAD, delete rather than convert', dead.length));
+        console.log(row('  of REVIEW: callee runs during render', review.filter((binding) => binding.reasons.some((reason) => reason.includes('runs during render at'))).length));
+        console.log(row('  of REVIEW: binding reads through a selector', review.filter((binding) => binding.hasSelector).length));
         console.log('');
         console.log(`synchronous Onyx reads present today        : ${String(converted.reads).padStart(5)} in ${converted.files} file(s)`);
         console.log(
@@ -1272,6 +1409,30 @@ function main(): void {
     if (argv.includes('--certain')) {
         for (const binding of certain) {
             console.log(`${binding.file}:${binding.line}  ${binding.name} <- ${binding.key}`);
+        }
+        return;
+    }
+
+    if (argv.includes('--callees')) {
+        // Every callee a CERTAIN binding forwards to, with what the forward sweep found. A callee whose
+        // caller set is wider than its CERTAIN set keeps its parameters, since the rest keep subscribing.
+        const forwardingByCallee = new Map<string, {bindings: number; certain: number; files: Set<string>}>();
+        for (const binding of nonRender) {
+            for (const callee of binding.calleeNames) {
+                const entry = forwardingByCallee.get(callee) ?? {bindings: 0, certain: 0, files: new Set<string>()};
+                entry.bindings += 1;
+                entry.certain += binding.verdict === 'CERTAIN' ? 1 : 0;
+                entry.files.add(binding.file);
+                forwardingByCallee.set(callee, entry);
+            }
+        }
+        for (const [callee, entry] of [...forwardingByCallee.entries()].sort((a, b) => b[1].bindings - a[1].bindings)) {
+            const sweep = sweeps.get(callee);
+            const renderCallSite = sweep?.renderCallSites.at(0);
+            const blocked = renderCallSite ? `  BLOCKED, runs during render at ${renderCallSite}` : '';
+            console.log(
+                `${String(entry.bindings).padStart(4)} bindings (${String(entry.certain)} CERTAIN) in ${String(entry.files.size)} file(s) feed ${callee}, called from ${String(sweep?.callSites ?? 0)} site(s)${blocked}`,
+            );
         }
         return;
     }
