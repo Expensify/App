@@ -2680,6 +2680,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Παρακαλούμε επιβεβαιώστε τις δοκιμαστικές συναλλαγές',
             accountRequiresAttention: 'Αυτός ο λογαριασμός χρειάζεται προσοχή',
             unlock: 'Ξεκλείδωμα',
+            plaidBrokenReconnect: 'Η σύνδεσή σας με το Plaid έχει διακοπεί. Συνδεθείτε ξανά για πιο ακριβές όριο τομέα',
+            plaidConnectForLimit: 'Συνδέστε το Plaid για πιο ακριβές όριο στην Κάρτα Expensify',
+            connect: 'Σύνδεση',
+        },
+        linkPlaid: {
+            title: 'Σύνδεση με Plaid',
+            successHeading: 'Επιτυχής σύνδεση',
+            successDescription: 'Ευχαριστούμε που συνδεθήκατε με το Plaid!',
+            failureHeading: 'Ανεπιτυχής σύνδεση',
+            failureDescription: 'Δοκιμάστε ξανά ή <concierge-link>επικοινωνήστε με το Concierge</concierge-link>.',
+            wrongAccountHeading: 'Λάθος τραπεζικός λογαριασμός',
+            wrongAccountDescription: 'Παρακαλούμε επιλέξτε τον αντίστοιχο τραπεζικό λογαριασμό στο Plaid.',
         },
     },
     cardPage: {

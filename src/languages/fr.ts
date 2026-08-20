@@ -2625,6 +2625,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'Veuillez confirmer les transactions de test',
             accountRequiresAttention: 'Ce compte nécessite une attention particulière',
             unlock: 'Déverrouiller',
+            plaidBrokenReconnect: 'Votre connexion à Plaid est rompue. Reconnectez-vous pour obtenir une limite de domaine plus précise',
+            plaidConnectForLimit: 'Connectez Plaid pour une limite de Carte Expensify plus précise',
+            connect: 'Connecter',
+        },
+        linkPlaid: {
+            title: 'Se connecter à Plaid',
+            successHeading: 'Connexion réussie',
+            successDescription: 'Merci d’avoir connecté Plaid !',
+            failureHeading: 'Connexion échouée',
+            failureDescription: 'Veuillez réessayer ou <concierge-link>contacter Concierge</concierge-link>.',
+            wrongAccountHeading: 'Mauvais compte bancaire',
+            wrongAccountDescription: 'Veuillez sélectionner le compte bancaire correspondant dans Plaid.',
         },
     },
     cardPage: {

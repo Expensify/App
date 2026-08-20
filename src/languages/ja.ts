@@ -2590,6 +2590,18 @@ const translations: TranslationDeepObject<typeof en> = {
             confirmTestTransactions: 'テスト取引を確認してください',
             accountRequiresAttention: 'このアカウントには対応が必要です',
             unlock: 'ロック解除',
+            plaidBrokenReconnect: 'Plaid との接続が切断されています。より正確なドメイン上限のために再接続してください',
+            plaidConnectForLimit: 'Plaid に接続して、Expensify カードの上限額をより正確にしましょう',
+            connect: '接続',
+        },
+        linkPlaid: {
+            title: 'Plaid に接続',
+            successHeading: '接続に成功しました',
+            successDescription: 'Plaid に接続していただきありがとうございます！',
+            failureHeading: '接続に失敗しました',
+            failureDescription: 'もう一度お試しいただくか、<concierge-link>Concierge にお問い合わせください</concierge-link>。',
+            wrongAccountHeading: '誤った銀行口座',
+            wrongAccountDescription: 'Plaid で一致する銀行口座を選択してください。',
         },
     },
     cardPage: {

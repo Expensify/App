@@ -19,6 +19,7 @@ export type {default as BeginSignInParams} from './BeginSignInParams';
 export type {default as CloseAccountParams} from './CloseAccountParams';
 export type {default as RevokeDeviceParams} from './RevokeDeviceParams';
 export type {default as ConnectBankAccountParams} from './ConnectBankAccountParams';
+export type {default as LinkPlaidToBankAccountParams} from './LinkPlaidToBankAccountParams';
 export type {default as OpenDuplicatePolicyPageParams} from './OpenDuplicatePolicyPageParams';
 export type {default as ConnectPolicyToAccountingIntegrationParams} from './ConnectPolicyToAccountingIntegrationParams';
 export type {default as ConnectPolicyToNetSuiteOAuthParams} from './ConnectPolicyToNetSuiteOAuthParams';

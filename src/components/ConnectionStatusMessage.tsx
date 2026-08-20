@@ -3,7 +3,10 @@ import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import CONST from '@src/CONST';
+
 import type {ComponentProps} from 'react';
+import type {ValueOf} from 'type-fest';
 
 import React from 'react';
 import {View} from 'react-native';
@@ -20,6 +23,7 @@ type ConnectionStatusMessageProps = {
     statusTone?: 'default' | 'success' | 'danger';
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
     shouldIncludeHorizontalPadding?: boolean;
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 function ConnectionStatusMessage({
@@ -30,8 +34,9 @@ function ConnectionStatusMessage({
     statusTone = 'default',
     onLinkPress,
     shouldIncludeHorizontalPadding = true,
+    brickRoadIndicator,
 }: ConnectionStatusMessageProps) {
-    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator']);
+    const icons = useMemoizedLazyExpensifyIcons(['DotIndicator', 'Exclamation']);
     const theme = useTheme();
     const styles = useThemeStyles();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
@@ -58,7 +63,15 @@ function ConnectionStatusMessage({
                     />
                 </View>
             )}
-            <View style={[styles.flex1, styles.flexRow]}>
+            <View style={[styles.flex1, styles.flexRow, styles.alignItemsCenter]}>
+                {brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.INFO && (
+                    <Icon
+                        src={icons.Exclamation}
+                        fill={theme.icon}
+                        size={CONST.ICON_SIZE.MEDIUM}
+                        additionalStyles={[styles.mr3]}
+                    />
+                )}
                 <RenderHTML
                     html={messageHTML}
                     onLinkPress={onLinkPress}
@@ -70,7 +83,8 @@ function ConnectionStatusMessage({
     const actionButton = shouldShowActionButton ? (
         <Button
             small
-            danger
+            danger={isDangerStatus}
+            success={statusTone === 'success'}
             style={styles.alignSelfStart}
             text={actionText}
             onPress={onActionPress}

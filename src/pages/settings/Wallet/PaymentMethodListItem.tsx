@@ -47,12 +47,14 @@ import {View} from 'react-native';
 type ConnectionStatusDetails = {
     statusText: string;
     statusTone?: 'default' | 'success' | 'danger';
+    statusBadgeTone?: 'default' | 'success' | 'danger';
     tooltipText?: string;
     message?: string;
     actionText?: string;
     onActionPress?: () => void;
     isActionDisabled?: boolean;
     onLinkPress?: ComponentProps<typeof RenderHTML>['onLinkPress'];
+    brickRoadIndicator?: ValueOf<typeof CONST.BRICK_ROAD_INDICATOR_STATUS>;
 };
 
 type PaymentMethodItem = PaymentMethod & {
@@ -219,7 +221,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
             return (
                 <ConnectionStatusBadge
                     text={item.connectionStatus.statusText}
-                    tone={item.connectionStatus.statusTone}
+                    tone={item.connectionStatus.statusBadgeTone ?? item.connectionStatus.statusTone}
                     tooltipText={item.connectionStatus.tooltipText}
                 />
             );
@@ -308,6 +310,7 @@ function PaymentMethodListItem({item, shouldShowDefaultBadge, threeDotsMenuItems
                                         onActionPress={connectionStatus.onActionPress}
                                         isActionDisabled={connectionStatus.isActionDisabled}
                                         statusTone={connectionStatus.statusTone}
+                                        brickRoadIndicator={connectionStatus.brickRoadIndicator}
                                         onLinkPress={connectionStatus.onLinkPress}
                                     />
                                 </View>
