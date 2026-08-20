@@ -451,10 +451,12 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
                 return;
             }
 
             if (!item?.reportID) {
+                Log.info('[SearchExport] Dropping export to accounting: item has no reportID');
                 return;
             }
 
@@ -971,11 +973,34 @@ function deleteSavedSearch(hash: number) {
     write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage(params?: OpenSearchPageParams) {
-    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+/**
+ * @param hashWithStaleError Snapshot hash whose stored failure should be dropped as the page opens. A failed request
+ * leaves the snapshot errored and terminal, which reads as resolved, so nothing requests the query again.
+ */
+function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: number) {
+    const apiParams = {
         includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
         includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-    });
+    };
+
+    if (hashWithStaleError === undefined) {
+        read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
+            value: {
+                errors: null,
+                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
+                search: {state: null, responseJsonCode: null},
+            },
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams, {optimisticData});
 }
 
 function openSearchCardFiltersPage() {
@@ -1040,12 +1065,16 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
-    pendingTotalsRequest?: () => Promise<string | number | undefined> | undefined;
+    shouldSaveRecentSearch: boolean;
+    pendingShouldCalculateTotals?: boolean;
+    pendingShouldSaveRecentSearch?: boolean;
+    pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
-// and Search-internal effects fire for the same query. A totals request is not equivalent to the
-// non-totals request already in flight, so preserve one such request to run immediately afterward.
+// and Search-internal effects fire for the same query. A request that calculates totals or declares
+// save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
+// request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
 let shouldPreventSearchAPI = false;
@@ -1102,6 +1131,7 @@ function search({
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
+    shouldSaveRecentSearch = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1111,6 +1141,12 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
+     * refreshes) must not evict the user's real recent searches.
+     */
+    shouldSaveRecentSearch?: boolean;
     /**
      * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
      * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
@@ -1127,23 +1163,32 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
-            inFlightRequest.pendingTotalsRequest = () =>
+        const needsTotalsUpgrade = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+        // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
+        // of the same query) must still reach the backend flagged, or it never enters recent searches.
+        const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+            // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
+            // upgrade for the other. Only a single pending re-fire is kept.
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? false) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? false) || shouldSaveRecentSearch;
+            inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
                     searchKey,
                     offset,
-                    shouldCalculateTotals: true,
+                    shouldCalculateTotals: inFlightRequest.pendingShouldCalculateTotals,
                     prevReportsLength,
                     isOffline,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
+                    shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                 });
         }
         return;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
@@ -1154,6 +1199,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
+        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -1225,7 +1271,7 @@ function search({
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
-                return inFlightRequestState.pendingTotalsRequest?.();
+                return inFlightRequestState.pendingUpgradeRequest?.();
             });
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers
