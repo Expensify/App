@@ -434,7 +434,9 @@ function openApp(shouldKeepPublicRooms = false, allReportsWithDraftComments?: Re
         });
     }
 
-    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: true};
+    // WIP, NOT FOR MERGE: the backend only applies the focus mode report filter when this flag is true, so sending
+    // false makes OpenApp return the most recent mode report set for every account, whatever their priority mode is.
+    const params: OpenAppParams = {...getPolicyParamsForOpenOrReconnect(), enablePriorityModeFilter: false};
 
     // Preservation adds successData an in-flight OpenApp knows nothing about, so this call cannot be dropped.
     const hasPreservationData = shouldKeepPublicRooms || !!allReportsWithDraftComments;
