@@ -12,6 +12,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import Navigation from '@libs/Navigation/Navigation';
 import {roundToTwoDecimalPlaces} from '@libs/NumberUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {getPolicyExpenseChat, isSelfDM} from '@libs/ReportUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import shouldUseDefaultExpensePolicy from '@libs/shouldUseDefaultExpensePolicy';
@@ -93,6 +94,7 @@ type MoneyRequestStepDistanceNavigationParams = {
     amountOwed: OnyxEntry<number>;
     userBillingGracePeriodEnds: OnyxCollection<BillingGraceEndPeriod>;
     ownerBillingGracePeriodEnd?: OnyxEntry<number>;
+    conciergeChat: OnyxEntry<Report>;
     optimisticTransactionID: string;
     optimisticChatReportID: string | undefined;
     action: IOUAction;
@@ -195,6 +197,7 @@ function handleMoneyRequestStepDistanceNavigation({
     amountOwed,
     userBillingGracePeriodEnds,
     ownerBillingGracePeriodEnd,
+    conciergeChat,
     optimisticTransactionID,
     optimisticChatReportID,
     action,
@@ -214,7 +217,7 @@ function handleMoneyRequestStepDistanceNavigation({
     const selectedRouteDistance = getSelectedRouteDistance(transaction);
 
     if (transaction?.splitShares && !isManualDistance && !isOdometerDistance) {
-        resetSplitShares(transaction, undefined, undefined, currentUserAccountID);
+        resetSplitShares(transaction, undefined, undefined, currentUserAccountID, getCurrencyDecimals);
     }
     if (backTo) {
         Navigation.goBack(backTo);
@@ -266,7 +269,7 @@ function handleMoneyRequestStepDistanceNavigation({
             });
             setMoneyRequestMerchant(transactionID, merchant, false);
             const distanceDefaultTaxCode = getDefaultTaxCode(policy, transaction);
-            const distanceTaxCode = (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '';
+            const distanceTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : distanceDefaultTaxCode) ?? '');
             const distanceTaxAmount = transaction?.taxAmount ?? 0;
             const shouldIncludeCommuterExclusionOverrides = hasAppliedCommuterExclusion(transaction);
 
@@ -317,8 +320,7 @@ function handleMoneyRequestStepDistanceNavigation({
                             isASAPSubmitBetaEnabled,
                             currentUser: {accountID: currentUserAccountID, email: currentUserLogin ?? ''},
                             introSelected,
-                            // Deferred: thread the real conciergeChat when this cascade is migrated (https://github.com/Expensify/App/issues/66411)
-                            conciergeChat: undefined,
+                            conciergeChat,
                             quickAction,
                             draftTransactionIDs,
                             recentWaypoints,

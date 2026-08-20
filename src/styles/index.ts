@@ -968,8 +968,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            // This is to match production build after ButtonComposed migration.
+            ...spacing.ph6,
         },
 
         buttonSuccessText: {
@@ -1986,7 +1986,8 @@ const staticStyles = (theme: ThemeColors) =>
 
         topBarLabel: {
             color: theme.text,
-            fontSize: variables.fontSizeXLarge,
+            fontSize: variables.fontSizeH2,
+            lineHeight: variables.lineHeightSizeH2,
             ...headlineFont,
         },
 
@@ -2049,6 +2050,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         emojisWithTextFontFamily: {
             fontFamily: FontUtils.fontFamily.platform.SYSTEM.fontFamily,
+        },
+
+        onboardingHeaderContainer: {
+            height: 52,
+            paddingHorizontal: 20,
+            paddingVertical: 16,
+            marginTop: 8,
+            justifyContent: 'center',
+            alignItems: 'flex-start',
         },
 
         createMenuContainer: {
@@ -3494,9 +3504,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
+        moneyRequestPreviewParticipantsText: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -4237,6 +4256,15 @@ const staticStyles = (theme: ThemeColors) =>
 
         cardSectionIllustrationContainer: {
             height: variables.sectionIllustrationHeight,
+        },
+
+        cardSectionIllustrationInset: {
+            width: 'auto',
+            alignSelf: 'stretch',
+            marginTop: 12,
+            marginHorizontal: 12,
+            borderRadius: variables.componentBorderRadiusNormal,
+            overflow: 'hidden',
         },
 
         twoFAIllustration: {
@@ -5320,6 +5348,32 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
+        menuItemChevron: {
+            ...pointerEventsAuto,
+            ...flex.justifyContentCenter,
+            ...flex.alignItemsEnd,
+            width: variables.iconSizeNormal,
+        },
+
+        menuItemRow: {
+            ...flex.flexRow,
+            ...pointerEventsAuto,
+            ...spacing.gap3,
+        },
+
+        menuItemTrailing: {
+            ...flex.flexRow,
+            ...flex.alignItemsCenter,
+            ...spacing.mlAuto,
+            ...spacing.gap2,
+        },
+
+        menuItemContent: {
+            ...flex.justifyContentCenter,
+            ...flex.flex1,
+            ...spacing.gap1,
+        },
+
         formHelperMessage: {
             height: 32,
             marginTop: 0,
@@ -5563,26 +5617,6 @@ const staticStyles = (theme: ThemeColors) =>
             marginLeft: -2,
         },
 
-        headerProgressBarContainer: {
-            position: 'absolute',
-            width: '100%',
-            pointerEvents: 'none',
-        },
-
-        headerProgressBar: {
-            width: variables.componentSizeMedium,
-            height: variables.iconSizeXXXSmall,
-            borderRadius: variables.componentBorderRadiusRounded,
-            backgroundColor: theme.border,
-            alignSelf: 'center',
-        },
-
-        headerProgressBarFill: {
-            borderRadius: variables.componentBorderRadiusRounded,
-            height: '100%',
-            backgroundColor: theme.success,
-        },
-
         interactiveStepHeaderContainer: {
             flex: 1,
             alignSelf: 'center',
@@ -5778,6 +5812,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.updateAnimationH,
         },
 
+        updateAnimationNarrowWeb: {
+            width: '100%',
+            // On web the dotlottie-react wrapper defaults to height: 100%, which would stretch the animation to fill the container.
+            // 'auto' lets the animation's aspect ratio determine the height instead.
+            height: 'auto',
+        },
+
         updateRequiredViewHeader: {
             height: variables.updateViewHeaderHeight,
         },
@@ -5874,7 +5915,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        travelInvoicingIcon: {
+        travelBillingIcon: {
             backgroundColor: colors.productLight700,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -6541,7 +6582,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
@@ -7013,7 +7054,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         getEmptyStateCompanyCardsIllustrationContainer: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {height: 220} : {aspectRatio: 680 / 220}),
 
-        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {}),
+        getEmptyStateCompanyCardsIllustration: (shouldUseNarrowLayout: boolean) => (shouldUseNarrowLayout ? {width: 680, height: 220} : {width: '100%', height: '100%'}),
 
         searchListContentContainerStyles: (hasFilterBars: boolean) => ({
             paddingTop: hasFilterBars ? variables.searchListContentWithFiltersMarginTop : variables.searchListContentMarginTop,
@@ -7227,11 +7268,19 @@ const plainStyles = (theme: ThemeColors) =>
                 flexDirection: shouldUseNarrowLayout ? 'column' : 'row',
                 gap: 20,
                 width: '100%',
+                maxWidth: variables.centeredContentMaxWidth,
+                alignSelf: 'center',
             }) satisfies ViewStyle,
+
+        centeredContentWidthLimiter: {
+            width: '100%',
+            maxWidth: variables.centeredContentMaxWidth,
+            alignSelf: 'center',
+        },
 
         homePageLeftColumn: {flex: 7, flexBasis: '58.333%', maxWidth: variables.homePageLeftColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
 
-        homePageRightColumn: {flex: 5, flexBasis: '41.667%', maxWidth: variables.homePageRightColumnMaxWidth, flexDirection: 'column', gap: 20} satisfies ViewStyle,
+        homePageRightColumn: {flex: 5, flexBasis: '41.667%', flexDirection: 'column', gap: 20} satisfies ViewStyle,
     }) satisfies Styles;
 
 const styles = (theme: ThemeColors) =>
