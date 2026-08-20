@@ -176,7 +176,6 @@ function TransactionListItemInner<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
-    // Same inputs as the row's action cell, so the block modals match the button copy.
     const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: rowPolicy ?? liveTransactionItem.policy,
         report: liveTransactionItem.report,
