@@ -3401,6 +3401,63 @@ describe('actions/Duplicate', () => {
             const iouReportIDs = new Set(requestMoneyCalls.map((call) => call[1].iouReportID));
             expect(iouReportIDs.size).toBe(1);
         });
+
+        it('should not defer auto submit when the last selected expense is unreported', async () => {
+            const reportedTransaction: Transaction = {
+                ...createRandomTransaction(1),
+                transactionID: 'bulk_reported',
+                amount: -500,
+                currency: 'USD',
+            };
+            const unreportedTransaction: Transaction = {
+                ...createRandomTransaction(2),
+                transactionID: 'bulk_unreported',
+                reportID: CONST.REPORT.UNREPORTED_REPORT_ID,
+                amount: -300,
+                currency: 'USD',
+            };
+            const allTransactions = {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_reported`]: reportedTransaction,
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}bulk_unreported`]: unreportedTransaction,
+            };
+
+            bulkDuplicateExpenses({
+                dateFnsLocale: undefined,
+                conciergeChat: undefined,
+                transactionIDs: ['bulk_reported', 'bulk_unreported'],
+                allTransactions,
+                sourcePolicyIDMap: {},
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetPolicyTags: {},
+                targetReport: policyExpenseChat,
+                policyTagList: {},
+                personalDetails: {[RORY_ACCOUNT_ID]: {accountID: RORY_ACCOUNT_ID, login: RORY_EMAIL}},
+                isASAPSubmitBetaEnabled: false,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                transactionDrafts: undefined,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints: [],
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+            });
+
+            await waitForBatchedUpdates();
+
+            const requestMoneyCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.REQUEST_MONEY));
+            const trackExpenseCalls = writeSpy.mock.calls.filter(isWriteMockCallForCommand(WRITE_COMMANDS.TRACK_EXPENSE));
+            expect(requestMoneyCalls).toHaveLength(1);
+            expect(trackExpenseCalls).toHaveLength(1);
+            expect(requestMoneyCalls.at(0)?.[1].shouldDeferAutoSubmit).toBeFalsy();
+        });
     });
 
     describe('bulkDuplicateReports', () => {
