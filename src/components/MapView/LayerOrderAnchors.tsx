@@ -10,7 +10,7 @@ const EMPTY_SHAPE = {
 
 /**
  * Empty layers whose only purpose is to give other layers a stable position to anchor to via `belowLayerID`/`aboveLayerID`.
- * This is needed as `belowLayerID`and `aboveLayerID` don't work well on native when they target layers that may not be
+ * This is needed as `belowLayerID` and `aboveLayerID` don't work well on native when they target layers that may not be
  * mounted yet and on GPSMapView we have to keep LocationPuck > Waypoints > Route order.
  */
 function LayerOrderAnchors() {
