@@ -42,6 +42,8 @@ type UseBulkPayOptionProps = {
     selectedReportID: string | undefined;
     /** Report data from the Search snapshot, used as a fallback while the live Onyx report hasn't loaded yet */
     selectedReport?: OnyxEntry<Report>;
+    /** Chat report data from the Search snapshot, used as a fallback while the live Onyx chat report hasn't loaded yet */
+    selectedChatReport?: OnyxEntry<Report>;
     lastPaymentMethod?: string | undefined;
     isCurrencySupportedWallet?: boolean;
     currency: string | undefined;
@@ -62,6 +64,7 @@ function useBulkPayOptions({
     selectedPolicyID,
     selectedReportID,
     selectedReport,
+    selectedChatReport,
     isCurrencySupportedWallet,
     currency,
     formattedAmount,
@@ -79,7 +82,10 @@ function useBulkPayOptions({
     const [liveIouReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${selectedReportID}`);
     // SearchBulkActionsButton is rendered outside SearchScopeProvider, so the useOnyx read above doesn't fall back to the Search snapshot.
     const iouReport = liveIouReport ?? selectedReport;
-    const [chatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    const [liveChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${iouReport?.chatReportID}`);
+    // Same live-Onyx-only gap as iouReport above, one hop further: the chat report of a snapshot-only
+    // invoice report also isn't in live Onyx yet, which misclassifies individual invoice rooms as business ones.
+    const chatReport = liveChatReport ?? selectedChatReport;
     const invoiceReceiverPolicyID = getInvoiceReceiverPolicyID(chatReport);
     const [areInvoicesEnabled] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${invoiceReceiverPolicyID}`, {selector: areInvoicesEnabledSelector});
     const {isBetaEnabled} = usePermissions();
