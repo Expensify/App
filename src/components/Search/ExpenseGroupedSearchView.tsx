@@ -15,7 +15,7 @@ import type {Transaction} from '@src/types/onyx';
 
 import type {NativeSyntheticEvent} from 'react-native';
 
-import React, {useImperativeHandle, useState} from 'react';
+import React, {useEffect, useImperativeHandle, useState} from 'react';
 
 import type {SearchListItem} from './SearchList/ListItem/types';
 import type {CommonSearchViewProps, TransactionViewExtras} from './searchViewProps';
@@ -24,6 +24,7 @@ import type {SearchQueryJSON, SelectedTransactions} from './types';
 import useSearchListViewState from './hooks/useSearchListViewState';
 import AnimatedExitRow from './primitives/AnimatedExitRow';
 import SelectionTopBar from './primitives/SelectionTopBar';
+import {resetSyncedHorizontalOffsets} from './primitives/useSyncedHorizontalScroll';
 import BaseSearchList from './SearchList/BaseSearchList';
 import GroupChildrenContainer from './SearchList/ListItem/GroupChildrenContainer';
 import GroupHeader from './SearchList/ListItem/GroupHeader';
@@ -135,6 +136,11 @@ function ExpenseGroupedSearchView({
         });
 
     const [visibleColumns] = useOnyx(ONYXKEYS.FORMS.SEARCH_ADVANCED_FILTERS_FORM, {selector: columnsSelector});
+
+    // A new query renders a different set of groups, so the per-group horizontal offsets it kept no longer apply.
+    useEffect(() => {
+        resetSyncedHorizontalOffsets();
+    }, [queryJSON.hash]);
 
     const {
         isOffline,

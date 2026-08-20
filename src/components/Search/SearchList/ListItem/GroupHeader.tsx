@@ -2,6 +2,8 @@ import {getButtonRole} from '@components/Button/utils';
 import Icon from '@components/Icon';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
 import {PressableWithFeedback} from '@components/Pressable';
+import ScrollView from '@components/ScrollView';
+import useSyncedHorizontalScroll from '@components/Search/primitives/useSyncedHorizontalScroll';
 import SearchTableHeader from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SearchCustomColumnIds, SearchGroupBy} from '@components/Search/types';
 import type {ExtendedTargetedEvent} from '@components/SelectionList/ListItem/types';
@@ -16,11 +18,12 @@ import useStyleUtils from '@hooks/useStyleUtils';
 import useSyncFocus from '@hooks/useSyncFocus';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
+import useWindowDimensions from '@hooks/useWindowDimensions';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import type {ModifiedMouseEvent} from '@libs/Navigation/helpers/openInternalRouteInNewTab';
-import {getColumnsToShow} from '@libs/SearchUIUtils';
+import {getColumnsToShow, getTableMinWidth} from '@libs/SearchUIUtils';
 import {isDeletedTransaction, isTransactionPendingDelete} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
@@ -97,6 +100,7 @@ function GroupHeader({
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
     const {isLargeScreenWidth} = useResponsiveLayout();
+    const {windowWidth} = useWindowDimensions();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['UpArrow', 'DownArrow']);
     const currentUserDetails = useCurrentUserPersonalDetails();
 
@@ -166,6 +170,18 @@ function GroupHeader({
         }
         return {isSubHeaderAmountColumnWide: amountWide, isSubHeaderTaxAmountColumnWide: taxWide, shouldSubHeaderShowYear: showYear, isSubHeaderActionColumnWide: actionWide};
     }, [groupItem.transactions]);
+
+    // Mirrors how the group's rows size their own scroller, so the two stay the same width and the columns line up.
+    const subHeaderDataColumns = useMemo(() => subHeaderColumns.filter((column) => !column.startsWith(CONST.SEARCH.GROUP_COLUMN_PREFIX)), [subHeaderColumns]);
+    const subHeaderMinTableWidth = getTableMinWidth(subHeaderDataColumns, CONST.SEARCH.DATA_TYPES.EXPENSE, isSubHeaderActionColumnWide);
+    const shouldSubHeaderScrollHorizontally = isLargeScreenWidth && subHeaderMinTableWidth > windowWidth;
+
+    // The rows this header labels are a sibling list row with their own scroller, so both share one offset.
+    const {
+        scrollViewRef: subHeaderScrollViewRef,
+        onScroll: onSubHeaderScroll,
+        initialOffset: initialSubHeaderOffset,
+    } = useSyncedHorizontalScroll(item.groupKeyForList, shouldSubHeaderScrollHorizontally);
 
     const {isRendered: isSubHeaderRendered, animatedStyle: subHeaderAnimatedStyle, onLayout: onSubHeaderLayout} = useExpandCollapseAnimation(isExpanded, isExpanded);
 
@@ -322,6 +338,29 @@ function GroupHeader({
         }
     };
 
+    const subHeaderContent = (
+        <View style={[styles.flexColumn, styles.flex1]}>
+            <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
+                <SearchTableHeader
+                    canSelectMultiple
+                    type={CONST.SEARCH.DATA_TYPES.EXPENSE}
+                    onSortPress={() => {}}
+                    sortOrder={undefined}
+                    sortBy={undefined}
+                    shouldShowYear={shouldSubHeaderShowYear}
+                    isAmountColumnWide={isSubHeaderAmountColumnWide}
+                    isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
+                    shouldShowSorting={false}
+                    columns={subHeaderColumns}
+                    groupBy={groupBy}
+                    isExpenseReportView
+                    isActionColumnWide={isSubHeaderActionColumnWide}
+                />
+            </View>
+            <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+        </View>
+    );
+
     const isLastItemCollapsed = isLastItem && !isExpanded && !isSubHeaderRendered;
     const pressableRef = useRef<View>(null);
 
@@ -420,24 +459,22 @@ function GroupHeader({
                                         style={styles.stickToTop}
                                         onLayout={onSubHeaderLayout}
                                     >
-                                        <View style={[styles.searchListHeaderContainerStyle, styles.groupSearchListTableContainerStyle, styles.bgTransparent, styles.pl8]}>
-                                            <SearchTableHeader
-                                                canSelectMultiple
-                                                type={CONST.SEARCH.DATA_TYPES.EXPENSE}
-                                                onSortPress={() => {}}
-                                                sortOrder={undefined}
-                                                sortBy={undefined}
-                                                shouldShowYear={shouldSubHeaderShowYear}
-                                                isAmountColumnWide={isSubHeaderAmountColumnWide}
-                                                isTaxAmountColumnWide={isSubHeaderTaxAmountColumnWide}
-                                                shouldShowSorting={false}
-                                                columns={subHeaderColumns}
-                                                groupBy={groupBy}
-                                                isExpenseReportView
-                                                isActionColumnWide={isSubHeaderActionColumnWide}
-                                            />
-                                        </View>
-                                        <View style={[StyleUtils.getSelectedBorderBottomStyle(isItemSelected), styles.ml3, styles.mr3]} />
+                                        {shouldSubHeaderScrollHorizontally ? (
+                                            <ScrollView
+                                                ref={subHeaderScrollViewRef}
+                                                horizontal
+                                                // The rows below already show one, a second bar under the header would only add noise.
+                                                showsHorizontalScrollIndicator={false}
+                                                contentContainerStyle={{width: subHeaderMinTableWidth}}
+                                                contentOffset={{x: initialSubHeaderOffset, y: 0}}
+                                                onScroll={onSubHeaderScroll}
+                                                scrollEventThrottle={CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE}
+                                            >
+                                                {subHeaderContent}
+                                            </ScrollView>
+                                        ) : (
+                                            subHeaderContent
+                                        )}
                                     </View>
                                 )}
                             </Animated.View>
