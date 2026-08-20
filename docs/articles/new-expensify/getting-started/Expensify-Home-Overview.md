@@ -193,3 +193,7 @@ The **Your spend** section only appears when at least one of the following appli
 
 If none of these conditions are met, the **Your spend** section won’t be visible.
 
+## Why is a Your spend total greyed out?
+
+The **Awaiting approval** and **Repaid in the last 30 days** totals are calculated on Expensify’s servers, so they can’t recalculate while you’re offline. If you approve or pay a report while offline, the total that change affects is greyed out to show it may be out of date. Once you’re back online, the total refreshes to its updated value and returns to normal.
+
