@@ -5705,7 +5705,7 @@ function getReportActionWithMissingSmartscanFields(
         }
         // Skip transactions queued for deletion so a reverted/deleted expense stops lighting the RBR red-dot
         // while it waits for the server to confirm removal.
-        if (transaction.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE) {
+        if (isTransactionPendingDelete(transaction)) {
             return false;
         }
         if (!wasActionTakenByCurrentUser(action, currentUserAccountID)) {
@@ -11409,8 +11409,7 @@ function getReportActionWithSmartscanError(
         const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${transactionID}`];
         // A transaction queued for deletion still lives in Onyx until the server confirms removal, so it must
         // not keep lighting the RBR. This mirrors the DELETE-pending filter in getViolatingReportIDForRBRInLHN.
-        const isTransactionPendingDelete = transaction?.pendingAction === CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-        const isTransactionThreadError = isSplitOrTrackAction && !isTransactionPendingDelete && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
+        const isTransactionThreadError = isSplitOrTrackAction && !isTransactionPendingDelete(transaction) && hasMissingSmartscanFieldsTransactionUtils(transaction, report);
 
         return isTransactionThreadError;
     });
