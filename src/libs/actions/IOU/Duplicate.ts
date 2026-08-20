@@ -66,8 +66,8 @@ import type {CreateTrackExpenseParams} from './TrackExpense';
 import {getAllReports, getAllTransactions} from '.';
 import {getCleanUpTransactionThreadReportOnyxData} from './DeleteMoneyRequest';
 import {getMoneyRequestParticipantsFromReport} from './MoneyRequest';
-import {signalExpenseAddedGrowl} from './NavigationHelpers';
 import {submitPerDiemExpense} from './PerDiem';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 import {createDistanceRequest} from './Split';
 import {requestMoney, trackExpense} from './TrackExpense';
 

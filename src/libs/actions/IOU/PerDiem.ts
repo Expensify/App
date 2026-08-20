@@ -71,7 +71,7 @@ import {
     mergePolicyRecentlyUsedCategories,
     mergePolicyRecentlyUsedCurrencies,
 } from './MoneyRequestBuilder';
-import {signalExpenseAddedGrowl} from './NavigationHelpers';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 function removeSubrate(transaction: OnyxEntry<OnyxTypes.Transaction>, currentIndex: string) {
     // Index comes from the route params and is a string

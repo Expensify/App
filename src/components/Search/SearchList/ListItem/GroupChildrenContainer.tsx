@@ -1,5 +1,3 @@
-import {useSearchSelectionContext} from '@components/Search/SearchContext';
-
 import useExpandCollapseAnimation from '@hooks/useExpandCollapseAnimation';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';

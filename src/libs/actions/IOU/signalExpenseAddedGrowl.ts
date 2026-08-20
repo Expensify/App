@@ -2,8 +2,6 @@ import {mergeExpenseAddedGrowlTransactionIDs} from '@userActions/Transaction';
 
 import type {SearchDataTypes} from '@src/types/onyx/SearchResults';
 
-import {getAllTransactions} from './index';
-
 /**
  * Signals the "Expense added" growl for a newly-created transaction.
  */
@@ -14,4 +12,4 @@ function signalExpenseAddedGrowl(transactionID: string | undefined, dataType: Se
     mergeExpenseAddedGrowlTransactionIDs({[transactionID]: dataType});
 }
 
-export {signalExpenseAddedGrowl};
+export default signalExpenseAddedGrowl;

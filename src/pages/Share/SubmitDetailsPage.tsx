@@ -30,8 +30,8 @@ import {
     setMoneyRequestReimbursable,
     updateLastLocationPermissionPrompt,
 } from '@libs/actions/IOU/MoneyRequest';
-import {signalExpenseAddedGrowl} from '@libs/actions/IOU/NavigationHelpers';
 import {setMoneyRequestReceipt} from '@libs/actions/IOU/Receipt';
+import signalExpenseAddedGrowl from '@libs/actions/IOU/signalExpenseAddedGrowl';
 import {requestMoney, trackExpense} from '@libs/actions/IOU/TrackExpense';
 import type {GPSPoint as GpsPoint} from '@libs/actions/IOU/types/TrackExpenseTransactionParams';
 import {WRITE_COMMANDS} from '@libs/API/types';

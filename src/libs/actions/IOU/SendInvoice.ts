@@ -44,8 +44,8 @@ import type BasePolicyParams from './types/BasePolicyParams';
 
 import {getAllPersonalDetails} from '.';
 import {getReceiptError, mergePolicyRecentlyUsedCategories, mergePolicyRecentlyUsedCurrencies} from './MoneyRequestBuilder';
-import {signalExpenseAddedGrowl} from './NavigationHelpers';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type SendInvoiceInformation = {
     senderWorkspaceID: string | undefined;

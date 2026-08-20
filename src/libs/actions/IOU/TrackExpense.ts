@@ -131,9 +131,9 @@ import {
     getReportPreviewReportAction,
     getTransactionWithPreservedLocalReceiptSource,
 } from './MoneyRequestBuilder';
-import {signalExpenseAddedGrowl} from './NavigationHelpers';
 import {addPendingNewTransactionIDs, isOneToTwoTransactionTransition} from './PendingNewTransactions';
 import {getSearchOnyxUpdate} from './SearchUpdate';
+import signalExpenseAddedGrowl from './signalExpenseAddedGrowl';
 
 type TrackExpenseInformation = {
     createdWorkspaceParams?: CreateWorkspaceParams;
