@@ -102,10 +102,12 @@ describe('WorkspaceListPage', () => {
         const TEST_EMAIL = 'test@domain.com';
         const TEST_ACCOUNT_ID = 1;
 
+        // Given an object membership, which carries the owner account ID
         await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {
             [TEST_DOMAIN]: {securityGroupID: TEST_SECURITY_GROUP_ID, ownerAccountID: TEST_OWNER_ACCOUNT_ID},
         });
 
+        // Given the group forbids workspace creation, stored under the sharedNVP key
         await Onyx.set(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${TEST_SECURITY_GROUP_ID}_${TEST_OWNER_ACCOUNT_ID}`, {
             enableRestrictedPolicyCreation: true,
         });
@@ -129,10 +131,12 @@ describe('WorkspaceListPage', () => {
             },
         });
 
+        // When the workspaces list is opened
         renderPage();
 
         await waitForBatchedUpdatesWithAct();
 
+        // Then the new workspace button is not rendered
         const newWorkspaceButton = screen.queryByAccessibilityHint('New');
         expect(newWorkspaceButton).not.toBeOnTheScreen();
     });
