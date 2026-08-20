@@ -61,7 +61,6 @@ const TIMEZONE_UPDATE_THROTTLE_MINUTES = 5;
 
 type IntlFormatKey = keyof typeof CONST.DATE.INTL_FORMATS;
 
-/** Narrows an arbitrary timezone string to one our backward-mapping table knows about. */
 function isKnownTimezone(tz: string): tz is SelectedTimezone {
     return tz in timezoneNewToBackwardMap;
 }
@@ -74,14 +73,7 @@ function isWeekDay(value: number): value is WeekDay {
     return (WEEK_DAYS as readonly number[]).includes(value);
 }
 
-/**
- * Bounded because `Intl.DateTimeFormat` holds 10-50 KB of ICU state per entry. Keyed on a string rather than the argument
- * tuple: this runs for every formatted cell in a long list, and the shared `memoize` cache scans its entries linearly, so
- * a bound high enough to hold the ~19 presets x active locale x on-screen timezones would make each miss walk all of them.
- * LRU by re-inserting on a hit, so the presets every row uses outlive the one-off timezones a long list drags in.
- * Failures are cached too, under the same bound: an engine that rejects a preset rejects it for the session, and retrying
- * would throw two to four times per row. `clearIntlFormatterCaches` is the only way back out.
- */
+/** Hand-rolled rather than `memoize`: this runs per rendered cell, and that cache scans its entries linearly. */
 function cacheIntlDateTimeFormat(cacheKey: string, formatter: Intl.DateTimeFormat | null): void {
     if (intlDateTimeFormatCache.size >= INTL_FORMAT_CACHE_MAX_SIZE) {
         const oldestKey = intlDateTimeFormatCache.keys().next().value;
@@ -102,7 +94,7 @@ function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZon
     }
     const preset = CONST.DATE.INTL_FORMATS[formatKey];
     const backwardTimeZone = timeZone && isKnownTimezone(timeZone) ? timezoneNewToBackwardMap[timeZone] : undefined;
-    // Timezone first, then locale, since either can be the rejected one. Dropping the timezone is never a candidate.
+    // Dropping the timezone is never a candidate: it would render another zone's wall clock.
     const timeZoneCandidates = backwardTimeZone && backwardTimeZone !== timeZone ? [timeZone, backwardTimeZone] : [timeZone];
     const localeCandidates: Locale[] = locale === CONST.LOCALES.DEFAULT ? [locale] : [locale, CONST.LOCALES.DEFAULT];
     for (const candidateLocale of localeCandidates) {
@@ -115,7 +107,7 @@ function getIntlDateTimeFormat(locale: Locale, formatKey: IntlFormatKey, timeZon
                 cacheIntlDateTimeFormat(cacheKey, formatter);
                 return formatter;
             } catch {
-                // Next candidate.
+                continue;
             }
         }
     }
@@ -141,13 +133,8 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
     return formatter.format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
 
-/**
- * Static per-supported-locale fallback used when `Intl.Locale.getWeekInfo` isn't available (older Hermes/JSC).
- * Without this map every non-en locale collapsed to the hard-coded Monday default, silently defeating the
- * localization goal on the exact engines the try/catch was meant to protect against.
- */
+/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo` (older Hermes/JSC). */
 const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
-    // Monday-start per CLDR.
     [CONST.LOCALES.EN]: 1,
     [CONST.LOCALES.FR]: 1,
     [CONST.LOCALES.DE]: 1,
@@ -157,17 +144,13 @@ const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.PL]: 1,
     [CONST.LOCALES.EL]: 1,
     [CONST.LOCALES.ZH_HANS]: 1,
-    // Sunday-start per CLDR (JP, BR).
     [CONST.LOCALES.JA]: 0,
     [CONST.LOCALES.PT_BR]: 0,
 };
 
 /**
- * `'en'` pinned to Monday because Intl maps `'en'` → en-US (Sunday-start). Other locales via Intl
- * `getWeekInfo` where available, falling back to the static CLDR map above rather than the hard-coded default
- * so non-en locales still get correct week-start conventions on engines without `Intl.Locale.getWeekInfo`.
- * Memoized for the callers React Compiler does not cover: `datetimeToCalendarTime` resolves this per report action
- * while rendering a chat list, and each miss constructs an `Intl.Locale`.
+ * `'en'` is pinned to Monday against CLDR, which maps it to en-US and Sunday.
+ * Memoized for the callers React Compiler does not cover, where each miss constructs an `Intl.Locale`.
  */
 const getWeekStartsOn = memoize(
     (locale: Locale): WeekDay => {
@@ -184,17 +167,13 @@ const getWeekStartsOn = memoize(
                     return dateFnsDay;
                 }
             }
-        } catch {
-            // Fall through to the static map below.
-        }
-        // Total over the `Locale` union, but the tag reaches here from an Onyx NVP, so a malformed persisted value would
-        // otherwise return undefined and collapse the calendar via `WEEK_DAYS[NaN]` in `getWeekEndsOn`.
+        } catch {}
+        // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
         return WEEK_STARTS_ON_BY_LOCALE[locale] ?? CONST.WEEK_STARTS_ON;
     },
     {maxSize: 16, equality: 'shallow'},
 );
 
-/** Derived from `getWeekStartsOn` so the two stay in lockstep. */
 function getWeekEndsOn(locale: Locale): WeekDay {
     return WEEK_DAYS[(getWeekStartsOn(locale) + 6) % 7];
 }
@@ -221,11 +200,7 @@ function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: strin
     return toZonedSafe(Number.isNaN(isoParsed.getTime()) ? new Date(datetime) : isoParsed, currentSelectedTimezone);
 }
 
-/**
- * Zones an instant, recovering only from a timezone the platform rejects: an unsupported IANA id would otherwise blank
- * the value, where the unzoned instant is still the right answer. An invalid *input* is passed through untouched, so
- * `formatIntl` still returns '' and the caller skips the row rather than showing a wrong time.
- */
+/** Recovers from a rejected timezone, never from an invalid input: that one stays invalid so `formatIntl` yields ''. */
 function toZonedSafe(date: Date | number, timeZone: string): Date {
     const zoned = toZonedTime(date, timeZone);
     if (!Number.isNaN(zoned.getTime()) || Number.isNaN(new Date(date).getTime())) {
@@ -300,9 +275,8 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): s
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
 function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, isLowercase = false): string {
-    // Map once and reuse, so the isToday/isYesterday branches and the rendered string cannot resolve against different zones.
-    // The backward IANA values are real tz identifiers, just outside the tighter `SelectedTimezone` union.
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
+    // Mapped once, so the isToday/isYesterday branches and the rendered string cannot resolve against different zones.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- backward IANA ids are real, just outside the tighter union.
     const mappedTimezone = fallbackToSupportedTimezone(currentSelectedTimezone) as SelectedTimezone;
     const date = getLocalDateFromDatetime(locale, mappedTimezone, datetime);
     let todayAt = translateLocalize(locale, 'common.todayAt');
@@ -322,7 +296,6 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
     }
 
     const time = formatIntl(locale, 'SHORT_TIME', date);
-    // Propagate the empty string so callers do not concatenate a broken "Today at " fragment.
     if (!time) {
         return '';
     }
@@ -363,10 +336,7 @@ function datetimeToRelative(locale: Locale, datetime: string, currentSelectedTim
     return formatRelative(locale, date, now);
 }
 
-/**
- * Buckets mirror date-fns `formatDistance`, which surfaced neither seconds nor weeks. `maxCount` caps what a unit may
- * render, because a bare threshold lets rounding spill into the next unit ("60 minutes ago", "12 months ago").
- */
+/** `maxCount` caps each unit, because a bare threshold lets rounding spill into the next one ("60 minutes ago"). */
 const RELATIVE_TIME_UNITS: ReadonlyArray<[divisor: number, unit: Intl.RelativeTimeFormatUnit, maxCount: number]> = [
     [60, 'minute', 59],
     [3_600, 'hour', 23],
@@ -375,10 +345,8 @@ const RELATIVE_TIME_UNITS: ReadonlyArray<[divisor: number, unit: Intl.RelativeTi
 ];
 
 /**
- * `numeric: 'always'` because date-fns rendered "1 day ago", not "yesterday". Verified against `formatDistance`: `'auto'`
- * substitutes words only for plus or minus one unit, so it changed the day boundary without fixing the sub-minute wording.
- * Cached per locale to keep the ~10-20 KB ICU state per RelativeTimeFormat off the render path; the key space is
- * the eleven shipped locales, so it needs no bound, only a clear for when polyfill data arrives late.
+ * `numeric: 'always'` to match the "1 day ago" wording date-fns shipped, rather than `'auto'`'s "yesterday".
+ * Unbounded because the key space is the eleven shipped locales, but clearable for when polyfill data arrives late.
  */
 function getRelativeTimeFormat(locale: Locale): Intl.RelativeTimeFormat | null {
     if (relativeTimeFormatCache.has(locale)) {
@@ -408,8 +376,7 @@ function formatRelative(locale: Locale, date: Date, now: Date): string {
     }
     const abs = Math.abs(diffSecs);
     const sign = diffSecs > 0 ? 1 : -1;
-    // Round anything under a minute to a whole minute. date-fns said "less than a minute ago" here, which has no Intl
-    // equivalent without a bespoke translation key, so "1 minute ago" is the closest wording that never shows seconds.
+    // date-fns said "less than a minute ago", which Intl cannot express without a bespoke translation key.
     if (abs < 60) {
         return rtf.format(sign, 'minute');
     }
@@ -497,33 +464,26 @@ function getCurrentTimezone(timezone: Timezone): Required<Timezone> {
     return {selected: timezone.selected ?? (CONST.DEFAULT_TIME_ZONE.selected as SelectedTimezone), automatic: timezone.automatic ?? false};
 }
 
-/**
- * Returns capitalized month names for the picker. `LONG_MONTH` requests month with no day or year, which Intl resolves
- * to the standalone form per CLDR. `Str.UCFirst` capitalizes lowercase Latin standalone forms (es "enero", fr "janvier")
- * and is idempotent on already-capital ones (en "January", ru "Январь"). Do NOT add day or year to `LONG_MONTH`, because
- * that flips Intl into format context and produces grammatically inflected labels (ru "января", cs "ledna") that read
- * as broken in a picker.
- * Memoized for MonthPickerModal, which does not compile under React Compiler, so its call is not memoized at the call site.
- * @returns [January, February, March, April, May, June, July, August, ...]
- */
-/** Last-resort labels for an engine with no working Intl at all. The translation files carry no month names, so there is nothing localized to fall back to. */
+/** Last-resort labels for an engine with no working Intl. The translation files carry no month names. */
 const FALLBACK_MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'] as const;
 
 function monthNamesIn(locale: Locale): string[] {
-    // Mid-month in UTC, so no timezone can shift a month-edge date into the neighbouring month.
+    // Mid-month in UTC, so no timezone can shift a month-edge date into the neighboring month.
     const monthsArray = Array.from({length: 12}, (_, monthIndex) => new Date(Date.UTC(2000, monthIndex, 15)));
     return monthsArray.map((monthDate) => Str.UCFirst(formatIntl(locale, 'LONG_MONTH', monthDate)));
 }
 
+/**
+ * Never add day or year to `LONG_MONTH`: that flips Intl into format context and inflects the label (ru "января").
+ * Memoized for MonthPickerModal, which React Compiler does not cover. Frozen because every caller shares the instance.
+ */
 const getMonthNames = memoize(
-    // Frozen because the cached array is handed to every caller: CalendarPicker, MonthPickerModal and
-    // PaymentCardDetails would otherwise share one instance that any in-place sort could poison for the session.
     (locale: Locale): readonly string[] => {
         const names = monthNamesIn(locale);
         if (names.every(Boolean)) {
             return Object.freeze(names);
         }
-        // The realistic failure is an engine rejecting this locale tag, not missing Intl, so retry on the default locale before giving up on localized output.
+        // The realistic failure is one rejected locale tag, so try the default locale before the English literal.
         const defaultNames = locale === CONST.LOCALES.DEFAULT ? names : monthNamesIn(CONST.LOCALES.DEFAULT);
         return Object.freeze(defaultNames.every(Boolean) ? defaultNames : [...FALLBACK_MONTH_NAMES]);
     },
@@ -543,8 +503,7 @@ function getFilteredMonthItems(monthNames: readonly string[], currentMonth: numb
 }
 
 /**
- * Narrow weekday labels in the locale's week order, for the CalendarPicker header. A fixed reference week keeps the
- * result stable across a midnight tick. Narrow rather than sliced, because Chinese long names all start with `星`.
+ * Narrow rather than sliced, because Chinese long names all start with `星`.
  * @returns en ["M","T","W","T","F","S","S"], zh-hans ["一","二","三","四","五","六","日"].
  */
 function getDaysOfWeekNarrow(locale: Locale): string[] {
@@ -553,7 +512,7 @@ function getDaysOfWeekNarrow(locale: Locale): string[] {
     return eachDayOfInterval({start: startOfWeek(reference, {weekStartsOn}), end: endOfWeek(reference, {weekStartsOn})}).map((date) => formatIntl(locale, 'NARROW_WEEKDAY', date));
 }
 
-/** CLDR field order + separator per supported locale, used only when Intl is unavailable so a German user is not shown a US-ordered placeholder. */
+/** CLDR field order and separator per locale, for engines without Intl. */
 const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
     [CONST.LOCALES.EN]: 'MM/DD/YYYY',
     [CONST.LOCALES.ES]: 'DD/MM/YYYY',
@@ -569,14 +528,12 @@ const FALLBACK_DATE_PLACEHOLDER_BY_LOCALE: Readonly<Record<Locale, string>> = {
 };
 
 /**
- * Year always shown as `YYYY` even when Intl renders 2-digit (en-US `dateStyle:'short'` → "12/31/24"
- * → placeholder "MM/DD/YYYY"). de → "DD.MM.YYYY". ja → "YYYY/MM/DD".
- * Memoized because DatePicker does not compile under React Compiler (pre-existing refs-during-render bailout), so this does run on every render there.
+ * The year is widened to `YYYY` even where Intl renders it 2-digit, so en-US reads "MM/DD/YYYY" not "MM/DD/YY".
+ * Memoized because DatePicker does not compile under React Compiler, so this runs on every render there.
  */
 const getLocalizedDatePlaceholder = memoize(
     (locale: Locale): string => {
         const formatter = getIntlDateTimeFormat(locale, 'SHORT_DATE');
-        // Field order is CLDR data we cannot derive without Intl, so fall back to the most common order rather than guessing per-locale.
         const fallback = FALLBACK_DATE_PLACEHOLDER_BY_LOCALE[locale] ?? 'MM/DD/YYYY';
         if (!formatter) {
             return fallback;
@@ -1024,8 +981,6 @@ function getLastBusinessDayOfMonth(inputDate: Date): number {
 }
 
 /**
- * Whether the locale writes the day before the month, so a compressed range can keep the shared month on the side the
- * language expects. Without this, `MONTH_DAY` + `DAY_ONLY` strands the month between the two days ("17 mar-20").
  * Field order is a property of the locale, not of any date, so a fixed reference day answers it and the result caches.
  */
 const isDayBeforeMonth = memoize(
@@ -1063,7 +1018,6 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
         return formatIntl(locale, 'MONTH_DAY', date1);
     }
     if (isSameMonth(date1, date2)) {
-        // The shared month goes where the locale puts it, so day-first languages read "17-20 mar" rather than "17 mar-20".
         const isDayFirst = isDayBeforeMonth(locale);
         const startPart = isDayFirst ? formatIntl(locale, 'DAY_ONLY', date1) : formatIntl(locale, 'MONTH_DAY', date1);
         const endPart = isDayFirst ? formatIntl(locale, 'MONTH_DAY', date2) : formatIntl(locale, 'DAY_ONLY', date2);
@@ -1136,7 +1090,6 @@ function getFormattedTransportDateAndHour(date: Date, locale: Locale): {date: st
     const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
     const datePart = formatIntl(locale, dateOptions, date);
     const hour = formatIntl(locale, 'SHORT_TIME', date);
-    // Return both empty when either is missing, so callers do not render half-formatted output like "Wednesday, Mar 17  " or "  8:00 AM".
     if (!datePart || !hour) {
         return {date: '', hour: ''};
     }
@@ -1307,11 +1260,7 @@ function isUnzonedString(date: unknown): date is string {
     return typeof date === 'string' && (ISO_DATE_PATTERN.test(date) || DB_WIRE_TIMESTAMP_PATTERN.test(date) || ISO_LOCAL_DATETIME_PATTERN.test(date));
 }
 
-/**
- * Parses `'yyyy-MM-dd'` as local midnight; passes `Date` and non-ISO-date strings through. Use
- * `toUTCDate` instead when the result feeds a UTC-zone formatter (otherwise calendar day shifts
- * for viewers east of UTC).
- */
+/** Local midnight. Use `toUTCDate` when the result feeds a UTC-zone formatter, or the day shifts east of UTC. */
 function toLocalDate(date: Date | string): Date {
     if (typeof date !== 'string') {
         return date;
@@ -1335,13 +1284,11 @@ function toLocalDate(date: Date | string): Date {
 }
 
 /**
- * Like `toLocalDate` but resolves the value in UTC, so downstream UTC-zone formatters render the intended calendar day
- * for viewers east of UTC. A `Date` is re-read as the calendar fields it displays locally, which is what the date-only
- * callers want and what an instant-valued caller would not: pass those a string.
+ * UTC-anchored. A `Date` is re-read as the calendar fields it displays locally, which is what the date-only callers
+ * want and an instant-valued caller does not: pass those a string.
  */
 function toUTCDate(date: Date | string): Date {
     if (typeof date !== 'string') {
-        // Re-anchor the local calendar day to UTC. Passing a Date through unchanged renders the previous day east of UTC (local Jan 5 00:00 at UTC+5:30 is Jan 4 18:30Z).
         return new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate(), date.getHours(), date.getMinutes(), date.getSeconds(), date.getMilliseconds()));
     }
     if (ISO_DATE_PATTERN.test(date)) {
@@ -1403,7 +1350,7 @@ function formatInUTCToMedium(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'MEDIUM_DATE', toUTCDate(date), 'UTC');
 }
 
-/** UTC-anchored Jul 9 / 9 jul (no year). See `formatInUTCToMedium` for the UTC-anchoring rationale. */
+/** UTC-anchored Jul 9 (en) / 9 jul (es), no year. */
 function formatInUTCToShort(date: Date | string, locale: Locale): string {
     if (!date) {
         return '';
@@ -1411,7 +1358,7 @@ function formatInUTCToShort(date: Date | string, locale: Locale): string {
     return formatIntl(locale, 'MONTH_DAY', toUTCDate(date), 'UTC');
 }
 
-/** UTC-anchored July 9, 2023 / 9 de julio de 2023. See `formatInUTCToMedium`. */
+/** UTC-anchored July 9, 2023 (en) / 9 de julio de 2023 (es). */
 function formatInUTCToLong(date: Date | string, locale: Locale): string {
     if (!date) {
         return '';
@@ -1444,7 +1391,7 @@ function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone,
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date), timeZone);
 }
 
-/** Full ISO timestamp only. See `formatInTimeZoneToLong` for the date-only caveat. @returns Jul 9, 2025 (en) / 9 jul 2025 (es) */
+/** Full ISO timestamp only. @returns Jul 9, 2025 (en) / 9 jul 2025 (es) */
 function formatInTimeZoneToMediumDate(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
         return '';
@@ -1456,7 +1403,7 @@ function formatInTimeZoneToMediumDate(date: Date | string, timeZone: SelectedTim
     return formatIntl(locale, 'MEDIUM_DATE', toLocalDate(date), timeZone);
 }
 
-/** Full ISO timestamp only. See `formatInTimeZoneToLong` for the date-only caveat. */
+/** Full ISO timestamp only. */
 function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
         return '';
@@ -1468,7 +1415,7 @@ function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTime
     return formatIntl(locale, 'SHORT_TIME', toLocalDate(date), timeZone);
 }
 
-/** Full ISO timestamp only. See `formatInTimeZoneToLong` for the date-only caveat. */
+/** Full ISO timestamp only. */
 function formatInTimeZoneToWeekday(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
         return '';
@@ -1507,7 +1454,14 @@ function formatInTimeZoneWithFallback(date: Date | string | number, timeZone: st
         } else {
             Log.warn('[DateUtils] formatInTimeZone failed and no backward mapping exists; rendering in UTC', {timeZone, error});
         }
-        return formatInTimeZone(date, 'UTC', formatStr, options);
+        try {
+            return formatInTimeZone(date, 'UTC', formatStr, options);
+        } catch (utcError) {
+            // This helper exists so render paths with no error boundary can call it. If UTC fails too there is nothing
+            // left to try, and an empty string is what every other formatter here returns when it cannot render.
+            Log.warn('[DateUtils] formatInTimeZone failed in UTC as well', {timeZone, utcError});
+            return '';
+        }
     }
 }
 
@@ -1636,7 +1590,6 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, shou
     }
     const formattedStart = formatIntl(locale, startFormat, start);
     const formattedEnd = formatIntl(locale, endFormat, end);
-    // Both halves required, else an unparsable boundary renders the separator on its own.
     if (!formattedStart || !formattedEnd) {
         return '';
     }

@@ -1,7 +1,7 @@
 /**
- * Minute clock consumed by `useNow`, notifying only on minute boundaries. Kept out of `useNow.ts` so its React Compiler
- * memoization stays consistent across Babel/OXC. Unsubscribing is the only teardown: React re-runs `subscribe` just when
- * its identity changes, so clearing `listeners` from outside would strand every mounted consumer.
+ * Kept out of `useNow.ts` so React Compiler memoization stays consistent across Babel and OXC.
+ * Unsubscribing is the only teardown: React re-runs `subscribe` only when its identity changes, so clearing
+ * `listeners` from outside would strand every mounted consumer on a frozen clock.
  */
 
 const MS_PER_MINUTE = 60_000;
@@ -11,7 +11,8 @@ const TICK_MARGIN_MS = 10;
 
 const listeners = new Set<() => void>();
 let timeoutId: ReturnType<typeof setTimeout> | null = null;
-// Advanced by `tick` and `subscribe`, never by `getSnapshot`, which must stay pure for `useSyncExternalStore`.
+// Advanced by `tick`, `subscribe`, and `getSnapshot` only while nothing is subscribed. Once a listener exists an
+// advance from `getSnapshot` would consume a minute transition the pending `tick` then skips notifying.
 let snapshot: Date = new Date();
 let lastMinute = Math.floor(snapshot.getTime() / MS_PER_MINUTE);
 
@@ -27,7 +28,6 @@ function advanceIfStale(): boolean {
     return true;
 }
 
-/** Aligned to the next minute boundary, with a small margin so drift does not accumulate. */
 function scheduleNextTick() {
     if (timeoutId !== null) {
         return;
@@ -73,10 +73,13 @@ function subscribe(listener: () => void): () => void {
 }
 
 function getSnapshot(): Date {
+    // The timer is stopped while nothing is subscribed, so the value is as old as the gap since the last unmount.
+    if (listeners.size === 0) {
+        advanceIfStale();
+    }
     return snapshot;
 }
 
-/** Test-only reset so suites that manipulate the wall clock start from a clean module state. */
 function resetForTests(): void {
     if (timeoutId !== null) {
         clearTimeout(timeoutId);

@@ -76,8 +76,7 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
 const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
 const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
 
-// Both read through Intl, which resolves its locale at construction: an ordinal built before a locale's `PluralRules`
-// data lands keeps English categories, and the digit table keeps English separators, for the session.
+// Both resolve their locale at construction, so one built before that locale's data landed stays English.
 registerDerivedIntlCache(() => {
     memoizedCreateOrdinalPluralRules.cache.clear();
     getLocaleDigits.cache.clear();
@@ -106,16 +105,12 @@ function toLocaleOrdinal(locale: Locale, number: number): string {
     return rule(number);
 }
 
-/**
- * Renders a calendar day of the month for the locale. Separate from `toLocaleOrdinal`, which renders a rank: Japanese
- * dates read `15日` where the rank reads `第15`, and Italian and Polish dates are cardinal where their ranks are not.
- */
+/** A date, not a rank: see `localeDayOfMonthMap`. */
 function toLocaleDayOfMonth(locale: Locale, day: number): string {
     if (!Number.isFinite(day)) {
         return '';
     }
-    // Total over the `Locale` union, but the tag reaches here from an Onyx NVP, so a malformed persisted value would
-    // otherwise throw inside a render with no error boundary.
+    // The tag reaches here from an Onyx NVP, so a malformed persisted value would index the map to undefined.
     return (localeDayOfMonthMap[locale] ?? localeDayOfMonthMap[LOCALES.DEFAULT])(day);
 }
 

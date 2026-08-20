@@ -134,15 +134,15 @@ function resolvePattern(node, scope) {
     if (!node) {
         return null;
     }
-    // A module-level `const CHART_DISPLAY_FORMAT = 'MMM d, yyyy'` passed by name. Without this, hoisting any format
-    // string to a variable silently exempts its call site from the rule.
+    // Resolve a name to its initializer, else hoisting a format string to a `const` exempts its call site.
+    // A name with no initializer stays unknown: a parameter's literal is visible at the callers, not here.
     if (node.type === 'Identifier' && scope) {
         const variable = scope.references.find((reference) => reference.identifier === node)?.resolved;
         const definition = variable?.defs?.length === 1 ? variable.defs.at(0) : undefined;
         if (definition?.type === 'Variable' && definition.node.init) {
             return resolvePattern(definition.node.init, scope);
         }
-        return UNKNOWN_LOCALIZED;
+        return null;
     }
     if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
@@ -164,7 +164,7 @@ function resolvePattern(node, scope) {
             return MACHINE_DATE_CONSTANTS.has(node.property.name) ? '' : UNKNOWN_LOCALIZED;
         }
     }
-    // `isPastYear ? A : B`; flag if either branch is localized.
+    // `isPastYear ? A : B`, flagged if either branch is localized.
     if (node.type === 'ConditionalExpression') {
         const consequent = resolvePattern(node.consequent, scope);
         const alternate = resolvePattern(node.alternate, scope);

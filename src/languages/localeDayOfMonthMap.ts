@@ -1,13 +1,6 @@
 /**
- * Per-locale rendering of a calendar day of the month, e.g. the 15th of each month.
- *
- * Deliberately separate from `localeOrdinalMap`: a date is not a rank. English writes "the 15th",
- * but Japanese and Chinese write `15日` where their ordinal is `第15`, and Italian and Polish use a
- * plain cardinal where their ordinal carries a suffix. Sharing one map made settlement dates read
- * `毎月第15に` and next-step ETAs read `15.. dnia`.
- *
- * Each entry renders only the day itself. Any surrounding preposition or unit belongs to the
- * sentence in `src/languages/<locale>.ts`, which is the only place that knows the grammar.
+ * Separate from `localeOrdinalMap` because a date is not a rank: Japanese dates read `15日` where the rank is `第15`.
+ * Each entry renders the day alone. Any surrounding preposition or unit belongs to the sentence in `<locale>.ts`.
  */
 import type {Locale} from '@src/CONST/LOCALES';
 import {LOCALES} from '@src/CONST/LOCALES';

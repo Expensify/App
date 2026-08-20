@@ -825,21 +825,21 @@ function prepareTextForDisplay(text: string): string {
 }
 
 function getRateDateLabel(rate: MileageRate, translate: LocaleContextProps['translate'], preferredLocale: Locale): string {
-    try {
-        if (rate.startDate && rate.endDate) {
-            return translate('iou.rateValidDateRange', {
-                startDate: DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale),
-                endDate: DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale),
-            });
-        }
-        if (rate.startDate) {
-            return translate('iou.rateValidFrom', {startDate: DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale)});
-        }
-        if (rate.endDate) {
-            return translate('iou.rateValidUntil', {endDate: DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale)});
-        }
-    } catch {
+    const startDate = rate.startDate ? DateUtils.formatToMediumDate(parseISO(rate.startDate), preferredLocale) : '';
+    const endDate = rate.endDate ? DateUtils.formatToMediumDate(parseISO(rate.endDate), preferredLocale) : '';
+    // A date that was set but failed to format comes back empty. Rendering anyway leaves holes where the dates belong, and keeping one end of a range would advertise the rate as unbounded.
+    if ((rate.startDate && !startDate) || (rate.endDate && !endDate)) {
         return '';
+    }
+
+    if (startDate && endDate) {
+        return translate('iou.rateValidDateRange', {startDate, endDate});
+    }
+    if (startDate) {
+        return translate('iou.rateValidFrom', {startDate});
+    }
+    if (endDate) {
+        return translate('iou.rateValidUntil', {endDate});
     }
 
     return '';

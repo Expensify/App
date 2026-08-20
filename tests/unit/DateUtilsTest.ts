@@ -1113,7 +1113,7 @@ describe('DateUtils', () => {
             ['formatToLongMonthYear' as const, CONST.LOCALES.EN, 'July 2025'],
             ['formatToLongMonthYear' as const, CONST.LOCALES.ES, 'julio de 2025'],
             ['formatToWeekdayLongDate' as const, CONST.LOCALES.EN, 'Wednesday, July 9, 2025'],
-            ['formatToWeekdayLongDate' as const, CONST.LOCALES.ES, 'mi\u00e9rcoles, 9 de julio de 2025'],
+            ['formatToWeekdayLongDate' as const, CONST.LOCALES.ES, 'miércoles, 9 de julio de 2025'],
             ['formatToShortMonthDayTime' as const, CONST.LOCALES.EN, 'Jul 9, 2:30 PM'],
             ['formatToShortMonthDayTime' as const, CONST.LOCALES.ES, '9 jul, 14:30'],
             ['formatToLocalDateTime' as const, CONST.LOCALES.EN, 'Jul 9, 2025, 2:30 PM'],

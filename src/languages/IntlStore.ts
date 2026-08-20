@@ -31,8 +31,7 @@ import {shouldPolyfillNumberFormat, shouldPolyfillListFormat, shouldPolyfillPlur
 
 // This function was added here to avoid circular dependencies
 function setAreTranslationsLoading(areTranslationsLoading: boolean) {
-    // No module-level mirror to skip repeat writes: Onyx owns this key and `Onyx.clear()` resets it independently, so a
-    // mirror would desync and suppress the edge `reportAttributes` now recomputes on. Onyx already de-dupes equal values.
+    // No module-level mirror: `Onyx.clear()` resets this key independently, so a mirror would fall out of step.
     // eslint-disable-next-line rulesdir/prefer-actions-set-data
     Onyx.set(ONYXKEYS.RAM_ONLY_ARE_TRANSLATIONS_LOADING, areTranslationsLoading);
 }
@@ -40,10 +39,7 @@ function setAreTranslationsLoading(areTranslationsLoading: boolean) {
 // Scopes the dynamic-import retry state per locale
 const LOCALE_RETRY_KEY_PREFIX = 'locale:';
 
-/**
- * Polyfill locale data is optional: @formatjs falls back to English for that one API when its data is missing, which is
- * a far smaller loss than rejecting the whole `Promise.all` and discarding translations that already downloaded.
- */
+/** Degrading one Intl API to English beats rejecting the `Promise.all` and discarding the translations with it. */
 function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale): Promise<void> {
     if (!dataImport) {
         return Promise.resolve();
@@ -57,20 +53,17 @@ function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale):
 }
 
 class IntlStore {
-    /** Eagerly seeded to `LOCALES.DEFAULT` (EN). The user's preferred locale loads async via `load()` and replaces this. */
     private static currentLocale: Locale = LOCALES.DEFAULT;
 
-    /** React subscribers via `useSyncExternalStore`. Notified after `currentLocale` mutates so consumers re-render once, instead of two-ticking through Onyx. */
     private static listeners = new Set<() => void>();
 
     /** No eager EN pre-seed — the splash gate covers cold-start flash and pre-seeding would drag ~150 KB gzip into every bundle. */
     private static cache = new Map<Locale, FlatTranslationsObject>();
 
     /**
-     * Set of loaders for each locale. Can't be DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
+     * Can't be DRYed up because dynamic imports must use string literals in metro: https://github.com/facebook/metro/issues/52
      * @formatjs locale data is keyed by the base CLDR tag, so pt covers pt-BR and zh covers zh-hans.
-     * `cache.set` runs after `Promise.all`, so `cache.has(locale)` is true only once every settled import has been given
-     * its chance to install data. Only the translations chunk can fail the locale, since `loadOptionalData` absorbs the rest.
+     * `cache.set` runs after `Promise.all`, so `cache.has(locale)` is true only once every import has settled.
      */
     private static loaders: Record<Locale, () => Promise<void>> = {
         [LOCALES.DE]: () =>
@@ -222,30 +215,23 @@ class IntlStore {
         return IntlStore.currentLocale;
     }
 
-    /** True once `load(locale)` has populated the translations cache. Consumers use this to distinguish "not loaded yet" from a genuinely-missing translation. */
+    /** Distinguishes "not loaded yet" from a genuinely missing translation. */
     public static hasLocale(this: void, locale: Locale): boolean {
         return IntlStore.cache.has(locale);
     }
 
     /**
-     * Seeds the real singleton from `jest/setupAfterEnv.ts`, so suites that never mock this module still translate. The
-     * two mock modules replace it rather than seed it, so neither can do this. Skips `load()`'s Onyx write and span.
+     * Seeds the real singleton, which a mock module cannot do. Skips the Onyx write and span that `load()` does.
      */
     public static seedForTests(locale: Locale, translations: FlatTranslationsObject): void {
         IntlStore.cache.set(locale, translations);
-        // The splash gate reads the snapshot rather than the Onyx flag, so notifying is enough to clear it. Without this,
-        // subscribers stay on the stale pre-seed value forever.
+        // The splash gate reads the snapshot, not the Onyx flag, so notifying is enough to clear it.
         IntlStore.notifyListeners();
     }
 
-    /** Monotonic token used to discard stale `load()` resolutions when a newer call has superseded them. */
     private static loadToken = 0;
 
-    /**
-     * Snapshot exposed to `useSyncExternalStore`. Replaced on every `notifyListeners` so subscribers re-render even when
-     * only the cache changed (locale stayed the same). Returning `getCurrentLocale` directly would let React bail on
-     * the same-string check and swallow the cache-fill event.
-     */
+    /** An object, not the locale string: React bails on `Object.is`, which would swallow a cache fill under one locale. */
     private static snapshot: {locale: Locale; hasAnyTranslations: boolean} = {locale: LOCALES.DEFAULT, hasAnyTranslations: false};
 
     public static getSnapshot(this: void): {locale: Locale; hasAnyTranslations: boolean} {
@@ -254,13 +240,13 @@ class IntlStore {
 
     /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
-        // Bail when neither observable field moved: the snapshot is compared by reference, so emitting an identical one
-        // re-renders LocaleContextProvider and Expensify at the app root for nothing.
-        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.hasAnyTranslations === IntlStore.cache.size > 0) {
+        // Monotonic because the cache never shrinks, which is what the boot splash gate needs.
+        const hasAnyTranslations = IntlStore.cache.size > 0;
+        // Compared by reference, so an identical snapshot would re-render the app root for nothing.
+        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.hasAnyTranslations === hasAnyTranslations) {
             return;
         }
-        // `hasAnyTranslations` is monotonic because the cache never shrinks, which is what the boot splash gate needs.
-        IntlStore.snapshot = {locale: IntlStore.currentLocale, hasAnyTranslations: IntlStore.cache.size > 0};
+        IntlStore.snapshot = {locale: IntlStore.currentLocale, hasAnyTranslations};
         for (const listener of IntlStore.listeners) {
             listener();
         }
@@ -292,17 +278,14 @@ class IntlStore {
         // deploy) would otherwise reject unhandled and permanently block the boot splash gate in Expensify.tsx.
         return retryDynamicImport(loaderPromise, `${LOCALE_RETRY_KEY_PREFIX}${locale}`)
             .then(() => {
-                // A newer `load()` call superseded this one — let it commit the locale instead. Still notify, because the
-                // cache grew either way and `hasAnyTranslations` is a store-wide fact the splash gate reads.
+                // Superseded, so let the newer call commit the locale. Still notify: the cache grew either way.
                 if (IntlStore.loadToken !== token) {
                     IntlStore.notifyListeners();
                     return;
                 }
                 IntlStore.currentLocale = locale;
-                // After the data is installed and the locale is committed: a formatter built for this locale earlier in
-                // the session resolved against whatever data existed then, and only now can it rebuild correctly. Doing
-                // this per-import inside `Promise.all` ran while `currentLocale` was still the previous locale, so it
-                // could never evict what it was meant to, and cost three full rebuilds of every on-screen formatter.
+                // Must follow the commit above: a clear running while `currentLocale` is still the previous locale
+                // cannot evict the formatters it targets.
                 clearIntlFormatterCaches();
                 IntlStore.notifyListeners();
                 if (localeSpan) {

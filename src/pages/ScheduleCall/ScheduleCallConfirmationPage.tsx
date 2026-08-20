@@ -73,15 +73,15 @@ function ScheduleCallConfirmationPage() {
     let dateTimeString = '';
     if (scheduleCallDraft?.timeSlot && scheduleCallDraft.date) {
         const dateString = DateUtils.formatToReadableString(scheduleCallDraft.date, preferredLocale);
-        const timeString = `${DateUtils.formatInTimeZoneToShortTime(scheduleCallDraft?.timeSlot, userTimezone, preferredLocale)} - ${DateUtils.formatInTimeZoneToShortTime(
-            addMinutes(scheduleCallDraft?.timeSlot, 30),
-            userTimezone,
-            preferredLocale,
-        )}`;
+        const startTime = DateUtils.formatInTimeZoneToShortTime(scheduleCallDraft.timeSlot, userTimezone, preferredLocale);
+        const endTime = DateUtils.formatInTimeZoneToShortTime(addMinutes(scheduleCallDraft.timeSlot, 30), userTimezone, preferredLocale);
+        const timezoneString = DateUtils.getZoneAbbreviation(DateUtils.toLocalDate(scheduleCallDraft.timeSlot), userTimezone);
 
-        const timezoneString = DateUtils.getZoneAbbreviation(new Date(scheduleCallDraft?.timeSlot), userTimezone);
-
-        dateTimeString = `${dateString} from ${timeString} ${timezoneString}`;
+        // The start is a raw string the unzoned guard can reject, while the end is a Date that bypasses it, so without
+        // this the range renders as " - 10:30 AM".
+        if (dateString && startTime && endTime) {
+            dateTimeString = `${dateString} from ${startTime} - ${endTime} ${timezoneString}`;
+        }
     }
 
     useEffect(() => {

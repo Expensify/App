@@ -1,6 +1,6 @@
 import DateUtils from '@libs/DateUtils';
+import {translate} from '@libs/Localize';
 
-import CONST from '@src/CONST';
 import type {Locale} from '@src/CONST/LOCALES';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
@@ -58,7 +58,7 @@ function getLocalizedVictoryChartLabelText(text: string, timezone: SelectedTimez
     if (!day || !time) {
         return text;
     }
-    return `As of: ${day} at ${time}`;
+    return `As of: ${day} ${translate(locale, 'common.conjunctionAt')} ${time}`;
 }
 
 export {getLocalizedVictoryChartLabelText, parseDateAsUTC};

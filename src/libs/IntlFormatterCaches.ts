@@ -1,7 +1,6 @@
 /**
- * Caches for constructed Intl formatters, kept in their own module so `IntlStore` can drop them without importing
- * `DateUtils` (which imports `Localize`, which imports `IntlStore`). A formatter built while a locale's polyfill data
- * was still missing resolved against English and would otherwise stay that way for the session.
+ * Kept in their own module so `IntlStore` can drop them without importing `DateUtils`, which imports `Localize`,
+ * which imports `IntlStore`. A formatter built before a locale's polyfill data landed resolves against English.
  */
 import type {Locale} from '@src/CONST/LOCALES';
 

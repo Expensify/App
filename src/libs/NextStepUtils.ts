@@ -90,7 +90,7 @@ function buildNextStepMessage(
             nextStep.messageKey === CONST.NEXT_STEP.MESSAGE_KEY.WAITING_FOR_AUTOMATIC_SUBMIT
                 ? toLocaleDayOfMonth(preferredLocale, etaDate.getDate())
                 : DateUtils.formatToWeekdayLongDate(etaDate, preferredLocale);
-        // An unrenderable date leaves the templates with a hole ("on the  of each month"), so drop the clause instead.
+        // A date that cannot be rendered leaves the templates with a hole ("on the  of each month"), so drop the clause instead.
         etaType = eta ? CONST.NEXT_STEP.ETA_TYPE.DATE_TIME : undefined;
     }
 

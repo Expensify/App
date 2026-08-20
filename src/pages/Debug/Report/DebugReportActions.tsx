@@ -99,7 +99,7 @@ function DebugReportActions({reportID}: DebugReportActionsProps) {
             .map((reportAction) => ({
                 reportActionID: reportAction.reportActionID,
                 text: getReportActionDebugText(reportAction),
-                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created, false)}`,
+                alternateText: `${reportAction.reportActionID} | ${datetimeToCalendarTime(reportAction.created)}`,
                 keyForList: reportAction.reportActionID,
             }));
     }, [sortedAllReportActions, debouncedSearchValue, getReportActionDebugText, datetimeToCalendarTime]);

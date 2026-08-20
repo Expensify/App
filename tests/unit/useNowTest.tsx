@@ -83,6 +83,26 @@ describe('useNow', () => {
         b.unmount();
     });
 
+    it('renders the current minute on the first render after a gap with no subscribers', () => {
+        jest.setSystemTime(new Date('2026-05-24T10:00:00Z'));
+        const first = renderHook(() => useNow());
+        // Unmounting stops the timer, so nothing advances the stored value while no one is subscribed.
+        first.unmount();
+
+        jest.setSystemTime(new Date('2026-05-24T11:37:00Z'));
+        // Every render is captured, because `result.current` holds the value after the subscribe effect has already
+        // corrected it. A 97-minute-old clock painted on the first render is what a user would actually see.
+        const rendered: Date[] = [];
+        const second = renderHook(() => {
+            const now = useNow();
+            rendered.push(now);
+            return now;
+        });
+
+        expect(rendered.at(0)?.toISOString()).toBe('2026-05-24T11:37:00.000Z');
+        second.unmount();
+    });
+
     it('clears the pending timer when the last subscriber unmounts', () => {
         const clearSpy = jest.spyOn(globalThis, 'clearTimeout');
         const a = renderHook(() => useNow());
