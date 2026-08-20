@@ -224,8 +224,12 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     };
 
     const shouldShowBillable = (isPolicyExpenseChat || isExpenseUnreported) && (!!splitExpenseDraftTransactionDetails?.billable || isBillableEnabledOnPolicy(effectivePolicy));
+    const currentReimbursable = splitExpenseDraftTransaction?.reimbursable ?? transaction?.reimbursable;
+    const isReimbursableDifferentFromPolicyDefault = effectivePolicy?.defaultReimbursable !== undefined && !!currentReimbursable !== effectivePolicy.defaultReimbursable;
     const shouldShowReimbursable =
-        (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) && effectivePolicy?.disabledFields?.reimbursable !== true && !isManagedCardTransaction(transaction);
+        (isPolicyExpenseChat || (isExpenseUnreported && !!effectivePolicy)) &&
+        (effectivePolicy?.disabledFields?.reimbursable !== true || isReimbursableDifferentFromPolicyDefault) &&
+        !isManagedCardTransaction(transaction);
 
     const isDistance = isDistanceRequest(splitExpenseDraftTransaction);
     const isManualDistance = isManualDistanceRequest(splitExpenseDraftTransaction);
