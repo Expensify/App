@@ -139,6 +139,12 @@ const activeAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUs
 const hasActiveAdminPoliciesSelector = (policies: OnyxCollection<Policy>, currentUserAccountLogin: string) => !!activeAdminPoliciesSelector(policies, currentUserAccountLogin).length;
 
 /**
+ * Whether the user belongs to any workspace with the travel feature switched on, so subscribers only re-render when
+ * that answer changes rather than on every policy collection change.
+ */
+const hasTravelEnabledPolicySelector = (policies: OnyxCollection<Policy>): boolean => Object.values(policies ?? {}).some((policy) => !!policy?.isTravelEnabled);
+
+/**
  * Creates a selector returning only whether the user has any active workspace they can submit expenses to
  * (paid Collect/Control workspaces, plus free Submit (submit2026) workspaces),
  * so subscribers don't re-render when anything else on the policy collection changes.
@@ -399,6 +405,7 @@ export {
     createWorkspaceListPoliciesSelector,
     activeAdminPoliciesSelector,
     hasActiveAdminPoliciesSelector,
+    hasTravelEnabledPolicySelector,
     createHasWorkspaceToSubmitToSelector,
     createPoliciesForDomainCardsSelector,
     policyTimeTrackingSelector,
