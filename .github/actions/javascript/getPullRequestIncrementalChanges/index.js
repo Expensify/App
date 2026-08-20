@@ -26448,41 +26448,24 @@ var Git = class _Git {
   }
   /**
    * Get changed files with their status (added, modified, removed, renamed).
-   * In CI, uses the GitHub API for accuracy, falling back to a local git diff if it can't answer.
+   * In CI, uses the GitHub API with pagination for accuracy.
    * Locally, uses git diff against the provided ref.
    */
   static async getChangedFilesWithStatus(fromRef, toRef, shouldIncludeUntrackedFiles = false) {
     if (IS_CI) {
-      try {
-        const files = await GithubUtils_default.paginate(GithubUtils_default.octokit.pulls.listFiles, {
-          owner: CONST_default.GITHUB_OWNER,
-          repo: CONST_default.APP_REPO,
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          pull_number: context2.payload.pull_request?.number ?? 0,
-          // GitHub builds every file's patch to answer this, and responds 422 ("Sorry, this diff is
-          // taking too long to generate") when one page holds too much content. A PR that touches
-          // several large generated files trips that at 100 per page but not at 30.
-          // eslint-disable-next-line @typescript-eslint/naming-convention
-          per_page: 30
-        });
-        return files.map((file) => ({
-          filename: file.filename,
-          status: file.status,
-          previousFilename: file.previous_filename
-        }));
-      } catch (error3) {
-        warn("Could not list this PR's changed files via the GitHub API, falling back to a local git diff.", error3);
-        const range = toRef ? `${fromRef} ${toRef}` : fromRef;
-        const { stdout } = await exec(`git diff --name-status -M ${range}`);
-        const statusByCode = { A: "added", D: "removed", M: "modified", T: "modified" };
-        return stdout.split("\n").filter(Boolean).map((line) => {
-          const [rawStatus, firstPath, secondPath] = line.split("	");
-          if (rawStatus?.startsWith("R") || rawStatus?.startsWith("C")) {
-            return { filename: secondPath ?? "", status: "renamed", previousFilename: firstPath };
-          }
-          return { filename: firstPath ?? "", status: statusByCode[rawStatus ?? ""] ?? "modified" };
-        }).filter((file) => !!file.filename);
-      }
+      const files = await GithubUtils_default.paginate(GithubUtils_default.octokit.pulls.listFiles, {
+        owner: CONST_default.GITHUB_OWNER,
+        repo: CONST_default.APP_REPO,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        pull_number: context2.payload.pull_request?.number ?? 0,
+        // eslint-disable-next-line @typescript-eslint/naming-convention
+        per_page: 100
+      });
+      return files.map((file) => ({
+        filename: file.filename,
+        status: file.status,
+        previousFilename: file.previous_filename
+      }));
     }
     const diffResult = this.diff(fromRef, toRef, void 0, shouldIncludeUntrackedFiles);
     return diffResult.files.map((file) => ({
