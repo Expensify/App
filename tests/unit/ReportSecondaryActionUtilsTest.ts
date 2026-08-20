@@ -456,36 +456,55 @@ describe('getSecondaryAction', () => {
         expect(result.includes(CONST.REPORT.SECONDARY_ACTIONS.CANCEL_PAYMENT)).toBe(false);
     });
 
-    it('does not include CANCEL_PAYMENT for a report manager when the policy is not a paid group', () => {
-        // The report manager passes isPayer's non-paid-group fallback, so only the paid-group guard blocks them here.
-        jest.mocked(jest.requireMock<typeof PolicyUtils>('@libs/PolicyUtils').isPaidGroupPolicy).mockReturnValue(false);
+    it('does not include CANCEL_PAYMENT for a report manager who is not the payer on a manual-reimbursement workspace', async () => {
+        // beforeEach's Onyx.clear isn't awaited; explicit clear + reset guarantees state.
+        await Onyx.clear();
 
+        const managerEmail = 'manager@manual-test.com';
+        const managerAccountID = 88;
+        const reimburserEmail = 'owner@manual-test.com';
         const report = createMock<Report>({
             reportID: REPORT_ID,
             type: CONST.REPORT.TYPE.EXPENSE,
+            policyID: POLICY_ID,
             ownerAccountID: EMPLOYEE_ACCOUNT_ID,
-            // Current user is the report manager but not an admin.
-            managerID: EMPLOYEE_ACCOUNT_ID,
+            // Current user is the report manager but not the payer.
+            managerID: managerAccountID,
             stateNum: CONST.REPORT.STATE_NUM.APPROVED,
             statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED,
+            total: -10000,
+            isWaitingOnBankAccount: false,
         });
         const policy = createMock<Policy>({
+            id: POLICY_ID,
+            type: CONST.POLICY.TYPE.CORPORATE,
             role: CONST.POLICY.ROLE.USER,
-            type: CONST.POLICY.TYPE.PERSONAL,
+            owner: reimburserEmail,
             reimbursementChoice: CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL,
+            reimburser: reimburserEmail,
+            outputCurrency: CONST.CURRENCY.USD,
+            isPolicyExpenseChatEnabled: true,
+            employeeList: {
+                [managerEmail]: {role: CONST.POLICY.ROLE.USER},
+                [reimburserEmail]: {role: CONST.POLICY.ROLE.ADMIN},
+            },
         });
 
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${POLICY_ID}`, policy);
+        await waitForBatchedUpdates();
+
         const result = getSecondaryReportActions({
-            currentUserLogin: EMPLOYEE_EMAIL,
-            currentUserAccountID: EMPLOYEE_ACCOUNT_ID,
-            submitterLogin: '',
+            currentUserLogin: managerEmail,
+            currentUserAccountID: managerAccountID,
+            submitterLogin: EMPLOYEE_EMAIL,
             report,
             chatReport,
-            reportTransactions: [],
+            reportTransactions: [createMock<Transaction>({reportID: REPORT_ID, amount: 10000})],
             originalTransaction: createMock<Transaction>({}),
             violations: {},
             bankAccountList: {},
             policy,
+            reportActions: [],
             isProduction: false,
         });
 
