@@ -1,5 +1,3 @@
-import DistanceEReceipt from '@components/DistanceEReceipt';
-
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import variables from '@styles/variables';
@@ -10,6 +8,8 @@ import type {LayoutChangeEvent} from 'react-native';
 
 import React, {useState} from 'react';
 import {View} from 'react-native';
+
+import DistanceEReceipt from './DistanceEReceipt';
 
 // The card lays out at a fixed width and the map inside it is a 1024px thumbnail, so past roughly three times
 // that width the map is the first thing to blur. Text keeps scaling cleanly either way.
