@@ -301,8 +301,8 @@ class IntlStore {
                 if (localeSpan && IntlStore.loadToken === token) {
                     endSpanWithAttributes(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD, {[CONST.TELEMETRY.ATTRIBUTE_FAILED]: true});
                 }
-                // The splash gate below only lifts on a non-empty cache, so without this fallback the app hangs on the boot splash forever.
-                if (IntlStore.loadToken !== token || IntlStore.cache.size > 0 || locale === LOCALES.DEFAULT) {
+                // Same question the splash gate asks. A merely non-empty cache would skip the fallback and strand the boot.
+                if (IntlStore.loadToken !== token || IntlStore.cache.has(IntlStore.currentLocale) || locale === LOCALES.DEFAULT) {
                     // Publish whatever a superseded load already cached, else the gate never sees it and the splash sticks.
                     IntlStore.notifyListeners();
                     return;
@@ -323,8 +323,8 @@ class IntlStore {
                     });
             })
             .finally(() => {
-                // At least one fully completed locale required, else a rejected first-load would open the splash to raw path strings.
-                if (IntlStore.loadToken !== token || IntlStore.cache.size === 0) {
+                // Same question again, so OnyxDerived cannot start deriving from a locale that has no translations.
+                if (IntlStore.loadToken !== token || !IntlStore.cache.has(IntlStore.currentLocale)) {
                     return;
                 }
                 setAreTranslationsLoading(false);

@@ -143,6 +143,26 @@ describe('IntlStore', () => {
             });
         });
 
+        it('falls back to English when the active load fails and a superseded one cached a different locale', async () => {
+            await jest.isolateModulesAsync(async () => {
+                // Only the requested locale fails, so the fallback's own import still resolves through the real loader.
+                jest.doMock('@src/utils/retryDynamicImport', () => ({
+                    __esModule: true,
+                    default: (loader: () => Promise<void>, key: string) => (key.endsWith(CONST.LOCALES.FR) ? Promise.reject(new Error('chunk 404')) : loader()),
+                }));
+
+                const ColdStore = (await import('@src/languages/IntlStore')).default;
+                const [{default: esTranslations}, {default: flattenObject}] = await Promise.all([import('@src/languages/es'), import('@src/languages/flattenObject')]);
+                ColdStore.seedForTests(CONST.LOCALES.ES, flattenObject(esTranslations));
+
+                await ColdStore.load(CONST.LOCALES.FR);
+                await waitForBatchedUpdates();
+
+                expect(ColdStore.getCurrentLocale()).toBe(CONST.LOCALES.DEFAULT);
+                expect(ColdStore.getSnapshot().isCurrentLocaleLoaded).toBe(true);
+            });
+        });
+
         it('subscribe and getCurrentLocale are callable as useSyncExternalStore inputs', async () => {
             await IntlStore.load(CONST.LOCALES.EN);
 
