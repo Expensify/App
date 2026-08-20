@@ -356,12 +356,12 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         emojiSuggestionsEmoji: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeEmojisWithinText,
             width: 51,
             textAlign: 'center',
         },
         emojiSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             flex: 1,
             ...wordBreak.breakWord,
             ...spacing.pr4,
@@ -380,7 +380,7 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         mentionSuggestionsText: {
-            fontSize: variables.fontSizeMedium,
+            fontSize: variables.fontSizeNormal,
             ...spacing.ml2,
         },
 
