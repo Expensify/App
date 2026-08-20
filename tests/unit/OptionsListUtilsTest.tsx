@@ -6725,6 +6725,7 @@ describe('OptionsListUtils', () => {
                 lastActorDetails: null,
                 policy: undefined,
                 isReportArchived: false,
+
                 currentUserLogin: CURRENT_USER_EMAIL,
                 formatPhoneNumber,
             });
