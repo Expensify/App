@@ -9,6 +9,19 @@ allowed-tools: Bash(.claude/skills/measure-telemetry-span/measure.sh) Read Grep 
 
 **Pattern:** from repo root, run one command with a span name and platform → stdout is a small summary table (avg / min / max + sample ms list). The script measures whatever Git checkout is currently active: it never runs `git checkout` or otherwise switches branches. To compare this branch with `main` (or any other revision), check out each commit/branch in turn—or use two worktrees/clones—and run `measure.sh` separately, then compare the two printed summaries.
 
+## Layout
+
+```
+measure-telemetry-span/
+├── measure.sh                        # the runner
+├── flows/                            # one .ad flow per measured journey
+└── scripts/replay-with-deadline.mjs  # wall-clock deadline around `agent-device replay`
+```
+
+Each flow under `flows/` declares the spans it owns with `# @span <SpanName>` and names the span the runner looks up. Flows here do not own application lifecycle, so they are not inputs for `agent-device test`; the runner opens the app and prepares the session.
+
+Setup and navigation helpers live in `.claude/skills/agent-device/flows/macros/`, and `@reset` headers point at them. The `.ad` metadata spec, selector rules, and recording workflow live in [`agent-device/flows/README.md`](../agent-device/flows/README.md) — read it before adding or healing a flow here.
+
 ## Command
 
 ```bash
@@ -17,7 +30,7 @@ allowed-tools: Bash(.claude/skills/measure-telemetry-span/measure.sh) Read Grep 
 
 | Argument       | Default | Description                                                                 |
 | -------------- | ------- | --------------------------------------------------------------------------- |
-| `<span-name>`  | —       | Must match `# @tag sentry-<span-name>` on a scenario under `.claude/skills/agent-device/flows/scenarios/` (the script searches `flows/` recursively, so `flows/macros/` is also scanned for completeness). |
+| `<span-name>`  | —       | Must match `# @span <span-name>` on a flow under `.claude/skills/measure-telemetry-span/flows/`. |
 | `[runs]`       | `10`    | Measured replays after **one** warmup inside the script.                    |
 | `[platform]`   | `ios`   | `ios` or `android` — must match the simulator/emulator you use.          |
 | `--boot`       | off     | Before `open`, runs `agent-device boot --platform <platform>` so a simulator/emulator is started when nothing was connected (`adb devices` empty, etc.). |
@@ -45,19 +58,37 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 ## Contract
 
 - App logs: `[Sentry][<SpanName>] Ending span (<N>ms)` via `console.debug`.
-- Flow file includes `# @tag sentry-<SpanName>` (same name, case-sensitive).
-- If multiple flows declare the same Sentry tag, exactly one includes `# @measure canonical`; the runner fails instead of choosing by filesystem order.
+- Flow file includes `# @span <SpanName>` (same name, case-sensitive). A flow may declare several spans when one journey emits a whole chain.
+- Exactly one flow owns each span. The runner fails instead of choosing by filesystem order, so a flow that merely passes through a span must not declare it.
 - Optional flow headers: `@reset <path.ad>` (run by the script after warmup and each measured replay; if absent, the script relaunches the app instead so each run starts from `@pre`); `@param` keys overridable via `AD_*` (passed as `-e KEY=VALUE` to replay).
 - **Parsing:** stats take the **last** `RUNS` matching log lines from the capture. That matches one sample per measured replay only if each replay emits **one** such line for this span name. Extra matches (duplicate logs, nested/sub-spans with the same message pattern, noisy startup logging) can shift which samples are included—fix the app logging or tighten the grep if that happens.
 
 ## `@reset` and loop stability
 
-`measure.sh` replays the **same** tagged flow every iteration. Treat `@reset` as “return to a known anchor,” not a second copy of the whole scenario:
+`measure.sh` replays the **same** flow every iteration. Treat `@reset` as “return to a known anchor,” not a second copy of the whole flow:
 
 - Prefer a **short** reset flow (tabs to Inbox, dismiss sheet, etc.). Point `@reset` at a **macro** path so one file stays the source of truth.
 - If runs are flaky locally but fine for others, walk the bring-up checklist in `.claude/skills/agent-device/SKILL.md` (Metro, dev build, device boot, iOS + DevTools for `console.debug`) before blaming selectors.
 
 Optional: keep a tiny markdown table in your team notes mapping `SpanName` → one-line intent + `@pre` anchor; the span name still drives which `.ad` is picked — no need to repeat long repro prose in every chat.
+
+## Single replay without measuring
+
+To debug one flow, or to run it as a QA check, open a session in the isolated state directory and drive the same wrapper `measure.sh` uses:
+
+```bash
+export AGENT_DEVICE_STATE_DIR="$HOME/.agent-device-expensify-headless"
+agent-device open <app-id> --platform <ios-or-android> --session <name>
+node .claude/skills/measure-telemetry-span/scripts/replay-with-deadline.mjs \
+    .claude/skills/measure-telemetry-span/flows/<name>.ad \
+    --session <name> \
+    --timeout 120000 \
+    -e KEY=VALUE
+```
+
+Always keep a separate `AGENT_DEVICE_STATE_DIR` for this: on timeout the wrapper stops the daemon owning that directory, and pointing it at an interactive session would kill that session.
+
+Stop after the first failed replay or postcondition. Retry only after an explicit reset or another verified state change — replaying the same flow against unchanged state proves nothing.
 
 ## If something fails
 

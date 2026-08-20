@@ -3,10 +3,7 @@
 # @pre    id="searchButton" || role="button" label="Search"
 # @post   id="SearchRouterPage"
 # @reset  .claude/skills/agent-device/flows/macros/return-to-inbox.ad
-# @tag    navigation
-# @tag    perf
-# @tag    search
-# @tag    sentry-ManualOpenSearchRouter
+# @span   ManualOpenSearchRouter
 is exists "id=\"BaseSidebarScreen\""
 is exists "id=\"searchButton\" || role=\"button\" label=\"Search\""
 press "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"

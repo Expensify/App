@@ -1,12 +1,13 @@
 # Flows
 
+This file is the reference for every `.ad` file in the repository: the metadata spec, selector rules, recording, and maintenance. Measurement flows live in [`measure-telemetry-span/flows/`](../../measure-telemetry-span/SKILL.md) and follow the same rules.
+
 ## Directory layout
 
-1. `macros/` contains reusable setup and navigation helpers for interactive work.
-2. `scenarios/` contains QA and performance journeys that run against a prepared session through `agent-device replay`.
-3. `lib/` contains bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express. Each file documents its own contract; the caller owns session lifecycle.
+1. `macros/` contains reusable setup and navigation helpers for interactive work. These are the only flows an interactive agent may propose.
+2. `lib/` contains bash drive libraries for flows that need conditional steering the linear `.ad` format cannot express. Each file documents its own contract; the caller owns session lifecycle.
 
-The `macros/` and `scenarios/` directories contain composable `.ad` snippets. The caller owns application startup, authentication, platform selection, session state, and cleanup. A flow may span one or multiple screens as long as it represents a coherent action with clear start (`@pre`) and completion (`@post`) checkpoints.
+`macros/` contains composable `.ad` snippets. The caller owns application startup, authentication, platform selection, session state, and cleanup. A flow may span one or multiple screens as long as it represents a coherent action with clear start (`@pre`) and completion (`@post`) checkpoints.
 
 ## Agent decision loop (interactive)
 
@@ -23,30 +24,11 @@ Before manually navigating, use this human-in-the-loop loop:
 7. `agent-device replay <path> -e KEY=VALUE ...`.
 8. If the flow declares `@post`, verify each `@post` with `is exists`. On success, re-enter the loop only if the user's stated goal is not complete; otherwise stop and report completion. On failure, propose peer flow/manual fallback options and ask before continuing. If no `@post` is declared (utility flow), rely on explicit user confirmation or the next snapshot before continuing.
 
-## QA workflow
+## Replay lifecycle
 
-Scenarios are not self-contained test-runner inputs. Open the app and prepare a named session first, then run:
+No flow in this repository owns application lifecycle, so none of them is a self-contained `agent-device test` input. `agent-device test` creates an isolated session per attempt; use it only for scripts that own `context`, `open`, and cleanup. Repository flows expect the caller to open the app and prepare a named session first.
 
-```bash
-AGENT_DEVICE_STATE_DIR="$HOME/.agent-device-expensify-headless" \
-agent-device open <app-id> \
-    --platform <ios-or-android> \
-    --session <name>
-AGENT_DEVICE_STATE_DIR="$HOME/.agent-device-expensify-headless" \
-node .claude/skills/agent-device/scripts/replay-with-deadline.mjs \
-    .claude/skills/agent-device/flows/scenarios/<name>.ad \
-    --session <name> \
-    --timeout 120000 \
-    -e KEY=VALUE
-```
-
-Tested Agent Device versions 0.20.1 through 0.20.6 accept `replay --timeout` but can leave the daemon request running until a selector timeout. The repository wrapper enforces the wall-clock deadline outside the daemon, exits with code 124, and cleans the dedicated headless daemon. Always use a separate `AGENT_DEVICE_STATE_DIR` for this workflow so timeout cleanup cannot stop an interactive session. Selector waits remain the per-step bounds and produce the useful divergence report.
-
-`agent-device test` creates an isolated session for each attempt. Use it only for scripts that own `context`, `open`, and cleanup.
-
-Every scenario must execute each declared `@pre` and `@post` condition with `is exists` or `wait`. Metadata documents the contract but does not execute it.
-
-For headless runs, stop after the first failed replay or postcondition. Retry only after an explicit reset or another verified state change. Do not replay the same scenario against an unchanged state.
+Tested Agent Device versions 0.20.1 through 0.20.6 accept `replay --timeout` but can leave the daemon request running until a selector timeout. For headless and measured runs, drive replay through [`measure-telemetry-span/scripts/replay-with-deadline.mjs`](../../measure-telemetry-span/SKILL.md), which enforces the wall-clock deadline outside the daemon and exits with code 124. Selector waits remain the per-step bounds and produce the useful divergence report.
 
 ## Metadata header spec
 
@@ -57,9 +39,8 @@ Each flow starts with `# @key value` comment lines. The `.ad` parser treats `#` 
 | `@desc`  | 1           | One-line human summary.                                                                          |
 | `@pre`   | 1..N        | Selector that must resolve in the current snapshot. Multiple lines are ANDed.                    |
 | `@post`  | 0..N        | Selector expected after replay. Multiple lines are ANDed. The flow body enforces them.             |
-| `@reset` | 0..1        | Repository-relative macro path that restores the scenario's `@pre` state between measured runs.    |
-| `@measure` | 0..1      | Set to `canonical` when multiple scenarios emit the same Sentry span and this one owns measurement. |
-| `@tag`   | 0..N        | Free-form category (`auth`, `onboarding`, ...) or scoped (`sentry-<spanName>`).                  |
+| `@reset` | 0..1        | Repository-relative macro path that restores the flow's `@pre` state between measured runs.        |
+| `@span`  | 0..N        | Sentry span this flow owns for measurement. Measurement flows only; exactly one flow per span.     |
 | `@param` | 0..N        | Runtime input contract: `@param KEY description.` Use with `${KEY}` in flow body.                |
 
 Selector syntax matches the body: `id="..."`, `role="..." label="..."`, `text="..."`, `||` for fallbacks.
@@ -89,12 +70,13 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 - **No fixed-duration `wait` calls.** Guard every asynchronous transition with `wait "<selector>" <timeoutMs>`, which polls until the selector resolves. A bare `wait <ms>` only burns wall clock.
 - **No command flags in a flow body.** The `.ad` parser only reads flags for `press`, `fill`, `click`, and a few capture commands; for `is`, `wait`, and `find` it treats `--first` and friends as positionals. Disambiguate with a tighter selector instead.
 - **Durable selectors.** Prefer `id=...` first, then `role=... label=...`, with `||` fallbacks. For shared navigation controls, put the iOS role selector before the Android `label=... hittable=true` fallback. Avoid `@eN` refs.
-- **Every flow declares `@desc` and `@pre`.** Scenarios also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`. Add `@tag` when applicable.
+- **Every flow declares `@desc` and `@pre`.** Measurement flows also declare at least one `@post`. Utility macros (for example `go-back`) may omit `@post`.
+- **Every declared `@pre` and `@post` runs as a body assertion.** Use `is exists` or `wait`. Metadata documents the contract but does not execute it.
 - **Assertion order decides whether a pass means anything.** Enforce every `@pre` before the first mutation and every `@post` after the last one. An assertion on the wrong side of a mutation lets a flow report success from the screen it started on.
 - **No `find <selector> "click"`.** It resolves at runtime and hides which element was hit. Press an exact selector instead.
 - **A bare `label=` alternative must carry `hittable=true`.** Without it the match can land on an off-screen or non-interactive node and the press silently does nothing.
-- **One canonical owner per Sentry tag.** When several scenarios carry the same `sentry-<spanName>` tag, exactly one declares `@measure canonical` so measurement picks a single flow.
-- **Choose directory intentionally.** Put reusable setup/navigation steps in `flows/macros/`; put outcome verification scenarios in `flows/scenarios/`.
+- **One owner per span.** Exactly one flow declares `@span <SpanName>`. A flow that merely passes through a span must not declare it, otherwise measurement fails instead of guessing.
+- **Choose the skill intentionally.** Reusable setup and navigation steps belong in `flows/macros/` here; flows that exist to measure a Sentry span belong in `measure-telemetry-span/flows/`.
 - **Keep scope coherent, not artificially tiny.** Flows can span multiple screens when that sequence is the reusable intent (for example "create and submit manual expense").
 - **Peers share `@pre` and differ on `@post`.** One flow per narrow outcome is better than a mega-flow with conditional branches.
 - **Use `@param` for substituted values.** If a literal is interpolated into the body, declare `# @param KEY description.` and reference it as `${KEY}`.
@@ -106,14 +88,14 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 1. Drive the target screen manually.
 2. Start a session with `--save-script`:
    ```bash
-   agent-device open <app> --save-script .claude/skills/agent-device/flows/<kind>/<name>.ad
+   agent-device open <app> --save-script .claude/skills/agent-device/flows/macros/<name>.ad
    ```
 3. Perform the steps.
 4. `agent-device close` - flushes the `.ad`.
 5. Edit the generated file:
    - Delete the `context` line, leading `open ... --relaunch`, trailing `close`, and eyeballing `wait`s.
-   - Move file to `flows/macros/` or `flows/scenarios/`, then add `@desc`, `@pre`, optional `@post`, optional `@tag`, and any needed `@param` headers.
-6. For scenarios, add executable checks for every declared `@pre` and `@post`.
+   - Move the file to `flows/macros/` or `measure-telemetry-span/flows/`, then add `@desc`, `@pre`, optional `@post`, optional `@span`, and any needed `@param` headers.
+6. Add executable checks for every declared `@pre` and `@post`.
 7. Verify: pre-check from a matching state, replay, post-check.
 
 ## Maintenance
@@ -121,9 +103,9 @@ agent-device replay <flow>.ad -e EMAIL=other@example.com
 Heal selector drift by hand. Replay the flow and read the divergence report:
 
 ```bash
-agent-device replay .claude/skills/agent-device/flows/<kind>/<name>.ad --session <name>
+agent-device replay <path-to-flow>.ad --session <name>
 ```
 
 Every divergence carries ranked selector suggestions. Apply them yourself: `replay --update`/`-u` no longer rewrites the `.ad` file. Editing by hand also keeps `${KEY}` placeholders intact. Re-verify `@pre`/`@post` still hold, then commit. Keep runtime inputs in `@param` + `-e`/`AD_VAR_*`; do not reintroduce in-file `env` directives.
 
-After editing a scenario, re-read the authoring rules above and replay the flow from a matching start state. A green replay plus enforced `@pre`/`@post` is the check.
+After editing a flow, re-read the authoring rules above and replay it from a matching start state. A green replay plus enforced `@pre`/`@post` is the check.

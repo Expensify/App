@@ -2,12 +2,6 @@
 # @pre    id="IOURequestStepConfirmation"
 # @post   id="SearchPageNarrow" || id="Search"
 # @post   role="tab" label="Expenses" || role="button" label="Expenses" || label="Expenses" hittable=true
-# @tag    iou
-# @tag    perf
-# @tag    sentry-ManualCreateExpenseSubmit
-# @tag    sentry-ManualSubmitToDestinationVisible
-# @tag    sentry-ManualCreateExpenseServerResponse
-# @tag    sentry-ManualGeolocationWait
 # @param  AMOUNT Whole-number amount shown in the submit CTA (for example `22`).
 # @param  CURRENCY Currency symbol shown in the submit CTA (for example `PLN` or `USD`).
 is exists "id=\"IOURequestStepConfirmation\""

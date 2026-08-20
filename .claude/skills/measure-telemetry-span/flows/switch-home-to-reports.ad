@@ -2,9 +2,7 @@
 # @pre    role="tab" label="Home" || label="Home" hittable=true
 # @pre    role="tab" label="Spend" || label="Spend" hittable=true
 # @post   id="SearchPageNarrow" || id="Search"
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualNavigateToReports
+# @span   ManualNavigateToReports
 is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
 is exists "role=\"tab\" label=\"Spend\" || label=\"Spend\" hittable=true"
 press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"

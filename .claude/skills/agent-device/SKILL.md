@@ -1,7 +1,7 @@
 ---
 name: agent-device
 description: Drive iOS and Android devices for the Expensify App - testing, debugging, performance profiling, bug reproduction, and feature verification. Use when the developer needs to interact with the mobile app on a device.
-allowed-tools: Bash(agent-device *) Bash(node .claude/skills/agent-device/scripts/*) Bash(npm root *) Bash(scripts/is-hybrid-app.sh)
+allowed-tools: Bash(agent-device *) Bash(npm root *) Bash(scripts/is-hybrid-app.sh)
 ---
 
 # agent-device
@@ -121,4 +121,6 @@ Read these files directly for device automation guidance (bootstrap, exploration
 
 ## Flows
 
-Repeatable steps are captured as composable `.ad` snippets under [`flows/`](flows/README.md). Interactive agents may propose and run only `flows/macros/`. QA and performance runs use `flows/scenarios/` through the repository deadline wrapper against a prepared session. Repository scenarios are not inputs for `agent-device test` because they do not own application lifecycle.
+This skill owns interactive automation only: reusable setup and navigation macros under [`flows/macros/`](flows/README.md), plus the drive libraries in `flows/lib/`. Propose and run macros through the [Agent decision loop](flows/README.md). `flows/README.md` is also the reference for the `.ad` metadata spec, selector rules, and recording workflow, so read it before authoring any `.ad` file in this repository.
+
+Sentry span measurement lives in the [`measure-telemetry-span`](../measure-telemetry-span/SKILL.md) skill, which owns its own `flows/` and the replay deadline wrapper. Do not add measurement flows here.

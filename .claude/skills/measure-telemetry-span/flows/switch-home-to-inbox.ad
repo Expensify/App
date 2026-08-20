@@ -2,9 +2,7 @@
 # @pre    role="tab" label="Home" || label="Home" hittable=true
 # @pre    role="tab" label="Inbox. Your review is required" || role="tab" label="Inbox" || label="Inbox. Your review is required" hittable=true || label="Inbox" hittable=true
 # @post   id="BaseSidebarScreen"
-# @tag    navigation
-# @tag    perf
-# @tag    sentry-ManualNavigateToInboxTab
+# @span   ManualNavigateToInboxTab
 is exists "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"
 is exists "role=\"tab\" label=\"Inbox. Your review is required\" || role=\"tab\" label=\"Inbox\" || label=\"Inbox. Your review is required\" hittable=true || label=\"Inbox\" hittable=true"
 press "role=\"tab\" label=\"Home\" || label=\"Home\" hittable=true"

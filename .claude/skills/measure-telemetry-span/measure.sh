@@ -38,35 +38,30 @@ if ! [[ "$RUNS" =~ ^[0-9]+$ ]] || [[ "$RUNS" -lt 1 ]]; then
   exit 1
 fi
 
+SKILL_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO="$(git rev-parse --show-toplevel)"
-FLOWS_DIR="$REPO/.claude/skills/agent-device/flows"
-REPLAY_RUNNER="$REPO/.claude/skills/agent-device/scripts/replay-with-deadline.mjs"
+FLOWS_DIR="$SKILL_DIR/flows"
+REPLAY_RUNNER="$SKILL_DIR/scripts/replay-with-deadline.mjs"
 FLOW=""
 MATCHING_FLOWS=()
-CANONICAL_FLOWS=()
 while IFS= read -r -d '' candidate; do
-  if grep -q "^# @tag[[:space:]]\+sentry-${SPAN}\$" "$candidate" 2>/dev/null; then
+  if grep -q "^# @span[[:space:]]\+${SPAN}\$" "$candidate" 2>/dev/null; then
     MATCHING_FLOWS+=("$candidate")
-    if grep -q '^# @measure[[:space:]]\+canonical$' "$candidate" 2>/dev/null; then
-      CANONICAL_FLOWS+=("$candidate")
-    fi
   fi
 done < <(find "$FLOWS_DIR" -name '*.ad' -type f -print0 2>/dev/null)
 
 if [[ "${#MATCHING_FLOWS[@]}" -eq 0 ]]; then
-  echo "No flow declares '@tag sentry-$SPAN'. Available:" >&2
-  find "$FLOWS_DIR" -name '*.ad' -type f -exec grep -h '^# @tag[[:space:]]\+sentry-' {} + 2>/dev/null | sed 's/.*sentry-//' | sort -u >&2
+  echo "No flow declares '@span $SPAN'. Available:" >&2
+  find "$FLOWS_DIR" -name '*.ad' -type f -exec grep -h '^# @span[[:space:]]\+' {} + 2>/dev/null | awk '{print $3}' | sort -u >&2
   exit 1
 fi
-if [[ "${#MATCHING_FLOWS[@]}" -eq 1 ]]; then
-  FLOW="${MATCHING_FLOWS[0]}"
-elif [[ "${#CANONICAL_FLOWS[@]}" -eq 1 ]]; then
-  FLOW="${CANONICAL_FLOWS[0]}"
-else
-  echo "Multiple flows declare '@tag sentry-$SPAN' without one '# @measure canonical':" >&2
+# Exactly one flow owns each span, so measurement never picks by filesystem order.
+if [[ "${#MATCHING_FLOWS[@]}" -gt 1 ]]; then
+  echo "Multiple flows declare '@span $SPAN'; exactly one flow must own each span:" >&2
   printf '  %s\n' "${MATCHING_FLOWS[@]}" >&2
   exit 1
 fi
+FLOW="${MATCHING_FLOWS[0]}"
 
 RESET_DECL=$(grep -E '^# @reset[[:space:]]+' "$FLOW" | sed -E 's/^# @reset[[:space:]]+//' | head -1 || true)
 if [[ -n "$RESET_DECL" ]]; then
