@@ -895,6 +895,15 @@ function IOURequestStepConfirmation({
         <ScreenWrapper
             shouldEnableMaxHeight={canUseTouchScreen() && !isMobileSafari()}
             shouldAvoidScrollOnVirtualViewport={!isMobileSafari()}
+            /*
+             * When this step is embedded on IOURequestStartPage (shouldHideHeader=true), that page already owns
+             * this screen's focus trap - a trap whose containers are the parent header (holding the Back button),
+             * the tab bar and the active tab. A second active trap here takes the top of the shared trap stack and
+             * pauses that one, confining Tab to the confirmation form and leaving the Back button and the tab bar
+             * unreachable. Standalone keeps `undefined` rather than `{active: !shouldHideHeader}` so that
+             * FocusTrapForScreen still runs its own route-based activation logic.
+             */
+            focusTrapSettings={shouldHideHeader ? {active: false} : undefined}
             testID="IOURequestStepConfirmation"
         >
             <TelemetrySpanManager
