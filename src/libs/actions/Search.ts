@@ -451,10 +451,12 @@ function handleActionButtonPress({
             const connectedIntegration = getValidConnectedIntegration(exportPolicy);
 
             if (!connectedIntegration) {
+                Log.info('[SearchExport] Dropping export to accounting: policy has no valid connected integration', false, {reportID: item?.reportID, policyID: item?.policyID});
                 return;
             }
 
             if (!item?.reportID) {
+                Log.info('[SearchExport] Dropping export to accounting: item has no reportID');
                 return;
             }
 
@@ -971,11 +973,34 @@ function deleteSavedSearch(hash: number) {
     write(WRITE_COMMANDS.DELETE_SAVED_SEARCH, {hash}, {optimisticData, failureData, successData});
 }
 
-function openSearchPage(params?: OpenSearchPageParams) {
-    read(READ_COMMANDS.OPEN_SEARCH_PAGE, {
+/**
+ * @param hashWithStaleError Snapshot hash whose stored failure should be dropped as the page opens. A failed request
+ * leaves the snapshot errored and terminal, which reads as resolved, so nothing requests the query again.
+ */
+function openSearchPage(params?: OpenSearchPageParams, hashWithStaleError?: number) {
+    const apiParams = {
         includePartiallySetupBankAccounts: params?.includePartiallySetupBankAccounts ?? true,
         includeLockedBankAccounts: params?.includeLockedBankAccounts ?? true,
-    });
+    };
+
+    if (hashWithStaleError === undefined) {
+        read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams);
+        return;
+    }
+
+    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.SNAPSHOT>> = [
+        {
+            onyxMethod: Onyx.METHOD.MERGE,
+            key: `${ONYXKEYS.COLLECTION.SNAPSHOT}${hashWithStaleError}`,
+            value: {
+                errors: null,
+                // `state` marks the snapshot resolved on its own, so all three have to go or it still reads as loaded.
+                search: {state: null, responseJsonCode: null},
+            },
+        },
+    ];
+
+    read(READ_COMMANDS.OPEN_SEARCH_PAGE, apiParams, {optimisticData});
 }
 
 function openSearchCardFiltersPage() {
