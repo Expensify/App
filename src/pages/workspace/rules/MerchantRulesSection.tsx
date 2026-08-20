@@ -17,14 +17,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getDecodedCategoryName} from '@libs/CategoryUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import Parser from '@libs/Parser';
-import {
-    findVendorByID,
-    getActiveVendorMatchingIntegration,
-    getCommaSeparatedTagNameWithSanitizedColons,
-    getMatchingVendorByID,
-    isMatchingVendorListLoaded,
-    isXeroActiveMatchingSource,
-} from '@libs/PolicyUtils';
+import {getCommaSeparatedTagNameWithSanitizedColons, getVendorRuleDisplayValue, isXeroActiveMatchingSource} from '@libs/PolicyUtils';
 import tokenizedSearch from '@libs/tokenizedSearch';
 
 import variables from '@styles/variables';
@@ -77,24 +70,8 @@ function getRuleDescription(rule: CodingRule, translate: ReturnType<typeof useLo
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.tax, `${rule.tax.field_id_TAX.name} (${rule.tax.field_id_TAX.value})`));
     }
     if (rule.vendorID) {
-        // Three-tier resolution mirrors the revamp table in MerchantTypeRulesUtils.ts:
-        //   1. Render the name from the active vendor-matching integration when it contains the vendor.
-        //   2. Render "unavailable" when the loaded active list does not contain the vendor, so a stale or
-        //      inactive connection never surfaces a misleading name.
-        //   3. Before an active source hydrates, preserve a historical name or the stored ID. When no source
-        //      remains, render "unavailable" if no connection knows the ID instead of leaking the raw ID.
-        const activeVendorName = getMatchingVendorByID(policy, rule.vendorID)?.name;
         const unavailableLabel = translate(isXeroActiveMatchingSource(policy) ? 'workspace.rules.merchantRules.supplierUnavailable' : 'workspace.rules.merchantRules.vendorUnavailable');
-        const historicalVendorName = findVendorByID(policy, rule.vendorID)?.name;
-        const hasActiveVendorMatchingSource = getActiveVendorMatchingIntegration(policy) !== undefined || isXeroActiveMatchingSource(policy);
-        let vendorValue: string;
-        if (activeVendorName) {
-            vendorValue = activeVendorName;
-        } else if (isMatchingVendorListLoaded(policy)) {
-            vendorValue = unavailableLabel;
-        } else {
-            vendorValue = historicalVendorName ?? (hasActiveVendorMatchingSource ? rule.vendorID : unavailableLabel);
-        }
+        const vendorValue = getVendorRuleDisplayValue(policy, rule.vendorID, unavailableLabel);
         actions.push(translate('workspace.rules.merchantRules.ruleSummarySubtitleUpdateField', labels.vendor, vendorValue));
     }
     if (rule.reimbursable !== undefined) {
