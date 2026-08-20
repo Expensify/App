@@ -1,6 +1,6 @@
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
-import {convertToBackendAmount, getCurrencyDecimals} from '@libs/CurrencyUtils';
+import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
 import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
