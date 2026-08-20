@@ -5073,7 +5073,10 @@ const SAVED_SEARCH_ICON_NAMES: readonly SavedSearchIconName[] = [...Object.value
  */
 function getSavedSearchIconName(query: string): SavedSearchIconName {
     const type = buildSearchQueryJSON(query)?.type;
-    return (type && SAVED_SEARCH_TYPE_TO_ICON_NAME[type]) || SAVED_SEARCH_FALLBACK_ICON_NAME;
+    if (!type) {
+        return SAVED_SEARCH_FALLBACK_ICON_NAME;
+    }
+    return SAVED_SEARCH_TYPE_TO_ICON_NAME[type] ?? SAVED_SEARCH_FALLBACK_ICON_NAME;
 }
 
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {

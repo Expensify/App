@@ -147,9 +147,9 @@ function SavedSearchList({hash}: SavedSearchListProps) {
             <SearchTypeMenuItem
                 key={item.key}
                 title={item.title ?? ''}
-                // Reuse the per-type icon already resolved in `buildSavedSearchMenuItem` instead of re-parsing
-                // the query here; `MenuItem['icon']` is wider than `IconAsset` but is always an IconAsset for these items.
-                icon={item.icon as IconAsset}
+                // Resolve the per-type icon from the query. `item.icon` holds the same value but is typed as the
+                // wider `MenuItem['icon']`, so re-resolving here keeps the prop strongly typed as `IconAsset`.
+                icon={expensifyIcons[getSavedSearchIconName(item.query)]}
                 focused={item.focused}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {
