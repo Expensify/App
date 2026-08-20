@@ -21363,7 +21363,7 @@ describe('ReportUtils', () => {
             });
 
             const result = parseMovedTransactionReportIDs(action);
-            expect(result).toEqual({fromReportID: '111', toReportID: '222'});
+            expect(result).toEqual({fromReportID: '111', toReportID: '222', displayReportID: '111'});
         });
 
         it('should return undefined for missing IDs', () => {
