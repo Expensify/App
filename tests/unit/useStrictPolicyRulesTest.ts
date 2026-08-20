@@ -61,6 +61,7 @@ describe('useStrictPolicyRules', () => {
         const securityGroupID = 'securityGroup123';
         const ownerAccountID = 42;
 
+        // Given a signed-in user with an object membership for their domain
         await Onyx.set(ONYXKEYS.SESSION, {
             email: 'user@example.com',
         });
@@ -68,13 +69,16 @@ describe('useStrictPolicyRules', () => {
         const domain = 'example.com';
         await Onyx.set(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[domain]: {securityGroupID, ownerAccountID}});
 
+        // Given the group enforces workspace rules strictly, stored under the sharedNVP key
         const securityGroupKey = `${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}` as const;
         await Onyx.set(securityGroupKey, {
             enableStrictPolicyRules: true,
         });
 
+        // When we render the hook
         const {result} = renderHook(() => useStrictPolicyRules());
 
+        // Then it should report strict workspace rules as enabled
         expect(result.current.areStrictPolicyRulesEnabled).toBe(true);
     });
 

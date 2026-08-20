@@ -140,19 +140,25 @@ describe('SubmitPlanWelcomeModalGuard', () => {
     });
 
     it("should allow when the user's domain restricts workspace creation via a migrated security group", async () => {
-        await setUpEligibleUser();
         // Same case as the previous test, but the membership is the migrated object form and the group lives under the
         // sharedNVP collection instead of the legacy SECURITY_GROUP collection.
+        // Given an eligible user with an object membership for their domain
+        await setUpEligibleUser();
         const restrictedDomain = 'restricted.example.com';
         const securityGroupID = '654321';
         const ownerAccountID = 456;
         await Onyx.merge(ONYXKEYS.MY_DOMAIN_SECURITY_GROUPS, {[restrictedDomain]: {securityGroupID, ownerAccountID}});
+
+        // Given the group forbids creating workspaces, stored under the sharedNVP key
         await Onyx.merge(`${ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP}${securityGroupID}_${ownerAccountID}`, {enableRestrictedPolicyCreation: true});
         await waitForBatchedUpdates();
         // The guard reads the email from its cached session, populated via its SESSION subscription.
         await markSessionReady({authToken: 'test-token', accountID: 123, email: `employee@${restrictedDomain}`});
 
+        // When the guard evaluates a navigation action
         const result = SubmitPlanWelcomeModalGuard.evaluate(mockState, mockAction, defaultContext);
+
+        // Then navigation is allowed, since a restricted user must not see the modal
         expect(result.type).toBe('ALLOW');
     });
 
