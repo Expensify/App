@@ -12,6 +12,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import {clearStaleDomainFromFailedCreation} from '@libs/actions/Domain';
 import {hasDomainErrors} from '@libs/DomainUtils';
 import interceptAnonymousUser from '@libs/interceptAnonymousUser';
 import Navigation from '@libs/Navigation/Navigation';
@@ -23,8 +24,9 @@ import {isAdminSelector} from '@src/selectors/Domain';
 import {accountIDSelector} from '@src/selectors/Session';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
+import {useIsFocused} from '@react-navigation/native';
 import {Str} from 'expensify-common';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 function DomainsListPage() {
@@ -32,6 +34,7 @@ function DomainsListPage() {
     const {isOffline} = useNetwork();
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['Plus']);
+    const isFocused = useIsFocused();
 
     useDocumentTitle(translate('common.domains'));
 
@@ -39,6 +42,19 @@ function DomainsListPage() {
     const [currentUserAccountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
     const [allDomains] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN);
     const [allDomainErrors] = useOnyx(ONYXKEYS.COLLECTION.DOMAIN_ERRORS);
+    const [createDomainForm] = useOnyx(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM);
+
+    const failedDomainAccountID = createDomainForm?.domainAccountID;
+    const failedDomainKey = failedDomainAccountID ? `${ONYXKEYS.COLLECTION.DOMAIN}${failedDomainAccountID}` : undefined;
+    const shouldHideFailedDomain = !!failedDomainKey && !!createDomainForm?.domainKeysBeforeCreation && !createDomainForm.domainKeysBeforeCreation.includes(failedDomainKey);
+
+    useEffect(() => {
+        if (!isFocused || !shouldHideFailedDomain || !failedDomainAccountID) {
+            return;
+        }
+
+        clearStaleDomainFromFailedCreation(failedDomainAccountID);
+    }, [failedDomainAccountID, isFocused, shouldHideFailedDomain]);
 
     const navigateToDomain = ({domainAccountID, isAdmin}: {domainAccountID: number; isAdmin: boolean}) => {
         if (!isAdmin) {
@@ -54,6 +70,10 @@ function DomainsListPage() {
     if (!isEmptyObject(allDomains)) {
         for (const domain of Object.values(allDomains)) {
             if (!domain?.accountID || !domain.email) {
+                continue;
+            }
+
+            if (shouldHideFailedDomain && failedDomainAccountID === domain.accountID) {
                 continue;
             }
 

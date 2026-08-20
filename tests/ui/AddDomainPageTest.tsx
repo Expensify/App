@@ -11,9 +11,10 @@ import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {WorkspacesDomainModalNavigatorParamList} from '@libs/Navigation/types';
+import type {WorkspacesDomainModalNavigatorParamList, WorkspaceNavigatorParamList} from '@libs/Navigation/types';
 
 import AddDomainPage from '@pages/domain/AddDomainPage';
+import DomainsListPage from '@pages/domain/DomainsListPage';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -58,6 +59,7 @@ const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.re
 const navigateSpy = jest.spyOn(Navigation, 'navigate').mockImplementation(() => {});
 
 const Stack = createPlatformStackNavigator<WorkspacesDomainModalNavigatorParamList>();
+const WorkspaceStack = createPlatformStackNavigator<WorkspaceNavigatorParamList>();
 
 function renderAddDomainPage() {
     return render(
@@ -70,6 +72,23 @@ function renderAddDomainPage() {
                             component={AddDomainPage}
                         />
                     </Stack.Navigator>
+                </NavigationContainer>
+            </PortalProvider>
+        </ComposeProviders>,
+    );
+}
+
+function renderDomainsListPage() {
+    return render(
+        <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider]}>
+            <PortalProvider>
+                <NavigationContainer ref={navigationRef}>
+                    <WorkspaceStack.Navigator initialRouteName={SCREENS.DOMAINS_LIST}>
+                        <WorkspaceStack.Screen
+                            name={SCREENS.DOMAINS_LIST}
+                            component={DomainsListPage}
+                        />
+                    </WorkspaceStack.Navigator>
                 </NavigationContainer>
             </PortalProvider>
         </ComposeProviders>,
@@ -187,6 +206,62 @@ describe('AddDomainPage', () => {
         expect(await getExistingDomain()).toBeUndefined();
         expect(navigateSpy).toHaveBeenCalledWith(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(EXISTING_DOMAIN_ACCOUNT_ID), expect.anything());
         expect((await getCreateDomainForm())?.errors).toBeFalsy();
+    });
+
+    it('cleans up a failed domain response after the add domain page unmounts', async () => {
+        // Given a validated user with a pending CreateDomain request
+        mockIsUserValidated = true;
+        const {unmount} = renderAddDomainPage();
+        await waitForBatchedUpdatesWithAct();
+        await submitDomainName(DOMAIN_NAME);
+        expect(apiWriteSpy).toHaveBeenCalledWith(
+            WRITE_COMMANDS.CREATE_DOMAIN,
+            {domainName: DOMAIN_NAME},
+            expect.objectContaining({
+                failureData: expect.arrayContaining([expect.objectContaining({value: expect.objectContaining({domainKeysBeforeCreation: []})})]),
+            }),
+        );
+
+        // When the page unmounts before the BE returns the minimal domain entry
+        unmount();
+        await act(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.DOMAIN}${EXISTING_DOMAIN_ACCOUNT_ID}`, {accountID: EXISTING_DOMAIN_ACCOUNT_ID, email: `admin@${DOMAIN_NAME}`});
+            await Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: EXISTING_DOMAIN_ACCOUNT_ID, domainKeysBeforeCreation: []});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the persisted request context keeps the response-only domain out of the list and cleans it once the list is focused
+        expect(await getExistingDomain()).not.toBeUndefined();
+        renderDomainsListPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.queryByText(DOMAIN_NAME)).toBeNull();
+        expect(await getExistingDomain()).toBeUndefined();
+        expect((await getCreateDomainForm())?.domainAccountID).toBeFalsy();
+    });
+
+    it('keeps a pre-existing domain visible when the add domain page unmounts before the failure', async () => {
+        // Given a domain that OpenApp had already added before the user submitted it
+        mockIsUserValidated = true;
+        const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${EXISTING_DOMAIN_ACCOUNT_ID}` as const;
+        await act(async () => {
+            await Onyx.merge(domainKey, {accountID: EXISTING_DOMAIN_ACCOUNT_ID, email: `admin@${DOMAIN_NAME}`});
+        });
+        const {unmount} = renderAddDomainPage();
+        await waitForBatchedUpdatesWithAct();
+        await submitDomainName(DOMAIN_NAME);
+
+        // When the page unmounts before the failure response restores the persisted request context
+        unmount();
+        await act(async () => {
+            await Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: EXISTING_DOMAIN_ACCOUNT_ID, domainKeysBeforeCreation: [domainKey]});
+        });
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the list preserves the legitimate OpenApp entry instead of treating it as a response-only stub
+        renderDomainsListPage();
+        await waitForBatchedUpdatesWithAct();
+        expect(screen.getByText(DOMAIN_NAME)).toBeOnTheScreen();
+        expect(await getExistingDomain()).not.toBeUndefined();
     });
 
     it('falls back to the server error when the response cannot be matched against a snapshot', async () => {

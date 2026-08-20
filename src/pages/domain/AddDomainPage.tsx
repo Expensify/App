@@ -85,6 +85,10 @@ function AddDomainPage() {
         }
 
         if (!domainKeysBeforeCreation.current) {
+            const domainKey = `${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`;
+            if (form.domainKeysBeforeCreation && !form.domainKeysBeforeCreation.includes(domainKey)) {
+                clearDomainFromFailedCreation(domainAccountID);
+            }
             clearCreateDomainAccountID();
             return;
         }
@@ -96,7 +100,7 @@ function AddDomainPage() {
 
         clearDomainFromFailedCreation(domainAccountID);
         Navigation.setNavigationActionToMicrotaskQueue(() => Navigation.navigate(ROUTES.WORKSPACES_DOMAIN_ALREADY_EXISTS.getRoute(domainAccountID), {forceReplace: true}));
-    }, [form?.domainAccountID]);
+    }, [form?.domainAccountID, form?.domainKeysBeforeCreation]);
 
     useEffect(() => {
         resetCreateDomainForm();
@@ -129,7 +133,7 @@ function AddDomainPage() {
                         const submitDomain = () => {
                             submittedDomainName.current = domainName;
                             domainKeysBeforeCreation.current = isLoadingOnyxValue(allDomainsResult) ? undefined : new Set(Object.keys(allDomains ?? {}));
-                            createDomain(domainName);
+                            createDomain(domainName, domainKeysBeforeCreation.current);
                         };
 
                         if (!isUserValidated) {

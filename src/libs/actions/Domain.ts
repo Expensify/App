@@ -360,7 +360,7 @@ async function getScimToken(domainName: string): Promise<ScimTokenWithState> {
  * When the domain is already taken the request fails with a generic error and the BE attaches `domainAccountID` of the existing
  * domain plus a minimal `domain_<accountID>` entry, which is what the add domain page keys the "domain already exists" flow off.
  */
-function createDomain(domainName: string) {
+function createDomain(domainName: string, domainKeysBeforeCreation?: ReadonlySet<string>) {
     const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
@@ -375,11 +375,11 @@ function createDomain(domainName: string) {
             value: {hasCreationSucceeded: true, isLoading: null},
         },
     ];
-    const failureData = [
+    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.FORMS.CREATE_DOMAIN_FORM>> = [
         {
             onyxMethod: Onyx.METHOD.MERGE,
             key: ONYXKEYS.FORMS.CREATE_DOMAIN_FORM,
-            value: {isLoading: null},
+            value: {isLoading: null, domainKeysBeforeCreation: domainKeysBeforeCreation ? [...domainKeysBeforeCreation] : null},
         },
     ];
 
@@ -413,6 +413,13 @@ function clearCreateDomainAccountID() {
 /** Drops the domain entry that came with the failure, keeping a domain the user has no access to out of the domains list. No server call is performed. */
 function clearDomainFromFailedCreation(domainAccountID: number) {
     Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null);
+}
+
+/** Clears a response-only domain after the add-domain page has already unmounted, then removes its persisted failure context. */
+function clearStaleDomainFromFailedCreation(domainAccountID: number) {
+    Onyx.set(`${ONYXKEYS.COLLECTION.DOMAIN}${domainAccountID}`, null).then(() => {
+        Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null, domainKeysBeforeCreation: null});
+    });
 }
 
 function setPrimaryContact(domainAccountID: number, newTechnicalContactEmail: string, currentTechnicalContactEmail?: string) {
@@ -2407,6 +2414,7 @@ export {
     setCreateDomainAlreadyHaveAccessError,
     clearCreateDomainAccountID,
     clearDomainFromFailedCreation,
+    clearStaleDomainFromFailedCreation,
     setPrimaryContact,
     clearSetPrimaryContactError,
     toggleConsolidatedDomainBilling,
