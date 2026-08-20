@@ -294,9 +294,7 @@ function resetWalletAdditionalDetailsDraft() {
 }
 
 /**
- * Clears the errors shown while confirming a validateCode in the wallet additional-details step.
- * Preserves a pending SSN errorCode so navigating away from the validateCode screen doesn't lose the
- * backend's request for the full 9-digit SSN.
+ * Clears wallet additional-details errors, preserving a pending SSN errorCode across navigation.
  */
 function clearWalletAdditionalDetailsErrors(currentErrorCode?: string | null) {
     Onyx.merge(ONYXKEYS.WALLET_ADDITIONAL_DETAILS, {
