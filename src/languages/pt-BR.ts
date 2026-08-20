@@ -970,7 +970,6 @@ const translations: TranslationDeepObject<typeof en> = {
             },
             enterSignerInfo: {title: 'Informações do signatário necessárias', subtitle: ({bankAccountLastFour}: {bankAccountLastFour: string}) => `Conta bancária ${bankAccountLastFour}`},
         },
-        announcements: 'Comunicados',
         discoverSection: {
             title: 'Descobrir',
             menuItemTitleNonAdmin: 'Aprenda a criar despesas e enviar relatórios.',

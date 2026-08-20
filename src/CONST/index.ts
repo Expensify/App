@@ -9463,26 +9463,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'The Expensify Card: Proactive spend controls',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260817277076/en/The-Expensify-Visa-Commercial-Card-Brings-New-Proactive-Spend-Controls-to-14-Countries',
-                publishedDate: '2026-08-17',
-            },
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {
