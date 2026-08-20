@@ -148,6 +148,7 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function canApproveIOU(
@@ -1324,6 +1325,7 @@ function submitReport({
     shouldExportToPDF,
     isTrackIntentUser,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1606,6 +1608,7 @@ function submitReport({
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            formatPhoneNumber,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
