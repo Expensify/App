@@ -1,0 +1,6 @@
+# @desc   Switch to the Home tab and wait for the Home screen anchor.
+# @pre    label="Home"
+# @post   id="HomePage"
+is exists "label=\"Home\""
+press "label=\"Home\""
+wait "id=\"HomePage\"" 10000

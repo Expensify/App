@@ -60,7 +60,9 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 - App logs: `[Sentry][<SpanName>] Ending span (<N>ms)` via `console.debug`.
 - Flow file includes `# @span <SpanName>` (same name, case-sensitive). A flow may declare several spans when one journey emits a whole chain.
 - Exactly one flow owns each span. The runner fails instead of choosing by filesystem order, so a flow that merely passes through a span must not declare it.
-- Optional flow headers: `@reset <path.ad>` (run by the script after warmup and each measured replay; if absent, the script relaunches the app instead so each run starts from `@pre`); `@param` keys overridable via `AD_*` (passed as `-e KEY=VALUE` to replay).
+- Optional flow headers: `@reset <path.ad>` (run before the warmup and after every replay; if absent, the script relaunches the app instead so each run starts from `@pre`); `@param` keys overridable via `AD_*` (passed as `-e KEY=VALUE` to replay).
+- The runner re-checks every `@pre` before and every `@post` after each replay, independently of the assertions in the flow body. Selectors carrying an unresolved `${KEY}` are skipped and logged. This is a backstop against a flow whose headers and body have drifted, not a licence to omit the body assertions.
+- Each replay must emit a new span line. The runner fails on the first replay that does not, and prints the current screen. A replay can pass every step and still emit nothing - pressing a tab the app already sits on short-circuits before the span starts - so a `@pre` that cannot distinguish the start screen from the destination turns a broken run into a silent one.
 - **Parsing:** stats take the **last** `RUNS` matching log lines from the capture. That matches one sample per measured replay only if each replay emits **one** such line for this span name. Extra matches (duplicate logs, nested/sub-spans with the same message pattern, noisy startup logging) can shift which samples are included—fix the app logging or tighten the grep if that happens.
 
 ## `@reset` and loop stability
@@ -68,6 +70,7 @@ If you see **no Android device** (`adb devices` empty): append **`--boot`** to t
 `measure.sh` replays the **same** flow every iteration. Treat `@reset` as “return to a known anchor,” not a second copy of the whole flow:
 
 - Prefer a **short** reset flow (tabs to Inbox, dismiss sheet, etc.). Point `@reset` at a **macro** path so one file stays the source of truth.
+- **Declare `@reset` whenever you can.** Without it the runner relaunches the app between runs, which is slow and puts the first post-launch navigation inside the measured loop — on Android that navigation is where the app raises a LogBox that aborts the transition. With `@reset` the runner attaches to the running app and never relaunches.
 - If runs are flaky locally but fine for others, walk the bring-up checklist in `.claude/skills/agent-device/SKILL.md` (Metro, dev build, device boot, iOS + DevTools for `console.debug`) before blaming selectors.
 
 Optional: keep a tiny markdown table in your team notes mapping `SpanName` → one-line intent + `@pre` anchor; the span name still drives which `.ad` is picked — no need to repeat long repro prose in every chat.

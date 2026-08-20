@@ -1,7 +1,10 @@
 # @desc   Switch the bottom navigation tab from Home to Spend (legacy name: Reports). Triggers the ManualNavigateToReports Sentry span end-to-end (BottomTab click -> Spend screen layout completion). Assumes the user is signed in and the bottom nav bar is visible.
-# @pre    text="Home"
-# @pre    text="Spend"
-# @post   text="Spend"
+# @pre    id="HomePage"
+# @pre    label="Spend"
+# @post   id="SearchPageNarrow" || id="Search"
+# @reset  .claude/skills/agent-device/flows/macros/switch-to-home.ad
 # @span   ManualNavigateToReports
-press "label=\"Home\""
+is exists "id=\"HomePage\""
+is exists "label=\"Spend\""
 press "label=\"Spend\""
+wait "id=\"SearchPageNarrow\" || id=\"Search\"" 10000

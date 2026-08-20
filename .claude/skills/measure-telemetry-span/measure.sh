@@ -77,6 +77,15 @@ if [[ -n "$RESET_DECL" ]]; then
   fi
 fi
 
+FLOW_PRE=()
+FLOW_POST=()
+while IFS= read -r condition; do
+  FLOW_PRE+=("$condition")
+done < <(sed -n 's/^# @pre[[:space:]]\{1,\}//p' "$FLOW")
+while IFS= read -r condition; do
+  FLOW_POST+=("$condition")
+done < <(sed -n 's/^# @post[[:space:]]\{1,\}//p' "$FLOW")
+
 TMP_DIR="$(mktemp -d)"
 DURATIONS_FILE="$TMP_DIR/durations.txt"
 
@@ -121,42 +130,102 @@ start_log() {
 run_replay() {
   local flow="$1"
   shift
+  # A LogBox can surface at any point in the loop and it covers the controls the next replay
+  # presses, so clear it before every replay rather than only after a relaunch.
+  dismiss_react_native_overlays
   node "$REPLAY_RUNNER" "$flow" --timeout "$REPLAY_TIMEOUT_MS" "$@"
 }
 
-is_logbox_visible() {
+# Keyed on the LogBox error screen's own controls, which is the only surface carrying all
+# three at once. The snapshot's overlay hint is not usable here: it also fires for the
+# collapsed warning badge, which cannot be dismissed and does not block presses, and it stays
+# absent on the full-screen error. A press that is genuinely covered fails at the replay
+# instead, where the divergence report names the target.
+is_logbox_error_visible() {
   local snapshot="$1"
-  [[ "$snapshot" == *"React Native warning/error overlay detected"* ]] && return 0
-  # The LogBox error screen is the only surface carrying all three controls at once.
   [[ "$snapshot" == *'"Dismiss"'* && "$snapshot" == *'"Minimize"'* && "$snapshot" == *'"Copy"'* ]]
 }
 
 dismiss_react_native_overlays() {
   local snapshot
-  for _ in $(seq 1 8); do
+  for _ in $(seq 1 5); do
     snapshot="$(agent-device snapshot -i 2>&1 || true)"
-    if ! is_logbox_visible "$snapshot"; then
+    if ! is_logbox_error_visible "$snapshot"; then
       return
     fi
 
-    # `react-native dismiss-overlay` reports "verified gone" while an Android LogBox
-    # error screen is still up, so trust the snapshot and press LogBox's own control.
-    if [[ "$snapshot" == *'"Dismiss"'* ]]; then
-      agent-device press 'label="Dismiss"' >&2 2>/dev/null || true
-    else
-      agent-device react-native dismiss-overlay >&2 2>/dev/null || true
+    # `react-native dismiss-overlay` reports "verified gone" while the error screen is still
+    # up, so press LogBox's own control and re-read the snapshot to confirm.
+    agent-device press 'label="Dismiss"' >/dev/null 2>&1 || true
+    sleep 1
+  done
+
+  echo "React Native LogBox error screen still present after 5 dismissal attempts." >&2
+  return 1
+}
+
+# The flow body owns @pre/@post enforcement, but nothing makes an author write those assertions.
+# Re-checking the headers here catches a flow whose metadata and body have drifted apart.
+assert_flow_conditions() {
+  local kind="$1"
+  shift
+
+  local selector
+  for selector in "$@"; do
+    if [[ "$selector" == *'${'* ]]; then
+      echo "Skipping $kind check with unresolved interpolation: $selector" >&2
+      continue
+    fi
+
+    if [[ "$kind" == "@post" ]]; then
+      if agent-device wait "$selector" 10000 >/dev/null 2>&1; then
+        continue
+      fi
+    elif agent-device is exists "$selector" >/dev/null 2>&1; then
+      continue
+    fi
+
+    echo "Flow $kind not satisfied: $selector" >&2
+    return 1
+  done
+}
+
+count_span_lines() {
+  grep -c "\\[Sentry\\]\\[$SPAN\\] Ending span" "$1" 2>/dev/null || true
+}
+
+# A replay can pass every step and still emit no span - for example when the tab button
+# short-circuits because the app already sits on the destination. Fail on the first such
+# replay instead of spending every run and reporting "No captured runs" at the end.
+require_new_span_line() {
+  local raw="$1"
+  local before="$2"
+  local label="$3"
+  local after
+
+  for _ in $(seq 1 10); do
+    after="$(count_span_lines "$raw")"
+    if [[ "$after" -gt "$before" ]]; then
+      return
     fi
     sleep 1
   done
 
-  echo "React Native overlay still present after 8 dismissal attempts." >&2
+  echo "$label emitted no '[Sentry][$SPAN] Ending span' line. Current screen:" >&2
+  agent-device snapshot -i >&2 || true
   return 1
 }
 
 reset_if_needed() {
   if [[ -n "$RESET_FLOW" ]]; then
     echo "Resetting with: $RESET_FLOW" >&2
-    run_replay "$RESET_FLOW" >&2
+    # A LogBox raised mid-navigation drops the transition it interrupted, and that is
+    # intermittent, so retry the reset once. `run_replay` clears the overlay first. A second
+    # failure is reported rather than measuring from the wrong screen.
+    if ! run_replay "$RESET_FLOW" >&2; then
+      echo "Reset failed. Clearing overlays and retrying once." >&2
+      run_replay "$RESET_FLOW" >&2
+    fi
     return
   fi
 
@@ -192,21 +261,41 @@ measure_current_branch() {
     agent-device boot --platform "$PLATFORM" >&2
   fi
 
-  agent-device open "$APP_ID" --platform "$PLATFORM" --relaunch >&2
-  sleep 5
-  if [[ "$PLATFORM" == "android" ]]; then
-    wait_until_android_ui_ready
+  if [[ -n "$RESET_FLOW" ]]; then
+    # A declared @reset owns the start state, so attach to the running app instead of
+    # relaunching. A relaunch only adds the first post-launch navigation, which is where the
+    # app is most likely to raise a LogBox that aborts the very transition being measured.
+    agent-device open "$APP_ID" --platform "$PLATFORM" >&2
+    dismiss_react_native_overlays
+    echo "Resetting with: $RESET_FLOW" >&2
+    run_replay "$RESET_FLOW" >&2
+  else
+    agent-device open "$APP_ID" --platform "$PLATFORM" --relaunch >&2
+    sleep 5
+    if [[ "$PLATFORM" == "android" ]]; then
+      wait_until_android_ui_ready
+    fi
+    dismiss_react_native_overlays
   fi
-  dismiss_react_native_overlays
 
   LOG_PID=$(start_log "$raw")
+
+  local spans_before
+  spans_before="$(count_span_lines "$raw")"
+  assert_flow_conditions "@pre" ${FLOW_PRE[@]+"${FLOW_PRE[@]}"}
   run_replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2 # warmup
+  assert_flow_conditions "@post" ${FLOW_POST[@]+"${FLOW_POST[@]}"}
+  require_new_span_line "$raw" "$spans_before" "Warmup"
   reset_if_needed
   sleep 1
 
   for i in $(seq 1 "$RUNS"); do
     echo "Run $i/$RUNS" >&2
+    spans_before="$(count_span_lines "$raw")"
+    assert_flow_conditions "@pre" ${FLOW_PRE[@]+"${FLOW_PRE[@]}"}
     run_replay "$FLOW" ${FLOW_ENV_ARGS[@]+"${FLOW_ENV_ARGS[@]}"} >&2
+    assert_flow_conditions "@post" ${FLOW_POST[@]+"${FLOW_POST[@]}"}
+    require_new_span_line "$raw" "$spans_before" "Run $i/$RUNS"
     reset_if_needed
     sleep 1
   done
