@@ -7,6 +7,7 @@ import type {OnyxKey} from 'react-native-onyx';
 import type {PingPongEvent} from './Pusher/types';
 
 import {reconnect} from './actions/Reconnect';
+import getPlatform from './getPlatform';
 import Log from './Log';
 import Pusher from './Pusher';
 
@@ -56,10 +57,33 @@ function subscribeToPrivateUserChannelEvent(eventName: string, accountID: string
 }
 
 let unregisterPrivateUserChannelResubscribe: (() => void) | undefined;
+let didSocketGoUnavailable = false;
+let hasBoundSocketStateListener = false;
+
+// Not bound at module load: Pusher imports Session, which reaches back here through API middleware, so `Pusher`
+// is still undefined while this module is being evaluated.
+function bindSocketStateListenerOnce() {
+    if (hasBoundSocketStateListener) {
+        return;
+    }
+    hasBoundSocketStateListener = true;
+    Pusher.registerSocketEventCallback((eventName, data) => {
+        if (eventName !== 'state_change' || !data || !('current' in data) || data.current !== 'unavailable') {
+            return;
+        }
+        didSocketGoUnavailable = true;
+    });
+}
 
 function onPrivateUserChannelResubscribe(accountID: string) {
+    bindSocketStateListenerOnce();
     unregisterPrivateUserChannelResubscribe?.();
     unregisterPrivateUserChannelResubscribe = Pusher.onChannelResubscribe(getUserChannelName(accountID), () => {
+        if (getPlatform() === CONST.PLATFORM.WEB && !didSocketGoUnavailable) {
+            Log.info('[PusherUtils] Skipping reconnect, socket recovered without going unavailable');
+            return;
+        }
+        didSocketGoUnavailable = false;
         Log.info('[PusherUtils] Pusher re-subscribed to private user channel, triggering reconnect');
         reconnect();
     });
