@@ -55,7 +55,8 @@ function AlwaysPaintedView({inert = false, children}: AlwaysPaintedViewProps) {
         <NativeAlwaysPaintedView style={DISPLAY_CONTENTS}>
             <View
                 aria-hidden={inert}
-                style={[styles.flex1, inert ? styles.pointerEventsNone : styles.pointerEventsBoxNone]}
+                // The shared `pointerEventsBoxNone` style is empty on native, so both values are written here.
+                style={[styles.flex1, {pointerEvents: inert ? 'none' : 'box-none'}]}
                 collapsable={false}
             >
                 {children}
