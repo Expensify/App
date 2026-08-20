@@ -1533,8 +1533,12 @@ const translations: TranslationDeepObject<typeof en> = {
             endDateSameAsStartDate: 'La data di fine non può essere uguale alla data di inizio',
             manySplitsProvided: `Il numero massimo di suddivisioni consentite è ${CONST.IOU.SPLITS_LIMIT}.`,
             unableToSubmitReport: 'Impossibile inviare il report',
+            unableToMarkAsDone: 'Impossibile segnare come completato',
             allTransactionsPendingDescription: 'Non puoi inviare questo report perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
+            allTransactionsPendingMarkAsDoneDescription:
+                'Non puoi segnare questo report come completato perché tutte le transazioni sono in sospeso. Potrebbero volerci alcuni giorni prima che vengano registrate.',
             allExpensesOnHoldDescription: 'Non puoi inviare questo report perché tutte le spese sono in sospeso. Rimuovi il blocco per inviarlo.',
+            allExpensesOnHoldMarkAsDoneDescription: 'Non puoi segnare questo report come completato perché tutte le spese sono in sospeso. Rimuovi il blocco per continuare.',
             dateRangeExceedsMaxDays: `L’intervallo di date non può superare ${CONST.IOU.SPLITS_LIMIT} giorni.`,
             stitchOdometerImagesFailed: 'Impossibile combinare le immagini del contachilometri. Riprova più tardi.',
             failedToSaveOdometerDraft: 'Impossibile salvare la tua bozza del contachilometri. Riprova.',
