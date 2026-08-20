@@ -1,0 +1,28 @@
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/text/internal/span/CustomStyleSpan.kt
+@@ -73,7 +73,6 @@
+         fontFeatureSettings = fontFeatureSettingsParam
+         setTypeface(typeface)
+         isSubpixelText = true
+-        isLinearText = true
+       }
+     }
+   }
+diff --git a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+--- a/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
++++ b/node_modules/react-native/ReactAndroid/src/main/java/com/facebook/react/views/textinput/ReactEditText.kt
+@@ -672,13 +672,6 @@
+         } else {
+           paintFlags and Paint.SUBPIXEL_TEXT_FLAG.inv()
+         }
+-
+-    paintFlags =
+-        if (enableSubpixelText) {
+-          paintFlags or Paint.LINEAR_TEXT_FLAG
+-        } else {
+-          paintFlags and Paint.LINEAR_TEXT_FLAG.inv()
+-        }
+   }
+ 
+   public fun requestFocusFromJS() {
