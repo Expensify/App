@@ -31,7 +31,7 @@ type ActionCellProps = {
     shouldDisablePointerEvents?: boolean;
     chatReport?: OnyxEntry<Report>;
     /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" (see shouldShowMarkAsDone) */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 function ActionCell({
@@ -46,7 +46,7 @@ function ActionCell({
     amount,
     shouldDisablePointerEvents,
     chatReport,
-    isMarkAsDone = false,
+    shouldShowMarkAsDoneCopy = false,
 }: ActionCellProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
@@ -90,8 +90,7 @@ function ActionCell({
         );
     }
 
-    const shouldUseMarkAsDone = isMarkAsDone && action === CONST.SEARCH.ACTION_TYPES.SUBMIT;
-    const text = shouldUseMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
+    const text = shouldShowMarkAsDoneCopy && action === CONST.SEARCH.ACTION_TYPES.SUBMIT ? translate('common.done') : translate(actionTranslationsMap[action]);
 
     const shouldBeDisabledOffline = action !== CONST.SEARCH.ACTION_TYPES.UNDELETE && isOffline;
     const buttonInnerStyles = isSelected && action === CONST.SEARCH.ACTION_TYPES.UNDELETE && styles.buttonDefaultSelected;

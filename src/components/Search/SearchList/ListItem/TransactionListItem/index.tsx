@@ -176,7 +176,7 @@ function TransactionListItemInner<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: rowPolicy ?? liveTransactionItem.policy,
         report: liveTransactionItem.report,
         isTrackIntentUser,
@@ -234,8 +234,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,

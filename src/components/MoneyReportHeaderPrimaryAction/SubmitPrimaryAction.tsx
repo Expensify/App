@@ -118,7 +118,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report: moneyRequestReport,
         isTrackIntentUser,
@@ -147,7 +147,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         }
 
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
@@ -253,8 +253,8 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     return (
         <AnimatedSubmitButton
             variant={CONST.BUTTON_VARIANT.SUCCESS}
-            text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
-            isMarkAsDone={shouldUseMarkAsDoneCopy}
+            text={shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
+            shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             onPress={() => handleSubmit()}
             isSubmittingAnimationRunning={isSubmittingAnimationRunning}
             onAnimationFinish={stopAnimation}

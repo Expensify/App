@@ -127,7 +127,7 @@ type FirstRowReportHeaderProps<TItem extends ListItem> = {
     chatReport?: OnyxEntry<Report>;
 
     /** Whether a SUBMIT action should render the "Mark as done" copy instead of "Submit" */
-    isMarkAsDone?: boolean;
+    shouldShowMarkAsDoneCopy?: boolean;
 };
 
 function HeaderFirstRow<TItem extends ListItem>({
@@ -143,7 +143,7 @@ function HeaderFirstRow<TItem extends ListItem>({
     isExpanded,
     shouldDisableActionPointerEvents = false,
     chatReport,
-    isMarkAsDone,
+    shouldShowMarkAsDoneCopy,
 }: FirstRowReportHeaderProps<TItem>) {
     const icons = useMemoizedLazyExpensifyIcons(['DownArrow', 'UpArrow']);
     const styles = useThemeStyles();
@@ -220,7 +220,7 @@ function HeaderFirstRow<TItem extends ListItem>({
                         onButtonPress={handleOnButtonPress}
                         isSelected={isSelected}
                         isLoading={isActionLoading}
-                        isMarkAsDone={isMarkAsDone}
+                        shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
                         policyID={reportItem.policyID}
                         reportID={reportItem.reportID}
                         hash={reportItem.hash}
@@ -289,9 +289,9 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         `${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(chatReport?.reportID ?? snapshotReport?.chatReportID ?? snapshotReport.parentReportID)}`,
     );
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy: parentPolicy,
-        report: parentReport,
+        report: parentReport ?? snapshotReport,
         isTrackIntentUser,
     });
 
@@ -335,8 +335,8 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -376,7 +376,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 onDownArrowClick={onDownArrowClick}
                 isExpanded={isExpanded}
                 shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
         </View>
     ) : (
@@ -394,7 +394,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
                 isExpanded={isExpanded}
                 shouldDisableActionPointerEvents={shouldDisableSearchSubmitPress}
                 chatReport={chatReport}
-                isMarkAsDone={shouldUseMarkAsDoneCopy}
+                shouldShowMarkAsDoneCopy={shouldShowMarkAsDoneCopy}
             />
         </View>
     );

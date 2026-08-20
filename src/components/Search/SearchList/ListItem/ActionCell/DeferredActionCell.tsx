@@ -25,7 +25,7 @@ function DeferredActionCell(actionCellProps: ActionCellProps) {
         if (shouldUseViewAction) {
             text = translate(actionTranslationsMap[CONST.SEARCH.ACTION_TYPES.VIEW]);
         } else {
-            text = actionCellProps.isMarkAsDone ? translate('common.done') : translate(actionTranslationsMap[action]);
+            text = actionCellProps.shouldShowMarkAsDoneCopy ? translate('common.done') : translate(actionTranslationsMap[action]);
         }
 
         return (

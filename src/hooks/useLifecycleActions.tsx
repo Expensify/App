@@ -211,7 +211,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
     };
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+    const shouldShowMarkAsDoneCopy = shouldShowMarkAsDone({
         policy,
         report: moneyRequestReport,
         isTrackIntentUser,
@@ -223,12 +223,12 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
 
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
         if (hasOnlyHeldExpenses(transactions)) {
-            showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
+            showHeldExpensesBlockModal(showConfirmModal, translate, shouldShowMarkAsDoneCopy);
             return;
         }
 
@@ -287,7 +287,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const actions: Record<string, SecondaryActionEntry> = {
         [CONST.REPORT.SECONDARY_ACTIONS.SUBMIT]: {
             value: CONST.REPORT.SECONDARY_ACTIONS.SUBMIT,
-            text: shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit'),
+            text: shouldShowMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit'),
             icon: expensifyIcons.Send,
             sentryLabel: CONST.SENTRY_LABEL.MORE_MENU.SUBMIT,
             onSelected: () => handleSubmitReport(),
