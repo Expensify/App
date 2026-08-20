@@ -3606,6 +3606,7 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
@@ -3643,6 +3644,12 @@ const CONST = {
     DUALENTRY_TAX_TYPE: {
         VAT: 'VAT',
         GST: 'GST',
+    },
+
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
