@@ -1,4 +1,14 @@
 import isFileUploadable from './isFileUploadable';
+import Log from './Log';
+
+/** Pulls the trace id off an offending value so the alert joins the rest of the receipt logs. */
+function getReceiptTraceId(value: unknown): string | undefined {
+    if (typeof value !== 'object' || value === null) {
+        return undefined;
+    }
+    const {receiptTraceId} = value as {receiptTraceId?: unknown};
+    return typeof receiptTraceId === 'string' ? receiptTraceId : undefined;
+}
 
 /**
  * Ensures no value of type `object` other than null, Blob, its subclasses, or {uri: string} (native platforms only) is passed to XMLHttpRequest.
@@ -21,8 +31,13 @@ function validateFormDataParameter(command: string, key: string, value: unknown)
     };
 
     if (!isValid(value, true)) {
-        // eslint-disable-next-line no-console
-        console.warn(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`);
+        // Was a console.warn, so this whole class of Android failures never left the device. Message text is
+        // unchanged so old searches still match; the fields make it queryable.
+        Log.alert(`An unsupported value was passed to command '${command}' (parameter: '${key}'). Only Blob and primitive types are allowed.`, {
+            command,
+            key,
+            receiptTraceId: getReceiptTraceId(value),
+        });
     }
 }
 

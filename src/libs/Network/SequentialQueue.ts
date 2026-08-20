@@ -19,7 +19,7 @@ import Log from '@libs/Log';
 import {getIsOffline as isOfflineNetwork, subscribe as subscribeToNetworkState} from '@libs/NetworkState';
 import {processWithMiddleware} from '@libs/Request';
 import RequestThrottle from '@libs/RequestThrottle';
-import {logReceiptEnqueued, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
+import {logReceiptEnqueued, logReceiptGaveUp, RECEIPT_BEARING_COMMANDS} from '@libs/telemetry/ReceiptObservability';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -415,6 +415,16 @@ function process(): Promise<void> {
                         command: requestToProcess.command,
                         errorMessage: error.message,
                     });
+                    // The line above only says which command failed. Receipts need a line we can trace back.
+                    if (RECEIPT_BEARING_COMMANDS.has(requestToProcess.command)) {
+                        const receiptData = (requestToProcess.data ?? {}) as {transactionID?: string; receipt?: {receiptTraceId?: string}};
+                        logReceiptGaveUp({
+                            receiptTraceId: receiptData.receipt?.receiptTraceId,
+                            transactionID: receiptData.transactionID,
+                            command: requestToProcess.command,
+                            errorMessage: error.message,
+                        });
+                    }
                     Onyx.update(requestToProcess.failureData ?? []);
                     endPersistedRequestAndRemoveFromQueue(requestToProcess);
                     sequentialQueueRequestThrottle.clear();

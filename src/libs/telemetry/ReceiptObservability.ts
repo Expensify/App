@@ -152,8 +152,8 @@ function logReceiptEnqueued({receiptTraceId, transactionID, command, persistedQu
 /**
  * Records the dropped milestone: the receipt file was gone when we built the upload payload, so the request goes out
  * without it. Logged at alert level on the [Receipt] spine so it reaches Sentry and joins the capture, submit, and
- * enqueue lines by receiptTraceId. source and fileName are for the raw device log only; they are not whitelisted, so
- * they never reach Sentry.
+ * enqueue lines by receiptTraceId. source, fileName, and statError are device-log only — not whitelisted, so they
+ * never reach Sentry. statErrorCode is what separates a deleted file from one we simply could not read.
  */
 function logReceiptDropped({
     receiptTraceId,
@@ -161,12 +161,14 @@ function logReceiptDropped({
     command,
     source,
     fileName,
+    statError,
 }: {
     receiptTraceId: string | undefined;
     transactionID: string | undefined;
     command: string;
     source: string | undefined;
     fileName: string | undefined;
+    statError: {message: string; code?: string} | undefined;
 }) {
     Log.alert(`${RECEIPT_LOG_PREFIX} dropped`, {
         event: 'dropped',
@@ -175,6 +177,33 @@ function logReceiptDropped({
         command,
         source,
         fileName,
+        statErrorCode: statError?.code,
+        statError: statError?.message,
+    });
+}
+
+/**
+ * Records the gaveUp milestone: the queue ran out of retries and threw the request away, receipt and all. Until this
+ * line existed the loss left no trace we could tie to a capture. Receipt-bearing commands only, so the volume stays
+ * low enough for alert level.
+ */
+function logReceiptGaveUp({
+    receiptTraceId,
+    transactionID,
+    command,
+    errorMessage,
+}: {
+    receiptTraceId: string | undefined;
+    transactionID: string | undefined;
+    command: string;
+    errorMessage: string | undefined;
+}) {
+    Log.alert(`${RECEIPT_LOG_PREFIX} gaveUp`, {
+        event: 'gaveUp',
+        receiptTraceId,
+        transactionID,
+        command,
+        errorMessage,
     });
 }
 
@@ -246,6 +275,7 @@ export {
     logReceiptSubmitted,
     logReceiptEnqueued,
     logReceiptDropped,
+    logReceiptGaveUp,
     logReceiptAdoptFailed,
     logReceiptQueueSnapshot,
     getPickerCaptureSource,
