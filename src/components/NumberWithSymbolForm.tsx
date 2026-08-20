@@ -573,6 +573,7 @@ function NumberWithSymbolForm({
                 onSubmitEditing={onSubmitEditing}
                 onFocus={props.onFocus}
                 onBlur={props.onBlur}
+                testID={props.testID}
                 rightHandSideComponent={shouldShowCurrencyButton || shouldShowFlipButton ? textInputRightHandSideComponent : undefined}
             />
         );
