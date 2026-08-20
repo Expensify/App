@@ -2068,14 +2068,13 @@ function isAwaitingFirstLevelApproval(report: OnyxEntry<Report>): boolean {
         return false;
     }
 
+    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const policy = getPolicy(report.policyID);
 
-    // On Dynamic External Workflow policies the first approver is configured externally, so submitted reports are never awaiting first-level approval.
-    if (policy?.approvalMode === CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL) {
+    if (isExpenseReport(report) && hasDynamicExternalWorkflow(policy)) {
         return false;
     }
 
-    // This will be fixed as part of https://github.com/Expensify/Expensify/issues/507850
     const submitsToAccountID = getSubmitToAccountID(policy, report, getLoginByAccountID(report.ownerAccountID, allPersonalDetails));
 
     return isProcessingReport(report) && submitsToAccountID === report.managerID && !hasReportBeenForwardedSinceLastSubmit(report);
