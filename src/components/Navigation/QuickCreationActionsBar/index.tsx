@@ -3,6 +3,7 @@ import Button from '@components/ButtonComposed';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -19,7 +20,7 @@ import getCreateReportRoute, {getReportsRootRoute, navigateToCreateReportWorkspa
 import Navigation from '@libs/Navigation/Navigation';
 import {openTravelDotLink} from '@libs/openTravelDotLink';
 import Permissions from '@libs/Permissions';
-import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, isPaidGroupPolicy, isWorkspaceProvisionedForTravel} from '@libs/PolicyUtils';
+import {getDefaultChatEnabledPolicy, getGroupPoliciesWhereReportCanBeCreated, hasAcceptedTravelTerms, isPaidGroupPolicy} from '@libs/PolicyUtils';
 import {generateReportID, hasViolations as hasViolationsReportUtils} from '@libs/ReportUtils';
 import {shouldRestrictUserBillableActions} from '@libs/SubscriptionUtils';
 
@@ -61,6 +62,7 @@ function QuickCreationActionsBar() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
+    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
@@ -88,10 +90,8 @@ function QuickCreationActionsBar() {
             return false;
         }
 
-        const isPolicyProvisioned = isWorkspaceProvisionedForTravel(travelEnabledPolicy?.travelSettings);
-
-        return travelEnabledPolicy?.travelSettings?.hasAcceptedTerms ?? (travelSettings?.hasAcceptedTerms && isPolicyProvisioned);
-    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings?.hasAcceptedTerms]);
+        return hasAcceptedTravelTerms(travelEnabledPolicy, travelSettings);
+    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -204,12 +204,15 @@ function QuickCreationActionsBar() {
         () =>
             interceptAnonymousUser(() => {
                 if (isTravelReady) {
+                    if (blockIfDefaultWorkspaceLacksTravel()) {
+                        return;
+                    }
                     openTravelDotLink(travelEnabledPolicy?.id);
                     return;
                 }
                 Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
             }),
-        [travelEnabledPolicy?.id, isTravelReady],
+        [travelEnabledPolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
     );
 
     return (

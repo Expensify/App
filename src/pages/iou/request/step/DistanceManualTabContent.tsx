@@ -24,7 +24,7 @@ type DistanceManualTabContentProps = {
     distanceUnit: Unit;
     onSubmit: () => void;
     manualFormError: string;
-    onInputChange: () => void;
+    onInputChange: (value: string) => void;
     manualTextInputRef: React.RefObject<BaseTextInputRef | null>;
     manualNumberFormRef: React.RefObject<NumberWithSymbolFormRef | null>;
 };
