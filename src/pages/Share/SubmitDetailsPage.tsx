@@ -46,7 +46,7 @@ import type {ShareNavigatorParamList} from '@libs/Navigation/types';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {getParticipantsOption, getReportOption} from '@libs/OptionsListUtils';
-import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy} from '@libs/PolicyUtils';
+import {hasOnlyPersonalPolicies as hasOnlyPersonalPoliciesUtil, isGroupPolicy, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {shouldValidateFile} from '@libs/ReceiptUtils';
 import {getReportOrDraftReport, isMoneyRequestReport, isSelfDM} from '@libs/ReportUtils';
 import {cancelSpan, endSpan} from '@libs/telemetry/activeSpans';
@@ -259,7 +259,8 @@ function SubmitDetailsPage({
     const transactionAmount = transaction?.amount ?? 0;
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const taxCode = (transaction?.taxCode ? transaction?.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = resolveCurrentTaxCode(policy, taxCode);
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);

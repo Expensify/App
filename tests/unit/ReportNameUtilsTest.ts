@@ -875,6 +875,50 @@ describe('ReportNameUtils', () => {
             expect(disabledName).toBe('disabled the expense tagging requirement');
         });
 
+        test('UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE parent action', () => {
+            const thread: Report = createWorkspaceThread(153);
+            const companyPaysParentAction: ReportAction = {
+                ...createRandomReportAction(1),
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: String(thread.parentReportActionID),
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY,
+                },
+            };
+
+            const parentId = String(thread.parentReportID);
+            const actionId = String(thread.parentReportActionID);
+            const companyPaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: companyPaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(companyPaysName).toBe('updated the currency conversion fee setting to "Company pays"');
+
+            const employeePaysParentAction: ReportAction = {
+                ...companyPaysParentAction,
+                originalMessage: {
+                    preference: CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE,
+                },
+            };
+            const employeePaysName = computeReportName(
+                thread,
+                emptyCollections.reports,
+                emptyCollections.policies,
+                undefined,
+                undefined,
+                participantsPersonalDetails,
+                {[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${parentId}`]: {[actionId]: employeePaysParentAction}},
+                currentUserAccountID,
+            );
+            expect(employeePaysName).toBe('updated the currency conversion fee setting to "Employee pays"');
+        });
+
         test('UPDATE_AUTO_HARVESTING parent action', () => {
             const thread: Report = createWorkspaceThread(151);
             const enabledParentAction: ReportAction = {

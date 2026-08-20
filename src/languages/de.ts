@@ -1536,6 +1536,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `Der Datumsbereich darf ${CONST.IOU.SPLITS_LIMIT} Tage nicht überschreiten.`,
             unableToSubmitReport: 'Bericht kann nicht eingereicht werden',
             allTransactionsPendingDescription: 'Sie können diesen Bericht nicht einreichen, weil alle Transaktionen ausstehen. Es kann einige Tage dauern, bis sie gebucht werden.',
+            allExpensesOnHoldDescription: 'Sie können diesen Bericht nicht einreichen, da alle Ausgaben angehalten wurden. Entfernen Sie die Sperre, um ihn einzureichen.',
             stitchOdometerImagesFailed: 'Kilometerzählerbilder konnten nicht zusammengeführt werden. Bitte versuchen Sie es später noch einmal.',
             failedToSaveOdometerDraft: 'Dein Kilometerzähler-Entwurf konnte nicht gespeichert werden. Bitte versuche es erneut.',
         },
@@ -4508,6 +4509,10 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Sparen Sie sich das nächste Mal den Aufwand, Ihre Ausgabe manuell zu erstellen, und buchen Sie einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
             railCard:
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
+        },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Reisen ist nicht aktiviert',
+            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
         },
     },
     workspace: {
@@ -7936,6 +7941,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                     'Gebühren werden genehmigt, wenn sie in zulässigen Währungen erfolgen und einen Höchstbetrag nicht überschreiten oder wenn das Geschäft bzw. die Geschäftsart übereinstimmt.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Erlaubt ${shownCount > 1 ? 'Währungen' : 'Währung'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} weitere` : ''}`,
+                defaultRulesCannotBeDeleted: 'Standardregeln können nicht gelöscht werden',
             },
             agentRules: {
                 title: 'Agentenregeln',
@@ -8772,6 +8778,9 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
                 title ? `hat die Agentenregel „${title}“ aktualisiert zu: ${prompt}` : `hat eine Agentenregel aktualisiert zu: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `hat die Agentenregel „${title}“ entfernt` : 'hat eine Agentenregel entfernt'),
         },
+        addedRule: 'hat eine Regel hinzugefügt',
+        updatedRule: 'eine Regel aktualisiert',
+        removedRule: 'hat eine Regel entfernt',
         expensifyCardRule: {
             actionVerb: {block: 'blockiert', allow: 'erlaubt'},
             amountOperator: {over: 'über', under: 'unter'},
@@ -8882,6 +8891,7 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgabenkategorisierung`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'aktiviert' : 'deaktiviert'} die Anforderung zur Ausgaben-Taggierung`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `hat die Einstellung für die Währungsumrechnungsgebühr auf „${preferenceLabel}“ aktualisiert`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `hat die Kategorie „${categoryName}“ für Teilnehmende auf ${newValue ? 'erforderlich' : 'nicht erforderlich'} geändert (zuvor ${newValue ? 'nicht erforderlich' : 'erforderlich'})`;
         },
@@ -10399,8 +10409,13 @@ Fügen Sie weitere Ausgabelimits hinzu, um den Cashflow Ihres Unternehmens zu sc
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Neue Rollentypen für Admins',
-                body: 'Geben Sie Ihrem Team detailliertere Berechtigungen mit neuen Administratorrollen für Karten, Personen und Zahlungen.',
+                heading: 'Erweiterte Lieferanten-Zuordnung',
+                body: 'Erstellen Sie Lieferanten und benutzerdefinierte Regeln für eine einfache Zuordnung zu den wichtigsten Buchhaltungspaketen.',
+                cta: 'Probieren Sie es aus',
+            },
+            member: {
+                heading: 'Vorgefertigte Agents für Sie',
+                body: 'Verwenden Sie vorgefertigte oder benutzerdefinierte Agenten, um Ausgaben automatisch in Ihrem Namen zu kodieren, aufzuteilen und einzureichen.',
                 cta: 'Ausprobieren',
             },
         },

@@ -1585,6 +1585,7 @@ const translations = {
             stitchOdometerImagesFailed: 'Failed to combine odometer images. Please try again later.',
             unableToSubmitReport: 'Unable to submit report',
             allTransactionsPendingDescription: "You can't submit this report because all transactions are pending. They may take a few days to post.",
+            allExpensesOnHoldDescription: "You can't submit this report because all expenses are on hold. Remove the hold to submit.",
             failedToSaveOdometerDraft: "Couldn't save your odometer draft. Please try again.",
             invalidIntegerAmount: 'Please enter a whole dollar amount before continuing',
             invalidTaxAmount: (amount: string) => `Maximum tax amount is ${amount}`,
@@ -4548,6 +4549,10 @@ const translations = {
         blockedFeatureModal: {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
+        },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Travel is not enabled',
+            message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
         },
         verifyCompany: {
             title: "We're reviewing your request...",
@@ -8134,6 +8139,7 @@ const translations = {
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',
+                defaultRulesCannotBeDeleted: 'Default rules cannot be deleted',
                 tableColumnType: 'Type',
                 tableColumnCard: 'Card',
                 tableColumnRule: 'Rule',
@@ -8569,6 +8575,9 @@ const translations = {
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
         },
+        addedRule: 'added a rule',
+        updatedRule: 'updated a rule',
+        removedRule: 'removed a rule',
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -8845,6 +8854,7 @@ const translations = {
         updatedRequireCompanyCards: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the company card purchases requirement`,
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense categorization requirement`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} the expense tagging requirement`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `updated the currency conversion fee setting to "${preferenceLabel}"`,
         updatedAutoPayApprovedReports: ({enabled}: {enabled: boolean}) => `${enabled ? 'enabled' : 'disabled'} auto-pay approved reports`,
         setAutoPayApprovedReportsLimit: ({newLimit}: {newLimit: string}) => `set the auto-pay approved reports threshold to "${newLimit}"`,
         updatedAutoPayApprovedReportsLimit: ({oldLimit, newLimit}: {oldLimit: string; newLimit: string}) =>
@@ -10556,8 +10566,13 @@ const translations = {
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'New role types for admins',
-                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                heading: 'Enhanced vendor mapping',
+                body: 'Create vendors and custom rules for easy mapping to major accounting packages.',
+                cta: 'Try it out',
+            },
+            member: {
+                heading: 'Pre-built agents for you',
+                body: 'Use pre-built or custom agents to code, split, and submit expenses automatically on your behalf.',
                 cta: 'Try it out',
             },
         },

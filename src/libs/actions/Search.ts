@@ -56,6 +56,7 @@ import {
     getReportOrDraftReport,
     getReportTransactions,
     hasHeldExpenses,
+    hasOnlyHeldExpenses,
     hasViolations as hasViolationsReportUtils,
     isExpenseReport,
     isInvoiceReport,
@@ -240,6 +241,7 @@ type HandleActionButtonPressParams = {
     amountOwed: OnyxEntry<number>;
     onUndelete?: () => void;
     onPendingCardTransactionsBlock?: () => void;
+    onAllHeldExpensesBlock?: () => void;
     openReportSubmitToPopover?: (options?: ReportSubmitToPopoverOpenOptions) => void;
     shouldDisableSearchSubmitPress?: boolean;
     /** Consumes a one-shot flag set when the submit-to popover dismisses (prevents click-through on the row Submit button). */
@@ -281,6 +283,7 @@ function handleActionButtonPress({
     onPendingCardTransactionsBlock,
     amountOwed,
     onUndelete,
+    onAllHeldExpensesBlock,
     currentUserAccountID,
     openReportSubmitToPopover,
     shouldDisableSearchSubmitPress,
@@ -399,6 +402,10 @@ function handleActionButtonPress({
             }
             if (hasOnlyPendingCardTransactions(allReportTransactions)) {
                 onPendingCardTransactionsBlock?.();
+                return;
+            }
+            if (hasOnlyHeldExpenses(allReportTransactions)) {
+                onAllHeldExpensesBlock?.();
                 return;
             }
             const policyForSubmit = policy ?? snapshotPolicy;
@@ -1033,12 +1040,16 @@ function openBulkChangeApproverPage(reportIDList: OpenBulkChangeApproverPagePara
 
 type InFlightSearchRequest = {
     shouldCalculateTotals: boolean;
-    pendingTotalsRequest?: () => Promise<string | number | undefined> | undefined;
+    shouldSaveRecentSearch: boolean;
+    pendingShouldCalculateTotals?: boolean;
+    pendingShouldSaveRecentSearch?: boolean;
+    pendingUpgradeRequest?: () => Promise<string | number | undefined> | undefined;
 };
 
 // Tracks in-flight search requests by hash+offset to prevent duplicate API calls when both page-level
-// and Search-internal effects fire for the same query. A totals request is not equivalent to the
-// non-totals request already in flight, so preserve one such request to run immediately afterward.
+// and Search-internal effects fire for the same query. A request that calculates totals or declares
+// save-recent-search intent is not equivalent to an in-flight request without it, so preserve one such
+// request to run immediately afterward.
 const inFlightSearchRequests = new Map<string, InFlightSearchRequest>();
 
 let shouldPreventSearchAPI = false;
@@ -1095,6 +1106,7 @@ function search({
     isLoading,
     shouldUpdateLastSearchParams = false,
     skipWaitForWrites = false,
+    shouldSaveRecentSearch = false,
 }: {
     queryJSON: Readonly<SearchQueryJSON>;
     searchKey: SearchKey | undefined;
@@ -1104,6 +1116,12 @@ function search({
     isOffline?: boolean;
     isLoading: boolean;
     shouldUpdateLastSearchParams?: boolean;
+    /**
+     * Tells the backend this query was submitted by the user, so it may be saved to the recent searches NVP.
+     * Only the Search page call site should pass true. Programmatic searches (home sections, post-action
+     * refreshes) must not evict the user's real recent searches.
+     */
+    shouldSaveRecentSearch?: boolean;
     /**
      * When true, fires the search API immediately without waiting for pending writes in the sequential queue. Safe because search
      * responses only write snapshot keys, so they can't overwrite a pending write's optimistic data. Used by the
@@ -1120,23 +1138,32 @@ function search({
     const dedupeKey = `${queryJSON.hash}_${offset ?? 0}`;
     const inFlightRequest = inFlightSearchRequests.get(dedupeKey);
     if (inFlightRequest) {
-        if (queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals) {
-            inFlightRequest.pendingTotalsRequest = () =>
+        const needsTotalsUpgrade = queryJSON.type === CONST.SEARCH.DATA_TYPES.EXPENSE && shouldCalculateTotals && !inFlightRequest.shouldCalculateTotals;
+        // A user-submitted query colliding with an unflagged in-flight request (e.g. a programmatic refresh
+        // of the same query) must still reach the backend flagged, or it never enters recent searches.
+        const needsSaveRecentSearchUpgrade = shouldSaveRecentSearch && !inFlightRequest.shouldSaveRecentSearch;
+        if (needsTotalsUpgrade || needsSaveRecentSearchUpgrade) {
+            // Accumulate desired flags so a later upgrade for one dimension can't drop an earlier
+            // upgrade for the other. Only a single pending re-fire is kept.
+            inFlightRequest.pendingShouldCalculateTotals = (inFlightRequest.pendingShouldCalculateTotals ?? false) || shouldCalculateTotals;
+            inFlightRequest.pendingShouldSaveRecentSearch = (inFlightRequest.pendingShouldSaveRecentSearch ?? false) || shouldSaveRecentSearch;
+            inFlightRequest.pendingUpgradeRequest = () =>
                 search({
                     queryJSON,
                     searchKey,
                     offset,
-                    shouldCalculateTotals: true,
+                    shouldCalculateTotals: inFlightRequest.pendingShouldCalculateTotals,
                     prevReportsLength,
                     isOffline,
                     isLoading: false,
                     shouldUpdateLastSearchParams,
                     skipWaitForWrites,
+                    shouldSaveRecentSearch: inFlightRequest.pendingShouldSaveRecentSearch,
                 });
         }
         return;
     }
-    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals};
+    const inFlightRequestState: InFlightSearchRequest = {shouldCalculateTotals, shouldSaveRecentSearch};
     inFlightSearchRequests.set(dedupeKey, inFlightRequestState);
 
     const {optimisticData, finallyData, failureData} = getOnyxLoadingData(queryJSON.hash, queryJSON, offset, isOffline, true, shouldCalculateTotals);
@@ -1147,6 +1174,7 @@ function search({
         offset,
         filters: backendQueryJSON.filters ?? null,
         shouldCalculateTotals,
+        ...(shouldSaveRecentSearch && {shouldSaveRecentSearch: true}),
         // Backend expects 'maximumResults' instead of 'limit'
         ...(limit !== undefined && {maximumResults: limit}),
     };
@@ -1218,7 +1246,7 @@ function search({
             })
             .finally(() => {
                 inFlightSearchRequests.delete(dedupeKey);
-                return inFlightRequestState.pendingTotalsRequest?.();
+                return inFlightRequestState.pendingUpgradeRequest?.();
             });
 
     // Catch here so every caller (the page-load fire in useSearchPageSetup and the re-search handlers

@@ -154,6 +154,7 @@ import {
     generateReportID,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReimbursableTotal,
@@ -2739,7 +2740,23 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
+                // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
+                const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
+                const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
+                const icons = getIcons(
+                    parentReport,
+                    formatPhoneNumber,
+                    translate,
+                    personalDetails,
+                    null,
+                    '',
+                    -1,
+                    policy,
+                    undefined,
+                    isParentReportArchived,
+                    parentReportPendingDeleteMemberAccountIDs,
+                );
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -6820,8 +6837,9 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
         if ('transactions' in item) {
             const key = item.keyForList ?? '';
             stickyHeaderIndices.push(splitData.length);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`} as GroupHeaderItemType);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`} as GroupChildrenContainerItemType);
+            const headerItem: GroupHeaderItemType = {...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`, groupKeyForList: key};
+            const childrenItem: GroupChildrenContainerItemType = {...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`, groupKeyForList: key};
+            splitData.push(headerItem, childrenItem);
         } else {
             splitData.push(item);
         }

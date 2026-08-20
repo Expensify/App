@@ -9,6 +9,7 @@ import Text from '@components/Text';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDebouncedState from '@hooks/useDebouncedState';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useIsInLandscapeMode from '@hooks/useIsInLandscapeMode';
 import useKeyboardState from '@hooks/useKeyboardState';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
@@ -91,11 +92,13 @@ function ReportSubmitToContent({
     const [amountOwed] = useOnyx(ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED);
     const [ownerBillingGracePeriodEnd] = useOnyx(ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END);
     const [delegateEmail] = useOnyx(ONYXKEYS.ACCOUNT, {selector: delegateEmailSelector});
+    const delegateAccountID = useDelegateAccountID();
     const [submitterLogin] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(report?.ownerAccountID)});
     const [loginList] = useOnyx(ONYXKEYS.LOGINS, {selector: expensifyLoginsSelector});
     const [personalDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST);
     const [countryCode = CONST.DEFAULT_COUNTRY_CODE] = useOnyx(ONYXKEYS.COUNTRY_CODE);
     const [isTrackIntentUser] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED, {selector: isTrackIntentUserSelector});
+    const [betas] = useOnyx(ONYXKEYS.BETAS);
     const [searchTerm, debouncedSearchTerm, setSearchTerm] = useDebouncedState('');
     const {isOffline} = useNetwork();
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
@@ -302,10 +305,12 @@ function ReportSubmitToContent({
             currentUserEmailParam: currentUserDetails.email ?? '',
             hasViolations,
             isASAPSubmitBetaEnabled,
+            betas,
             userBillingGracePeriodEnds,
             amountOwed,
             ownerBillingGracePeriodEnd,
             delegateEmail,
+            delegateAccountID,
             submitterLogin,
             managerEmail: trimmed,
             managerAccountID: resolvedManagerAccountID,
@@ -338,10 +343,12 @@ function ReportSubmitToContent({
         currentUserDetails.email,
         hasViolations,
         isASAPSubmitBetaEnabled,
+        betas,
         userBillingGracePeriodEnds,
         amountOwed,
         ownerBillingGracePeriodEnd,
         delegateEmail,
+        delegateAccountID,
         submitterLogin,
         currentSearchQueryJSON,
         isOffline,
