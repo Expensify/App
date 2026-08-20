@@ -31,6 +31,8 @@ function useConciergeAttachmentPicker(reportID: string | undefined, onConfirm: (
             file: files,
             headerTitle: translate('reportActionCompose.sendAttachment'),
             onConfirm,
+            // Confirming sends to Concierge and leaves Home, so the modal sequences its close with that transition.
+            confirmLeavesScreen: true,
         });
         Navigation.navigate(ROUTES.REPORT_ADD_ATTACHMENT.getRoute(reportID));
     };
