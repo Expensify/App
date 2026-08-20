@@ -69,13 +69,15 @@ function DynamicWorkspaceCategoriesSettingsPage({policy, route}: DynamicWorkspac
             return [];
         }
 
-        return Object.entries(policyData.policy?.mccGroup).map(([mccKey, mccGroup]): ListItem => ({
-            categoryID: mccGroup.category,
-            keyForList: mccKey,
-            groupID: mccKey,
-            tabIndex: -1,
-            pendingAction: mccGroup?.pendingAction,
-        }));
+        return Object.entries(policyData.policy?.mccGroup).map(
+            ([mccKey, mccGroup]): ListItem => ({
+                categoryID: mccGroup.category,
+                keyForList: mccKey,
+                groupID: mccKey,
+                tabIndex: -1,
+                pendingAction: mccGroup?.pendingAction,
+            }),
+        );
     }, [policyData.policy]);
 
     const hasEnabledCategories = hasEnabledOptions(policyData.categories);

@@ -500,12 +500,14 @@ class GithubUtils {
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
             console.log('');
-            return allCommits.map((commit): CommitType => ({
-                commit: commit.sha,
-                subject: commit.commit.message,
-                authorName: commit.commit.author?.name ?? 'Unknown',
-                date: commit.commit.committer?.date ?? '',
-            }));
+            return allCommits.map(
+                (commit): CommitType => ({
+                    commit: commit.sha,
+                    subject: commit.commit.message,
+                    authorName: commit.commit.author?.name ?? 'Unknown',
+                    date: commit.commit.committer?.date ?? '',
+                }),
+            );
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 core.error(
