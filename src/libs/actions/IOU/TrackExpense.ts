@@ -215,6 +215,7 @@ type DeleteTrackExpenseParams = {
     chatReportID: string | undefined;
     chatReport: OnyxEntry<OnyxTypes.Report> | undefined;
     chatReportActions: OnyxEntry<OnyxTypes.ReportActions>;
+    transactionThreadReportActions: OnyxEntry<OnyxTypes.ReportActions>;
     transactionID: string | undefined;
     reportAction: OnyxTypes.ReportAction;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -652,12 +653,14 @@ function buildOnyxDataForTrackExpense({
     return onyxData;
 }
 
+// eslint-disable-next-line @typescript-eslint/max-params -- adds transactionThreadReportActions to deprecate the module-level report-actions cache; converting this long-standing positional signature to an object is out of scope for this refactor.
 function getDeleteTrackExpenseInformation(
     chatReport: OnyxEntry<OnyxTypes.Report>,
     transactionID: string | undefined,
     reportAction: OnyxTypes.ReportAction,
     isChatReportArchived: boolean | undefined,
     currentUserAccountID: number,
+    transactionThreadReportActions: OnyxEntry<OnyxTypes.ReportActions>,
     shouldDeleteTransactionFromOnyx = true,
     isMovingTransactionFromTrackExpense = false,
     actionableWhisperReportActionID = '',
@@ -738,6 +741,7 @@ function getDeleteTrackExpenseInformation(
         transactionThreadID,
         shouldDeleteTransactionThread,
         currentUserAccountID,
+        transactionThreadReportActionsParam: transactionThreadReportActions,
     });
     optimisticData.push(...cleanUpTransactionThreadReportOnyxData.optimisticData);
 
@@ -1246,6 +1250,8 @@ const getConvertTrackedExpenseInformation = (
         linkedTrackedExpenseReportAction,
         isLinkedTrackedExpenseReportArchived,
         currentUserAccountID,
+        // isMovingTransactionFromTrackExpense is true below, so the transaction thread is never deleted and these report actions are unused here.
+        undefined,
         false,
         true,
         actionableWhisperReportActionID,
@@ -2967,6 +2973,7 @@ function deleteTrackExpense({
     chatReportID,
     chatReport,
     chatReportActions,
+    transactionThreadReportActions,
     transactionID,
     reportAction,
     iouReport,
@@ -3008,6 +3015,7 @@ function deleteTrackExpense({
             reportAction,
             transactions,
             transactionThreadReport,
+            transactionThreadReportActions,
             violations,
             iouReport,
             chatReport: chatIOUReport,
@@ -3030,6 +3038,7 @@ function deleteTrackExpense({
         reportAction,
         isChatReportArchived,
         currentUserAccountID,
+        transactionThreadReportActions,
         undefined,
         undefined,
         actionableWhisperReportActionID,

@@ -651,6 +651,7 @@ function mergeTransactionRequest({
                 sourceIouAction,
                 false,
                 currentUserAccountIDParam,
+                sourceTransactionThreadReportActions,
                 undefined,
                 undefined,
                 actionableWhisperReportActionID,

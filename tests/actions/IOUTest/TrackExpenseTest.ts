@@ -2529,6 +2529,7 @@ describe('actions/IOU/TrackExpense', () => {
                 RORY_ACCOUNT_ID,
                 undefined,
                 undefined,
+                undefined,
             );
             await waitForBatchedUpdates();
 
@@ -2596,6 +2597,7 @@ describe('actions/IOU/TrackExpense', () => {
                 createIOUAction!,
                 false,
                 RORY_ACCOUNT_ID,
+                undefined,
                 undefined,
                 true,
             );
@@ -2723,6 +2725,7 @@ describe('actions/IOU/TrackExpense', () => {
 
             const result = deleteTrackExpense({
                 getCurrencyDecimals: getCurrencyDecimalsLocal,
+                transactionThreadReportActions: undefined,
                 chatReportID: selfDMReport.reportID,
                 chatReport: selfDMReport,
                 chatReportActions: undefined,

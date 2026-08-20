@@ -1405,6 +1405,7 @@ function updateSplitTransactions({
             currentReportAction,
             undefined,
             currentUserPersonalDetails.accountID,
+            allReportActionsList?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${currentReportAction?.childReportID}`],
             undefined,
             undefined,
             undefined,
@@ -1420,6 +1421,8 @@ function updateSplitTransactions({
                 updatedReportPreviewAction: (updatedReportPreviewAction ?? originalReportPreviewAction) as OnyxTypes.ReportAction,
                 shouldAddUpdatedReportPreviewActionToOnyxData: false,
                 currentUserAccountID: currentUserPersonalDetails.accountID,
+                // shouldDeleteTransactionThread is false, so the transaction-thread report actions are never read here.
+                transactionThreadReportActionsParam: undefined,
             });
             updatedReportPreviewAction = cleanUpTransactionThreadReportOnyxData.updatedReportPreviewAction;
         }
