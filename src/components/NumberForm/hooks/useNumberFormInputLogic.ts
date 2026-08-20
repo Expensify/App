@@ -1,26 +1,17 @@
 import {useNumberFormContext} from '@components/NumberForm/context';
 import type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent} from '@components/NumberForm/types';
-import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
 import useLocalize from '@hooks/useLocalize';
 import usePrevious from '@hooks/usePrevious';
 
 import {isMobileSafari} from '@libs/Browser';
 import getOperatingSystem from '@libs/getOperatingSystem';
-import {
-    addLeadingZero,
-    replaceAllDigits,
-    replaceCommasWithPeriod,
-    stripCommaFromAmount,
-    stripDecimalsFromAmount,
-    stripSpacesFromAmount,
-    validateAmount,
-} from '@libs/MoneyRequestUtils';
+import mergeRefs from '@libs/mergeRefs';
+import {addLeadingZero, replaceAllDigits, replaceCommasWithPeriod, stripCommaFromAmount, stripDecimalsFromAmount, stripSpacesFromAmount, validateAmount} from '@libs/MoneyRequestUtils';
 import shouldIgnoreSelectionWhenUpdatedManually from '@libs/shouldIgnoreSelectionWhenUpdatedManually';
 
 import CONST from '@src/CONST';
 
-import type {ForwardedRef} from 'react';
 import type {BlurEvent} from 'react-native';
 
 import {useIsFocused} from '@react-navigation/native';
@@ -36,26 +27,7 @@ const getNewSelection = (oldSelection: NumberSelection, previousLength: number, 
     return {start: cursorPosition, end: cursorPosition};
 };
 
-function setRef<T>(ref: ForwardedRef<T> | undefined, value: T | null) {
-    if (typeof ref === 'function') {
-        ref(value);
-        return;
-    }
-
-    if (ref) {
-        // eslint-disable-next-line no-param-reassign
-        ref.current = value;
-    }
-}
-
-function useNumberFormInputLogic({
-    decimals = 0,
-    maxLength,
-    position = 'prefix',
-    ref,
-    onBlur: inputOnBlur,
-    onKeyPress,
-}: NumberFormInputBaseProps) {
+function useNumberFormInputLogic({decimals = 0, maxLength, position = 'prefix', ref, onBlur: inputOnBlur, onKeyPress}: NumberFormInputBaseProps) {
     const {fromLocaleDigit, numberFormat, toLocaleDigit} = useLocalize();
     const {allowNegative, errorText, externalValue, inputRef, numberFormRef, onBlur, onSubmitEditing, setValue, value} = useNumberFormContext();
 
@@ -161,10 +133,7 @@ function useNumberFormInputLogic({
         });
     };
 
-    const handleInputRef = (newRef: BaseTextInputRef | null) => {
-        setRef(inputRef, newRef);
-        setRef(ref, newRef);
-    };
+    const handleInputRef = mergeRefs(inputRef, ref);
 
     const handleBlur = (event: BlurEvent) => {
         inputOnBlur?.(event);

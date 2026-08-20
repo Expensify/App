@@ -6,6 +6,8 @@ import type {NumberFormRef, NumberFormSymbolInputProps} from '@components/Number
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 import TextInputWithSymbol from '@components/TextInputWithSymbol';
 
+import mergeRefs from '@libs/mergeRefs';
+
 import {useImperativeHandle, useLayoutEffect, useRef} from 'react';
 
 const getMagnitude = (value: string) => (value.startsWith('-') ? value.slice(1) : value);
@@ -58,11 +60,6 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
     } = useNumberFormInputLogic({...props, maxLength});
     const textInput = useRef<BaseTextInputRef | null>(null);
 
-    const handleInputRef = (newRef: BaseTextInputRef | null) => {
-        textInput.current = newRef;
-        handleInputRefFromLogic(newRef);
-    };
-
     const handleKeyPress = (event: Parameters<typeof inputHandleKeyPress>[0]) => {
         const key = event.nativeEvent.key.toLowerCase();
 
@@ -100,7 +97,7 @@ function NumberFormSymbolInputContent({isNegative, clearNegative, ...props}: Num
                 onSelectionChange={handleSelectionChange}
                 onSymbolButtonPress={onSymbolButtonPress}
                 placeholder={numberFormat(0)}
-                ref={handleInputRef}
+                ref={mergeRefs(textInput, handleInputRefFromLogic)}
                 selection={selectionForRender}
                 shouldAllowFocusInLandscapeMode={rest.shouldAllowFocusInLandscapeMode}
                 shouldNormalizeAmountOnChange={false}
