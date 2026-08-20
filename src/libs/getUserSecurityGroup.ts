@@ -19,6 +19,7 @@ function getUserSecurityGroup(
 
     const groupMembership = userDomain ? myDomainSecurityGroups?.[userDomain] : undefined;
 
+    // TODO: Remove the legacy string membership and the legacy collection fallback below once the minimum app version is bumped and the backend stops sending the legacy key (https://github.com/Expensify/Expensify/issues/587357)
     // Read the object membership first, since it carries the owner account ID (domainAccountID), and fall back to the legacy string membership that only carries the security group ID.
     const securityGroupID = typeof groupMembership === 'object' ? groupMembership.securityGroupID : groupMembership;
     const ownerAccountID = typeof groupMembership === 'object' ? groupMembership.ownerAccountID : undefined;
