@@ -5,6 +5,8 @@ import {CurrentUserPersonalDetailsProvider} from '@components/CurrentUserPersona
 import {LocaleContextProvider} from '@components/LocaleContextProvider';
 import OnyxListItemProvider from '@components/OnyxListItemProvider';
 
+import type * as InFlightRequestsModule from '@hooks/useInFlightRequests';
+
 import * as API from '@libs/API';
 import {WRITE_COMMANDS} from '@libs/API/types';
 import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
@@ -34,6 +36,7 @@ const DOMAIN_NAME = 'test.com';
 const EXISTING_DOMAIN_ACCOUNT_ID = 4242;
 
 let mockIsUserValidated = false;
+let mockIsAppLoadPending = false;
 let mockCapturedOnResume: ((payload?: () => void) => void) | undefined;
 const mockVerifyAccountAndResume = jest.fn<void, [payload?: () => void]>();
 
@@ -43,6 +46,12 @@ jest.mock('@hooks/useVerifyAccountAndResume', () => ({
         mockCapturedOnResume = onResume;
         return {isUserValidated: mockIsUserValidated, verifyAccountAndResume: mockVerifyAccountAndResume};
     },
+}));
+
+// Driving this through the request queue would race the real SequentialQueue draining the entry we planted.
+jest.mock('@hooks/useInFlightRequests', () => ({
+    ...jest.requireActual<typeof InFlightRequestsModule>('@hooks/useInFlightRequests'),
+    useIsAppLoadPending: () => mockIsAppLoadPending,
 }));
 
 const apiWriteSpy = jest.spyOn(API, 'write').mockImplementation(() => Promise.resolve());
@@ -105,6 +114,7 @@ describe('AddDomainPage', () => {
 
     beforeEach(async () => {
         mockIsUserValidated = false;
+        mockIsAppLoadPending = false;
         mockCapturedOnResume = undefined;
         jest.clearAllMocks();
         await act(async () => {
@@ -222,17 +232,17 @@ describe('AddDomainPage', () => {
     it('holds the submit back while the initial app load is still fetching the domains', async () => {
         // Given a validated user who opened the page before OpenApp delivered their domains
         mockIsUserValidated = true;
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.PERSISTED_ONGOING_REQUESTS, {command: WRITE_COMMANDS.OPEN_APP});
-        });
+        mockIsAppLoadPending = true;
         renderAddDomainPage();
         await waitForBatchedUpdatesWithAct();
 
-        // When they try to submit a domain name
+        // Then the submit is held back
+        expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
+
+        // When they try to submit a domain name anyway
         await submitDomainName(DOMAIN_NAME);
 
         // Then nothing is created, so no snapshot is taken against domains that have not arrived yet
-        expect(screen.getByRole('button', {name: TestHelper.translateLocal('common.continue')})).toBeDisabled();
         expect(apiWriteSpy).not.toHaveBeenCalledWith(WRITE_COMMANDS.CREATE_DOMAIN, expect.anything(), expect.anything());
     });
 });
