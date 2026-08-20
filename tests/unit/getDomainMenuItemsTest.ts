@@ -48,6 +48,21 @@ describe('getDomainMenuItems', () => {
         expect(items.filter((item) => item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR).map((item) => item.translationKey)).toEqual([expectedTranslationKey]);
     });
 
+    it('shows indicators on every erroring Domain section at once', () => {
+        const domainErrors: DomainErrors = {
+            ...groupErrors,
+            memberErrors: {member: {errors: {memberError: 'Member error'}}},
+            adminErrors: {[adminAccountID]: {errors: {adminError: 'Admin error'}}},
+        };
+        const items = getDomainMenuItems({domainAccountID, domainErrors, icons});
+
+        expect(items.filter((item) => item.brickRoadIndicator === CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR).map((item) => item.translationKey)).toEqual([
+            'domain.domainMembers',
+            'domain.domainAdmins',
+            'domain.groups.title',
+        ]);
+    });
+
     it('does not show an error indicator on the SAML item when another Domain item has errors', () => {
         const domainErrors: DomainErrors = {errors: {}, memberErrors: {member: {errors: {memberError: 'Member error'}}}};
         const items = getDomainMenuItems({domainAccountID, domainErrors, icons});
