@@ -141,8 +141,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
             const tabPath = focusedTab && isScreen(focusedTab.name) ? normalizedConfigs[focusedTab.name]?.path : undefined;
             if (tabPath) {
                 const [suffixPathOnly, suffixQueryOnly] = splitPathAndQuery(actualSuffix);
-                const combinedSuffixPath = suffixPathOnly === '/' ? `/${tabPath}` : `${suffixPathOnly}/${tabPath}`;
-                actualSuffix = `${combinedSuffixPath}${suffixQueryOnly ? `?${suffixQueryOnly}` : ''}`;
+                actualSuffix = `${suffixPathOnly}/${tabPath}${suffixQueryOnly ? `?${suffixQueryOnly}` : ''}`;
             }
         }
     }
@@ -164,12 +163,7 @@ function getPathFromStateWithDynamicRoute(state: State): string {
     }
     const queryString = mergedParams.toString();
 
-    // Mirror createDynamicRoute's slash handling: a root base (`/`) must not be concatenated with a leading slash,
-    // otherwise the result is a `//`-prefixed path that the browser parses as protocol-relative (host = first segment),
-    // making `history.pushState` throw a SecurityError.
-    const combinedPath = basePathWithoutQuery === '/' ? `/${suffixPath}` : `${basePathWithoutQuery}/${suffixPath}`;
-
-    return `${combinedPath}${queryString ? `?${queryString}` : ''}`;
+    return `${basePathWithoutQuery}/${suffixPath}${queryString ? `?${queryString}` : ''}`;
 }
 
 function getPathFromState(state: State): string {

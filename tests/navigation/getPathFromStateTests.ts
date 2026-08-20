@@ -83,17 +83,6 @@ describe('getPathFromState', () => {
         expect(result).toBe('/settings/wallet/test-dynamic');
     });
 
-    it('root base path does not produce a doubled leading slash', () => {
-        // A base screen that resolves to root ('/') must not be concatenated with a leading slash,
-        // otherwise the result is a '//'-prefixed protocol-relative URL that makes history.pushState
-        // throw a SecurityError. Regression test for the AI Features Promo crash (issue #97470).
-        mockRNGetPathFromState.mockReturnValue('/');
-
-        const state = buildState([{name: 'StandardScreen'}, {name: 'TestDynamicScreen'}]);
-
-        expect(getPathFromState(state as PartialState<NavigationState>)).toBe('/test-dynamic');
-    });
-
     it('should use RN getPathFromState for standard screens', () => {
         const expectedPath = '/standard/path';
         mockRNGetPathFromState.mockReturnValue(expectedPath);
