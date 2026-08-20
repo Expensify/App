@@ -84,7 +84,7 @@ function WorkspaceExpensifyCardFeedSelectorPage({route}: WorkspaceExpensifyCardF
     const [cardList] = useOnyx(ONYXKEYS.CARD_LIST);
     const policy = usePolicy(policyID);
     const canWriteExpensifyCard = canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.EXPENSIFY_CARD);
-    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policyID);
+    const {canEnrollNewCardProgram} = useCanEnrollNewExpensifyCardProgram(policyID);
     const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
 
     const getIssueCardFundID = () => {

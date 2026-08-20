@@ -9,7 +9,6 @@ import useCanEnrollNewExpensifyCardProgram from '@hooks/useCanEnrollNewExpensify
 import useConfirmModal from '@hooks/useConfirmModal';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useExpensifyCardFeedsForFeedSelector from '@hooks/useExpensifyCardFeedsForFeedSelector';
-import useExpensifyCardUkEuSupported from '@hooks/useExpensifyCardUkEuSupported';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -67,8 +66,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
 
     const isSetupUnfinished = hasInProgressUSDVBBA(reimbursementAccount?.achData);
-    const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
-    const canEnrollNewCardProgram = useCanEnrollNewExpensifyCardProgram(policy?.id);
+    const {canEnrollNewCardProgram, isUkEuCurrencySupported} = useCanEnrollNewExpensifyCardProgram(policy?.id);
     const shouldBlockCurrencyChange = useShouldBlockCurrencyChange(policy?.id);
 
     // Dismiss the currency modal if the workspace currency becomes a supported one externally (e.g. from another device)
@@ -88,8 +86,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, policy?.outputCurrency)
         : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
-    const canStartBankAccountSetup = canEditWorkspaceSettings(policy, currentUserLogin);
-    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup);
+    const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canEditSettings);
 
     const startFlow = () => {
         if (hasAccessibleFeeds && policy?.id) {
@@ -129,16 +127,18 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const promptCurrencyChange = async () => {
         isCurrencyModalOpen.current = true;
-        // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
+        // The currency page is admin only, and an open or partially set up bank account blocks it,
+        // so only offer the change when it can be completed
+        const canChangeCurrency = !shouldBlockCurrencyChange && canEditSettings;
         const result = await showConfirmModal({
             title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
             prompt: translate('workspace.bankAccount.updateCurrencyForExpensifyCard'),
-            confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
-            cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
-            shouldShowCancelButton: !shouldBlockCurrencyChange,
+            confirmText: translate(canChangeCurrency ? 'workspace.bankAccount.updateWorkspaceCurrency' : 'common.buttonConfirm'),
+            cancelText: canChangeCurrency ? translate('common.cancel') : undefined,
+            shouldShowCancelButton: canChangeCurrency,
         });
         isCurrencyModalOpen.current = false;
-        if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
+        if (!canChangeCurrency || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
@@ -166,7 +166,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             showReadOnlyModal();
                             return;
                         }
-                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canStartBankAccountSetup) {
+                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canEditSettings) {
                             showReadOnlyModal();
                             return;
                         }
