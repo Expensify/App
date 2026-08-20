@@ -66,7 +66,23 @@ function isHorizontalArrowKey(key: string): boolean {
     return key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey;
 }
 
-function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
+function getReactionRow(root: EventTarget | null | undefined, activeElement: Element): ParentNode | null {
+    if (!canQueryToolbarButtons(root) || !root.contains(activeElement)) {
+        return null;
+    }
+
+    let node: Element | null = activeElement.parentElement;
+    while (node && node !== root) {
+        if (node.querySelectorAll(`[role="${CONST.ROLE.BUTTON}"]`).length > 1) {
+            return node;
+        }
+        node = node.parentElement;
+    }
+
+    return null;
+}
+
+function moveToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent, toolbar: EventTarget | null | undefined): void {
     // Mouse clicks clear this flag, so arrows must not steal focus after a pointer reaction.
     if (!getHadTabNavigation()) {
         return;
@@ -77,7 +93,6 @@ function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
         return;
     }
 
-    const toolbar = event.currentTarget;
     if (!canQueryToolbarButtons(toolbar)) {
         return;
     }
@@ -106,12 +121,29 @@ function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
     }
 }
 
+function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
+    moveToolbarFocusWithArrowKey(event, event.currentTarget);
+}
+
 function moveFullContextMenuFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
     const key = getPressedKey(event);
     if (!isHorizontalArrowKey(key)) {
         return;
     }
-    moveMiniToolbarFocusWithArrowKey(event);
+
+    const activeElement = DomUtils.getActiveElement();
+    if (!(activeElement instanceof Element)) {
+        return;
+    }
+
+    // The long-press sheet has a reaction row above a vertical list. Left/Right must stay in that
+    // row so they do not walk into the list.
+    const reactionRow = getReactionRow(event.currentTarget, activeElement);
+    if (!reactionRow) {
+        return;
+    }
+
+    moveToolbarFocusWithArrowKey(event, reactionRow);
 }
 
 export default moveMiniToolbarFocusWithArrowKey;

@@ -13,9 +13,12 @@ jest.mock('@libs/DomUtils', () => ({
 setupHadTabNavigation();
 
 const MINI_TOOLBAR_BUTTON_LABELS = ['thumbs up', 'heart', 'laugh', 'Add reaction', 'Reply in thread', 'View thread', 'More'] as const;
+const REACTION_ROW_BUTTON_LABELS = ['thumbs up', 'heart', 'laugh', 'Add reaction'] as const;
+const FULL_MENU_LIST_LABELS = ['Reply in thread', 'Mark as unread', 'Edit comment'] as const;
 const ADD_REACTION_INDEX = 3;
 const REPLY_INDEX = 4;
 const LAST_BUTTON_INDEX = MINI_TOOLBAR_BUTTON_LABELS.length - 1;
+const LAST_REACTION_INDEX = REACTION_ROW_BUTTON_LABELS.length - 1;
 
 function createMiniToolbar() {
     const toolbar = document.createElement('div');
@@ -42,10 +45,39 @@ function getToolbarButton(buttons: HTMLElement[], index: number): HTMLElement {
     return button;
 }
 
+function createFullContextMenu() {
+    const menu = document.createElement('div');
+    const reactionRow = document.createElement('div');
+    for (const label of REACTION_ROW_BUTTON_LABELS) {
+        const button = document.createElement('div');
+        button.setAttribute('role', CONST.ROLE.BUTTON);
+        button.tabIndex = 0;
+        button.textContent = label;
+        reactionRow.appendChild(button);
+    }
+    menu.appendChild(reactionRow);
+    for (const label of FULL_MENU_LIST_LABELS) {
+        const button = document.createElement('div');
+        button.setAttribute('role', CONST.ROLE.BUTTON);
+        button.tabIndex = 0;
+        button.textContent = label;
+        menu.appendChild(button);
+    }
+    document.body.appendChild(menu);
+    return {menu, reactionRow};
+}
+
 function pressArrow(toolbar: HTMLElement, key: string) {
     const event = new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true});
     Object.defineProperty(event, 'currentTarget', {value: toolbar});
     moveMiniToolbarFocusWithArrowKey(event);
+    return event;
+}
+
+function pressFullMenuArrow(menu: HTMLElement, key: string) {
+    const event = new KeyboardEvent('keydown', {key, bubbles: true, cancelable: true});
+    Object.defineProperty(event, 'currentTarget', {value: menu});
+    moveFullContextMenuFocusWithArrowKey(event);
     return event;
 }
 
@@ -161,28 +193,36 @@ describe('moveMiniToolbarFocusWithArrowKey', () => {
 describe('moveFullContextMenuFocusWithArrowKey', () => {
     it('moves focus with ArrowRight after Tab', () => {
         simulateTab();
-        const toolbar = createMiniToolbar();
-        const buttons = getToolbarButtons(toolbar);
-        getToolbarButton(buttons, 0).focus();
+        const {menu, reactionRow} = createFullContextMenu();
+        const reactionButtons = getToolbarButtons(reactionRow);
+        getToolbarButton(reactionButtons, 0).focus();
 
-        const event = new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey, bubbles: true, cancelable: true});
-        Object.defineProperty(event, 'currentTarget', {value: toolbar});
-        moveFullContextMenuFocusWithArrowKey(event);
+        pressFullMenuArrow(menu, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
 
-        expect(document.activeElement).toBe(getToolbarButton(buttons, 1));
+        expect(document.activeElement).toBe(getToolbarButton(reactionButtons, 1));
+    });
+
+    it('keeps ArrowRight on the last reaction instead of moving onto Reply in thread', () => {
+        simulateTab();
+        const {menu, reactionRow} = createFullContextMenu();
+        const reactionButtons = getToolbarButtons(reactionRow);
+        getToolbarButton(reactionButtons, LAST_REACTION_INDEX).focus();
+
+        pressFullMenuArrow(menu, CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey);
+
+        expect(document.activeElement).toBe(getToolbarButton(reactionButtons, LAST_REACTION_INDEX));
+        expect(document.activeElement?.textContent).toBe('Add reaction');
     });
 
     it('does not move focus with ArrowDown so the vertical list manager can handle it', () => {
         simulateTab();
-        const toolbar = createMiniToolbar();
-        const buttons = getToolbarButtons(toolbar);
-        getToolbarButton(buttons, REPLY_INDEX).focus();
+        const {menu} = createFullContextMenu();
+        const reply = getToolbarButton(getToolbarButtons(menu), REPLY_INDEX);
+        reply.focus();
 
-        const event = new KeyboardEvent('keydown', {key: CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey, bubbles: true, cancelable: true});
-        Object.defineProperty(event, 'currentTarget', {value: toolbar});
-        moveFullContextMenuFocusWithArrowKey(event);
+        const event = pressFullMenuArrow(menu, CONST.KEYBOARD_SHORTCUTS.ARROW_DOWN.shortcutKey);
 
-        expect(document.activeElement).toBe(getToolbarButton(buttons, REPLY_INDEX));
+        expect(document.activeElement).toBe(reply);
         expect(event.defaultPrevented).toBe(false);
     });
 });
