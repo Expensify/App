@@ -171,6 +171,7 @@ import {
     isAdminOwnerApproverOrReportOwner,
     isAllowedToApproveExpenseReport,
     isArchivedNonExpenseReport,
+    isAwaitingFirstLevelApproval,
     isArchivedReport,
     isChatUsedForOnboarding,
     isClosedExpenseReportWithNoExpenses,
@@ -20075,12 +20076,6 @@ describe('ReportUtils', () => {
             originalMessage: {amount: 100, currency: 'USD'},
             created: '2026-01-03 10:00:00.000',
         });
-        const approvedBeforeSubmitAction = createMock<ReportAction>({
-            reportActionID: '6',
-            actionName: CONST.REPORT.ACTIONS.TYPE.APPROVED,
-            originalMessage: {amount: 100, currency: 'USD'},
-            created: '2026-01-01 10:00:00.000',
-        });
 
         it('should return false when the report is undefined', () => {
             expect(hasReportBeenForwardedSinceLastSubmit(undefined, {[submittedAction.reportActionID]: submittedAction})).toBe(false);
@@ -20116,24 +20111,8 @@ describe('ReportUtils', () => {
             expect(hasReportBeenForwardedSinceLastSubmit(report, {[forwardedAfterSubmitAction.reportActionID]: forwardedAfterSubmitAction})).toBe(true);
         });
 
-        it('should return true when an approved action was created after the last submit (multi-level intermediate approval)', () => {
+        it('should return false when an approved action was created after the last submit (approved and then unapproved reports stay deletable)', () => {
             const reportActions = {[submittedAction.reportActionID]: submittedAction, [approvedAfterSubmitAction.reportActionID]: approvedAfterSubmitAction};
-
-            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(true);
-        });
-
-        it('should return false when the only approved action was created before the last submit', () => {
-            const reportActions = {[submittedAction.reportActionID]: submittedAction, [approvedBeforeSubmitAction.reportActionID]: approvedBeforeSubmitAction};
-
-            expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
-        });
-
-        it('should return false when the report was resubmitted after being approved', () => {
-            const reportActions = {
-                [submittedAction.reportActionID]: submittedAction,
-                [approvedAfterSubmitAction.reportActionID]: approvedAfterSubmitAction,
-                [resubmittedAction.reportActionID]: resubmittedAction,
-            };
 
             expect(hasReportBeenForwardedSinceLastSubmit(report, reportActions)).toBe(false);
         });
@@ -20164,6 +20143,49 @@ describe('ReportUtils', () => {
 
             await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${report.reportID}`, null);
             await waitForBatchedUpdates();
+        });
+    });
+
+    describe('isAwaitingFirstLevelApproval', () => {
+        const processingReport: Report = {
+            ...createRandomReport(1, undefined),
+            type: CONST.REPORT.TYPE.EXPENSE,
+            ownerAccountID: employeeAccountID,
+            managerID: 1,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+        };
+
+        beforeEach(async () => {
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+        });
+
+        afterEach(async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${processingReport.policyID}`, null);
+        });
+
+        it("should return true when the report is with the submitter's first approver", async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${processingReport.policyID}`, {
+                ...createRandomPolicy(Number(processingReport.policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.ADVANCED,
+            });
+            await waitForBatchedUpdates();
+
+            expect(isAwaitingFirstLevelApproval(processingReport)).toBe(true);
+        });
+
+        it('should return false on a Dynamic External Workflow policy, where the first approver is configured externally', async () => {
+            await Onyx.merge(`${ONYXKEYS.COLLECTION.POLICY}${processingReport.policyID}`, {
+                ...createRandomPolicy(Number(processingReport.policyID)),
+                type: CONST.POLICY.TYPE.CORPORATE,
+                employeeList,
+                approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
+            });
+            await waitForBatchedUpdates();
+
+            expect(isAwaitingFirstLevelApproval(processingReport)).toBe(false);
         });
     });
 
