@@ -7,6 +7,7 @@ import Tooltip from '@components/Tooltip';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
+import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePopoverPosition from '@hooks/usePopoverPosition';
 import useStyleUtils from '@hooks/useStyleUtils';
@@ -46,6 +47,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const {translate} = useLocalize();
     const icons = useMemoizedLazyExpensifyIcons(['UserSearch']);
     const {calculatePopoverPosition} = usePopoverPosition();
+    const {isOffline} = useNetwork();
 
     const anchorRef = useRef<HTMLDivElement | null>(null);
     const [anchorPosition, setAnchorPosition] = useState<AnchorPosition>({horizontal: 0, vertical: 0});
@@ -86,7 +88,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
 
     const submitEmail = () => {
         const target = email.trim();
-        if (!target || isCheckingReason) {
+        if (!target || isCheckingReason || isOffline) {
             return;
         }
 
@@ -105,7 +107,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
     const submitReason = () => {
         const target = email.trim();
         const enteredReason = reason.trim();
-        if (!target || !enteredReason) {
+        if (!target || !enteredReason || isOffline) {
             return;
         }
         switchToAccount(target, enteredReason);
@@ -194,7 +196,7 @@ function SupportalSwitcherButton({isSidebarHovered}: SupportalSwitcherButtonProp
                         sentryLabel={CONST.SENTRY_LABEL.NAVIGATION_TAB_BAR.SUPPORTAL_SWITCHER_BUTTON}
                         onPress={isReasonRequired ? submitReason : submitEmail}
                         isLoading={isCheckingReason}
-                        isDisabled={!email.trim() || (isReasonRequired && !reason.trim())}
+                        isDisabled={isOffline || !email.trim() || (isReasonRequired && !reason.trim())}
                     >
                         <Button.Text>{translate('supportalSwitcher.login')}</Button.Text>
                     </Button>
