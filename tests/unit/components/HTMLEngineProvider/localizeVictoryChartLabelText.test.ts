@@ -1,5 +1,7 @@
 import {getLocalizedVictoryChartLabelText, parseDateAsUTC} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 
+import CONST from '@src/CONST';
+
 describe('localizeVictoryChartLabelText', () => {
     describe('parseDateAsUTC', () => {
         it('parses server UTC chart timestamps', () => {
@@ -24,24 +26,24 @@ describe('localizeVictoryChartLabelText', () => {
 
     describe('getLocalizedVictoryChartLabelText', () => {
         it('rewrites As of labels in the viewer timezone without a timezone label', () => {
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'America/Los_Angeles')).toBe('As of: Jun 5, 2026 at 11:47 AM');
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'Asia/Tokyo')).toBe('As of: Jun 6, 2026 at 3:47 AM');
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 8:48 AM', 'America/Edmonton')).toBe('As of: Jun 12, 2026 at 2:48 AM');
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 8:48 AM', 'Asia/Tokyo')).toBe('As of: Jun 12, 2026 at 5:48 PM');
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 02:48 PM', 'America/Edmonton')).toBe('As of: Jun 12, 2026 at 8:48 AM');
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 02:48 PM', 'Asia/Tokyo')).toBe('As of: Jun 12, 2026 at 11:48 PM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'America/Los_Angeles', CONST.LOCALES.EN)).toBe('As of: Jun 5, 2026 at 11:47 AM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', 'Asia/Tokyo', CONST.LOCALES.EN)).toBe('As of: Jun 6, 2026 at 3:47 AM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 8:48 AM', 'America/Edmonton', CONST.LOCALES.EN)).toBe('As of: Jun 12, 2026 at 2:48 AM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 8:48 AM', 'Asia/Tokyo', CONST.LOCALES.EN)).toBe('As of: Jun 12, 2026 at 5:48 PM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 02:48 PM', 'America/Edmonton', CONST.LOCALES.EN)).toBe('As of: Jun 12, 2026 at 8:48 AM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 12, 2026 at 02:48 PM', 'Asia/Tokyo', CONST.LOCALES.EN)).toBe('As of: Jun 12, 2026 at 11:48 PM');
         });
 
         it('leaves non-As-of labels unchanged', () => {
-            expect(getLocalizedVictoryChartLabelText('Top employees by spend', 'America/Los_Angeles')).toBe('Top employees by spend');
+            expect(getLocalizedVictoryChartLabelText('Top employees by spend', 'America/Los_Angeles', CONST.LOCALES.EN)).toBe('Top employees by spend');
         });
 
         it('returns the original text when no timezone is provided', () => {
-            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM')).toBe('As of: Jun 5, 2026 at 06:47 PM');
+            expect(getLocalizedVictoryChartLabelText('As of: Jun 5, 2026 at 06:47 PM', undefined, CONST.LOCALES.EN)).toBe('As of: Jun 5, 2026 at 06:47 PM');
         });
 
         it('returns the original text when the timestamp cannot be parsed', () => {
-            expect(getLocalizedVictoryChartLabelText('As of: not a date', 'America/Los_Angeles')).toBe('As of: not a date');
+            expect(getLocalizedVictoryChartLabelText('As of: not a date', 'America/Los_Angeles', CONST.LOCALES.EN)).toBe('As of: not a date');
         });
     });
 });

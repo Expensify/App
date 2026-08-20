@@ -137,7 +137,7 @@ function TripRoomPreview({action, containerStyles, isHovered = false}: TripRoomP
     const reservationsData: ReservationData[] = getReservationsFromTripReport(chatReport, tripTransactions);
     const dateInfo =
         chatReport?.tripData?.startDate && chatReport?.tripData?.endDate
-            ? DateUtils.getFormattedDateRange(translate, new Date(chatReport.tripData.startDate), new Date(chatReport.tripData.endDate), preferredLocale)
+            ? DateUtils.getFormattedDateRange(translate, DateUtils.toLocalDate(chatReport.tripData.startDate), DateUtils.toLocalDate(chatReport.tripData.endDate), preferredLocale)
             : '';
     const reportCurrency = iouReportCurrency ?? chatReport?.currency;
 

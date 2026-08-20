@@ -10,6 +10,7 @@ import DateUtils from '@libs/DateUtils';
 import {deferOrExecuteWrite} from '@libs/deferredLayoutWrite';
 import {getMicroSecondOnyxErrorWithTranslationKey} from '@libs/ErrorUtils';
 import {updateIOUOwnerAndTotal} from '@libs/IOUUtils';
+import Log from '@libs/Log';
 import {validateAmount} from '@libs/MoneyRequestUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import TransitionTracker from '@libs/Navigation/TransitionTracker';
@@ -195,9 +196,15 @@ function computePerDiemExpenseMerchant(customUnit: TransactionCustomUnit, policy
     if (!startDate || !endDate) {
         return locationName;
     }
-    // `attributes.dates` holds space-separated wire timestamps, which Hermes parses as Invalid Date and date-fns `format` then throws on.
-    const formattedTime = DateUtils.getStablePerDiemMerchantDateRange(DateUtils.toLocalDate(startDate), DateUtils.toLocalDate(endDate));
-    return `${locationName}, ${formattedTime}`;
+    // `attributes.dates` holds space-separated wire timestamps, which Hermes parses as Invalid Date and date-fns `format`
+    // then throws on, aborting the whole submit. The location alone is a better merchant than no expense at all.
+    const start = DateUtils.toLocalDate(startDate);
+    const end = DateUtils.toLocalDate(endDate);
+    if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
+        Log.warn('[PerDiem] unparsable expense dates; the merchant will carry the location only', {startDate, endDate});
+        return locationName;
+    }
+    return `${locationName}, ${DateUtils.getStablePerDiemMerchantDateRange(start, end)}`;
 }
 
 function isValidPerDiemExpenseAmount(customUnit: TransactionCustomUnit, decimals: number) {

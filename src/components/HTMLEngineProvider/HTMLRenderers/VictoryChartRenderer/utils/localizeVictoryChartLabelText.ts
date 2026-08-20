@@ -1,12 +1,12 @@
 import DateUtils from '@libs/DateUtils';
 
 import CONST from '@src/CONST';
+import type {Locale} from '@src/CONST/LOCALES';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import {isValid, parse} from 'date-fns';
 
 const AS_OF_LABEL_PATTERN = /^As of:\s*(.+)$/i;
-const CHART_DISPLAY_FORMAT = `MMM d, yyyy 'at' ${CONST.DATE.LOCAL_TIME_FORMAT}`;
 
 /** Matches server `EXP_CHAT_COMMENT_DATETIME` (`M j, Y \a\t h:i A`) with and without a leading zero on the hour. */
 const SERVER_AS_OF_PARSE_FORMATS = ['MMM d, yyyy hh:mm aa', 'MMM d, yyyy h:mm aa'] as const;
@@ -37,7 +37,7 @@ function parseDateAsUTC(sourceText: string): Date | null {
  * Rewrites a `<victorylabel>` "As of: ..." string in the viewer's timezone.
  * Returns the original text when the label does not match or cannot be parsed.
  */
-function getLocalizedVictoryChartLabelText(text: string, timezone?: SelectedTimezone): string {
+function getLocalizedVictoryChartLabelText(text: string, timezone: SelectedTimezone | undefined, locale: Locale): string {
     if (!timezone) {
         return text;
     }
@@ -52,8 +52,13 @@ function getLocalizedVictoryChartLabelText(text: string, timezone?: SelectedTime
         return text;
     }
 
-    const localizedDate = DateUtils.formatInTimeZoneWithFallback(utcDate, timezone, CHART_DISPLAY_FORMAT);
-    return `As of: ${localizedDate}`;
+    // The "As of:" prefix is still hardcoded English, which is a separate gap from this PR's scope.
+    const day = DateUtils.formatInTimeZoneToMediumDate(utcDate, timezone, locale);
+    const time = DateUtils.formatInTimeZoneToShortTime(utcDate, timezone, locale);
+    if (!day || !time) {
+        return text;
+    }
+    return `As of: ${day} at ${time}`;
 }
 
 export {getLocalizedVictoryChartLabelText, parseDateAsUTC};

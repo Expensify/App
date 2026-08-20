@@ -76,9 +76,12 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
 const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
 const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
 
-// `Intl.PluralRules` is polyfilled on native with only `en` data at boot, so one built before a locale's data lands
-// resolves to English and would keep selecting English ordinal categories for the session.
-registerDerivedIntlCache(() => memoizedCreateOrdinalPluralRules.cache.clear());
+// Both read through Intl, which resolves its locale at construction: an ordinal built before a locale's `PluralRules`
+// data lands keeps English categories, and the digit table keeps English separators, for the session.
+registerDerivedIntlCache(() => {
+    memoizedCreateOrdinalPluralRules.cache.clear();
+    getLocaleDigits.cache.clear();
+});
 
 /**
  * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German

@@ -130,9 +130,19 @@ function findLocalizedTokens(pattern) {
  * @param {import('estree').Node} node
  * @returns {string | null}
  */
-function resolvePattern(node) {
+function resolvePattern(node, scope) {
     if (!node) {
         return null;
+    }
+    // A module-level `const CHART_DISPLAY_FORMAT = 'MMM d, yyyy'` passed by name. Without this, hoisting any format
+    // string to a variable silently exempts its call site from the rule.
+    if (node.type === 'Identifier' && scope) {
+        const variable = scope.references.find((reference) => reference.identifier === node)?.resolved;
+        const definition = variable?.defs?.length === 1 ? variable.defs.at(0) : undefined;
+        if (definition?.type === 'Variable' && definition.node.init) {
+            return resolvePattern(definition.node.init, scope);
+        }
+        return UNKNOWN_LOCALIZED;
     }
     if (node.type === 'Literal' && typeof node.value === 'string') {
         return node.value;
@@ -156,8 +166,8 @@ function resolvePattern(node) {
     }
     // `isPastYear ? A : B`; flag if either branch is localized.
     if (node.type === 'ConditionalExpression') {
-        const consequent = resolvePattern(node.consequent);
-        const alternate = resolvePattern(node.alternate);
+        const consequent = resolvePattern(node.consequent, scope);
+        const alternate = resolvePattern(node.alternate, scope);
         if (consequent === null && alternate === null) {
             return null;
         }
@@ -242,7 +252,7 @@ function create(context) {
                 return;
             }
 
-            const pattern = resolvePattern(node.arguments.at(formatArgIndex));
+            const pattern = resolvePattern(node.arguments.at(formatArgIndex), context.sourceCode.getScope(node));
             if (pattern === null) {
                 return;
             }

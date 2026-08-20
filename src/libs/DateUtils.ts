@@ -1444,6 +1444,18 @@ function formatInTimeZoneToLong(date: Date | string, timeZone: SelectedTimezone,
     return formatIntl(locale, 'LONG_DATE', toLocalDate(date), timeZone);
 }
 
+/** Full ISO timestamp only. See `formatInTimeZoneToLong` for the date-only caveat. @returns Jul 9, 2025 (en) / 9 jul 2025 (es) */
+function formatInTimeZoneToMediumDate(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
+    if (!date) {
+        return '';
+    }
+    if (isUnzonedString(date)) {
+        Log.warn('[DateUtils] formatInTimeZoneToMediumDate: unzoned string would parse as runtime-local wall-clock; use formatToMediumDate', {date});
+        return '';
+    }
+    return formatIntl(locale, 'MEDIUM_DATE', toLocalDate(date), timeZone);
+}
+
 /** Full ISO timestamp only. See `formatInTimeZoneToLong` for the date-only caveat. */
 function formatInTimeZoneToShortTime(date: Date | string, timeZone: SelectedTimezone, locale: Locale): string {
     if (!date) {
@@ -1713,6 +1725,7 @@ const DateUtils = {
     formatTransactionListDate,
     formatToShortMonthDay,
     formatInTimeZoneToLong,
+    formatInTimeZoneToMediumDate,
     formatInTimeZoneToShortTime,
     formatInTimeZoneToWeekday,
     getZoneAbbreviation,
