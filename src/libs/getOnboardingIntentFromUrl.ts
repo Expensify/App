@@ -14,6 +14,7 @@ import type {OnboardingIntent} from '@src/CONST';
 import CONST from '@src/CONST';
 import ROUTES from '@src/ROUTES';
 
+import {getRouteFromLink} from './ReportUtils';
 import {getSearchParamFromPath} from './Url';
 
 const ONBOARDING_INTENT_VALUES = new Set<string>(Object.values(CONST.ONBOARDING_INTENTS));
@@ -22,25 +23,15 @@ function isOnboardingIntent(value: string | null): value is OnboardingIntent {
     return !!value && ONBOARDING_INTENT_VALUES.has(value);
 }
 
-/**
- * Strips the scheme and, for web URLs, the host, so absolute URLs and in-app paths can be inspected the same way.
- *
- * Custom schemes have to keep the segment straight after `://`. In `new-expensify://onboarding?intent=submit` that
- * segment is the route rather than a host, so dropping it the way we drop `new.expensify.com` would discard the
- * route and lose the intent. The `app://-/` prefix puts a placeholder host there instead, which is dropped.
- */
-function getPathWithQuery(url: string): string {
-    const [withoutHash] = url.split('#', 2);
-    const withoutOrigin = /^https?:\/\//i.test(withoutHash) ? withoutHash.replace(/^https?:\/\/[^/?#]*/i, '') : withoutHash.replace(/^[a-z][\w+.-]*:\/\//i, '');
-    return withoutOrigin.replace(/^(-\/)?\/*/, '');
-}
-
 function getOnboardingIntentFromUrl(url: string | null | undefined): OnboardingIntent | undefined {
     if (!url) {
         return undefined;
     }
 
-    const pathWithQuery = getPathWithQuery(url);
+    // getRouteFromLink strips whichever linking-config prefix matched, so every shape the deeplink can arrive in
+    // reduces to the same route: web URLs, the dev server's port, the desktop `app://-/` origin and the native
+    // `new-expensify://` scheme. It only drops the leading slash when a prefix matched, so in-app paths keep theirs.
+    const pathWithQuery = getRouteFromLink(url).replace(/^\/+/, '');
     const onboardingPathWithQuery = pathWithQuery.startsWith(ROUTES.ONBOARDING_ROOT.route) ? pathWithQuery : getSearchParamFromPath(pathWithQuery, 'exitTo');
 
     if (!onboardingPathWithQuery?.startsWith(ROUTES.ONBOARDING_ROOT.route)) {
