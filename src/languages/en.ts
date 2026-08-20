@@ -4560,7 +4560,7 @@ const translations = {
         defaultWorkspaceTravelDisabled: {
             title: "You can't book travel yet",
             message:
-                "You're on a travel-enabled workspace, but it's not your default workspace. To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.",
+                "You're a member of a travel-enabled workspace, but it's not your default workspace. To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.",
         },
         verifyCompany: {
             title: "We're reviewing your request...",
