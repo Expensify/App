@@ -8,6 +8,7 @@ import {useSearchQueryContext, useSearchResultsContext} from '@components/Search
 
 import useConfirmModal from '@hooks/useConfirmModal';
 import useConfirmPendingRTERAndProceed from '@hooks/useConfirmPendingRTERAndProceed';
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -68,6 +69,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
 function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
@@ -119,9 +121,9 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         isTrackIntentUser,
     });
 
-    // Submit via PDF is offered for any draft report the current user submits on a Submit workspace (behind the
-    // SUBMIT_2026 beta). The PDF flow submits the report to the submitter, which is what makes the backend generate it.
-    const canSubmitViaPDF = !!moneyRequestReport && isBetaEnabled(CONST.BETAS.SUBMIT_2026) && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
+    // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
+    // submits the report to the submitter, which is what makes the backend generate it.
+    const canSubmitViaPDF = !!moneyRequestReport && isSubmitViaPDFAction(moneyRequestReport, accountID, policy);
 
     const {currentSearchQueryJSON, currentSearchKey} = useSearchQueryContext();
     const {currentSearchResults} = useSearchResultsContext();
@@ -155,6 +157,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
             }
 
             submitReport({
+                getCurrencyDecimals,
                 expenseReport: moneyRequestReport,
                 policy,
                 currentUserAccountIDParam: accountID,
@@ -244,7 +247,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
 
     return (
         <AnimatedSubmitButton
-            success
+            variant={CONST.BUTTON_VARIANT.SUCCESS}
             text={shouldUseMarkAsDoneCopy ? translate('common.markAsDone') : translate('common.submit')}
             isMarkAsDone={shouldUseMarkAsDoneCopy}
             onPress={() => handleSubmit()}

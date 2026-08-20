@@ -5,8 +5,6 @@ import AvatarSkeleton from '@components/AvatarSkeleton';
 import Button from '@components/ButtonComposed';
 import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/DelegateNoAccessModalProvider';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
-import {loadIllustration} from '@components/Icon/IllustrationLoader';
-import type {IllustrationName} from '@components/Icon/IllustrationLoader';
 import MenuItemGroup from '@components/MenuItemGroup';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
 import OfflineWithFeedback from '@components/OfflineWithFeedback';
@@ -17,7 +15,8 @@ import Section from '@components/Section';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import useDocumentTitle from '@hooks/useDocumentTitle';
 import {useIsAppLoadPending} from '@hooks/useInFlightRequests';
-import {useMemoizedLazyAsset, useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
+import useIsAgentAccount from '@hooks/useIsAgentAccount';
+import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
@@ -32,7 +31,6 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackRouteProp} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 import {getFormattedAddress, temporaryGetDisplayNameOrDefault} from '@libs/PersonalDetailsUtils';
-import {useIsAgentAccount} from '@libs/SessionUtils';
 import {expensifyLoginsSelector, getContactMethodsOptions, getLoginListBrickRoadIndicator} from '@libs/UserUtils';
 
 import {clearAgentAvatarUpdateError} from '@userActions/Agent';
@@ -82,7 +80,6 @@ function ProfilePage() {
     const accountID = currentUserPersonalDetails?.accountID ?? CONST.DEFAULT_NUMBER_ID;
     const isAgentAccount = useIsAgentAccount();
     const [agentPrompt] = useOnyx(`${ONYXKEYS.COLLECTION.SHARED_NVP_AGENT_PROMPT}${accountID}`);
-    const {asset: Profile} = useMemoizedLazyAsset(() => loadIllustration('Profile' as IllustrationName));
     const icons = useMemoizedLazyExpensifyIcons(['QrCode']);
 
     const contactMethodBrickRoadIndicator = getLoginListBrickRoadIndicator(loginList, currentUserPersonalDetails?.email);
@@ -103,7 +100,7 @@ function ProfilePage() {
     }> = [
         {
             description: translate('displayNamePage.headerTitle'),
-            title: formatPhoneNumber(temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate})),
+            title: temporaryGetDisplayNameOrDefault({passedPersonalDetails: currentUserPersonalDetails, translate, formatPhoneNumber}),
             pageRoute: ROUTES.SETTINGS_DISPLAY_NAME,
             testID: 'display-name-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.DISPLAY_NAME,
@@ -127,7 +124,7 @@ function ProfilePage() {
             testID: 'status-menu-item',
             sentryLabel: CONST.SENTRY_LABEL.SETTINGS_PROFILE.STATUS,
         },
-        ...(!isAgentAccount
+        ...(isAgentAccount === false
             ? [
                   {
                       description: translate('pronounsPage.pronouns'),
@@ -205,7 +202,6 @@ function ProfilePage() {
                 shouldShowBackButton={shouldUseNarrowLayout}
                 shouldDisplaySearchRouter
                 shouldDisplayHelpButton
-                icon={Profile}
                 shouldUseHeadlineHeader
             />
             <ScrollView
@@ -312,7 +308,7 @@ function ProfilePage() {
                                 </MenuItemGroup>
                             )}
                         </Section>
-                        {isAgentAccount && (
+                        {isAgentAccount === true && (
                             <AgentAIPromptSection
                                 accountID={accountID}
                                 parentScrollViewRef={scrollViewRef}
