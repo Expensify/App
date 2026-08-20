@@ -16,8 +16,8 @@ import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {clearLinkPlaidBankAccountErrors, clearPlaid, linkPlaidToBankAccount} from '@libs/actions/BankAccounts';
-import {openPlaidBankAccountSelector, openPlaidBankLogin} from '@libs/actions/Plaid';
-import {getLastFourDigits, hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
+import {openPlaidBankLogin} from '@libs/actions/Plaid';
+import {hasBrokenPlaidConnection, isConnectedViaPlaid} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 import Log from '@libs/Log';
 
@@ -30,9 +30,8 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import type {Route} from '@src/ROUTES';
 import {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type SCREENS from '@src/SCREENS';
-import type PlaidBankAccount from '@src/types/onyx/PlaidBankAccount';
 
-import React, {useEffect, useMemo, useRef} from 'react';
+import React, {useEffect} from 'react';
 import {View} from 'react-native';
 
 type LinkPlaidToBankAccountPageProps = PlatformStackScreenProps<SettingsNavigatorParamList, typeof SCREENS.SETTINGS.WALLET.DYNAMIC_BANK_ACCOUNT_LINK_PLAID>;
@@ -52,20 +51,13 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
 
     const [plaidLinkToken] = useOnyx(ONYXKEYS.RAM_ONLY_PLAID_LINK_TOKEN);
     const [isPlaidDisabled] = useOnyx(ONYXKEYS.IS_PLAID_DISABLED);
-    const [plaidData] = useOnyx(ONYXKEYS.PLAID_DATA);
     const [bankAccount] = useOnyx(ONYXKEYS.BANK_ACCOUNT_LIST, {selector: (list) => list?.[bankAccountID]});
-
-    const hasSubmittedRef = useRef(false);
 
     const policyID = bankAccount?.accountData?.additionalData?.policyID;
     const latestErrorMessage = getLatestErrorMessage(bankAccount);
     const isWrongAccountError = latestErrorMessage === CONST.ERROR.PLAID_WRONG_BANK_ACCOUNT;
 
-    const isFixMode = isConnectedViaPlaid(bankAccount?.accountData);
     const isSuccess = !bankAccount?.isLoading && !latestErrorMessage && isConnectedViaPlaid(bankAccount?.accountData) && !hasBrokenPlaidConnection(bankAccount?.accountData);
-
-    const plaidBankAccounts = useMemo(() => plaidData?.bankAccounts ?? [], [plaidData?.bankAccounts]);
-    const plaidAccessToken = plaidData?.plaidAccessToken ?? '';
 
     useEffect(() => {
         openPlaidBankLogin(false, bankAccountID);
@@ -76,42 +68,10 @@ function LinkPlaidToBankAccountInner({bankAccountID, backPath}: LinkPlaidToBankA
         clearPlaid();
     });
 
-    const onPlaidSuccess = ({publicToken, bankName}: {publicToken: string; bankName: string}) => {
-        if (isFixMode) {
-            hasSubmittedRef.current = true;
-            linkPlaidToBankAccount(bankAccountID, '', '', undefined, policyID);
-            return;
-        }
-        openPlaidBankAccountSelector(publicToken, bankName, true, bankAccountID);
-    };
-
-    // Find the target BBA based on last four mask
-    const resolvedAccount = useMemo<PlaidBankAccount | null>(() => {
-        if (plaidBankAccounts.length === 0) {
-            return null;
-        }
-        const storedMask = getLastFourDigits(bankAccount?.accountData?.accountNumber ?? '');
-        if (storedMask) {
-            const matched = plaidBankAccounts.find((account) => account.mask === storedMask);
-            if (matched) {
-                return matched;
-            }
-        }
-        return plaidBankAccounts.at(0) ?? null;
-    }, [plaidBankAccounts, bankAccount?.accountData?.accountNumber]);
-
-    useEffect(() => {
-        if (hasSubmittedRef.current || plaidData?.isLoading || !plaidAccessToken || isFixMode || !resolvedAccount) {
-            return;
-        }
-        hasSubmittedRef.current = true;
-        linkPlaidToBankAccount(bankAccountID, plaidAccessToken, resolvedAccount.plaidAccountID, resolvedAccount.mask, policyID);
-    }, [resolvedAccount, plaidAccessToken, plaidData?.isLoading, bankAccountID, policyID, isFixMode]);
-
-    if (bankAccount?.isLoading || plaidData?.isLoading || !plaidLinkToken) {
+    if (isPlaidDisabled) {
         return (
-            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter]}>
-                <ActivityIndicator size={CONST.ACTIVITY_INDICATOR_SIZE.LARGE} />
+            <View style={[styles.flex1, styles.alignItemsCenter, styles.justifyContentCenter, styles.ph5]}>
+                <Text style={styles.formError}>{translate('bankAccount.error.tooManyAttempts')}</Text>
             </View>
         );
     }
