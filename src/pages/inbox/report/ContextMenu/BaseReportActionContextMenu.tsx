@@ -26,6 +26,7 @@ import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViol
 
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getMovedReportID} from '@libs/ModifiedExpenseMessage';
+import {moveFullContextMenuFocusWithArrowKey} from '@libs/moveMiniToolbarFocusWithArrowKey';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
 import {
     getLinkedTransactionID,
@@ -388,6 +389,7 @@ function BaseReportActionContextMenu({
                     <View
                         ref={contentRef}
                         style={bottomSafeAreaPaddingStyle}
+                        onKeyDown={!isMini ? moveFullContextMenuFocusWithArrowKey : undefined}
                     >
                         {filteredContextMenuActions.map((contextAction, index) => {
                             const closePopup = !isMini;

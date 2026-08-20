@@ -1,5 +1,5 @@
 /**
- * Arrow-key focus movement for the mini report-action toolbar.
+ * Arrow-key focus movement for the report-action context menu.
  * Only runs after Tab so a mouse click cannot start keyboard navigation,
  * which is the same split EmojiPickerMenu uses with isUsingKeyboardMovement.
  */
@@ -62,6 +62,10 @@ function isActiveToolbarButton(button: Element, activeElement: Element | null): 
     return button === activeElement || button.contains(activeElement);
 }
 
+function isHorizontalArrowKey(key: string): boolean {
+    return key === CONST.KEYBOARD_SHORTCUTS.ARROW_RIGHT.shortcutKey || key === CONST.KEYBOARD_SHORTCUTS.ARROW_LEFT.shortcutKey;
+}
+
 function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
     // Mouse clicks clear this flag, so arrows must not steal focus after a pointer reaction.
     if (!getHadTabNavigation()) {
@@ -102,6 +106,14 @@ function moveMiniToolbarFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
     }
 }
 
+function moveFullContextMenuFocusWithArrowKey(event: ToolbarKeyDownEvent): void {
+    const key = getPressedKey(event);
+    if (!isHorizontalArrowKey(key)) {
+        return;
+    }
+    moveMiniToolbarFocusWithArrowKey(event);
+}
+
 export default moveMiniToolbarFocusWithArrowKey;
-export {getAdjacentHorizontalIndex};
+export {getAdjacentHorizontalIndex, moveFullContextMenuFocusWithArrowKey};
 export type {ToolbarKeyDownEvent};
