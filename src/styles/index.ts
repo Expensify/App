@@ -184,7 +184,7 @@ const headlineItalicFont = {
 const modalNavigatorContainer = (isSmallScreenWidth: boolean) =>
     ({
         position: 'absolute',
-        width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+        width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
         height: '100%',
     }) satisfies ViewStyle;
 
@@ -3993,6 +3993,18 @@ const staticStyles = (theme: ThemeColors) =>
             backgroundColor: theme.overlay,
         },
 
+        // Floating RHP experiment (wide layout / web+desktop only): inset the panel from the screen edges
+        // and round all corners so it reads as a floating card over the blurred scrim.
+        RHPFloatingCard: {
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+        },
+
         bottomDockedModalDismissButton: {
             position: 'absolute',
             top: 0,
@@ -6330,11 +6342,24 @@ const staticStyles = (theme: ThemeColors) =>
             width: animatedSuperWideRHPWidth,
         },
 
+        // Skinny RHP stacked above a wide/super-wide RHP (e.g. editing a field from an expense within an
+        // expense report). Float it the same way as a standalone skinny RHP, over the report behind it.
         singleRHPExtendedCardInterpolatorStyles: {
             position: 'absolute',
-            height: '100%',
-            right: 0,
-            width: variables.sideBarWidth,
+            // Inset on all four sides within the card's slot. The slot is single-RHP width, so anchoring by
+            // right + a fixed width would push the left edge past the slot and clip it — use left+right insets.
+            top: variables.rhpFloatingCardMargin,
+            right: variables.rhpFloatingCardMargin,
+            bottom: variables.rhpFloatingCardMargin,
+            left: variables.rhpFloatingCardMargin,
+            // Override height:100%/width from navigationScreenCardStyle so the four insets define the box.
+            height: 'auto',
+            width: 'auto',
+            borderRadius: variables.componentBorderRadiusLarge,
+            borderWidth: 1,
+            borderColor: theme.border,
+            boxShadow: theme.shadow,
+            overflow: 'hidden',
         },
 
         flexibleHeight: {
@@ -6719,7 +6744,7 @@ const dynamicStyles = (theme: ThemeColors) =>
 
         modalStackNavigatorContainerWidth: (isSmallScreenWidth: boolean) =>
             ({
-                width: isSmallScreenWidth ? '100%' : variables.sideBarWidth,
+                width: isSmallScreenWidth ? '100%' : variables.rhpWidth,
             }) satisfies ViewStyle,
 
         OnboardingNavigatorInnerView: (shouldUseNarrowLayout: boolean) =>
@@ -6760,9 +6785,16 @@ const dynamicStyles = (theme: ThemeColors) =>
                 right: positionRightValue,
                 opacity: progress.interpolate({
                     inputRange: [0, 0.5],
-                    outputRange: [0, variables.overlayOpacity],
+                    outputRange: [0, variables.rhpOverlayOpacity],
                     extrapolate: 'clamp',
                 }),
+            }) satisfies ViewStyle,
+
+        // Floating RHP experiment: appBG gradient scrim (built in the component from theme.appBG) that only
+        // obscures content directly behind the RHP instead of dimming the whole screen.
+        rhpGradientScrim: (backgroundImage: string) =>
+            ({
+                backgroundImage,
             }) satisfies ViewStyle,
 
         getPDFPasswordFormStyle: (isSmallScreenWidth: boolean) =>
