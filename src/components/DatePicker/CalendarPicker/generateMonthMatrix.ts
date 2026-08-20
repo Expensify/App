@@ -9,6 +9,7 @@ import {addDays, format, getDay, getDaysInMonth, startOfMonth} from 'date-fns';
  *
  * @param year - The year for which to generate the month matrix.
  * @param month - The month (0-indexed) for which to generate the month matrix.
+ * @param locale - Sets which weekday the rows start on, not the language of any label.
  * @returns A 2D array of the month's calendar days, with null values representing days outside the current month.
  */
 export default function generateMonthMatrix(year: number, month: number, locale: Locale) {

@@ -58,6 +58,9 @@ class IntlStore {
     }
 
     static load(locale?: Locale): Promise<void> {
+        if (locale && !IntlStore.localeCache.has(locale)) {
+            throw new Error(`[IntlStore mock] no seed for "${locale}", so this switch would silently do nothing. Add one above.`);
+        }
         // Real behaviour, otherwise a suite exercising a locale switch sees no effect and passes for the wrong reason.
         if (locale && IntlStore.localeCache.has(locale)) {
             IntlStore.currentLocale = locale;
