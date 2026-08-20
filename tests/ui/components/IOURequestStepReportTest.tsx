@@ -212,7 +212,7 @@ describe('IOURequestStepReport', () => {
         fireEvent.press(item);
 
         expect(setTransactionReport).toHaveBeenCalledTimes(2);
-        const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = (setTransactionReport as jest.MockedFunction<typeof setTransactionReport>).mock.calls;
+        const [[, {reportID: reportID1}], [, {reportID: reportID2}]] = jest.mocked(setTransactionReport).mock.calls;
         expect(reportID1).toEqual(REPORT_ID_2);
         expect(reportID2).toEqual(REPORT_ID_2);
     });

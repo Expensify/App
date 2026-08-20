@@ -29,6 +29,7 @@ import {getAllTaxRates} from '@libs/PolicyUtils';
 import {getReportAction} from '@libs/ReportActionsUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {formatReportLastMessageText, getReportOrDraftReport, getReportSubtitlePrefix} from '@libs/ReportUtils';
+import {getParsableSearchValue} from '@libs/SearchAutocompleteUtils';
 import {buildSearchQueryJSON, buildUserReadableQueryString, getQueryWithoutFilters, shouldHighlight} from '@libs/SearchQueryUtils';
 import StringUtils from '@libs/StringUtils';
 import {cancelSpan, endSpan, getSpan} from '@libs/telemetry/activeSpans';
@@ -224,6 +225,7 @@ function SearchAutocompleteList({
     } = useFilteredOptions({
         enabled: true,
         isSearching: !!autocompleteQueryValue.trim(),
+        includeP2P: true,
         // The empty-query state renders only recent searches and recent reports (no standalone contacts),
         // so contacts can be deferred until the user types a query.
         deferContactsUntilSearch: true,
@@ -591,11 +593,12 @@ function SearchAutocompleteList({
 
         if (autocompleteSuggestions.length > 0) {
             const autocompleteData: AutocompleteListItem[] = autocompleteSuggestions.map(({filterKey, text, autocompleteID, mapKey, workspaceIcon}) => {
+                const value = mapKey && autocompleteID ? getParsableSearchValue(filterKey, text) : text;
                 return {
                     text: getAutocompleteDisplayText(filterKey, text),
-                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, text) : undefined,
+                    mapKey: mapKey ? getSubstitutionMapKey(mapKey, value) : undefined,
                     singleIcon: expensifyIcons.MagnifyingGlass,
-                    searchQuery: text,
+                    searchQuery: value,
                     autocompleteID,
                     keyForList: autocompleteID ?? text, // in case we have a unique identifier then use it because text might not be unique
                     searchItemType: CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION,
