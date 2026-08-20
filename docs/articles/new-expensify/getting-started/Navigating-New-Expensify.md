@@ -245,7 +245,7 @@ If no contacts are assigned, these options will not appear on the **Help** page.
 
 ## How do I get an Account Manager assigned?
 
-Account Managers are typically assigned to accounts with subscriptions that include 10 or more members. Contact **Concierge** if you believe your account qualifies.
+Account Managers are typically assigned to accounts with subscriptions that include 100 or more members. Contact **Concierge** if you believe your account qualifies.
 
 ## Why don't I see the Book a call button?
 
