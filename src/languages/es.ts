@@ -27,6 +27,7 @@ const translations: TranslationDeepObject<typeof en> = {
         unshare: 'Dejar de compartir',
         yes: 'Sí',
         no: 'No',
+        dontChange: 'No cambiar',
         ok: 'OK',
         notNow: 'Ahora no',
         noThanks: 'No, gracias',
@@ -1502,8 +1503,11 @@ const translations: TranslationDeepObject<typeof en> = {
             distanceAmountTooLargeReduceRate: 'El importe total es demasiado alto. Disminuye la tarifa.',
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             unableToSubmitReport: 'No se puede enviar el informe',
+            unableToMarkAsDone: 'No se puede marcar como listo',
             allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
+            allTransactionsPendingMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
             allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
+            allExpensesOnHoldMarkAsDoneDescription: 'No puedes marcar este informe como listo porque todos los gastos están retenidos. Elimina la retención para continuar.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1598,6 +1602,7 @@ const translations: TranslationDeepObject<typeof en> = {
         payOnly: 'Solo pagar',
         approveOnly: 'Solo aprobar',
         hold: 'Retener',
+        sendToSomeone: 'Enviar a alguien',
         unhold: 'Desbloquear',
         holdEducationalTitle: '¿Deberías retener este gasto?',
         whatIsHoldExplain: 'Retener es como presionar "pausa" en un gasto hasta que estés listo para enviarlo.',
@@ -5661,11 +5666,62 @@ ${amount} para ${merchant} - ${date}`,
             subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en DualEntry y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en DualEntry y sincroniza la conexión de nuevo',
             accountTypesDescription: 'Tus cuentas de DualEntry se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
             enableNewAccountsDescription: 'Las nuevas cuentas DualEntry estarán disponibles como categorías.',
             classificationsImport: 'Todas las clasificaciones de DualEntry se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación importar desde DualEntry.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Facturas de proveedor',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar gastos de tarjetas de empresa como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Gastos directos',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado para todas las tarjetas de empresa',
+                description: 'Elige un proveedor DualEntry predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {
+                label: 'Cuenta de tarjeta de empresa',
+                description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
+            },
+            expensifyCardAccount: {
+                label: 'Cuenta de la Tarjeta Expensify',
+                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            },
         },
         type: {
             free: 'Gratis',
