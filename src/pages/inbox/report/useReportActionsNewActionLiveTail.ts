@@ -31,7 +31,6 @@ type UseReportActionsNewActionLiveTailParams = {
     reportID: string;
     introSelected: OpenReportActionParams['introSelected'];
     betas: OpenReportActionParams['betas'];
-    conciergeChat: OpenReportActionParams['conciergeChat'];
     isOffline: boolean;
     reportScrollManager: ReportScrollManager;
     setIsFloatingMessageCounterVisible: (visible: boolean) => void;
@@ -61,7 +60,6 @@ function useReportActionsNewActionLiveTail({
     reportID,
     introSelected,
     betas,
-    conciergeChat,
     isOffline,
     reportScrollManager,
     setIsFloatingMessageCounterVisible,
@@ -109,7 +107,6 @@ function useReportActionsNewActionLiveTail({
                         openReport({
                             reportID,
                             introSelected,
-                            conciergeChat,
                             betas,
                             hasReportActions: true,
                             currentUserAccountID,

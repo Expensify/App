@@ -163,8 +163,6 @@ function useReportActionsScroll({
     const {isOffline} = useNetworkWithOfflineStatus();
     const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
-    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
     const [reportLoadingState] = useOnyx(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportID}`);
     const [reportActionPages] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS_PAGES}${getNonEmptyStringOnyxID(reportID)}`);
@@ -226,7 +224,6 @@ function useReportActionsScroll({
         reportID,
         introSelected,
         betas,
-        conciergeChat,
         isOffline,
         reportScrollManager,
         setIsFloatingMessageCounterVisible,
@@ -350,7 +347,7 @@ function useReportActionsScroll({
             if (!Navigation.getReportRHPActiveRoute()) {
                 Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(reportID, undefined, undefined, backTo));
             }
-            openReport({reportID, introSelected, conciergeChat, betas, hasReportActions: true, currentUserAccountID});
+            openReport({reportID, introSelected, betas, hasReportActions: true, currentUserAccountID});
             reportScrollManager.scrollToBottom();
             return;
         }
