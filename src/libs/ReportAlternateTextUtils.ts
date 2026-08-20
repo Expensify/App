@@ -245,9 +245,9 @@ import {getTaskCreatedMessage, getTaskReportActionMessage} from './TaskUtils';
 import {getAmount as getTransactionAmount, getCurrency as getTransactionCurrency, getDescription, isScanning} from './TransactionUtils';
 
 let allReports: OnyxCollection<Report>;
-// Moved verbatim from OptionsListUtils: module-level report/report-action caches consumed by the shared, non-render preview computation. Migration to the derived value is tracked in issue #66381.
-// eslint-disable-next-line rulesdir/no-onyx-connect
-Onyx.connect({
+// connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
+// the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT,
     callback: (value) => {
         allReports = value;
@@ -263,9 +263,9 @@ const deprecatedCachedOneTransactionThreadReportIDs: Record<string, string | und
 /** @deprecated Use sortedReportActionsData from ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS instead. Will be removed once all flows are migrated. */
 let deprecatedAllReportActions: OnyxCollection<ReportActions>;
 
-// Moved verbatim from OptionsListUtils: module-level report/report-action caches consumed by the shared, non-render preview computation. Migration to the derived value is tracked in issue #66381.
-// eslint-disable-next-line rulesdir/no-onyx-connect
-Onyx.connect({
+// connectWithoutView is justified: this is module-level, non-render preview computation shared by LHN and Search;
+// the caches were moved verbatim from OptionsListUtils. Migration to the derived value is tracked in issue #66381.
+Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.REPORT_ACTIONS,
     callback: (actions) => {
         if (!actions) {
