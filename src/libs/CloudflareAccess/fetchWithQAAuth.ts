@@ -1,7 +1,7 @@
 /**
  * `fetch` against the Cloudflare Access-protected QA origin: attaches the bearer token and recovers from an
- * expired one. Standalone on purpose — nothing in the app routes to QA yet, so HttpUtils stays untouched;
- * this logic moves there once QA routing lands.
+ * expired one. Standalone on purpose. Nothing in the app routes to QA yet, so HttpUtils stays untouched.
+ * This logic moves there once QA routing lands.
  */
 import {getCloudflareSession, refreshCloudflareSession} from '@userActions/CloudflareSession';
 
@@ -9,7 +9,7 @@ import CONST from '@src/CONST';
 
 import {isQAServerRequest} from './Config';
 
-/** Thrown when the session can't be recovered — the caller has to start a fresh authorize round trip */
+/** Thrown when the session can't be recovered. The caller has to start a fresh authorize round trip */
 const CF_REAUTH_REQUIRED = 'Cloudflare re-authentication required';
 
 /** Narrow on purpose: keeps the header merge below a plain object spread */
@@ -20,8 +20,8 @@ type QAAuthRequestOptions = {
 };
 
 /**
- * Attaches the bearer only for an exact match on the configured QA origin. On a 401: one refresh, one retry;
- * a second 401 rejects with CF_REAUTH_REQUIRED. Transient refresh failures reject as-is, session intact.
+ * Attaches the bearer only for an exact match on the configured QA origin. On a 401 it refreshes once and
+ * retries once, and a second 401 rejects with CF_REAUTH_REQUIRED. Transient refresh failures reject as-is.
  */
 async function fetchWithQAAuth(url: string, options: QAAuthRequestOptions = {}, isRetry = false): Promise<Response> {
     const accessToken = isQAServerRequest(url) ? (getCloudflareSession()?.accessToken ?? null) : null;

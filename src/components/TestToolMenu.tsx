@@ -132,7 +132,7 @@ function TestToolMenu() {
                 </TestToolRow>
             )}
 
-            {/* QA server auth flow — web only, and only when it is configured. */}
+            {/* QA server auth flow. Web only, and only when it is configured. */}
             <QAAuthTestToolRows />
 
             {/* When toggled the app will be forced offline. */}

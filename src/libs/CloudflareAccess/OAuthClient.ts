@@ -13,7 +13,7 @@ import {getOAuthRedirectURI, getQAOrigin} from './Config';
 /** A hung token endpoint would otherwise hold the cross-tab refresh lock indefinitely */
 const TOKEN_ENDPOINT_TIMEOUT_MS = 10_000;
 
-/** A protocol-reported error (or a malformed response); `code` is the OAuth code, e.g. `invalid_grant` */
+/** A protocol-reported error (or a malformed response). `code` is the OAuth code, e.g. `invalid_grant` */
 class OAuthError extends Error {
     constructor(
         readonly code: string,
@@ -31,6 +31,8 @@ async function postTokenEndpoint(body: URLSearchParams): Promise<CloudflareSessi
         headers: [['Content-Type', 'application/x-www-form-urlencoded']],
         body: body.toString(),
         credentials: 'omit',
+        // A 307/308 would re-send this body (code, verifier, refresh token) wherever the redirect points
+        redirect: 'error',
         // Times out as a transient transport error (not an OAuthError), so the session stays intact
         signal: AbortSignal.timeout(TOKEN_ENDPOINT_TIMEOUT_MS),
     });
@@ -57,7 +59,7 @@ async function postTokenEndpoint(body: URLSearchParams): Promise<CloudflareSessi
         json.token_type.toLowerCase() !== 'bearer'
     ) {
         // Terminal: retrying won't fix a protocol mismatch. token_type is checked because callers hardcode
-        // the Bearer scheme — another type must never be persisted as if it were one.
+        // the Bearer scheme. Another type must never be persisted as if it were one.
         throw new OAuthError('invalid_response', 'Token endpoint returned an unexpected response shape');
     }
 
@@ -78,7 +80,7 @@ async function buildAuthorizeURL({state, codeChallenge}: {state: string; codeCha
     url.searchParams.set('state', state);
     url.searchParams.set('code_challenge', codeChallenge);
     url.searchParams.set('code_challenge_method', 'S256');
-    // RFC 8707 — Cloudflare binds the issued token to this resource; omitting it breaks the exchange
+    // RFC 8707. Cloudflare binds the issued token to this resource, and omitting it breaks the exchange
     url.searchParams.set('resource', getQAOrigin());
     return url.toString();
 }
@@ -101,7 +103,7 @@ function refreshTokens(refreshToken: string): Promise<CloudflareSession> {
     const body = new URLSearchParams();
     body.set('grant_type', 'refresh_token');
     body.set('refresh_token', refreshToken);
-    // No `resource` here — Cloudflare's refresh grant takes the client ID and the token only
+    // No `resource` here. Cloudflare's refresh grant takes the client ID and the token only
     body.set('client_id', CONFIG.QA_AUTH.CLIENT_ID);
     return postTokenEndpoint(body);
 }

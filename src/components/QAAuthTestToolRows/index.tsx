@@ -7,6 +7,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 
 import {isQAAuthConfigured} from '@libs/CloudflareAccess/Config';
 import {getCloudflareAuthRedirectOutcome} from '@libs/CloudflareAccess/handleAuthRedirectCallback';
+import DateUtils from '@libs/DateUtils';
 
 import type {CloudflareAuthProbeResult, CloudflareAuthProbeStatus} from '@userActions/CloudflareProbe';
 import {runCloudflareAuthProbe} from '@userActions/CloudflareProbe';
@@ -16,7 +17,7 @@ import CONST from '@src/CONST';
 
 import {useState} from 'react';
 
-/** The semantic probe outcomes are translated; the raw `detail` diagnostic stays verbatim */
+/** The semantic probe outcomes are translated. The raw `detail` diagnostic stays verbatim */
 const PROBE_STATUS_TRANSLATION_KEYS = {
     success: 'qaAuthStatusSuccess',
     reauthRequired: 'qaAuthStatusReauthRequired',
@@ -26,7 +27,7 @@ const PROBE_STATUS_TRANSLATION_KEYS = {
 
 /** A failed round trip is otherwise invisible: the handler ran during boot, long before this mounts */
 function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
-    // A live session (this boot's or another tab's) outranks a recorded failure — it is history at that point
+    // A live session (this boot's or another tab's) outranks a recorded failure. It is history at that point
     if (getCloudflareSession()) {
         return null;
     }
@@ -43,13 +44,13 @@ function getFailedRedirectResult(): CloudflareAuthProbeResult | null {
  */
 function QAAuthTestToolRows() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, datetimeToCalendarTime} = useLocalize();
 
     const [isOperationRunning, setIsOperationRunning] = useState(false);
-    // Seeded from the boot-time redirect outcome; an in-flight exchange's failure surfaces when Run joins it
+    // Seeded from the boot-time redirect outcome. An in-flight exchange's failure surfaces when Run joins it
     const [probeResult, setProbeResult] = useState<CloudflareAuthProbeResult | null>(getFailedRedirectResult);
     // Consecutive probes produce identical results, so without a changing element the button reads as dead
-    const [probeCompletedAt, setProbeCompletedAt] = useState<Date | null>(null);
+    const [probeCompletedAt, setProbeCompletedAt] = useState<string | null>(null);
 
     if (!isQAAuthConfigured()) {
         return null;
@@ -64,11 +65,11 @@ function QAAuthTestToolRows() {
                     isLoading={isOperationRunning}
                     onPress={() => {
                         setIsOperationRunning(true);
-                        // Never rejects — failures come back as semantic results
+                        // Never rejects. Failures come back as semantic results
                         runCloudflareAuthProbe({shouldRedirectOnReauthRequired: probeResult?.status === 'reauthRequired'})
                             .then((result) => {
                                 setProbeResult(result);
-                                setProbeCompletedAt(new Date());
+                                setProbeCompletedAt(DateUtils.getDBTime());
                             })
                             .finally(() => setIsOperationRunning(false));
                     }}
@@ -89,7 +90,7 @@ function QAAuthTestToolRows() {
                             })
                             .catch((error: unknown) => {
                                 setProbeResult({status: 'error', detail: error instanceof Error ? error.message : undefined});
-                                setProbeCompletedAt(new Date());
+                                setProbeCompletedAt(DateUtils.getDBTime());
                             })
                             .finally(() => setIsOperationRunning(false));
                     }}
@@ -101,7 +102,7 @@ function QAAuthTestToolRows() {
                 <Text style={styles.textLabelSupporting}>
                     {translate(`initialSettingsPage.troubleshoot.${PROBE_STATUS_TRANSLATION_KEYS[probeResult.status]}`)}
                     {probeResult.detail ? ` (${probeResult.detail})` : ''}
-                    {probeCompletedAt ? ` — ${probeCompletedAt.toLocaleTimeString()}` : ''}
+                    {probeCompletedAt ? ` — ${datetimeToCalendarTime(probeCompletedAt, false)}` : ''}
                 </Text>
             )}
         </>

@@ -4,11 +4,13 @@
  */
 import CONFIG from '@src/CONFIG';
 
+import type {GetOAuthRedirectURI, GetQAOrigin, IsQAAuthConfigured, IsQAServerRequest} from './types';
+
 /** A bare hostname: no scheme, no slash, no port. Loose about labels (custom Access domains exist). */
 const TEAM_DOMAIN_SHAPE = /^[a-zA-Z0-9][a-zA-Z0-9.-]*\.[a-zA-Z]{2,}$/;
 
 /** Anything short of a complete, well-formed config and every consumer behaves as if the feature is absent */
-function isQAAuthConfigured(): boolean {
+const isQAAuthConfigured: IsQAAuthConfigured = () => {
     const {API_ROOT, TEAM_DOMAIN, CLIENT_ID, CHECK_PATH} = CONFIG.QA_AUTH;
 
     if (!API_ROOT || !TEAM_DOMAIN || !CLIENT_ID || !CHECK_PATH) {
@@ -24,18 +26,18 @@ function isQAAuthConfigured(): boolean {
     } catch {
         return false;
     }
-}
+};
 
-/** Origin form of the QA API root. Doubles as the RFC 8707 `resource` — CF binds the token to this string. */
-function getQAOrigin(): string {
+/** Origin form of the QA API root. Doubles as the RFC 8707 `resource`. CF binds the token to this string. */
+const getQAOrigin: GetQAOrigin = () => {
     return new URL(CONFIG.QA_AUTH.API_ROOT).origin;
-}
+};
 
 /**
  * Exact-origin match, never a substring, and never true on an incomplete config. More Cloudflare-protected
  * QA hosts have to be added here deliberately.
  */
-function isQAServerRequest(url: string): boolean {
+const isQAServerRequest: IsQAServerRequest = (url) => {
     if (!isQAAuthConfigured()) {
         return false;
     }
@@ -45,11 +47,11 @@ function isQAServerRequest(url: string): boolean {
     } catch {
         return false;
     }
-}
+};
 
 /** Must be registered as an allowed redirect URI on the Access application. Read lazily: no `window` on native. */
-function getOAuthRedirectURI(): string {
+const getOAuthRedirectURI: GetOAuthRedirectURI = () => {
     return `${window.location.origin}/oauth/callback`;
-}
+};
 
 export {getOAuthRedirectURI, getQAOrigin, isQAAuthConfigured, isQAServerRequest};

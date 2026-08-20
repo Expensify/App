@@ -12,17 +12,17 @@ import Base64URL from '@src/utils/Base64URL';
 
 import {webcrypto} from 'crypto';
 
-// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
-// point the module at the web implementation under test
+// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false, so
+// this points the module at the web implementation under test
 jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
 
-// The OAuthClient tests exercise the request/response contract, not discovery — endpoints are injected
+// The OAuthClient tests exercise the request/response contract, not discovery. Endpoints are injected
 jest.mock('@libs/CloudflareAccess/AuthServerMetadata', () => ({
     __esModule: true,
     getAuthServerEndpoints: jest.fn(),
 }));
 
-// Mutable QA config the '@src/CONFIG' mock closes over — tests tweak fields per case.
+// Mutable QA config the '@src/CONFIG' mock closes over. Tests tweak fields per case.
 // The `mock` prefix is what lets the hoisted jest.mock factory reference it.
 const mockQAAuth = {
     API_ROOT: 'https://qa.example.com/',
@@ -34,7 +34,7 @@ const mockQAAuth = {
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
 
 // Jest resolves getWebCrypto/index.native.ts (the throwing stub) under the jest-expo preset,
-// so the provider is mocked; the default implementation is Node's real WebCrypto.
+// so the provider is mocked. The default implementation is Node's real WebCrypto.
 jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
     __esModule: true,
     default: {
@@ -43,9 +43,9 @@ jest.mock('@libs/CloudflareAccess/getWebCrypto', () => ({
     },
 }));
 
-// Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth — otherwise the
+// Lazy-require so the @src/CONFIG mock factory sees an initialized mockQAAuth. Otherwise the
 // hoisted import order would resolve CONFIG.default while mockQAAuth was still in the TDZ.
-// The web implementation explicitly — jest resolves platform-split modules to their native variant
+// The web implementation explicitly. Jest resolves platform-split modules to their native variant
 const {getQAOrigin, isQAAuthConfigured, isQAServerRequest} = require<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts');
 const {clearPendingAuthFlow, consumePendingAuthFlow, savePendingAuthFlow} = require<typeof PendingAuthFlowStorageModule>('@libs/CloudflareAccess/PendingAuthFlowStorage');
 const {buildAuthorizeURL, exchangeCode, OAuthError, refreshTokens} = require<typeof OAuthClientModule>('@libs/CloudflareAccess/OAuthClient');
@@ -73,7 +73,7 @@ beforeEach(() => {
 
 describe('pkce', () => {
     it('produces the RFC 7636 Appendix B challenge for the Appendix B verifier', async () => {
-        // Given the RNG pinned to return the Appendix B verifier bytes — the spec's worked example pins the whole encoding chain end to end
+        // Given the RNG pinned to return the Appendix B verifier bytes. The spec's worked example pins the whole encoding chain end to end
         const appendixBVerifier = 'dBjftJeZ4CVP-mB92K27uhbUJU1p1r_wW1gFWFOEjXk';
         const appendixBChallenge = 'E9Melhoa2OwvFrEMTJguCHaoeK1t8URWbuGJSstw-cM';
         const verifierBytes = Base64URL.decode(appendixBVerifier);
@@ -98,9 +98,9 @@ describe('pkce', () => {
     });
 
     it('regenerates deterministically when the challenge starts with a non-alphanumeric character', async () => {
-        // Given two seeded attempts: leading digest byte 248 → top 6 bits = 62 → first base64url char '-' (the CF parser quirk);
-        // leading byte 65 → top 6 bits = 16 → 'Q'. A controlled sequence proves the guard, unlike a
-        // probabilistic run which would let a deleted guard pass most of the time.
+        // Given two seeded attempts. A leading digest byte of 248 encodes to a leading base64url '-', which
+        // trips the CF parser quirk, and a leading byte of 65 encodes to 'Q', which is safe. A controlled
+        // sequence proves the guard, unlike a probabilistic run which would let a deleted guard pass most of the time.
         const digestStartingWithDash = new Uint8Array(32);
         digestStartingWithDash[0] = 248;
         const digestStartingAlphanumeric = new Uint8Array(32);
@@ -126,7 +126,7 @@ describe('pkce', () => {
 
         // Then a second hash proves the guard regenerated instead of shipping a challenge the CF parser would choke on
         expect(getWebCrypto.sha256).toHaveBeenCalledTimes(2);
-        // Then the regenerated pair must stay together — the second verifier with the second challenge — since a mismatched pair would fail the server's S256 check
+        // Then the regenerated pair must stay together (the second verifier with the second challenge), since a mismatched pair would fail the server's S256 check
         expect(codeVerifier).toBe(Base64URL.encode(secondBytes));
         expect(codeChallenge).toBe(Base64URL.encode(digestStartingAlphanumeric));
         expect(codeChallenge).toMatch(/^[a-zA-Z0-9]/);
@@ -142,12 +142,12 @@ describe('config', () => {
         ['the QA host appearing only in the path', 'https://attacker.com/qa.example.com', false],
         ['a garbage string', 'not a url at all', false],
     ])('isQAServerRequest with %s → %s', (description, url, expected) => {
-        // Given a candidate URL, when its origin is compared against the configured QA origin, then anything but an exact match — lookalike host, wrong scheme or port, host smuggled into the path — must be refused, because this gate decides which requests may carry the QA bearer token
+        // Given a candidate URL, when its origin is compared against the configured QA origin, then anything but an exact match (lookalike host, wrong scheme or port, host smuggled into the path) must be refused, because this gate decides which requests may carry the QA bearer token
         expect(isQAServerRequest(url)).toBe(expected);
     });
 
     it('treats an empty config as not configured', () => {
-        // Given every QA value blanked — empty values disable the feature entirely by design
+        // Given every QA value blanked. Empty values disable the feature entirely by design
         mockQAAuth.API_ROOT = '';
         mockQAAuth.TEAM_DOMAIN = '';
         mockQAAuth.CLIENT_ID = '';
@@ -158,28 +158,28 @@ describe('config', () => {
     });
 
     it('treats a partial config as not configured — missing API root', () => {
-        // Given a config missing only the API root — when checked, then the entire feature must disable, because any single missing value leaves a flow that cannot complete safely
+        // Given a config missing only the API root. When checked, then the entire feature must disable, because any single missing value leaves a flow that cannot complete safely
         mockQAAuth.API_ROOT = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 
     it('treats a partial config as not configured — missing client ID', () => {
-        // Given a config missing only the client ID — when checked, then the entire feature must disable, because a flow with no client identity can never be authorized
+        // Given a config missing only the client ID. When checked, then the entire feature must disable, because a flow with no client identity can never be authorized
         mockQAAuth.CLIENT_ID = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 
     it('treats a partial config as not configured — missing auth check path', () => {
-        // Given a config missing only the auth check path — when checked, then the entire feature must disable, because without a probe there is no way to verify access
+        // Given a config missing only the auth check path. When checked, then the entire feature must disable, because without a probe there is no way to verify access
         mockQAAuth.CHECK_PATH = '';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 
     it('rejects an http API root even when every value is present', () => {
-        // Given an otherwise complete config whose API root is plain http — when checked, then it must count as unconfigured, because a bearer token must never travel over cleartext
+        // Given an otherwise complete config whose API root is plain http. When checked, then it must count as unconfigured, because a bearer token must never travel over cleartext
         mockQAAuth.API_ROOT = 'http://qa.example.com/';
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('http://qa.example.com/api/OpenApp')).toBe(false);
@@ -190,14 +190,14 @@ describe('config', () => {
         ['a trailing slash', 'team.cloudflareaccess.com/'],
         ['a single label', 'localhost'],
     ])('rejects a team domain with %s', (description, teamDomain) => {
-        // Given a team domain that is not a bare multi-label hostname — when checked, then the feature must disable, because the domain is pinned as the OAuth issuer and a malformed value would corrupt every URL derived from it
+        // Given a team domain that is not a bare multi-label hostname. When checked, then the feature must disable, because the domain is pinned as the OAuth issuer and a malformed value would corrupt every URL derived from it
         mockQAAuth.TEAM_DOMAIN = teamDomain;
         expect(isQAAuthConfigured()).toBe(false);
         expect(isQAServerRequest('https://qa.example.com/api/OpenApp')).toBe(false);
     });
 
     it('derives the RFC 8707 resource in origin form (no trailing slash)', () => {
-        // Given the configured API root, when the resource indicator is derived, then it must be the bare origin — RFC 8707 resource values are matched literally, so a trailing slash would name a different resource
+        // Given the configured API root, when the resource indicator is derived, then it must be the bare origin. RFC 8707 resource values are matched literally, so a trailing slash would name a different resource
         expect(getQAOrigin()).toBe('https://qa.example.com');
     });
 });
@@ -220,13 +220,13 @@ describe('oAuthClient', () => {
 
     type CapturedRequest = {url: string; init: RequestInit};
 
-    /** Parses a captured form-encoded body; the implementation always posts a string, so non-strings parse as empty */
+    /** Parses a captured form-encoded body. The implementation always posts a string, so non-strings parse as empty */
     function bodyParams(init: RequestInit | undefined): Record<string, string> {
         const body = init?.body;
         return Object.fromEntries(new URLSearchParams(typeof body === 'string' ? body : '').entries());
     }
 
-    /** Mocks global fetch; the typed implementation captures arguments so assertions never touch `mock.calls` (any-typed) */
+    /** Mocks global fetch. The typed implementation captures arguments so assertions never touch `mock.calls` (any-typed) */
     function mockTokenEndpoint(status: number, body: unknown): CapturedRequest[] {
         const captured: CapturedRequest[] = [];
         global.fetch = jest.fn().mockImplementation((url: string, init: RequestInit) => {
@@ -261,7 +261,7 @@ describe('oAuthClient', () => {
         mockTokenEndpoint(502, undefined);
         // When a refresh is attempted
         const result = refreshTokens('oauth:refresh');
-        // Then the failure must stay a plain Error — only protocol rejections are terminal OAuthErrors; a gateway blip is transient and safe to retry
+        // Then the failure must stay a plain Error. Only protocol rejections are terminal OAuthErrors, and a gateway blip is transient and safe to retry
         await expect(result).rejects.toThrow('Token endpoint failed with HTTP 502');
         await expect(result).rejects.not.toBeInstanceOf(OAuthError);
     });
@@ -274,7 +274,7 @@ describe('oAuthClient', () => {
         ['a non-bearer token_type', tokenBody([['token_type', 'mac']])],
         ['a non-object body', 'not-json-object'],
     ])('rejects a 2xx with %s as a terminal invalid_response', async (description, body) => {
-        // Given a 2xx whose body is missing or corrupting a required field — when the tokens are parsed, then the client must fail terminally with invalid_response, because persisting an incomplete or non-bearer token would leave a session that cannot authenticate anything
+        // Given a 2xx whose body is missing or corrupting a required field. When the tokens are parsed, then the client must fail terminally with invalid_response, because persisting an incomplete or non-bearer token would leave a session that cannot authenticate anything
         mockTokenEndpoint(200, body);
         await expect(refreshTokens('oauth:refresh')).rejects.toMatchObject({code: 'invalid_response'});
     });
@@ -284,7 +284,7 @@ describe('oAuthClient', () => {
         mockTokenEndpoint(200, tokenBody([['token_type', 'Bearer']]));
         // When the tokens are refreshed
         const session = await refreshTokens('oauth:refresh');
-        // Then a usable session must come back — the bearer check exists to reject unusable token types, not compliant capitalizations
+        // Then a usable session must come back. The bearer check exists to reject unusable token types, not compliant capitalizations
         expect(session.accessToken).toBe('oauth:access');
         expect(session.refreshToken).toBe('oauth:refresh');
         expect(session.expiresAt).toBeGreaterThan(Date.now());
@@ -293,7 +293,7 @@ describe('oAuthClient', () => {
     it('buildAuthorizeURL carries exactly the verified parameter set', async () => {
         // Given a fresh state and challenge, when the authorize URL is built
         const url = new URL(await buildAuthorizeURL({state: 'state-1', codeChallenge: 'challenge-1'}));
-        // Then it must target the discovered endpoint and carry exactly the verified parameter set — a missing or extra parameter changes what the user is asked to consent to
+        // Then it must target the discovered endpoint and carry exactly the verified parameter set. A missing or extra parameter changes what the user is asked to consent to
         expect(`${url.origin}${url.pathname}`).toBe('https://team.cloudflareaccess.com/cdn-cgi/access/oauth/authorization');
         expect(Object.fromEntries(url.searchParams.entries())).toEqual(
             Object.fromEntries([
@@ -316,7 +316,7 @@ describe('oAuthClient', () => {
         // When the authorization code is exchanged
         await exchangeCode({code: 'code-1', codeVerifier: 'verifier-1'});
 
-        // Then the POST must be form-encoded, credential-free, and carry a redirect_uri byte-matching the authorize request — RFC 6749 and Cloudflare reject the exchange on any mismatch
+        // Then the POST must be form-encoded, credential-free, and carry a redirect_uri byte-matching the authorize request. RFC 6749 and Cloudflare reject the exchange on any mismatch
         const request = captured.at(0);
         expect(request?.url).toBe('https://team.cloudflareaccess.com/cdn-cgi/access/oauth/token');
         expect(request?.init.method).toBe('POST');
@@ -343,7 +343,7 @@ describe('oAuthClient', () => {
         // When the tokens are refreshed
         await refreshTokens('oauth:refresh-1');
 
-        // Then the body must hold only the refresh-grant fields — the refresh token is already bound to the resource from the exchange, so re-sending it would add an unverified parameter for no gain
+        // Then the body must hold only the refresh-grant fields. The refresh token is already bound to the resource from the exchange, so re-sending it would add an unverified parameter for no gain
         expect(bodyParams(captured.at(0)?.init)).toEqual(
             Object.fromEntries([
                 ['grant_type', 'refresh_token'],
@@ -383,7 +383,7 @@ describe('authServerMetadata', () => {
         return calls;
     }
 
-    /** Fresh module per test — the metadata cache is module state, and the file-level mock must be bypassed */
+    /** Fresh module per test. The metadata cache is module state, and the file-level mock must be bypassed */
     function requireFreshDiscovery() {
         jest.resetModules();
         return jest.requireActual<typeof AuthServerMetadataModule>('@libs/CloudflareAccess/AuthServerMetadata').getAuthServerEndpoints;
@@ -415,7 +415,7 @@ describe('authServerMetadata', () => {
         await Promise.all([getEndpoints(), getEndpoints()]);
         await getEndpoints();
 
-        // Then a single network fetch must serve them all — the cache lives for the page lifetime, so the discovery cost is paid once, not per request
+        // Then a single network fetch must serve them all. The cache lives for the page lifetime, so the discovery cost is paid once, not per request
         expect(calls).toHaveLength(1);
     });
 
@@ -429,7 +429,7 @@ describe('authServerMetadata', () => {
         const retried = await getEndpoints();
         expect(retried.tokenEndpoint).toContain('/token');
 
-        // Then the retry must have gone back to the network — caching the failure would wedge auth for the whole page lifetime over a transient error
+        // Then the retry must have gone back to the network. Caching the failure would wedge auth for the whole page lifetime over a transient error
         expect(calls).toHaveLength(2);
     });
 
@@ -438,7 +438,7 @@ describe('authServerMetadata', () => {
         // Given a document claiming an issuer other than the configured team domain
         mockMetadataFetch(metadataBody([['issuer', 'https://attacker.cloudflareaccess.com']]));
 
-        // When discovery validates it, then it must be rejected per RFC 8414 §3.3 — these endpoints receive the authorization code and refresh tokens, so the issuer must exactly match the pinned team domain
+        // When discovery validates it, then it must be rejected per RFC 8414 §3.3. These endpoints receive the authorization code and refresh tokens, so the issuer must exactly match the pinned team domain
         await expect(getEndpoints()).rejects.toThrow('issuer does not match');
     });
 
@@ -447,7 +447,7 @@ describe('authServerMetadata', () => {
         // Given a document whose issuer is correct but whose token endpoint points at a foreign host
         mockMetadataFetch(metadataBody([['token_endpoint', 'https://attacker.com/cdn-cgi/access/oauth/token']]));
 
-        // When discovery validates it, then it must be rejected — a matching issuer must not be able to smuggle the code and tokens to a host outside the pinned issuer
+        // When discovery validates it, then it must be rejected. A matching issuer must not be able to smuggle the code and tokens to a host outside the pinned issuer
         await expect(getEndpoints()).rejects.toThrow('token_endpoint does not belong to the expected issuer');
     });
 
@@ -456,7 +456,7 @@ describe('authServerMetadata', () => {
         // Given a document advertising only the 'plain' challenge method
         mockMetadataFetch(metadataBody([['code_challenge_methods_supported', ['plain']]]));
 
-        // When discovery validates it, then it must be rejected up front — this client implements only S256, so a flow against such an issuer could never complete
+        // When discovery validates it, then it must be rejected up front. This client implements only S256, so a flow against such an issuer could never complete
         await expect(getEndpoints()).rejects.toThrow('S256');
     });
 
@@ -465,7 +465,7 @@ describe('authServerMetadata', () => {
         // Given the well-known endpoint answering 403
         global.fetch = jest.fn().mockResolvedValue({ok: false, status: 403, json: () => Promise.resolve(null)});
 
-        // When discovery runs, then the failure must stay a plain Error — discovery never speaks the OAuth protocol, so its failures are transient and retryable, never terminal OAuthErrors
+        // When discovery runs, then the failure must stay a plain Error. Discovery never speaks the OAuth protocol, so its failures are transient and retryable, never terminal OAuthErrors
         const failure = getEndpoints();
         await expect(failure).rejects.toThrow('HTTP 403');
         await expect(failure).rejects.not.toBeInstanceOf(OAuthError);
@@ -491,7 +491,7 @@ describe('pendingAuthFlowStorage', () => {
     });
 
     it('round-trips the flow record', () => {
-        // Given a flow parked before the redirect, when it is consumed after the page comes back, then every field must survive — module memory dies on navigation, so this storage is the only carrier of the verifier across the round trip
+        // Given a flow parked before the redirect, when it is consumed after the page comes back, then every field must survive. Module memory dies on navigation, so this storage is the only carrier of the verifier across the round trip
         savePendingAuthFlow(FLOW);
         expect(consumePendingAuthFlow()).toEqual(FLOW);
     });
@@ -501,9 +501,9 @@ describe('pendingAuthFlowStorage', () => {
         savePendingAuthFlow(FLOW);
         // When it is consumed once
         consumePendingAuthFlow();
-        // Then the record must already be gone from storage — removal precedes validation by design
+        // Then the record must already be gone from storage. Removal precedes validation by design
         expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
-        // Then a replayed callback URL finds nothing — the verifier can never be reused for a second exchange
+        // Then a replayed callback URL finds nothing. The verifier can never be reused for a second exchange
         expect(consumePendingAuthFlow()).toBeNull();
     });
 
@@ -512,7 +512,7 @@ describe('pendingAuthFlowStorage', () => {
         savePendingAuthFlow(FLOW);
         // When the clock moves past the expiry window
         nowSpy.mockReturnValue(FLOW.createdAt + 11 * 60 * 1000);
-        // Then the record must read as absent — the expiry bounds how long a parked verifier stays exchangeable, limiting what a forgotten record is worth to an attacker
+        // Then the record must read as absent. The expiry bounds how long a parked verifier stays exchangeable, limiting what a forgotten record is worth to an attacker
         expect(consumePendingAuthFlow()).toBeNull();
     });
 
@@ -521,7 +521,7 @@ describe('pendingAuthFlowStorage', () => {
         ['a missing verifier', JSON.stringify({state: 's', returnURL: '/', createdAt: FLOW.createdAt})],
         ['an empty state', JSON.stringify({...FLOW, state: ''})],
     ])('returns null for %s, and still clears it', (_label, raw) => {
-        // Given a stored record that is corrupt or incomplete — when it is consumed, then it must read as null and still be removed, so a bad record cannot linger and poison every later flow
+        // Given a stored record that is corrupt or incomplete. When it is consumed, then it must read as null and still be removed, so a bad record cannot linger and poison every later flow
         window.sessionStorage.setItem(STORAGE_KEY, raw);
         expect(consumePendingAuthFlow()).toBeNull();
         expect(window.sessionStorage.getItem(STORAGE_KEY)).toBeNull();
@@ -532,7 +532,7 @@ describe('pendingAuthFlowStorage', () => {
         savePendingAuthFlow(FLOW);
         // When the flow is explicitly abandoned
         clearPendingAuthFlow();
-        // Then nothing must remain to consume — a leftover verifier could otherwise pair with a later, unrelated callback
+        // Then nothing must remain to consume. A leftover verifier could otherwise pair with a later, unrelated callback
         expect(consumePendingAuthFlow()).toBeNull();
     });
 
@@ -545,7 +545,7 @@ describe('pendingAuthFlowStorage', () => {
             throw new Error('SecurityError');
         });
 
-        // When the record is consumed, then storage errors must read as absence — this runs during boot, and throwing would take app start down for an optional QA feature
+        // When the record is consumed, then storage errors must read as absence. This runs during boot, and throwing would take app start down for an optional QA feature
         expect(consumePendingAuthFlow()).toBeNull();
     });
 
@@ -564,7 +564,7 @@ describe('pendingAuthFlowStorage', () => {
             configurable: true,
         });
 
-        // When the save is attempted, then it must throw — swallowing the failure would let the caller navigate away with no stored verifier, stranding the flow on return
+        // When the save is attempted, then it must throw. Swallowing the failure would let the caller navigate away with no stored verifier, stranding the flow on return
         expect(() => savePendingAuthFlow(FLOW)).toThrow('QuotaExceededError');
 
         Object.defineProperty(window, 'sessionStorage', {value: realSessionStorage, writable: true, configurable: true});

@@ -9,7 +9,7 @@ import CONFIG from '@src/CONFIG';
 
 import {getQAOrigin} from './Config';
 
-/** RFC 8414 §3 fixes the path; Cloudflare serves the document at the edge on the protected origin */
+/** RFC 8414 §3 fixes the path. Cloudflare serves the document at the edge on the protected origin */
 const WELL_KNOWN_PATH = '/.well-known/oauth-authorization-server';
 
 /** A hung metadata fetch would stall the sign-in flow (and, via refresh, the cross-tab lock) */
@@ -73,7 +73,7 @@ async function fetchAndValidateMetadata(): Promise<AuthServerEndpoints> {
 }
 
 /**
- * Single-flight and cached for the page's lifetime — the metadata is static per environment. A failure
+ * Single-flight and cached for the page's lifetime. The metadata is static per environment. A failure
  * clears the cache so the next attempt retries, and rejects as a plain error: transient for the callers'
  * terminal/transient split, never an OAuthError.
  */

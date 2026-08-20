@@ -17,12 +17,12 @@ import Onyx from 'react-native-onyx';
 /** Refresh proactively when the access token has less lifetime left than this */
 const ACCESS_TOKEN_EXPIRY_BUFFER_MS = 60_000;
 
-/** `undefined` = Onyx not read yet, `null` = read and absent — NetworkStore's hydration convention */
+/** `undefined` = Onyx not read yet, `null` = read and absent. NetworkStore's hydration convention */
 let sessionCache: CloudflareSession | null | undefined;
 
 /**
  * Bumped by sign-out. The async flows below cannot be cancelled, so each captures this at the start and
- * re-checks it after awaits — a mismatch makes the late result inert. Every new `await` added to this
+ * re-checks it after awaits. A mismatch makes the late result inert. Every new `await` added to this
  * module must re-check the captured generation afterwards.
  */
 let sessionGeneration = 0;
@@ -36,7 +36,7 @@ const hydrationPromise = new Promise<void>((resolve) => {
 if (isQAAuthConfigured()) {
     // We have used `connectWithoutView` here because this module-level cache is not connected to any UI component
     Onyx.connectWithoutView({
-        key: ONYXKEYS.CF_SESSION,
+        key: ONYXKEYS.CLOUDFLARE_SESSION,
         callback: (value) => {
             sessionCache = value ?? null;
             resolveHydration();
@@ -71,7 +71,7 @@ let isRedirectInFlight = false;
 
 /**
  * Navigates this tab to Cloudflare to start the authorize round trip. Never settles once navigation is
- * requested — the page is leaving. Rejects only if the flow record couldn't be stored.
+ * requested. The page is leaving. Rejects only if the flow record couldn't be stored.
  */
 async function beginCloudflareAuthRedirect(returnURL: string = window.location.href): Promise<never> {
     if (isRedirectInFlight) {
@@ -86,10 +86,10 @@ async function beginCloudflareAuthRedirect(returnURL: string = window.location.h
         // Resolved before the flow record is stored, so a failed discovery leaves nothing behind
         const authorizeURL = await buildAuthorizeURL({state, codeChallenge: pkce.codeChallenge});
         if (generation !== sessionGeneration) {
-            // Signed out while this flow was being prepared — do not navigate a signed-out tab
+            // Signed out while this flow was being prepared. Do not navigate a signed-out tab
             throw new Error('Cloudflare auth flow was cancelled by sign-out');
         }
-        // Must be stored before the navigation — module memory does not survive the unload
+        // Must be stored before the navigation. Module memory does not survive the unload
         savePendingAuthFlow({state, codeVerifier: pkce.codeVerifier, returnURL, createdAt: Date.now()});
         window.location.assign(authorizeURL);
     } catch (error) {
@@ -110,10 +110,10 @@ function completeCloudflareAuthRedirect({code, codeVerifier}: {code: string; cod
                 // Signed out mid-exchange
                 return;
             }
-            // Cache first: requests during this boot must see the token before disk I/O settles; a failed
-            // persist is only logged — the cache keeps the usable session and a reload self-heals
+            // Cache first: requests during this boot must see the token before disk I/O settles. A failed
+            // persist is only logged, because the cache keeps the usable session and a reload self-heals
             sessionCache = session;
-            return Onyx.set(ONYXKEYS.CF_SESSION, session).catch((error: unknown) => {
+            return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, session).catch((error: unknown) => {
                 Log.warn('[CloudflareSession] Failed to persist the exchanged session', {error});
             });
         })
@@ -134,7 +134,7 @@ let refreshPromise: Promise<CloudflareRefreshResult> | null = null;
 
 /**
  * Cloudflare rotates the refresh token on every call, so two tabs refreshing at once each spend a token
- * the other still needs — Web Locks serialize the read-refresh-persist across the origin's tabs.
+ * the other still needs. Web Locks serialize the read-refresh-persist across the origin's tabs.
  */
 function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult>): Promise<CloudflareRefreshResult> {
     if (!navigator.locks) {
@@ -143,7 +143,7 @@ function withCrossTabRefreshLock(callback: () => Promise<CloudflareRefreshResult
     return navigator.locks.request('cloudflareSessionRefresh', callback);
 }
 
-/** Runs with the cross-tab lock held — the session is re-read here rather than captured by the caller */
+/** Runs with the cross-tab lock held. The session is re-read here rather than captured by the caller */
 async function performCloudflareRefresh(staleAccessToken: string | undefined): Promise<CloudflareRefreshResult> {
     const generation = sessionGeneration;
     const current = sessionCache;
@@ -159,11 +159,11 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
     try {
         const session = await refreshTokens(submittedRefreshToken);
         if (generation !== sessionGeneration) {
-            // Signed out mid-refresh — persisting the rotated pair would resurrect the dead session
+            // Signed out mid-refresh. Persisting the rotated pair would resurrect the dead session
             return 'reauth-required';
         }
         sessionCache = session;
-        await Onyx.set(ONYXKEYS.CF_SESSION, session);
+        await Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, session);
         return 'refreshed';
     } catch (error) {
         // A failed persist is not a spent token, so it falls through here and rethrows
@@ -175,22 +175,22 @@ async function performCloudflareRefresh(staleAccessToken: string | undefined): P
             return 'reauth-required';
         }
         if (sessionCache?.refreshToken !== submittedRefreshToken) {
-            // Another tab already rotated the token this call submitted — the caller retries with the newer one
+            // Another tab already rotated the token this call submitted. The caller retries with the newer one
             return 'skipped-newer-token';
         }
         // Both codes mean the submitted token is spent (invalid_response = CF rotated but the new pair was
-        // unreadable). Never delete the shared session here — another tab may hold a working rotation.
+        // unreadable). Never delete the shared session here. Another tab may hold a working rotation.
         return 'reauth-required';
     }
 }
 
 /**
- * Single-flight refresh, serialized across tabs; the rotated pair is persisted before it resolves. Terminal
+ * Single-flight refresh, serialized across tabs. The rotated pair is persisted before it resolves. Terminal
  * failures resolve 'reauth-required' (recovery is a fresh authorize round trip), transient ones reject with
  * the session intact. Pass the token a 401 was seen with to get 'skipped-newer-token' after a rotation.
  */
 function refreshCloudflareSession(staleAccessToken?: string): Promise<CloudflareRefreshResult> {
-    // Joining guarantees the rotated pair already hit Onyx; preconditions are re-checked inside the lock
+    // Joining guarantees the rotated pair already hit Onyx. Preconditions are re-checked inside the lock
     if (refreshPromise) {
         return refreshPromise;
     }
@@ -201,10 +201,13 @@ function refreshCloudflareSession(staleAccessToken?: string): Promise<Cloudflare
     return refreshPromise;
 }
 
-/** Deletes the session for every tab. Only the test tool's Clear-session button calls this — failure paths recover by replacement */
+/** Deletes the session for every tab. Only the test tool's Clear-session button calls this. Failure paths recover by replacement */
 function clearCloudflareSession(): Promise<void> {
-    sessionCache = null; // synchronous — a probe pressed right after Clear must not read the dead session
-    return Onyx.set(ONYXKEYS.CF_SESSION, null);
+    // In-flight work must not undo the clear by persisting its late result, exactly like on sign-out
+    sessionGeneration++;
+    // Synchronous, so a probe pressed right after Clear cannot read the dead session
+    sessionCache = null;
+    return Onyx.set(ONYXKEYS.CLOUDFLARE_SESSION, null);
 }
 
 export {

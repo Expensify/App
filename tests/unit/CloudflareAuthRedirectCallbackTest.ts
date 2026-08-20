@@ -2,7 +2,7 @@
  * The boot-time callback handler: the gate table keeping a callback that fails provenance away from the
  * token exchange, plus the URL rewrite that keeps the boot off the redirect path.
  *
- * Requires the web implementation explicitly — jest resolves platform-split modules to their native variant.
+ * Requires the web implementation explicitly. Jest resolves platform-split modules to their native variant.
  */
 import type * as ConfigModule from '@libs/CloudflareAccess/Config/index.ts';
 import type * as AuthRedirectCallbackModule from '@libs/CloudflareAccess/handleAuthRedirectCallback/index.ts';
@@ -19,8 +19,8 @@ const mockQAAuth = {
 
 jest.mock('@src/CONFIG', () => ({__esModule: true, default: {QA_AUTH: mockQAAuth}}));
 
-// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false —
-// point the module at the web implementation the handler under test runs against
+// jest resolves the platform split to the native variant, whose isQAAuthConfigured() is always false, so
+// this points the module at the web implementation the handler under test runs against
 jest.mock('@libs/CloudflareAccess/Config', () => jest.requireActual<typeof ConfigModule>('@libs/CloudflareAccess/Config/index.ts'));
 
 jest.mock('@userActions/CloudflareSession', () => ({
@@ -77,7 +77,7 @@ describe('handleCloudflareAuthRedirectCallback', () => {
         });
 
         // When the boot-time handler runs, as it does on every boot
-        // Then it must be a complete no-op — no URL rewrite, no exchange — because treating an ordinary boot as a callback would corrupt unrelated state
+        // Then it must be a complete no-op (no URL rewrite, no exchange), because treating an ordinary boot as a callback would corrupt unrelated state
         expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('not-a-callback');
         expect(replaceStateSpy).not.toHaveBeenCalled();
         expect(sessionActions.completeCloudflareAuthRedirect).not.toHaveBeenCalled();
@@ -104,7 +104,7 @@ describe('handleCloudflareAuthRedirectCallback', () => {
 
         // When the handler picks up the code delivered as the document's own location
         expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('exchanging');
-        // Then the URL is rewritten synchronously — before React Navigation reads window.location, since no app route lives at the redirect path and the boot would otherwise land in /not-found
+        // Then the URL is rewritten synchronously. Before React Navigation reads window.location, since no app route lives at the redirect path and the boot would otherwise land in /not-found
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/settings/troubleshoot');
         // Then the exchange runs with the stored verifier, the proof that this tab began the flow
         expect(sessionActions.completeCloudflareAuthRedirect).toHaveBeenCalledWith({code: 'auth-code-1', codeVerifier: FLOW.codeVerifier});
@@ -118,7 +118,7 @@ describe('handleCloudflareAuthRedirectCallback', () => {
 
         // When the handler starts the exchange
         expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('exchanging');
-        // When the rejection lands — its handler runs on a later microtask, so asserting synchronously would still read 'exchanging'
+        // When the rejection lands. Its handler runs on a later microtask, so asserting synchronously would still read 'exchanging'
         await Promise.resolve();
 
         // Then the failure must become the observable outcome, message included: the completion promise clears as it settles, so a caller arriving later could never see the rejection itself
@@ -145,14 +145,14 @@ describe('handleCloudflareAuthRedirectCallback', () => {
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
         // When the handler runs
-        // Then the refusal is surfaced with the provider's own description and no exchange is ever attempted — the user said no, so there is nothing legitimate to redeem
+        // Then the refusal is surfaced with the provider's own description and no exchange is ever attempted. The user said no, so there is nothing legitimate to redeem
         expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('provider-error');
         expect(sessionActions.completeCloudflareAuthRedirect).not.toHaveBeenCalled();
         expect(authRedirectCallback.getCloudflareAuthRedirectOutcome().errorMessage).toBe('User refused');
     });
 
     it('rejects a callback with no authorization code', () => {
-        // Given a provenance-valid callback carrying neither a code nor an error — a real provider response always includes one
+        // Given a provenance-valid callback carrying neither a code nor an error. A real provider response always includes one
         arrangeCallbackURL('?state=state-1');
         pendingAuthFlowStorage.savePendingAuthFlow(FLOW);
 
@@ -163,18 +163,18 @@ describe('handleCloudflareAuthRedirectCallback', () => {
     });
 
     it('refuses a callback with no stored flow, and lands on a safe route', () => {
-        // Given a replayed callback URL, or one opened in a tab that never started the flow — no stored flow exists to vouch for it
+        // Given a replayed callback URL, or one opened in a tab that never started the flow, no stored flow exists to vouch for it
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
 
         // When the handler runs
-        // Then the callback is refused without an exchange (nothing proves this tab initiated it), and with no stored returnURL the boot falls back to the root — still a safe route off the redirect path, which has no app route,
+        // Then the callback is refused without an exchange (nothing proves this tab initiated it), and with no stored returnURL the boot falls back to the root. Still a safe route off the redirect path, which has no app route,
         expect(authRedirectCallback.handleCloudflareAuthRedirectCallback()).toBe('no-pending-flow');
         expect(sessionActions.completeCloudflareAuthRedirect).not.toHaveBeenCalled();
         expect(replaceStateSpy).toHaveBeenCalledWith(null, '', '/');
     });
 
     it('never navigates to a foreign origin, even though the returnURL is our own storage', () => {
-        // Given a genuine callback whose stored flow carries a foreign-origin returnURL — the one stored field fed back into navigation, so it must be treated as tainted even though it came from our own storage
+        // Given a genuine callback whose stored flow carries a foreign-origin returnURL. The one stored field fed back into navigation, so it must be treated as tainted even though it came from our own storage
         arrangeCallbackURL('?code=auth-code-1&state=state-1');
         pendingAuthFlowStorage.savePendingAuthFlow({...FLOW, returnURL: 'https://evil.example.com/steal'});
 

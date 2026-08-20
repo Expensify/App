@@ -7,7 +7,7 @@ import {isRecord} from '@libs/ObjectUtils';
 
 import CONST from '@src/CONST';
 
-/** Cloudflare's authorization codes are short-lived anyway; an older record is treated as absent */
+/** Cloudflare's authorization codes are short-lived anyway. An older record is treated as absent */
 const PENDING_AUTH_FLOW_TTL_MS = 10 * 60 * 1000;
 
 type PendingAuthFlow = {
@@ -20,7 +20,7 @@ type PendingAuthFlow = {
     /** Absolute URL (route plus any open RHP) the user should land back on */
     returnURL: string;
 
-    /** Epoch ms — see PENDING_AUTH_FLOW_TTL_MS */
+    /** Epoch ms. See PENDING_AUTH_FLOW_TTL_MS */
     createdAt: number;
 };
 
@@ -37,7 +37,7 @@ function getSessionStorage(): Storage | null {
 }
 
 /**
- * Throws when web storage is unavailable — the caller must refuse to redirect in that case rather than
+ * Throws when web storage is unavailable. The caller must refuse to redirect in that case rather than
  * navigate away and lose the verifier with no way to finish the exchange.
  */
 function savePendingAuthFlow(flow: PendingAuthFlow): void {

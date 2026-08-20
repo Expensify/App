@@ -1,6 +1,6 @@
 /**
  * The probe's decision tree: which branch runs for which session state, and that every failure comes back
- * as a semantic result rather than a rejection. Its dependencies are mocked; they have their own suites.
+ * as a semantic result rather than a rejection. Its dependencies are mocked, since they have their own suites.
  */
 import {CF_REAUTH_REQUIRED} from '@libs/CloudflareAccess/fetchWithQAAuth';
 
@@ -11,7 +11,7 @@ import type CloudflareSession from '@src/types/onyx/CloudflareSession';
 
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
-/** The slice of the fetch Response the probe touches; a full Response stub would add nothing */
+/** The slice of the fetch Response the probe touches. A full Response stub would add nothing */
 type ProbeResponse = {ok: boolean; status: number; json: () => Promise<unknown>};
 
 const mockFetchWithQAAuth = jest.fn<Promise<ProbeResponse>, [string, {method?: string}]>();
@@ -33,7 +33,7 @@ jest.mock('@userActions/CloudflareSession', () => ({
 jest.mock('@libs/CloudflareAccess/fetchWithQAAuth', () => ({
     __esModule: true,
     // Forwarding wrapper instead of the mock itself: the factory runs while the hoisted import chain is still
-    // executing, before mockFetchWithQAAuth's initializer — a direct reference would capture undefined
+    // executing, before mockFetchWithQAAuth's initializer. A direct reference would capture undefined
     default: (...args: Parameters<typeof mockFetchWithQAAuth>) => mockFetchWithQAAuth(...args),
     CF_REAUTH_REQUIRED: 'Cloudflare re-authentication required',
 }));
@@ -43,7 +43,7 @@ const SESSION: CloudflareSession = {accessToken: 'oauth:access', refreshToken: '
 beforeEach(() => {
     jest.clearAllMocks();
     // clearAllMocks keeps implementations, and the redirect stub is deliberately never-settling in one
-    // case — leaking that into the next test would hang it
+    // case. Leaking that into the next test would hang it
     jest.mocked(beginCloudflareAuthRedirect).mockReset();
     jest.mocked(isSessionNearExpiry).mockReturnValue(false);
     jest.mocked(getPendingCloudflareAuthCompletion).mockReturnValue(null);
@@ -74,7 +74,7 @@ describe('runCloudflareAuthProbe', () => {
 
     it('joins a callback-boot exchange instead of starting a second redirect', async () => {
         // Given the boot after the callback: the exchange is in flight, and populates the cache before the
-        // probe reads it — so no second round trip is needed
+        // probe reads it, so no second round trip is needed
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
         jest.mocked(getPendingCloudflareAuthCompletion).mockReturnValue(Promise.resolve());
 
@@ -88,13 +88,13 @@ describe('runCloudflareAuthProbe', () => {
     });
 
     it('surfaces a failed callback-boot exchange as signInFailed, with no redirect', async () => {
-        // Given a callback boot whose in-flight exchange rejects — the sign-in itself failed
+        // Given a callback boot whose in-flight exchange rejects. The sign-in itself failed
         jest.mocked(getCloudflareSession).mockReturnValue(null);
         jest.mocked(getPendingCloudflareAuthCompletion).mockReturnValue(Promise.reject(new Error('invalid_grant')));
 
         // When the probe joins that exchange
         // Then it should report signInFailed rather than a generic error: the sign-in failed, not the probe,
-        // and naming it tells the user that running the probe again — a fresh authorize round trip — is the retry
+        // and naming it tells the user that running the probe again (a fresh authorize round trip) is the retry
         await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'signInFailed', detail: 'invalid_grant'});
 
         // Then no redirect and no request: the retry must be the user's informed rerun, not something the
@@ -108,7 +108,7 @@ describe('runCloudflareAuthProbe', () => {
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
 
         // When the probe runs
-        // Then it should succeed and echo how the Worker authenticated the request — exercising that
+        // Then it should succeed and echo how the Worker authenticated the request. Exercising that
         // end-to-end path is the probe's whole purpose
         await expect(runCloudflareAuthProbe()).resolves.toEqual({status: 'success', detail: 'authenticatedVia: oauth-bearer'});
 
@@ -119,7 +119,7 @@ describe('runCloudflareAuthProbe', () => {
     });
 
     it('near expiry with a terminal refresh: reports reauthRequired with no redirect and no request', async () => {
-        // Given a session near expiry whose refresh fails terminally — the refresh token itself is no longer good
+        // Given a session near expiry whose refresh fails terminally. The refresh token itself is no longer good
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
         jest.mocked(isSessionNearExpiry).mockReturnValue(true);
         jest.mocked(refreshCloudflareSession).mockResolvedValue('reauth-required');
@@ -142,7 +142,7 @@ describe('runCloudflareAuthProbe', () => {
         // Given a redirect stub that, like the real one, navigates away and never settles
         jest.mocked(beginCloudflareAuthRedirect).mockReturnValue(new Promise<never>(() => {}));
 
-        // When the probe runs with shouldRedirectOnReauthRequired — the user already saw reauthRequired and
+        // When the probe runs with shouldRedirectOnReauthRequired. The user already saw reauthRequired and
         // pressed Run again, and that informed second press is the consent
         let isSettled = false;
         runCloudflareAuthProbe({shouldRedirectOnReauthRequired: true}).then(() => {
@@ -159,7 +159,7 @@ describe('runCloudflareAuthProbe', () => {
     });
 
     it('maps the request-level re-auth rejection to a redirect when consented', async () => {
-        // Given a locally fresh session that the Worker nevertheless rejects mid-request — the server, not
+        // Given a locally fresh session that the Worker nevertheless rejects mid-request. The server, not
         // the local clock, is the authority on when re-auth is needed
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
         mockFetchWithQAAuth.mockRejectedValue(new Error(CF_REAUTH_REQUIRED));
@@ -180,7 +180,7 @@ describe('runCloudflareAuthProbe', () => {
     });
 
     it('near expiry with a transient refresh failure: reports a plain error, keeps advice honest', async () => {
-        // Given a session near expiry whose refresh fails transiently — the network dropped, not the token
+        // Given a session near expiry whose refresh fails transiently. The network dropped, not the token
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
         jest.mocked(isSessionNearExpiry).mockReturnValue(true);
         jest.mocked(refreshCloudflareSession).mockRejectedValue(new TypeError('Failed to fetch'));
@@ -195,7 +195,7 @@ describe('runCloudflareAuthProbe', () => {
     });
 
     it('maps the request-level re-auth rejection to reauthRequired', async () => {
-        // Given a locally fresh session that the Worker rejects mid-request with the re-auth sentinel
+        // Given a locally fresh session that the Worker rejects mid-request with the re-auth marker
         jest.mocked(getCloudflareSession).mockReturnValue(SESSION);
         mockFetchWithQAAuth.mockRejectedValue(new Error(CF_REAUTH_REQUIRED));
 

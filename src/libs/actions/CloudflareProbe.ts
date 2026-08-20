@@ -20,7 +20,7 @@ import {
 type CloudflareAuthProbeStatus = 'success' | 'reauthRequired' | 'signInFailed' | 'error';
 
 type CloudflareAuthProbeResult = {
-    /** Semantic outcome — the UI translates these */
+    /** Semantic outcome. The UI translates these */
     status: CloudflareAuthProbeStatus;
 
     /** Raw diagnostic (server echo / error text), deliberately untranslated */
@@ -28,18 +28,18 @@ type CloudflareAuthProbeResult = {
 };
 
 type CloudflareAuthProbeOptions = {
-    /** A press made after seeing reauthRequired — it consents to navigation, so a terminal refresh failure redirects instead of reporting again */
+    /** A press made after seeing reauthRequired. It consents to navigation, so a terminal refresh failure redirects instead of reporting again */
     shouldRedirectOnReauthRequired?: boolean;
 };
 
 /**
- * Never rejects — every failure comes back as a semantic result, so the UI consumes it with `.then` only.
+ * Never rejects. Every failure comes back as a semantic result, so the UI consumes it with `.then` only.
  * With no session (or on a consented re-auth, see the options) it navigates the tab away and never settles.
  */
 async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: CloudflareAuthProbeOptions = {}): Promise<CloudflareAuthProbeResult> {
     try {
         await waitForCloudflareSessionHydration();
-        // A callback boot may still be exchanging the code — join it instead of starting a second round trip
+        // A callback boot may still be exchanging the code. Join it instead of starting a second round trip
         const pendingCompletion = getPendingCloudflareAuthCompletion();
         if (pendingCompletion) {
             try {
@@ -51,7 +51,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
 
         const session = getCloudflareSession();
         if (!session) {
-            // Never settles — nothing below runs
+            // Never settles. Nothing below runs
             await beginCloudflareAuthRedirect();
         } else if (isSessionNearExpiry(session)) {
             const refreshResult = await refreshCloudflareSession();
@@ -67,7 +67,7 @@ async function runCloudflareAuthProbe({shouldRedirectOnReauthRequired = false}: 
         if (!response.ok) {
             return {status: 'error', detail: `HTTP ${response.status}`};
         }
-        // Diagnostic echo of how the request authenticated — read loosely
+        // Diagnostic echo of how the request authenticated. Read loosely
         const body: unknown = await response.json().catch(() => null);
         const authenticatedVia = isRecord(body) && typeof body.authenticatedVia === 'string' ? body.authenticatedVia : null;
         return {status: 'success', detail: `authenticatedVia: ${authenticatedVia ?? 'null'}`};

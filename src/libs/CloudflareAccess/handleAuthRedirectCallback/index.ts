@@ -9,7 +9,7 @@ import {consumePendingAuthFlow} from '@libs/CloudflareAccess/PendingAuthFlowStor
 
 import {completeCloudflareAuthRedirect} from '@userActions/CloudflareSession';
 
-import type {CloudflareAuthRedirectOutcome, CloudflareAuthRedirectResult} from './types';
+import type {CloudflareAuthRedirectOutcome, GetCloudflareAuthRedirectOutcome, HandleCloudflareAuthRedirectCallback} from './types';
 
 let lastOutcome: CloudflareAuthRedirectOutcome = 'not-a-callback';
 let lastErrorMessage: string | undefined;
@@ -30,8 +30,7 @@ function toSafeReturnPath(returnURL: string | undefined): string {
     }
 }
 
-/** Call once during boot, before any render. No-op on every load that isn't the callback. */
-function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
+const handleCloudflareAuthRedirectCallback: HandleCloudflareAuthRedirectCallback = () => {
     lastErrorMessage = undefined;
 
     if (!isQAAuthConfigured()) {
@@ -75,7 +74,7 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
 
     const oauthError = params.get('error');
     if (oauthError) {
-        // e.g. access_denied — never attempt the exchange
+        // e.g. access_denied, never attempt the exchange
         lastOutcome = 'provider-error';
         lastErrorMessage = new OAuthError(oauthError, params.get('error_description') ?? undefined).message;
         return lastOutcome;
@@ -88,7 +87,7 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
         return lastOutcome;
     }
 
-    // Fire and forget; the catch records the failure as the observable outcome, since the completion promise
+    // Fire and forget. The catch records the failure as the observable outcome, since the completion promise
     // clears as it settles. It runs a microtask later, so it always lands after the synchronous 'exchanging'.
     completeCloudflareAuthRedirect({code, codeVerifier: flow.codeVerifier}).catch((error: unknown) => {
         lastOutcome = 'exchange-failed';
@@ -97,12 +96,8 @@ function handleCloudflareAuthRedirectCallback(): CloudflareAuthRedirectOutcome {
 
     lastOutcome = 'exchanging';
     return lastOutcome;
-}
+};
 
-/** What the boot-time callback handling concluded, for UI that wants to surface a failed round trip */
-function getCloudflareAuthRedirectOutcome(): CloudflareAuthRedirectResult {
-    return {outcome: lastOutcome, errorMessage: lastErrorMessage};
-}
+const getCloudflareAuthRedirectOutcome: GetCloudflareAuthRedirectOutcome = () => ({outcome: lastOutcome, errorMessage: lastErrorMessage});
 
 export {getCloudflareAuthRedirectOutcome, handleCloudflareAuthRedirectCallback};
-export type {CloudflareAuthRedirectOutcome};
