@@ -7,8 +7,6 @@ import type {ConnectionName, PolicyConnectionName} from '@src/types/onyx/Policy'
 import type {OnyxEntry} from 'react-native-onyx';
 import type {ValueOf} from 'type-fest';
 
-const INTUIT_ENTERPRISE_SUITE_SCOPE = 'app-foundations.custom-dimensions.read';
-
 const ROUTE_NAME_MAPPING = {
     [CONST.POLICY.CONNECTIONS.ROUTE.QBO]: CONST.POLICY.CONNECTIONS.NAME.QBO,
     [CONST.POLICY.CONNECTIONS.ROUTE.XERO]: CONST.POLICY.CONNECTIONS.NAME.XERO,
@@ -69,7 +67,7 @@ function getExportLabelsForConnection(connectionName: ConnectionName, policies: 
 }
 
 function isIntuitEnterpriseSuiteConnection(policy: OnyxEntry<Policy>): boolean {
-    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(INTUIT_ENTERPRISE_SUITE_SCOPE);
+    return !!policy?.connections?.quickbooksOnline?.config?.credentials?.scope?.includes(CONST.POLICY.CONNECTIONS.INTUIT_ENTERPRISE_SUITE_SCOPE);
 }
 
 function getQuickbooksOnlineIntegrationName(policy: OnyxEntry<Policy>, translate: LocaleContextProps['translate']): string {
