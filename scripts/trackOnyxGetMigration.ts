@@ -6,8 +6,7 @@
  * read, each with a verdict saying whether the mechanical conditions clear it outright or a human has
  * to look.
  *
- * `analyzeOnyxSubscriptions.ts` already reports which bindings are never read during render. That set
- * is a superset of the convertible one: a binding can be off the render path and still be the wrong
+ * Superset of the convertible cases: a binding can be off the render path and still be the wrong
  * thing to convert. The three shapes that matter, none of which the non-render classification
  * separates out:
  *
