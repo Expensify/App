@@ -136,6 +136,52 @@ describe('getWorkspaceMenuItems', () => {
         expect(items.find((item) => item.translationKey === 'workspace.common.members')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
+    it('shows an error indicator when general Workspace settings have errors', () => {
+        const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), errorFields: {name: {error: 'Whoops'}}});
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.profile')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+    });
+
+    it('shows an accounting sync error only when a sync is not in progress', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            areConnectionsEnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.NETSUITE]: {
+                    lastSync: {
+                        errorDate: new Date().toISOString(),
+                        errorMessage: 'Whoops',
+                        isAuthenticationError: true,
+                        isConnected: false,
+                        isSuccessful: false,
+                        source: 'NEWEXPENSIFY',
+                        successfulDate: '',
+                    },
+                },
+            },
+        });
+        const buildItems = (connectionInProgress: boolean) =>
+            getWorkspaceMenuItems({
+                policy,
+                policyID: policy.id,
+                currentUserLogin,
+                icons,
+                connectionInProgress,
+                convertToDisplayString: () => '',
+            });
+
+        expect(buildItems(false).find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
+        expect(buildItems(true).find((item) => item.translationKey === 'workspace.common.accounting')?.brickRoadIndicator).toBeUndefined();
+    });
+
     it('shows an error indicator when receipt partner credentials require attention', () => {
         const policy = createMock<Policy>({...buildPolicy(CONST.POLICY.ROLE.ADMIN), receiptPartners: {enabled: true}});
 
@@ -188,6 +234,29 @@ describe('getWorkspaceMenuItems', () => {
         });
 
         expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.INFO);
+    });
+
+    it('shows an error indicator when the Merge HR connection has an authentication error', () => {
+        const policy = createMock<Policy>({
+            ...buildPolicy(CONST.POLICY.ROLE.ADMIN),
+            isHREnabled: true,
+            connections: {
+                [CONST.POLICY.CONNECTIONS.NAME.MERGE_HR]: {
+                    config: {integration: 'workday'},
+                    lastSync: {isAuthenticationError: true},
+                },
+            },
+        });
+
+        const items = getWorkspaceMenuItems({
+            policy,
+            policyID: policy.id,
+            currentUserLogin,
+            icons,
+            convertToDisplayString: () => '',
+        });
+
+        expect(items.find((item) => item.translationKey === 'workspace.common.hr')?.brickRoadIndicator).toBe(CONST.BRICK_ROAD_INDICATOR_STATUS.ERROR);
     });
 
     it('uses the existing Rules icon when the Rules revamp beta is disabled', () => {
