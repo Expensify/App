@@ -1681,6 +1681,14 @@ function isCardPendingActivate(card?: Card) {
     return card?.state === CONST.EXPENSIFY_CARD.STATE.NOT_ACTIVATED;
 }
 
+/**
+ * Whether a digital wallet addition for this card is waiting for the cardholder to confirm or deny it. The backend only
+ * reports this once they verified the addition over the phone with the card network.
+ */
+function isCardPendingDigitalWalletApproval(card?: Card) {
+    return !!card?.nameValuePairs?.pendingDigitalWalletApproval;
+}
+
 function isCardWithCustomZeroLimit(card: Card): boolean {
     return !!card.nameValuePairs?.hasCustomUnapprovedExpenseLimit && card.nameValuePairs?.unapprovedExpenseLimit === 0;
 }
@@ -2232,6 +2240,7 @@ export {
     getPersonalBankCardDetailsImage,
     isCardPendingIssue,
     isCardPendingActivate,
+    isCardPendingDigitalWalletApproval,
     isCardPendingReplace,
     isCardWithCustomZeroLimit,
     hasPendingExpensifyCardAction,

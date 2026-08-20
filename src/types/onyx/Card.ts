@@ -19,6 +19,15 @@ type CardStatusChanges = {
     status: ValueOf<typeof CONST.EXPENSIFY_CARD.STATE>;
 };
 
+/** Model of a digital wallet addition waiting for the cardholder to confirm it */
+type PendingDigitalWalletApproval = {
+    /** The wallet that requested the card, as the card provider names it */
+    walletProvider?: ValueOf<typeof CONST.EXPENSIFY_CARD.WALLET_PROVIDER>;
+
+    /** Last four digits of the card being added, which is what the cardholder confirmed over the phone */
+    cardLastFourDigits?: string;
+};
+
 /** Model of possible fraud data stored on a card */
 type PossibleFraudData = {
     /** Fraud state of the card */
@@ -213,6 +222,12 @@ type Card = OnyxValueWithOfflineFeedback<{
 
         /** Possible fraud information */
         possibleFraud?: PossibleFraudData;
+
+        /**
+         * Set while a digital wallet addition the cardholder verified over the phone is waiting for them to confirm or
+         * deny it. Undefined once there is nothing to confirm.
+         */
+        pendingDigitalWalletApproval?: PendingDigitalWalletApproval | null;
     }> &
         OnyxValueWithOfflineFeedback<
             /** Type of export card */
