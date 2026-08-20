@@ -43,6 +43,9 @@ type SearchTableHeaderProps = {
     onSortPress: (column: SearchSortBy, order: SortOrder) => void;
     shouldRemoveTotalColumnFlex?: boolean;
     isActionColumnWide?: boolean;
+
+    /** True when the date column renders "Created" (expense reports), which needs a wider column. */
+    isDateColumnCreated?: boolean;
 };
 
 function SortableTableHeader({
@@ -51,6 +54,7 @@ function SortableTableHeader({
     sortOrder,
     shouldShowColumn,
     dateColumnSize,
+    isDateColumnCreated,
     submittedColumnSize,
     approvedColumnSize,
     postedColumnSize,
@@ -103,6 +107,7 @@ function SortableTableHeader({
                             containerStyle={[
                                 StyleUtils.getReportTableColumnStyles(columnName, {
                                     isDateColumnWide: dateColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
+                                    isDateColumnCreated,
                                     isSubmittedColumnWide: submittedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isApprovedColumnWide: approvedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
                                     isPostedColumnWide: postedColumnSize === CONST.SEARCH.TABLE_COLUMN_SIZES.WIDE,
