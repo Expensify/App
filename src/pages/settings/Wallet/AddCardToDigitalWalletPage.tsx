@@ -129,7 +129,6 @@ function AddCardToDigitalWalletPage({
         );
     }
 
-    console.log('cardcard', card);
     return (
         <ScreenWrapper
             includeSafeAreaPaddingBottom
