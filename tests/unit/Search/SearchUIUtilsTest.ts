@@ -12801,4 +12801,10 @@ describe('getSavedSearchIconName', () => {
         expect(SearchUIUtils.getSavedSearchIconName('an-unparseable-query')).toBe('Bookmark');
         spy.mockRestore();
     });
+
+    it('falls back to the bookmark icon when the query has a type outside the supported set (e.g. a hand-edited type:test URL)', () => {
+        // `buildSearchQueryJSON` passes an unrecognized `type` value straight through, so the map lookup
+        // misses and the icon must still resolve to the fallback rather than to `undefined`.
+        expect(SearchUIUtils.getSavedSearchIconName('type:test')).toBe('Bookmark');
+    });
 });

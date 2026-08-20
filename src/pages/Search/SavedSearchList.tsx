@@ -17,7 +17,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, getSavedSearchIconName, SAVED_SEARCH_TYPE_ICON_NAMES} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, getSavedSearchIconName, SAVED_SEARCH_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -94,7 +94,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', ...SAVED_SEARCH_TYPE_ICON_NAMES, 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons([...SAVED_SEARCH_ICON_NAMES, 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -147,7 +147,9 @@ function SavedSearchList({hash}: SavedSearchListProps) {
             <SearchTypeMenuItem
                 key={item.key}
                 title={item.title ?? ''}
-                icon={expensifyIcons[getSavedSearchIconName(item.query)]}
+                // Reuse the per-type icon already resolved in `buildSavedSearchMenuItem` instead of re-parsing
+                // the query here; `MenuItem['icon']` is wider than `IconAsset` but is always an IconAsset for these items.
+                icon={item.icon as IconAsset}
                 focused={item.focused}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {
@@ -163,7 +165,6 @@ function SavedSearchList({hash}: SavedSearchListProps) {
         <MenuItemList
             menuItems={savedSearchesMenuItems}
             wrapperStyle={[styles.sectionMenuItem(shouldUseNarrowLayout), styles.searchTypeMenuItemPadding]}
-            icon={expensifyIcons.Bookmark}
             iconWidth={variables.iconSizeNormal}
             iconHeight={variables.iconSizeNormal}
             shouldUseSingleExecution
