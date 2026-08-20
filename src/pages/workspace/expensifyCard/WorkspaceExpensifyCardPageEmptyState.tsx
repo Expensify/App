@@ -80,6 +80,8 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
     const isUkEuCurrencySupported = useExpensifyCardUkEuSupported(policy?.id);
     const {allFeeds} = useExpensifyCardFeedsForFeedSelector(policy?.id);
     const hasAccessibleFeeds = allFeeds.length > 0;
+    const setupCtaTranslationKey = isSetupUnfinished ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard';
+    const ctaTextTranslationKey = hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : setupCtaTranslationKey;
 
     const eligibleBankAccounts = isUkEuCurrencySupported
         ? getEligibleBankAccountsForUkEuCard(bankAccountList, supportedCountriesByCurrency, policy?.outputCurrency)
@@ -154,10 +156,10 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
             <View style={[styles.pt3, shouldUseNarrowLayout ? styles.workspaceSectionMobile : styles.workspaceSection, {minHeight: windowHeight - variables.contentHeaderHeight}]}>
                 <FeatureList
                     menuItems={isUkEuCurrencySupported ? expensifyCardFeatures.slice(1) : expensifyCardFeatures}
-                    title={translate('workspace.moreFeatures.expensifyCard.feed.title')}
+                    title={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.existingFeedTitle' : 'workspace.moreFeatures.expensifyCard.feed.title')}
                     subtitle={translate('workspace.moreFeatures.expensifyCard.feed.subTitle')}
-                    ctaText={translate(isSetupUnfinished && !hasAccessibleFeeds ? 'workspace.expensifyCard.finishSetup' : 'workspace.expensifyCard.issueNewCard')}
-                    ctaAccessibilityLabel={translate('workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
+                    ctaText={translate(ctaTextTranslationKey)}
+                    ctaAccessibilityLabel={translate(hasAccessibleFeeds ? 'workspace.moreFeatures.expensifyCard.feed.viewCards' : 'workspace.moreFeatures.expensifyCard.feed.ctaTitle')}
                     onCtaPress={() => {
                         if (!canWriteExpensifyCard) {
                             showReadOnlyModal();
