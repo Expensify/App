@@ -13,6 +13,8 @@ import CONST from '@src/CONST';
 
 import type {OnyxKey} from 'react-native-onyx';
 
+import {AppState} from 'react-native';
+
 /**
  * An already-satisfied barrier: `API.writeWhenReady` with this behaves like `API.write`, one microtask
  * later. Used so a call site stays a single `API.writeWhenReady` call instead of branching between the
@@ -53,6 +55,14 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
 
         const searchGeneration = getPendingSearchWriteGeneration();
         if (searchGeneration === undefined) {
+            return writeBarrier;
+        }
+
+        // writeWhenReady executes immediately, without ever invoking the barrier thunk, when the app is
+        // already backgrounded at call time - so the abort listener and `finally` below would never run.
+        // Consume now instead: the write is going out this tick regardless, so there's nothing to wait on.
+        if (AppState.currentState === CONST.APP_STATE.BACKGROUND) {
+            consumePendingSearchWriteForGeneration(searchGeneration);
             return writeBarrier;
         }
 

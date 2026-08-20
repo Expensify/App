@@ -7,6 +7,10 @@ import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 
+import type {AppStateStatus} from 'react-native';
+
+import {AppState} from 'react-native';
+
 jest.mock('@libs/telemetry/submitFollowUpAction', () => ({addOptimization: jest.fn()}));
 
 const WATCH_KEY = `${ONYXKEYS.COLLECTION.TRANSACTION}1` as const;
@@ -20,9 +24,16 @@ function settled(barrier: WriteReadyBarrier) {
     return () => isSettled;
 }
 
+function emitAppState(state: AppStateStatus) {
+    // The react-native mock augments AppState with emitCurrentTestState to drive its currentState in tests.
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion -- accessing a react-native mock-only test helper
+    (AppState as unknown as {emitCurrentTestState: (nextState: AppStateStatus) => void}).emitCurrentTestState(state);
+}
+
 beforeEach(() => {
     jest.clearAllMocks();
     resetForTesting();
+    emitAppState('active');
 });
 
 describe('resolveWriteBarrier', () => {
@@ -122,6 +133,24 @@ describe('resolveWriteBarrier', () => {
         } finally {
             jest.useRealTimers();
         }
+    });
+
+    it('consumes the pending Search signal immediately when the app is already backgrounded', () => {
+        // Given Search's signal is up and the app is already backgrounded - writeWhenReady's own
+        // fast path executes such a write immediately without ever invoking the barrier thunk
+        markPendingSearchWrite();
+        emitAppState('background');
+        const writeBarrier: WriteReadyBarrier = () => new Promise<void>(() => {});
+
+        // When a write barrier is resolved for it
+        resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+
+        // When Search then flushes the signal
+        flushPendingSearchWrite();
+
+        // Then the signal still clears right away, even though the returned barrier was never invoked -
+        // otherwise flushPendingSearchWrite would wait forever for a consumer that will never attach
+        expect(hasPendingSearchWrite()).toBe(false);
     });
 
     it("consumes the pending Search signal when the caller's barrier is aborted instead of settling", () => {
