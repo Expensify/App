@@ -201,7 +201,7 @@ function DynamicContactMethodDetailsPage({route}: DynamicContactMethodDetailsPag
             confirmText: translate('common.yesContinue'),
             cancelText: translate('common.cancel'),
             shouldShowCancelButton: true,
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
     }, [showConfirmModal, translate]);
 

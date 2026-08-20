@@ -184,7 +184,7 @@ function DynamicRoomMembersPage({report, policy}: DynamicRoomMembersPageProps) {
             }),
             confirmText: translate('common.remove'),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (action !== ModalActions.CONFIRM) {
             return;

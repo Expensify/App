@@ -451,7 +451,7 @@ function CategorySettingsPage({route: {params, name}, navigation}: CategorySetti
                                     prompt: translate('workspace.categories.deleteCategoryPrompt'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    variant: CONST.BUTTON_VARIANT.DANGER,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 });
                                 if (action === ModalActions.CONFIRM) {
                                     deleteCategory();

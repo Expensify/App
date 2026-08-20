@@ -51,7 +51,7 @@ function DeleteGroupRow({domainAccountID, groupID}: DeleteGroupRowProps) {
             confirmText: translate('domain.groups.deleteGroup'),
             cancelText: translate('domain.groups.neverMind'),
             shouldShowCancelButton: true,
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
 
         if (result.action !== ModalActions.CONFIRM) {

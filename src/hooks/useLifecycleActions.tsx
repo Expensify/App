@@ -361,7 +361,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: unapproveWarningText,
                         confirmText: translate('iou.unapproveReport'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -383,7 +383,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                     prompt: translate('iou.cancelPaymentConfirmation'),
                     confirmText: translate('iou.cancelPayment'),
                     cancelText: translate('common.dismiss'),
-                    variant: CONST.BUTTON_VARIANT.DANGER,
+                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                 });
 
                 if (result.action !== ModalActions.CONFIRM || !chatReport) {
@@ -416,7 +416,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {
@@ -450,7 +450,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         prompt: reopenExportedReportWarningText,
                         confirmText: translate('iou.reopenReport'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
 
                     if (result.action !== ModalActions.CONFIRM) {

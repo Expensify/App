@@ -323,7 +323,7 @@ function WorkflowsApprovalsTab({policyID}: WorkflowsApprovalsTabProps) {
                         prompt: translate('workflowsPage.disableApprovalPromptDescription'),
                         confirmText: translate('common.disable'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     }).then((result) => {
                         if (result.action !== ModalActions.CONFIRM) {
                             return;

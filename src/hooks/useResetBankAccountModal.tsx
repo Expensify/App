@@ -136,7 +136,7 @@ function useResetBankAccountModal({
             ) : (
                 translate('workspace.bankAccount.clearProgress')
             ),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         }).then(({action}) => {
             isModalOpenRef.current = false;

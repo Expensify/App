@@ -125,7 +125,7 @@ function SelectionToolbar({reportID, transactions, reportActions}: SelectionTool
             prompt: deletePrompt,
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldEnableNewFocusManagement: true,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {

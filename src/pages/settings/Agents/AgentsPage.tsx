@@ -182,7 +182,7 @@ function AgentsPage() {
             prompt: translate('agentsPage.deleteAgentsMessage', {count: selectedAgentKeys.length}),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldHandleNavigationBack: false,
         });
 

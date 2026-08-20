@@ -223,7 +223,7 @@ function WorkspaceCompanyCardsSettingsPage({
                                     prompt: translate('workspace.moreFeatures.companyCards.removeCardFeedDescription'),
                                     confirmText: translate('common.delete'),
                                     cancelText: translate('common.cancel'),
-                                    variant: CONST.BUTTON_VARIANT.DANGER,
+                                    buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                                 }).then((result) => {
                                     if (result.action !== ModalActions.CONFIRM) {
                                         return;

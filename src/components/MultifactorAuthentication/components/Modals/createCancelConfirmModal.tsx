@@ -22,7 +22,7 @@ function CancelConfirmModalBase({isVisible, onConfirm, onCancel, title, descript
 
     return (
         <ConfirmModal
-            variant={CONST.BUTTON_VARIANT.DANGER}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             title={translate(title)}
             onConfirm={onConfirm}
             onCancel={onCancel}

@@ -639,7 +639,7 @@ function MoneyRequestReceiptView({
                             confirmText: translate('common.dismiss'),
                             cancelText: translate('common.cancel'),
                             shouldShowCancelButton: true,
-                            variant: CONST.BUTTON_VARIANT.DANGER,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                         }).then((result) => {
                             if (result.action !== ModalActions.CONFIRM) {
                                 return;

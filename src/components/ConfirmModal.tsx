@@ -46,7 +46,7 @@ type ConfirmModalProps = {
     subtitle?: string | ReactNode;
 
     /** Button variant */
-    variant?: ButtonVariant;
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -151,7 +151,7 @@ function ConfirmModal({
     prompt = '',
     subtitle,
     subtitleStyles,
-    variant = CONST.BUTTON_VARIANT.SUCCESS,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     onCancel = () => {},
     onBackdropPress,
     shouldDisableConfirmButtonWhenOffline = false,
@@ -227,7 +227,7 @@ function ConfirmModal({
                 prompt={prompt}
                 subtitle={subtitle}
                 subtitleStyles={subtitleStyles}
-                variant={variant}
+                buttonVariant={buttonVariant}
                 isVisible={isVisible}
                 shouldDisableConfirmButtonWhenOffline={shouldDisableConfirmButtonWhenOffline}
                 shouldShowCancelButton={shouldShowCancelButton}

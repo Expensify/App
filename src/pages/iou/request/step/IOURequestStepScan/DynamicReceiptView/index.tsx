@@ -89,7 +89,7 @@ function DynamicReceiptView({route}: DynamicReceiptViewProps) {
             prompt: translate('receipt.deleteConfirmation'),
             confirmText: translate('common.delete'),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         });
         if (result.action !== ModalActions.CONFIRM) {
             return;

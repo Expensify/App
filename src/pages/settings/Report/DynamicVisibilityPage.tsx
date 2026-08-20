@@ -69,7 +69,7 @@ function DynamicVisibilityPage({report}: DynamicVisibilityProps) {
                 confirmText: translate('common.yes'),
                 cancelText: translate('common.no'),
                 shouldShowCancelButton: true,
-                variant: CONST.BUTTON_VARIANT.DANGER,
+                buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             });
             if (result.action !== ModalActions.CONFIRM) {
                 return;

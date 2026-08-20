@@ -189,7 +189,7 @@ function ReportFieldsListValuesPage({
                     value: CONST.POLICY.BULK_ACTION_TYPES.DELETE,
                     onSelected: () => {
                         showConfirmModal({
-                            variant: CONST.BUTTON_VARIANT.DANGER,
+                            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                             title: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValue' : 'workspace.reportFields.deleteValues'),
                             prompt: translate(selectedKeys.length === 1 ? 'workspace.reportFields.deleteValuePrompt' : 'workspace.reportFields.deleteValuesPrompt'),
                             confirmText: translate('common.delete'),

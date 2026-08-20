@@ -279,7 +279,7 @@ function WorkspacePerDiemPage({route}: WorkspacePerDiemPageProps) {
                         prompt: translate('workspace.perDiem.areYouSureDelete', {count: selectedSubRateKeys.length}),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (action === ModalActions.CONFIRM) {
                         handleDeletePerDiemRates();

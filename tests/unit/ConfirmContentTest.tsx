@@ -77,16 +77,16 @@ describe('ConfirmContent', () => {
     }
 
     const testCases = [
-        {shouldShowCancelButton: false, variant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: undefined},
-        {shouldShowCancelButton: false, variant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
-        {shouldShowCancelButton: true, variant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: CONST.BUTTON_VARIANT.SUCCESS},
-        {shouldShowCancelButton: true, variant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: undefined},
+        {shouldShowCancelButton: false, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.SUCCESS, expectedVariant: CONST.BUTTON_VARIANT.SUCCESS},
+        {shouldShowCancelButton: true, buttonVariant: CONST.BUTTON_VARIANT.DANGER, expectedVariant: CONST.BUTTON_VARIANT.DANGER},
     ];
 
     describe('stacked buttons (shouldStackButtons=true)', () => {
         it.each(testCases)(
-            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, variant=$variant',
-            ({shouldShowCancelButton, variant, expectedVariant}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
                 const onConfirm = jest.fn();
                 render(
@@ -96,7 +96,7 @@ describe('ConfirmContent', () => {
                         isVisible
                         shouldStackButtons
                         shouldShowCancelButton={shouldShowCancelButton}
-                        variant={variant}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 
@@ -108,8 +108,8 @@ describe('ConfirmContent', () => {
 
     describe('side-by-side buttons (shouldStackButtons=false)', () => {
         it.each(testCases)(
-            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, variant=$variant',
-            ({shouldShowCancelButton, variant, expectedVariant}) => {
+            'confirm button variant=$expectedVariant when shouldShowCancelButton=$shouldShowCancelButton, buttonVariant=$buttonVariant',
+            ({shouldShowCancelButton, buttonVariant, expectedVariant}) => {
                 mockButtonSpy.mockClear();
                 const onConfirm = jest.fn();
                 render(
@@ -119,7 +119,7 @@ describe('ConfirmContent', () => {
                         isVisible
                         shouldStackButtons={false}
                         shouldShowCancelButton={shouldShowCancelButton}
-                        variant={variant}
+                        buttonVariant={buttonVariant}
                     />,
                 );
 

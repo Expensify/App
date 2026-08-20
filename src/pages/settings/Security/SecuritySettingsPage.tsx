@@ -212,7 +212,7 @@ function SecuritySettingsPage() {
                         prompt: translate('editAgentPage.deleteAgentMessage'),
                         confirmText: translate('common.delete'),
                         cancelText: translate('common.cancel'),
-                        variant: CONST.BUTTON_VARIANT.DANGER,
+                        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
                     });
                     if (result.action !== ModalActions.CONFIRM) {
                         return;

@@ -11,7 +11,7 @@ function getDiscardChangesModalConfig(translate: LocaleContextProps['translate']
     return {
         title: translate('discardChangesConfirmation.title'),
         prompt: translate('discardChangesConfirmation.body'),
-        variant: CONST.BUTTON_VARIANT.DANGER,
+        buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         confirmText: translate('discardChangesConfirmation.confirmText'),
         cancelText: translate('common.cancel'),
     };

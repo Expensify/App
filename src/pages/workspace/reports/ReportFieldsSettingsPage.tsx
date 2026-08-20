@@ -62,7 +62,7 @@ function ReportFieldsSettingsPage({
 
     const confirmAndDeleteReportField = async () => {
         const result = await showConfirmModal({
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('workspace.reportFields.delete'),
             prompt: translate('workspace.reportFields.deleteConfirmation'),
             confirmText: translate('common.delete'),

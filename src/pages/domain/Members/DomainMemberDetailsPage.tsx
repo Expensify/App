@@ -102,7 +102,7 @@ function DomainMemberDetailsPage({route}: DomainMemberDetailsPageProps) {
             prompt: translate('domain.members.closeAccountPrompt'),
             confirmText: translate('domain.members.closeAccount', {count: 1}),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             shouldShowCancelButton: true,
         });
 

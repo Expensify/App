@@ -550,7 +550,7 @@ function PopoverReportActionContextMenu({ref}: PopoverReportActionContextMenuPro
                 prompt={translate('reportActionContextMenu.deleteConfirmation', reportAction)}
                 confirmText={translate('common.delete')}
                 cancelText={translate('common.cancel')}
-                variant={CONST.BUTTON_VARIANT.DANGER}
+                buttonVariant={CONST.BUTTON_VARIANT.DANGER}
             />
         </>
     );

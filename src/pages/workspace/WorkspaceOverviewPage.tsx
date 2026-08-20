@@ -321,7 +321,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
                 prompt,
                 confirmText: translate('common.buttonConfirm'),
                 shouldShowCancelButton: false,
-                variant: CONST.BUTTON_VARIANT.SUCCESS,
+                buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
             });
             return;
         }
@@ -331,7 +331,7 @@ function WorkspaceOverviewPage({policyDraft, policy: policyProp, route}: Workspa
             prompt,
             confirmText: translate('common.leave'),
             cancelText: translate('common.cancel'),
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
         }).then((result) => {
             if (result.action !== ModalActions.CONFIRM) {
                 return;

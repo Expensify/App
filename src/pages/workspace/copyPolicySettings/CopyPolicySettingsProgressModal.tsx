@@ -159,7 +159,7 @@ function CopyPolicySettingsProgressModal() {
             shouldShowCancelButton={shouldShowCancelButton}
             isTitleLoading={isTitleLoading}
             shouldHandleNavigationBack
-            variant={danger ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
+            buttonVariant={danger ? CONST.BUTTON_VARIANT.DANGER : CONST.BUTTON_VARIANT.SUCCESS}
         />
     );
 }

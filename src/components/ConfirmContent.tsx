@@ -50,7 +50,7 @@ type ConfirmContentProps = {
     subtitle?: string | ReactNode;
 
     /** Button variant */
-    variant?: ButtonVariant;
+    buttonVariant?: ButtonVariant;
 
     /** Whether we should disable the confirm button when offline */
     shouldDisableConfirmButtonWhenOffline?: boolean;
@@ -137,7 +137,7 @@ function ConfirmContent({
     prompt = '',
     subtitle,
     subtitleStyles,
-    variant = CONST.BUTTON_VARIANT.SUCCESS,
+    buttonVariant = CONST.BUTTON_VARIANT.SUCCESS,
     shouldDisableConfirmButtonWhenOffline = false,
     shouldShowCancelButton = false,
     iconSource,
@@ -173,9 +173,9 @@ function ConfirmContent({
     const isCentered = shouldCenterContent;
 
     let confirmButtonVariant: ButtonVariant | undefined;
-    if (variant === CONST.BUTTON_VARIANT.DANGER) {
+    if (buttonVariant === CONST.BUTTON_VARIANT.DANGER) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.DANGER;
-    } else if ((shouldUseSuccessStyleForConfirm || shouldShowCancelButton) && variant === CONST.BUTTON_VARIANT.SUCCESS) {
+    } else if ((shouldUseSuccessStyleForConfirm || shouldShowCancelButton) && buttonVariant === CONST.BUTTON_VARIANT.SUCCESS) {
         confirmButtonVariant = CONST.BUTTON_VARIANT.SUCCESS;
     }
 

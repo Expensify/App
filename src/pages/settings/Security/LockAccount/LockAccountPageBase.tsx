@@ -52,7 +52,7 @@ function LockAccountPageBase({
             return;
         }
         const modalResult = await showConfirmModal({
-            variant: CONST.BUTTON_VARIANT.DANGER,
+            buttonVariant: CONST.BUTTON_VARIANT.DANGER,
             title: translate('lockAccountPage.reportSuspiciousActivity'),
             prompt: confirmModalPrompt,
             confirmText: translate('lockAccountPage.lockAccount'),

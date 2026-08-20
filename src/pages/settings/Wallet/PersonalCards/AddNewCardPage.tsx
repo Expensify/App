@@ -67,7 +67,7 @@ function AddPersonalNewCardPage() {
                         setIsModalVisible(true);
                         showConfirmModal({
                             title: translate('workspace.companyCards.addNewCard.exitModal.title'),
-                            variant: CONST.BUTTON_VARIANT.SUCCESS,
+                            buttonVariant: CONST.BUTTON_VARIANT.SUCCESS,
                             confirmText: translate('workspace.companyCards.addNewCard.exitModal.confirmText'),
                             cancelText: translate('workspace.companyCards.addNewCard.exitModal.cancelText'),
                             prompt: translate('workspace.companyCards.addNewCard.exitModal.prompt'),

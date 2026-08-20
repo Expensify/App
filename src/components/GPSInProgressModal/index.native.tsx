@@ -33,7 +33,7 @@ function GPSInProgressModal() {
             confirmText={translate('gps.switchToODWarningTripInProgress.confirm')}
             cancelText={translate('common.cancel')}
             prompt={translate('gps.switchToODWarningTripInProgress.prompt')}
-            variant={CONST.BUTTON_VARIANT.DANGER}
+            buttonVariant={CONST.BUTTON_VARIANT.DANGER}
         />
     );
 }
