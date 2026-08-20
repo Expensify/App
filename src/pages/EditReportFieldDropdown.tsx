@@ -36,7 +36,7 @@ function EditReportFieldDropdown({onSubmit, fieldKey, fieldValue, fieldOptions}:
     const validFieldOptions = fieldOptions?.filter((option) => !!option)?.sort(localeCompare);
 
     // Freeze the value selected when the picker opened so it drives the pinned "Selected" section for the whole open/focus cycle.
-    // The live value still drives the checkmark, so tapping a row marks it without reordering the list; the reorder happens only on reopen.
+    // The live value still drives the checkmark, so tapping a row marks it without reordering the list. The reorder happens only on reopen.
     const initialFieldValue = useInitialSelection(fieldValue, {resetOnFocus: true});
 
     const sections = getReportFieldOptionsSection({
