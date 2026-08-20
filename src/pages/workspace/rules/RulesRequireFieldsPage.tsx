@@ -197,7 +197,7 @@ function RulesRequireFieldsPage({
         return translate('workspace.rules.individualExpenseRules.enableCategoriesToUnlockPrompt');
     })();
 
-    const promptEnableCategories = async () => {
+    const promptEnableCategoriesForRequireCategory = async () => {
         if (isConnectedToAccounting) {
             const {action} = await showConfirmModal({
                 title: translate('workspace.moreFeatures.connectionsWarningModal.featureEnabledTitle'),
@@ -227,12 +227,8 @@ function RulesRequireFieldsPage({
         }
 
         enablePolicyCategories(policyData, true, false);
-
-        // enablePolicyCategories requires categories as part of enabling, but skips that when the workspace has none to
-        // enable, so only mirror it here when it actually happened.
-        if (Object.values(policyData.categories ?? {}).some((category) => category.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE)) {
-            setCategoryRequired(true);
-        }
+        setWorkspaceRequiresCategory(policyData, true);
+        setCategoryRequired(true);
     };
 
     const tagDisabledText = (() => {
@@ -312,7 +308,7 @@ function RulesRequireFieldsPage({
                         disabled={isCategoryToggleDisabled}
                         showLockIcon={shouldShowCategoryLock}
                         disabledText={categoryDisabledText}
-                        disabledAction={shouldShowCategoryLock ? promptEnableCategories : undefined}
+                        disabledAction={shouldShowCategoryLock ? promptEnableCategoriesForRequireCategory : undefined}
                         pendingAction={policy?.pendingFields?.requiresCategory}
                         errors={policy?.errorFields?.requiresCategory ?? undefined}
                         onCloseError={() => clearPolicyErrorField(policyID, 'requiresCategory')}
