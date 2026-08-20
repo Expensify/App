@@ -2,12 +2,18 @@ import type {EmitterSubscription, ScaledSize} from 'react-native';
 
 import {Dimensions} from 'react-native';
 
+// This module tracks whether the window width is changing, on both platforms. ScreenActivityWrapper reads the flag
+// through useSyncExternalStore to keep a covered screen painted for the duration of a resize, and its isKeptVisible
+// comment explains why a hidden screen needs that. The existing useIsResizing does not fit here, because it is web
+// only and also counts the height changes the soft keyboard causes.
+//
 // Every screen of every stack reads this flag, so one shared listener and one timer serve them all and the
-// subscribers are notified only when the flag actually flips. A per instance version would run the whole handler
+// subscribers are notified only when the flag actually flips. A per-instance version would run the whole handler
 // in every screen for every event of a drag.
 
-// How long the window stays marked as changing after the last qualifying change. Long enough for the revealed
-// screens to finish their layout, short enough that they are deprioritized again before the user can reach them.
+// The window stays marked as changing for this long after the last qualifying change. The value is long enough for
+// the revealed screens to finish their layout and short enough that they are deprioritized again before the user
+// can reach them.
 const WINDOW_SIZE_CHANGE_DURATION_MS = 250;
 
 let isWindowSizeChanging = false;
@@ -45,7 +51,7 @@ function handleDimensionsChange({window}: {window: ScaledSize}) {
     stopTimeoutID = setTimeout(() => setIsWindowSizeChanging(false), WINDOW_SIZE_CHANGE_DURATION_MS);
 }
 
-function subscribe(listener: () => void) {
+function subscribeToWindowSizeChange(listener: () => void) {
     if (listeners.size === 0) {
         lastWidth = Dimensions.get('window').width;
         dimensionsSubscription = Dimensions.addEventListener('change', handleDimensionsChange);
@@ -65,8 +71,8 @@ function subscribe(listener: () => void) {
     };
 }
 
-function getSnapshot() {
+function getIsWindowSizeChanging() {
     return isWindowSizeChanging;
 }
 
-export {subscribe, getSnapshot, WINDOW_SIZE_CHANGE_DURATION_MS};
+export {subscribeToWindowSizeChange, getIsWindowSizeChanging, WINDOW_SIZE_CHANGE_DURATION_MS};
