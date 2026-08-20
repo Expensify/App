@@ -27,6 +27,9 @@ import {
     hasDynamicExternalWorkflow,
     isGroupPolicy,
     isInstantSubmitEnabled,
+    // Cancelling a payment is a paid-only gate (it mirrors the pay gate, which only applies to Collect/Control), so the billing check is intentional here.
+    // eslint-disable-next-line no-restricted-imports
+    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyMember,
@@ -415,6 +418,33 @@ function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPayment
     );
 }
 
+// Cancel eligibility follows the payment that is currently in flight. A report can accumulate stale pay actions
+// (e.g. paid elsewhere, then cancelled, then re-paid via bank) because cancelling only appends a "payment cancelled"
+// action, it doesn't remove the original pay action. So we look at the most recent pay action rather than every one,
+// otherwise a superseded paid-elsewhere action could keep the Cancel button around past the bank payment's cutoff.
+function getLatestPayAction(payActions: ReportAction[]): ReportAction | undefined {
+    return payActions.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
+}
+
+function getPayActionPaymentType(action: ReportAction | undefined): string | undefined {
+    if (!action) {
+        return undefined;
+    }
+    const originalMessage = getOriginalMessage(action);
+    return originalMessage && 'paymentType' in originalMessage ? originalMessage.paymentType : undefined;
+}
+
+function hasPayActionPassedNachaCutoff(action: ReportAction | undefined): boolean {
+    if (!action) {
+        return false;
+    }
+    const now = new Date();
+    const paymentDatetime = new Date(action.created);
+    const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
+    const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
+    return nowUTC.getTime() > cutoffTimeUTC.getTime();
+}
+
 function isCancelPaymentAction(
     currentAccountID: number,
     currentUserEmail: string,
@@ -444,6 +474,13 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
+    // Cancelling a payment mirrors the pay gate (canIOUBePaid.canPay), which only applies to paid group policies.
+    // Guard here so an expense report whose policy can't be resolved to a paid group can't fall through isPayer's
+    // report-manager fallback and let a plain manager cancel.
+    if (!isPaidGroupPolicy(policy)) {
+        return false;
+    }
+
     // Mirror the pay gate (canIOUBePaid.canPay), so whoever could mark the report paid can cancel it — no admin requirement.
     const canCancelPayment =
         isPayer ||
@@ -454,9 +491,12 @@ function isCancelPaymentAction(
     }
 
     const payActions = getReportPayActions(report.reportID);
+    const latestPayAction = getLatestPayAction(payActions);
+    const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
-    // Check if payment was made via bank account (not elsewhere)
-    const isPaidViaBankAccount = everyPayActionHasPaymentType(payActions, (paymentType) => paymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE);
+    // Check if the latest payment was made via bank account (not elsewhere). An undetermined payment type
+    // (no pay action) is treated as paid elsewhere below so we still surface Cancel.
+    const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
     if (report.stateNum === CONST.REPORT.STATE_NUM.APPROVED && report.statusNum === CONST.REPORT.STATUS_NUM.REIMBURSED && !isPaidViaBankAccount) {
@@ -473,13 +513,7 @@ function isCancelPaymentAction(
     const isBankProcessing = isPaidViaBankAccount && (isInBillingState || isApprovedAndReimbursed || isAutoReimbursed);
     const isPaymentProcessing = (!!report.isWaitingOnBankAccount && report.statusNum === CONST.REPORT.STATUS_NUM.APPROVED) || isBankProcessing;
 
-    const hasDailyNachaCutoffPassed = payActions.some((action) => {
-        const now = new Date();
-        const paymentDatetime = new Date(action.created);
-        const nowUTC = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), now.getUTCHours(), now.getUTCMinutes(), now.getUTCSeconds()));
-        const cutoffTimeUTC = new Date(Date.UTC(paymentDatetime.getUTCFullYear(), paymentDatetime.getUTCMonth(), paymentDatetime.getUTCDate(), 23, 45, 0));
-        return nowUTC.getTime() > cutoffTimeUTC.getTime();
-    });
+    const hasDailyNachaCutoffPassed = hasPayActionPassedNachaCutoff(latestPayAction);
 
     return isPaymentProcessing && !hasDailyNachaCutoffPassed;
 }
