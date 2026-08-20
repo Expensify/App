@@ -4531,7 +4531,7 @@ ${amount} pour ${merchant} - ${date}`,
         defaultWorkspaceTravelDisabled: {
             title: 'Vous ne pouvez pas encore réserver de voyage',
             message:
-                'Vous êtes dans un espace de travail avec voyages activés, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
+                'Vous êtes membre d’un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
     },
     workspace: {

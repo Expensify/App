@@ -4495,7 +4495,7 @@ ${amount} voor ${merchant} - ${date}`,
         defaultWorkspaceTravelDisabled: {
             title: 'Je kunt nog geen reizen boeken',
             message:
-                'Je zit in een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als je standaardwerkruimte in om te kunnen boeken.',
+                'Je bent lid van een werkruimte met reizen ingeschakeld, maar dit is niet je standaardwerkruimte. Schakel reizen in op je standaardwerkruimte of stel een werkruimte met reizen als standaardwerkruimte in om te boeken.',
         },
     },
     workspace: {

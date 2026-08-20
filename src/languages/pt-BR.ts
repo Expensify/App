@@ -4489,7 +4489,7 @@ ${amount} para ${merchant} - ${date}`,
         defaultWorkspaceTravelDisabled: {
             title: 'Você ainda não pode reservar viagens',
             message:
-                'Você está em um espaço de trabalho com viagens ativadas, mas ele não é o seu espaço de trabalho padrão. Para reservar, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
+                'Você é membro de um workspace com viagens ativadas, mas ele não é o seu workspace padrão. Para fazer reservas, ative viagens no seu workspace padrão ou altere o seu workspace padrão para um que tenha viagens ativadas.',
         },
     },
     workspace: {

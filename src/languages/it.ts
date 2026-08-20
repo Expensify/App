@@ -4497,7 +4497,7 @@ ${amount} per ${merchant} - ${date}`,
         defaultWorkspaceTravelDisabled: {
             title: 'Non puoi ancora prenotare viaggi',
             message:
-                'Ti trovi in uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro che abbia i viaggi abilitati.',
+                'Sei membro di uno spazio di lavoro con viaggi abilitati, ma non è il tuo spazio di lavoro predefinito. Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
         },
     },
     workspace: {

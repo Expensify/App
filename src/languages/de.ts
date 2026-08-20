@@ -4521,7 +4521,7 @@ ${amount} für ${merchant} – ${date}`,
         defaultWorkspaceTravelDisabled: {
             title: 'Sie können noch keine Reisen buchen',
             message:
-                'Sie befinden sich in einem reiseaktivierten Workspace, aber es ist nicht Ihr Standard-Workspace. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Workspace oder legen Sie einen reiseaktivierten Workspace als Standard fest.',
+                'Sie sind Mitglied eines Reise-fähigen Arbeitsbereichs, aber er ist nicht Ihr Standardarbeitsbereich. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standardarbeitsbereich oder ändern Sie Ihren Standardarbeitsbereich auf einen, der Reisen aktiviert hat.',
         },
     },
     workspace: {
