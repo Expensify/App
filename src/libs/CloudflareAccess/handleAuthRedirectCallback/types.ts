@@ -23,4 +23,4 @@ type HandleCloudflareAuthRedirectCallback = () => CloudflareAuthRedirectOutcome;
 /** What the boot-time callback handling concluded, for UI that wants to surface a failed round trip */
 type GetCloudflareAuthRedirectOutcome = () => CloudflareAuthRedirectResult;
 
-export type {CloudflareAuthRedirectOutcome, CloudflareAuthRedirectResult, GetCloudflareAuthRedirectOutcome, HandleCloudflareAuthRedirectCallback};
+export type {CloudflareAuthRedirectOutcome, GetCloudflareAuthRedirectOutcome, HandleCloudflareAuthRedirectCallback};
