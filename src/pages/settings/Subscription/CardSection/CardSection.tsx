@@ -238,7 +238,7 @@ function CardSection() {
     return (
         <Section
             title={translate('subscription.cardSection.title')}
-            subtitle={isEmptyObject(defaultCard?.accountData) ? undefined : sectionSubtitle}
+            subtitle={sectionSubtitle}
             isCentralPane
             titleStyles={styles.textStrong}
             subtitleMuted
