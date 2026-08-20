@@ -113,7 +113,6 @@ function useParticipantSubmission({
     const isActivePolicyRequest =
         iouType === CONST.IOU.TYPE.CREATE &&
         isGroupPolicy(activePolicy) &&
-        activePolicy?.isPolicyExpenseChatEnabled &&
         !shouldRestrictUserBillableActions(activePolicy, ownerBillingGracePeriodEnd, userBillingGracePeriodEnds, amountOwed, currentUserPersonalDetails.accountID);
 
     const dataRef = useRef({
@@ -348,7 +347,7 @@ function useParticipantSubmission({
         const isPolicyExpenseChat = effectiveParticipants?.some((participant) => participant.isPolicyExpenseChat);
         if (iouType === CONST.IOU.TYPE.SPLIT && !isPolicyExpenseChat && splitTransaction?.amount && splitTransaction?.currency) {
             const participantAccountIDs = effectiveParticipants?.map((participant) => participant.accountID) as number[];
-            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID);
+            setSplitShares(splitTransaction, splitTransaction.amount, splitTransaction.currency, participantAccountIDs, userDetails.accountID, getCurrencyDecimals);
         }
 
         const newReportID = selectedReportID.current;

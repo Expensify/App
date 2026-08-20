@@ -17,7 +17,7 @@ import TransitionTracker from '@libs/Navigation/TransitionTracker';
 import {rand64} from '@libs/NumberUtils';
 import Parser from '@libs/Parser';
 import {getLoginByAccountID} from '@libs/PersonalDetailsUtils';
-import {getDistanceRateCustomUnitRate} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnitRate, resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {
     getIOUActionForReportID,
     getIOUActionForTransactionID,
@@ -123,6 +123,7 @@ type UpdateSplitTransactionsParams = {
     isTrackIntentUser: boolean | undefined;
     formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    getCurrencySymbol: CurrencyListActionsContextType['getCurrencySymbol'];
 };
 
 /**
@@ -206,6 +207,7 @@ function updateSplitTransactions({
     isTrackIntentUser,
     formatPhoneNumber,
     getCurrencyDecimals,
+    getCurrencySymbol,
 }: UpdateSplitTransactionsParams) {
     const parentTransactionReport = getReportOrDraftReport(transactionReport?.parentReportID);
     // For selfDM-origin splits the caller can't resolve a real `expenseReport` (the draft/source
@@ -351,6 +353,7 @@ function updateSplitTransactions({
                 billable: split?.billable,
                 quantity: split.customUnit?.quantity ?? undefined,
                 customUnitRateID: split.customUnit?.customUnitRateID,
+                distanceUnit: split.customUnit?.distanceUnit,
                 odometerStart: split.odometerStart,
                 odometerEnd: split.odometerEnd,
                 waypoints: split.waypoints,
@@ -611,6 +614,7 @@ function updateSplitTransactions({
         const reverseSplitLinkedTrackedExpenseReportAction = isReverseSplitOperation && linkedTrackedExpenseChildReportExistsInOnyx ? currentReportAction : undefined;
 
         const splitExpenseMerchant = splitExpense.merchant ?? '';
+        const originalTransactionTaxCode = resolveCurrentTaxCode(policy, originalTransactionDetails?.taxCode ?? '');
 
         const requestMoneyInformation = {
             participantParams: {
@@ -639,8 +643,15 @@ function updateSplitTransactions({
                 pendingAction: splitTransaction ? (splitTransaction.pendingAction ?? null) : CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
                 pendingFields: splitTransaction ? splitTransaction.pendingFields : undefined,
                 reimbursable: originalTransactionDetails?.reimbursable,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxCode: originalTransactionTaxCode,
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -684,8 +695,15 @@ function updateSplitTransactions({
                 tag: splitExpense.tags?.[0],
                 attendees: originalTransactionDetails?.attendees as Attendee[],
                 linkedTrackedExpenseReportAction: reverseSplitLinkedTrackedExpenseReportAction,
-                taxCode: originalTransactionDetails?.taxCode,
-                taxAmount: calculateIOUAmount(splitExpenses.length - 1, originalTransactionDetails?.taxAmount ?? 0, originalTransactionDetails?.currency ?? CONST.CURRENCY.USD, false),
+                taxCode: originalTransactionTaxCode,
+                taxAmount: calculateIOUAmount(
+                    splitExpenses.length - 1,
+                    originalTransactionDetails?.taxAmount ?? 0,
+                    originalTransactionDetails?.currency ?? CONST.CURRENCY.USD,
+                    false,
+                    false,
+                    getCurrencyDecimals,
+                ),
                 taxValue: originalTransactionDetails?.taxValue,
                 billable: originalTransactionDetails?.billable,
                 waypoints: splitExpense.waypoints,
@@ -812,6 +830,7 @@ function updateSplitTransactions({
             const oldTransactionChanges = {
                 ...existing,
                 quantity: splitTransaction.comment?.customUnit?.quantity ?? existing?.distance,
+                distanceUnit: splitTransaction.comment?.customUnit?.distanceUnit,
             } as TransactionChanges;
 
             if (currentSplit) {
@@ -880,6 +899,8 @@ function updateSplitTransactions({
                     isOffline,
                     delegateAccountID,
                     isTrackIntentUser,
+                    getCurrencyDecimals,
+                    getCurrencySymbol,
                 });
                 if (currentSplit) {
                     currentSplit.modifiedExpenseReportActionID = params.reportActionID;
