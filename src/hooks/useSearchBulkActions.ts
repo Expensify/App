@@ -1607,7 +1607,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 if (!iouReport?.chatReportID) {
                     return false;
                 }
-                const chatReport = allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`];
+                const chatReport = getReportOrDraftReport(iouReport.chatReportID, reports, undefined, undefined, allReports?.[`${ONYXKEYS.COLLECTION.REPORT}${iouReport.chatReportID}`]);
                 return isDM(chatReport);
             })
         );
