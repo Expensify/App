@@ -22,8 +22,7 @@ jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // Mirrors the real hook: the callback runs on focus and again whenever its identity changes, which is why
-        // the hook keeps that callback stable rather than closing over values that move.
+        // Mirrors the real hook: the callback runs on focus and again whenever its identity changes.
         useFocusEffect: (callback: () => void) => {
             if (callback === mockLastFocusCallback) {
                 return;
@@ -92,95 +91,106 @@ describe('useSearchPageSetup', () => {
     });
 
     it('leaves an error produced by this page alone', () => {
-        // No snapshot yet, so the page requests the query itself. When that request fails, the error is the outcome
-        // the user asked for and belongs on screen. Clearing it here would also race the request's own bookkeeping,
-        // which declines a fresh request while the failed one is still being torn down, leaving the page with
-        // neither data nor an error.
+        // Given a query with no snapshot yet, so the page requests it itself
         renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
         expect(mockSearch).toHaveBeenCalledTimes(1);
 
+        // When that request fails and leaves an error behind
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
 
+        // Then the error stays, because it is the outcome the user asked for and clearing it would race the
+        // request's own bookkeeping, which declines a fresh request while the failed one is still being torn down
         expect(getClearedHashes()).toEqual([]);
     });
 
-    it('asks OpenSearchPage to clear a snapshot left errored by a failed request', () => {
+    it('clears a snapshot left errored by an earlier session', () => {
+        // Given an errored snapshot the page inherited rather than produced
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
+        // When the page opens
         renderHook(() => useSearchPageSetup(queryJSON));
 
-        // Without this the snapshot stays both errored and terminal, which reads as resolved, so the page
-        // request never fires and the error view returns on every mount.
+        // Then the error is dropped, because errored and terminal reads as resolved and nothing would request again
         expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
     it('does not clear the same hash twice when the failure comes straight back', () => {
+        // Given an inherited error that has just been cleared
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
-
         const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
-
-        // The clear let the page request the query, and that request failed and wrote `errors` back. The error is
-        // ours now, so it stays and the page settles on the error view instead of looping.
         mockSearchResults = undefined;
         rerender({});
+
+        // When the request that followed the clear fails and writes the error back
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
         rerender({});
 
+        // Then it is left alone, so the page settles on the error view instead of looping request and failure
         expect(getClearedHashes()).toEqual([queryJSON?.hash]);
     });
 
     it('does not clear a query the server rejected as malformed', () => {
+        // Given a snapshot errored with the server's verdict that the query itself is invalid
         const snapshot = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchResults = {...snapshot, search: {...snapshot.search, responseJsonCode: CONST.JSON_CODE.INVALID_SEARCH_QUERY}};
 
+        // When the page opens
         renderHook(() => useSearchPageSetup(queryJSON));
 
+        // Then nothing is cleared, because re-sending a query the server already rejected cannot succeed
         expect(getClearedHashes()).toEqual([]);
     });
 
-    it('does not clear while offline, since the request that would reload the data cannot run', () => {
+    it('does not clear while offline', () => {
+        // Given an errored snapshot and no connection
         mockIsOffline = true;
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
+        // When the page opens
         renderHook(() => useSearchPageSetup(queryJSON));
 
+        // Then nothing is cleared, because the request that would reload the data cannot run offline
         expect(getClearedHashes()).toEqual([]);
     });
 
     it('leaves a healthy snapshot alone', () => {
+        // Given a snapshot carrying no errors
         const snapshot = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchResults = {...snapshot, errors: undefined};
 
+        // When the page opens
         renderHook(() => useSearchPageSetup(queryJSON));
 
+        // Then nothing is cleared, so a working query never pays for this recovery
         expect(getClearedHashes()).toEqual([]);
     });
 
     it('does not blame the previous query for the one being opened', () => {
-        // The snapshot lags a query change by a render, so it is still the errored query's while the hash is
-        // already the new one. Clearing then writes a snapshot for a query that never failed, and the page reads
-        // that as a real result and renders its empty state instead of loading.
+        // Given a snapshot still belonging to the errored query being navigated away from
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
 
+        // When a different query opens while the snapshot still lags behind
         renderHook(() => useSearchPageSetup(queryJSONB));
 
+        // Then nothing is cleared, because writing a snapshot for a query that never failed makes the page read it
+        // as a real result and render its empty state
         expect(getClearedHashes()).toEqual([]);
     });
 
-    it('tracks the clear per hash, so returning to an already-cleared hash does not clear it again', () => {
+    it('tracks the clear per hash', () => {
+        // Given an errored query that has already been cleared
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         const {rerender} = renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
 
-        // A second, independently errored query opens. It gets its own clear.
+        // When a second, independently errored query opens and the first one is returned to
         mockSearchResults = buildErroredSnapshot(queryJSONB?.hash ?? 0);
         rerender({queryJSON: queryJSONB});
-
-        // Back to the first query within the same mount. It already used its clear, so nothing more fires.
         mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         rerender({queryJSON});
 
+        // Then each query got exactly one clear, so switching back and forth cannot re-request forever
         expect(getClearedHashes()).toEqual([queryJSON?.hash, queryJSONB?.hash]);
     });
 });

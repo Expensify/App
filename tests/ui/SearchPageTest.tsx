@@ -193,6 +193,7 @@ describe('SearchPageNarrow', () => {
     });
 
     it('retries an already failed search snapshot once on a fresh mount', async () => {
+        // Given a snapshot left errored by a request that failed in an earlier session
         await act(async () => {
             await Onyx.set(`${ONYXKEYS.COLLECTION.SNAPSHOT}${failedQueryJSON?.hash}`, {
                 errors: {error: 'Something went wrong'},
@@ -208,15 +209,15 @@ describe('SearchPageNarrow', () => {
             });
         });
 
+        // When the page mounts
         renderPage();
 
         await act(async () => {
             jest.advanceTimersByTime(0);
         });
 
-        // Only a request clears the persisted `errors`, so without this one attempt the page renders its
-        // error view on every mount with nothing in flight, recoverable only by tapping Try again. The
-        // attempt means a fresh mount now shows the skeleton briefly instead of the error straight away.
+        // Then the query is requested again, because without that attempt the page renders its error view on every
+        // mount with nothing in flight
         expect(mockSearch).toHaveBeenCalledTimes(1);
     });
 
@@ -252,16 +253,18 @@ describe('SearchPageNarrow', () => {
     });
 
     it('drops a persisted retryable failure on a fresh mount instead of showing the error view', async () => {
+        // Given a snapshot errored with a retryable response code
         await setFailedSnapshot(CONST.JSON_CODE.EXP_ERROR);
 
+        // When the page mounts
         renderPage();
 
         await act(async () => {
             jest.runAllTimers();
         });
 
-        // Opening the page clears the stored failure so the request can run again. Leaving it in place is what
-        // turned a single failed request into a dead end the user could only escape by tapping Try again.
+        // Then no error view is shown, because leaving the stored failure in place is what turned one failed
+        // request into a dead end only the Try again button could escape
         expect(screen.queryByText('Try again')).toBeNull();
     });
 

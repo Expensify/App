@@ -44,22 +44,16 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
     const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
-    // The snapshot arrives on a different channel than the hash below (the context key versus the route param), so
-    // during a query change it can still be the previous query's. Without this check the errors of the query being
-    // left behind would be blamed on the one being opened, clearing the wrong snapshot and spending its one attempt.
+    // During a query change the snapshot can still be the previous query's, like isSearchDataLoaded guards against.
     const isSnapshotForCurrentQuery = currentSearchResults?.search?.hash === hash;
+
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
-    // Same emptiness rule as the error view this exists to unblock (Search/index.tsx), so the two cannot drift
-    // into a state where one shows the error and the other refuses to clear it. Offline is excluded because the
-    // request cannot run there, and clearing the markers without it would leave the page loading with nothing in flight.
+
+    // Offline is out because the request that would reload the data cannot run there.
     const hasErrorToClear = isSnapshotForCurrentQuery && !isEmptyObject(currentSearchResults?.errors) && !isInvalidQuery && !isOffline;
-    // Hashes this page has already requested, so an error can be traced to the attempt that produced it. An error
-    // from our own attempt belongs to the user and is left on screen; only one inherited from an earlier session is
-    // cleared. That also keeps the page from looping, since a cleared error that fails again is now ours.
-    // The Set is scoped to this hook instance, which lives as long as the Search page stays mounted. Changing the
-    // query only swaps route params, and an inactive tab is hidden rather than unmounted, so a hash is reconsidered
-    // only after a real remount.
+
+    // Hashes this page requested, so an error can be traced to the attempt that produced it.
     const requestedHashesRef = useRef<Set<number>>(new Set());
 
     // Clear selected transactions when navigating to a different search query
@@ -101,24 +95,18 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
-    // Kept free of the error state below: useFocusEffect re-subscribes whenever the callback identity changes, so
-    // closing over a value that moves would fire an extra request on every one of those renders.
+    // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
     useFocusEffect(
         useCallback(() => {
             openSearch();
         }, []),
     );
 
-    // Drop an error this page inherited rather than produced, so the effect above can request the query again. This
-    // reacts to the snapshot instead of reading it on focus, because on a cold launch it arrives from Onyx a render
-    // or more after the page mounts. An error from an attempt we made is left alone: it is the outcome the user asked
-    // for, and clearing it would race the request's own bookkeeping and leave the page with neither data nor error.
+    // Drop an error this page inherited rather than produced, so the effect above can request the query again.
     useEffect(() => {
         if (!hasErrorToClear || hash === undefined || requestedHashesRef.current.has(hash)) {
             return;
         }
-        // Taking the error means owning the hash, so a query cannot be cleared twice even if the request that
-        // follows never goes out (temporary search prevention, say) and never records the hash itself.
         requestedHashesRef.current.add(hash);
         openSearch(undefined, hash);
     }, [hasErrorToClear, hash]);
