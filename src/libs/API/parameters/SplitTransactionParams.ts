@@ -1,3 +1,4 @@
+import type {Unit} from '@src/types/onyx/Policy';
 import type {Comment, WaypointCollection} from '@src/types/onyx/Transaction';
 
 type SplitTransactionSplitParam = {
@@ -20,6 +21,7 @@ type SplitTransactionSplitParam = {
     reportID?: string;
     quantity?: number;
     customUnitRateID?: string;
+    distanceUnit?: Unit;
     odometerStart?: number;
     odometerEnd?: number;
     waypoints?: WaypointCollection;
