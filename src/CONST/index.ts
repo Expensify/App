@@ -1705,6 +1705,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
+                    UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
+                    REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1767,6 +1770,7 @@ const CONST = {
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
                     UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
                     UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
+                    UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE: 'POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -7889,7 +7893,7 @@ const CONST = {
                 name: 'Intuit Enterprise Suite',
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
-                icon: 'QBOSquare',
+                icon: 'IntuitSquare',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
@@ -9461,6 +9465,12 @@ const CONST = {
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
         ANNOUNCEMENTS: [
             {
+                title: 'The Expensify Card: Proactive spend controls',
+                subtitle: 'Press release',
+                url: 'https://www.businesswire.com/news/home/20260817277076/en/The-Expensify-Visa-Commercial-Card-Brings-New-Proactive-Spend-Controls-to-14-Countries',
+                publishedDate: '2026-08-17',
+            },
+            {
                 title: 'Scoped admin roles, plus HR & AI updates',
                 subtitle: 'Product update',
                 url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
@@ -9471,12 +9481,6 @@ const CONST = {
                 subtitle: 'Press release',
                 url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
                 publishedDate: '2026-07-20',
-            },
-            {
-                title: 'New feature: Consolidated travel billing',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260713695836/en/Expensify-Launches-Consolidated-Travel-Billing-to-Simplify-How-Companies-Pay-for-Business-Travel',
-                publishedDate: '2026-07-13',
             },
         ],
     },

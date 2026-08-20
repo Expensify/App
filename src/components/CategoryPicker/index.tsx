@@ -10,6 +10,7 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
+import canFocusInputOnScreenFocus from '@libs/canFocusInputOnScreenFocus';
 import {getCategoryListSections} from '@libs/CategoryOptionListUtils';
 import type {Category} from '@libs/CategoryOptionListUtils';
 import {getEnabledCategoriesCount} from '@libs/CategoryUtils';
@@ -35,6 +36,9 @@ type CategoryPickerProps = {
      * If enabled, the content will have a bottom padding equal to account for the safe bottom area inset.
      */
     addBottomSafeAreaPadding?: boolean;
+
+    /** Whether the search input should auto-focus when the picker mounts. Only opted into by the inline-edit popover wrapper. */
+    shouldAutoFocusSearchInput?: boolean;
 };
 
 const getSelectedOptions = (selectedCategory?: string): Category[] => {
@@ -51,7 +55,7 @@ const getSelectedOptions = (selectedCategory?: string): Category[] => {
     ];
 };
 
-function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false}: CategoryPickerProps) {
+function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOption = false, addBottomSafeAreaPadding = false, shouldAutoFocusSearchInput = false}: CategoryPickerProps) {
     const styles = useThemeStyles();
     const {inputCallbackRef} = useAutoFocusInput();
     const [shouldShowGLCode] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(policyID)}`, {
@@ -81,16 +85,14 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
     });
 
     const noneOption: OptionTree[] = shouldShowNoneOption
-        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map(
-              (option): OptionTree => ({
-                  text: option.text,
-                  keyForList: option.keyForList,
-                  searchText: '',
-                  tooltipText: option.text,
-                  isDisabled: false,
-                  isSelected: option.isSelected,
-              }),
-          )
+        ? getNoneOption(debouncedSearchValue, !selectedCategory, translate).map((option): OptionTree => ({
+              text: option.text,
+              keyForList: option.keyForList,
+              searchText: '',
+              tooltipText: option.text,
+              isDisabled: false,
+              isSelected: option.isSelected,
+          }))
         : [];
     const noneOptionSection = {
         title: '',
@@ -111,7 +113,8 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
         onChangeText: setSearchValue,
         headerMessage: getHeaderMessageForNonUserList(categoryData.length > 0, debouncedSearchValue),
         hint: offlineMessage,
-        disableAutoFocus: true,
+        // Auto-focus is opt-in (inline-edit popover only) and skipped on touch surfaces to avoid popping the keyboard.
+        disableAutoFocus: !(shouldAutoFocusSearchInput && canFocusInputOnScreenFocus()),
         ref: inputCallbackRef as (ref: BaseTextInputRef | null) => void,
     };
 
@@ -132,3 +135,4 @@ function CategoryPicker({selectedCategory, policyID, onSubmit, shouldShowNoneOpt
 }
 
 export default CategoryPicker;
+export type {CategoryPickerProps};

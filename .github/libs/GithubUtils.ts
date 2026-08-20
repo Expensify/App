@@ -246,6 +246,24 @@ class GithubUtils {
     }
 
     /**
+     * Collapse a comment as spam. Only exposed over GraphQL, and unlike rewriting the body it leaves the
+     * original text intact and can be undone from the UI.
+     */
+    static minimizeCommentAsSpam(commentNodeID: string): Promise<unknown> {
+        console.log(`Minimizing comment ${commentNodeID} as spam`);
+        return this.graphql(
+            `mutation($subjectId: ID!) {
+                minimizeComment(input: {subjectId: $subjectId, classifier: SPAM}) {
+                    minimizedComment {
+                        isMinimized
+                    }
+                }
+            }`,
+            {subjectId: commentNodeID},
+        );
+    }
+
+    /**
      * Get the most recent workflow run for the given New Expensify workflow.
      */
     /* eslint-disable rulesdir/no-default-id-values */
@@ -482,14 +500,12 @@ class GithubUtils {
             core.info(`🎉 Successfully fetched ${allCommits.length} total commits`);
             core.endGroup();
             console.log('');
-            return allCommits.map(
-                (commit): CommitType => ({
-                    commit: commit.sha,
-                    subject: commit.commit.message,
-                    authorName: commit.commit.author?.name ?? 'Unknown',
-                    date: commit.commit.committer?.date ?? '',
-                }),
-            );
+            return allCommits.map((commit): CommitType => ({
+                commit: commit.sha,
+                subject: commit.commit.message,
+                authorName: commit.commit.author?.name ?? 'Unknown',
+                date: commit.commit.committer?.date ?? '',
+            }));
         } catch (error) {
             if (error instanceof RequestError && error.status === 404) {
                 core.error(
