@@ -1,8 +1,8 @@
 ---
 title: Navigating New Expensify
 description: Learn how to move around New Expensify using the navigation tabs and Search, including Home, Inbox, Spend, Workspaces, and Account on web and mobile.
-keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination]
-internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions. Does not explain the detailed behavior of the Home tab sections.
+keywords: [New Expensify, navigation tabs, navigation, Home tab, Inbox tab, Inbox filters, Inbox tabs, All tab, Unread tab, To-dos, Spend tab, Workspaces tab, Account tab, Scan button, Create button, workspace filter, Search, go to, jump to destination, Create expense, Create report, Track distance, Start chat, Send invoice, New workspace]
+internalScope: Audience is all Expensify members. Covers how to navigate Expensify using the navigation tabs, the primary action buttons, and Search navigation suggestions, including starting Create actions from Search. Does not explain the detailed behavior of the Home tab sections.
 ---
 
 # Navigating New Expensify 
@@ -208,6 +208,27 @@ You can also use keyboard shortcuts on web to jump directly to specific items:
 
 ---
 
+## How to start a Create action using Search
+
+Search also surfaces the same actions available from the **➕ Create** button, so you can start them without opening the menu.
+
+1. Select **Search** (the magnifying glass icon).
+2. Type the name of the action you want to start, such as **Create expense** or **Track distance**. You can also type **go** or **go to** before the name.
+3. Select the suggestion to close Search and open that flow.
+
+The actions that can appear are:
+
+- **Create expense**
+- **Create report**
+- **Track distance**
+- **Start chat**
+- **Send invoice**
+- **New workspace**
+
+A suggestion only appears when that action is available to you. For example, **Send invoice** appears when you can send invoices, and **New workspace** appears when you can create a workspace.
+
+---
+
 # FAQ
 
 ## Where are navigation tabs located in Expensify?
@@ -217,6 +238,10 @@ On web, navigation tabs appear on the left. On mobile, navigation tabs appear on
 ## Can I use Search to move between sections of Expensify?
 
 Yes. Select **Search** (the magnifying glass icon), then type the name of a top-level destination: **Home**, **Inbox**, **Spend**, **Workspaces**, or **Account**. Select the **Go to [destination]** result to open it. You can also type **go** or **go to** before the name.
+
+## Can I start a Create action from Search?
+
+Yes. Type the name of the action in **Search**, such as **Create expense**, **Create report**, **Track distance**, **Start chat**, **Send invoice**, or **New workspace**, then select the suggestion. These are the same actions available from the **➕ Create** button, and a suggestion only appears when that action is available to you.
 
 ## Where do I manage workspace settings?
 
