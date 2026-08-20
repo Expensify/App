@@ -166,7 +166,7 @@ function SearchAddApproverPage() {
             shouldShowLoadingImmediatelyOnPress={false}
             containerStyles={[styles.flexReset, styles.flexGrow0, styles.flexShrink0, styles.flexBasisAuto]}
             enabledWhenOffline
-            shouldBlendOpacity
+            blendButtonOpacity
         />
     );
 
