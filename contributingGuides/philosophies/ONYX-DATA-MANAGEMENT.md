@@ -78,6 +78,31 @@ function ReportName({reportID}: Props) {
 }
 ```
 
+### - A value read with `Onyx.get()` MUST NOT be parked where render reads it
+The ban on reaching rendered output covers the indirect route as well. Putting the value in `useState`, in a `useRef`, or in a module-level variable that a component reads leaves the screen showing a snapshot of the moment of the read, and the key changing will never update it. If it renders, it comes from `useOnyx`.
+
+```typescript
+// BAD ❌ the title freezes at the moment of the tap
+function ReportTitle({reportID}: Props) {
+  const [title, setTitle] = useState<string>();
+  const onPress = () => setTitle(Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.reportName);
+  return <Text onPress={onPress}>{title}</Text>;
+}
+```
+
+### - A function that reads with `Onyx.get()` MUST NOT be passed where render can call it
+Passing the function as a prop moves the decision into the receiving component, and neither file shows the defect alone: the read is correct where it is written and the call site is in another file. A prop named for an event (`onPress`, `onSelectRow`) that the child only attaches to an event is fine. A prop the child invokes in its own body, in its JSX, or in a `useMemo` is a render read. Check the receiver before passing a reader down, and check it again when a new receiver appears.
+
+```typescript
+// BAD ❌ src/pages/ReportScreen.tsx passes a reader down
+<ReportRow getTotal={() => Onyx.get(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`)?.total} />
+
+// src/components/ReportRow.tsx calls it during render
+function ReportRow({getTotal}: Props) {
+  return <Text>{getTotal()}</Text>; // never updates again
+}
+```
+
 ### - Every caller of a function that reads with `Onyx.get()` MUST also be off the render path
 A read written correctly in a library function becomes a render-time read the moment a component or hook calls that function, and neither file shows the problem on its own. Adding the call is enough to break it, so a diff containing no Onyx code at all can be the diff that introduces the defect. Either take the value as a parameter, or keep every caller off the render path and check that again whenever a caller is added.
 
@@ -117,16 +142,24 @@ const derived = Onyx.get(ONYXKEYS.DERIVED.REPORT_ATTRIBUTES);   // still the old
 ### - `Onyx.get()` MUST NOT run at module scope or anywhere reachable from startup
 Module bodies run at import time and the cache hydrates asynchronously, so the read returns `undefined` for anything that lives only on disk. It fails silently, as an absent value rather than an error. Move the read into the function that needs it.
 
+Module scope is the loudest way in, not the only one. `Onyx.init()` runs outside the React lifecycle (`src/setup/index.ts`), so anything the boot path reaches can beat hydration: `index.js`, `src/setup/`, `src/App.tsx`, `src/Expensify.tsx`, `src/libs/actions/App.ts`, any exported `init*`, and a mount-only `useEffect(..., [])` in a component that renders before the splash screen hides. A read inside an `Onyx.connect` or `connectWithoutView` callback is the same hazard for any key other than the one subscribed, because one key arriving says nothing about another. When a read genuinely belongs in startup, sequence it behind hydration rather than racing it.
+
 ```typescript
 // BAD ❌
 const preferredLocale = Onyx.get(ONYXKEYS.NVP_PREFERRED_LOCALE); // runs at import time
+
+// BAD ❌ not module scope, still a cold-start read
+function initializeApp() {
+  const locale = Onyx.get(ONYXKEYS.NVP_PREFERRED_LOCALE); // undefined until hydration finishes
+  setLocale(locale ?? CONST.LOCALES.DEFAULT);
+}
 ```
 
 ### - Each synchronous stretch MUST do its own reads
 One read block per synchronous stretch, not per function. Code after an `await`, a `runAfterTransitions` or any other deferral runs in a later tick and is meant to see the writes the earlier stretch made, so hoisting a read above the deferral hands it a value that is one tick stale. The ordering rule above is satisfied here, so nothing flags it; cover it with a test that asserts the post-write value.
 
 ### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
-Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running, which no position check catches, because nothing renders the value and nothing reads it during render. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.
+Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running. No position check catches it, because nothing renders the value and nothing reads it during render. What does catch the two plainest shapes is the diff itself: a `useOnyx` deleted while a read of the same key appears inside an effect body, and a `useOnyx` deleted along with the variable's name in a dependency array. Anything longer than one hop stays manual. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.
 
 ```typescript
 // BAD ❌ deleting this subscription freezes the effect
