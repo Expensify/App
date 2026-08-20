@@ -33,7 +33,7 @@ type DynamicIOURequestStepAccountantProps = WithWritableReportOrNotFoundProps<ty
 
 function DynamicIOURequestStepAccountant({
     route: {
-        params: {transactionID, reportID, iouType, action},
+        params: {transactionID, iouType, action},
     },
 }: DynamicIOURequestStepAccountantProps) {
     const {translate} = useLocalize();
@@ -64,7 +64,7 @@ function DynamicIOURequestStepAccountant({
             return;
         }
 
-        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.getRoute({action, iouType, transactionID, reportID})));
+        Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_PARTICIPANTS.path));
     };
 
     const navigateBack = () => {

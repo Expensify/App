@@ -622,7 +622,7 @@ describe('getBestMatchingPath', () => {
     });
 
     it('does not let the participants pattern swallow the report participant routes (#83852)', () => {
-        // Same segment count as `/*/*/participants/*/*`, so the guard entries must win and leave these untouched.
+        // Same segment count as `/*/*/participants/*/*`, so the guard entry must win and leave these untouched.
         expect(getMatchingNewRoute('/r/123/participants/participants-details/456')).toBe('/r/123/participants/participants-details/456');
         expect(getMatchingNewRoute('/e/123/participants/participants-details/456')).toBe('/e/123/participants/participants-details/456');
         // The guard's trailing wildcard also covers the deeper participant-role route, still as an identity.
