@@ -1,5 +1,5 @@
 import {SAFETY_TIMEOUT_MS} from '@libs/API/writeWhenReady';
-import {hasPendingSubmitWriteForReport, markPendingSubmitWriteForReport, resetForTesting} from '@libs/pendingSubmitWrite';
+import {hasPendingSubmitWriteForReport, markPendingSubmitWriteForReport, resetForTesting, restartPendingSubmitWriteSafetyTimeout} from '@libs/pendingSubmitWrite';
 
 beforeEach(() => {
     resetForTesting();
@@ -73,6 +73,42 @@ describe('pendingSubmitWrite', () => {
             jest.advanceTimersByTime(SAFETY_TIMEOUT_MS / 2);
 
             expect(hasPendingSubmitWriteForReport('report-B')).toBe(true);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('restarts the safety timeout from the point the write attaches', () => {
+        jest.useFakeTimers();
+        try {
+            markPendingSubmitWriteForReport('report-A');
+
+            // The write attaches well into the mark-time window - without a restart, the original
+            // timer would clear the signal before the write's own equal-length window elapses.
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+            restartPendingSubmitWriteSafetyTimeout('report-A');
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(true);
+
+            jest.advanceTimersByTime(1);
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
+    it('ignores a restart for a report that is no longer the pending one', () => {
+        jest.useFakeTimers();
+        try {
+            markPendingSubmitWriteForReport('report-A');
+
+            restartPendingSubmitWriteSafetyTimeout('report-B');
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS);
+
+            // The restart for the wrong report must not have kept report-A's signal alive past its
+            // original window.
+            expect(hasPendingSubmitWriteForReport('report-A')).toBe(false);
         } finally {
             jest.useRealTimers();
         }
