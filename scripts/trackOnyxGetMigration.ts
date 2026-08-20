@@ -19,6 +19,9 @@
  *   - the handler that consumes the value writes to Onyx. Moving the read inside it can put the read
  *     after the write, where `merge` and `update` have not applied yet. That is the proposal's third
  *     condition.
+ *   - the file renders inside a Search scope, where `@hooks/useOnyx` redirects the snapshot keys to
+ *     `snapshot_<hash>`. The binding and the read then have different sources, and the read's is usually
+ *     empty rather than stale, because a search returns entities this client never loaded.
  *
  * What a `CERTAIN` verdict does and does not claim. It claims the mechanical conditions hold: the value
  * never reaches rendered output, every reference sits in event-position code, no reference is an effect
@@ -41,6 +44,8 @@
  *   bun scripts/trackOnyxGetMigration.ts --verdicts      # every non-render binding and why
  *   bun scripts/trackOnyxGetMigration.ts --callees       # each callee a CERTAIN binding feeds, and its caller set
  *   bun scripts/trackOnyxGetMigration.ts --callee-names  # every callee to run the caller sweep on
+ *   bun scripts/trackOnyxGetMigration.ts --scope         # bindings held out because a Search scope redirects the key
+ *   bun scripts/trackOnyxGetMigration.ts --tasks         # wave 1 split into callee tasks and file-local tasks
  *   bun scripts/trackOnyxGetMigration.ts --file <path>   # one file, per-binding verdict
  *   bun scripts/trackOnyxGetMigration.ts --json
  */
@@ -190,6 +195,14 @@ type Binding = {
     readsSingleMemberOnly: boolean;
     /** Functions the value is handed to, as `name` or `object.name`. Where the read would move. */
     calleeNames: string[];
+    /** The file each callee is declared in, when the import resolves. Empty when it does not. */
+    calleeOwners: Record<string, string>;
+    /** Which argument position the value is forwarded as, per callee, so the parameter can be named. */
+    forwardedAt: Record<string, number>;
+    /** The name each callee is exported under, which is what to look for in its own file when the import is aliased. */
+    calleeExportedNames: Record<string, string>;
+    /** Functions in this file that consume the value, which is where a file-local read lands. */
+    consumerNames: string[];
     /** The binding reads through a `selector`, so the read site has to reproduce it rather than copy the key. */
     hasSelector: boolean;
     /** Onyx write methods called inside a consuming function, ahead of the reference. */
@@ -726,6 +739,66 @@ function consumingFunction(reference: ts.Node, scope: ts.Node, renderInvoked: Se
     return undefined;
 }
 
+/**
+ * The name a function is known by, which is what a task has to point at alongside its file: its own
+ * identifier, the variable or property it is assigned to, or the JSX attribute it is passed as. An anonymous
+ * callback inside another function takes that function's name, so the pointer lands somewhere a reader can
+ * open rather than nowhere.
+ */
+function functionName(node: ts.Node, sourceFile: ts.SourceFile): string | undefined {
+    if ((ts.isFunctionDeclaration(node) || ts.isFunctionExpression(node) || ts.isMethodDeclaration(node)) && node.name) {
+        return node.name.getText(sourceFile);
+    }
+
+    let current: ts.Node | undefined = node.parent;
+    while (current) {
+        if (ts.isVariableDeclaration(current) && ts.isIdentifier(current.name)) {
+            return current.name.text;
+        }
+        if (ts.isPropertyAssignment(current) && ts.isIdentifier(current.name)) {
+            return current.name.text;
+        }
+        if (ts.isJsxAttribute(current)) {
+            return current.name.getText(sourceFile);
+        }
+        if (isFunctionLike(current)) {
+            return functionName(current, sourceFile);
+        }
+        current = current.parent;
+    }
+
+    return undefined;
+}
+
+/**
+ * Local name to the name the module exports it under, so an aliased import resolves in the owner file:
+ * `import {flagComment as flagCommentUtil}` has to be looked up as `flagComment`. A default or namespace
+ * import maps to `default`, which the parameter lookup resolves through the file's default export.
+ */
+function collectImportedNames(sourceFile: ts.SourceFile): Map<string, string> {
+    const names = new Map<string, string>();
+
+    for (const statement of sourceFile.statements) {
+        if (!ts.isImportDeclaration(statement) || !statement.importClause) {
+            continue;
+        }
+        const {name, namedBindings} = statement.importClause;
+        if (name) {
+            names.set(name.text, 'default');
+        }
+        if (namedBindings && ts.isNamespaceImport(namedBindings)) {
+            names.set(namedBindings.name.text, 'default');
+        }
+        if (namedBindings && ts.isNamedImports(namedBindings)) {
+            for (const element of namedBindings.elements) {
+                names.set(element.name.text, (element.propertyName ?? element.name).text);
+            }
+        }
+    }
+
+    return names;
+}
+
 /** Local name to module specifier for every import in a file, so a callee can be traced to where it came from. */
 function collectImports(sourceFile: ts.SourceFile): Map<string, string> {
     const imports = new Map<string, string>();
@@ -805,6 +878,262 @@ function resolveModule(specifier: string, importingFile: string): string | undef
     }
 
     return undefined;
+}
+
+/**
+ * The keys `@hooks/useOnyx` redirects to the Search snapshot, read out of `CONST.SEARCH.SNAPSHOT_ONYX_KEYS`
+ * rather than copied here, so the list cannot drift from the hook's behaviour. Inside a `SearchScopeProvider`
+ * subtree the hook subscribes to `snapshot_<hash>` and extracts the requested key out of that blob, while
+ * `Onyx.get` always reads the global key. Converting such a binding therefore changes the data source, and
+ * usually to an absent value rather than a stale one, because a search returns reports and transactions this
+ * client never loaded.
+ */
+const SNAPSHOT_KEYS_FILE = 'src/CONST/index.ts';
+
+let snapshotKeyPathsCache: Set<string> | undefined;
+
+function snapshotKeyPaths(): Set<string> {
+    if (snapshotKeyPathsCache) {
+        return snapshotKeyPathsCache;
+    }
+
+    const paths = new Set<string>();
+    const sourceFile = parse(SNAPSHOT_KEYS_FILE);
+
+    forEachDescendant(sourceFile, (node) => {
+        if (!ts.isPropertyAssignment(node) || node.name.getText(sourceFile) !== 'SNAPSHOT_ONYX_KEYS' || !ts.isArrayLiteralExpression(node.initializer)) {
+            return;
+        }
+        for (const element of node.initializer.elements) {
+            paths.add(element.getText(sourceFile).replaceAll(/\s+/g, ''));
+        }
+    });
+
+    snapshotKeyPathsCache = paths;
+    return paths;
+}
+
+/**
+ * The `ONYXKEYS` path a key expression names, or the key text unchanged when there is nothing to strip. A
+ * collection member reads as its collection, since that is the granularity `SNAPSHOT_ONYX_KEYS` is written at:
+ * `` `${ONYXKEYS.COLLECTION.REPORT}${reportID}` `` gives `ONYXKEYS.COLLECTION.REPORT`. Only a template that
+ * opens with its prefix counts, matching the same rule in `no-unsafe-onyx-read.js`.
+ */
+function onyxKeyPath(keyText: string): string {
+    if (!keyText.startsWith('`')) {
+        return keyText;
+    }
+    return /^`\$\{([^}]+)\}/.exec(keyText)?.at(1) ?? '';
+}
+
+/** The root identifier of a JSX tag: `<Foo>` gives `Foo`, `<Foo.Bar>` gives `Foo`. */
+function jsxTagRootName(tagName: ts.JsxTagNameExpression): string | undefined {
+    let expression: ts.Node = tagName;
+    while (ts.isPropertyAccessExpression(expression)) {
+        expression = expression.expression;
+    }
+    return ts.isIdentifier(expression) ? expression.text : undefined;
+}
+
+const SEARCH_SCOPE_PROVIDER = 'SearchScopeProvider';
+
+/** What a `SearchScopeProvider` element does to the subtree under it. `isOnSearch={false}` opts it out. */
+function providerDisposition(node: ts.JsxOpeningLikeElement, sourceFile: ts.SourceFile): 'scoped' | 'excluded' | undefined {
+    if (jsxTagRootName(node.tagName) !== SEARCH_SCOPE_PROVIDER) {
+        return undefined;
+    }
+
+    const optsOut = node.attributes.properties.some(
+        (property) =>
+            ts.isJsxAttribute(property) &&
+            property.name.getText(sourceFile) === 'isOnSearch' &&
+            !!property.initializer &&
+            ts.isJsxExpression(property.initializer) &&
+            property.initializer.expression?.kind === ts.SyntaxKind.FalseKeyword,
+    );
+
+    return optsOut ? 'excluded' : 'scoped';
+}
+
+/**
+ * The nearest `SearchScopeProvider` a node sits lexically inside, which is what decides the node's scope: an
+ * `isOnSearch={false}` mount nested in a default one opts its own subtree back out, and the other way round.
+ */
+function enclosingProvider(node: ts.Node, sourceFile: ts.SourceFile): 'scoped' | 'excluded' | undefined {
+    let current: ts.Node | undefined = node.parent;
+
+    while (current) {
+        if (ts.isJsxElement(current)) {
+            const disposition = providerDisposition(current.openingElement, sourceFile);
+            if (disposition) {
+                return disposition;
+            }
+        }
+        current = current.parent;
+    }
+
+    return undefined;
+}
+
+/** The local name a JSX element is stored under, so `const content = <Foo />` and `content = <Foo />` both give `content`. */
+function holdingVariableName(node: ts.Node): string | undefined {
+    let current: ts.Node | undefined = node.parent;
+
+    while (current) {
+        if (ts.isVariableDeclaration(current) && ts.isIdentifier(current.name)) {
+            return current.name.text;
+        }
+        if (ts.isBinaryExpression(current) && current.operatorToken.kind === ts.SyntaxKind.EqualsToken && ts.isIdentifier(current.left)) {
+            return current.left.text;
+        }
+        current = current.parent;
+    }
+
+    return undefined;
+}
+
+/** How an edge in the renders-graph carries scope to the file it points at. */
+type EdgeScope =
+    /** Inside a default-scoped provider, so the target renders in a Search scope however its file was reached. */
+    | 'scoped'
+    /** Inside an `isOnSearch={false}` provider, so this path grants the target nothing. */
+    | 'excluded'
+    /** Under no provider, so the target inherits whatever the rendering file has. */
+    | 'inherit';
+
+/**
+ * Files whose components can render inside a Search scope, so a `useOnyx` on a snapshot key in one of them
+ * is reading `snapshot_<hash>` rather than the global key.
+ *
+ * A renders-graph over every `.tsx`: each JSX tag resolves through its file's own imports to the file that
+ * declares it, and each edge is labelled by the nearest `SearchScopeProvider` it sits inside. Edges under a
+ * default-scoped provider seed the walk, edges under no provider carry the rendering file's own status, and
+ * edges under `isOnSearch={false}` carry nothing. A file therefore leaves the set when the opt-out is its only
+ * way in, and joins it as soon as any other path reaches it. A provider mount does not put its own file in the
+ * set, because a provider in a JSX return governs the children, not the hooks above it in the same body. That
+ * is the distinction `PayActionCell` turns on: the `isOnSearch={false}` covers `SettlementButton` downward,
+ * while its own subscriptions sat in the body, inside the scope its parents put it in.
+ *
+ * Provider children usually arrive through a variable rather than lexically, as `searchListContent` does in
+ * `src/components/Search/index.tsx`, so an element assigned to a name counts as scoped when that name is
+ * referenced inside a provider subtree. Edges this cannot place stay `inherit`, which keeps a mount file's
+ * unplaceable JSX out of the set rather than guessing it in.
+ *
+ * The remaining gap is one-directional: a component reached through `React.lazy`, a component map, or a prop
+ * whose JSX is built somewhere this does not look is an edge the graph misses. That is why `useIsOnSearch` in a
+ * file counts on its own, since such a file already knows it renders in a Search scope.
+ */
+let searchScopedFilesCache: Set<string> | undefined;
+
+function searchScopedFiles(): Set<string> {
+    if (searchScopedFilesCache) {
+        return searchScopedFilesCache;
+    }
+
+    const edges = new Map<string, Map<string, EdgeScope>>();
+    const scoped = new Set<string>();
+    /** Seeds: files that declare their own scope, plus every target of a `scoped` edge. */
+    const queue: string[] = [];
+
+    for (const file of listSourceFiles()) {
+        const text = fs.readFileSync(path.join(projectRoot, file), 'utf8');
+
+        // A file that reads the scope itself already knows it can render inside one, whatever the graph says.
+        if (text.includes('useIsOnSearch')) {
+            queue.push(file);
+        }
+
+        if (!file.endsWith('.tsx')) {
+            continue;
+        }
+
+        // Only a file that mounts the provider can hold a labelled edge, and walking every identifier's
+        // ancestors is the expensive part of this pass, so the rest skip straight to their plain edges.
+        const mountsProvider = text.includes(SEARCH_SCOPE_PROVIDER);
+        const sourceFile = parse(file);
+        const imports = collectImports(sourceFile);
+        const fileEdges = new Map<string, EdgeScope>();
+        /** Targets whose scope depends on where the name holding them is rendered, keyed by that name. */
+        const heldTargets = new Map<string, Set<string>>();
+        /** Names referenced inside a provider subtree in this file, and what that subtree does. */
+        const referencedInProvider = new Map<string, 'scoped' | 'excluded'>();
+
+        const addEdge = (target: string, scope: EdgeScope) => {
+            // `scoped` outranks `inherit`, which outranks `excluded`: one path into the scope is enough.
+            const existing = fileEdges.get(target);
+            if (existing === 'scoped' || (existing === 'inherit' && scope === 'excluded')) {
+                return;
+            }
+            fileEdges.set(target, scope);
+        };
+
+        forEachDescendant(sourceFile, (node) => {
+            if (ts.isIdentifier(node)) {
+                const disposition = mountsProvider ? enclosingProvider(node, sourceFile) : undefined;
+                if (disposition && referencedInProvider.get(node.text) !== 'scoped') {
+                    referencedInProvider.set(node.text, disposition);
+                }
+                return;
+            }
+
+            if (!ts.isJsxOpeningElement(node) && !ts.isJsxSelfClosingElement(node)) {
+                return;
+            }
+
+            const tagName = jsxTagRootName(node.tagName);
+            const specifier = tagName ? imports.get(tagName) : undefined;
+            const target = specifier ? resolveModule(specifier, file) : undefined;
+            if (!target) {
+                return;
+            }
+
+            const disposition = mountsProvider ? enclosingProvider(node, sourceFile) : undefined;
+            if (disposition) {
+                addEdge(target, disposition);
+                return;
+            }
+
+            const holder = mountsProvider ? holdingVariableName(node) : undefined;
+            if (!holder) {
+                addEdge(target, 'inherit');
+                return;
+            }
+
+            heldTargets.set(holder, new Set([...(heldTargets.get(holder) ?? []), target]));
+        });
+
+        for (const [holder, targets] of heldTargets) {
+            for (const target of targets) {
+                addEdge(target, referencedInProvider.get(holder) ?? 'inherit');
+            }
+        }
+
+        edges.set(file, fileEdges);
+    }
+
+    for (const fileEdges of edges.values()) {
+        for (const [target, scope] of fileEdges) {
+            if (scope === 'scoped') {
+                queue.push(target);
+            }
+        }
+    }
+
+    while (queue.length > 0) {
+        const file = queue.shift();
+        if (!file || scoped.has(file)) {
+            continue;
+        }
+        scoped.add(file);
+        for (const [target, scope] of edges.get(file) ?? []) {
+            if (scope !== 'excluded') {
+                queue.push(target);
+            }
+        }
+    }
+
+    searchScopedFilesCache = scoped;
+    return scoped;
 }
 
 /**
@@ -1024,6 +1353,68 @@ function argumentCallee(reference: ts.Node): string | undefined {
     return calleeName(parent);
 }
 
+/** Which argument the value is passed as, so the callee's parameter at that position can be named. */
+function argumentIndex(reference: ts.Node): number | undefined {
+    const parent = reference.parent;
+    if (!parent || !ts.isCallExpression(parent)) {
+        return undefined;
+    }
+    const index = parent.arguments.findIndex((argument) => argument === reference);
+    return index === -1 ? undefined : index;
+}
+
+/**
+ * The name of the parameter a callee takes at a given position, which is what a conversion deletes. Looks for
+ * the declaration by its own name, so a member call such as `AccountUtils.hasValidateCodeExtendedAccess`
+ * resolves on the last segment. Returns undefined when the declaration is not one of the two plain shapes,
+ * which keeps a guess out of the task list.
+ */
+const parameterNameCache = new Map<string, ts.SourceFile>();
+
+function parameterName(ownerFile: string, callee: string, index: number): string | undefined {
+    if (!fs.existsSync(path.join(projectRoot, ownerFile))) {
+        return undefined;
+    }
+
+    const sourceFile = parameterNameCache.get(ownerFile) ?? parse(ownerFile);
+    parameterNameCache.set(ownerFile, sourceFile);
+
+    // `default` means the caller imported it without a name, so the declaration is whatever the file exports
+    // by default, which is either the function itself or an identifier pointing at one.
+    let wanted = callee;
+    if (wanted === 'default') {
+        for (const statement of sourceFile.statements) {
+            if (ts.isExportAssignment(statement) && ts.isIdentifier(statement.expression)) {
+                wanted = statement.expression.text;
+            }
+            if (ts.isFunctionDeclaration(statement) && statement.name && statement.modifiers?.some((modifier) => modifier.kind === ts.SyntaxKind.DefaultKeyword)) {
+                wanted = statement.name.text;
+            }
+        }
+    }
+
+    let parameters: ts.NodeArray<ts.ParameterDeclaration> | undefined;
+
+    forEachDescendant(sourceFile, (node) => {
+        if (parameters) {
+            return;
+        }
+        if (ts.isFunctionDeclaration(node) && node.name?.text === wanted) {
+            parameters = node.parameters;
+            return;
+        }
+        if (!ts.isVariableDeclaration(node) || !ts.isIdentifier(node.name) || node.name.text !== wanted || !node.initializer) {
+            return;
+        }
+        if (ts.isArrowFunction(node.initializer) || ts.isFunctionExpression(node.initializer)) {
+            parameters = node.initializer.parameters;
+        }
+    });
+
+    const parameter = parameters?.at(index);
+    return parameter ? parameter.name.getText(sourceFile) : undefined;
+}
+
 /** The identifier a `useOnyx` result is bound to: the first element of the destructuring, or the whole name. */
 function getValueBinding(declaration: ts.VariableDeclaration): ts.Identifier | undefined {
     const {name} = declaration;
@@ -1163,7 +1554,9 @@ function analyzeFile(file: string): Binding[] {
     const sourceFile = parse(file);
     const bindings: Binding[] = [];
     const isStartupPath = STARTUP_PATH_HINTS.some((hint) => hint.test(file));
+    const isSearchScoped = searchScopedFiles().has(file);
     const imports = collectImports(sourceFile);
+    const importedNames = collectImportedNames(sourceFile);
     /** One analysis per scope, since several bindings usually share a component body. */
     const renderInvokedScopes = new Map<ts.Node, Set<ts.Node>>();
     const indirectEffectScopes = new Map<ts.Node, Set<ts.Node>>();
@@ -1191,9 +1584,13 @@ function analyzeFile(file: string): Binding[] {
 
         const options = node.arguments.at(1);
         const hasSelector = !!options && ts.isObjectLiteralExpression(options) && options.properties.some((property) => property.name?.getText(sourceFile) === 'selector');
+        const key = node.arguments.at(0)?.getText(sourceFile).replaceAll(/\s+/g, '') ?? '';
+        const readsSnapshotInSearch = isSearchScoped && snapshotKeyPaths().has(onyxKeyPath(key));
 
         const kinds = new Set<ReferenceKind>();
         const calleeNames = new Set<string>();
+        const forwardedAt: Record<string, number> = {};
+        const consumerNames = new Set<string>();
         const priorWrites = new Set<string>();
         const deferrals = new Set<string>();
         let referenceCount = 0;
@@ -1215,10 +1612,18 @@ function analyzeFile(file: string): Binding[] {
             const callee = argumentCallee(candidate);
             if (callee) {
                 calleeNames.add(callee);
+                const index = argumentIndex(candidate);
+                if (index !== undefined && !(callee in forwardedAt)) {
+                    forwardedAt[callee] = index;
+                }
             }
 
             const consumer = consumingFunction(candidate, scope, renderInvoked);
             if (consumer) {
+                const consumerName = functionName(consumer, sourceFile);
+                if (consumerName) {
+                    consumerNames.add(consumerName);
+                }
                 for (const write of writesAhead(consumer, candidate, imports, file)) {
                     priorWrites.add(write);
                 }
@@ -1270,17 +1675,41 @@ function analyzeFile(file: string): Binding[] {
                 verdict = 'REVIEW';
                 reasons.push('binding reads through a selector, so the read site has to reproduce it rather than copy the key');
             }
+            if (readsSnapshotInSearch) {
+                verdict = 'REVIEW';
+                reasons.push(`file renders inside a Search scope, where useOnyx redirects ${onyxKeyPath(key)} to snapshot_<hash> and Onyx.get would not`);
+            }
         }
 
         bindings.push({
             file,
             line: sourceFile.getLineAndCharacterOfPosition(node.getStart(sourceFile)).line + 1,
             name: valueBinding.text,
-            key: node.arguments.at(0)?.getText(sourceFile).replaceAll(/\s+/g, '') ?? '',
+            key,
             referenceCount,
             kinds: [...kinds],
             readsSingleMemberOnly: referenceCount > 0 && referenceCount === indexedReferenceCount,
             calleeNames: [...calleeNames],
+            calleeOwners: Object.fromEntries(
+                [...calleeNames].flatMap((callee) => {
+                    const root = callee.split('.').at(0) ?? callee;
+                    const specifier = imports.get(root);
+                    // Not imported means declared here, whether at top level or inside the component, so the
+                    // conversion never leaves the file and the task is file-local rather than a callee task.
+                    const owner = specifier ? resolveModule(specifier, file) : file;
+                    return owner ? [[callee, owner] as const] : [];
+                }),
+            ),
+            forwardedAt,
+            calleeExportedNames: Object.fromEntries(
+                [...calleeNames].map((callee) => {
+                    const root = callee.split('.').at(0) ?? callee;
+                    // A member call names the export itself, so only a bare call can be an alias.
+                    const exported = callee.includes('.') ? (callee.split('.').at(-1) ?? callee) : (importedNames.get(root) ?? callee);
+                    return [callee, exported] as const;
+                }),
+            ),
+            consumerNames: [...consumerNames],
             hasSelector,
             writesAhead: [...priorWrites],
             deferrals: [...deferrals],
@@ -1365,10 +1794,42 @@ function main(): void {
         }
     }
 
+    // Third pass: a callee whose callers outside this set still forward a value cannot lose its parameter, so
+    // the conversion would leave it reading Onyx *and* taking the parameter, one source for the converted
+    // callers and another for the rest. That is a design decision about the callee's signature, not a
+    // mechanical move, so the bindings feeding it are not clear. Repeated to a fixpoint, because demoting one
+    // binding lowers the feeding count of every callee it fed, which can hold back a callee that had just
+    // enough feeders a moment ago.
+    for (let settled = false; !settled; ) {
+        settled = true;
+        const feeding = new Map<string, number>();
+        for (const binding of bindings.filter((candidate) => candidate.verdict === 'CERTAIN')) {
+            for (const callee of binding.calleeNames) {
+                feeding.set(callee, (feeding.get(callee) ?? 0) + 1);
+            }
+        }
+
+        for (const binding of bindings) {
+            if (binding.verdict !== 'CERTAIN') {
+                continue;
+            }
+            for (const callee of binding.calleeNames) {
+                const callSites = sweeps.get(callee)?.callSites ?? 0;
+                if (callSites > 0 && callSites <= (feeding.get(callee) ?? 0)) {
+                    continue;
+                }
+                binding.verdict = 'REVIEW';
+                binding.reasons.push(
+                    `callee ${callee} is called from ${callSites} site(s) but fed by ${feeding.get(callee) ?? 0} clear binding(s), so it would keep its parameter and need a fallback read`,
+                );
+                settled = false;
+            }
+        }
+    }
+
     const nonRender = bindings.filter((binding) => binding.verdict !== 'NOT_CANDIDATE');
     const certain = bindings.filter((binding) => binding.verdict === 'CERTAIN');
     const review = bindings.filter((binding) => binding.verdict === 'REVIEW');
-    const dead = bindings.filter((binding) => binding.verdict === 'DEAD');
 
     if (argv.includes('--json')) {
         console.log(JSON.stringify({bindings}, null, 2));
@@ -1391,9 +1852,10 @@ function main(): void {
         console.log(row('  off the render path', nonRender.length));
         console.log(row('      CERTAIN, mechanically clear', certain.length));
         console.log(row('      REVIEW, a condition needs a person', review.length));
-        console.log(row('      DEAD, delete rather than convert', dead.length));
         console.log(row('  of REVIEW: callee runs during render', review.filter((binding) => binding.reasons.some((reason) => reason.includes('runs during render at'))).length));
         console.log(row('  of REVIEW: binding reads through a selector', review.filter((binding) => binding.hasSelector).length));
+        console.log(row('  of REVIEW: Search scope redirects the key', review.filter((binding) => binding.reasons.some((reason) => reason.includes('Search scope'))).length));
+        console.log(row('  of REVIEW: callee would keep its parameter', review.filter((binding) => binding.reasons.some((reason) => reason.includes('keep its parameter'))).length));
         console.log('');
         console.log(`synchronous Onyx reads present today        : ${String(converted.reads).padStart(5)} in ${converted.files} file(s)`);
         console.log(
@@ -1437,6 +1899,81 @@ function main(): void {
         return;
     }
 
+    if (argv.includes('--tasks')) {
+        // Wave 1 as issues rather than as a list of bindings. Two kinds, because they have different revert
+        // units: a callee task changes one function and every file that calls it, so it cannot be split by
+        // file, while a file-local task is bounded by its own file. Callee tasks print first because a callee
+        // PR's diff is a superset of what a file-local PR in the same file would touch.
+        const calleeTasks = new Map<string, {owner: string; bindings: Binding[]}>();
+        const fileTasks = new Map<string, Binding[]>();
+
+        for (const binding of certain) {
+            // A callee declared in the binding's own file changes nothing outside it, so it belongs with the
+            // file-local tasks however the value reaches it.
+            const crossFileCallees = binding.calleeNames.filter((callee) => binding.calleeOwners[callee] !== binding.file);
+            if (crossFileCallees.length === 0) {
+                fileTasks.set(binding.file, [...(fileTasks.get(binding.file) ?? []), binding]);
+                continue;
+            }
+            for (const callee of crossFileCallees) {
+                const entry = calleeTasks.get(callee) ?? {owner: binding.calleeOwners[callee] ?? 'unresolved', bindings: []};
+                entry.bindings.push(binding);
+                calleeTasks.set(callee, entry);
+            }
+        }
+
+        console.log(`=== Wave 1 tasks, ${certain.length} CERTAIN bindings ===`);
+        // Every callee reaching this point loses its parameter with the read: a callee that would keep one has
+        // already taken its feeding bindings out of `CERTAIN`, so there is nothing left here to filter.
+        console.log('');
+        console.log(`--- A. Callee tasks, ${calleeTasks.size}. The read moves into the function and its parameter goes with it ---`);
+        for (const [callee, entry] of [...calleeTasks.entries()].sort((a, b) => b[1].bindings.length - a[1].bindings.length)) {
+            // The parameters the conversion deletes, named at the callee rather than at the call sites: every
+            // caller is in this wave, which is what put the callee here, so the signature loses them outright.
+            const parameters = [
+                ...new Set(
+                    entry.bindings.flatMap((binding) => {
+                        const index = binding.forwardedAt[callee];
+                        const exported = binding.calleeExportedNames[callee] ?? callee;
+                        return index === undefined ? [] : [parameterName(entry.owner, exported, index) ?? `argument ${index}, declaration not resolved`];
+                    }),
+                ),
+            ];
+            console.log(`${callee}  (${entry.owner})  removes ${parameters.join(', ') || 'no resolvable parameter'}`);
+        }
+
+        console.log('');
+        console.log(`--- B. File-local tasks, ${fileTasks.size}. Value consumed in its own file, so the file is the unit ---`);
+        for (const [file, fileBindings] of [...fileTasks.entries()].sort((a, b) => b[1].length - a[1].length)) {
+            console.log(`${file}   ${fileBindings.length} binding(s)`);
+            for (const binding of fileBindings) {
+                console.log(`    :${binding.line}  ${binding.name} <- ${binding.key}   in ${binding.consumerNames.join(', ') || 'unnamed function'}`);
+            }
+        }
+
+        const fileLocal = [...fileTasks.values()].reduce((total, fileBindings) => total + fileBindings.length, 0);
+        const calleeFed = new Set([...calleeTasks.values()].flatMap((entry) => entry.bindings)).size;
+        console.log('');
+        console.log(
+            `Wave 1 covers all ${certain.length} CERTAIN bindings: ${calleeFed} through ${calleeTasks.size} callee task(s), ${fileLocal} through ${fileTasks.size} file-local task(s).`,
+        );
+        return;
+    }
+
+    if (argv.includes('--scope')) {
+        // Bindings held out because the file renders inside a Search scope. Each one is a subscription to
+        // `snapshot_<hash>` that a conversion would silently point at the global key instead.
+        const scoped = bindings.filter((binding) => binding.reasons.some((reason) => reason.includes('Search scope')));
+        for (const binding of scoped) {
+            console.log(`${binding.file}:${binding.line}  ${binding.name} <- ${binding.key}`);
+        }
+        console.log('');
+        console.log(
+            `${scoped.length} binding(s) in ${new Set(scoped.map((binding) => binding.file)).size} file(s), out of ${searchScopedFiles().size} file(s) reachable from a Search scope.`,
+        );
+        return;
+    }
+
     if (argv.includes('--callee-names')) {
         // Every function a CERTAIN binding hands its value to, so the read can be pushed past this file.
         // Run the forward caller sweep on these before moving a read into one.
@@ -1464,7 +2001,6 @@ function main(): void {
     console.log('--- of those, split by what the mechanical conditions say ---');
     console.log(`CERTAIN  convert                : ${certain.length} in ${new Set(certain.map((binding) => binding.file)).size} files`);
     console.log(`REVIEW   a condition needs eyes : ${review.length} in ${new Set(review.map((binding) => binding.file)).size} files`);
-    console.log(`DEAD     delete, nothing to move: ${dead.length} in ${new Set(dead.map((binding) => binding.file)).size} files`);
 
     const reasonCounts = new Map<string, number>();
     for (const binding of review) {

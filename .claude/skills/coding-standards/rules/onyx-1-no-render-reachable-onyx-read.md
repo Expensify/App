@@ -19,6 +19,8 @@ title: Keep synchronous Onyx reads off the render path and out of a written tick
 
 **E. Output.** A read is also wrong when its value reaches the screen on a later hop: parked in state, in a ref, or in a module variable that a component renders. The rendered value is then a snapshot that never updates. A1 and A3 catch the caller-is-render case; this is the stash-then-render case.
 
+**F. Scope.** `@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the seven keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get` always reads the global key.
+
 ### Incorrect
 
 **A1. The read is correct where it is written, and a hook calls it.**
@@ -107,6 +109,21 @@ function ReportTitle({reportID}: {reportID: string}) {
 }
 ```
 
+**F. The component renders inside a Search scope, so the subscription was reading the snapshot.**
+
+```diff
+ // src/components/Search/SearchList/ListItem/ActionCell/PayActionCell.tsx
+ // Rendered from ReportListItemHeader, inside <SearchScopeProvider> in src/components/Search/index.tsx:1218.
+-    const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS); // read snapshot_<hash>
+     const confirmPayment = () => {
++        // reads the global collection, which has no entry for a report this client never opened
++        const allReportActions = Onyx.get(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+         payInvoice({chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${chatReport?.reportID}`]});
+     };
+```
+
+A test that renders the component directly passes against both versions, because the provider is only in the production tree.
+
 ### Correct
 
 ```tsx
@@ -148,6 +165,13 @@ Onyx.init({keys: ONYXKEYS}).then(() => setLocale(Onyx.get(ONYXKEYS.NVP_PREFERRED
 // E: anything rendered stays on useOnyx.
 const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
 return <Text>{report?.reportName}</Text>;
+
+// F: a snapshot key inside a Search scope keeps its subscription, whatever the handler does with it.
+const [allReportActions] = useOnyx(ONYXKEYS.COLLECTION.REPORT_ACTIONS);
+
+// F, the other half: outside the provider, or behind <SearchScopeProvider isOnSearch={false}>, the
+// subscription was already reading the global collection, so the read is equivalent.
+const confirmPayment = () => payInvoice(Onyx.get(ONYXKEYS.COLLECTION.REPORT_ACTIONS));
 ```
 
 ---
@@ -234,7 +258,32 @@ A callee that is itself a plain function is not a verdict: repeat on the functio
 - A render position in the same file reads that target
 - Comment on the read: the rendered value is frozen at event time and the key changing will not update it
 
+#### F. Scope. One trigger, and the seven keys decide whether it applies at all.
+
+The keys are `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` in `src/CONST/index.ts`. A read of any other key cannot be a scope finding.
+
+**F1. The diff converts a subscription to one of those keys, in a component or a hook.** Flag when ALL are true:
+
+- The read is one of the seven keys, or a member of one of those collections
+- Some render path to the reading component crosses a `SearchScopeProvider` with `isOnSearch` left at its default. Grep `src/` for `SearchScopeProvider` to get the current mounts, then walk upwards from the reading file as A1 walks callers: Grep for the component's name to find its parents, and repeat until a path reaches one of those mounts or runs out. `useIsOnSearch` anywhere in the file is a positive signal on its own, since the file already knows it can render there
+- Comment on the read, naming the provider mount and the file that carries the path to it. State that the subscription was reading `snapshot_<hash>` and the read is not
+
+**F2. The read feeds a write path, and the entity may exist only in a snapshot.** Flag when ALL are true:
+
+- The value is passed into an action, or into anything that builds `optimisticData`
+- The entity it identifies can come from search results: a report, transaction, or report action reached by `reportID` or `transactionID` off a Search row or a Search-derived list
+- Comment on the call, asking what guarantees the client loaded that entity. `undefined` here is silent: the action skips the item rather than failing
+
+For both, say in the comment that a test rendering the component directly cannot settle it, because the provider is only in the production tree. Ask for the seeded-snapshot case instead: write a divergent value under `snapshot_${hash}` for the same entity and assert which source the code takes.
+
 #### DO NOT flag if
+
+Scope:
+
+- The key is not one of the seven. A snapshot holds nothing else, so no redirect exists to lose
+- The reading component sits behind `<SearchScopeProvider isOnSearch={false}>`, which is what `PayActionCell` wraps its own children in. Check which side of that boundary the read is on: a provider in the JSX return governs the children, not the hooks above it in the same body
+- No render path reaches a provider mount, and the file does not mention `useIsOnSearch`
+- The read is in a library or action file that no search-rendered component calls. Walk the callers before accepting this, as in A1
 
 Position:
 
@@ -276,4 +325,7 @@ Tick:
 - removed `useOnyx(` lines in the diff, then that variable's name in the rest of the diff
 - `useEffect(`, `useLayoutEffect(`, `useFocusEffect(`, `useRef(`, `useState(`
 - `Onyx.init`, `init` as a function-name prefix
+- `SNAPSHOT_ONYX_KEYS` in `src/CONST/index.ts`, for the current key list
+- `SearchScopeProvider`, for the current provider mounts, then `isOnSearch={false}` for the opt-outs
+- `useIsOnSearch`, which marks a file that already knows it renders inside a Search scope
 - before flagging a read that follows a write, the body enclosing it: `runAfterTransitions`, `runAfterInteractions`, `.then(`, `setTimeout(`, `callback:`. A read inside one is exempt, and a read the diff moved *out* of one is its own finding

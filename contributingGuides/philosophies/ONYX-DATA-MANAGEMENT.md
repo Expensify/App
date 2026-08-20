@@ -172,6 +172,11 @@ const isSelfTourViewed = Onyx.get(ONYXKEYS.NVP_ONBOARDING);
 const isSelfTourViewed = hasSeenTourSelector(Onyx.get(ONYXKEYS.NVP_ONBOARDING));
 ```
 
+### - A subscription that Search redirects to a snapshot MUST stay on `useOnyx`
+`@hooks/useOnyx` is not the library hook. Inside a `SearchScopeProvider` subtree it rewrites the key: for the keys in `CONST.SEARCH.SNAPSHOT_ONYX_KEYS` it subscribes to `snapshot_<hash>` and extracts the requested key out of that blob. `Onyx.get()` always reads the global key.
+
+Before converting one of those keys, establish which subtree the read renders in. Grep for `SearchScopeProvider` to find the current mounts and walk upwards from the reading component. A component behind `<SearchScopeProvider isOnSearch={false}>` was already reading the global collection and converts like any other, but check which side of that boundary the read is on: a provider in the JSX return governs the children, not the hooks above it in the same body. Everything else reachable from a default-scoped provider keeps its subscription. 
+
 ### - A subscription that exists to trigger work MUST NOT be replaced with `Onyx.get()`
 Ask what each subscription is for. A **source** supplies a value the code reads. A **trigger** schedules work when the key changes, and the value it carries is incidental. Converting a trigger makes the dependency stable and the effect stops re-running. No position check catches it, because nothing renders the value and nothing reads it during render. What does catch the two plainest shapes is the diff itself: a `useOnyx` deleted while a read of the same key appears inside an effect body, and a `useOnyx` deleted along with the variable's name in a dependency array. Anything longer than one hop stays manual. The chain hides easily: a value feeding a `useCallback` that feeds another `useCallback` that reaches an effect's dependency array is still a trigger, and a wrapper such as `useDebounce(useCallback(fn, deps))` swallows a link.
 
