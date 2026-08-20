@@ -279,7 +279,7 @@ const compactPopoverMenuItemBaseStyle = {
 
 // Square size and horizontal margin of the composer's attachment ("+") button, shared by
 // composerSizeButton and the concierge prompt box so its button column stays in sync.
-const COMPOSER_SIZE_BUTTON_SIZE = 32;
+const COMPOSER_SIZE_BUTTON_SIZE = 40;
 const COMPOSER_SIZE_BUTTON_MARGIN = 3;
 
 const staticStyles = (theme: ThemeColors) =>
@@ -2437,7 +2437,8 @@ const staticStyles = (theme: ThemeColors) =>
                 // On Android, multiline TextInput with height: 'auto' will show extra padding unless they are configured with
                 // paddingVertical: 0, alignSelf: 'center', and verticalAlign: 'middle'
 
-                paddingHorizontal: variables.avatarChatSpacing,
+                paddingRight: variables.avatarChatSpacing,
+                paddingLeft: variables.composerTextInputPaddingLeft,
                 paddingTop: 0,
                 paddingBottom: 0,
                 alignSelf: 'center',
@@ -2475,11 +2476,6 @@ const staticStyles = (theme: ThemeColors) =>
             paddingVertical: 5,
             ...flex.flexRow,
             flex: 1,
-        },
-
-        textInputComposeBorder: {
-            borderLeftWidth: 1,
-            borderColor: theme.bordersBold,
         },
 
         chatItemSubmitButton: {
@@ -2566,6 +2562,7 @@ const staticStyles = (theme: ThemeColors) =>
 
         composerSizeButton: {
             alignSelf: 'center',
+            alignItems: 'center',
             height: COMPOSER_SIZE_BUTTON_SIZE,
             width: COMPOSER_SIZE_BUTTON_SIZE,
             padding: 6,
@@ -2583,13 +2580,13 @@ const staticStyles = (theme: ThemeColors) =>
             flexShrink: 0,
         },
 
-        // Absolute stack that fills the column height and reverses direction. On one line the trailing element
-        // wraps away and the button centers, on many lines it grows and pushes the button to the bottom.
+        // Absolute stack that fills the column height and reverses direction. The trailing element wraps away when
+        // there isn't room, and the button stays anchored to the bottom (flex-start in a reversed column).
         composerButtonStack: {
             display: 'flex',
             flexDirection: 'column-reverse',
             flexWrap: 'wrap',
-            justifyContent: 'center',
+            justifyContent: 'flex-start',
             position: 'absolute',
             height: '100%',
             width: '100%',

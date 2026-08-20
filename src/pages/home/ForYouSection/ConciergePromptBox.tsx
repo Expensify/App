@@ -2,7 +2,7 @@ import AttachmentPicker from '@components/AttachmentPicker';
 import Composer from '@components/Composer';
 import Icon from '@components/Icon';
 import PopoverMenu from '@components/PopoverMenu';
-import {PressableWithFeedback} from '@components/Pressable';
+import {PressableWithoutFeedback} from '@components/Pressable';
 import useAskConcierge from '@components/Search/SearchRouter/useAskConcierge';
 import Text from '@components/Text';
 import PopoverAnchorTooltip from '@components/Tooltip/PopoverAnchorTooltip';
@@ -20,6 +20,7 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {isSafari} from '@libs/Browser';
 import {canSkipTriggerHotkeys} from '@libs/ComposerUtils';
 import DateUtils from '@libs/DateUtils';
+import getButtonState from '@libs/getButtonState';
 
 import SubmitDraftButton from '@pages/inbox/report/ReportActionCompose/SubmitDraftButton';
 
@@ -153,7 +154,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                     return (
                                         <>
                                             <PopoverAnchorTooltip text={translate('reportActionCompose.addAttachment')}>
-                                                <PressableWithFeedback
+                                                <PressableWithoutFeedback
                                                     ref={actionButtonRef}
                                                     accessibilityLabel={translate('accessibilityHints.openActionsMenu')}
                                                     role={CONST.ROLE.BUTTON}
@@ -164,13 +165,18 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                                                         actionButtonRef.current?.blur();
                                                         setIsMenuVisible((prev) => !prev);
                                                     }}
-                                                    style={styles.composerSizeButton}
+                                                    style={({hovered, pressed}) => [
+                                                        styles.composerSizeButton,
+                                                        StyleUtils.getButtonBackgroundColorStyle(getButtonState(hovered && shouldShowAskConcierge, pressed && shouldShowAskConcierge)),
+                                                    ]}
                                                 >
-                                                    <Icon
-                                                        src={icons.Plus}
-                                                        fill={theme.icon}
-                                                    />
-                                                </PressableWithFeedback>
+                                                    {({hovered, pressed}) => (
+                                                        <Icon
+                                                            src={icons.Plus}
+                                                            fill={StyleUtils.getIconFillColor(getButtonState(hovered && shouldShowAskConcierge, pressed && shouldShowAskConcierge))}
+                                                        />
+                                                    )}
+                                                </PressableWithoutFeedback>
                                             </PopoverAnchorTooltip>
                                             <PopoverMenu
                                                 isVisible={isMenuVisible}
@@ -208,8 +214,7 @@ function ConciergePromptBox({isMenuVisible, setIsMenuVisible}: ConciergePromptBo
                         <View style={styles.conciergePromptBoxButtonSpacer} />
                     </View>
                 </View>
-                {/* textInputComposeBorder is the left border that divides the "+" column from the input. */}
-                <View style={[StyleUtils.getContainerComposeStyles(), styles.textInputComposeBorder, styles.pRelative]}>
+                <View style={[StyleUtils.getContainerComposeStyles(), styles.pRelative]}>
                     <Composer
                         style={[styles.textInputCompose, styles.textInputCollapseCompose]}
                         value={value}
