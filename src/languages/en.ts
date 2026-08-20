@@ -4553,6 +4553,10 @@ const translations = {
             title: 'Expensify Travel has been disabled',
             message: `Your admin has turned off Expensify Travel. Please follow your company's booking policy for travel arrangements.`,
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Travel is not enabled',
+            message: 'To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.',
+        },
         verifyCompany: {
             title: "We're reviewing your request...",
             message: `We're running a few checks on our end to verify your account is ready for Expensify Travel. We'll be in touch shortly!`,
@@ -8138,6 +8142,7 @@ const translations = {
                 findRule: 'Find rule',
                 defaultSection: 'Default',
                 customRulesSection: 'Custom rules',
+                defaultRulesCannotBeDeleted: 'Default rules cannot be deleted',
                 tableColumnType: 'Type',
                 tableColumnCard: 'Card',
                 tableColumnRule: 'Rule',
@@ -8573,6 +8578,9 @@ const translations = {
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `updated the agent rule "${title}" to: ${prompt}` : `updated an agent rule to: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `removed the agent rule "${title}"` : 'removed an agent rule'),
         },
+        addedRule: 'added a rule',
+        updatedRule: 'updated a rule',
+        removedRule: 'removed a rule',
         expensifyCardRule: {
             actionVerb: {
                 block: 'blocked',
@@ -10561,8 +10569,13 @@ const translations = {
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'New role types for admins',
-                body: 'Give your team more granular permissions with new card, people, and payments admin roles.',
+                heading: 'Enhanced vendor mapping',
+                body: 'Create vendors and custom rules for easy mapping to major accounting packages.',
+                cta: 'Try it out',
+            },
+            member: {
+                heading: 'Pre-built agents for you',
+                body: 'Use pre-built or custom agents to code, split, and submit expenses automatically on your behalf.',
                 cta: 'Try it out',
             },
         },

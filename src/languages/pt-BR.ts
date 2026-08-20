@@ -4481,6 +4481,10 @@ ${amount} para ${merchant} - ${date}`,
             railCard:
                 'Você sabia que dá para reservar e gerenciar viagens de trem direto no Expensify? E que os recibos são enviados automaticamente para você? Da próxima vez, é só reservar pelo <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Viagem não está ativada',
+            message: 'Para fazer uma reserva, ative viagens no seu espaço de trabalho padrão ou altere seu espaço de trabalho padrão para um que tenha viagens ativadas.',
+        },
     },
     workspace: {
         common: {
@@ -7889,6 +7893,7 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                     'As cobranças são aprovadas para moedas permitidas que não ultrapassem um valor máximo ou quando o comerciante ou o tipo de comerciante correspondem.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'moedas' : 'moeda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} mais` : ''}`,
+                defaultRulesCannotBeDeleted: 'Regras padrão não podem ser excluídas',
             },
             agentRules: {
                 title: 'Regras do agente',
@@ -8713,6 +8718,9 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
                 title ? `atualizou a regra do agente "${title}" para: ${prompt}` : `atualizou uma regra de agente para: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `removeu a regra de agente "${title}"` : 'removeu uma regra de agente'),
         },
+        addedRule: 'adicionou uma regra',
+        updatedRule: 'atualizou uma regra',
+        removedRule: 'removeu uma regra',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'acima', under: 'abaixo'},
@@ -10335,8 +10343,13 @@ Adicione mais regras de gasto para proteger o fluxo de caixa da empresa.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Novos tipos de função para administradores',
-                body: 'Dê à sua equipe permissões mais granulares com novos papéis de administrador para cartões, pessoas e pagamentos.',
+                heading: 'Mapeamento de fornecedor aprimorado',
+                body: 'Crie fornecedores e regras personalizadas para facilitar o mapeamento para os principais pacotes de contabilidade.',
+                cta: 'Experimente',
+            },
+            member: {
+                heading: 'Agentes pré-configurados para você',
+                body: 'Use agentes prontos ou personalizados para codificar, dividir e enviar despesas automaticamente em seu nome.',
                 cta: 'Experimente',
             },
         },
