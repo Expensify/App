@@ -134,6 +134,30 @@ function calculateSplitAmountFromPercentage(totalInCents: number, percentage: nu
 }
 
 /**
+ * Distribute the original expense's (possibly manually modified) tax amount to a single split expense,
+ * proportionally to the split's share of the total amount.
+ *
+ * We intentionally split the modified tax amount instead of recalculating it from the tax rate, so the
+ * user's modified tax amount is preserved (the sum of the splits' tax amounts stays within the original).
+ *
+ * @param originalTaxAmount - The original expense's tax amount, in backend cents.
+ * @param splitAmount - This split's amount, in backend cents.
+ * @param totalAmount - The original expense's total amount, in backend cents.
+ * @returns This split's tax amount, in backend cents.
+ */
+function calculateSplitTaxAmountFromAmount(originalTaxAmount: number, splitAmount: number, totalAmount: number): number {
+    if (!originalTaxAmount || !totalAmount) {
+        return 0;
+    }
+    const taxAmount = Math.round((originalTaxAmount * splitAmount) / totalAmount);
+    // Avoid returning -0
+    if (taxAmount === 0) {
+        return 0;
+    }
+    return taxAmount;
+}
+
+/**
  * Given a list of split amounts (in backend cents) and the original total amount, calculate display percentages
  * for each split so that:
  * - Each row is a percentage of the original total with one decimal place (0.1 precision)
@@ -639,6 +663,7 @@ function resolveEarlyReportID(isFromGlobalCreate: boolean, participants: Partici
 export {
     calculateAmount,
     calculateSplitAmountFromPercentage,
+    calculateSplitTaxAmountFromAmount,
     calculateSplitPercentagesFromAmounts,
     getExistingTransactionID,
     insertTagIntoTransactionTagsString,

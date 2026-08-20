@@ -2,7 +2,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
+import {calculateAmount as calculateIOUAmount, calculateSplitTaxAmountFromAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -337,6 +337,7 @@ function redistributeSplitExpenseAmounts(
     splitExpenses: SplitExpense[],
     total: number,
     currency: string,
+    originalTaxAmount: number,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): SplitExpense[] {
     // Calculate sum of manually edited splits
@@ -359,7 +360,7 @@ function redistributeSplitExpenseAmounts(
         }
         const isLast = uneditedIndex === lastUneditedIndex;
         const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true, getCurrencyDecimals);
-        const newTaxAmount = convertToBackendAmount(calculateTaxAmount(split.taxValue, newAmount, getCurrencyDecimals(currency)));
+        const newTaxAmount = calculateSplitTaxAmountFromAmount(originalTaxAmount, newAmount, total);
 
         uneditedIndex += 1;
         return {...split, amount: newAmount, taxAmount: newTaxAmount};
@@ -435,6 +436,7 @@ function addSplitExpenseField(
     // Get total amount and currency for redistribution
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
+    const originalTaxAmount = getTransactionDetails(transaction)?.taxAmount ?? 0;
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
     // Check if existing splits already sum to the total
@@ -447,7 +449,7 @@ function addSplitExpenseField(
     // Skip redistribution only when manual edits exist AND splits sum to total
     const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
     if (!isDistanceRequest && shouldRedistribute) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency, originalTaxAmount, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -503,6 +505,8 @@ function evenlyDistributeSplitExpenseAmounts(
 
     const updatedSplitExpenses = splitExpenses.map((splitExpense, index) => {
         const amount = calculateIOUAmount(splitCount - 1, total, currency, index === 0, true, getCurrencyDecimals);
+        // "Make splits even" is a user action on splits that already have their own tax rate, not the initial
+        // split state, so recalculate each split's tax from its own rate rather than splitting the original tax amount.
         const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency)));
 
         let updatedSplitExpense: SplitExpense = {
@@ -618,7 +622,7 @@ function resetSplitExpensesByDateRange({
     // Create split expenses for each date with proportional amounts, the remainder going to the first one
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
         const amount = calculateIOUAmount(dates.length - 1, total, currency, index === 0, true, getCurrencyDecimals);
-        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(transactionDetails?.taxValue, amount, getCurrencyDecimals(currency)));
+        const splitTaxAmount = calculateSplitTaxAmountFromAmount(transactionDetails?.taxAmount ?? 0, amount, total);
 
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
@@ -679,6 +683,7 @@ function removeSplitExpenseField(
 
     const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
+    const originalTaxAmount = getTransactionDetails(originalTransaction)?.taxAmount ?? 0;
 
     let redistributedSplitExpenses = splitExpenses;
 
@@ -688,7 +693,7 @@ function removeSplitExpenseField(
         // If every remaining split is locked, temporarily unlock them so removing one split
         // still redistributes to a valid, saveable total in the split edit flow.
         const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, originalTaxAmount, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -813,6 +818,7 @@ function updateSplitExpenseAmountField(
     const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
+    const originalTaxAmount = getTransactionDetails(originalTransaction)?.taxAmount ?? 0;
 
     // Mark the edited split and update its amount
     const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
@@ -820,6 +826,8 @@ function updateSplitExpenseAmountField(
             let updatedSplitExpense: SplitExpense = {
                 ...splitExpense,
                 amount,
+                // Editing a split's amount is a user action on a split that already has its own tax rate, so
+                // recalculate its tax from that rate applied to the new amount rather than the original tax amount.
                 taxAmount: convertToBackendAmount(calculateTaxAmount(splitExpense.taxValue, amount, getCurrencyDecimals(currency))),
                 isManuallyEdited: true,
             };
@@ -857,7 +865,7 @@ function updateSplitExpenseAmountField(
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency, originalTaxAmount, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
