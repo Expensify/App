@@ -4489,6 +4489,10 @@ ${amount} per ${merchant} - ${date}`,
             railCard:
                 'Sapevi che puoi prenotare e gestire i viaggi in treno direttamente in Expensify? E che le ricevute vengono caricate automaticamente per te? La prossima volta prenota semplicemente tramite <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Viaggi non abilitato',
+            message: 'Per prenotare, abilita i viaggi sul tuo spazio di lavoro predefinito oppure imposta come predefinito uno spazio di lavoro con viaggi abilitati.',
+        },
     },
     workspace: {
         common: {
@@ -7909,6 +7913,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                     'Gli addebiti vengono approvati per le valute consentite che non superano un importo massimo oppure quando l’esercente o il tipo di esercente corrispondono.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Consentito ${shownCount > 1 ? 'valute' : 'valuta'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} altri` : ''}`,
+                defaultRulesCannotBeDeleted: 'Le regole predefinite non possono essere eliminate',
             },
             agentRules: {
                 title: 'Regole agente',
@@ -8746,6 +8751,9 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
                 title ? `ha aggiornato la regola dell’agente "${title}" in: ${prompt}` : `ha aggiornato una regola dell’agente in: ${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `ha rimosso la regola dell’agente "${title}"` : 'ha rimosso una regola dell’agente'),
         },
+        addedRule: 'ha aggiunto una regola',
+        updatedRule: 'ha aggiornato una regola',
+        removedRule: 'ha rimosso una regola',
         expensifyCardRule: {
             actionVerb: {block: 'bloccato', allow: 'consentito'},
             amountOperator: {over: 'terminato', under: 'sotto'},
@@ -8859,6 +8867,7 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di categorizzazione della spesa`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'attivato' : 'disattivato'} il requisito di assegnazione etichette alle spese`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `ha aggiornato l’impostazione della commissione di conversione valuta a "${preferenceLabel}"`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `ha modificato i partecipanti della categoria "${categoryName}" in ${newValue ? 'obbligatorio' : 'non obbligatorio'} (in precedenza ${newValue ? 'non obbligatorio' : 'obbligatorio'})`;
         },
@@ -10374,8 +10383,13 @@ Aggiungi altre regole di spesa per proteggere il flusso di cassa aziendale.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuovi tipi di ruolo per gli amministratori',
-                body: 'Offri al tuo team autorizzazioni più granulari con i nuovi ruoli di amministratore per carte, persone e pagamenti.',
+                heading: 'Mappatura fornitori avanzata',
+                body: 'Crea fornitori e regole personalizzate per mappare facilmente le principali suite contabili.',
+                cta: 'Provalo',
+            },
+            member: {
+                heading: 'Agenti preconfigurati per te',
+                body: 'Usa agenti preconfigurati o personalizzati per codificare, suddividere e inviare automaticamente le spese per tuo conto.',
                 cta: 'Provalo',
             },
         },
