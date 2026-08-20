@@ -1,11 +1,8 @@
 import Button from '@components/ButtonComposed';
+import MerchantMatchTypeSelector from '@components/Search/FilterComponents/MerchantMatchTypeSelector';
 import NegatableFilter from '@components/Search/FilterComponents/NegatableFilter';
 import useTextFilterValidation from '@components/Search/hooks/useTextFilterValidation';
 import type {ReportFieldTextKey, SearchTextFilterKeys} from '@components/Search/types';
-import SelectionList from '@components/SelectionList';
-import SingleSelectListItem from '@components/SelectionList/ListItem/SingleSelectListItem';
-import type {ListItem} from '@components/SelectionList/ListItem/types';
-import Text from '@components/Text';
 import TextInput from '@components/TextInput';
 import type {BaseTextInputRef} from '@components/TextInput/BaseTextInput/types';
 
@@ -55,19 +52,6 @@ function TextInputFilterContent({
     const [isNegated, setIsNegated] = useState(initialIsNegated);
     const shouldShowMerchantMatchType = baseFilterKey === CONST.SEARCH.SYNTAX_FILTER_KEYS.MERCHANT && !isNegated;
     const [merchantOperator, setMerchantOperator] = useState<MerchantMatchType>(initialMerchantOperator ?? CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO);
-    const merchantMatchTypeItems: Array<ListItem<MerchantMatchType>> = [
-        {
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-            text: translate('workspace.rules.merchantRules.matchTypeContains'),
-            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.CONTAINS,
-        },
-        {
-            keyForList: CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-            text: translate('workspace.rules.merchantRules.matchTypeExact'),
-            isSelected: merchantOperator === CONST.SEARCH.SYNTAX_OPERATORS.EQUAL_TO,
-        },
-    ];
-
     const label = translate(FILTER_VIEW_MAP[baseFilterKey].labelKey);
     const {inputCallbackRef} = useAutoFocusInput();
     const error = useTextFilterValidation(baseFilterKey, value);
@@ -102,17 +86,10 @@ function TextInputFilterContent({
                 <View style={shouldShowMerchantMatchType ? styles.flex1 : undefined}>
                     {filterInput}
                     {shouldShowMerchantMatchType && (
-                        <>
-                            <View style={[styles.pb2, styles.ph5]}>
-                                <Text style={[styles.textLabelSupporting]}>{translate('workspace.rules.merchantRules.matchType')}</Text>
-                            </View>
-                            <SelectionList
-                                data={merchantMatchTypeItems}
-                                ListItem={SingleSelectListItem}
-                                onSelectRow={(item) => setMerchantOperator(item.keyForList)}
-                                shouldSingleExecuteRowSelect
-                            />
-                        </>
+                        <MerchantMatchTypeSelector
+                            value={merchantOperator}
+                            onChange={setMerchantOperator}
+                        />
                     )}
                 </View>
             </NegatableFilter>
