@@ -55,8 +55,9 @@ function AlwaysPaintedView({inert = false, children}: AlwaysPaintedViewProps) {
         <NativeAlwaysPaintedView style={DISPLAY_CONTENTS}>
             <View
                 aria-hidden={inert}
-                // The shared `pointerEventsBoxNone` style is empty on native, so both values are written here.
-                style={[styles.flex1, {pointerEvents: inert ? 'none' : 'box-none'}]}
+                // The shared `pointerEventsBoxNone` style is an empty object on native, so the value is set as a prop.
+                pointerEvents={inert ? 'none' : 'box-none'}
+                style={styles.flex1}
                 collapsable={false}
             >
                 {children}

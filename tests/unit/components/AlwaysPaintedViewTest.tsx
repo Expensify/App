@@ -61,7 +61,8 @@ describe('AlwaysPaintedView', () => {
         expect(StyleSheet.flatten(host.props.style)).toEqual({display: 'contents'});
         expect(child.props['aria-hidden']).toBe(true);
         expect(child.props.collapsable).toBe(false);
-        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'none'});
+        expect(child.props.pointerEvents).toBe('none');
+        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1});
     });
 
     it('lets touches pass through around the native content while it is not covered', () => {
@@ -78,7 +79,8 @@ describe('AlwaysPaintedView', () => {
         // Then touches reach the content again, while the wrapper stays uncollapsed so its style keeps being applied
         expect(child.props['aria-hidden']).toBe(false);
         expect(child.props.collapsable).toBe(false);
-        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
+        expect(child.props.pointerEvents).toBe('box-none');
+        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1});
     });
 
     it('treats a left-out prop as not covered', () => {
@@ -94,7 +96,7 @@ describe('AlwaysPaintedView', () => {
 
         // Then it behaves like an uncovered screen, which is what a caller that never covers its content gets
         expect(child.props['aria-hidden']).toBe(false);
-        expect(StyleSheet.flatten(child.props.style)).toEqual({flex: 1, pointerEvents: 'box-none'});
+        expect(child.props.pointerEvents).toBe('box-none');
     });
 
     it('keeps the children mounted when inert flips between left out and provided', () => {
