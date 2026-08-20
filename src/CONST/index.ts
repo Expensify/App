@@ -7996,6 +7996,15 @@ const CONST = {
                 icon: 'ReportReceipt',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
+            governmentDistanceRates: {
+                id: 'governmentDistanceRates' as const,
+                alias: 'auto-update-government-rates',
+                name: 'Auto-update government rates',
+                title: 'workspace.upgrade.governmentDistanceRates.title' as const,
+                description: 'workspace.upgrade.governmentDistanceRates.description' as const,
+                icon: 'CarIce',
+                requiredPlan: this.POLICY.TYPE.CORPORATE,
+            },
             perDiem: {
                 id: 'perDiem' as const,
                 alias: 'per-diem',

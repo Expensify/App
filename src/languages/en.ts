@@ -7612,6 +7612,12 @@ const translations = {
                 onlyAvailableOnPlanUnlimited: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
                     `<muted-text>Unlimited access to rules is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
             },
+            governmentDistanceRates: {
+                title: 'Auto-update government rates',
+                description: 'If you want Expensify to keep your mileage rates current whenever your government publishes new guidance, this feature is for you.',
+                onlyAvailableOnPlan: ({formattedPrice, hasTeam2025Pricing}: {formattedPrice: string; hasTeam2025Pricing: boolean}) =>
+                    `<muted-text>Auto-updating government rates is only available on the Control plan, starting at <strong>${formattedPrice}</strong> ${hasTeam2025Pricing ? `per member per month.` : `per active member per month.`}</muted-text>`,
+            },
             publicReceiptVisibility: {
                 title: 'Public receipt visibility',
                 description: 'If you want to make your receipt links accessible to anyone, such as a client or external accountant, this feature is for you.',

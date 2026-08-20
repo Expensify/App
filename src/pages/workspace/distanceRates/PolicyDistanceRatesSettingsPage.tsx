@@ -21,7 +21,7 @@ import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import {getGovernmentRateCountryPhraseTranslationKey, isCurrencySupportedForAutoUpdate} from '@libs/PolicyDistanceRatesUtils';
-import {getDistanceRateCustomUnit} from '@libs/PolicyUtils';
+import {getDistanceRateCustomUnit, isControlPolicy} from '@libs/PolicyUtils';
 import {getUnitTranslationKey} from '@libs/WorkspacesSettingsUtils';
 
 import type {SettingsNavigatorParamList} from '@navigation/types';
@@ -80,6 +80,15 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
 
     const countryPhraseTranslationKey = getGovernmentRateCountryPhraseTranslationKey(policy?.outputCurrency);
     const isAutoUpdateSupported = isCurrencySupportedForAutoUpdate(policy?.outputCurrency) && !!customUnit && !!countryPhraseTranslationKey;
+
+    // Only Control workspaces can auto-update government rates, so anything else gets a locked toggle that opens the upgrade flow
+    const isAutoUpdateUnavailable = !isControlPolicy(policy);
+
+    const navigateToUpgrade = () => {
+        Navigation.navigate(
+            ROUTES.WORKSPACE_UPGRADE.getRoute(policyID, CONST.UPGRADE_FEATURE_INTRO_MAPPING.governmentDistanceRates.alias, ROUTES.WORKSPACE_DISTANCE_RATES_SETTINGS.getRoute(policyID)),
+        );
+    };
 
     // Loads the government reference rates the toggle copies optimistically, since this page can be opened without the list page
     const fetchDistanceRates = () => {
@@ -206,9 +215,9 @@ function PolicyDistanceRatesSettingsPage({route}: PolicyDistanceRatesSettingsPag
                                                 isOn={!!policy?.shouldAutoUpdateGovernmentDistanceRates}
                                                 accessibilityLabel={translate('workspace.distanceRates.autoUpdateGovernmentRate')}
                                                 onToggle={toggleAutoUpdateGovernmentRate}
-                                                disabled={!canWriteDistanceRates}
-                                                disabledAction={withReadOnlyFallback()}
-                                                showLockIcon={!canWriteDistanceRates}
+                                                disabled={!canWriteDistanceRates || isAutoUpdateUnavailable}
+                                                disabledAction={withReadOnlyFallback(isAutoUpdateUnavailable ? navigateToUpgrade : undefined)}
+                                                showLockIcon={!canWriteDistanceRates || isAutoUpdateUnavailable}
                                             />
                                         </View>
                                         <Text style={[styles.textLabel, styles.colorMuted]}>
