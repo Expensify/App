@@ -47,10 +47,12 @@ const shareAsFile: ShareAsFile = (fileContent) => {
         const actualInfoFile = `file://${infoFilePath}`;
 
         RNFS.writeFile(infoFilePath, fileContent, 'utf8').then(() => {
+            // Share targets copy the file while the share sheet is open, so once the promise
+            // settles (including cancel, since failOnCancel is false) the dump can be deleted
             Share.open({
                 url: actualInfoFile,
                 failOnCancel: false,
-            });
+            }).finally(() => RNFS.unlink(infoFilePath).catch(() => {}));
         });
     } catch (error) {
         console.error('Error renaming and sharing file:', error);
