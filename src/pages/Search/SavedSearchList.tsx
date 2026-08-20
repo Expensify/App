@@ -28,7 +28,7 @@ import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import {accountIDSelector} from '@selectors/Session';
-import React from 'react';
+import React, {useMemo} from 'react';
 
 import useSavedSearchTitles from './hooks/useSavedSearchTitles';
 import SavedSearchItemThreeDotMenu from './SavedSearchItemThreeDotMenu';
@@ -124,6 +124,21 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
     const itemStyle = [styles.alignItemsCenter];
 
+    // Resolve each saved search's icon once per collection change, keyed only on `savedSearches`.
+    // getSavedSearchIconName parses the query with buildSearchQueryJSON, whose small FIFO cache thrashes
+    // when 50+ queries are parsed together in the same order. Deriving the map here (instead of parsing
+    // inline in the render map below) keeps the parser from re-running on every unrelated Onyx update.
+    const savedSearchIconNames = useMemo(() => {
+        const iconNames = new Map<string, ReturnType<typeof getSavedSearchIconName>>();
+        for (const item of Object.values(savedSearches ?? {})) {
+            if (iconNames.has(item.query)) {
+                continue;
+            }
+            iconNames.set(item.query, getSavedSearchIconName(item.query));
+        }
+        return iconNames;
+    }, [savedSearches]);
+
     const savedSearchesMenuItems = savedSearches
         ? Object.entries(savedSearches)
               .map(([key, item], index) =>
@@ -136,7 +151,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedHash === Number(key),
-                      icon: expensifyIcons[getSavedSearchIconName(item.query)],
+                      icon: expensifyIcons[savedSearchIconNames.get(item.query) ?? getSavedSearchIconName(item.query)],
                   }),
               )
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
