@@ -34,6 +34,7 @@ import type {Domain} from '@src/types/onyx';
 import type IconAsset from '@src/types/utils/IconAsset';
 
 import type {ReactNode} from 'react';
+import type {TupleToUnion} from 'type-fest';
 
 import {Str} from 'expensify-common';
 import React from 'react';
@@ -45,9 +46,11 @@ import useCreateNavigationSuggestions from './useCreateNavigationSuggestions';
 
 type TopLevelNavigationIcons = Record<'Home' | 'Inbox' | 'ReceiptMultiple' | 'Building' | 'Globe' | 'Gear', IconAsset>;
 type SpendNavigationIcons = Record<SearchTypeMenuItem['icon'], IconAsset>;
-type DomainNavigationIcons = Record<'Globe' | 'UserLock' | 'UserShield' | 'User' | 'Users', IconAsset>;
 
-const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Globe', 'Gear', 'UserLock', 'UserShield', 'Users', ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
+const DOMAIN_NAVIGATION_ICON_NAMES = ['User', 'UserLock', 'UserShield', 'Users'] as const;
+type DomainNavigationIcons = Record<TupleToUnion<typeof DOMAIN_NAVIGATION_ICON_NAMES>, IconAsset>;
+
+const SEARCH_ROUTER_ICON_NAMES = ['Home', 'Inbox', 'ReceiptMultiple', 'Building', 'Globe', 'Gear', ...DOMAIN_NAVIGATION_ICON_NAMES, ...SEARCH_TYPE_MENU_ICON_NAMES] as const;
 
 // Saved searches are user-defined searches, not canned destinations, so they are excluded from go-to navigation suggestions.
 const SAVED_SEARCHES_SECTION_PATH = 'search.savedSearchesMenuItemTitle';
