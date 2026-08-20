@@ -968,8 +968,8 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         buttonConfirmText: {
-            paddingLeft: 20,
-            paddingRight: 20,
+            // This is to match production build after ButtonComposed migration.
+            ...spacing.ph6,
         },
 
         buttonSuccessText: {
@@ -3504,9 +3504,18 @@ const staticStyles = (theme: ThemeColors) =>
         },
 
         moneyRequestPreviewBoxAvatar: {
-            // This should "hide" the right border of the last avatar
-            marginRight: -2,
+            // This should "hide" the outer border of the first and last avatar, which matches the card background
+            marginLeft: -variables.avatarBorderWidthSmall,
+            marginRight: -variables.avatarBorderWidthSmall,
             marginBottom: 0,
+        },
+
+        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
+        moneyRequestPreviewParticipantsText: {
+            color: theme.text,
+            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
+            fontSize: variables.fontSizeSmall,
+            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
@@ -5803,6 +5812,13 @@ const staticStyles = (theme: ThemeColors) =>
             height: variables.updateAnimationH,
         },
 
+        updateAnimationNarrowWeb: {
+            width: '100%',
+            // On web the dotlottie-react wrapper defaults to height: 100%, which would stretch the animation to fill the container.
+            // 'auto' lets the animation's aspect ratio determine the height instead.
+            height: 'auto',
+        },
+
         updateRequiredViewHeader: {
             height: variables.updateViewHeaderHeight,
         },
@@ -5899,7 +5915,7 @@ const staticStyles = (theme: ThemeColors) =>
             borderRadius: variables.componentBorderRadiusMedium,
         },
 
-        travelInvoicingIcon: {
+        travelBillingIcon: {
             backgroundColor: colors.productLight700,
             borderRadius: variables.componentBorderRadiusNormal,
         },
@@ -6566,7 +6582,7 @@ const staticStyles = (theme: ThemeColors) =>
             flexDirection: 'row',
             alignItems: 'center',
             gap: variables.componentBorderRadius,
-            marginBottom: variables.sectionMargin,
+            marginBottom: 16,
         },
         chartTitle: {
             ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,

@@ -481,6 +481,19 @@ describe('getBestMatchingPath', () => {
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-destination-edit')).toBe(undefined);
     });
 
+    it('redirects legacy money request upgrade path to the money-request-upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456')).toBe('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456');
+    });
+    it('redirects legacy money request upgrade path with an upgrade-path suffix to the dynamic route', () => {
+        expect(getMatchingNewRoute('/create/expense/upgrade/123/456/categories')).toBe(
+            '/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456&upgradePath=categories',
+        );
+    });
+
+    it('does not redirect the already-migrated money request upgrade dynamic route', () => {
+        expect(getMatchingNewRoute('/r/456/money-request-upgrade?action=create&iouType=expense&transactionID=123&reportID=456')).toBe(undefined);
+    });
+
     it('redirects legacy money request category path to the category dynamic route', () => {
         expect(getMatchingNewRoute('/create/expense/category/123/456')).toBe('/r/456/category?action=create&iouType=expense&transactionID=123&reportID=456');
     });
@@ -505,6 +518,23 @@ describe('getBestMatchingPath', () => {
     it('does not redirect the already-migrated per diem time dynamic routes (#83850)', () => {
         expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-destination/per-diem-time')).toBe(undefined);
         expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-time-edit')).toBe(undefined);
+    });
+
+    it('redirects legacy per diem subrate step to the new time-based dynamic route keeping the pageIndex (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/0')).toBe('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0');
+    });
+
+    it('redirects legacy per diem subrate step with a backToReport segment (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/789/2')).toBe('/create/submit/start/123/456/789/per-diem-time/per-diem-subrate/2');
+    });
+
+    it('redirects legacy per diem subrate edit step to the new confirmation-based dynamic route (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/subrate/123/456/edit/2')).toBe('/create/submit/confirmation/123/456/per-diem-subrate-edit/2');
+    });
+
+    it('does not redirect the already-migrated per diem subrate dynamic routes (#83850)', () => {
+        expect(getMatchingNewRoute('/create/submit/start/123/456/per-diem-time/per-diem-subrate/0')).toBe(undefined);
+        expect(getMatchingNewRoute('/create/submit/confirmation/123/456/per-diem-subrate-edit/2')).toBe(undefined);
     });
 
     // The legacy `?backTo=` query is not preserved: the trailing wildcard swallows it and the new suffix carries its own query.
