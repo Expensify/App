@@ -15,6 +15,8 @@ import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import {cleanupCrashDiagnostics, initializeCrashDiagnostics} from './crashDiagnostics';
+import {cleanupDatabaseSizeTracking, requestDatabaseSizeRemeasurement} from './databaseSizeTracker';
+import {setGlobalSpanAttribute} from './globalSpanAttributes';
 import {cleanupMemoryTracking, initializeMemoryTracking} from './sendMemoryContext';
 
 /**
@@ -55,6 +57,7 @@ Onyx.connectWithoutView({
         }
         policies = value;
         sendPoliciesContext();
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -64,7 +67,8 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        sendReportsCountTag(Object.keys(value).length);
+        sendReportsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -74,7 +78,19 @@ Onyx.connectWithoutView({
         if (!value) {
             return;
         }
-        sendPersonalDetailsCountTag(Object.keys(value).length);
+        sendPersonalDetailsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
+    },
+});
+
+Onyx.connectWithoutView({
+    key: ONYXKEYS.COLLECTION.TRANSACTION,
+    callback: (value) => {
+        if (!value) {
+            return;
+        }
+        sendTransactionsCount(Object.keys(value).length);
+        requestDatabaseSizeRemeasurement();
     },
 });
 
@@ -161,6 +177,7 @@ function sendPoliciesContext() {
     Sentry.setTag(CONST.TELEMETRY.TAGS.POLICIES_COUNT, policiesCountBucket);
     Sentry.setTag(CONST.TELEMETRY.TAGS.USER_ROLE, userRole);
     Sentry.setContext(CONST.TELEMETRY.CONTEXT_POLICIES, {activePolicyID, activePolicies});
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW, activePolicies.length);
 }
 
 function sendTryNewDotCohortTag() {
@@ -171,14 +188,21 @@ function sendTryNewDotCohortTag() {
     Sentry.setTag(CONST.TELEMETRY.TAGS.NUDGE_MIGRATION_COHORT, cohort);
 }
 
-function sendReportsCountTag(reportsCount: number) {
+function sendReportsCount(reportsCount: number) {
     const reportsCountBucket = bucketReportCount(reportsCount);
     Sentry.setTag(CONST.TELEMETRY.TAGS.REPORTS_COUNT, reportsCountBucket);
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW, reportsCount);
 }
 
-function sendPersonalDetailsCountTag(personalDetailsCount: number) {
+function sendPersonalDetailsCount(personalDetailsCount: number) {
     const personalDetailsCountBucket = bucketReportCount(personalDetailsCount);
     Sentry.setTag(CONST.TELEMETRY.TAGS.PERSONAL_DETAILS_COUNT, personalDetailsCountBucket);
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW, personalDetailsCount);
+}
+
+function sendTransactionsCount(transactionsCount: number) {
+    // Attribute only for now; the bucketed tag comes once borders can be derived from this data (https://github.com/Expensify/App/issues/98432).
+    setGlobalSpanAttribute(CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW, transactionsCount);
 }
 
 function initializeTelemetryTrackers() {
@@ -189,6 +213,7 @@ function initializeTelemetryTrackers() {
 function cleanupTelemetryTrackers() {
     cleanupMemoryTracking();
     cleanupCrashDiagnostics();
+    cleanupDatabaseSizeTracking();
 }
 
 export {initializeTelemetryTrackers, cleanupTelemetryTrackers};

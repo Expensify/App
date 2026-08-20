@@ -1,4 +1,5 @@
 import {getActivePolicies} from '@libs/PolicyUtils';
+import {getGlobalSpanAttributes} from '@libs/telemetry/globalSpanAttributes';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -10,6 +11,8 @@ import * as Sentry from '@sentry/react-native';
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import {createRandomReport} from '../utils/collections/reports';
+import createRandomTransaction from '../utils/collections/transaction';
 import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct';
 
 jest.mock('@sentry/react-native', () => ({
@@ -206,6 +209,58 @@ describe('TelemetrySynchronizer', () => {
             await waitForBatchedUpdatesWithAct();
 
             expect(Sentry.setTag).not.toHaveBeenCalled();
+        });
+    });
+
+    describe('raw count span attributes', () => {
+        it('should register reports_count_raw when the report collection changes', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.REPORT, {
+                [`${ONYXKEYS.COLLECTION.REPORT}1`]: createRandomReport(1),
+                [`${ONYXKEYS.COLLECTION.REPORT}2`]: createRandomReport(2),
+                [`${ONYXKEYS.COLLECTION.REPORT}3`]: createRandomReport(3),
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_REPORTS_COUNT_RAW]).toBe(3);
+        });
+
+        it('should register personal_details_count_raw when the personal details list changes', async () => {
+            const personalDetails = Object.fromEntries([1, 2].map((accountID) => [accountID, {accountID}]));
+            await Onyx.set(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_PERSONAL_DETAILS_COUNT_RAW]).toBe(2);
+        });
+
+        it('should register transactions_count_raw when the transaction collection changes', async () => {
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.TRANSACTION, {
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}1`]: createRandomTransaction(1),
+                [`${ONYXKEYS.COLLECTION.TRANSACTION}2`]: createRandomTransaction(2),
+            });
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_TRANSACTIONS_COUNT_RAW]).toBe(2);
+        });
+
+        it('should register policies_count_raw with the active policies count', async () => {
+            const mockSession: Session = {
+                email: 'test@example.com',
+                accountID: 1,
+            };
+            const mockPolicies: Record<string, Policy> = {
+                [`${ONYXKEYS.COLLECTION.POLICY}123`]: createRandomPolicy(123),
+                [`${ONYXKEYS.COLLECTION.POLICY}456`]: createRandomPolicy(456),
+            };
+            jest.mocked(getActivePolicies).mockReturnValue(Object.values(mockPolicies));
+
+            await Onyx.multiSet({
+                [ONYXKEYS.SESSION]: mockSession,
+                [ONYXKEYS.NVP_ACTIVE_POLICY_ID]: '123',
+            });
+            await Onyx.mergeCollection(ONYXKEYS.COLLECTION.POLICY, mockPolicies);
+            await waitForBatchedUpdatesWithAct();
+
+            expect(getGlobalSpanAttributes()[CONST.TELEMETRY.ATTRIBUTE_POLICIES_COUNT_RAW]).toBe(2);
         });
     });
 
