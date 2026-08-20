@@ -800,28 +800,28 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_ONLINE_EXPORT_PREFERRED_EXPORTER]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_VENDOR_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_VENDOR_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.QUICKBOOKS_ONLINE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_INVOICING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.NETSUITE_TRAVEL_BILLING_JOURNAL_POSTING_PREFERENCE_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_QUICKBOOKS_DESKTOP_COMPANY_CARD_EXPENSE_ACCOUNT_SELECT]: {
@@ -920,10 +920,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_EXPORT_PURCHASE_BILL_DATE_SELECT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_XERO_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.XERO_ADVANCED]: {
@@ -1161,10 +1161,10 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_NON_REIMBURSABLE_CREDIT_CARD_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_CONFIGURATION]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_CONFIGURATION]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_INVOICING_PAYABLE_ACCOUNT_SELECT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.DYNAMIC_SAGE_INTACCT_TRAVEL_BILLING_PAYABLE_ACCOUNT_SELECT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.SAGE_INTACCT_ADVANCED]: {
@@ -1274,7 +1274,7 @@ type SettingsNavigatorParamList = {
     [SCREENS.WORKSPACE.ACCOUNTING.RILLET_EXPENSIFY_CARD_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
-    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_INVOICING_SETTLEMENT_ACCOUNT]: {
+    [SCREENS.WORKSPACE.ACCOUNTING.RILLET_TRAVEL_BILLING_SETTLEMENT_ACCOUNT]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SETUP]: {
@@ -1287,6 +1287,24 @@ type SettingsNavigatorParamList = {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_IMPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPORT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_PREFERRED_EXPORTER]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_VENDOR_BILL_DATE]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: {
+        policyID: string;
+    };
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: {
         policyID: string;
     };
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: {
@@ -2259,24 +2277,16 @@ type MoneyRequestNavigatorParamList = {
         backTo: Routes;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.RECEIPT_VIEW]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_RECEIPT_VIEW]: {
         transactionID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes;
     };
-    [SCREENS.MONEY_REQUEST.HOLD]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_HOLD_REASON]: {
         /** ID of the transaction the page was opened for */
         transactionID: string;
 
         /** ID of the report that user is providing hold reason to */
-        reportID: string;
-
-        /** Link to previous page */
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: ExpensifyRoute;
-
-        /** Hash that includes info about what is searched for */
-        searchHash?: number;
+        /** Deliberately not named `reportID` so it cannot inherit the base path's report. */
+        holdReportID?: string;
     };
     [SCREENS.MONEY_REQUEST.REJECT]: {
         /** ID of the transaction the page was opened for */
@@ -2328,12 +2338,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SUBRATE]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         reportID: string;
         backToReport?: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
         action: IOUAction;
         pageIndex: string;
         transactionID: string;
@@ -2352,11 +2360,10 @@ type MoneyRequestNavigatorParamList = {
         reportID: string;
         backToReport?: string;
     };
-    [SCREENS.MONEY_REQUEST.STEP_SUBRATE_EDIT]: {
+    [SCREENS.MONEY_REQUEST.DYNAMIC_STEP_SUBRATE_EDIT]: {
         iouType: Exclude<IOUType, typeof CONST.IOU.TYPE.REQUEST | typeof CONST.IOU.TYPE.SEND>;
         reportID: string;
-        // eslint-disable-next-line no-restricted-syntax -- `backTo` usages in this file are legacy. Do not add new `backTo` params to screens. See contributingGuides/NAVIGATION.md
-        backTo: Routes | undefined;
+        backToReport?: string;
         action: IOUAction;
         pageIndex: string;
         transactionID: string;

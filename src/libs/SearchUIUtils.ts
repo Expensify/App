@@ -154,6 +154,7 @@ import {
     generateReportID,
     getIcons,
     getMoneyRequestSpendBreakdown,
+    getPendingDeleteMemberAccountIDs,
     getPersonalDetailsForAccountID,
     getPolicyName,
     getReimbursableTotal,
@@ -1111,7 +1112,7 @@ function getSuggestedSearchesVisibility(
     defaultExpensifyCard: CardFeedForDisplay | undefined,
     hasReportAwaitingApproval = false,
     isTrackIntentUser = false,
-): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasGroupPoliciesWithExpenseChat: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
+): {visibility: Record<ValueOf<typeof CONST.SEARCH.SEARCH_KEYS>, boolean>; hasEligibleGroupPolicies: boolean; shouldShowExpensifyCard: boolean; topSpendersPolicyIDs: string[]} {
     let shouldShowSubmitSuggestion = false;
     let shouldShowPaySuggestion = false;
     let shouldShowApproveSuggestion = hasReportAwaitingApproval;
@@ -1124,7 +1125,7 @@ function getSuggestedSearchesVisibility(
     let shouldShowTopSpendersSuggestion = false;
     let shouldShowTopCategoriesSuggestion = false;
     let shouldShowTopMerchantsSuggestion = false;
-    let hasGroupPoliciesWithExpenseChat = false;
+    let hasEligibleGroupPolicies = false;
     let shouldShowSpendOverTimeSuggestion = false;
     const topSpendersPolicyIDs: string[] = [];
 
@@ -1187,9 +1188,8 @@ function getSuggestedSearchesVisibility(
         }
         shouldShowTopCategoriesSuggestion ||= isEligibleForTopCategoriesSuggestion;
         shouldShowTopMerchantsSuggestion ||= isEligibleForTopMerchantsSuggestion;
-        hasGroupPoliciesWithExpenseChat ||=
+        hasEligibleGroupPolicies ||=
             isGroupPolicyEligible &&
-            !!policy.isPolicyExpenseChatEnabled &&
             !policy.isJoinRequestPending &&
             (policy.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE || Object.keys(policy.errors ?? {}).length > 0) &&
             !!policy.role;
@@ -1213,7 +1213,7 @@ function getSuggestedSearchesVisibility(
             [CONST.SEARCH.SEARCH_KEYS.TOP_MERCHANTS]: shouldShowTopMerchantsSuggestion,
             [CONST.SEARCH.SEARCH_KEYS.SPEND_OVER_TIME]: shouldShowSpendOverTimeSuggestion,
         },
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard: shouldShowExpensifyCardSuggestion,
         topSpendersPolicyIDs,
     };
@@ -2740,7 +2740,23 @@ function getTaskSections(
                 const policy = data[`${ONYXKEYS.COLLECTION.POLICY}${parentReport.policyID}`];
                 const isParentReportArchived = isArchivedReport(reportNameValuePairs?.[`${ONYXKEYS.COLLECTION.REPORT_NAME_VALUE_PAIRS}${parentReport?.reportID}`]);
                 const parentReportName = deprecatedGetReportName(parentReport, reportAttributesDerivedValue);
-                const icons = getIcons(parentReport, formatPhoneNumber, translate, personalDetails, null, '', -1, policy, undefined, isParentReportArchived);
+                // The search snapshot does not always carry the report metadata. Pass undefined rather than an empty array in that case,
+                // otherwise getGroupChatName treats it as "nothing is pending delete" and skips its own Onyx fallback.
+                const parentReportMetadata = data[`${ONYXKEYS.COLLECTION.REPORT_METADATA}${parentReport.reportID}`];
+                const parentReportPendingDeleteMemberAccountIDs = parentReportMetadata ? getPendingDeleteMemberAccountIDs(parentReportMetadata.pendingChatMembers) : undefined;
+                const icons = getIcons(
+                    parentReport,
+                    formatPhoneNumber,
+                    translate,
+                    personalDetails,
+                    null,
+                    '',
+                    -1,
+                    policy,
+                    undefined,
+                    isParentReportArchived,
+                    parentReportPendingDeleteMemberAccountIDs,
+                );
                 const parentReportIcon = icons?.at(0);
 
                 result.parentReportName = parentReportName;
@@ -3068,7 +3084,7 @@ function getReportSections({
             const actions = getLiveOrSnapshotReportActions(reportActions, data, reportItem.reportID);
 
             const isActionLoading = !!isActionLoadingSet?.has(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${reportItem.reportID}`);
-            const shouldShow = !isActionLoading && currentQueryJSON?.type === CONST.SEARCH.DATA_TYPES.EXPENSE ? isEligibleForStatus(currentQueryJSON, reportItem) : true;
+            const shouldShow = isActionLoading || isEligibleForStatus(currentQueryJSON, reportItem);
 
             if (shouldShow) {
                 const reportPendingAction =
@@ -4843,7 +4859,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
 
     const {
         visibility: suggestedSearchesVisibility,
-        hasGroupPoliciesWithExpenseChat,
+        hasEligibleGroupPolicies,
         shouldShowExpensifyCard,
         topSpendersPolicyIDs,
     } = getSuggestedSearchesVisibility(currentUserEmail, cardFeedsByPolicy, policies, defaultExpensifyCard, hasReportAwaitingApproval, isTrackIntentUser);
@@ -4872,7 +4888,7 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
                     emptyState: {
                         title: 'search.searchResults.emptySubmitResults.title',
                         subtitle: 'search.searchResults.emptySubmitResults.subtitle',
-                        buttons: hasGroupPoliciesWithExpenseChat
+                        buttons: hasEligibleGroupPolicies
                             ? [
                                   {
                                       success: true,
@@ -6829,8 +6845,9 @@ function splitGroupsIntoPairs(data: SearchListItem[]): {splitData: SearchListIte
         if ('transactions' in item) {
             const key = item.keyForList ?? '';
             stickyHeaderIndices.push(splitData.length);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`} as GroupHeaderItemType);
-            splitData.push({...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`} as GroupChildrenContainerItemType);
+            const headerItem: GroupHeaderItemType = {...item, listItemType: GROUP_ITEM_TYPES.GROUP_HEADER, keyForList: `header_${key}`, groupKeyForList: key};
+            const childrenItem: GroupChildrenContainerItemType = {...item, listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER, keyForList: `children_${key}`, groupKeyForList: key};
+            splitData.push(headerItem, childrenItem);
         } else {
             splitData.push(item);
         }

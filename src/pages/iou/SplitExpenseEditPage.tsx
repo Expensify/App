@@ -18,7 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import usePrevious from '@hooks/usePrevious';
-import useReportAttributes from '@hooks/useReportAttributes';
+import {useDerivedReportNameByReportID} from '@hooks/useReportAttributes';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useSplitEffectivePolicy from '@hooks/useSplitEffectivePolicy';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -37,7 +37,7 @@ import type {SplitExpenseParamList} from '@libs/Navigation/types';
 import {hasEnabledOptions} from '@libs/OptionsListUtils';
 import Parser from '@libs/Parser';
 import {arePolicyRulesEnabled, getDistanceRateCustomUnitRate, getTagLists, hasAnyPaidPolicy, isGroupPolicyByType} from '@libs/PolicyUtils';
-import {deprecatedGetReportName} from '@libs/ReportNameUtils';
+import {getReportName} from '@libs/ReportNameUtils';
 import {isSplitAction} from '@libs/ReportSecondaryActionUtils';
 import type {TransactionDetails} from '@libs/ReportUtils';
 import {getParsedComment, getReportOrDraftReport, getTransactionDetails, isSelfDM} from '@libs/ReportUtils';
@@ -60,7 +60,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
     const styles = useThemeStyles();
     const {isOffline} = useNetwork();
     const {translate, toLocaleDigit} = useLocalize();
-    const {convertToDisplayString, getCurrencySymbol} = useCurrencyListActions();
+    const {convertToDisplayString, getCurrencySymbol, getCurrencyDecimals} = useCurrencyListActions();
     const {currentSearchResults} = useSearchResultsContext();
 
     const {reportID, transactionID, splitExpenseTransactionID = '', backTo} = route.params;
@@ -146,8 +146,8 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
         report && transaction && isSplitAction(currentReport, [transaction], originalTransaction, login ?? '', currentUserAccountID, effectivePolicy, parentReport, isProduction);
 
     const isCategoryRequired = !!effectivePolicy?.requiresCategory && !isSelfDMSplit;
-    const reportAttributes = useReportAttributes();
-    const reportName = deprecatedGetReportName(currentReport, reportAttributes) || parentReport?.reportName;
+    const derivedCurrentReportName = useDerivedReportNameByReportID(currentReport?.reportID);
+    const reportName = getReportName(currentReport, derivedCurrentReportName) || parentReport?.reportName;
     const isDescriptionRequired = isCategoryDescriptionRequired(policyCategories, splitExpenseDraftTransactionDetails?.category, arePolicyRulesEnabled(effectivePolicy, policyCategories));
 
     // Mirror MoneyRequestView's `shouldShowTag`, plus always surface the row when the original
@@ -459,7 +459,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                 size={CONST.BUTTON_SIZE.LARGE}
                                 style={[styles.w100, styles.mb4]}
                                 onPress={() => {
-                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID);
+                                    removeSplitExpenseField(draftTransactionWithSplitExpenses, splitExpenseTransactionID, getCurrencyDecimals);
                                     Navigation.goBack(backTo);
                                 }}
                                 sentryLabel={CONST.SENTRY_LABEL.SPLIT_EXPENSE.REMOVE_SPLIT_BUTTON}
@@ -482,6 +482,7 @@ function SplitExpenseEditPage({route}: SplitExpensePageProps) {
                                     isSelfDMSplit,
                                     personalPolicy?.outputCurrency,
                                     getCurrencySymbol,
+                                    allPolicies,
                                 );
                                 Navigation.goBack(backTo);
                             }}

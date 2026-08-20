@@ -19,7 +19,6 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import React, {useRef, useState} from 'react';
 import {View} from 'react-native';
 
-import AnnouncementSection from './AnnouncementSection';
 import DiscoverSection from './DiscoverSection';
 import ForYouSection from './ForYouSection';
 import FreeTrialSection from './FreeTrialSection';
@@ -82,11 +81,10 @@ function HomePage() {
                                         setIsConciergeMenuVisible={setIsConciergeMenuVisible}
                                     />
                                     <UpcomingTravelSection />
-                                    <RecentlyAddedSection />
                                     <YourSpendSection />
+                                    <RecentlyAddedSection />
                                     <InsightsSection />
                                     <DiscoverSection />
-                                    <AnnouncementSection />
                                 </>
                             ) : (
                                 <>
@@ -99,7 +97,6 @@ function HomePage() {
                                             isConciergeMenuVisible={isConciergeMenuVisible}
                                             setIsConciergeMenuVisible={setIsConciergeMenuVisible}
                                         />
-                                        <RecentlyAddedSection />
                                         <InsightsSection />
                                     </View>
                                     <View
@@ -107,10 +104,10 @@ function HomePage() {
                                         style={styles.homePageRightColumn}
                                     >
                                         <FreeTrialSection />
-                                        <UpcomingTravelSection />
                                         <YourSpendSection />
+                                        <RecentlyAddedSection />
+                                        <UpcomingTravelSection />
                                         <DiscoverSection />
-                                        <AnnouncementSection />
                                     </View>
                                 </>
                             )}

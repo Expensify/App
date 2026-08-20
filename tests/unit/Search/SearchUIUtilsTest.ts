@@ -15,6 +15,7 @@ import type {
     TransactionWithdrawalIDGroupListItemType,
     TransactionYearGroupListItemType,
 } from '@components/Search/SearchList/ListItem/types';
+import {GROUP_ITEM_TYPES} from '@components/Search/SearchList/ListItem/types';
 import {getExpenseHeaders} from '@components/Search/SearchTableHeader';
 import type {SearchColumnType, SelectedTransactionInfo, SortOrder} from '@components/Search/types';
 
@@ -5994,6 +5995,21 @@ describe('SearchUIUtils', () => {
             };
         }
 
+        // `getSections` only routes to `getReportSections` for `expense-report`, so an `expense` query never
+        // exercises that path in production.
+        function makeExpenseReportQueryJSON(status: string[] | undefined, isNegated = false) {
+            return {
+                ...makeExpenseQueryJSON(status, isNegated),
+                type: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                inputQuery: 'type:expense-report' as const,
+                filters: {
+                    operator: CONST.SEARCH.SYNTAX_OPERATORS.AND,
+                    left: CONST.SEARCH.SYNTAX_FILTER_KEYS.TYPE,
+                    right: CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT,
+                },
+            };
+        }
+
         describe('getTransactionsSections filtering and edge cases', () => {
             const filterTestReportID = 'filter-report-1';
             const filterTestTxID = 'filter-tx-1';
@@ -6478,6 +6494,46 @@ describe('SearchUIUtils', () => {
                 const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
                 const [sections] = callGetReportSections(data, {
                     queryJSON: makeExpenseQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING]),
+                    isActionLoadingSet: loadingSet,
+                });
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude a submitted report from the drafts filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should keep a draft report under the drafts filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.OPEN, statusNum: CONST.REPORT.STATUS_NUM.OPEN, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should exclude a paid report from the approved filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.APPROVED, statusNum: CONST.REPORT.STATUS_NUM.REIMBURSED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.APPROVED])});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should show every report when an expense-report query has no status filter', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON(undefined)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
+            });
+
+            it('should honor a negated status filter on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const [sections] = callGetReportSections(data, {queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.OUTSTANDING], true)});
+                expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(false);
+            });
+
+            it('should keep a report visible while its action is loading on an expense-report query', () => {
+                const data = makeReportFilterTestData({stateNum: CONST.REPORT.STATE_NUM.SUBMITTED, statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED, type: CONST.REPORT.TYPE.EXPENSE});
+                const loadingSet = new Set([`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${rptFilterReportID}`]);
+                const [sections] = callGetReportSections(data, {
+                    queryJSON: makeExpenseReportQueryJSON([CONST.SEARCH.STATUS.EXPENSE.DRAFTS]),
                     isActionLoadingSet: loadingSet,
                 });
                 expect(sections.some((s) => s.keyForList === rptFilterReportID)).toBe(true);
@@ -8113,6 +8169,36 @@ describe('SearchUIUtils', () => {
             expect(menuItemKeys).toContain(CONST.SEARCH.SEARCH_KEYS.EXPORT);
         });
 
+        it('should keep Submit visible without CTA buttons for group workspaces that are not CTA-eligible', () => {
+            const sections = SearchUIUtils.createTypeMenuSections({
+                currentUserEmail: adminEmail,
+                currentUserAccountID: adminAccountID,
+                cardFeedsByPolicy: {},
+                defaultCardFeed: undefined,
+                policies: {
+                    policy1: createMock<OnyxTypes.Policy>({
+                        id: 'policy1',
+                        name: 'Test Policy',
+                        owner: adminEmail,
+                        outputCurrency: 'USD',
+                        role: CONST.POLICY.ROLE.ADMIN,
+                        type: CONST.POLICY.TYPE.TEAM,
+                        pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    }),
+                },
+                savedSearches: {},
+                isOffline: false,
+                defaultExpensifyCard: undefined,
+                draftTransactionIDs: [],
+                isTrackIntentUser: false,
+            });
+
+            const submitItem = sections.flatMap((section) => section.menuItems).find((item) => item.key === CONST.SEARCH.SEARCH_KEYS.SUBMIT);
+
+            expect(submitItem).toBeDefined();
+            expect(submitItem?.emptyState?.buttons).toEqual([]);
+        });
+
         it('should hide submit, approve, pay, export, and top spenders for track intent users without workflows enabled', () => {
             const mockPolicies = {
                 policy1: {
@@ -9666,6 +9752,46 @@ describe('SearchUIUtils', () => {
 
             const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
             expect(response.visibility.topCategories).toBe(false);
+        });
+
+        test('Should set hasEligibleGroupPolicies only for group workspaces', () => {
+            const groupPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const personalPolicies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.PERSONAL,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                }),
+            };
+
+            const groupResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, groupPolicies, undefined);
+            const personalResponse = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, personalPolicies, undefined);
+
+            expect(groupResponse.hasEligibleGroupPolicies).toBe(true);
+            expect(personalResponse.hasEligibleGroupPolicies).toBe(false);
+        });
+
+        test('Should keep deleted group workspaces eligible when they still have errors', () => {
+            const policies: OnyxCollection<OnyxTypes.Policy> = {
+                [`policy_${policyID}`]: createMock<OnyxTypes.Policy>({
+                    id: policyID,
+                    type: CONST.POLICY.TYPE.TEAM,
+                    role: CONST.POLICY.ROLE.ADMIN,
+                    pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE,
+                    errors: {name: 'Workspace still has an error'},
+                }),
+            };
+
+            const response = SearchUIUtils.getSuggestedSearchesVisibility(adminEmail, {}, policies, undefined);
+
+            expect(response.hasEligibleGroupPolicies).toBe(true);
         });
 
         test('Should show Top Categories if at least one policy has categories enabled', () => {
@@ -12618,5 +12744,41 @@ describe('getViolationsFromSearchData', () => {
         const data = createMock<OnyxTypes.SearchResults['data']>({});
         Reflect.set(data, `${ONYXKEYS.COLLECTION.REPORT}1`, {reportID: '1'});
         expect(SearchUIUtils.getViolationsFromSearchData(data)).toEqual({});
+    });
+});
+
+describe('splitGroupsIntoPairs', () => {
+    it('splits each group into a header + children container that keep the original group key in groupKeyForList', () => {
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs(transactionReportGroupListItems);
+
+        expect(splitData).toHaveLength(transactionReportGroupListItems.length * 2);
+        // Sticky headers point at each header row (the even indices).
+        expect(stickyHeaderIndices).toEqual(transactionReportGroupListItems.map((_group, index) => index * 2));
+
+        // groupKeyForList must stay the original key, since both halves ask the selection about the group under it.
+        for (const [index, group] of transactionReportGroupListItems.entries()) {
+            expect(splitData.at(index * 2)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.GROUP_HEADER,
+                keyForList: `header_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+            expect(splitData.at(index * 2 + 1)).toMatchObject({
+                listItemType: GROUP_ITEM_TYPES.CHILDREN_CONTAINER,
+                keyForList: `children_${group.keyForList}`,
+                groupKeyForList: group.keyForList,
+            });
+        }
+    });
+
+    it('passes non-group rows through unchanged', () => {
+        const leaf = transactionReportGroupListItems.at(0)?.transactions.at(0);
+        expect(leaf).toBeDefined();
+        if (!leaf) {
+            return;
+        }
+
+        const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
+        expect(splitData).toEqual([leaf]);
+        expect(stickyHeaderIndices).toEqual([]);
     });
 });
