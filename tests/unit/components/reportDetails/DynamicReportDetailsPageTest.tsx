@@ -26,6 +26,7 @@ import type * as MockUseConfirmModalUtil from '../../../utils/mockUseConfirmModa
 
 import createRandomReportAction from '../../../utils/collections/reportActions';
 import {createRandomReport} from '../../../utils/collections/reports';
+import createMock from '../../../utils/createMock';
 import {mockShowConfirmModal, resetMockConfirmModal, resolveShowConfirmModal} from '../../../utils/mockUseConfirmModal';
 import waitForBatchedUpdatesWithAct from '../../../utils/waitForBatchedUpdatesWithAct';
 
@@ -52,8 +53,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockHtmlToText = jest.spyOn(Parser, 'htmlToText');
-const navigationMock = {} as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation'];
-const getRouteMock = (reportID: string) => ({params: {reportID}}) as PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route'];
+const navigationMock = createMock<PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['navigation']>({});
+const getRouteMock = (reportID: string) => createMock<PlatformStackScreenProps<ReportDetailsNavigatorParamList, typeof SCREENS.REPORT_DETAILS.DYNAMIC_ROOT>['route']>({params: {reportID}});
 
 describe('DynamicReportDetailsPage', () => {
     beforeAll(() => {

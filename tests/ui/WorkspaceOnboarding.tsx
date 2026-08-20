@@ -11,6 +11,7 @@ import type ResponsiveLayoutResult from '@hooks/useResponsiveLayout/types';
 import Navigation from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
 import type {OnboardingModalNavigatorParamList} from '@libs/Navigation/types';
+import {buildCannedSearchQuery} from '@libs/SearchQueryUtils';
 
 import OnboardingWorkspaces from '@pages/OnboardingWorkspaces';
 
@@ -227,7 +228,7 @@ describe('OnboardingWorkspaces Page', () => {
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose and Submit2026 beta', async () => {
+    it('should create a Submit workspace when skip is pressed with EMPLOYER purpose', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -238,7 +239,6 @@ describe('OnboardingWorkspaces Page', () => {
                 hasCompletedGuidedSetupFlow: false,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
         });
 
         const {unmount} = renderOnboardingWorkspacesPage(SCREENS.ONBOARDING.WORKSPACES, {backTo: ''});
@@ -274,14 +274,14 @@ describe('OnboardingWorkspaces Page', () => {
         });
 
         await waitFor(() => {
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('test-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         });
 
         unmount();
         await waitForBatchedUpdatesWithAct();
     });
 
-    it('should complete onboarding without passing the joined workspace policyID and open Categories in the admins room', async () => {
+    it('should complete onboarding without passing the joined workspace policyID and open Spend > Expenses in the admins room', async () => {
         jest.spyOn(Navigation, 'dismissModal').mockImplementation(() => {});
         jest.spyOn(Navigation, 'setNavigationActionToMicrotaskQueue').mockImplementation((callback: () => void) => callback());
 
@@ -292,7 +292,6 @@ describe('OnboardingWorkspaces Page', () => {
                 hasCompletedGuidedSetupFlow: false,
             });
             await Onyx.set(ONYXKEYS.ONBOARDING_PURPOSE_SELECTED, CONST.ONBOARDING_CHOICES.EMPLOYER);
-            await Onyx.set(ONYXKEYS.BETAS, [CONST.BETAS.SUBMIT_2026]);
             await Onyx.merge(ONYXKEYS.FORMS.ONBOARDING_PERSONAL_DETAILS_FORM, {
                 firstName: 'Test',
                 lastName: 'User',
@@ -335,7 +334,7 @@ describe('OnboardingWorkspaces Page', () => {
 
         await waitFor(() => {
             expect(onyxSetSpy).toHaveBeenCalledWith(ONYXKEYS.NVP_ONBOARDING_RHP_VARIANT, CONST.ONBOARDING_RHP_VARIANT.RHP_ADMINS_ROOM);
-            expect(navigate).toHaveBeenCalledWith(`${ROUTES.WORKSPACE_CATEGORIES.getRoute('submit-policy-id')}?backTo=${encodeURIComponent(ROUTES.WORKSPACES_LIST.route)}`);
+            expect(navigate).toHaveBeenCalledWith(ROUTES.SEARCH_ROOT.getRoute({query: buildCannedSearchQuery({type: CONST.SEARCH.DATA_TYPES.EXPENSE})}));
         });
 
         onyxSetSpy.mockRestore();
