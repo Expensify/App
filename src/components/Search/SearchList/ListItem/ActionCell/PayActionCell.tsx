@@ -4,6 +4,7 @@ import SettlementButton from '@components/SettlementButton';
 import type {PaymentActionParams} from '@components/SettlementButton/types';
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
+import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import {getParticipantsInvoiceReport} from '@hooks/useParticipantsInvoiceReport';
@@ -41,6 +42,7 @@ type PayActionCellProps = {
 
 function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisablePointerEvents, chatReport}: PayActionCellProps) {
     const styles = useThemeStyles();
+    const {formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
@@ -143,6 +145,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
                 chatReportActions,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
             return;
         }
@@ -180,6 +183,7 @@ function PayActionCell({isLoading, policyID, reportID, hash, amount, shouldDisab
             delegateAccountID,
             isTrackIntentUser,
             conciergeChat,
+            formatPhoneNumber,
         });
     };
 

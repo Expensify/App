@@ -914,6 +914,7 @@ function completeSplitBill({
     delegateAccountID,
     isTrackIntentUser,
     sessionEmail,
+    formatPhoneNumber,
     getCurrencyDecimals,
 }: CompleteSplitBillActionParams) {
     if (!reportAction) {
@@ -1132,11 +1133,12 @@ function completeSplitBill({
 
         let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport?.reportID, oneOnOneIOUReport?.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber, getCurrencyDecimals);
         } else {
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(
                 oneOnOneChatReport,
                 oneOnOneIOUReport,
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 '',
                 oneOnOneTransaction,
@@ -1912,11 +1914,12 @@ function createSplitsAndOnyxData({
 
         let oneOnOneReportPreviewAction = getReportPreviewReportAction(oneOnOneChatReport.reportID, oneOnOneIOUReport.reportID);
         if (oneOnOneReportPreviewAction) {
-            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, getCurrencyDecimals);
+            oneOnOneReportPreviewAction = updateReportPreview(oneOnOneIOUReport, oneOnOneReportPreviewAction, formatPhoneNumber, getCurrencyDecimals);
         } else {
             oneOnOneReportPreviewAction = buildOptimisticReportPreview(
                 oneOnOneChatReport,
                 oneOnOneIOUReport,
+                formatPhoneNumber,
                 getCurrencyDecimals,
                 '',
                 oneOnOneTransaction,

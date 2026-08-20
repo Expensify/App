@@ -263,7 +263,7 @@ function buildReportParticipants(args: SubmitAmountArgs) {
 type ParticipantOption = ReturnType<typeof buildReportParticipants>[number];
 
 function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmountContext, participants: ParticipantOption[]): void {
-    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals} = args;
+    const {report, selectedCurrency, paymentMethod, quickAction, delegateAccountID, getCurrencyDecimals, formatPhoneNumber} = args;
     const {currentUserAccountID, newAmount: backendAmount} = ctx;
     const {optimisticChatReportID, chatReportID} = resolveOptimisticChatReportID([participants.at(0)?.accountID ?? CONST.DEFAULT_NUMBER_ID, currentUserAccountID], report);
     const sendMoneyParams = {
@@ -281,7 +281,7 @@ function submitSkipConfirmationPayment(args: SubmitAmountArgs, ctx: SubmitAmount
     };
 
     const executeSendMoneyWrite = (overrides?: {shouldDeferForSearch?: boolean}) => {
-        const mergedParams = {...sendMoneyParams, ...overrides};
+        const mergedParams = {...sendMoneyParams, ...overrides, formatPhoneNumber};
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.EXPENSIFY) {
             sendMoneyWithWallet(mergedParams);
         } else {
@@ -375,6 +375,7 @@ function submitSkipConfirmationExpense(args: SubmitAmountArgs, ctx: SubmitAmount
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                formatPhoneNumber,
             });
         } else {
             const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;

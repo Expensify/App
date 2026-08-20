@@ -36,7 +36,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const {reportID} = route.params ?? {};
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
@@ -62,18 +62,19 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
-                currentSearchHash,
-                selectedTransactionsForReject,
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+                hash: currentSearchHash,
+                selectedTransactions: selectedTransactionsForReject,
                 comment,
                 allPolicies,
                 allReports,
-                currentUserAccountID,
-                currentUserLogin ?? '',
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
                 betas,
                 delegateAccountID,
                 getCurrencyDecimals,
-            );
+                formatPhoneNumber,
+            });
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {
@@ -95,6 +96,7 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            formatPhoneNumber,
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,

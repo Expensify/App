@@ -17,7 +17,7 @@ import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
-import {getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {getCurrencyDecimalsLocal, formatPhoneNumber} from '../../utils/TestHelper';
 
 jest.mock('@src/components/ConfirmedRoute.tsx');
 jest.mock('@libs/deferModalPresentationAfterPopoverDismiss', () => ({
@@ -362,6 +362,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
             allViolations: undefined,
         });
         expect(goToItem).not.toHaveBeenCalled();
@@ -389,6 +390,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
             allViolations: undefined,
         });
 
@@ -416,6 +418,7 @@ describe('handleActionButtonPress', () => {
             currentUserAccountID: 1206,
             delegateAccountID: undefined,
             isTrackIntentUser: false,
+            formatPhoneNumber,
             allViolations: undefined,
         });
         expect(goToItem).toHaveBeenCalledTimes(0);
@@ -452,6 +455,7 @@ describe('handleActionButtonPress', () => {
             allViolations,
             conciergeChat: undefined,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            formatPhoneNumber,
         });
 
         // Then: hasViolations is evaluated against the passed collection, proving the deprecated global getter is no longer used,

@@ -40,7 +40,7 @@ import {View} from 'react-native';
 
 function SearchActionsBarCreateButton() {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const expensifyIcons = useMemoizedLazyExpensifyIcons(['Plus', 'Location', 'Document', 'Receipt', 'Coins', 'Cash', 'Transfer', 'MoneyCircle']);
 
     const createButtonRef = useRef<View>(null);
@@ -82,17 +82,19 @@ function SearchActionsBarCreateButton() {
                 return;
             }
 
-            const {reportID: createdReportID} = createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
+            const {reportID: createdReportID} = createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
-                defaultChatEnabledPolicy,
-                allBetas,
+                policy: defaultChatEnabledPolicy,
+                betas: allBetas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
+                formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 Navigation.navigate(
                     isSearchTopmostFullScreenRoute()
@@ -101,7 +103,7 @@ function SearchActionsBarCreateButton() {
                 );
             });
         },
-        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals],
+        [currentUserPersonalDetails, hasViolations, defaultChatEnabledPolicy, isASAPSubmitBetaEnabled, allBetas, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber],
     );
 
     const {openCreateReportConfirmation} = useCreateEmptyReportConfirmation({

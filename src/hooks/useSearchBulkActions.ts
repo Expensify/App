@@ -422,7 +422,7 @@ function getChatReportForBulkPay(
 }
 
 function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const styles = useThemeStyles();
     const theme = useTheme();
     const {isOffline} = useNetwork();
@@ -1077,6 +1077,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                 additionalOnyxData: getSearchApproveOnyxData(hash, reportID, currentSearchKey),
                 shouldPlaySuccessSound: false,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
 
             if (!wouldNavigateToUpgrade && !wouldNavigateToRestricted) {
@@ -1117,6 +1118,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
         personalDetails,
         delegateAccountID,
         getCurrencyDecimals,
+        formatPhoneNumber,
     ]);
 
     const {expenseCount, uniqueReportCount} = useMemo(() => {
@@ -1488,6 +1490,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                         chatReportActions: allReportActions?.[`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${payChatReportID}`],
                         delegateAccountID,
                         isTrackIntentUser,
+                        formatPhoneNumber,
                     });
                     paidReportCount += 1;
                     continue;
@@ -1518,6 +1521,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                     delegateAccountID,
                     isTrackIntentUser,
                     conciergeChat,
+                    formatPhoneNumber,
                     isFallbackChatReport,
                 });
                 paidReportCount += 1;
@@ -1568,6 +1572,7 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
             isTrackIntentUser,
             conciergeChat,
             getCurrencyDecimals,
+            formatPhoneNumber,
         ],
     );
 

@@ -5,6 +5,7 @@ import type {ListItem} from '@components/SelectionList/types';
 import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import useOptimisticDraftTransactions from '@hooks/useOptimisticDraftTransactions';
 import usePermissions from '@hooks/usePermissions';
@@ -61,6 +62,7 @@ const getIOUActionsSelector = (actions: OnyxEntry<ReportActions>): ReportAction[
 };
 
 function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStepReportProps) {
+    const {formatPhoneNumber} = useLocalize();
     const {action, iouType, transactionID, reportID: reportIDFromRoute, reportActionID} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_STEP_REPORT.path);
     const isUnreported = transaction?.reportID === CONST.REPORT.UNREPORTED_REPORT_ID;
@@ -173,18 +175,19 @@ function DynamicIOURequestStepReport({route, transaction}: DynamicIOURequestStep
         }
 
         const policyForNewReport = isPerDiemTransaction && perDiemOriginalPolicy ? perDiemOriginalPolicy : policyForMovingExpenses;
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
-            hasViolations,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForNewReport,
+            policy: policyForNewReport,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
-        );
+            options: {managedCardTransactionID: isUnreportedManagedCardTransaction ? transactionID : undefined},
+        });
         handleRegularReportSelection({value: optimisticReport.reportID, keyForList: optimisticReport.reportID, policyID: policyForNewReport?.id}, optimisticReport);
     };
 

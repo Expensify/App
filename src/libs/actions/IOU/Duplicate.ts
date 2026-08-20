@@ -920,6 +920,7 @@ function duplicateExpenseTransaction({
             currentUserLocalCurrency,
             delegateAccountID,
             reportActionsList: undefined,
+            formatPhoneNumber,
         };
         return trackExpense(trackExpenseParams);
     }
@@ -1014,20 +1015,20 @@ function duplicateReport({
     }
 
     const newReportName = translate('common.copyOfReportName', sourceReportName);
-    const {reportPreviewReportActionID, ...newReport} = createNewReport(
+    const {reportPreviewReportActionID, ...newReport} = createNewReport({
         ownerPersonalDetails,
-        false,
+        hasViolationsParam: false,
         isASAPSubmitBetaEnabled,
-        targetPolicy,
+        policy: targetPolicy,
         betas,
         isTrackIntentUser,
         getCurrencyDecimals,
-        false,
-        undefined,
-        {
+        shouldNotifyNewAction: false,
+        formatPhoneNumber,
+        options: {
             reportName: newReportName,
         },
-    );
+    });
 
     const isCrossWorkspace = !!sourceReport && sourceReport.policyID !== targetPolicy.id;
 

@@ -26,7 +26,7 @@ import type {MockFetch} from '../../utils/TestHelper';
 
 import createRandomPolicy from '../../utils/collections/policies';
 import createMock from '../../utils/createMock';
-import {createGlobalFetchMock, getCurrencyDecimalsLocal} from '../../utils/TestHelper';
+import {createGlobalFetchMock, getCurrencyDecimalsLocal, formatPhoneNumber} from '../../utils/TestHelper';
 import {hasDefinedProperty, isObject} from '../../utils/typeGuards';
 import waitForBatchedUpdates from '../../utils/waitForBatchedUpdates';
 
@@ -707,6 +707,7 @@ describe('actions/IOU/Hold', () => {
                         delegateAccountID: undefined,
                         betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     const totalsUpdate = result.optimisticData.find((entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`);
                     expect(totalsUpdate).toBeDefined();
@@ -734,6 +735,7 @@ describe('actions/IOU/Hold', () => {
                         delegateAccountID: undefined,
                         betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     const restorationEntries = result.failureData.filter(
                         (entry) => entry.onyxMethod === Onyx.METHOD.MERGE && entry.key === `${ONYXKEYS.COLLECTION.REPORT}${iouReport.reportID}`,
@@ -766,6 +768,7 @@ describe('actions/IOU/Hold', () => {
                         delegateAccountID: undefined,
                         betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value;
@@ -799,6 +802,7 @@ describe('actions/IOU/Hold', () => {
                         delegateAccountID: undefined,
                         betas: [],
                         getCurrencyDecimals: getCurrencyDecimalsLocal,
+                        formatPhoneNumber,
                     });
                     const totalsUpdates = result.optimisticData.filter((entry) => {
                         const value = entry.value;

@@ -116,7 +116,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
 
     const {isOffline} = useNetwork();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const styles = useThemeStyles();
     const {showConfirmModal} = useConfirmModal();
@@ -204,6 +204,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
             delegateEmail,
             delegateAccountID,
             isTrackIntentUser,
+            formatPhoneNumber,
         });
         if (skipAnimation) {
             clearSelectedTransactions(true);
@@ -261,6 +262,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -326,7 +328,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                         CONST.IOU.REPORT_ACTION_TYPE.PAY,
                         () => {
                             startAnimation();
-                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
+                            markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber);
                         },
                         CONST.IOU.PAYMENT_TYPE.ELSEWHERE,
                     );
@@ -334,7 +336,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 }
 
                 startAnimation();
-                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals);
+                markReportPaymentReceived(chatReport, moneyRequestReport, accountID, email ?? '', chatReportActions, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber);
             },
         },
         [CONST.REPORT.SECONDARY_ACTIONS.UNAPPROVE]: {

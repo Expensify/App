@@ -34,7 +34,7 @@ type RejectReasonPageProps =
     | PlatformStackScreenProps<SearchReportActionsParamList, typeof SCREENS.SEARCH.TRANSACTION_HOLD_REASON_RHP>;
 
 function RejectReasonPage({route}: RejectReasonPageProps) {
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
 
     const {transactionID, reportID, backTo} = route.params;
@@ -53,17 +53,18 @@ function RejectReasonPage({route}: RejectReasonPageProps) {
             return;
         }
 
-        const urlToNavigateBack = rejectMoneyRequest(
+        const urlToNavigateBack = rejectMoneyRequest({
             transactionID,
             reportID,
-            values.comment,
+            comment: values.comment,
             policy,
-            currentUserAccountID,
-            currentUserLogin ?? '',
+            currentUserAccountIDParam: currentUserAccountID,
+            currentUserLogin: currentUserLogin ?? '',
             betas,
             delegateAccountID,
+            formatPhoneNumber,
             getCurrencyDecimals,
-        );
+        });
         removeTransaction(transactionID);
         // If the super wide rhp is not opened, dismiss the entire modal.
         if (superWideRHPRouteKeys.length > 0) {

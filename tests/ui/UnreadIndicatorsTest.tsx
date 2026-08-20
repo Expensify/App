@@ -34,6 +34,7 @@ import {createRandomReport} from '../utils/collections/reports';
 import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import PusherHelper from '../utils/PusherHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import * as TestHelper from '../utils/TestHelper';
 import {isObject} from '../utils/typeGuards';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
@@ -879,6 +880,7 @@ describe('Unread Indicators', () => {
             currentUserLocalCurrency: undefined,
             delegateAccountID: undefined,
             reportActionsList: undefined,
+            formatPhoneNumber,
         });
         await waitForBatchedUpdates();
 

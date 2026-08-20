@@ -37,7 +37,7 @@ const chatEnabledPaidGroupPoliciesSelector = (policies: OnyxCollection<OnyxTypes
 
 function CreateReportMenuItem() {
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const icons = useMemoizedLazyExpensifyIcons(['Document']);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
@@ -67,17 +67,19 @@ function CreateReportMenuItem() {
             clearLastSearchParams();
         }
 
-        const {reportID: createdReportID} = createNewReport(
-            currentUserPersonalDetails,
-            hasViolations,
+        const {reportID: createdReportID} = createNewReport({
+            ownerPersonalDetails: currentUserPersonalDetails,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            defaultChatEnabledPolicy,
-            allBetas,
+            policy: defaultChatEnabledPolicy,
+            betas: allBetas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-        );
+            options: {},
+        });
         // Navigate to the Reports page first so getCreateReportRoute() resolves against
         // the Search/Reports fullscreen context before opening the created report modal.
         Navigation.navigate(getReportsRootRoute(), {forceReplace: isReportInSearch});

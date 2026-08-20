@@ -158,6 +158,7 @@ describe('ReportUtils', () => {
                     shouldConsiderScanningReceiptOrPendingRoute: shouldConsiderReceiptBeingScanned,
                     isPreviewMessageForParentChatReport,
                     policy,
+                    formatPhoneNumber,
                 },
                 getCurrencyDecimalsLocal,
             ),

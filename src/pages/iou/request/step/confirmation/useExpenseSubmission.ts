@@ -813,6 +813,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
                 reportActionsList: policyExpenseChatReportActions,
                 currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                 delegateAccountID,
+                formatPhoneNumber,
             });
         }
         performPostBatchCleanup({
@@ -1224,6 +1225,7 @@ function useExpenseSubmission(params: UseExpenseSubmissionParams) {
             shouldStartTracking,
             shouldDeferForSearch,
             delegateAccountID,
+            formatPhoneNumber,
         };
 
         if (paymentMethod === CONST.IOU.PAYMENT_TYPE.ELSEWHERE) {

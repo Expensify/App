@@ -79,7 +79,7 @@ function useSelectionModePayment({
     onPaid,
     confirmApproval,
 }: UseSelectionModePaymentParams) {
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {isBetaEnabled} = usePermissions();
@@ -207,6 +207,7 @@ function useSelectionModePayment({
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         } else {
             payMoneyRequest({
@@ -231,6 +232,7 @@ function useSelectionModePayment({
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                formatPhoneNumber,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
@@ -304,6 +306,7 @@ function useSelectionModePayment({
     const invokePaymentSelect = (event: KYCFlowEvent, iouPaymentType: PaymentMethodType, triggerKYCFlow: TriggerKYCFlow) => {
         selectPaymentType({
             getCurrencyDecimals,
+            formatPhoneNumber,
             event,
             iouPaymentType,
             triggerKYCFlow,

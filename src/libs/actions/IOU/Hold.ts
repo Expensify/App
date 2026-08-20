@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -668,6 +670,7 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow = false,
     delegateAccountID,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: {
     chatReport: OnyxTypes.Report;
     iouReport: OnyxEntry<OnyxTypes.Report>;
@@ -678,6 +681,7 @@ function getReportFromHoldRequestsOnyxData({
     isApprovalFlow?: boolean;
     delegateAccountID: number | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }): {
     optimisticHoldReportID: string;
     optimisticHoldActionID: string;
@@ -737,6 +741,7 @@ function getReportFromHoldRequestsOnyxData({
     const optimisticExpenseReportPreview = buildOptimisticReportPreview(
         chatReport,
         optimisticExpenseReport,
+        formatPhoneNumber,
         getCurrencyDecimals,
         '',
         firstHoldTransaction,

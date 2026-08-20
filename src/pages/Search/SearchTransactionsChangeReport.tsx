@@ -7,6 +7,7 @@ import useConditionalCreateEmptyReportConfirmation from '@hooks/useConditionalCr
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -39,6 +40,7 @@ type TransactionGroupListItem = ListItem & {
 };
 
 function SearchTransactionsChangeReport() {
+    const {formatPhoneNumber} = useLocalize();
     const {selectedTransactions} = useSearchSelectionContext();
     const delegateAccountID = useDelegateAccountID();
     const {clearSelectedTransactions} = useSearchSelectionActions();
@@ -154,18 +156,19 @@ function SearchTransactionsChangeReport() {
     }, []);
 
     const createReportForPolicy = (shouldDismissEmptyReportsConfirmation?: boolean) => {
-        const optimisticReport = createNewReport(
-            targetOwnerPersonalDetails,
-            hasViolations,
+        const optimisticReport = createNewReport({
+            ownerPersonalDetails: targetOwnerPersonalDetails,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            options: {managedCardTransactionID},
+        });
         const policyTagList = policyForMovingExpenses?.id ? allPolicyTags?.[`${ONYXKEYS.COLLECTION.POLICY_TAGS}${policyForMovingExpenses.id}`] : {};
         const reportsForCall = {
             ...reports,

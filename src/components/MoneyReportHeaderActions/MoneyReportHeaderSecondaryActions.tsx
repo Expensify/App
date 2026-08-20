@@ -98,7 +98,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
     const {isPaidAnimationRunning, isApprovedAnimationRunning, startAnimation, startApprovedAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
     const {openHoldMenu, openPDFDownload, openHoldEducational, openRejectModal} = useMoneyReportHeaderModals();
 
-    const {translate, localeCompare} = useLocalize();
+    const {translate, localeCompare, formatPhoneNumber} = useLocalize();
     const isInSidePanel = useIsInSidePanel();
     const kycWallRef = useContext(KYCWallContext);
 
@@ -219,6 +219,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 chatReportActions: getChatReportActions(payAsBusiness),
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         } else {
             startAnimation();
@@ -246,6 +247,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
                 delegateAccountID,
                 isTrackIntentUser,
                 conciergeChat,
+                formatPhoneNumber,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({
@@ -433,6 +435,7 @@ function MoneyReportHeaderSecondaryActionsInner({reportID, primaryAction, isRepo
         const runPaymentSelection = () =>
             selectPaymentType({
                 getCurrencyDecimals,
+                formatPhoneNumber,
                 event,
                 iouPaymentType,
                 triggerKYCFlow,

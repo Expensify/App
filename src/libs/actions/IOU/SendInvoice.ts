@@ -737,6 +737,7 @@ function getSendInvoiceInformation({
     const reportPreviewAction = buildOptimisticReportPreview(
         chatReport,
         optimisticInvoiceReport,
+        formatPhoneNumber,
         getCurrencyDecimals,
         trimmedComment,
         optimisticTransaction,

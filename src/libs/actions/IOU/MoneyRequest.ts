@@ -216,6 +216,7 @@ function createTransaction({
                 delegateAccountID,
                 reportActionsList: undefined,
                 getCurrencyDecimals,
+                formatPhoneNumber,
             });
         } else {
             const existingTransactionID = getExistingTransactionID(transaction?.linkedTrackedExpenseReportAction);

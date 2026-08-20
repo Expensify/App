@@ -412,6 +412,7 @@ function SubmitDetailsPage({
                     currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
                     delegateAccountID,
                     reportActionsList: undefined,
+                    formatPhoneNumber,
                 });
             } else {
                 const existingTransactionDraft = existingTransactionID ? transactionDrafts?.[existingTransactionID] : undefined;

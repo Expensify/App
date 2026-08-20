@@ -26,6 +26,7 @@ import createRandomTransaction from '../utils/collections/transaction';
 import createMock from '../utils/createMock';
 import getOnyxValue from '../utils/getOnyxValue';
 import * as TestHelper from '../utils/TestHelper';
+import {formatPhoneNumber} from '../utils/TestHelper';
 import {
     getOptionalNumberProperty,
     isGuidedSetupTask,
@@ -7417,6 +7418,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -7458,6 +7460,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             expect(result).toBeUndefined();
         });
@@ -7516,6 +7519,7 @@ describe('actions/Policy', () => {
                 reportActionsList,
                 doesEmployeePersonalDetailExist: true,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
 
             // Verify the function returns a valid result (not undefined)
@@ -7570,6 +7574,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -7640,6 +7645,7 @@ describe('actions/Policy', () => {
                 reportActionsList: {},
                 doesEmployeePersonalDetailExist: false,
                 getCurrencyDecimals: TestHelper.getCurrencyDecimalsLocal,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 

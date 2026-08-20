@@ -6,6 +6,7 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 
@@ -26,6 +27,7 @@ import {useReportPreviewActions, useReportPreviewActionState} from './MoneyReque
 function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useReportPreviewActionButtonData>, transactions: Transaction[], hasViolations: boolean) {
     const currentUserDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
+    const {formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const {isDelegateAccessRestricted} = useDelegateNoAccessState();
     const {showDelegateNoAccessModal} = useDelegateNoAccessActions();
@@ -60,6 +62,7 @@ function useConfirmApproveReportAction(actionButtonData: ReturnType<typeof useRe
                 delegateEmail,
                 delegateAccountID,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
         }
     };

@@ -53,6 +53,7 @@ type CreateTrackExpenseParams = {
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 export type {CreateTrackExpenseParams, TrackExpenseAccountantParams};

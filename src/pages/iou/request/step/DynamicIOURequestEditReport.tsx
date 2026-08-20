@@ -9,6 +9,7 @@ import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails'
 import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
 import useHasPerDiemTransactions from '@hooks/useHasPerDiemTransactions';
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePersonalPolicy from '@hooks/usePersonalPolicy';
@@ -51,6 +52,7 @@ type TransactionGroupListItem = ListItem & {
 type DynamicIOURequestEditReportProps = WithWritableReportOrNotFoundProps<typeof SCREENS.MONEY_REQUEST.DYNAMIC_EDIT_REPORT>;
 
 function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) {
+    const {formatPhoneNumber} = useLocalize();
     const {reportID, action, shouldTurnOffSelectionMode, transactionID: transactionIDFromParams} = route.params;
     const backPath = useDynamicBackPath(DYNAMIC_ROUTES.MONEY_REQUEST_EDIT_REPORT.path);
     const {selectedTransactionIDs} = useSearchSelectionContext();
@@ -166,18 +168,19 @@ function DynamicIOURequestEditReport({route}: DynamicIOURequestEditReportProps) 
             return;
         }
 
-        const optimisticReport = createNewReport(
+        const optimisticReport = createNewReport({
             ownerPersonalDetails,
-            hasViolations,
+            hasViolationsParam: hasViolations,
             isASAPSubmitBetaEnabled,
-            policyForMovingExpenses,
+            policy: policyForMovingExpenses,
             betas,
             isTrackIntentUser,
             getCurrencyDecimals,
-            false,
+            shouldNotifyNewAction: false,
+            formatPhoneNumber,
             shouldDismissEmptyReportsConfirmation,
-            {managedCardTransactionID},
-        );
+            options: {managedCardTransactionID},
+        });
         selectReport(
             {
                 value: optimisticReport.reportID,

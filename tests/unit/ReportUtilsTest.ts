@@ -3463,13 +3463,13 @@ describe('ReportUtils', () => {
         });
 
         it('should return the correct parent navigation subtitle for the archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, true);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, true);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok (archived)'});
         });
 
         it('should return the correct parent navigation subtitle for the non archived invoice report', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined, false);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined, false);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             expect(normalizedActual).toEqual({reportName: 'A workspace & Ragnar Lothbrok'});
         });
@@ -3488,7 +3488,7 @@ describe('ReportUtils', () => {
                 role: CONST.POLICY.ROLE.ADMIN,
             });
 
-            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual.workspaceName).toBe('Direct Policy Name');
         });
 
@@ -3516,14 +3516,14 @@ describe('ReportUtils', () => {
             };
 
             return Onyx.set(`${ONYXKEYS.COLLECTION.REPORT}200`, parentInvoiceRoom).then(() => {
-                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, undefined);
+                const actual = getParentNavigationSubtitle(invoiceReport, testPolicy, undefined, translateLocal, formatPhoneNumber, undefined);
                 const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
                 expect(normalizedActual.reportName).toContain('Invoice Policy');
             });
         });
 
         it('should fall back to allPolicies when policy parameter is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             const normalizedActual = {...actual, reportName: actual.reportName?.replaceAll('\u00A0', ' ')};
             // Should still resolve via Onyx-connected allPolicies or report.policyName
             expect(normalizedActual.reportName).toContain('A workspace');
@@ -3536,7 +3536,7 @@ describe('ReportUtils', () => {
                 reportName: 'Chat Report',
                 type: CONST.REPORT.TYPE.CHAT,
             };
-            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(chatReport, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toEqual({});
         });
 
@@ -3563,13 +3563,13 @@ describe('ReportUtils', () => {
             })
                 .then(waitForBatchedUpdates)
                 .then(() => {
-                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, 'Concierge');
+                    const actual = getParentNavigationSubtitle(childReport, undefined, conciergeReportID, translateLocal, formatPhoneNumber, 'Concierge');
                     expect(actual.reportName).toBe('Concierge');
                 });
         });
 
         it('should return reportName and workspaceName when parent report exists and conciergeReportID is undefined', () => {
-            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, undefined);
+            const actual = getParentNavigationSubtitle(baseArchivedPolicyExpenseChat, undefined, undefined, translateLocal, formatPhoneNumber, undefined);
             expect(actual).toHaveProperty('reportName');
         });
 
@@ -3581,7 +3581,7 @@ describe('ReportUtils', () => {
             const expenseReport = {reportID: '780051', type: CONST.REPORT.TYPE.EXPENSE, ownerAccountID: hiddenOwnerAccountID};
             const translateWithHiddenMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenMarker' : translateLocal(path, ...parameters));
 
-            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, undefined);
+            const actual = getParentNavigationSubtitle(expenseReport, undefined, undefined, translateWithHiddenMarker, formatPhoneNumber, undefined);
             expect(actual.reportName).toContain('HiddenMarker');
         });
     });
@@ -3645,7 +3645,7 @@ describe('ReportUtils', () => {
                 originalMessage: {amount: 1000, currency: CONST.CURRENCY.USD},
             });
 
-            const result = getReimbursementDeQueuedOrCanceledActionMessage(translateWithHiddenMarker, reportAction, hiddenAccountID, convertToDisplayString);
+            const result = getReimbursementDeQueuedOrCanceledActionMessage(translateWithHiddenMarker, formatPhoneNumber, reportAction, hiddenAccountID, convertToDisplayString);
             expect(result).toContain('HiddenMarker');
         });
 
@@ -3658,7 +3658,7 @@ describe('ReportUtils', () => {
                 originalMessage: {amount: 1000, currency: CONST.CURRENCY.USD, cancellationReason: CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN},
             });
 
-            const result = getReimbursementDeQueuedOrCanceledActionMessage(translateWithAdminMarker, reportAction, 780020, convertToDisplayString);
+            const result = getReimbursementDeQueuedOrCanceledActionMessage(translateWithAdminMarker, formatPhoneNumber, reportAction, 780020, convertToDisplayString);
             expect(result).toBe('AdminCanceledMarker');
         });
     });
@@ -5384,6 +5384,7 @@ describe('ReportUtils', () => {
             const reportPreview = buildOptimisticReportPreview(
                 chatReport,
                 expenseReport,
+                formatPhoneNumber,
                 getCurrencyDecimalsLocal,
                 '',
                 expenseTransaction,
@@ -13451,7 +13452,7 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, formatPhoneNumber, getCurrencyDecimalsLocal);
 
             expect(reportPreviewAction.childOwnerAccountID).toBe(iouReport.ownerAccountID);
             expect(reportPreviewAction.childManagerAccountID).toBe(iouReport.managerID);
@@ -13473,10 +13474,11 @@ describe('ReportUtils', () => {
                 managerID: 2,
             };
 
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, formatPhoneNumber, getCurrencyDecimalsLocal);
             const updatedPreviewAction = updateReportPreview(
                 iouReport,
                 reportPreviewAction,
+                formatPhoneNumber,
                 getCurrencyDecimalsLocal,
                 false,
                 '',
@@ -17273,7 +17275,10 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage(
+                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, formatPhoneNumber},
+                getCurrencyDecimalsLocal,
+            );
 
             // Then it should return the childReportName instead of "payer owes $0"
             expect(result).toBe('Expense Report 2025-01-15');
@@ -17293,7 +17298,10 @@ describe('ReportUtils', () => {
             };
 
             // When we call getReportPreviewReportActionMessage
-            const result = getReportPreviewReportActionMessage({reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction}, getCurrencyDecimalsLocal);
+            const result = getReportPreviewReportActionMessage(
+                {reportOrID: report, iouReportAction: reportAction, originalReportAction: reportAction, formatPhoneNumber},
+                getCurrencyDecimalsLocal,
+            );
 
             // Then it should return the message from the report action (not the childReportName)
             expect(result).toBe('payer owes $100');
@@ -17386,7 +17394,7 @@ describe('ReportUtils', () => {
                 };
 
                 const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber},
+                    {reportOrID: settledReport, iouReportAction: actionWithAccountNumber, originalReportAction: actionWithAccountNumber, formatPhoneNumber},
                     getCurrencyDecimalsLocal,
                 );
 
@@ -17396,7 +17404,7 @@ describe('ReportUtils', () => {
 
             it('falls back to the policy default bank account when the action has no accountNumber', () => {
                 const result = getReportPreviewReportActionMessage(
-                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction},
+                    {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, formatPhoneNumber},
                     getCurrencyDecimalsLocal,
                 );
 
@@ -17405,10 +17413,12 @@ describe('ReportUtils', () => {
 
             it('matches the localized getReportPreviewMessage output when translated to English', () => {
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction};
+                const params = {reportOrID: settledReport, iouReportAction: payReportAction, originalReportAction: payReportAction, formatPhoneNumber};
 
                 // The hardcoded English copy must not drift from the localized function
-                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewReportActionMessage(params, getCurrencyDecimalsLocal)).toBe(
+                    getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, params),
+                );
             });
 
             describe('cross-border payment', () => {
@@ -17417,11 +17427,11 @@ describe('ReportUtils', () => {
                     ...payReportAction,
                     originalMessage: {...payOriginalMessage, creditedAmount: 1340, creditedCurrency: 'GBP', creditBankAccountLast4: '3335'},
                 };
-                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction};
+                const crossBorderParams = {reportOrID: settledReport, iouReportAction: crossBorderAction, originalReportAction: crossBorderAction, formatPhoneNumber};
 
                 it('names the credited amount, falling back to the policy default for the debited account', () => {
                     // Given a converted payment that recorded the employee's account but not the account it was paid from
-                    const result = getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams);
+                    const result = getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, crossBorderParams);
 
                     // Then the debited account comes from the policy default, the same fallback the non-converted wording uses
                     expect(result).toBe(
@@ -17436,22 +17446,23 @@ describe('ReportUtils', () => {
                 it('stores the same wording on the report action as the localized preview shows', () => {
                     // The hardcoded English copy must not drift from the localized function
                     expect(getReportPreviewReportActionMessage(crossBorderParams, getCurrencyDecimalsLocal)).toBe(
-                        getReportPreviewMessage(englishTranslate, convertToDisplayString, crossBorderParams),
+                        getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, crossBorderParams),
                     );
                 });
 
                 it('still names the report total in the parent chat preview', () => {
                     // Given the parent chat preview, which summarizes the report rather than describing the payment
                     const params = {...crossBorderParams, isPreviewMessageForParentChatReport: true};
-                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, convertToDisplayString, {
+                    const paymentWithoutConversion = getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, {
                         reportOrID: settledReport,
                         iouReportAction: payReportAction,
                         originalReportAction: payReportAction,
                         isPreviewMessageForParentChatReport: true,
+                        formatPhoneNumber,
                     });
 
                     // Then the credited amount does not replace the report total, which is what the report is denominated in
-                    expect(getReportPreviewMessage(englishTranslate, convertToDisplayString, params)).toBe(paymentWithoutConversion);
+                    expect(getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, params)).toBe(paymentWithoutConversion);
                 });
             });
         });
@@ -17471,14 +17482,16 @@ describe('ReportUtils', () => {
             });
 
             it('uses the injected translate function (not translateLocal) so output follows the passed locale, while getReportPreviewReportActionMessage stays English', async () => {
-                const params = {reportOrID: expenseReport};
+                const params = {reportOrID: expenseReport, formatPhoneNumber};
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
                 const spanishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.ES, path, ...parameters);
 
                 await IntlStore.load(CONST.LOCALES.ES).then(waitForBatchedUpdates);
 
                 // The localized preview differs between English and Spanish...
-                expect(getReportPreviewMessage(spanishTranslate, convertToDisplayString, params)).not.toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, params));
+                expect(getReportPreviewMessage(spanishTranslate, formatPhoneNumber, convertToDisplayString, params)).not.toBe(
+                    getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, params),
+                );
                 // ...but the report-action-message variant is always the English text, regardless of the loaded locale
 
                 // TODO: Re-enable this assertion once getReportPreviewReportActionMessage is refactored
@@ -17508,7 +17521,7 @@ describe('ReportUtils', () => {
                 const translateWithMarker: LocalizedTranslate = (path, ...parameters) =>
                     path === 'common.hidden' ? 'HiddenParticipantMarker' : translate(CONST.LOCALES.EN, path, ...parameters);
 
-                const result = getReportPreviewMessage(translateWithMarker, convertToDisplayString, {reportOrID: iouReport});
+                const result = getReportPreviewMessage(translateWithMarker, formatPhoneNumber, convertToDisplayString, {reportOrID: iouReport, formatPhoneNumber});
 
                 // The manager's name resolves to the marker, proving getDisplayNameForParticipant received the injected translate
                 expect(result).toContain('HiddenParticipantMarker');
@@ -17528,10 +17541,10 @@ describe('ReportUtils', () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${report.reportID}`, report);
 
                 const englishTranslate: LocalizedTranslate = (path, ...parameters) => translate(CONST.LOCALES.EN, path, ...parameters);
-                const result = getReportPreviewReportActionMessage({reportOrID: report}, getCurrencyDecimalsLocal);
+                const result = getReportPreviewReportActionMessage({reportOrID: report, formatPhoneNumber}, getCurrencyDecimalsLocal);
 
                 // The hardcoded English string must match the en.ts translation produced by the localized function
-                expect(result).toBe(getReportPreviewMessage(englishTranslate, convertToDisplayString, {reportOrID: report}));
+                expect(result).toBe(getReportPreviewMessage(englishTranslate, formatPhoneNumber, convertToDisplayString, {reportOrID: report, formatPhoneNumber}));
                 expect(result).toContain('owes');
             });
         });
@@ -17577,7 +17590,7 @@ describe('ReportUtils', () => {
             const translateWithMarker: LocalizedTranslate = (path, ...parameters) => (path === 'common.hidden' ? 'HiddenPayeeMarker' : translate(CONST.LOCALES.EN, path, ...parameters));
 
             // The nameless payee resolves to the marker, proving getDisplayNameForParticipant received the injected translate
-            expect(getPayeeName(report, translateWithMarker, currentUserAccountID)).toBe('HiddenPayeeMarker');
+            expect(getPayeeName(report, translateWithMarker, formatPhoneNumber, currentUserAccountID)).toBe('HiddenPayeeMarker');
         });
 
         it('excludes the passed current user from the payee candidates', async () => {
@@ -17597,10 +17610,10 @@ describe('ReportUtils', () => {
             };
 
             // With the payer treated as the current user, the remaining participant is the payee
-            expect(getPayeeName(report, translateLocal, payerAccountID)).toBe('Payee');
+            expect(getPayeeName(report, translateLocal, formatPhoneNumber, payerAccountID)).toBe('Payee');
 
             // Swapping which account is the current user swaps the resolved payee
-            expect(getPayeeName(report, translateLocal, payeeAccountID)).toBe('Payer');
+            expect(getPayeeName(report, translateLocal, formatPhoneNumber, payeeAccountID)).toBe('Payer');
         });
 
         it('returns undefined when the only participant is the passed current user', () => {
@@ -17610,7 +17623,7 @@ describe('ReportUtils', () => {
                 participants: buildParticipantsFromAccountIDs([currentUserAccountID]),
             };
 
-            expect(getPayeeName(report, translateLocal, currentUserAccountID)).toBeUndefined();
+            expect(getPayeeName(report, translateLocal, formatPhoneNumber, currentUserAccountID)).toBeUndefined();
         });
     });
 
@@ -21646,7 +21659,7 @@ describe('ReportUtils', () => {
         };
 
         // REPORT_PREVIEW action that sits in the chat report and links to the expense report
-        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, getCurrencyDecimalsLocal, '', transaction);
+        const reportPreviewAction = buildOptimisticReportPreview(chatReport, expenseReport, formatPhoneNumber, getCurrencyDecimalsLocal, '', transaction);
 
         beforeAll(async () => {
             await Onyx.set(ONYXKEYS.SESSION, {email: currentUserEmail, accountID: currentUserAccountID});

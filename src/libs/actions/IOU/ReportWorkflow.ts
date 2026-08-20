@@ -119,6 +119,7 @@ type ApproveMoneyRequestFunctionParams = {
     additionalOnyxData?: AdditionalPayOnyxData;
     shouldPlaySuccessSound?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type SubmitReportFunctionParams = {
@@ -147,6 +148,7 @@ type SubmitReportFunctionParams = {
      */
     shouldExportToPDF?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function canApproveIOU(
@@ -474,6 +476,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
         shouldPlaySuccessSound = true,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     } = params;
     if (!expenseReport) {
         return;
@@ -762,6 +765,7 @@ function approveMoneyRequest(params: ApproveMoneyRequestFunctionParams) {
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            formatPhoneNumber,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);
@@ -1321,6 +1325,7 @@ function submitReport({
     shouldExportToPDF,
     isTrackIntentUser,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: SubmitReportFunctionParams) {
     if (!expenseReport) {
         return;
@@ -1603,6 +1608,7 @@ function submitReport({
             betas,
             delegateAccountID,
             getCurrencyDecimals,
+            formatPhoneNumber,
         });
 
         optimisticData.push(...holdReportOnyxData.optimisticData);

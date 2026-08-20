@@ -1299,6 +1299,7 @@ describe('actions/IOU', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
 
             mockFetch?.resume?.();
@@ -1372,6 +1373,7 @@ describe('actions/IOU', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1946,6 +1948,7 @@ describe('actions/IOU', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -2797,6 +2800,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: undefined,
                     delegateAccountID: undefined,
                     reportActionsList: undefined,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -2867,6 +2871,7 @@ describe('actions/IOU', () => {
                     currentUserLocalCurrency: undefined,
                     delegateAccountID: undefined,
                     reportActionsList: undefined,
+                    formatPhoneNumber,
                 });
                 await waitForBatchedUpdates();
 
@@ -3115,6 +3120,7 @@ describe('actions/IOU', () => {
                 currentUserLocalCurrency: undefined,
                 delegateAccountID: undefined,
                 reportActionsList: undefined,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();

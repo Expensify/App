@@ -158,7 +158,7 @@ function AttachmentPickerWithMenuItems({
     const isFocused = useIsFocused();
     const theme = useTheme();
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {calculatePopoverPosition} = usePopoverPosition();
     const [popoverAnchorPosition, setPopoverAnchorPosition] = useState<AnchorPosition | null>(null);
@@ -207,17 +207,19 @@ function AttachmentPickerWithMenuItems({
         onConfirm: (shouldDismissEmptyReportsConfirmation) =>
             selectOption(
                 () =>
-                    createNewReport(
-                        currentUserPersonalDetails,
+                    createNewReport({
+                        ownerPersonalDetails: currentUserPersonalDetails,
+                        hasViolationsParam: hasViolations,
                         isASAPSubmitBetaEnabled,
-                        hasViolations,
                         policy,
                         betas,
                         isTrackIntentUser,
                         getCurrencyDecimals,
-                        true,
+                        shouldNotifyNewAction: true,
+                        formatPhoneNumber,
                         shouldDismissEmptyReportsConfirmation,
-                    ),
+                        options: {},
+                    }),
                 true,
             ),
     });
@@ -226,7 +228,19 @@ function AttachmentPickerWithMenuItems({
         if (shouldShowEmptyReportConfirmation) {
             openCreateReportConfirmation();
         } else {
-            createNewReport(currentUserPersonalDetails, isASAPSubmitBetaEnabled, hasViolations, policy, betas, isTrackIntentUser, getCurrencyDecimals, true, false);
+            createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
+                isASAPSubmitBetaEnabled,
+                policy,
+                betas,
+                isTrackIntentUser,
+                getCurrencyDecimals,
+                shouldNotifyNewAction: true,
+                formatPhoneNumber,
+                shouldDismissEmptyReportsConfirmation: false,
+                options: {},
+            });
         }
     };
 
@@ -270,7 +284,7 @@ function AttachmentPickerWithMenuItems({
             [CONST.IOU.TYPE.PAY]: [
                 {
                     icon: getIconForAction(CONST.IOU.TYPE.SEND, icons),
-                    text: translate('iou.paySomeone', getPayeeName(report, translate, accountID)),
+                    text: translate('iou.paySomeone', getPayeeName(report, translate, formatPhoneNumber, accountID)),
                     shouldCallAfterModalHide: shouldUseNarrowLayout,
                     sentryLabel: CONST.SENTRY_LABEL.REPORT.ATTACHMENT_PICKER_MENU_PAY_SOMEONE,
                     onSelected: () => {
@@ -336,6 +350,7 @@ function AttachmentPickerWithMenuItems({
         icons,
         betas,
         draftTransactionIDs,
+        formatPhoneNumber,
     ]);
 
     const createReportOption: PopoverMenuItem[] = useMemo(() => {

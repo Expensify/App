@@ -1031,7 +1031,7 @@ const ContextMenuActions: ContextMenuAction[] = [
                     const modifyExpenseMessage = Parser.htmlToMarkdown(modifyExpenseMessageWithHTML);
                     Clipboard.setString(modifyExpenseMessage);
                 } else if (isReimbursementDeQueuedOrCanceledAction(reportAction)) {
-                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, reportAction, report?.ownerAccountID, convertToDisplayString);
+                    const displayMessage = getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, reportAction, report?.ownerAccountID, convertToDisplayString);
                     Clipboard.setString(displayMessage);
                 } else if (isMoneyRequestAction(reportAction)) {
                     const displayMessage = getIOUReportActionDisplayMessage(translate, reportAction, convertToDisplayString, transaction, report, bankAccountList);

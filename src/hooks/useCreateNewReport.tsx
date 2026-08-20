@@ -10,6 +10,7 @@ import {useCallback} from 'react';
 
 import {useCurrencyListActions} from './useCurrencyList';
 import useCurrentUserPersonalDetails from './useCurrentUserPersonalDetails';
+import useLocalize from './useLocalize';
 import useOnyx from './useOnyx';
 import usePermissions from './usePermissions';
 
@@ -19,6 +20,7 @@ import usePermissions from './usePermissions';
  */
 function useCreateNewReport() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
+    const {formatPhoneNumber} = useLocalize();
     const {isBetaEnabled} = usePermissions();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const [accountID] = useOnyx(ONYXKEYS.SESSION, {selector: accountIDSelector});
@@ -34,19 +36,21 @@ function useCreateNewReport() {
     return useCallback(
         (policyID: string, shouldDismissEmptyReportsConfirmation = false) => {
             const policy = policies?.[`${ONYXKEYS.COLLECTION.POLICY}${policyID}`];
-            return createNewReport(
-                currentUserPersonalDetails,
-                hasViolations,
+            return createNewReport({
+                ownerPersonalDetails: currentUserPersonalDetails,
+                hasViolationsParam: hasViolations,
                 isASAPSubmitBetaEnabled,
                 policy,
                 betas,
                 isTrackIntentUser,
                 getCurrencyDecimals,
-                false,
+                shouldNotifyNewAction: false,
+                formatPhoneNumber,
                 shouldDismissEmptyReportsConfirmation,
-            );
+                options: {},
+            });
         },
-        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals],
+        [betas, currentUserPersonalDetails, hasViolations, isASAPSubmitBetaEnabled, policies, isTrackIntentUser, getCurrencyDecimals, formatPhoneNumber],
     );
 }
 

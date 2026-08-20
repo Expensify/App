@@ -571,7 +571,7 @@ function computeReportNameBasedOnReportAction({
 
     if (isReimbursementDeQueuedOrCanceledAction(parentReportAction)) {
         // Non-React call path: pass the standalone util until this file's own convertToDisplayString threading PR.
-        return getReimbursementDeQueuedOrCanceledActionMessage(translate, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
+        return getReimbursementDeQueuedOrCanceledActionMessage(translate, formatPhoneNumber, parentReportAction, parentReport?.ownerAccountID, convertToDisplayString);
     }
     if (isRejectedAction(parentReportAction)) {
         return translate('iou.rejectedThisReport');

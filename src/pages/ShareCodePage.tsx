@@ -130,7 +130,7 @@ function ShareCodePage({report, policy, backTo}: ShareCodePageProps) {
             }
 
             return (
-                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, derivedParentReportName, isParentReportArchived).workspaceName ??
+                getParentNavigationSubtitle(report, policy, conciergeReportID, translate, formatPhoneNumber, derivedParentReportName, isParentReportArchived).workspaceName ??
                 getChatRoomSubtitle(report, policy, conciergeReportID, translate, false, isReportArchived)
             );
         }

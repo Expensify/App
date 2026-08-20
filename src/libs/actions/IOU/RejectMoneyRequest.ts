@@ -1,3 +1,5 @@
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
+
 import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import * as API from '@libs/API';
@@ -122,6 +124,7 @@ type PrepareRejectMoneyRequestDataParams = {
     currentUserLogin: string;
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     delegateAccountID: number | undefined;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     options?: RejectMoneyRequestOptions;
     shouldUseBulkAction?: boolean;
@@ -136,6 +139,7 @@ function prepareRejectMoneyRequestData({
     currentUserLogin,
     betas,
     delegateAccountID,
+    formatPhoneNumber,
     getCurrencyDecimals,
     options,
     shouldUseBulkAction,
@@ -516,7 +520,17 @@ function prepareRejectMoneyRequestData({
                 delegateAccountIDParam: delegateAccountID,
             });
 
-            reportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, newExpenseReport, getCurrencyDecimals, undefined, transaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(
+                policyExpenseChat,
+                newExpenseReport,
+                formatPhoneNumber,
+                getCurrencyDecimals,
+                undefined,
+                transaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
             movedTransactionAction = buildOptimisticMovedTransactionAction(childReportID, newExpenseReport.reportID);
             createdIOUReportActionID = iouAction.reportActionID;
             expenseMovedReportActionID = movedTransactionAction.reportActionID;
@@ -930,19 +944,44 @@ function prepareRejectMoneyRequestData({
 
     return {optimisticData, successData, failureData, parameters, urlToNavigateBack: urlToNavigateBack as Route};
 }
+type RejectMoneyRequest = {
+    /** Transaction being rejected. */
+    transactionID: string;
+    /** Report that owns the transaction. */
+    reportID: string;
+    /** Parsed comment sent with the rejection. */
+    comment: string;
+    /** Policy used to resolve permissions and delayed submission behavior. */
+    policy: OnyxEntry<OnyxTypes.Policy>;
+    /** Current user's account ID used for optimistic report updates. */
+    currentUserAccountIDParam: number;
+    /** Current user's login used for optimistic personal details updates. */
+    currentUserLogin: string;
+    /** Beta flags used to decide which rejection behavior is available. */
+    betas: OnyxEntry<OnyxTypes.Beta[]>;
+    /** Delegate account ID used when acting on behalf of another user. */
+    delegateAccountID: number | undefined;
+    /** Formatter used when building optimistic personal details. */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Currency helper used for optimistic monetary formatting. */
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Optional flags that alter the rejection flow. */
+    options?: RejectMoneyRequestOptions;
+};
 
-function rejectMoneyRequest(
-    transactionID: string,
-    reportID: string,
-    comment: string,
-    policy: OnyxEntry<OnyxTypes.Policy>,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<OnyxTypes.Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-    options?: RejectMoneyRequestOptions,
-): Route | undefined {
+function rejectMoneyRequest({
+    transactionID,
+    reportID,
+    comment,
+    policy,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    formatPhoneNumber,
+    getCurrencyDecimals,
+    options,
+}: RejectMoneyRequest): Route | undefined {
     const data = prepareRejectMoneyRequestData({
         transactionID,
         reportID,
@@ -952,6 +991,7 @@ function rejectMoneyRequest(
         currentUserLogin,
         betas,
         delegateAccountID,
+        formatPhoneNumber,
         getCurrencyDecimals,
         options,
     });

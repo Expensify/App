@@ -209,6 +209,7 @@ type GetTrackExpenseInformationParams = {
     // TODO: Remove optional (?) once all callers are updated in follow-up PRs of https://github.com/Expensify/App/issues/66414
     isDraftChatReport?: boolean;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 type DeleteTrackExpenseParams = {
@@ -876,6 +877,7 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         currentUserLocalCurrency,
         policyType,
         getCurrencyDecimals,
+        formatPhoneNumber,
     } = params;
     const {payeeAccountID = currentUserAccountIDParam, payeeEmail = currentUserEmailParam, participant} = participantParams;
     const {policy} = policyParams;
@@ -1163,9 +1165,19 @@ function getTrackExpenseInformation(params: GetTrackExpenseInformationParams): T
         reportPreviewAction = shouldCreateNewMoneyRequestReport ? null : getReportPreviewReportAction(chatReport.reportID, iouReport.reportID);
 
         if (reportPreviewAction) {
-            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, getCurrencyDecimals, false, comment, optimisticTransaction);
+            reportPreviewAction = updateReportPreview(iouReport, reportPreviewAction, formatPhoneNumber, getCurrencyDecimals, false, comment, optimisticTransaction);
         } else {
-            reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimals, comment, optimisticTransaction, undefined, undefined, delegateAccountID);
+            reportPreviewAction = buildOptimisticReportPreview(
+                chatReport,
+                iouReport,
+                formatPhoneNumber,
+                getCurrencyDecimals,
+                comment,
+                optimisticTransaction,
+                undefined,
+                undefined,
+                delegateAccountID,
+            );
             // Generated ReportPreview action is a parent report action of the iou report.
             // We are setting the iou report's parentReportActionID to display subtitle correctly in IOU page when offline.
             iouReport.parentReportActionID = reportPreviewAction.reportActionID;
@@ -2458,6 +2470,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         isDraftChatReport,
         currentUserLocalCurrency,
         getCurrencyDecimals,
+        formatPhoneNumber,
     } = params;
     const {accountID: currentUserAccountIDParam, email: currentUserEmailParam = ''} = currentUser;
     const {participant, payeeAccountID, payeeEmail} = participantParams;
@@ -2627,6 +2640,7 @@ function trackExpense(params: CreateTrackExpenseParams) {
         // Only "Submit to my employer" creates a Submit (submit2026) workspace from a draft; everything else keeps the default (team) type.
         policyType: action === CONST.IOU.ACTION.SUBMIT && policy?.type === CONST.POLICY.TYPE.SUBMIT ? CONST.POLICY.TYPE.SUBMIT : undefined,
         getCurrencyDecimals,
+        formatPhoneNumber,
     }) ?? {};
     const activeReportID = isMoneyRequestReport ? report?.reportID : chatReport?.reportID;
     const onyxData: TrackedExpenseParams['onyxData'] = trackExpenseInformationOnyxData;

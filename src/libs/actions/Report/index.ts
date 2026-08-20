@@ -4289,6 +4289,7 @@ type BuildNewReportOptimisticDataParams = {
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportName?: string;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 function buildNewReportOptimisticData({
@@ -4303,6 +4304,7 @@ function buildNewReportOptimisticData({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportName,
+    formatPhoneNumber,
 }: BuildNewReportOptimisticDataParams) {
     const {accountID, login, email} = ownerPersonalDetails;
     const timeOfCreation = DateUtils.getDBTime();
@@ -4342,7 +4344,7 @@ function buildNewReportOptimisticData({
         pendingAction: CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD,
     };
 
-    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: optimisticReportData, formatPhoneNumber}, getCurrencyDecimals);
     const createReportActionMessage = [
         {
             html: message,
@@ -4525,19 +4527,44 @@ function buildNewReportOptimisticData({
         optimisticReportData,
     };
 }
+type CreateNewReportParams = {
+    /** Personal details for the user creating the report. */
+    ownerPersonalDetails: CurrentUserPersonalDetails;
+    /** Whether the draft report has policy violations. */
+    hasViolationsParam: boolean;
+    /** Whether ASAP submit is available for this policy. */
+    isASAPSubmitBetaEnabled: boolean;
+    /** Policy used to build the report and optimistic data. */
+    policy: OnyxEntry<Policy>;
+    /** Beta flags used when creating the report. */
+    betas: OnyxEntry<Beta[]>;
+    /** Whether the user is a tracked intent user. */
+    isTrackIntentUser: boolean | undefined;
+    /** Currency helper used for optimistic report formatting. */
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    /** Whether the new report should trigger a new action notification. */
+    shouldNotifyNewAction: boolean;
+    /** Formatter used for phone numbers in optimistic report data. */
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
+    /** Whether the empty reports confirmation should be dismissed. */
+    shouldDismissEmptyReportsConfirmation?: boolean;
+    /** Optional managed card transaction and report name overrides. */
+    options: {managedCardTransactionID?: string; reportName?: string};
+};
 
-function createNewReport(
-    ownerPersonalDetails: CurrentUserPersonalDetails,
-    hasViolationsParam: boolean,
-    isASAPSubmitBetaEnabled: boolean,
-    policy: OnyxEntry<Policy>,
-    betas: OnyxEntry<Beta[]>,
-    isTrackIntentUser: boolean | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
+function createNewReport({
+    ownerPersonalDetails,
+    hasViolationsParam,
+    isASAPSubmitBetaEnabled,
+    policy,
+    betas,
+    isTrackIntentUser,
+    getCurrencyDecimals,
     shouldNotifyNewAction = false,
-    shouldDismissEmptyReportsConfirmation?: boolean,
-    options: {managedCardTransactionID?: string; reportName?: string} = {},
-) {
+    formatPhoneNumber,
+    shouldDismissEmptyReportsConfirmation,
+    options = {},
+}: CreateNewReportParams) {
     const {managedCardTransactionID, reportName} = options;
     const optimisticReportID = generateReportID();
     const reportActionID = rand64();
@@ -4555,6 +4582,7 @@ function createNewReport(
         isTrackIntentUser,
         getCurrencyDecimals,
         reportName,
+        formatPhoneNumber,
     });
 
     if (shouldDismissEmptyReportsConfirmation) {
@@ -7606,6 +7634,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction,
     isTrackIntentUser,
     getCurrencyDecimals,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -7621,6 +7650,7 @@ function buildOptimisticChangePolicyData({
     reportPreviewAction: OnyxEntry<ReportAction>;
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     const optimisticData: Array<
         OnyxUpdate<
@@ -7852,7 +7882,7 @@ function buildOptimisticChangePolicyData({
     // and set it as a parent of the moved report
     const policyExpenseChat = optimisticPolicyExpenseChatReport ?? getPolicyExpenseChat(report.ownerAccountID, policy.id);
     // TODO: delegateAccountIDParam will be threaded in PR 15 (https://github.com/Expensify/App/issues/66425)
-    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, getCurrencyDecimals, '', null, undefined, undefined, undefined);
+    const optimisticReportPreviewAction = buildOptimisticReportPreview(policyExpenseChat, report, formatPhoneNumber, getCurrencyDecimals, '', null, undefined, undefined, undefined);
 
     const newPolicyExpenseChatReportID = policyExpenseChat?.reportID;
 
@@ -8103,6 +8133,7 @@ function changeReportPolicy({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8119,6 +8150,7 @@ function changeReportPolicy({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (!report || !policy || report.policyID === policy.id || !isExpenseReport(report) || shouldBlockChangeReportPolicyForCommuterExclusion(reportTransactions, policy)) {
         return;
@@ -8138,6 +8170,7 @@ function changeReportPolicy({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
 
     const params = {
@@ -8173,6 +8206,7 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser,
     getCurrencyDecimals,
     reportTransactions,
+    formatPhoneNumber,
 }: {
     report: Report;
     parentReport: OnyxEntry<Report>;
@@ -8190,6 +8224,7 @@ function changeReportPolicyAndInviteSubmitter({
     isTrackIntentUser: boolean | undefined;
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
     reportTransactions: Transaction[];
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 }) {
     if (
         !report.reportID ||
@@ -8252,6 +8287,7 @@ function changeReportPolicyAndInviteSubmitter({
         reportPreviewAction,
         isTrackIntentUser,
         getCurrencyDecimals,
+        formatPhoneNumber,
     });
 
     const optimisticData = [...optimisticAddMembersData, ...optimisticChangePolicyData];

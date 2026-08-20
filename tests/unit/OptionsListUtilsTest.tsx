@@ -5830,6 +5830,7 @@ describe('OptionsListUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: reportPreviewAction,
+                        formatPhoneNumber,
                     },
                     getCurrencyDecimalsLocal,
                 );

@@ -930,7 +930,7 @@ describe('SidebarUtils', () => {
                     participantAccountIDs: [actorAccountID],
                 },
             };
-            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, getCurrencyDecimalsLocal, '', transaction);
+            const reportPreviewAction = buildOptimisticReportPreview(chatReport, iouReport, formatPhoneNumber, getCurrencyDecimalsLocal, '', transaction);
 
             await act(async () => {
                 await Onyx.set(ONYXKEYS.SESSION, {accountID: 55555});
@@ -4330,6 +4330,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        formatPhoneNumber,
                     },
                     getCurrencyDecimalsLocal,
                 );
@@ -4446,6 +4447,7 @@ describe('SidebarUtils', () => {
                         policy: null,
                         isForListPreview: true,
                         originalReportAction: lastReportPreviewAction,
+                        formatPhoneNumber,
                     },
                     getCurrencyDecimalsLocal,
                 );

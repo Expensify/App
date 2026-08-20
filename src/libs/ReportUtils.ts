@@ -128,7 +128,6 @@ import {getEnvironmentURL} from './Environment/Environment';
 import getEnvironment from './Environment/getEnvironment';
 import {getMicroSecondOnyxErrorWithTranslationKey, isReceiptError} from './ErrorUtils';
 import getAttachmentDetails from './fileDownload/getAttachmentDetails';
-import {formatPhoneNumber as formatPhoneNumberPhoneUtils} from './LocalePhoneNumber';
 import {translateLocal} from './Localize';
 import Log from './Log';
 import {isEmailPublicDomain} from './LoginUtils';
@@ -4303,6 +4302,7 @@ function getReimbursementQueuedActionMessage({
  */
 function getReimbursementDeQueuedOrCanceledActionMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     reportAction: OnyxEntry<ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_DEQUEUED | typeof CONST.REPORT.ACTIONS.TYPE.REIMBURSEMENT_ACH_CANCELED>>,
     reportOwnerAccountID: number | undefined,
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
@@ -4314,7 +4314,7 @@ function getReimbursementDeQueuedOrCanceledActionMessage(
     if (originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.ADMIN || originalMessage?.cancellationReason === CONST.REPORT.CANCEL_PAYMENT_REASONS.USER) {
         return translate('iou.adminCanceledRequest');
     }
-    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+    const submitterDisplayName = getDisplayNameForParticipant({accountID: reportOwnerAccountID, shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
     return translate('iou.canceledRequest', formattedAmount, submitterDisplayName);
 }
 
@@ -5787,6 +5787,7 @@ type GetReportPreviewMessageBaseParams = {
     isForListPreview?: boolean;
     /** This can be either a report preview action or the IOU action. This will be the original report preview action in cases where `iouReportAction` was unwrapped from a report preview action. Otherwise, it will be the same as `iouReportAction`. */
     originalReportAction?: OnyxInputOrEntry<ReportAction>;
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'];
 };
 
 /**
@@ -5818,6 +5819,7 @@ function getReportPreviewMessageForCopy(
  */
 function getReportPreviewMessage(
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     convertToDisplayString: CurrencyListActionsContextType['convertToDisplayString'],
     params: GetReportPreviewMessageBaseParams,
 ): string {
@@ -5903,7 +5905,7 @@ function getReportPreviewMessage(
     const policyName = getPolicyName({report: parentReport ?? report, policy, unavailableTranslation: translate('workspace.common.unavailable')});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber, translate});
 
     const formattedAmount = convertToDisplayString(totalAmount, report.currency);
 
@@ -5960,7 +5962,7 @@ function getReportPreviewMessage(
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber, translate});
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -5984,8 +5986,7 @@ function getReportPreviewMessage(
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName =
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '';
+        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber, translate}) ?? '';
         return translate('iou.waitingOnBankAccount', submitterDisplayName);
     }
 
@@ -6014,17 +6015,13 @@ function getReportPreviewMessage(
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate})
+                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber, translate})
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${translate('iou.expenseAmount', amountToDisplay, comment)}`;
     }
 
     if (containsNonReimbursable) {
-        return translate(
-            'iou.payerSpentAmount',
-            formattedAmount,
-            getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) ?? '',
-        );
+        return translate('iou.payerSpentAmount', formattedAmount, getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber, translate}) ?? '');
     }
     return translate('iou.payerOwesAmount', formattedAmount, payerName ?? '', comment);
 }
@@ -6042,7 +6039,15 @@ function getReportPreviewMessage(
  * in {@link getReportPreviewMessage}.
  */
 function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBaseParams, getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals']): string {
-    const {reportOrID, iouReportAction = null, shouldConsiderScanningReceiptOrPendingRoute = false, isPreviewMessageForParentChatReport = false, policy, isForListPreview = false} = params;
+    const {
+        reportOrID,
+        iouReportAction = null,
+        shouldConsiderScanningReceiptOrPendingRoute = false,
+        isPreviewMessageForParentChatReport = false,
+        policy,
+        isForListPreview = false,
+        formatPhoneNumber,
+    } = params;
     const originalReportAction = params.originalReportAction ?? iouReportAction;
     const report = typeof reportOrID === 'string' ? getReport(reportOrID, deprecatedAllReports) : reportOrID;
     const reportActionMessage = getReportActionHtml(iouReportAction);
@@ -6121,7 +6126,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
     const policyName = getPolicyName({report: parentReport ?? report, policy});
     const payerName = isExpenseReport(report)
         ? policyName
-        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+        : getDisplayNameForParticipant({accountID: report.managerID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber});
 
     const formattedAmount = convertToDisplayStringEnLocale(totalAmount, report.currency, getCurrencyDecimals);
 
@@ -6178,7 +6183,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         let actualPayerName =
             report.managerID === deprecatedCurrentUserAccountID && !isForListPreview
                 ? ''
-                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils});
+                : getDisplayNameForParticipant({accountID: payerAccountID, shouldUseShortForm: true, formatPhoneNumber});
 
         actualPayerName = actualPayerName && isForListPreview && !isPreviewMessageForParentChatReport ? `${actualPayerName}:` : actualPayerName;
         const payerDisplayName = isPreviewMessageForParentChatReport ? payerName : actualPayerName;
@@ -6211,7 +6216,7 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
     }
 
     if (report.isWaitingOnBankAccount) {
-        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const submitterDisplayName = getDisplayNameForParticipant({accountID: report.ownerAccountID, shouldUseShortForm: true, formatPhoneNumber}) ?? '';
         return `started payment, but is waiting for ${submitterDisplayName} to add a personal bank account.`;
     }
 
@@ -6240,13 +6245,13 @@ function getReportPreviewReportActionMessage(params: GetReportPreviewMessageBase
         // We only want to show the actor name in the preview if it's not the current user who took the action
         const requestorName =
             lastActorID && lastActorID !== deprecatedCurrentUserAccountID
-                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber: formatPhoneNumberPhoneUtils})
+                ? getDisplayNameForParticipant({accountID: lastActorID, shouldUseShortForm: !isPreviewMessageForParentChatReport, formatPhoneNumber})
                 : '';
         return `${requestorName ? `${requestorName}: ` : ''}${amountToDisplay}${comment ? ` for ${comment}` : ''}`;
     }
 
     if (containsNonReimbursable) {
-        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber: formatPhoneNumberPhoneUtils}) ?? '';
+        const ownerName = getDisplayNameForParticipant({accountID: report.ownerAccountID, formatPhoneNumber}) ?? '';
         return `${ownerName} spent ${formattedAmount}`;
     }
     return `${payerName ?? ''} owes ${formattedAmount}${comment ? ` for ${comment}` : ''}`;
@@ -6366,7 +6371,12 @@ function getModifiedExpenseOriginalMessage(
 /**
  * Get the payee name given a report.
  */
-function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, currentUserAccountID: number | undefined): string | undefined {
+function getPayeeName(
+    report: OnyxEntry<Report>,
+    translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
+    currentUserAccountID: number | undefined,
+): string | undefined {
     if (isEmptyObject(report)) {
         return undefined;
     }
@@ -6378,7 +6388,7 @@ function getPayeeName(report: OnyxEntry<Report>, translate: LocalizedTranslate, 
     if (participantsWithoutCurrentUser.length === 0) {
         return undefined;
     }
-    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate});
+    return getDisplayNameForParticipant({accountID: participantsWithoutCurrentUser.at(0), shouldUseShortForm: true, formatPhoneNumber, translate});
 }
 
 // TODO: currentUserEmail will be required eventually so this becomes a pure function. Subscribe the data via useOnyx and pass it from the component. Refactor issue: https://github.com/Expensify/App/issues/66412
@@ -6487,6 +6497,7 @@ function getParentNavigationSubtitle(
     policy: OnyxEntry<Policy>,
     conciergeReportID: string | undefined,
     translate: LocalizedTranslate,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     parentReportName: string | undefined,
     isParentReportArchived = false,
 ): ParentNavigationSummaryParams {
@@ -6497,8 +6508,7 @@ function getParentNavigationSubtitle(
         const personalDetails = ownerAccountID ? allPersonalDetails?.[ownerAccountID] : undefined;
         const login = personalDetails ? personalDetails.login : null;
 
-        const reportOwnerDisplayName =
-            getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber: formatPhoneNumberPhoneUtils, translate}) || login;
+        const reportOwnerDisplayName = getDisplayNameForParticipant({accountID: ownerAccountID, shouldRemoveDomain: true, formatPhoneNumber, translate}) || login;
 
         if (isExpenseReport(report)) {
             return {
@@ -8077,6 +8087,7 @@ function buildOptimisticSubmittedReportAction(
 function buildOptimisticReportPreview(
     chatReport: OnyxInputOrEntry<Report>,
     iouReport: Report,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     comment = '',
     transaction: OnyxInputOrEntry<Transaction> = null,
@@ -8085,7 +8096,7 @@ function buildOptimisticReportPreview(
     delegateAccountIDParam: number | undefined = undefined,
 ): ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW> {
     const hasReceipt = hasReceiptTransactionUtils(transaction);
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, formatPhoneNumber}, getCurrencyDecimals);
     const created = DateUtils.getDBTime();
     const reportActorAccountID = (isInvoiceReport(iouReport) || isExpenseReport(iouReport) ? iouReport?.ownerAccountID : iouReport?.managerID) ?? -1;
     // Falls back to module-level delegateEmail (from Onyx.connect) for callers not yet migrated; will be removed in https://github.com/Expensify/App/issues/66425
@@ -8258,6 +8269,7 @@ function buildOptimisticDetachReceipt(reportID: string | undefined, transactionI
 function updateReportPreview(
     iouReport: OnyxEntry<Report>,
     reportPreviewAction: ReportAction<typeof CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW>,
+    formatPhoneNumber: LocaleContextProps['formatPhoneNumber'],
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
     isPayRequest = false,
     comment = '',
@@ -8277,7 +8289,7 @@ function updateReportPreview(
         }
     }
 
-    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction}, getCurrencyDecimals);
+    const message = getReportPreviewReportActionMessage({reportOrID: iouReport, iouReportAction: reportPreviewAction, formatPhoneNumber}, getCurrencyDecimals);
     const originalMessage = getOriginalMessage(reportPreviewAction);
     return {
         ...reportPreviewAction,

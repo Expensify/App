@@ -52,7 +52,7 @@ function DistanceRequestStartPage({
     defaultSelectedTab = CONST.TAB_REQUEST.DISTANCE_MAP,
 }: DistanceRequestStartPageProps) {
     const styles = useThemeStyles();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
     const [report] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${reportID}`);
     const [transaction] = useOnyx(`${ONYXKEYS.COLLECTION.TRANSACTION_DRAFT}${getNonEmptyStringOnyxID(route?.params.transactionID)}`);
@@ -86,8 +86,8 @@ function DistanceRequestStartPage({
     const tabTitles = {
         [CONST.IOU.TYPE.REQUEST]: translate('iou.trackDistance'),
         [CONST.IOU.TYPE.SUBMIT]: translate('iou.trackDistance'),
-        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
-        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate, currentUserAccountID)),
+        [CONST.IOU.TYPE.SEND]: translate('iou.paySomeone', getPayeeName(report, translate, formatPhoneNumber, currentUserAccountID)),
+        [CONST.IOU.TYPE.PAY]: translate('iou.paySomeone', getPayeeName(report, translate, formatPhoneNumber, currentUserAccountID)),
         [CONST.IOU.TYPE.SPLIT]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.SPLIT_EXPENSE]: translate('iou.splitExpense'),
         [CONST.IOU.TYPE.TRACK]: translate('iou.trackDistance'),

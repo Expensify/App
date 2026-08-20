@@ -106,7 +106,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
      * by its own key only while it has none.
      */
     const {isSelectAllChecked: isSelected, isIndeterminate} = useGroupCheckboxState({groupKey: item.keyForList, groupTransactions: reportItem.transactions ?? []});
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals, convertToDisplayString} = useCurrencyListActions();
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {currentSearchHash, currentSearchKey} = useSearchQueryContext();
@@ -306,6 +306,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             // every row on unrelated violation changes.
             allViolations: liveViolationsForSnapshotTransactions,
             conciergeChat,
+            formatPhoneNumber,
         });
     }, [
         currentSearchHash,
@@ -349,6 +350,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         conciergeChat,
+        formatPhoneNumber,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {
