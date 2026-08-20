@@ -913,6 +913,17 @@ const SettingsModalStackNavigator = createModalStackNavigator<SettingsNavigatorP
         require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntryExistingConnectionsPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_SUBSIDIARY_SELECTOR]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/DualEntrySubsidiarySelector').default,
     [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_IMPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/import/DualEntryImportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPORT]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryExportPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_PREFERRED_EXPORTER]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryPreferredExporterPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_VENDOR_BILL_DATE]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryVendorBillDatePage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_COMPANY_CARD_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryCompanyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_EXPENSIFY_CARD_ACCOUNT]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryExpensifyCardAccountPage').default,
+    [SCREENS.WORKSPACE.ACCOUNTING.DUALENTRY_DEFAULT_COMPANY_CARD_VENDOR]: () =>
+        require<ReactComponentModule>('../../../../pages/workspace/accounting/dualentry/export/DualEntryDefaultCompanyCardVendorPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION]: () => require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationPage').default,
     [SCREENS.WORKSPACE.ACCOUNTING.CARD_RECONCILIATION_SAGE_INTACCT_AUTO_SYNC]: () =>
         require<ReactComponentModule>('../../../../pages/workspace/accounting/reconciliation/CardReconciliationSageIntacctAutoSyncPage').default,

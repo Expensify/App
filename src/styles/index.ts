@@ -6654,10 +6654,6 @@ const staticStyles = (theme: ThemeColors) =>
             height: undefined,
             aspectRatio: 2.2,
         },
-        dateIconSize: {
-            width: variables.iconSizeExtraLarge,
-            height: variables.iconSizeExtraLarge,
-        },
         homeWidgetIconContainer: {
             width: variables.iconSizeExtraLarge,
             height: variables.iconSizeExtraLarge,
