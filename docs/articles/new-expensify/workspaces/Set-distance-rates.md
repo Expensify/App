@@ -67,6 +67,31 @@ To prevent members from using a Distance rate, you can either disable it or dele
 
 ---
 
+## How to enable Auto-update government rate
+
+Control workspaces can have Expensify keep the government mileage rate current automatically. When enabled, Expensify adds a new effective-dated rate whenever the government publishes an updated rate, so you don't have to update it manually each year.
+
+Auto-update is available for workspaces using USD, CAD, GBP, AUD, or NZD. It is turned on by default for new workspaces and turned off by default for existing workspaces.
+
+1. In the navigation tabs (on the left on web, and at the bottom on mobile), click **Workspaces > [Workspace name]**.
+2. Click **Distance rates**.
+3. Turn on **Auto-update government rate**.
+
+---
+
+## What happens when a government rate updates
+
+When Auto-update government rate is enabled and a new government rate is published:
+
+- Expensify adds a new rate with a **Start date** matching the date the new rate takes effect.
+- Previous rates are preserved so historical expenses keep the rate that applied on their expense date.
+- If the previous government rate had no **End date**, Expensify sets its **End date** to the day before the new rate starts.
+- Admins are notified of the change in the workspace **#admins** room and in **Home > Announcements**.
+
+You keep full control of your rates — you can edit or disable any auto-added rate at any time.
+
+---
+
 # FAQ
 
 ## Can I create multiple Distance rates?
@@ -96,6 +121,10 @@ No. Updating a Distance rate only affects future Distance expenses. Existing exp
 ## Do I need at least one Distance rate?
 
 Yes. When **Distance Rates** is enabled, the Workspace must always have at least one active Distance rate.
+
+## Why isn't Auto-update government rate turned on for my workspace?
+
+Auto-update government rate is turned on by default only for new workspaces. Existing workspaces are opted out by default, so you'll need to turn it on manually. It's also only available for workspaces using USD, CAD, GBP, AUD, or NZD.
 
 ---
 
