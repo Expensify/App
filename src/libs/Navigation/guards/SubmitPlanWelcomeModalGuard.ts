@@ -3,7 +3,6 @@ import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/crea
 import findFocusedRouteWithOnyxTabGuard from '@libs/Navigation/helpers/findFocusedRouteWithOnyxTabGuard';
 import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
 import Navigation from '@libs/Navigation/Navigation';
-import Permissions from '@libs/Permissions';
 import {getGroupPoliciesWhereReportCanBeCreated} from '@libs/PolicyUtils';
 
 import CONST from '@src/CONST';
@@ -12,7 +11,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES, {DYNAMIC_ROUTES} from '@src/ROUTES';
 import type {Route} from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
-import type {Beta, BetaConfiguration, IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
+import type {IntroSelected, Policy, SecurityGroup, Session} from '@src/types/onyx';
 
 import type {NavigationAction, NavigationState} from '@react-navigation/native';
 import type {OnyxCollection, OnyxEntry} from 'react-native-onyx';
@@ -27,8 +26,6 @@ import type {GuardContext, GuardResult, NavigationGuard} from './types';
 
 let session: OnyxEntry<Session>;
 let isLoadingApp = true;
-let betas: OnyxEntry<Beta[]>;
-let betaConfiguration: OnyxEntry<BetaConfiguration>;
 let introSelected: OnyxEntry<IntroSelected>;
 let policies: OnyxCollection<Policy>;
 let hasCompletedGuidedSetupFlow: boolean | undefined;
@@ -80,8 +77,8 @@ function resetSessionFlag() {
 
 /**
  * Returns true when the current user matches the "existing Get paid back intent" audience:
- * the SUBMIT_2026 beta is enabled, they picked the EMPLOYER onboarding intent, completed onboarding,
- * haven't seen the modal yet, and don't already belong to any workspace where they can submit reports.
+ * they picked the EMPLOYER onboarding intent, completed onboarding, haven't seen the modal yet,
+ * and don't already belong to any workspace where they can submit reports.
  *
  * The last check uses `getGroupPoliciesWhereReportCanBeCreated` (paid Team/Corporate AND free Submit
  * workspaces) rather than only paid policies. This intentionally excludes users who just created a
@@ -89,11 +86,10 @@ function resetSessionFlag() {
  * that flow.
  */
 function shouldShowSubmitPlanWelcomeModal(): boolean {
-    const isSubmit2026BetaEnabled = Permissions.isBetaEnabled(CONST.BETAS.SUBMIT_2026, betas, betaConfiguration);
     const hasEmployerIntent = introSelected?.choice === CONST.ONBOARDING_CHOICES.EMPLOYER;
-    const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, isSubmit2026BetaEnabled, session?.email);
+    const groupPolicies = getGroupPoliciesWhereReportCanBeCreated(policies, session?.email);
 
-    return isSubmit2026BetaEnabled && hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !isPolicyCreationRestricted() && !hasShownSubmitMigrationModal;
+    return hasEmployerIntent && !!hasCompletedGuidedSetupFlow && groupPolicies.length === 0 && !isPolicyCreationRestricted() && !hasShownSubmitMigrationModal;
 }
 
 /**
@@ -175,20 +171,6 @@ Onyx.connectWithoutView({
 // fires, every value below has already landed in the same OpenApp batch. Driving navigation from these
 // (especially the high-churn POLICY collection) would recompute eligibility on every unrelated mutation for
 // the whole session.
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETAS,
-    callback: (value) => {
-        betas = value;
-    },
-});
-
-Onyx.connectWithoutView({
-    key: ONYXKEYS.BETA_CONFIGURATION,
-    callback: (value) => {
-        betaConfiguration = value;
-    },
-});
-
 Onyx.connectWithoutView({
     key: ONYXKEYS.NVP_INTRO_SELECTED,
     callback: (value) => {
@@ -276,7 +258,7 @@ function isNavigatingToSubmitPlanModal(state: NavigationState, action: Navigatio
 /**
  * SubmitPlanWelcomeModalGuard handles the in-product Submit plan welcome modal flow.
  * This modal appears for users who previously selected the "Get paid back" (EMPLOYER) intent,
- * are not on any paid workspace, and haven't seen it yet (behind the SUBMIT_2026 beta).
+ * are not on any paid workspace, and haven't seen it yet.
  */
 const SubmitPlanWelcomeModalGuard: NavigationGuard = {
     name: 'SubmitPlanWelcomeModalGuard',
