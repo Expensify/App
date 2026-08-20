@@ -1141,6 +1141,29 @@ describe('DateUtils', () => {
             expect(DateUtils.getFormattedDateRangeForSearch('2025-07-09', 'not-a-date', false, false, LOCALE)).toBe('');
         });
 
+        it('refreshIntlFormatterCaches drops cached failures but keeps working formatters', () => {
+            DateUtils.clearIntlFormatterCaches();
+            const throwingSpy = jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {
+                throw new RangeError('no Intl');
+            });
+            expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.ES)).toBe('');
+            throwingSpy.mockRestore();
+
+            // Repeated deliberately: `Intl` works again, and this is still empty only because the failure is cached.
+            expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.ES)).toBe('');
+
+            expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.EN)).not.toBe('');
+            const constructorSpy = jest.spyOn(Intl, 'DateTimeFormat');
+            DateUtils.refreshIntlFormatterCaches();
+
+            expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.ES)).not.toBe('');
+            const constructionsToRecoverTheFailure = constructorSpy.mock.calls.length;
+
+            expect(DateUtils.formatToMediumDate('2025-07-09', CONST.LOCALES.EN)).not.toBe('');
+            expect(constructorSpy.mock.calls).toHaveLength(constructionsToRecoverTheFailure);
+            constructorSpy.mockRestore();
+        });
+
         it('getFormattedQuarterForSearch keeps the quarter label when the bounds cannot be formatted', () => {
             DateUtils.clearIntlFormatterCaches();
             jest.spyOn(Intl, 'DateTimeFormat').mockImplementation(() => {

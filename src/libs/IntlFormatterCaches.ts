@@ -17,6 +17,24 @@ function registerDerivedIntlCache(reset: () => void): void {
     derivedCacheResets.add(reset);
 }
 
+function dropFailedDateTimeFormatters(): void {
+    for (const [key, formatter] of intlDateTimeFormatCache) {
+        if (formatter === null) {
+            intlDateTimeFormatCache.delete(key);
+        }
+    }
+}
+
+function refreshIntlFormatterCaches(): void {
+    // `Intl.DateTimeFormat` is never polyfilled here, so only its failures can be wrong. The rest wrap polyfilled APIs.
+    dropFailedDateTimeFormatters();
+    relativeTimeFormatCache.clear();
+    for (const reset of derivedCacheResets) {
+        reset();
+    }
+}
+
+/** Full reset, for tests that stub `Intl` and need the constructor to actually run. */
 function clearIntlFormatterCaches(): void {
     intlDateTimeFormatCache.clear();
     relativeTimeFormatCache.clear();
@@ -25,4 +43,4 @@ function clearIntlFormatterCaches(): void {
     }
 }
 
-export {INTL_FORMAT_CACHE_MAX_SIZE, intlDateTimeFormatCache, relativeTimeFormatCache, registerDerivedIntlCache, clearIntlFormatterCaches};
+export {INTL_FORMAT_CACHE_MAX_SIZE, intlDateTimeFormatCache, relativeTimeFormatCache, registerDerivedIntlCache, refreshIntlFormatterCaches, clearIntlFormatterCaches};

@@ -44,7 +44,14 @@ import {Str} from 'expensify-common';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
-import {INTL_FORMAT_CACHE_MAX_SIZE, clearIntlFormatterCaches, intlDateTimeFormatCache, registerDerivedIntlCache, relativeTimeFormatCache} from './IntlFormatterCaches';
+import {
+    INTL_FORMAT_CACHE_MAX_SIZE,
+    clearIntlFormatterCaches,
+    intlDateTimeFormatCache,
+    refreshIntlFormatterCaches,
+    registerDerivedIntlCache,
+    relativeTimeFormatCache,
+} from './IntlFormatterCaches';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -133,7 +140,7 @@ function formatIntl(locale: Locale, formatKey: IntlFormatKey, date: Date, timeZo
     return formatter.format(date).replaceAll(CONST.DATE.INTL_NBSP_PATTERN, ' ');
 }
 
-/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo` (older Hermes/JSC). */
+/** CLDR week starts, for engines without `Intl.Locale.getWeekInfo`. `en` is unreachable: `getWeekStartsOn` pins it first. */
 const WEEK_STARTS_ON_BY_LOCALE: Readonly<Record<Locale, WeekDay>> = {
     [CONST.LOCALES.EN]: 1,
     [CONST.LOCALES.FR]: 1,
@@ -1692,6 +1699,7 @@ const DateUtils = {
     getFilteredMonthItems,
     getDaysOfWeekNarrow,
     clearIntlFormatterCaches,
+    refreshIntlFormatterCaches,
     toLocalDate,
     toUTCDate,
     getLocalizedDatePlaceholder,

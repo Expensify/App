@@ -1,5 +1,5 @@
 import extractModuleDefaultExport from '@libs/extractModuleDefaultExport';
-import {clearIntlFormatterCaches} from '@libs/IntlFormatterCaches';
+import {refreshIntlFormatterCaches} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
 import {endSpan, endSpanWithAttributes, getSpan, startSpan} from '@libs/telemetry/activeSpans';
 
@@ -284,9 +284,8 @@ class IntlStore {
                     return;
                 }
                 IntlStore.currentLocale = locale;
-                // Must follow the commit above: a clear running while `currentLocale` is still the previous locale
-                // cannot evict the formatters it targets.
-                clearIntlFormatterCaches();
+                // Must follow the commit: a refresh running under the previous locale cannot evict what it targets.
+                refreshIntlFormatterCaches();
                 IntlStore.notifyListeners();
                 if (localeSpan) {
                     endSpan(CONST.TELEMETRY.SPAN_LOCALE.TRANSLATIONS_LOAD);
@@ -314,6 +313,7 @@ class IntlStore {
                             return;
                         }
                         IntlStore.currentLocale = LOCALES.DEFAULT;
+                        refreshIntlFormatterCaches();
                         IntlStore.notifyListeners();
                     })
                     .catch((fallbackError: unknown) => {
