@@ -3,7 +3,7 @@ import {renderHook} from '@testing-library/react-native';
 import useReportIsArchived from '@hooks/useReportIsArchived';
 
 import type * as PolicyUtils from '@libs/PolicyUtils';
-import {getValidConnectedIntegration} from '@libs/PolicyUtils';
+import {getValidConnectedIntegration, isGroupPolicy} from '@libs/PolicyUtils';
 import getReportPreviewAction from '@libs/ReportPreviewActionUtils';
 import type * as ReportUtils from '@libs/ReportUtils';
 import {hasOnlyNonReimbursableTransactions} from '@libs/ReportUtils';
@@ -867,6 +867,59 @@ describe('getReportPreviewAction', () => {
                 ownerLogin: CURRENT_USER_EMAIL,
             }),
         ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY);
+    });
+
+    it('canPay should not return PAY for the expense owner in a 1:1 IOU on a personal policy with manual reimbursement', async () => {
+        const managerAccountID = CURRENT_USER_ACCOUNT_ID + 1;
+        const report = {
+            ...createRandomReport(REPORT_ID, undefined),
+            type: CONST.REPORT.TYPE.IOU,
+            ownerAccountID: CURRENT_USER_ACCOUNT_ID,
+            managerID: managerAccountID,
+            stateNum: CONST.REPORT.STATE_NUM.SUBMITTED,
+            statusNum: CONST.REPORT.STATUS_NUM.SUBMITTED,
+            total: -100,
+            isWaitingOnBankAccount: false,
+        };
+
+        const policy = createRandomPolicy(0, CONST.POLICY.TYPE.PERSONAL);
+        policy.role = CONST.POLICY.ROLE.ADMIN;
+        policy.reimbursementChoice = CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL;
+        policy.employeeList = {
+            [CURRENT_USER_EMAIL]: {
+                email: CURRENT_USER_EMAIL,
+                role: CONST.POLICY.ROLE.ADMIN,
+            },
+        };
+
+        await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT}${REPORT_ID}`, report);
+        const transaction = createMock<Transaction>({
+            reportID: `${REPORT_ID}`,
+            amount: 100,
+            merchant: 'Test Merchant',
+            created: '2025-01-01',
+        });
+
+        const {isGroupPolicy: actualIsGroupPolicy} = jest.requireActual<typeof PolicyUtils>('@libs/PolicyUtils');
+        jest.mocked(isGroupPolicy).mockImplementation(actualIsGroupPolicy);
+
+        try {
+            expect(
+                getReportPreviewAction({
+                    isReportArchived: false,
+                    currentUserAccountID: CURRENT_USER_ACCOUNT_ID,
+                    currentUserLogin: CURRENT_USER_EMAIL,
+                    report,
+                    policy,
+                    transactions: [transaction],
+                    bankAccountList: {},
+                    reportMetadata: undefined,
+                    ownerLogin: CURRENT_USER_EMAIL,
+                }),
+            ).toBe(CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW);
+        } finally {
+            jest.mocked(isGroupPolicy).mockReturnValue(true);
+        }
     });
 
     it('canPay should return false for Expense report with zero total amount', async () => {

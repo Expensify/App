@@ -1,7 +1,7 @@
 import CONST from '@src/CONST';
 
 import {endSpanWithAttributes} from './activeSpans';
-import startStartupPhaseSpan, {getStartupPhaseSpanId} from './startStartupPhaseSpan';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './startRequestPhaseSpan';
 
 /** Longer frames mean the JS thread is still blocked by the render cascade. */
 const RESPONSIVE_FRAME_BUDGET_MS = 32;
@@ -13,8 +13,8 @@ const MAX_WAIT_MS = 10_000;
 
 /** Onyx resolves once subscribers are notified, before React renders, so StartupData.Apply cannot see this cascade. */
 function trackStartupDataRender(command: string, attempt: number): void {
-    const spanId = getStartupPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER, attempt);
-    const span = startStartupPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER, attempt, command);
+    const spanId = getRequestPhaseSpanId(CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER, attempt);
+    const span = startRequestPhaseSpan(CONST.TELEMETRY.SPAN_STARTUP_DATA.RENDER, attempt, command);
 
     if (!span) {
         return;
