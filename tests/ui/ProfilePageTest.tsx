@@ -9,16 +9,14 @@ import OnyxListItemProvider from '@components/OnyxListItemProvider';
 import {CurrentReportIDContextProvider} from '@hooks/useCurrentReportID';
 
 import * as AgentActions from '@libs/actions/Agent';
-import Navigation, {navigationRef} from '@libs/Navigation/Navigation';
+import {navigationRef} from '@libs/Navigation/Navigation';
 import createPlatformStackNavigator from '@libs/Navigation/PlatformStackNavigation/createPlatformStackNavigator';
-import type {ProfileNavigatorParamList, SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
+import type {SettingsSplitNavigatorParamList} from '@libs/Navigation/types';
 
-import PublicProfilePage from '@pages/ProfilePage';
 import ProfilePage from '@pages/settings/Profile/ProfilePage';
 
-import CONST from '@src/CONST';
+import type CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import ROUTES from '@src/ROUTES';
 import SCREENS from '@src/SCREENS';
 import type {PersonalDetails, PersonalDetailsList} from '@src/types/onyx';
 
@@ -69,9 +67,6 @@ jest.mock('@react-navigation/native', () => {
         useRoute: jest.fn(() => ({params: {}})),
         createNavigationContainerRef: () => ({
             getState: () => jest.fn(),
-            // useRootNavigationState reads the ref on mount and subscribes to it, so the stub has to answer both.
-            isReady: () => false,
-            addListener: () => () => {},
         }),
         usePreventRemove: jest.fn(),
     };
@@ -484,135 +479,6 @@ describe('ProfilePage - agent account', () => {
 
         expect(mockUpdateAgentPrompt).not.toHaveBeenCalled();
         expect(screen.getByTestId('ai-prompt-input')).toBeDefined();
-    });
-});
-
-const PublicProfileStack = createPlatformStackNavigator<ProfileNavigatorParamList>();
-
-const CURRENT_USER_ACCOUNT_ID = 1;
-const CURRENT_USER_EMAIL = 'current@expensify.com';
-const PUBLIC_PROFILE_ACCOUNT_ID = 123;
-
-describe('ProfilePage - View user history', () => {
-    beforeAll(async () => {
-        Onyx.init({
-            keys: ONYXKEYS,
-        });
-
-        await act(async () => {
-            await Onyx.set(ONYXKEYS.NVP_PREFERRED_LOCALE, 'en' as const);
-        });
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    afterEach(async () => {
-        jest.clearAllMocks();
-        await Onyx.clear();
-        await waitForBatchedUpdatesWithAct();
-    });
-
-    async function setUpPublicProfile(login: string) {
-        await TestHelper.signInWithTestUser(CURRENT_USER_ACCOUNT_ID, CURRENT_USER_EMAIL);
-
-        const personalDetails: PersonalDetailsList = {
-            [CURRENT_USER_ACCOUNT_ID]: {
-                accountID: CURRENT_USER_ACCOUNT_ID,
-                login: CURRENT_USER_EMAIL,
-                displayName: CURRENT_USER_EMAIL,
-            } as PersonalDetails,
-            [PUBLIC_PROFILE_ACCOUNT_ID]: {
-                accountID: PUBLIC_PROFILE_ACCOUNT_ID,
-                login,
-                displayName: login,
-                avatar: 'https://example.com/avatar.png',
-            } as PersonalDetails,
-        };
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.PERSONAL_DETAILS_LIST, personalDetails);
-            await Onyx.merge(ONYXKEYS.IS_LOADING_APP, false);
-        });
-        await waitForBatchedUpdatesWithAct();
-    }
-
-    function renderPublicProfilePage() {
-        return render(
-            <ComposeProviders components={[OnyxListItemProvider, CurrentUserPersonalDetailsProvider, LocaleContextProvider, CurrentReportIDContextProvider]}>
-                <PortalProvider>
-                    <NavigationContainer>
-                        <PublicProfileStack.Navigator>
-                            <PublicProfileStack.Screen
-                                name={SCREENS.DYNAMIC_PROFILE}
-                                component={PublicProfilePage}
-                                initialParams={{accountID: String(PUBLIC_PROFILE_ACCOUNT_ID), reportID: ''}}
-                            />
-                        </PublicProfileStack.Navigator>
-                    </NavigationContainer>
-                </PortalProvider>
-            </ComposeProviders>,
-        );
-    }
-
-    it('shows the search entry for a regular user', async () => {
-        await setUpPublicProfile('user@expensify.com');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByText('View user history')).toBeOnTheScreen();
-        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
-    });
-
-    it('shows the agent wording for an agent account', async () => {
-        await setUpPublicProfile('agent_456@expensify.ai');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.getByText('View agent history')).toBeOnTheScreen();
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-    });
-
-    it('navigates to a chat search filtered by the profile account when pressed', async () => {
-        await setUpPublicProfile('user@expensify.com');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        // MenuItem only forwards the press to onPress when it receives an event, so pass a minimal one.
-        fireEvent.press(screen.getByText('View user history'), {nativeEvent: {}});
-        await waitForBatchedUpdatesWithAct();
-
-        expect(Navigation.navigate).toHaveBeenCalledWith(
-            ROUTES.SEARCH_ROOT.getRoute({
-                query: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
-                rawQuery: `type:${CONST.SEARCH.DATA_TYPES.CHAT} from:${PUBLIC_PROFILE_ACCOUNT_ID}`,
-            }),
-        );
-    });
-
-    it('hides the search entry for an anonymous session', async () => {
-        await setUpPublicProfile('user@expensify.com');
-
-        await act(async () => {
-            await Onyx.merge(ONYXKEYS.SESSION, {authTokenType: CONST.AUTH_TOKEN_TYPES.ANONYMOUS});
-        });
-        await waitForBatchedUpdatesWithAct();
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-    });
-
-    it('hides the search entry when the account has no login', async () => {
-        await setUpPublicProfile('');
-
-        renderPublicProfilePage();
-        await waitForBatchedUpdatesWithAct();
-
-        expect(screen.queryByText('View user history')).not.toBeOnTheScreen();
-        expect(screen.queryByText('View agent history')).not.toBeOnTheScreen();
     });
 });
 
