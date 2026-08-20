@@ -1,6 +1,8 @@
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
 import {useMemoizedLazyIllustrations} from '@hooks/useLazyAsset';
 import useOnyx from '@hooks/useOnyx';
+import usePermissions from '@hooks/usePermissions';
+import usePolicyConnectionsPrefetch from '@hooks/usePolicyConnectionsPrefetch';
 import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
@@ -49,6 +51,7 @@ type ProductMarketingWindowManagerProps = {
  */
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
+    const {isBetaEnabled} = usePermissions();
     const [activeAdminPolicies, activeAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
         selector: (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, currentUserLogin),
     });
@@ -67,8 +70,14 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
     const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const targetAdminPolicyID = activeAdminPolicies?.find((policy) => policy.id === activePolicyID)?.id ?? activeAdminPolicies?.at(0)?.id;
-    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
+    const targetAdminPolicy = activeAdminPolicies?.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies?.at(0);
+    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicy, lastDismissedMarketingWindow);
+    const isMemberVariantUnavailable = variant === announcement?.member && !isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
+    const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
+    const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicy && targetAdminPolicy.id !== activePolicyID;
+    const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
+    const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
+    const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
     const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
@@ -82,6 +91,7 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     if (
         !announcement ||
         !variant ||
+        isMemberVariantUnavailable ||
         isLoading ||
         isProductMarketingWindowCovered ||
         isAnonymousSession ||
@@ -102,15 +112,25 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     };
 
     const completeCta = () => {
+        if (isAdminCtaPending) {
+            return;
+        }
         // Record the dismissal before navigating so the window doesn't flash again during navigation.
         persistDismissal();
-        Navigation.navigate(variant.getCtaRoute(targetAdminPolicyID));
+        Navigation.navigate(
+            variant.getCtaRoute({
+                adminPolicy: targetAdminPolicy,
+                isVendorMatchingBetaEnabled,
+                isAdminPolicyConnectionDataAvailable,
+            }),
+        );
     };
 
     return (
         <ProductMarketingWindow
             variant={variant}
             illustration={variant.visual.type === 'illustration' ? illustrations[variant.visual.name] : undefined}
+            isCtaDisabled={isAdminCtaPending}
             onCtaPress={completeCta}
             onDismiss={dismiss}
         />
