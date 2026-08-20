@@ -137,7 +137,7 @@ function buildCardsData(
 
 /**
  * Returns the wire-level country segment used in the Search feed filter token for a card. We only
- * care about Travel Invoicing feed country segment since it has its own
+ * care about Travel Billing feed country segment since it has its own
  * Onyx key and its own search feed. Every other bank and every other Expensify Card program
  * (US/GB/CURRENT) shares the 2-segment token, so we return an empty string and the token and the
  * Onyx key always line up.
@@ -170,8 +170,8 @@ function getExpensifyCardFeedsForDisplay(
             continue;
         }
 
-        // Travel Invoicing lives on its own feed but shares the `Expensify Card` bank. Use the
-        // translated label so the Feed dropdown shows "Travel Invoicing" for travel cards and
+        // Travel Billing lives on its own feed but shares the `Expensify Card` bank. Use the
+        // translated label so the Feed dropdown shows "Travel Billing" for travel cards and
         // "Expensify Card" for everything else.
         const name = translate && feedCountry === CONST.TRAVEL.PROGRAM_TRAVEL_US ? translate('search.filters.card.travelInvoicing') : CONST.EXPENSIFY_CARD.BANK;
 

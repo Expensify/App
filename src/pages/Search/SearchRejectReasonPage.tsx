@@ -2,7 +2,9 @@ import {useDelegateNoAccessActions, useDelegateNoAccessState} from '@components/
 import type {FormInputErrors, FormOnyxValues} from '@components/Form/types';
 import {useSearchQueryContext, useSearchSelectionActions, useSearchSelectionContext} from '@components/Search/SearchContext';
 
+import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
+import useDelegateAccountID from '@hooks/useDelegateAccountID';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 
@@ -35,9 +37,11 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
     const {translate} = useLocalize();
+    const {getCurrencyDecimals} = useCurrencyListActions();
 
     const [betas] = useOnyx(ONYXKEYS.BETAS);
     const {accountID: currentUserAccountID, login: currentUserLogin} = useCurrentUserPersonalDetails();
+    const delegateAccountID = useDelegateAccountID();
     // When coming from the report view, selectedTransactions is empty, build it from selectedTransactionIDs
     const selectedTransactionsForReject = useMemo(() => {
         if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS && reportID) {
@@ -67,6 +71,8 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 currentUserAccountID,
                 currentUserLogin ?? '',
                 betas,
+                delegateAccountID,
+                getCurrencyDecimals,
             );
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
@@ -87,6 +93,8 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
             currentUserAccountID,
             currentUserLogin,
             betas,
+            delegateAccountID,
+            getCurrencyDecimals,
             route.name,
             showDelegateNoAccessModal,
             clearSelectedTransactions,

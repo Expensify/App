@@ -7,9 +7,10 @@ import {hasDeferredWrite} from '@libs/deferredLayoutWrite';
 import {isSearchDataLoaded, isSearchPending} from '@libs/SearchUIUtils';
 
 import CONST from '@src/CONST';
+import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
@@ -23,7 +24,7 @@ let lastSavedSearchHash: number | undefined;
  * Handles page-level setup for Search that must happen before the Search component mounts:
  * - Clears selected transactions when the query changes
  * - Fires the search() API call so data starts loading alongside the skeleton
- * - Fires openSearch() to load bank account data
+ * - Fires openSearch() to load bank account data, clearing a stale failure left on the snapshot
  * - Re-fires openSearch() when coming back online
  */
 function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
@@ -36,28 +37,24 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const hash = queryJSON?.hash;
     const shouldCalculateTotals = useSearchShouldCalculateTotals(currentSearchKey, hash, true);
 
-    // Tracks the jsonCode of the current query's most recent SEARCH response. It's the single source of
-    // truth for both fire paths (the page-level fire below and the user-driven re-search in
-    // SearchPage/SearchPageNarrow), so the error view can reliably tell an INVALID_SEARCH_QUERY apart from a
-    // retryable failure. `null` means no response has landed yet for the current query.
-    const [searchRequestResponseStatusCode, setSearchRequestResponseStatusCode] = useState<number | null>(null);
-
-    // Reset on query change so a stale code from a previous query (e.g. INVALID_SEARCH_QUERY) can't
-    // misclassify the new query's failure and wrongly hide/show the Retry button. Adjusting state during
-    // render (rather than in an effect) is the React-recommended pattern for resetting state on a prop
-    // change and avoids the extra committed render an effect would cost.
-    const [prevHash, setPrevHash] = useState(hash);
-    if (hash !== prevHash) {
-        setPrevHash(hash);
-        setSearchRequestResponseStatusCode(null);
-    }
-
     // Derived primitives so effects do not depend on the whole snapshot object (new reference every
     // Onyx merge) while exhaustive-deps still sees every transition that matters for firing search().
     const isSnapshotDataLoaded = queryJSON ? isSearchDataLoaded(currentSearchResults, queryJSON) : false;
     // Keep `isLoading` as a dependency so an unresolved search retries when temporary search prevention changes it to false.
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
     const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
+
+    // During a query change the snapshot can still be the previous query's, like isSearchDataLoaded guards against.
+    const isSnapshotForCurrentQuery = currentSearchResults?.search?.hash === hash;
+
+    // The server already judged the query itself malformed, so re-sending it cannot succeed.
+    const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
+
+    // Offline is out because the request that would reload the data cannot run there.
+    const hasErrorToClear = isSnapshotForCurrentQuery && !isEmptyObject(currentSearchResults?.errors) && !isInvalidQuery && !isOffline;
+
+    // Hashes this page requested, so an error can be traced to the attempt that produced it.
+    const requestedHashesRef = useRef<Set<number>>(new Set());
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -92,17 +89,27 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         if (isSnapshotDataLoaded && !isInitialSearchPending) {
             return;
         }
+
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
-        // Capture the response code so an invalid query opened directly (deep link / initial mount) is
-        // classified correctly, instead of leaving the status at `null` and offering a pointless Retry.
-        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites})?.then((jsonCode) =>
-            setSearchRequestResponseStatusCode(Number(jsonCode ?? 0)),
-        );
+        requestedHashesRef.current.add(hash);
+        search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites, shouldSaveRecentSearch: true});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
-    useFocusEffect(() => {
-        openSearch();
-    });
+    // Stable callback: useFocusEffect re-subscribes on a new identity and would fire an extra request.
+    useFocusEffect(
+        useCallback(() => {
+            openSearch();
+        }, []),
+    );
+
+    // Drop an error this page inherited rather than produced, so the effect above can request the query again.
+    useEffect(() => {
+        if (!hasErrorToClear || hash === undefined || requestedHashesRef.current.has(hash)) {
+            return;
+        }
+        requestedHashesRef.current.add(hash);
+        openSearch(undefined, hash);
+    }, [hasErrorToClear, hash]);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {
@@ -110,8 +117,6 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
         openSearch();
     }, [isOffline, prevIsOffline]);
-
-    return {searchRequestResponseStatusCode, setSearchRequestResponseStatusCode};
 }
 
 export default useSearchPageSetup;
