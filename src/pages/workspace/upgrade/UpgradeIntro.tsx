@@ -7,7 +7,7 @@ import usePreferredCurrency from '@hooks/usePreferredCurrency';
 import useThemeStyles from '@hooks/useThemeStyles';
 
 import {convertToShortDisplayString} from '@libs/CurrencyUtils';
-import {canAccessSubmitWorkspaceFeatures} from '@libs/PolicyUtils';
+import {isSubmitPolicy} from '@libs/PolicyUtils';
 
 import CONST, {SUBMIT_FEATURE_IDS} from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -40,14 +40,13 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const styles = useThemeStyles();
     const [policy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${policyID}`);
     const {isBetaEnabled} = usePermissions();
-    const isSubmit2026BetaEnabled = isBetaEnabled(CONST.BETAS.SUBMIT_2026);
+    const isCurrentPolicySubmit = isSubmitPolicy(policy);
     const isRulesRevampEnabled = isBetaEnabled(CONST.BETAS.RULES_REVAMP);
-    const isSubmitPolicy = canAccessSubmitWorkspaceFeatures(policy, isSubmit2026BetaEnabled);
     const {translate} = useLocalize();
     const preferredCurrency = usePreferredCurrency();
     const hasTeam2025Pricing = useHasTeam2025Pricing();
 
-    const isSubmitFeature = isSubmitPolicy && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
+    const isSubmitFeature = isCurrentPolicySubmit && !!feature?.id && SUBMIT_FEATURE_IDS.has(feature.id);
 
     const formattedPrice = useMemo(() => {
         const upgradeCurrency = Object.hasOwn(CONST.SUBSCRIPTION_PRICES, preferredCurrency) ? preferredCurrency : CONST.PAYMENT_CARD_CURRENCY.USD;
@@ -85,6 +84,7 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     ]);
     const illustrationIcons = useMemoizedLazyExpensifyIcons([
         'IntacctSquare',
+        'IntuitSquare',
         'NetSuiteSquare',
         'QBDSquare',
         'QBOSquare',
@@ -146,7 +146,9 @@ function UpgradeIntro({feature, onUpgrade, buttonDisabled, loading, isCategorizi
     const onlyAvailableOnPlanHTML = getOnlyAvailableOnPlanHTML();
 
     const buttonText =
-        isSubmitPolicy && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id ? translate('workspace.upgrade.expensifyCard.upgradeButton') : translate('common.upgrade');
+        isCurrentPolicySubmit && feature.id === CONST.UPGRADE_FEATURE_INTRO_MAPPING.expensifyCard.id
+            ? translate('workspace.upgrade.expensifyCard.upgradeButton')
+            : translate('common.upgrade');
 
     return (
         <UpgradeIntroView
