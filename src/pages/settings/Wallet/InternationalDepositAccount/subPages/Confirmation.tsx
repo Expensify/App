@@ -14,7 +14,6 @@ import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import useThemeStyles from '@hooks/useThemeStyles';
 
-import {getInternationalBankAccountDetailsValues, hasValidInternationalBankAccountDetails} from '@libs/BankAccountUtils';
 import {getLatestErrorMessage} from '@libs/ErrorUtils';
 
 import type CustomSubPageProps from '@pages/settings/Wallet/InternationalDepositAccount/types';
@@ -126,17 +125,27 @@ function Confirmation({onNext, onMove, formValues, fieldsMap}: CustomSubPageProp
         });
     }
 
-    if (hasValidInternationalBankAccountDetails(formValues.iban, formValues.swiftCode, formValues.accountNumber, formValues.swiftBicCode)) {
-        const {iban, swiftCode} = getInternationalBankAccountDetailsValues(formValues.iban, formValues.swiftCode, formValues.accountNumber, formValues.swiftBicCode);
-        summaryItems.push({
-            id: CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS,
-            description: `${translate('bankAccount.iban')} / ${translate('bankAccount.swiftBicCode')}`,
-            title: `${iban} / ${swiftCode}`,
-            shouldShowRightIcon: true,
-            onPress: () => {
-                onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+    if (formValues.iban && formValues.swiftCode) {
+        summaryItems.push(
+            {
+                id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-iban`,
+                description: translate('bankAccount.iban'),
+                title: formValues.iban,
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+                },
             },
-        });
+            {
+                id: `${CONST.CORPAY_FIELDS.PAGE_NAME.INTERNATIONAL_BANK_ACCOUNT_DETAILS}-swiftCode`,
+                description: translate('bankAccount.swiftBicCode'),
+                title: formValues.swiftCode,
+                shouldShowRightIcon: true,
+                onPress: () => {
+                    onMove(STEP_INDEXES.INTERNATIONAL_BANK_ACCOUNT_DETAILS);
+                },
+            },
+        );
     }
 
     for (const [fieldName, field] of Object.entries(fieldsMap[CONST.CORPAY_FIELDS.PAGE_NAME.ACCOUNT_TYPE] ?? {})) {

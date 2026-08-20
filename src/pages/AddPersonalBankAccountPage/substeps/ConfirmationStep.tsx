@@ -95,9 +95,18 @@ function ConfirmationStep({onNext, onMove, isEditing}: SubPageProps) {
             bankAccountPersonalDetails?.iban && bankAccountPersonalDetails?.swiftCode
                 ? [
                       {
-                          id: 'international-bank-account-details',
-                          description: `${translate('bankAccount.iban')} / ${translate('bankAccount.swiftBicCode')}`,
-                          title: `${bankAccountPersonalDetails?.iban} / ${bankAccountPersonalDetails?.swiftCode}`,
+                          id: 'iban',
+                          description: translate('bankAccount.iban'),
+                          title: bankAccountPersonalDetails.iban,
+                          shouldShowRightIcon: true,
+                          onPress: () => {
+                              moveToEditStep(1);
+                          },
+                      },
+                      {
+                          id: 'swift-code',
+                          description: translate('bankAccount.swiftBicCode'),
+                          title: bankAccountPersonalDetails.swiftCode,
                           shouldShowRightIcon: true,
                           onPress: () => {
                               moveToEditStep(1);
