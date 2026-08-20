@@ -4,7 +4,7 @@ import type {ProductMarketingAnnouncement} from '@libs/ProductMarketingWindowUti
 import ROUTES from '@src/ROUTES';
 
 const activeAnnouncement: ProductMarketingAnnouncement = {
-    updateKey: 'productUpdateJuly2026',
+    updateKey: 'productUpdateAugust2026',
     admin: {
         visual: {type: 'illustration', name: 'Rules'},
         heading: 'productMarketingWindow.roleTypes.admin.heading',
@@ -25,7 +25,7 @@ const adminOnlyAnnouncement: ProductMarketingAnnouncement = {
     admin: activeAnnouncement.admin,
 };
 
-const OLDER_UPDATE_KEY = 'productUpdateJune2026';
+const OLDER_UPDATE_KEY = 'productUpdateJuly2026';
 
 describe('ProductMarketingWindowUtils', () => {
     describe('isProductMarketingAnnouncementDismissed', () => {

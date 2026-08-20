@@ -6,14 +6,13 @@ import type {SharedValue} from 'react-native-reanimated';
  * @param value
  * @returns
  */
-const createSharedValueMock = <T>(value?: T): SharedValue<T> =>
-    ({
-        value,
-        get: jest.fn(() => value),
-        set: jest.fn(),
-        addListener: jest.fn(),
-        removeListener: jest.fn(),
-        modify: jest.fn(),
-    }) as SharedValue<T>;
+const createSharedValueMock = <T>(value: T): SharedValue<T> => ({
+    value,
+    get: jest.fn(() => value),
+    set: jest.fn(),
+    addListener: jest.fn(),
+    removeListener: jest.fn(),
+    modify: jest.fn(),
+});
 
 export default createSharedValueMock;

@@ -20,7 +20,10 @@ import {setLoadTestParameters} from './Network/LoadTestState';
 import preparePrefetchRequest from './Prefetch/preparePrefetchRequest';
 import registerPrefetchOnAppStart from './Prefetch/registerPrefetchOnAppStart';
 import prepareRequestPayload from './prepareRequestPayload';
+import {cancelSpan, endSpan, endSpanWithAttributes} from './telemetry/activeSpans';
 import markAppStartupNetworkRequestEnd from './telemetry/markAppStartupNetworkRequestEnd';
+import getRequestPhaseSpanNames, {getNextRequestPhaseAttempt} from './telemetry/measuredRequestPhaseCommands';
+import startRequestPhaseSpan, {getRequestPhaseSpanId} from './telemetry/startRequestPhaseSpan';
 
 let shouldFailAllRequests = false;
 let shouldForceOffline = false;
@@ -98,8 +101,23 @@ function processHTTPRequest<TKey extends OnyxKey>(
 
     registerPrefetchOnAppStart({prefetchKey, fetchParams, command, url});
 
+    // Mirrors the "Waiting" / "Content Download" split Chrome shows for this request.
+    const phaseSpanNames = getRequestPhaseSpanNames(command);
+    const attempt = phaseSpanNames ? getNextRequestPhaseAttempt(phaseSpanNames.WAIT) : 0;
+    const waitSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.WAIT, attempt) : '';
+    const downloadSpanId = phaseSpanNames ? getRequestPhaseSpanId(phaseSpanNames.DOWNLOAD, attempt) : '';
+    if (phaseSpanNames && command) {
+        startRequestPhaseSpan(phaseSpanNames.WAIT, attempt, command);
+    }
+
     return fetch(url, fetchParams)
         .then((response) => {
+            if (phaseSpanNames && command) {
+                endSpan(waitSpanId);
+                startRequestPhaseSpan(phaseSpanNames.DOWNLOAD, attempt, command, {
+                    [CONST.TELEMETRY.ATTRIBUTE_CONTENT_LENGTH]: response.headers?.get('content-length') ?? undefined,
+                });
+            }
             if (response.headers) {
                 setLoadTestParameters(response.headers.get('X-Load-Test'));
             }
@@ -153,7 +171,21 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 });
             }
 
-            return response.json() as Promise<Response<TKey>>;
+            const parsedResponse = response.json() as Promise<Response<TKey>>;
+            if (!phaseSpanNames) {
+                return parsedResponse;
+            }
+            // The server's requestID only exists once the body is parsed, which is exactly when this phase ends. It ties every phase of one attempt together in Sentry.
+            return parsedResponse.then(
+                (parsedBody) => {
+                    endSpanWithAttributes(downloadSpanId, {[CONST.TELEMETRY.ATTRIBUTE_REQUEST_ID]: parsedBody?.requestID});
+                    return parsedBody;
+                },
+                (error: unknown) => {
+                    endSpan(downloadSpanId);
+                    throw error;
+                },
+            );
         })
         .then((response) => {
             // Some retried requests will result in a "Unique Constraints Violation" error from the server, which just means the record already exists
@@ -197,6 +229,12 @@ function processHTTPRequest<TKey extends OnyxKey>(
                 alertUser();
             }
             return response;
+        })
+        .catch((error: unknown) => {
+            // A rejected fetch skips the success path above, leaving these spans open to record everything until something else tears them down.
+            cancelSpan(waitSpanId);
+            cancelSpan(downloadSpanId);
+            throw error;
         })
         .finally(() => markAppStartupNetworkRequestEnd(command));
 }

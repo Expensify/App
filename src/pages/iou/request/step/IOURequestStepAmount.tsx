@@ -14,6 +14,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import useReportOrReportDraft from '@hooks/useReportOrReportDraft';
 import useShowNotFoundPageInIOUStep from '@hooks/useShowNotFoundPageInIOUStep';
 
+import {convertToFrontendAmountAsString} from '@libs/CurrencyUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {getIsP2PForAmount, submitAmount} from '@libs/IOUAmountSubmission';
 import {isMovingTransactionFromTrackExpense} from '@libs/IOUUtils';
@@ -73,7 +74,7 @@ function IOURequestStepAmount({
     shouldKeepUserInput = false,
 }: IOURequestStepAmountProps) {
     const {translate, dateFnsLocale, formatPhoneNumber} = useLocalize();
-    const {getCurrencyDecimals} = useCurrencyListActions();
+    const {getCurrencyDecimals, getCurrencySymbol} = useCurrencyListActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const [isCurrencyPickerVisible, setIsCurrencyPickerVisible] = useState(false);
     const textInput = useRef<BaseTextInputRef | null>(null);
@@ -131,10 +132,14 @@ function IOURequestStepAmount({
     const decimals = getCurrencyDecimals(selectedCurrency || CONST.CURRENCY.USD);
 
     const isAmountCreateEntry = !backTo && !isEditing;
+    // Mirrors the amount input, signed the same way the form composes it. `undefined` until the form reports
+    // a change, so the baseline below stands in and a prefilled amount starts clean.
+    const [typedAmount, setTypedAmount] = useState<string | undefined>(undefined);
+    const baselineAmount = transactionAmount ? convertToFrontendAmountAsString(transactionAmount, decimals) : '';
     const {suppressDiscardPrompt} = useDiscardChangesConfirmation({
         getHasUnsavedChanges: () =>
             getAmountHasUnsavedChanges({
-                typedAmount: amountFormRef.current?.getNumber() ?? '',
+                typedAmount: typedAmount ?? baselineAmount,
                 committedAmount: transactionAmount,
                 isCreateEntry: isAmountCreateEntry,
                 selectedCurrency,
@@ -225,6 +230,7 @@ function IOURequestStepAmount({
         suppressDiscardPrompt();
         submitAmount({
             getCurrencyDecimals,
+            getCurrencySymbol,
             translate,
             dateFnsLocale,
             report,
@@ -309,6 +315,7 @@ function IOURequestStepAmount({
                 shouldKeepUserInput={transaction?.shouldShowOriginalAmount}
                 onCurrencyButtonPress={showCurrencyPicker}
                 onSubmitButtonPress={handleSubmit}
+                onAmountChange={setTypedAmount}
                 allowFlippingAmount={!isSplitBill && allowNegative}
                 selectedTab={iouRequestType as SelectedTabRequest}
                 chatReportID={reportID}
