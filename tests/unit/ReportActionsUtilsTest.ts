@@ -11,6 +11,8 @@ import {isExpenseReport} from '@libs/ReportUtils';
 import IntlStore from '@src/languages/IntlStore';
 import ROUTES from '@src/ROUTES';
 
+import type {ValueOf} from 'type-fest';
+
 import Onyx from 'react-native-onyx';
 
 import type {CompanyAddressOriginalMessage, UpdateACHAccountOriginalMessage} from '../../src/libs/ReportActionsUtils';
@@ -33,6 +35,7 @@ import {
     getCombinedReportActions,
     getCompanyAddressUpdateMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getForeignCurrencyDefaultTaxUpdateMessage,
@@ -5280,6 +5283,33 @@ describe('ReportActionsUtils', () => {
 
             const result = getRequiresTagMessage(translateLocal, action);
             expect(result).toBe('disabled the expense tagging requirement');
+        });
+    });
+
+    describe('getCurrencyConversionFeeMessage', () => {
+        const buildAction = (preference?: ValueOf<typeof CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE>) =>
+            ({
+                actionName: CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE,
+                reportActionID: '1',
+                created: '',
+                originalMessage: preference ? {preference} : {},
+                message: [],
+            }) as ReportAction;
+
+        it('should name the company when the company pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.COMPANY))).toBe(
+                'updated the currency conversion fee setting to "Company pays"',
+            );
+        });
+
+        it('should name the employee when the employee pays the fees', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction(CONST.POLICY.GLOBAL_REIMBURSEMENT_FX_PREFERENCE.EMPLOYEE))).toBe(
+                'updated the currency conversion fee setting to "Employee pays"',
+            );
+        });
+
+        it('should fall back to the employee, who pays unless the company opts in', () => {
+            expect(getCurrencyConversionFeeMessage(translateLocal, buildAction())).toBe('updated the currency conversion fee setting to "Employee pays"');
         });
     });
 

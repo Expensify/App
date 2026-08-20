@@ -1,6 +1,6 @@
 {
   "name": "new.expensify",
-  "version": "9.4.55-0",
+  "version": "9.4.56-3",
   "author": "Expensify, Inc.",
   "homepage": "https://new.expensify.com",
   "description": "New Expensify is the next generation of Expensify: a reimagination of payments based atop a foundation of chat.",
@@ -82,6 +82,7 @@
     "server:vcr:dev": "npm run dev -w @expensify/victory-chart-renderer --",
     "server:vcr:test": "npm run test -w @expensify/victory-chart-renderer --",
     "test:bun": "TZ=utc bun test --parallel --preload ./scripts/stubReactNative.js --preload ./tests/tooling/setup.ts ./server ./tests/tooling",
+    "eval:proposal-police": "bun test --path-ignore-patterns='**/__never__/**' ./evals/proposalPolice/",
     "server:vcr:build:linux": "npm run build:linux -w @expensify/victory-chart-renderer --",
     "server:vcr:build:linux-arm": "npm run build:linux-arm -w @expensify/victory-chart-renderer --",
     "server:vcr:build:macos": "npm run build:macos -w @expensify/victory-chart-renderer --"
@@ -119,7 +120,7 @@
     "@react-native-google-signin/google-signin": "^10.0.1",
     "@react-native-picker/picker": "2.11.3",
     "@react-navigation/bottom-tabs": "7.15.5",
-    "@react-navigation/core": "7.16.1",
+    "@react-navigation/core": "7.21.12",
     "@react-navigation/material-top-tabs": "7.4.19",
     "@react-navigation/native": "7.1.33",
     "@react-navigation/native-stack": "7.14.5",
@@ -198,7 +199,7 @@
     "react-native-nitro-fetch": "1.5.4",
     "react-native-nitro-modules": "0.36.3",
     "react-native-nitro-sqlite": "9.6.0",
-    "react-native-onyx": "3.0.94",
+    "react-native-onyx": "3.0.95",
     "react-native-pager-view": "8.0.0",
     "react-native-pdf": "7.0.2",
     "react-native-permissions": "^5.4.0",
