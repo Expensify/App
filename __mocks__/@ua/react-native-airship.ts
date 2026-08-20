@@ -83,13 +83,11 @@ const push = createMock<AirshipPush>({
     getActiveNotifications: () => Promise.resolve([]),
 });
 
-const contactMock = {
+const contact = createMock<AirshipContact>({
     identify: jest.fn(),
     getNamedUserId: () => Promise.resolve(undefined),
     reset: jest.fn(),
-    module: jest.fn(),
-};
-const contact = createMock<AirshipContact>(contactMock);
+});
 
 const liveActivityManager = createMock<AirshipLiveActivityManager>({
     list: jest.fn(() => Promise.resolve([])),
