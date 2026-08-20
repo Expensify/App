@@ -2,11 +2,11 @@ import {useAttachmentCarouselPagerActions} from '@components/Attachments/Attachm
 import MultiGestureIcon from '@components/Attachments/MultiGestureIcon';
 import type {Attachment, AttachmentSource} from '@components/Attachments/types';
 import Button from '@components/Button';
-import DistanceEReceipt from '@components/DistanceEReceipt';
 import EReceipt from '@components/EReceipt';
 import Icon from '@components/Icon';
 import {useSession} from '@components/OnyxListItemProvider';
 import PerDiemEReceipt from '@components/PerDiemEReceipt';
+import ScaledDistanceEReceipt from '@components/ScaledDistanceEReceipt';
 import ScrollView from '@components/ScrollView';
 import Text from '@components/Text';
 import {usePlaybackActionsContext} from '@components/VideoPlayerContexts/PlaybackContext';
@@ -262,7 +262,7 @@ function AttachmentView({
     // before the PDF branch below, which would otherwise return first.
     // See https://github.com/Expensify/Expensify/issues/545298 and https://github.com/Expensify/App/issues/97013.
     if (transaction && isMapBasedDistanceRequest(transaction)) {
-        return <DistanceEReceipt transaction={transaction} />;
+        return <ScaledDistanceEReceipt transaction={transaction} />;
     }
 
     // Check both source and file.name since PDFs dragged into the text field
