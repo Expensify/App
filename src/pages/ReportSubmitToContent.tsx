@@ -16,6 +16,7 @@ import useLocalize from '@hooks/useLocalize';
 import useNetwork from '@hooks/useNetwork';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
+import useResponsiveLayout from '@hooks/useResponsiveLayout';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -82,6 +83,7 @@ function ReportSubmitToContent({
     const {translate, localeCompare, dateFnsLocale} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const isInLandscapeMode = useIsInLandscapeMode();
+    const {shouldUseNarrowLayout} = useResponsiveLayout();
     const {keyboardActiveHeight} = useKeyboardState();
 
     const currentUserDetails = useCurrentUserPersonalDetails();
@@ -444,9 +446,11 @@ function ReportSubmitToContent({
             showButton: !keyboardActiveHeight || !isInLandscapeMode,
             text: translate('common.confirm'),
             onConfirm: handleSubmit,
-            confirmButtonSize: 'medium' as const,
+            // Use the taller 52px button on the narrow (mobile) layout to match our large primary CTA size;
+            // keep the compact 40px medium button on the wide/desktop popover.
+            confirmButtonSize: shouldUseNarrowLayout ? ('large' as const) : ('medium' as const),
         }),
-        [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode],
+        [handleSubmit, translate, keyboardActiveHeight, isInLandscapeMode, shouldUseNarrowLayout],
     );
 
     const containerStyle = useMemo(() => {
@@ -479,7 +483,6 @@ function ReportSubmitToContent({
                 shouldPreventDefaultFocusOnSelectRow={!canUseTouchScreen()}
                 shouldSingleExecuteRowSelect
                 initiallyFocusedItemKey={submitToSelectionData.find((m) => m.isSelected)?.keyForList}
-                isRowMultilineSupported
                 style={{containerStyle: styles.flex1}}
                 disableMaintainingScrollPosition
                 addBottomSafeAreaPadding={!isInLandscapeMode}
