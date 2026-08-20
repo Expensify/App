@@ -245,7 +245,7 @@ const config = defineConfig([
     // Suppress lint rules that are unnecessary for files successfully compiled by React Compiler.
     // The processor runs React Compiler on each file and filters out redundant lint messages.
     {
-        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs', '**/*.mts', '**/*.cts'],
+        files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx', '**/*.mjs', '**/*.cjs'],
         processor: expensifyProcessor,
     },
 

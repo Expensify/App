@@ -1,14 +1,13 @@
 #!/usr/bin/env bun
 
 /**
- * CLI entry point for scripts/compressSvg.mts. This file is never imported by anything (the action and tests import
+ * CLI entry point for scripts/compressSvg.ts. This file is never imported by anything (the action and tests import
  * the library directly), so it can unconditionally parse argv and run — no entry guard needed.
  */
 import * as fs from 'fs';
 import * as path from 'path';
 
-// eslint-disable-next-line import/extensions -- relative imports require an explicit extension under Node's ESM resolution (this file is real ESM, see the .mts extension)
-import compressSvg from './compressSvg.mjs';
+import compressSvg from './compressSvg';
 
 function logHelp() {
     console.log('');

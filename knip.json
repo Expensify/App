@@ -6,7 +6,7 @@
                 "wdyr.ts",
                 "src/App.tsx",
                 "src/HybridAppHandler.tsx",
-                "scripts/**/*.{js,mjs,mts,cts,ts}",
+                "scripts/**/*.{js,mjs,ts}",
                 "web/proxy.ts",
                 "config/rsbuild/**/*.{js,mjs,cjs,ts}",
                 ".github/scripts/**/*.ts",
@@ -24,7 +24,7 @@
                 "__mocks__/**/*.{js,jsx,ts,tsx}",
                 "web/**/*.{js,jsx,ts,tsx}",
                 "config/**/*.{js,mjs,ts,tsx}",
-                "scripts/**/*.{js,mjs,mts,cts,ts}",
+                "scripts/**/*.{js,ts}",
                 "jest/**/*.{js,ts}",
                 ".storybook/**/*.{js,ts,tsx}",
                 ".github/actions/javascript/**/*.ts"

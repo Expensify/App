@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'bun:test';
 
-import detectReactComponent from '../../.github/actions/javascript/authorChecklist/categories/detectReactComponent';
+import {detectReactComponent} from '../../.github/actions/javascript/authorChecklist/categories/newComponentCategory';
 
 describe('detectReactComponent test', () => {
     it('should return undefined if no code is provided', () => {

@@ -1,12 +1,11 @@
+import GithubUtils from '@github/libs/GithubUtils';
+
 import type {PluginConfig} from 'svgo';
 
 import * as github from '@actions/github';
 import * as fs from 'fs';
 import * as path from 'path';
 import {optimize} from 'svgo';
-
-// eslint-disable-next-line import/extensions -- relative imports require an explicit extension under Node's ESM resolution (this file is real ESM, see the .mts extension)
-import GithubUtils from '../.github/libs/GithubUtils.js';
 
 type CompressionResult = {
     filePath: string;

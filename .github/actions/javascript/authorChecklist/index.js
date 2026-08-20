@@ -30669,8 +30669,8 @@ var require_lib2 = __commonJS({
         if (isDeclare && (this.isContextual(125) || !this.shouldParseExportDeclaration())) {
           throw this.raise(TSErrors.ExpectedAmbientAfterExportDeclare, this.state.startLoc);
         }
-        const isIdentifier2 = tokenIsIdentifier(this.state.type);
-        const declaration = isIdentifier2 && this.tsTryParseExportDeclaration() || super.parseExportDeclaration(node);
+        const isIdentifier = tokenIsIdentifier(this.state.type);
+        const declaration = isIdentifier && this.tsTryParseExportDeclaration() || super.parseExportDeclaration(node);
         if (!declaration) return null;
         if (declaration.type === "TSInterfaceDeclaration" || declaration.type === "TSTypeAliasDeclaration" || isDeclare) {
           node.exportKind = "type";
@@ -36571,7 +36571,7 @@ var require_generated = __commonJS({
     exports.isFunctionTypeAnnotation = isFunctionTypeAnnotation;
     exports.isFunctionTypeParam = isFunctionTypeParam;
     exports.isGenericTypeAnnotation = isGenericTypeAnnotation;
-    exports.isIdentifier = isIdentifier2;
+    exports.isIdentifier = isIdentifier;
     exports.isIfStatement = isIfStatement;
     exports.isImmutable = isImmutable;
     exports.isImport = isImport;
@@ -36610,7 +36610,7 @@ var require_generated = __commonJS({
     exports.isLiteral = isLiteral;
     exports.isLogicalExpression = isLogicalExpression;
     exports.isLoop = isLoop;
-    exports.isMemberExpression = isMemberExpression2;
+    exports.isMemberExpression = isMemberExpression;
     exports.isMetaProperty = isMetaProperty;
     exports.isMethod = isMethod;
     exports.isMiscellaneous = isMiscellaneous;
@@ -36887,7 +36887,7 @@ var require_generated = __commonJS({
       if (node.type !== "FunctionExpression") return false;
       return opts == null || (0, _shallowEqual.default)(node, opts);
     }
-    function isIdentifier2(node, opts) {
+    function isIdentifier(node, opts) {
       if (!node) return false;
       if (node.type !== "Identifier") return false;
       return opts == null || (0, _shallowEqual.default)(node, opts);
@@ -36932,7 +36932,7 @@ var require_generated = __commonJS({
       if (node.type !== "LogicalExpression") return false;
       return opts == null || (0, _shallowEqual.default)(node, opts);
     }
-    function isMemberExpression2(node, opts) {
+    function isMemberExpression(node, opts) {
       if (!node) return false;
       if (node.type !== "MemberExpression") return false;
       return opts == null || (0, _shallowEqual.default)(node, opts);
@@ -50494,12 +50494,12 @@ var require_virtual_types_validator = __commonJS({
       isFlow: nodeIsFlow,
       isForStatement,
       isForXStatement,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isImportDeclaration,
       isImportSpecifier,
       isJSXIdentifier,
       isJSXMemberExpression,
-      isMemberExpression: isMemberExpression2,
+      isMemberExpression,
       isRestElement: nodeIsRestElement,
       isReferenced: nodeIsReferenced,
       isScope: nodeIsScope,
@@ -50517,7 +50517,7 @@ var require_virtual_types_validator = __commonJS({
         node,
         parent
       } = this;
-      if (isIdentifier2(node, opts)) {
+      if (isIdentifier(node, opts)) {
         return nodeIsReferenced(node, parent, this.parentPath.parent);
       } else if (isJSXIdentifier(node, opts)) {
         if (!isJSXMemberExpression(parent) && isCompatTag(node.name)) return false;
@@ -50531,7 +50531,7 @@ var require_virtual_types_validator = __commonJS({
         node,
         parent
       } = this;
-      return isMemberExpression2(node) && nodeIsReferenced(node, parent);
+      return isMemberExpression(node) && nodeIsReferenced(node, parent);
     }
     function isBindingIdentifier() {
       const {
@@ -50539,7 +50539,7 @@ var require_virtual_types_validator = __commonJS({
         parent
       } = this;
       const grandparent = this.parentPath.parent;
-      return isIdentifier2(node) && isBinding(node, parent, grandparent);
+      return isIdentifier(node) && isBinding(node, parent, grandparent);
     }
     function isStatement() {
       const {
@@ -51324,10 +51324,10 @@ var require_scope = __commonJS({
       isExportDefaultDeclaration,
       isExportNamedDeclaration,
       isFunctionDeclaration,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isImportDeclaration,
       isLiteral,
-      isMemberExpression: isMemberExpression2,
+      isMemberExpression,
       isMethod,
       isModuleSpecifier,
       isNullLiteral,
@@ -51697,7 +51697,7 @@ var require_scope = __commonJS({
         if (isThisExpression(node) || isSuper(node) || isTopicReference(node)) {
           return true;
         }
-        if (isIdentifier2(node)) {
+        if (isIdentifier(node)) {
           const binding = this.getBinding(node.name);
           if (binding) {
             return binding.constant;
@@ -51859,7 +51859,7 @@ var require_scope = __commonJS({
         return !!this.getProgramParent().references[name];
       }
       isPure(node, constantsOnly) {
-        if (isIdentifier2(node)) {
+        if (isIdentifier(node)) {
           const binding = this.getBinding(node.name);
           if (!binding) return false;
           if (constantsOnly) return binding.constant;
@@ -51922,8 +51922,8 @@ var require_scope = __commonJS({
           return matchesPattern(node.tag, "String.raw") && !this.hasBinding("String", {
             noGlobals: true
           }) && this.isPure(node.quasi, constantsOnly);
-        } else if (isMemberExpression2(node)) {
-          return !node.computed && isIdentifier2(node.object) && node.object.name === "Symbol" && isIdentifier2(node.property) && node.property.name !== "for" && !this.hasBinding("Symbol", {
+        } else if (isMemberExpression(node)) {
+          return !node.computed && isIdentifier(node.object) && node.object.name === "Symbol" && isIdentifier(node.property) && node.property.name !== "for" && !this.hasBinding("Symbol", {
             noGlobals: true
           });
         } else if (isCallExpression(node)) {
@@ -52028,7 +52028,7 @@ var require_scope = __commonJS({
         } = opts;
         if (!init && !unique && (kind === "var" || kind === "let") && isAnonymousFunctionExpression(path) && isCallExpression(path.parent, {
           callee: path.node
-        }) && path.parent.arguments.length <= path.node.params.length && isIdentifier2(id)) {
+        }) && path.parent.arguments.length <= path.node.params.length && isIdentifier(id)) {
           path.pushContainer("params", id);
           path.scope.registerBinding("param", path.get("params")[path.node.params.length - 1]);
           return;
@@ -52251,7 +52251,7 @@ var require_scope = __commonJS({
       return `_${id}`;
     };
     Scope.prototype.toArray = function toArray(node, i, arrayLikeIsIterable) {
-      if (isIdentifier2(node)) {
+      if (isIdentifier(node)) {
         const binding = this.getBinding(node.name);
         if (binding != null && binding.constant && binding.path.isGenericType("Array")) {
           return node;
@@ -52260,7 +52260,7 @@ var require_scope = __commonJS({
       if (isArrayExpression(node)) {
         return node;
       }
-      if (isIdentifier2(node, {
+      if (isIdentifier(node, {
         name: "arguments"
       })) {
         return callExpression(memberExpression(memberExpression(memberExpression(identifier("Array"), identifier("prototype")), identifier("slice")), identifier("call")), [node]);
@@ -54243,7 +54243,7 @@ var require_parentheses = __commonJS({
     var _t = require_lib5();
     var _index = require_node2();
     var {
-      isMemberExpression: isMemberExpression2,
+      isMemberExpression,
       isOptionalMemberExpression,
       isYieldExpression,
       isStatement
@@ -54487,7 +54487,7 @@ var require_parentheses = __commonJS({
       }
       if (tokenContext & _index.TokenContext.forOfHead || (parentId === 108 || parentId === 132) && tokenContext & (_index.TokenContext.expressionStatement | _index.TokenContext.forInitHead | _index.TokenContext.forInHead)) {
         if (node.name === "let") {
-          const isFollowedByBracket = isMemberExpression2(parent, {
+          const isFollowedByBracket = isMemberExpression(parent, {
             object: node,
             computed: true
           }) || isOptionalMemberExpression(parent, {
@@ -54587,7 +54587,7 @@ var require_expressions = __commonJS({
     var {
       isCallExpression,
       isLiteral,
-      isMemberExpression: isMemberExpression2,
+      isMemberExpression,
       isNewExpression,
       isPattern
     } = _t;
@@ -54646,7 +54646,7 @@ var require_expressions = __commonJS({
       this.print(node.callee);
       if (this.format.minified && node.arguments.length === 0 && !node.optional && !isCallExpression(parent, {
         callee: node
-      }) && !isMemberExpression2(parent) && !isNewExpression(parent)) {
+      }) && !isMemberExpression(parent) && !isNewExpression(parent)) {
         return;
       }
       this.print(node.typeArguments);
@@ -54695,7 +54695,7 @@ var require_expressions = __commonJS({
         property
       } = node;
       this.print(node.object);
-      if (!computed && isMemberExpression2(property)) {
+      if (!computed && isMemberExpression(property)) {
         throw new TypeError("Got a MemberExpression for MemberExpression property");
       }
       if (isLiteral(property) && typeof property.value === "number") {
@@ -54810,7 +54810,7 @@ var require_expressions = __commonJS({
     }
     function MemberExpression(node) {
       this.print(node.object);
-      if (!node.computed && isMemberExpression2(node.property)) {
+      if (!node.computed && isMemberExpression(node.property)) {
         throw new TypeError("Got a MemberExpression for MemberExpression property");
       }
       let computed = node.computed;
@@ -55178,7 +55178,7 @@ var require_methods = __commonJS({
     var _t = require_lib5();
     var _index = require_node2();
     var {
-      isIdentifier: isIdentifier2
+      isIdentifier
     } = _t;
     function _params(node, noLineTerminator, idNode, parentNode) {
       this.print(node.typeParameters);
@@ -55314,7 +55314,7 @@ var require_methods = __commonJS({
         return true;
       }
       const firstParam = node.params[0];
-      if (!isIdentifier2(firstParam) || firstParam.typeAnnotation || firstParam.optional || (_firstParam$leadingCo = firstParam.leadingComments) != null && _firstParam$leadingCo.length || (_firstParam$trailingC = firstParam.trailingComments) != null && _firstParam$trailingC.length) {
+      if (!isIdentifier(firstParam) || firstParam.typeAnnotation || firstParam.optional || (_firstParam$leadingCo = firstParam.leadingComments) != null && _firstParam$leadingCo.length || (_firstParam$trailingC = firstParam.trailingComments) != null && _firstParam$trailingC.length) {
         return true;
       }
       if (this.tokenMap) {
@@ -56697,7 +56697,7 @@ var require_types = __commonJS({
     var _methods = require_methods();
     var {
       isAssignmentPattern,
-      isIdentifier: isIdentifier2
+      isIdentifier
     } = _t;
     var lastRawIdentResult = "";
     function _getRawIdentifier(node) {
@@ -56750,12 +56750,12 @@ var require_types = __commonJS({
         this.print(node.key);
         this.tokenChar(93);
       } else {
-        if (isAssignmentPattern(node.value) && isIdentifier2(node.key) && node.key.name === node.value.left.name) {
+        if (isAssignmentPattern(node.value) && isIdentifier(node.key) && node.key.name === node.value.left.name) {
           this.print(node.value);
           return;
         }
         this.print(node.key);
-        if (node.shorthand && isIdentifier2(node.key) && isIdentifier2(node.value) && node.key.name === node.value.name) {
+        if (node.shorthand && isIdentifier(node.key) && isIdentifier(node.value) && node.key.name === node.value.name) {
           return;
         }
       }
@@ -59746,7 +59746,7 @@ var require_inferers = __commonJS({
       tupleTypeAnnotation,
       unionTypeAnnotation,
       voidTypeAnnotation,
-      isIdentifier: isIdentifier2
+      isIdentifier
     } = _t;
     function VariableDeclarator() {
       if (!this.get("id").isIdentifier()) return;
@@ -59861,7 +59861,7 @@ var require_inferers = __commonJS({
       } = this.node;
       if (isObjectKeys(callee)) {
         return arrayTypeAnnotation(stringTypeAnnotation());
-      } else if (isArrayFrom(callee) || isObjectValues(callee) || isIdentifier2(callee, {
+      } else if (isArrayFrom(callee) || isObjectValues(callee) || isIdentifier(callee, {
         name: "Array"
       })) {
         return arrayTypeAnnotation(anyTypeAnnotation());
@@ -59921,7 +59921,7 @@ var require_inference = __commonJS({
       isEmptyTypeAnnotation,
       isFlowBaseAnnotation,
       isGenericTypeAnnotation,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isMixedTypeAnnotation,
       isNumberTypeAnnotation,
       isStringTypeAnnotation,
@@ -60041,9 +60041,9 @@ var require_inference = __commonJS({
           return true;
         }
       }
-      return isGenericTypeAnnotation(type) && isIdentifier2(type.id, {
+      return isGenericTypeAnnotation(type) && isIdentifier(type.id, {
         name: genericName
-      }) || isTSTypeReference(type) && isIdentifier2(type.typeName, {
+      }) || isTSTypeReference(type) && isIdentifier(type.typeName, {
         name: genericName
       });
     }
@@ -60680,7 +60680,7 @@ var require_modification = __commonJS({
       isCallExpression,
       isExportNamedDeclaration,
       isExpression,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isSequenceExpression,
       isSuper,
       thisExpression
@@ -60742,7 +60742,7 @@ var require_modification = __commonJS({
       return isSequenceExpression(path.parent) && (last(path.parent.expressions) !== path.node || isHiddenInSequenceExpression(path.parentPath));
     }
     function isAlmostConstantAssignment(node, scope) {
-      if (!isAssignmentExpression(node) || !isIdentifier2(node.left)) {
+      if (!isAssignmentExpression(node) || !isIdentifier(node.left)) {
         return false;
       }
       const blockScope = scope.getBlockParent();
@@ -61687,7 +61687,7 @@ var require_parse2 = __commonJS({
       isCallExpression,
       isExpressionStatement,
       isFunction,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isJSXIdentifier,
       isNewExpression,
       isPlaceholder,
@@ -61739,7 +61739,7 @@ var require_parse2 = __commonJS({
         hasSyntacticPlaceholders = true;
       } else if (hasSyntacticPlaceholders || state.syntacticPlaceholders) {
         return;
-      } else if (isIdentifier2(node) || isJSXIdentifier(node)) {
+      } else if (isIdentifier(node) || isJSXIdentifier(node)) {
         name = node.name;
       } else if (isStringLiteral(node)) {
         name = node.value;
@@ -62200,7 +62200,7 @@ var require_conversion = __commonJS({
       conditionalExpression,
       expressionStatement,
       identifier,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       jsxIdentifier,
       logicalExpression,
       LOGICAL_OPERATORS,
@@ -62239,7 +62239,7 @@ var require_conversion = __commonJS({
         throw new ReferenceError("todo");
       }
       if (!this.node.computed) {
-        if (isIdentifier2(key)) key = stringLiteral(key.name);
+        if (isIdentifier(key)) key = stringLiteral(key.name);
       }
       return key;
     }
@@ -62814,7 +62814,7 @@ var require_introspection = __commonJS({
       VISITOR_KEYS,
       isBlockStatement,
       isExpression,
-      isIdentifier: isIdentifier2,
+      isIdentifier,
       isLiteral,
       isStringLiteral,
       isType,
@@ -62910,7 +62910,7 @@ var require_introspection = __commonJS({
       if (path.isImportNamespaceSpecifier() && importName === "*") {
         return true;
       }
-      if (path.isImportSpecifier() && isIdentifier2(path.node.imported, {
+      if (path.isImportSpecifier() && isIdentifier(path.node.imported, {
         name: importName
       })) {
         return true;
@@ -69600,10 +69600,21 @@ function promiseSome(promises3, callbackFn) {
   });
 }
 
-// .github/actions/javascript/authorChecklist/categories/detectReactComponent.ts
+// .github/actions/javascript/authorChecklist/categories/newComponentCategory.ts
 var import_parser = __toESM(require_lib2(), 1);
 var import_traverse = __toESM(require_lib9(), 1);
-var import_types = __toESM(require_lib5(), 1);
+var items = [
+  "I verified that similar component doesn't exist in the codebase",
+  "I verified that all props are defined accurately and each prop has a `/** comment above it */`",
+  "I verified that each file is named correctly",
+  "I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone",
+  "I verified that the only data being stored in component state is data necessary for rendering and nothing else",
+  "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
+  "For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)",
+  "I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)",
+  "I verified that all JSX used for rendering exists in the render method",
+  "I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions"
+];
 function isComponentOrPureComponent(name) {
   return name === "Component" || name === "PureComponent";
 }
@@ -69634,9 +69645,7 @@ function detectReactComponent(code, filename) {
     },
     ClassDeclaration(path) {
       const { superClass } = path.node;
-      const extendsReactDotComponent = (0, import_types.isMemberExpression)(superClass) && (0, import_types.isIdentifier)(superClass.object) && superClass.object.name === "React" && (0, import_types.isIdentifier)(superClass.property) && isComponentOrPureComponent(superClass.property.name);
-      const extendsBareComponent = (0, import_types.isIdentifier)(superClass) && isComponentOrPureComponent(superClass.name);
-      if (extendsReactDotComponent || extendsBareComponent) {
+      if (superClass && (superClass.object?.name === "React" && isComponentOrPureComponent(superClass.property.name) || isComponentOrPureComponent(superClass.name))) {
         isReactComponent = true;
         path.stop();
       }
@@ -69644,21 +69653,6 @@ function detectReactComponent(code, filename) {
   });
   return isReactComponent;
 }
-var detectReactComponent_default = detectReactComponent;
-
-// .github/actions/javascript/authorChecklist/categories/newComponentCategory.ts
-var items = [
-  "I verified that similar component doesn't exist in the codebase",
-  "I verified that all props are defined accurately and each prop has a `/** comment above it */`",
-  "I verified that each file is named correctly",
-  "I verified that each component has a clear name that is non-ambiguous and the purpose of the component can be inferred from the name alone",
-  "I verified that the only data being stored in component state is data necessary for rendering and nothing else",
-  "In component if we are not using the full Onyx data that we loaded, I've added the proper selector in order to ensure the component only re-renders when the data it is using changes",
-  "For Class Components, any internal methods passed to components event handlers are bound to `this` properly so there are no scoping issues (i.e. for `onClick={this.submit}` the method `this.submit` should be bound to `this` in the constructor)",
-  "I verified that component internal methods bound to `this` are necessary to be bound (i.e. avoid `this.submit = this.submit.bind(this);` if `this.submit` is never passed to a component event handler like `onClick`)",
-  "I verified that all JSX used for rendering exists in the render method",
-  "I verified that each component has the minimum amount of code necessary for its purpose, and it is broken down into smaller components in order to separate concerns and functions"
-];
 function nodeBase64ToUtf8(data) {
   return Buffer.from(data, "base64").toString("utf-8");
 }
@@ -69672,7 +69666,7 @@ async function detectReactComponentInFile(filename) {
   try {
     const { data } = await GithubUtils_default.octokit.repos.getContent(params);
     const content = nodeBase64ToUtf8("content" in data ? data?.content ?? "" : "");
-    return detectReactComponent_default(content, filename);
+    return detectReactComponent(content, filename);
   } catch (error2) {
     console.error("An unknown error occurred with the GitHub API: ", error2, params);
   }

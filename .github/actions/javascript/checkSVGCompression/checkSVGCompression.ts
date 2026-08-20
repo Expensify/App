@@ -1,5 +1,5 @@
-import type {CompressionSummary} from '@scripts/compressSvg.mjs';
-import compressSvg from '@scripts/compressSvg.mjs';
+import type {CompressionSummary} from '@scripts/compressSvg';
+import compressSvg from '@scripts/compressSvg';
 
 import * as core from '@actions/core';
 import {pathToFileURL} from 'url';

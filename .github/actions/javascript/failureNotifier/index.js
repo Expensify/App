@@ -23969,14 +23969,9 @@ function getOctokit(token, options, ...additionalPlugins) {
 
 // .github/actions/javascript/failureNotifier/failureNotifier.ts
 import { pathToFileURL } from "url";
-
-// .github/actions/javascript/failureNotifier/getMergedPR.ts
 function getMergedPR(associatedPRs, targetBranch = "main") {
   return associatedPRs.find((pr) => pr.merged_at !== null && pr.base.ref === targetBranch);
 }
-var getMergedPR_default = getMergedPR;
-
-// .github/actions/javascript/failureNotifier/failureNotifier.ts
 async function run() {
   const token = getInput("GITHUB_TOKEN", { required: true });
   const octokit = getOctokit(token);
@@ -24017,7 +24012,7 @@ async function run() {
     commit_sha: headCommit
   });
   const targetBranch = workflowRun.head_branch ?? "main";
-  const pr = getMergedPR_default(prData.data, targetBranch);
+  const pr = getMergedPR(prData.data, targetBranch);
   const prLink = pr?.html_url ?? "N/A";
   const prAuthor = pr?.user?.login ?? "unknown";
   const prMerger = workflowRun.actor?.login ?? "unknown";
@@ -24084,7 +24079,8 @@ if (import.meta.url === pathToFileURL(process.argv.at(1) ?? "").href) {
 }
 var failureNotifier_default = run;
 export {
-  failureNotifier_default as default
+  failureNotifier_default as default,
+  getMergedPR
 };
 /*! Bundled license information:
 
