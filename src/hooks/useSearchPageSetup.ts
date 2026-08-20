@@ -10,7 +10,7 @@ import CONST from '@src/CONST';
 import {isEmptyObject} from '@src/types/utils/EmptyObject';
 
 import {useFocusEffect} from '@react-navigation/native';
-import {useEffect, useRef} from 'react';
+import {useCallback, useEffect, useRef} from 'react';
 
 import useNetwork from './useNetwork';
 import usePrevious from './usePrevious';
@@ -44,17 +44,23 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
     const isSnapshotSearchLoading = !!currentSearchResults?.search?.isLoading;
     const isInitialSearchPending = isSearchPending(currentSearchResults) && (currentSearchResults?.search?.offset ?? 0) === 0;
 
+    // The snapshot arrives on a different channel than the hash below (the context key versus the route param), so
+    // during a query change it can still be the previous query's. Without this check the errors of the query being
+    // left behind would be blamed on the one being opened, clearing the wrong snapshot and spending its one attempt.
+    const isSnapshotForCurrentQuery = currentSearchResults?.search?.hash === hash;
     // The server already judged the query itself malformed, so re-sending it cannot succeed.
     const isInvalidQuery = currentSearchResults?.search?.responseJsonCode === CONST.JSON_CODE.INVALID_SEARCH_QUERY;
     // Same emptiness rule as the error view this exists to unblock (Search/index.tsx), so the two cannot drift
     // into a state where one shows the error and the other refuses to clear it. Offline is excluded because the
     // request cannot run there, and clearing the markers without it would leave the page loading with nothing in flight.
-    const hasStaleError = !isEmptyObject(currentSearchResults?.errors) && !isInvalidQuery && !isOffline;
-    // A cleared error that comes straight back must not be cleared again, or the page would loop from request to
-    // failure and back to request instead of settling on the error view. The Set is scoped to this hook instance,
-    // which lives as long as the Search page stays mounted: changing the query only swaps route params, and an
-    // inactive tab is hidden rather than unmounted, so a hash gets another attempt only after a real remount.
-    const clearedStaleErrorHashesRef = useRef<Set<number>>(new Set());
+    const hasErrorToClear = isSnapshotForCurrentQuery && !isEmptyObject(currentSearchResults?.errors) && !isInvalidQuery && !isOffline;
+    // Hashes this page has already requested, so an error can be traced to the attempt that produced it. An error
+    // from our own attempt belongs to the user and is left on screen; only one inherited from an earlier session is
+    // cleared. That also keeps the page from looping, since a cleared error that fails again is now ours.
+    // The Set is scoped to this hook instance, which lives as long as the Search page stays mounted. Changing the
+    // query only swaps route params, and an inactive tab is hidden rather than unmounted, so a hash is reconsidered
+    // only after a real remount.
+    const requestedHashesRef = useRef<Set<number>>(new Set());
 
     // Clear selected transactions when navigating to a different search query
     function clearOnHashChange() {
@@ -91,16 +97,31 @@ function useSearchPageSetup(queryJSON: Readonly<SearchQueryJSON> | undefined) {
         }
 
         const shouldSkipWaitForWrites = hasDeferredWrite(CONST.DEFERRED_LAYOUT_WRITE_KEYS.SEARCH);
+        requestedHashesRef.current.add(hash);
         search({queryJSON, searchKey: currentSearchKey, offset: 0, shouldCalculateTotals, isLoading: false, skipWaitForWrites: shouldSkipWaitForWrites});
     }, [hash, isOffline, shouldUseLiveData, queryJSON, isSnapshotDataLoaded, isSnapshotSearchLoading, isInitialSearchPending, currentSearchKey, shouldCalculateTotals]);
 
-    useFocusEffect(() => {
-        const shouldClearStaleError = hasStaleError && hash !== undefined && !clearedStaleErrorHashesRef.current.has(hash);
-        if (shouldClearStaleError) {
-            clearedStaleErrorHashesRef.current.add(hash);
+    // Kept free of the error state below: useFocusEffect re-subscribes whenever the callback identity changes, so
+    // closing over a value that moves would fire an extra request on every one of those renders.
+    useFocusEffect(
+        useCallback(() => {
+            openSearch();
+        }, []),
+    );
+
+    // Drop an error this page inherited rather than produced, so the effect above can request the query again. This
+    // reacts to the snapshot instead of reading it on focus, because on a cold launch it arrives from Onyx a render
+    // or more after the page mounts. An error from an attempt we made is left alone: it is the outcome the user asked
+    // for, and clearing it would race the request's own bookkeeping and leave the page with neither data nor error.
+    useEffect(() => {
+        if (!hasErrorToClear || hash === undefined || requestedHashesRef.current.has(hash)) {
+            return;
         }
-        openSearch(undefined, shouldClearStaleError ? hash : undefined);
-    });
+        // Taking the error means owning the hash, so a query cannot be cleared twice even if the request that
+        // follows never goes out (temporary search prevention, say) and never records the hash itself.
+        requestedHashesRef.current.add(hash);
+        openSearch(undefined, hash);
+    }, [hasErrorToClear, hash]);
 
     useEffect(() => {
         if (!prevIsOffline || isOffline) {

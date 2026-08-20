@@ -11,6 +11,7 @@ import type SearchResults from '@src/types/onyx/SearchResults';
 import type * as ReactNavigation from '@react-navigation/native';
 
 const mockOpenSearch = jest.fn<void, [unknown, number | undefined]>();
+const mockSearch = jest.fn<void, unknown[]>();
 let mockSearchResults: SearchResults | undefined;
 let mockIsOffline = false;
 let mockLastFocusCallback: (() => void) | undefined;
@@ -21,8 +22,8 @@ jest.mock('@react-navigation/native', () => {
     const actualNavigation: typeof ReactNavigation = jest.requireActual('@react-navigation/native');
     return {
         ...actualNavigation,
-        // Mirrors the real hook closely enough for this file: the callback runs on focus and again whenever its
-        // identity changes, which is what makes the loop guard below worth asserting.
+        // Mirrors the real hook: the callback runs on focus and again whenever its identity changes, which is why
+        // the hook keeps that callback stable rather than closing over values that move.
         useFocusEffect: (callback: () => void) => {
             if (callback === mockLastFocusCallback) {
                 return;
@@ -34,7 +35,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 jest.mock('@libs/actions/Search', () => ({
-    search: jest.fn(),
+    search: (...args: unknown[]) => mockSearch(...args),
     openSearch: (...args: [unknown, number | undefined]) => mockOpenSearch(...args),
 }));
 
@@ -83,10 +84,25 @@ function getClearedHashes() {
 describe('useSearchPageSetup', () => {
     beforeEach(() => {
         mockOpenSearch.mockClear();
+        mockSearch.mockClear();
         mockSearchResults = undefined;
         mockSearchKey = undefined;
         mockIsOffline = false;
         mockLastFocusCallback = undefined;
+    });
+
+    it('leaves an error produced by this page alone', () => {
+        // No snapshot yet, so the page requests the query itself. When that request fails, the error is the outcome
+        // the user asked for and belongs on screen. Clearing it here would also race the request's own bookkeeping,
+        // which declines a fresh request while the failed one is still being torn down, leaving the page with
+        // neither data nor an error.
+        renderHook(({queryJSON: currentQueryJSON}) => useSearchPageSetup(currentQueryJSON), {initialProps: {queryJSON}});
+        expect(mockSearch).toHaveBeenCalledTimes(1);
+
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
+        mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
+
+        expect(getClearedHashes()).toEqual([]);
     });
 
     it('asks OpenSearchPage to clear a snapshot left errored by a failed request', () => {
@@ -104,8 +120,11 @@ describe('useSearchPageSetup', () => {
 
         const {rerender} = renderHook(() => useSearchPageSetup(queryJSON));
 
-        // The request that followed the clear failed and wrote `errors` back, so the snapshot looks clearable
-        // again. Move a real dependency too, otherwise the effect never re-runs and this asserts nothing.
+        // The clear let the page request the query, and that request failed and wrote `errors` back. The error is
+        // ours now, so it stays and the page settles on the error view instead of looping.
+        mockSearchResults = undefined;
+        rerender({});
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
         mockSearchKey = CONST.SEARCH.SEARCH_KEYS.EXPENSES;
         rerender({});
 
@@ -135,6 +154,17 @@ describe('useSearchPageSetup', () => {
         mockSearchResults = {...snapshot, errors: undefined};
 
         renderHook(() => useSearchPageSetup(queryJSON));
+
+        expect(getClearedHashes()).toEqual([]);
+    });
+
+    it('does not blame the previous query for the one being opened', () => {
+        // The snapshot lags a query change by a render, so it is still the errored query's while the hash is
+        // already the new one. Clearing then writes a snapshot for a query that never failed, and the page reads
+        // that as a real result and renders its empty state instead of loading.
+        mockSearchResults = buildErroredSnapshot(queryJSON?.hash ?? 0);
+
+        renderHook(() => useSearchPageSetup(queryJSONB));
 
         expect(getClearedHashes()).toEqual([]);
     });
