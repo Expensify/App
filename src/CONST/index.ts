@@ -1705,6 +1705,9 @@ const CONST = {
                     ADD_AGENT_RULE: 'POLICYCHANGELOG_ADD_AGENT_RULE',
                     UPDATE_AGENT_RULE: 'POLICYCHANGELOG_UPDATE_AGENT_RULE',
                     DELETE_AGENT_RULE: 'POLICYCHANGELOG_DELETE_AGENT_RULE',
+                    ADD_RULE: 'POLICYCHANGELOG_ADD_RULE',
+                    UPDATE_RULE: 'POLICYCHANGELOG_UPDATE_RULE',
+                    REMOVE_RULE: 'POLICYCHANGELOG_REMOVE_RULE',
                     ADD_INTEGRATION: 'POLICYCHANGELOG_ADD_INTEGRATION',
                     ADD_REPORT_FIELD: 'POLICYCHANGELOG_ADD_REPORT_FIELD',
                     ADD_TAG: 'POLICYCHANGELOG_ADD_TAG',
@@ -1767,6 +1770,7 @@ const CONST = {
                     UPDATE_REQUIRE_COMPANY_CARDS_ENABLED: 'POLICYCHANGELOG_UPDATE_REQUIRE_COMPANY_CARDS_ENABLED',
                     UPDATE_REQUIRES_CATEGORY: 'POLICYCHANGELOG_UPDATE_REQUIRES_CATEGORY',
                     UPDATE_REQUIRES_TAG: 'POLICYCHANGELOG_UPDATE_REQUIRES_TAG',
+                    UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE: 'POLICYCHANGELOG_UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE',
                     UPDATE_DEFAULT_APPROVER: 'POLICYCHANGELOG_UPDATE_DEFAULT_APPROVER',
                     UPDATE_SUBMITS_TO: 'POLICYCHANGELOG_UPDATE_SUBMITS_TO',
                     UPDATE_FORWARDS_TO: 'POLICYCHANGELOG_UPDATE_FORWARDS_TO',
@@ -3602,6 +3606,7 @@ const CONST = {
         REIMBURSABLE: 'reimbursable',
         NON_REIMBURSABLE: 'nonReimbursable',
         CREDIT_CARD_ACCOUNT_ID: 'creditCardAccountID',
+        EXPENSIFY_CARD_ACCOUNT_ID: 'expensifyCardAccountID',
         EXPORT_TO_MULTIPLE_ACCOUNTS: 'exportToMultipleAccounts',
         DEFAULT_VENDORID: 'defaultVendorID',
         TRAVEL_BILLING_PAYABLE_ACCOUNT_ID: 'travelInvoicingPayableAccountID',
@@ -3639,6 +3644,12 @@ const CONST = {
     DUALENTRY_TAX_TYPE: {
         VAT: 'VAT',
         GST: 'GST',
+    },
+
+    DUALENTRY_ACCOUNT_TYPE: {
+        EXPENSE: 'expense',
+        CREDIT_CARD: 'credit_card',
+        BANK: 'bank',
     },
 
     UPDATE_PERSONAL_BANK_ACCOUNT: {
@@ -7889,7 +7900,7 @@ const CONST = {
                 name: 'Intuit Enterprise Suite',
                 title: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.title` as const,
                 description: `workspace.upgrade.${this.POLICY.CONNECTIONS.ACCOUNTING_INTEGRATION_ALIASES.INTUIT_ENTERPRISE_SUITE}.description` as const,
-                icon: 'QBOSquare',
+                icon: 'IntuitSquare',
                 requiredPlan: this.POLICY.TYPE.CORPORATE,
             },
             [this.POLICY.CONNECTIONS.NAME.CERTINIA]: {
@@ -9459,26 +9470,6 @@ const CONST = {
 
         // Cutoff for the "For You" new-vs-old segment: users whose free trial started on/after this date have the empty section hidden.
         FOR_YOU_NEW_USER_CUTOFF_DATE: '2026-06-26',
-        ANNOUNCEMENTS: [
-            {
-                title: 'The Expensify Card: Proactive spend controls',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260817277076/en/The-Expensify-Visa-Commercial-Card-Brings-New-Proactive-Spend-Controls-to-14-Countries',
-                publishedDate: '2026-08-17',
-            },
-            {
-                title: 'Scoped admin roles, plus HR & AI updates',
-                subtitle: 'Product update',
-                url: 'https://use.expensify.com/blog/expensify-july-2026-product-update',
-                publishedDate: '2026-07-28',
-            },
-            {
-                title: 'The Expensify Card: Now in the UK & EU',
-                subtitle: 'Press release',
-                url: 'https://www.businesswire.com/news/home/20260720653615/en/Expensify-Launches-Corporate-Card-in-Europe',
-                publishedDate: '2026-07-20',
-            },
-        ],
     },
 
     SECTION_LIST_ITEM_TYPE: {

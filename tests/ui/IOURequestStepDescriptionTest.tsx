@@ -12,9 +12,11 @@ import waitForBatchedUpdatesWithAct from '../utils/waitForBatchedUpdatesWithAct'
 
 /**
  * These tests pin the exact arguments passed to `focusComposerWithDelay` from the discard-modal `onCancel` handler
- * in `IOURequestStepDescription`. The fix that requires them (returning focus AND re-requesting the soft keyboard on
- * iOS after canceling the "Discard changes?" modal) cannot be verified manually in dev/simulator, so this assertion
- * is the regression net: it fails loudly if the third `forceKeyboardIfAlreadyFocused` argument is ever trimmed.
+ * in `IOURequestStepDescription`. The third `forceKeyboardIfAlreadyFocused` argument is now resolved by the
+ * platform-split `shouldForceKeyboardIfAlreadyFocused` helper (true on iOS, false on Android/web), because forcing
+ * a re-focus is the fix on iOS but the reported regression on Android. This flow cannot be verified manually in
+ * dev/simulator, so these assertions are the regression net: they fail loudly if the argument is ever hardcoded
+ * again or the helper is bypassed.
  */
 
 // Capture the inner focus function so we can assert the exact args the component invokes it with.
@@ -22,6 +24,14 @@ const mockFocusFn = jest.fn();
 jest.mock('@libs/focusComposerWithDelay', () => ({
     __esModule: true,
     default: () => mockFocusFn,
+}));
+
+// The component gates `forceKeyboardIfAlreadyFocused` behind this platform-resolved helper. Mock it so each test
+// can drive the platform's value and assert the component forwards it verbatim.
+const mockShouldForceKeyboard = jest.fn(() => false);
+jest.mock('@libs/shouldForceKeyboardIfAlreadyFocused', () => ({
+    __esModule: true,
+    default: () => mockShouldForceKeyboard(),
 }));
 
 // Capture the `onCancel` the component wires into the discard-changes hook, without dragging in the real
@@ -77,7 +87,9 @@ describe('IOURequestStepDescription - discard modal onCancel', () => {
         capturedOnCancel = undefined;
     });
 
-    it('re-requests the soft keyboard on cancel by forcing focus even when the input is still focused', async () => {
+    it('forces the soft keyboard on cancel when the platform helper opts in (iOS)', async () => {
+        mockShouldForceKeyboard.mockReturnValue(true);
+
         render(
             <IOURequestStepDescription
                 route={ROUTE}
@@ -92,7 +104,28 @@ describe('IOURequestStepDescription - discard modal onCancel', () => {
 
         act(() => capturedOnCancel?.());
 
-        // Pins the exact PR change: shouldDelay=true, no forced selection range, forceKeyboardIfAlreadyFocused=true.
+        // iOS: shouldDelay=true, no forced selection range, forceKeyboardIfAlreadyFocused=true (the #97823 fix).
         expect(mockFocusFn).toHaveBeenCalledWith(true, undefined, true);
+    });
+
+    it('does not force the soft keyboard on cancel when the platform helper opts out (Android/web)', async () => {
+        mockShouldForceKeyboard.mockReturnValue(false);
+
+        render(
+            <IOURequestStepDescription
+                route={ROUTE}
+                navigation={NAVIGATION}
+            />,
+        );
+        // Let the component's useOnyx subscriptions settle so their updates don't fire outside act().
+        await waitForBatchedUpdatesWithAct();
+
+        expect(capturedOnCancel).toBeDefined();
+
+        act(() => capturedOnCancel?.());
+
+        // Android/web: forceKeyboardIfAlreadyFocused=false, argument-identical to pre-#97823 main, so the Android
+        // regression (focus without keyboard on the hardware-back path) is removed.
+        expect(mockFocusFn).toHaveBeenCalledWith(true, undefined, false);
     });
 });

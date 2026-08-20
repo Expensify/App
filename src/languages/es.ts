@@ -982,7 +982,6 @@ const translations: TranslationDeepObject<typeof en> = {
             repaidLast30Days: 'Reembolsado últimos 30 días',
             recentTransactions: ({lastFour}: {lastFour: string}) => `Transacciones recientes • ${lastFour}`,
         },
-        announcements: 'Anuncios',
         discoverSection: {
             title: 'Descubrir',
             menuItemTitleNonAdmin: 'Aprende a crear gastos y enviar informes.',
@@ -1504,6 +1503,7 @@ const translations: TranslationDeepObject<typeof en> = {
             odometerReadingTooLarge: (formattedMax: string) => `Las lecturas del odómetro no pueden superar ${formattedMax}.`,
             unableToSubmitReport: 'No se puede enviar el informe',
             allTransactionsPendingDescription: 'No puedes enviar este informe porque todas las transacciones están pendientes. Pueden tardar unos días en procesarse.',
+            allExpensesOnHoldDescription: 'No puedes enviar este informe porque todos los gastos están retenidos. Elimina la retención para enviarlo.',
             stitchOdometerImagesFailed: 'No se pudieron combinar las imágenes del odómetro. Por favor, inténtalo de nuevo más tarde.',
             failedToSaveOdometerDraft: 'No se pudo guardar el borrador del odómetro. Por favor, inténtalo de nuevo.',
             invalidIntegerAmount: 'Por favor, introduce un importe entero en dólares antes de continuar',
@@ -1983,6 +1983,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'Perfil avatar',
         customInstructions: 'Instrucciones personalizadas',
         copilotIntoAccount: 'Copilot a la cuenta',
+        viewUserHistory: 'Ver historial del usuario',
+        viewAgentHistory: 'Ver historial del agente',
         publicSection: {
             title: 'Público',
             subtitle: 'Estos detalles se muestran en tu perfil público, a disposición de los demás.',
@@ -4414,6 +4416,10 @@ ${amount} para ${merchant} - ${date}`,
             railCard:
                 '¿Sabías que puedes reservar y gestionar viajes en tren directamente en Expensify? ¿Y que además sube los recibos automáticamente por ti? La próxima vez, simplemente reserva a través de <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: 'Los viajes no están habilitados',
+            message: 'Para reservar, habilita los viajes en tu espacio de trabajo predeterminado o cambia tu espacio de trabajo predeterminado a uno que tenga los viajes habilitados.',
+        },
     },
     proactiveAppReview: {
         title: '¿Te gusta New Expensify?',
@@ -5611,8 +5617,11 @@ ${amount} para ${merchant} - ${date}`,
             billPaymentAccount: {label: 'Cuenta de pago de facturas', description: 'Elige desde dónde pagar las facturas y crearemos el pago en Rillet.'},
             syncExpensifyCardSettlements: 'Sincronizar liquidaciones de la Tarjeta Expensify',
             settlementAccount: {label: 'Cuenta de liquidación de la Tarjeta Expensify', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
-            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes',
-            travelInvoicingSettlementAccount: {label: 'Cuenta de liquidación de facturación de viajes', description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.'},
+            syncTravelInvoicingSettlements: 'Sincronizar liquidaciones de facturación de viajes consolidadas',
+            travelInvoicingSettlementAccount: {
+                label: 'Cuenta de liquidación de facturación consolidada de viajes',
+                description: 'Elige tu cuenta de liquidación y crearemos el pago en Rillet.',
+            },
             exportToMultipleAccounts: 'Configura la exportación a varias cuentas',
             cardProgramAccount: {
                 label: 'Cuenta del programa de tarjetas',
@@ -5652,11 +5661,62 @@ ${amount} para ${merchant} - ${date}`,
             subsidiarySelectDescription: 'Elige la filial en DualEntry de la que te gustaría importar datos.',
             noCompaniesFound: 'No se han encontrado empresas',
             noCompaniesFoundDescription: 'Por favor, añade una empresa en DualEntry y sincroniza la conexión de nuevo',
+            noVendorsFound: 'No se han encontrado proveedores',
+            noVendorsFoundDescription: 'Por favor, añade proveedores en DualEntry y sincroniza la conexión de nuevo',
+            noAccountsFound: 'No se han encontrado cuentas',
+            noAccountsFoundDescription: 'Por favor, añade cuentas en DualEntry y sincroniza la conexión de nuevo',
             accountTypesDescription: 'Tus cuentas de DualEntry se importarán como categorías.',
             enableNewAccountsTitle: 'Habilitar cuentas recién importadas',
             enableNewAccountsDescription: 'Las nuevas cuentas DualEntry estarán disponibles como categorías.',
             classificationsImport: 'Todas las clasificaciones de DualEntry se importan como etiquetas',
             importDescription: 'Elige qué configuraciones de codificación importar desde DualEntry.',
+            exportDescription: 'Configura cómo se exportan los datos de Expensify a DualEntry.',
+            exportReimbursable: {
+                label: 'Exportar gastos reembolsables como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_REIMBURSABLE.VENDOR_BILL]: {
+                        label: 'Facturas de proveedor',
+                    },
+                },
+            },
+            exportDate: {
+                label: 'Fecha de factura del proveedor',
+                description: 'Usa esta fecha al exportar informes a DualEntry.',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_DATE.LAST_EXPENSE]: {
+                        label: 'Fecha del último gasto',
+                        description: 'Fecha del gasto más reciente del informe.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_EXPORTED]: {
+                        label: 'Fecha de exportación',
+                        description: 'Fecha en que se exportó el informe a DualEntry.',
+                    },
+                    [CONST.DUALENTRY_EXPORT_DATE.REPORT_SUBMITTED]: {
+                        label: 'Fecha de envío',
+                        description: 'Fecha en que se envió el informe para su aprobación.',
+                    },
+                },
+            },
+            exportNonReimbursable: {
+                label: 'Exportar gastos de tarjetas de empresa como',
+                values: {
+                    [CONST.DUALENTRY_EXPORT_NON_REIMBURSABLE.DIRECT_EXPENSE]: {
+                        label: 'Gastos directos',
+                    },
+                },
+            },
+            defaultCompanyCardVendor: {
+                label: 'Proveedor predeterminado para todas las tarjetas de empresa',
+                description: 'Elige un proveedor DualEntry predeterminado para los gastos que no se asignen automáticamente.',
+            },
+            companyCardAccount: {
+                label: 'Cuenta de tarjeta de empresa',
+                description: 'Elige dónde exportar las transacciones de las tarjetas de la empresa.',
+            },
+            expensifyCardAccount: {
+                label: 'Cuenta de la Tarjeta Expensify',
+                description: 'Elige dónde exportar las transacciones de la Tarjeta Expensify.',
+            },
         },
         type: {
             free: 'Gratis',
@@ -7614,8 +7674,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 alwaysNonReimbursable: 'Siempre no reembolsable',
                 alwaysNonReimbursableDescription: 'Los gastos nunca son reembolsados a los empleados',
                 billableDefault: 'Valor predeterminado facturable',
-                billableDefaultDescription: (tagsPageLink) =>
-                    `<muted-text>Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto. Los gastos facturables se activan o desactivan en <a href="${tagsPageLink}">etiquetas</a>.</muted-text>`,
+                billableDefaultDescription: 'Elige si los gastos en efectivo y con tarjeta de crédito deben ser facturables por defecto.',
                 billable: 'Facturable',
                 billableDescription: 'Los gastos se vuelven a facturar a los clientes en la mayoría de los casos',
                 nonBillable: 'No facturable',
@@ -7878,6 +7937,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
                 restrictMerchantsBlockSubtitle: 'Los cargos se aprueban para monedas permitidas que no superen un importe máximo, o cuando el comercio o el tipo de comercio coinciden.',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `Permitido ${shownCount > 1 ? 'divisas' : 'moneda'}: ${currencies}${hiddenCount > 0 ? `, +${hiddenCount} más` : ''}`,
+                defaultRulesCannotBeDeleted: 'Las reglas predeterminadas no se pueden eliminar',
             },
             agentRules: {
                 title: 'Reglas del agente',
@@ -8296,6 +8356,9 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
             updated: ({title, prompt}: {title: string; prompt: string}) => (title ? `actualizó la regla de agente «${title}» a: ${prompt}` : `actualizó una regla de agente a: ${prompt}`),
             deleted: ({title}: {title: string}) => (title ? `eliminó la regla de agente «${title}»` : 'eliminó una regla de agente'),
         },
+        addedRule: 'añadió una regla',
+        updatedRule: 'actualizó una regla',
+        removedRule: 'eliminó una regla',
         expensifyCardRule: {
             actionVerb: {block: 'bloqueado', allow: 'permitido'},
             amountOperator: {over: 'más de', under: 'debajo'},
@@ -8715,6 +8778,7 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de categorización de gastos`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? 'habilitado' : 'deshabilitado'} el requisito de etiquetado de gastos`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `actualizó el ajuste de la comisión por conversión de moneda a «${preferenceLabel}»`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `cambió los asistentes de la categoría «${categoryName}» a ${newValue ? 'obligatorio' : 'no es obligatorio'} (previamente ${newValue ? 'no es obligatorio' : 'obligatorio'})`;
         },
@@ -10591,8 +10655,13 @@ El plan Controlar empieza en 9 $ por miembro activo al mes.`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: 'Nuevos tipos de roles para admins',
-                body: 'Ofrece a tu equipo permisos más granulares con los nuevos roles de administrador de tarjetas, personas y pagos.',
+                heading: 'Asignación de proveedores mejorada',
+                body: 'Crea proveedores y reglas personalizadas para facilitar la asignación a los principales paquetes de contabilidad.',
+                cta: 'Pruébalo',
+            },
+            member: {
+                heading: 'Agentes preconfigurados para ti',
+                body: 'Usa agentes prediseñados o personalizados para clasificar, dividir y enviar gastos automáticamente en tu nombre.',
                 cta: 'Pruébalo',
             },
         },
