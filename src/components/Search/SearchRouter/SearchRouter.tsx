@@ -79,7 +79,7 @@ type SearchRouterProps = {
 };
 
 function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDisplayed, ref}: SearchRouterProps) {
-    const {translate, dateFnsLocale} = useLocalize();
+    const {translate, formatPhoneNumber, dateFnsLocale} = useLocalize();
     const styles = useThemeStyles();
     const {setShouldResetSearchQuery} = useSearchQueryActions();
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
@@ -131,6 +131,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             currentUserAccountID,
             autoCompleteWithSpace: false,
             translate,
+            formatPhoneNumber,
             feedKeysWithCards,
             reportAttributes,
             bankAccountList,
@@ -145,6 +146,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
             policies,
             currentUserAccountID,
             translate,
+            formatPhoneNumber,
             reportAttributes,
             bankAccountList,
         );
@@ -417,7 +419,7 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                 } else if (item.searchItemType === CONST.SEARCH.SEARCH_ROUTER_ITEM_TYPE.AUTOCOMPLETE_SUGGESTION && textInputValue) {
                     const fieldKey = item.mapKey?.includes(':') ? item.mapKey.split(':').at(0) : item.mapKey;
                     const trimmedUserSearchQuery = getTrimmedUserSearchQueryPreservingComma(textInputValue, fieldKey);
-                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery)}\u00A0`;
+                    const newSearchQuery = `${trimmedUserSearchQuery}${sanitizeSearchValue(item.searchQuery, true)}\u00A0`;
                     onSearchQueryChange(newSearchQuery, true);
                     setSelection({start: newSearchQuery.length, end: newSearchQuery.length});
 
@@ -445,16 +447,16 @@ function SearchRouter({onRouterClose, shouldHideInputCaret, isSearchRouterDispla
                     if (item?.reportID) {
                         Navigation.navigate(ROUTES.REPORT_WITH_ID.getRoute(item.reportID));
                     } else if ('login' in item) {
-                        navigateToAndOpenReport(
-                            item.login ? [item.login] : [],
+                        navigateToAndOpenReport({
+                            userLogins: item.login ? [item.login] : [],
                             personalDetails,
                             currentUserAccountID,
                             introSelected,
-                            guidedSetupAndTourStatus?.isSelfTourViewed,
-                            guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                            isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                            hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
                             betas,
-                            false,
-                        );
+                            shouldDismissModal: false,
+                        });
                     }
                 });
                 onRouterClose();
