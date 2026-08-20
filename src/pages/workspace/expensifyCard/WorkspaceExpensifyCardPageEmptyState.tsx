@@ -87,7 +87,7 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
         : getEligibleBankAccountsForCard(bankAccountList);
     const shouldStartBankAccountSetup = !eligibleBankAccounts.length || isSetupUnfinished;
     const canEditSettings = canEditWorkspaceSettings(policy, currentUserLogin);
-    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canEditSettings);
+    const shouldDisableCTA = !canWriteExpensifyCard || (!hasAccessibleFeeds && !canEditSettings);
 
     const startFlow = () => {
         if (hasAccessibleFeeds && policy?.id) {
@@ -127,18 +127,16 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
 
     const promptCurrencyChange = async () => {
         isCurrencyModalOpen.current = true;
-        // The currency page is admin only, and an open or partially set up bank account blocks it,
-        // so only offer the change when it can be completed
-        const canChangeCurrency = !shouldBlockCurrencyChange && canEditSettings;
+        // An open or partially set up bank account blocks the currency page, so only offer the change when it can be completed
         const result = await showConfirmModal({
             title: translate('workspace.bankAccount.updateCurrencyForExpensifyCardTitle'),
             prompt: translate('workspace.bankAccount.updateCurrencyForExpensifyCard'),
-            confirmText: translate(canChangeCurrency ? 'workspace.bankAccount.updateWorkspaceCurrency' : 'common.buttonConfirm'),
-            cancelText: canChangeCurrency ? translate('common.cancel') : undefined,
-            shouldShowCancelButton: canChangeCurrency,
+            confirmText: translate(shouldBlockCurrencyChange ? 'common.buttonConfirm' : 'workspace.bankAccount.updateWorkspaceCurrency'),
+            cancelText: shouldBlockCurrencyChange ? undefined : translate('common.cancel'),
+            shouldShowCancelButton: !shouldBlockCurrencyChange,
         });
         isCurrencyModalOpen.current = false;
-        if (!canChangeCurrency || result.action !== ModalActions.CONFIRM || !policy) {
+        if (shouldBlockCurrencyChange || result.action !== ModalActions.CONFIRM || !policy) {
             return;
         }
         Navigation.navigate(ROUTES.WORKSPACE_OVERVIEW_CURRENCY.getRoute(policy.id));
@@ -166,7 +164,9 @@ function WorkspaceExpensifyCardPageEmptyState({route, policy}: WorkspaceExpensif
                             showReadOnlyModal();
                             return;
                         }
-                        if (!hasAccessibleFeeds && shouldStartBankAccountSetup && !canEditSettings) {
+                        // Without an existing feed the only path forward is enrolling a new card program, and both the
+                        // bank account setup page and the currency page are admin only
+                        if (!hasAccessibleFeeds && !canEditSettings) {
                             showReadOnlyModal();
                             return;
                         }
