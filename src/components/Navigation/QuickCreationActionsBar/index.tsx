@@ -3,7 +3,6 @@ import Button from '@components/ButtonComposed';
 import useCreateEmptyReportConfirmation from '@hooks/useCreateEmptyReportConfirmation';
 import {useCurrencyListActions} from '@hooks/useCurrencyList';
 import useCurrentUserPersonalDetails from '@hooks/useCurrentUserPersonalDetails';
-import useDefaultWorkspaceTravelGuard from '@hooks/useDefaultWorkspaceTravelGuard';
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -47,7 +46,6 @@ function QuickCreationActionsBar() {
     const [session] = useOnyx(ONYXKEYS.SESSION);
     const [email] = useOnyx(ONYXKEYS.SESSION, {selector: emailSelector});
     const [allBetas] = useOnyx(ONYXKEYS.BETAS);
-    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [draftTransactionIDs] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftIDsSelector});
     const [lastDistanceExpenseType] = useOnyx(ONYXKEYS.NVP_LAST_DISTANCE_EXPENSE_TYPE);
@@ -62,7 +60,6 @@ function QuickCreationActionsBar() {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isBetaEnabled} = usePermissions();
-    const blockIfDefaultWorkspaceLacksTravel = useDefaultWorkspaceTravelGuard();
     const isASAPSubmitBetaEnabled = isBetaEnabled(CONST.BETAS.ASAP_SUBMIT);
     const hasViolations = hasViolationsReportUtils(undefined, transactionViolations, session?.accountID ?? CONST.DEFAULT_NUMBER_ID, session?.email ?? '');
     const {shouldNavigateToUpgradePath} = usePolicyForMovingExpenses();
@@ -79,19 +76,17 @@ function QuickCreationActionsBar() {
 
     const shouldShowEmptyReportConfirmationForDefaultChatEnabledPolicy = useShouldShowEmptyReportConfirmation(defaultChatEnabledPolicyID);
 
-    const travelEnabledPolicy = useMemo(() => Object.values(allPolicies ?? {}).find((policy) => !!policy?.isTravelEnabled), [allPolicies]);
-
-    const shouldShowBookTravel = !!travelEnabledPolicy;
+    const shouldShowBookTravel = !!activePolicy?.isTravelEnabled;
 
     const isBlockedFromSpotnanaTravel = Permissions.isBetaEnabled(CONST.BETAS.PREVENT_SPOTNANA_TRAVEL, allBetas);
     const primaryContactMethod = primaryLogin ?? session?.email ?? '';
     const isTravelReady = useMemo(() => {
-        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(travelEnabledPolicy)) {
+        if (!!isBlockedFromSpotnanaTravel || !primaryContactMethod || Str.isSMSLogin(primaryContactMethod) || !isPaidGroupPolicy(activePolicy)) {
             return false;
         }
 
-        return hasAcceptedTravelTerms(travelEnabledPolicy, travelSettings);
-    }, [travelEnabledPolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
+        return hasAcceptedTravelTerms(activePolicy, travelSettings);
+    }, [activePolicy, isBlockedFromSpotnanaTravel, primaryContactMethod, travelSettings]);
 
     const handleCreateWorkspaceReport = useCallback(
         (shouldDismissEmptyReportsConfirmation?: boolean) => {
@@ -204,15 +199,12 @@ function QuickCreationActionsBar() {
         () =>
             interceptAnonymousUser(() => {
                 if (isTravelReady) {
-                    if (blockIfDefaultWorkspaceLacksTravel()) {
-                        return;
-                    }
-                    openTravelDotLink(travelEnabledPolicy?.id);
+                    openTravelDotLink(activePolicy?.id);
                     return;
                 }
-                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(travelEnabledPolicy?.id));
+                Navigation.navigate(ROUTES.TRAVEL_MY_TRIPS.getRoute(activePolicy?.id));
             }),
-        [travelEnabledPolicy?.id, isTravelReady, blockIfDefaultWorkspaceLacksTravel],
+        [activePolicy?.id, isTravelReady],
     );
 
     return (
