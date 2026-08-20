@@ -1,6 +1,8 @@
 import {render, screen} from '@testing-library/react-native';
 
 import DropdownButton from '@components/Search/FilterDropdowns/DropdownButton';
+import useFilterFeedValue from '@components/Search/hooks/useFilterFeedValue';
+import useFilterTaxRateValue from '@components/Search/hooks/useFilterTaxRateValue';
 import SearchFilterBar from '@components/Search/SearchPageHeader/SearchFilterBar';
 import type {FilterItem} from '@components/Search/SearchPageHeader/useSearchFiltersBar';
 import Text from '@components/Text';
@@ -15,6 +17,8 @@ import React from 'react';
 import Onyx from 'react-native-onyx';
 
 import createMock from '../../utils/createMock';
+
+jest.mock('@expensify/react-native-hybrid-app', () => ({__esModule: true, default: {isHybridApp: () => false}}));
 
 const FIRST_CARD: Card = {
     bank: CONST.COMPANY_CARD.FEED_BANK_NAME.UPLOAD,
@@ -45,12 +49,29 @@ jest.mock('@components/Search/FilterDropdowns/DropdownButton', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('@components/Search/hooks/useFilterFeedValue', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('@components/Search/hooks/useFilterTaxRateValue', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 jest.mock('@hooks/useLocalize', () => ({
     __esModule: true,
     default: () => ({translate: (key: string) => key}),
 }));
 
 const mockDropdownButton = jest.mocked(DropdownButton);
+const mockUseFilterFeedValue = jest.mocked(useFilterFeedValue);
+const mockUseFilterTaxRateValue = jest.mocked(useFilterTaxRateValue);
+
+const FIRST_FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.CHASE}#first-domain`;
+const SECOND_FEED = `${CONST.COMPANY_CARD.FEED_BANK_NAME.VISA}#second-domain`;
+const FIRST_TAX_RATE = 'id_TAX_RATE_1';
+const SECOND_TAX_RATE = 'id_TAX_RATE_2';
 
 function createCardFilter(value: string): SearchFilter & FilterItem {
     return {
@@ -63,7 +84,29 @@ function createCardFilter(value: string): SearchFilter & FilterItem {
     };
 }
 
-describe('SearchFilterBar card descriptions', () => {
+function createFeedFilter(value: string | string[]): SearchFilter & FilterItem {
+    return {
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.FEED,
+        label: 'Feeds',
+        value,
+        PopoverComponent: () => null,
+        sentryLabel: 'Search-Filter-feed',
+        onClosePress: jest.fn(),
+    };
+}
+
+function createTaxRateFilter(value: string | string[]): SearchFilter & FilterItem {
+    return {
+        key: CONST.SEARCH.SYNTAX_FILTER_KEYS.TAX_RATE,
+        label: 'Tax rates',
+        value,
+        PopoverComponent: () => null,
+        sentryLabel: 'Search-Filter-taxRate',
+        onClosePress: jest.fn(),
+    };
+}
+
+describe('SearchFilterBar descriptions', () => {
     beforeAll(() => {
         Onyx.init({keys: ONYXKEYS});
     });
@@ -89,5 +132,41 @@ describe('SearchFilterBar card descriptions', () => {
         render(<SearchFilterBar item={createCardFilter(`${FIRST_CARD.cardID}, ${SECOND_CARD.cardID}`)} />);
 
         expect(screen.getByText('Cards: First card, Second card')).toBeOnTheScreen();
+    });
+
+    it('normalizes a scalar feed before rendering its display label', () => {
+        mockUseFilterFeedValue.mockReturnValue('Chase');
+
+        render(<SearchFilterBar item={createFeedFilter(FIRST_FEED)} />);
+
+        expect(mockUseFilterFeedValue).toHaveBeenCalledWith([FIRST_FEED]);
+        expect(mockDropdownButton.mock.calls.at(-1)?.[0].value).toBe('Chase');
+    });
+
+    it('preserves ordered feed identifiers before rendering their display labels', () => {
+        mockUseFilterFeedValue.mockReturnValue('Chase, Visa');
+
+        render(<SearchFilterBar item={createFeedFilter([FIRST_FEED, SECOND_FEED])} />);
+
+        expect(mockUseFilterFeedValue).toHaveBeenCalledWith([FIRST_FEED, SECOND_FEED]);
+        expect(mockDropdownButton.mock.calls.at(-1)?.[0].value).toBe('Chase, Visa');
+    });
+
+    it('normalizes a scalar tax rate before rendering its display label', () => {
+        mockUseFilterTaxRateValue.mockReturnValue('5%');
+
+        render(<SearchFilterBar item={createTaxRateFilter(FIRST_TAX_RATE)} />);
+
+        expect(mockUseFilterTaxRateValue).toHaveBeenCalledWith([FIRST_TAX_RATE]);
+        expect(mockDropdownButton.mock.calls.at(-1)?.[0].value).toBe('5%');
+    });
+
+    it('preserves ordered tax-rate identifiers before rendering their display labels', () => {
+        mockUseFilterTaxRateValue.mockReturnValue('5%, 10%');
+
+        render(<SearchFilterBar item={createTaxRateFilter([FIRST_TAX_RATE, SECOND_TAX_RATE])} />);
+
+        expect(mockUseFilterTaxRateValue).toHaveBeenCalledWith([FIRST_TAX_RATE, SECOND_TAX_RATE]);
+        expect(mockDropdownButton.mock.calls.at(-1)?.[0].value).toBe('5%, 10%');
     });
 });
