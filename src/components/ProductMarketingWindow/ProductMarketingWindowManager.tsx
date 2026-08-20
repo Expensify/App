@@ -7,6 +7,7 @@ import useRootNavigationState from '@hooks/useRootNavigationState';
 import useShouldShowRequire2FAPage from '@hooks/useShouldShowRequire2FAPage';
 
 import {dismissMarketingWindow} from '@libs/actions/User';
+import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import Navigation, {getDeepestFocusedScreen, isTwoFactorSetupScreen} from '@libs/Navigation/Navigation';
 import {ACTIVE_PRODUCT_MARKETING_ANNOUNCEMENT, getProductMarketingAnnouncementVariant} from '@libs/ProductMarketingWindowUtils';
 
@@ -52,10 +53,16 @@ type ProductMarketingWindowManagerProps = {
 function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindowManagerProps) {
     const {login: currentUserLogin = ''} = useCurrentUserPersonalDetails();
     const {isBetaEnabled} = usePermissions();
-    const [activeAdminPolicies, activeAdminPoliciesMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
-        selector: (policies: OnyxCollection<Policy>) => activeAdminPoliciesSelector(policies, currentUserLogin),
-    });
     const [activePolicyID, activePolicyIDMetadata] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
+    // Only the ID is selected out of the policy collection: returning the admin policies themselves makes
+    // useOnyx deep-compare every policy object on each collection update, which costs tens of ms on large accounts.
+    const [targetAdminPolicyID, targetAdminPolicyIDMetadata] = useOnyx(ONYXKEYS.COLLECTION.POLICY, {
+        selector: (policies: OnyxCollection<Policy>) => {
+            const activeAdminPolicies = activeAdminPoliciesSelector(policies, currentUserLogin);
+            return (activeAdminPolicies.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies.at(0))?.id;
+        },
+    });
+    const [targetAdminPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(targetAdminPolicyID)}`);
     // Semantically covering overlays take precedence over the marketing window from pre-show through final hide.
     // Responsive popover sheets and route-backed right-docked navigation remain exempt.
     const [isProductMarketingWindowCovered = false] = useOnyx(ONYXKEYS.RAM_ONLY_IS_PRODUCT_MARKETING_WINDOW_COVERED);
@@ -72,16 +79,15 @@ function ProductMarketingWindowManager({topmostRouteName}: ProductMarketingWindo
     // assets when the requested names change after mount (e.g. when the audience flips after policies arrive).
     const illustrationNames = announcement ? [announcement.admin.visual, announcement.member?.visual].flatMap((visual) => (visual?.type === 'illustration' ? [visual.name] : [])) : [];
     const illustrations = useMemoizedLazyIllustrations(illustrationNames);
-    const targetAdminPolicy = activeAdminPolicies?.find((policy) => policy.id === activePolicyID) ?? activeAdminPolicies?.at(0);
-    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicy, lastDismissedMarketingWindow);
+    const variant = getProductMarketingAnnouncementVariant(announcement, !!targetAdminPolicyID, lastDismissedMarketingWindow);
     const isMemberVariantUnavailable = variant === announcement?.member && !isBetaEnabled(CONST.BETAS.CUSTOM_AGENT);
     const isVendorMatchingBetaEnabled = isBetaEnabled(CONST.BETAS.VENDOR_MATCHING);
-    const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicy && targetAdminPolicy.id !== activePolicyID;
+    const shouldPrefetchTargetPolicyConnections = isVendorMatchingBetaEnabled && !!targetAdminPolicyID && targetAdminPolicyID !== activePolicyID;
     const {isFetchNeeded, isLoadingFetchedFlag, hasBeenFetched} = usePolicyConnectionsPrefetch(targetAdminPolicy, shouldPrefetchTargetPolicyConnections);
     const isAdminCtaPending = shouldPrefetchTargetPolicyConnections && (isLoadingFetchedFlag || (isFetchNeeded && hasBeenFetched === undefined));
     const isAdminPolicyConnectionDataAvailable = !shouldPrefetchTargetPolicyConnections || hasBeenFetched === true;
     const isCoveredByCenteredModalScreen = !!topmostRouteName && CENTERED_MODAL_SCREEN_NAVIGATORS.has(topmostRouteName);
-    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, activeAdminPoliciesMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
+    const isLoading = isLoadingOnyxValue(lastDismissedMarketingWindowMetadata, targetAdminPolicyIDMetadata, activePolicyIDMetadata, isLoadingAppMetadata, accountMetadata) || isLoadingApp;
     const shouldShowRequire2FAPage = useShouldShowRequire2FAPage();
     const navigation = useNavigation();
     const isIn2FASetupFlow = useRootNavigationState((state) => {
