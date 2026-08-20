@@ -21,7 +21,7 @@ function getScrollableElement(scrollView: RNScrollView | null): HTMLElement | un
  *
  * `onScroll` is throttled to CONST.TIMING.MIN_SMOOTH_SCROLL_EVENT_THROTTLE and then has to travel through a React
  * callback before it can move the other scroller, which reads as the header trailing the rows by a frame or two.
- * Reading and writing `scrollLeft` inside the DOM event puts both scrollers in the same frame instead, and costs no
+ * Reading and writing `scrollLeft` inside the DOM event puts the header and the rows in the same frame instead, and costs no
  * render: nothing here touches React state, so a scroll never re-renders a row.
  *
  * Because of that, this platform needs no props on the ScrollView at all — only the ref.

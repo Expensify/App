@@ -18,7 +18,7 @@ type SyncedHorizontalScroll = {
 };
 
 /**
- * Keeps several horizontal table scrollers that share a `key` on the same offset.
+ * Keeps every horizontal table scroller that shares a `key` on the same offset.
  *
  * A group's sticky column sub-header and its transaction rows are separate FlashList rows, so they cannot share one
  * scroll container. Syncing their offsets is what keeps the column labels lined up with the values below them once

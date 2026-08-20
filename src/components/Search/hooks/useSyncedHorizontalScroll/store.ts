@@ -4,7 +4,7 @@ type OffsetListener = (offsetX: number) => void;
  * The current horizontal offset per sync key, kept outside React so a recycled scroller can restore it on mount, and
  * kept for the session so an offset survives a query change — the same behaviour `HorizontalTableScroll` gives the
  * flat table. Entries are one number under a group's key, and are deliberately never dropped: clearing them when a
- * scroller unmounts would defeat the point, since FlashList unmounts a group's scrollers whenever it recycles them.
+ * scroller unmounts would defeat the point, since FlashList unmounts a group's header and rows whenever it recycles them.
  */
 const offsetsByKey = new Map<string, number>();
 
