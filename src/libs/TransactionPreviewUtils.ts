@@ -326,8 +326,8 @@ function getTransactionPreviewTextAndTranslationPaths({
         previewDateText = {text: date};
     }
 
-    // Paid, Approved, Review required, Canceled and the hold message are intentionally omitted here because the report status badge
-    // and the RBR row already show them, so repeating them on this line is noise.
+    // Paid, Approved, Review required and the hold message are intentionally omitted here because the report status badge and the
+    // RBR row already show them, so repeating them on this line is noise.
     const previewStatusText: TranslationPathOrText[] = [];
 
     if (isPending(transaction)) {
@@ -336,6 +336,16 @@ function getTransactionPreviewTextAndTranslationPaths({
 
     if (hasPendingRTERViolation(violations)) {
         previewStatusText.push({translationPath: 'iou.pendingMatch'});
+    }
+
+    // Canceled has to stay in step with the status it used to sit behind: an approved but unsettled group policy expense report
+    // reads "Approved", and Canceled was never reached in that case. Widening it here would surface the status on surfaces that
+    // cannot render it consistently, so the visibility is deliberately left exactly as it was.
+    const isPartialHold = isSettlementOrApprovalPartial && isTransactionOnHold;
+    const isApprovedAndUnsettled = isExpenseReport(iouReport) && isGroupPolicy && isReportApproved({report: iouReport}) && !isMoneyRequestSettled && !isPartialHold;
+
+    if (iouReport?.isCancelledIOU && !isApprovedAndUnsettled) {
+        previewStatusText.push({translationPath: 'iou.canceled'});
     }
 
     const amount = isBillSplit ? getAmount(originalTransaction ?? transaction) : requestAmount;
@@ -388,7 +398,7 @@ function createTransactionPreviewConditionals({
     currentUserAccountID: number;
     reportActions?: OnyxTypes.ReportActions;
 }) {
-    const {amount: requestAmount, comment: requestComment, merchant, tag, category} = transactionDetails;
+    const {amount: requestAmount, comment: requestComment, merchant, category} = transactionDetails;
 
     const requestMerchant = truncate(merchant, {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
     const description = truncate(StringUtils.lineBreaksToSpaces(requestComment), {length: CONST.REQUEST_PREVIEW.MAX_LENGTH});
@@ -410,7 +420,6 @@ function createTransactionPreviewConditionals({
     const isFullyApproved = isApproved && !isSettlementOrApprovalPartial;
 
     const shouldShowSkeleton = isEmptyObject(transaction) && !isMessageDeleted(action) && !isDeletedAction(action) && action?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const shouldShowTag = !!tag && isReportAPolicyExpenseChat;
 
     const categoryForDisplay = isCategoryMissing(category) ? '' : category;
 
@@ -444,7 +453,6 @@ function createTransactionPreviewConditionals({
 
     return {
         shouldShowSkeleton,
-        shouldShowTag,
         shouldShowRBR,
         shouldShowCategory,
         shouldShowKeepButton,

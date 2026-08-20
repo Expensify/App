@@ -255,8 +255,25 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('does not show the canceled status, because it is a report level event that previews do not surface', () => {
+        it('shows the canceled status when the report does not already read as approved', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('does not show the canceled status on an approved, unsettled expense report, because it reads as approved instead', () => {
+            const functionArgs = {
+                ...basicProps,
+                iouReport: {
+                    ...basicProps.iouReport,
+                    type: CONST.REPORT.TYPE.EXPENSE,
+                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
+                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
+                    isCancelledIOU: true,
+                },
+                policy: createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
+                originalTransaction: undefined,
+            };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
         });
@@ -529,12 +546,6 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transactionDetails: {merchant: 'Valid Merchant', comment: 'Valid Comment'}};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowDescription).toBeFalsy();
-        });
-
-        it("should show tag if it's a policy expense chat and tag is present", () => {
-            const functionArgs = {...basicProps, isReportAPolicyExpenseChat: true, transactionDetails: {tag: 'Transport'}};
-            const result = createTransactionPreviewConditionals(functionArgs);
-            expect(result.shouldShowTag).toBeTruthy();
         });
 
         it('should correctly show violation message if there are multiple violations', () => {
