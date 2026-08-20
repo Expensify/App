@@ -6,6 +6,7 @@ import Text from '@components/Text';
 
 import useDefaultFundID from '@hooks/useDefaultFundID';
 import useDynamicBackPath from '@hooks/useDynamicBackPath';
+import useDynamicRoute from '@hooks/useDynamicRoute';
 import useEnvironment from '@hooks/useEnvironment';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
@@ -14,7 +15,6 @@ import useThemeStyles from '@hooks/useThemeStyles';
 import {getConnectionNameFromRouteParam} from '@libs/AccountingUtils';
 import {getLastFourDigits} from '@libs/BankAccountUtils';
 import {getCardProgramKey, getCardSettings, getConnectionBankAccountsForReconciliation} from '@libs/CardUtils';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import {getDomainNameForPolicy} from '@libs/PolicyUtils';
 import {getTravelSettlementAccount} from '@libs/TravelBillingUtils';
@@ -138,6 +138,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
     const settlementAccountEnding = getLastFourDigits(bankAccountNumber);
     const reconciliationDomainName = settings?.domainName ?? domainName;
     const {environmentURL} = useEnvironment();
+    const buildDynamicRoute = useDynamicRoute();
 
     const selectBankAccount = (newBankAccountID?: string) => {
         if (!newBankAccountID) {
@@ -156,7 +157,7 @@ function ExpensifyCardDynamicReconciliation({policyID, workspaceAccountID, domai
             description={translate('workspace.accounting.chooseReconciliationAccount.chooseBankAccount')}
             html={translate(
                 'workspace.accounting.chooseReconciliationAccount.settlementAccountReconciliation',
-                `${environmentURL}${createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
+                `${environmentURL}${buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_EXPENSIFY_CARD_SETTINGS_ACCOUNT.path)}`,
                 settlementAccountEnding,
             )}
             selectedBankAccountID={reconciliationBankAccountID}

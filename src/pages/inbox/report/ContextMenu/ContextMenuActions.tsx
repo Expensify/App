@@ -1286,12 +1286,16 @@ const ContextMenuActions: ContextMenuAction[] = [
                     setClipboardMessage(getPlaidBalanceFailureMessage(translate, reportAction));
                 } else if (isCardIssuedAction(reportAction)) {
                     const shouldNavigateToCardDetails = isPolicyAdmin(policy, currentUserPersonalDetails.login);
+                    // Not a hook context, so bind the base to the report's own path directly instead of via useDynamicRoute.
+                    const reportBasePath = report?.reportID ? ROUTES.REPORT_WITH_ID.getRoute(report.reportID) : undefined;
+                    const buildDynamicRoute = (suffix: string) => createDynamicRoute(suffix, reportBasePath);
                     setClipboardMessage(
                         getCardIssuedMessage({
                             reportAction,
                             shouldRenderHTML: true,
                             shouldNavigateToCardDetails,
                             policyID: report?.policyID,
+                            buildDynamicRoute,
                             expensifyCard: card,
                             translate,
                             currentUserAccountID,

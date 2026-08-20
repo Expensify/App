@@ -1,7 +1,10 @@
 import {isChronosStartOrStopMessage, isConsecutiveChronosAutomaticTimerAction} from '@libs/ChronosUtils';
 import {getEnvironmentURL} from '@libs/Environment/Environment';
 import {formatPhoneNumber} from '@libs/LocalePhoneNumber';
+import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import getReportURLForCurrentContext from '@libs/Navigation/helpers/getReportURLForCurrentContext';
+import getStateFromPath from '@libs/Navigation/helpers/getStateFromPath';
+import Navigation from '@libs/Navigation/Navigation';
 import {setHasRadio} from '@libs/NetworkState';
 import {isExpenseReport} from '@libs/ReportUtils';
 
@@ -2253,6 +2256,46 @@ describe('ReportActionsUtils', () => {
                 expect(messageResult).toBe(
                     `issued <mention-user accountID="456"/> a virtual Expensify Card! The <a href='https://dev.new.expensify.com:8082/settings/card/789'>card</a> can be used right away.`,
                 );
+            });
+        });
+
+        describe('admin card details link (useDynamicRoute base)', () => {
+            const activeExpensifyCardForAdmin = {...activeExpensifyCard, cardID: 789} as Card;
+            const REPORT_ID = '1234';
+            const buildDynamicRoute = (suffix: string) => createDynamicRoute(suffix, ROUTES.REPORT_WITH_ID.getRoute(REPORT_ID));
+
+            const buildAdminLink = () =>
+                getCardIssuedMessage({
+                    reportAction: mockVirtualCardIssuedAction,
+                    shouldRenderHTML: true,
+                    shouldNavigateToCardDetails: true,
+                    policyID: testPolicyID,
+                    buildDynamicRoute,
+                    expensifyCard: activeExpensifyCardForAdmin,
+                    translate: translateLocal,
+                    currentUserAccountID: 1,
+                });
+
+            afterEach(() => {
+                jest.restoreAllMocks();
+            });
+
+            it('binds the admin link to the report screen so it resolves even while an RHP is the active route', () => {
+                const suffix = `expensify-card-details/789/${testPolicyID}`;
+                // The card-details RHP is the active route when the message re-renders (the reported trigger).
+                jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(`r/${REPORT_ID}/${suffix}`);
+
+                const activeRouteBasedLink = createDynamicRoute(suffix);
+                expect(JSON.stringify(getStateFromPath(activeRouteBasedLink))).toContain('not-found');
+
+                const boundRoute = buildDynamicRoute(suffix);
+                expect(JSON.stringify(getStateFromPath(boundRoute))).not.toContain('not-found');
+
+                const href =
+                    buildAdminLink()
+                        .match(/href='([^']+)'/)
+                        ?.at(1) ?? '';
+                expect(href).toBe(`https://dev.new.expensify.com:8082/${boundRoute}`);
             });
         });
 

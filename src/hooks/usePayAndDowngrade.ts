@@ -1,5 +1,4 @@
 import {close} from '@libs/actions/Modal';
-import createDynamicRoute from '@libs/Navigation/helpers/dynamicRoutesUtils/createDynamicRoute';
 import Navigation from '@libs/Navigation/Navigation';
 
 import ONYXKEYS from '@src/ONYXKEYS';
@@ -7,10 +6,12 @@ import {DYNAMIC_ROUTES} from '@src/ROUTES';
 
 import {useCallback, useEffect, useLayoutEffect, useRef} from 'react';
 
+import useDynamicRoute from './useDynamicRoute';
 import useOnyx from './useOnyx';
 
 function usePayAndDowngrade(continueAction: () => void) {
     const [isLoadingBill] = useOnyx(ONYXKEYS.IS_LOADING_BILL_WHEN_DOWNGRADE);
+    const buildDynamicRoute = useDynamicRoute();
     const [shouldBillWhenDowngrading] = useOnyx(ONYXKEYS.SHOULD_BILL_WHEN_DOWNGRADING);
     const isDeletingPaidWorkspaceRef = useRef(false);
 
@@ -35,11 +36,11 @@ function usePayAndDowngrade(continueAction: () => void) {
         if (!shouldBillWhenDowngrading) {
             close(continueActionRef.current);
         } else {
-            Navigation.navigate(createDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path));
+            Navigation.navigate(buildDynamicRoute(DYNAMIC_ROUTES.WORKSPACE_PAY_AND_DOWNGRADE.path));
         }
 
         isDeletingPaidWorkspaceRef.current = false;
-    }, [isLoadingBill, shouldBillWhenDowngrading]);
+    }, [isLoadingBill, shouldBillWhenDowngrading, buildDynamicRoute]);
 
     return {setIsDeletingPaidWorkspace, isLoadingBill};
 }
