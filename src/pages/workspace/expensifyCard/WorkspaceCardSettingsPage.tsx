@@ -57,10 +57,11 @@ function WorkspaceCardSettingsPage({route}: WorkspaceCardSettingsPageProps) {
     const settlementFrequency = settings?.monthlySettlementDate ? CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY : CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const isSettlementFrequencyBlocked = !isMonthlySettlementAllowed && settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.DAILY;
     const bankAccountNumber = bankAccountList?.[paymentBankAccountID?.toString() ?? '']?.accountData?.accountNumber ?? paymentBankAccountNumber ?? '';
+    const settlementDay = settings?.monthlySettlementDate ? toLocaleDayOfMonth(preferredLocale, DateUtils.toLocalDate(settings.monthlySettlementDate).getDate()) : '';
     const monthlySettlementDateText =
         settlementFrequency === CONST.EXPENSIFY_CARD.FREQUENCY_SETTING.MONTHLY && settings?.monthlySettlementDate
             ? // An instant (set to `new Date()` on toggle), not a date-only wire value, so the admin's local day-of-month is the one to show.
-              translate('workspace.expensifyCard.monthlySettlementDate', toLocaleDayOfMonth(preferredLocale, DateUtils.toLocalDate(settings.monthlySettlementDate).getDate()))
+              settlementDay && translate('workspace.expensifyCard.monthlySettlementDate', settlementDay)
             : undefined;
 
     return (

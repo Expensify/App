@@ -44,14 +44,17 @@ const LOCALE_RETRY_KEY_PREFIX = 'locale:';
  * Polyfill locale data is optional: @formatjs falls back to English for that one API when its data is missing, which is
  * a far smaller loss than rejecting the whole `Promise.all` and discarding translations that already downloaded.
  */
-function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale): Promise<void> {
+function loadOptionalData(dataImport: Promise<unknown> | false, locale: Locale, invalidatesFormatters = false): Promise<void> {
     if (!dataImport) {
         return Promise.resolve();
     }
     return dataImport.then(
         () => {
             // On success, not failure: anything built before the data landed resolved against English and can now rebuild.
-            clearIntlFormatterCaches();
+            // Only the RelativeTimeFormat and PluralRules data feed these caches; DateTimeFormat is never polyfilled.
+            if (invalidatesFormatters) {
+                clearIntlFormatterCaches();
+            }
         },
         (error: unknown) => {
             Log.warn('[IntlStore] Intl polyfill locale data failed to load; that API falls back to English', {locale, error});
@@ -83,8 +86,8 @@ class IntlStore {
                       import('./de'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.DE) && import('@formatjs/intl-numberformat/locale-data/de'), LOCALES.DE),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.DE) && import('@formatjs/intl-listformat/locale-data/de'), LOCALES.DE),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.DE) && import('@formatjs/intl-pluralrules/locale-data/de'), LOCALES.DE),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.DE) && import('@formatjs/intl-relativetimeformat/locale-data/de'), LOCALES.DE),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.DE) && import('@formatjs/intl-pluralrules/locale-data/de'), LOCALES.DE, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.DE) && import('@formatjs/intl-relativetimeformat/locale-data/de'), LOCALES.DE, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.DE, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof de>)));
                   }),
@@ -95,8 +98,8 @@ class IntlStore {
                       import('./el'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EL) && import('@formatjs/intl-numberformat/locale-data/el'), LOCALES.EL),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.EL) && import('@formatjs/intl-listformat/locale-data/el'), LOCALES.EL),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EL) && import('@formatjs/intl-pluralrules/locale-data/el'), LOCALES.EL),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EL) && import('@formatjs/intl-relativetimeformat/locale-data/el'), LOCALES.EL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EL) && import('@formatjs/intl-pluralrules/locale-data/el'), LOCALES.EL, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EL) && import('@formatjs/intl-relativetimeformat/locale-data/el'), LOCALES.EL, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.EL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof el>)));
                   }),
@@ -107,8 +110,8 @@ class IntlStore {
                       import('./en'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EN) && import('@formatjs/intl-numberformat/locale-data/en'), LOCALES.EN),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.EN) && import('@formatjs/intl-listformat/locale-data/en'), LOCALES.EN),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EN) && import('@formatjs/intl-pluralrules/locale-data/en'), LOCALES.EN),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EN) && import('@formatjs/intl-relativetimeformat/locale-data/en'), LOCALES.EN),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.EN) && import('@formatjs/intl-pluralrules/locale-data/en'), LOCALES.EN, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EN) && import('@formatjs/intl-relativetimeformat/locale-data/en'), LOCALES.EN, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.EN, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof en>)));
                   }),
@@ -119,8 +122,8 @@ class IntlStore {
                       import('./es'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ES) && import('@formatjs/intl-numberformat/locale-data/es'), LOCALES.ES),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.ES) && import('@formatjs/intl-listformat/locale-data/es'), LOCALES.ES),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ES) && import('@formatjs/intl-pluralrules/locale-data/es'), LOCALES.ES),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ES) && import('@formatjs/intl-relativetimeformat/locale-data/es'), LOCALES.ES),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ES) && import('@formatjs/intl-pluralrules/locale-data/es'), LOCALES.ES, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ES) && import('@formatjs/intl-relativetimeformat/locale-data/es'), LOCALES.ES, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.ES, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof es>)));
                   }),
@@ -131,8 +134,8 @@ class IntlStore {
                       import('./fr'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.FR) && import('@formatjs/intl-numberformat/locale-data/fr'), LOCALES.FR),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.FR) && import('@formatjs/intl-listformat/locale-data/fr'), LOCALES.FR),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.FR) && import('@formatjs/intl-pluralrules/locale-data/fr'), LOCALES.FR),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.FR) && import('@formatjs/intl-relativetimeformat/locale-data/fr'), LOCALES.FR),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.FR) && import('@formatjs/intl-pluralrules/locale-data/fr'), LOCALES.FR, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.FR) && import('@formatjs/intl-relativetimeformat/locale-data/fr'), LOCALES.FR, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.FR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof fr>)));
                   }),
@@ -143,8 +146,8 @@ class IntlStore {
                       import('./it'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.IT) && import('@formatjs/intl-numberformat/locale-data/it'), LOCALES.IT),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.IT) && import('@formatjs/intl-listformat/locale-data/it'), LOCALES.IT),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.IT) && import('@formatjs/intl-pluralrules/locale-data/it'), LOCALES.IT),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.IT) && import('@formatjs/intl-relativetimeformat/locale-data/it'), LOCALES.IT),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.IT) && import('@formatjs/intl-pluralrules/locale-data/it'), LOCALES.IT, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.IT) && import('@formatjs/intl-relativetimeformat/locale-data/it'), LOCALES.IT, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.IT, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof it>)));
                   }),
@@ -155,8 +158,8 @@ class IntlStore {
                       import('./ja'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.JA) && import('@formatjs/intl-numberformat/locale-data/ja'), LOCALES.JA),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.JA) && import('@formatjs/intl-listformat/locale-data/ja'), LOCALES.JA),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.JA) && import('@formatjs/intl-pluralrules/locale-data/ja'), LOCALES.JA),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.JA) && import('@formatjs/intl-relativetimeformat/locale-data/ja'), LOCALES.JA),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.JA) && import('@formatjs/intl-pluralrules/locale-data/ja'), LOCALES.JA, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.JA) && import('@formatjs/intl-relativetimeformat/locale-data/ja'), LOCALES.JA, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.JA, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ja>)));
                   }),
@@ -167,8 +170,8 @@ class IntlStore {
                       import('./nl'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.NL) && import('@formatjs/intl-numberformat/locale-data/nl'), LOCALES.NL),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.NL) && import('@formatjs/intl-listformat/locale-data/nl'), LOCALES.NL),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.NL) && import('@formatjs/intl-pluralrules/locale-data/nl'), LOCALES.NL),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.NL) && import('@formatjs/intl-relativetimeformat/locale-data/nl'), LOCALES.NL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.NL) && import('@formatjs/intl-pluralrules/locale-data/nl'), LOCALES.NL, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.NL) && import('@formatjs/intl-relativetimeformat/locale-data/nl'), LOCALES.NL, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.NL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof nl>)));
                   }),
@@ -179,8 +182,8 @@ class IntlStore {
                       import('./pl'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PL) && import('@formatjs/intl-numberformat/locale-data/pl'), LOCALES.PL),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.PL) && import('@formatjs/intl-listformat/locale-data/pl'), LOCALES.PL),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PL) && import('@formatjs/intl-pluralrules/locale-data/pl'), LOCALES.PL),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PL) && import('@formatjs/intl-relativetimeformat/locale-data/pl'), LOCALES.PL),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PL) && import('@formatjs/intl-pluralrules/locale-data/pl'), LOCALES.PL, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PL) && import('@formatjs/intl-relativetimeformat/locale-data/pl'), LOCALES.PL, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.PL, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof pl>)));
                   }),
@@ -191,8 +194,8 @@ class IntlStore {
                       import('./pt-BR'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PT_BR) && import('@formatjs/intl-numberformat/locale-data/pt'), LOCALES.PT_BR),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.PT_BR) && import('@formatjs/intl-listformat/locale-data/pt'), LOCALES.PT_BR),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PT_BR) && import('@formatjs/intl-pluralrules/locale-data/pt'), LOCALES.PT_BR),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PT_BR) && import('@formatjs/intl-relativetimeformat/locale-data/pt'), LOCALES.PT_BR),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.PT_BR) && import('@formatjs/intl-pluralrules/locale-data/pt'), LOCALES.PT_BR, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PT_BR) && import('@formatjs/intl-relativetimeformat/locale-data/pt'), LOCALES.PT_BR, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.PT_BR, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof ptBR>)));
                   }),
@@ -203,8 +206,8 @@ class IntlStore {
                       import('./zh-hans'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-numberformat/locale-data/zh'), LOCALES.ZH_HANS),
                       loadOptionalData(shouldPolyfillListFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-listformat/locale-data/zh'), LOCALES.ZH_HANS),
-                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ZH_HANS) && import('@formatjs/intl-pluralrules/locale-data/zh'), LOCALES.ZH_HANS),
-                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-relativetimeformat/locale-data/zh'), LOCALES.ZH_HANS),
+                      loadOptionalData(shouldPolyfillPluralRules(LOCALES.ZH_HANS) && import('@formatjs/intl-pluralrules/locale-data/zh'), LOCALES.ZH_HANS, true),
+                      loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-relativetimeformat/locale-data/zh'), LOCALES.ZH_HANS, true),
                   ]).then(([module]) => {
                       this.cache.set(LOCALES.ZH_HANS, flattenObject(extractModuleDefaultExport(module as DynamicModule<typeof zhHans>)));
                   }),
@@ -257,6 +260,11 @@ class IntlStore {
 
     /** Fresh snapshot identity on every emit, so a content-only change still re-renders. Call only after mutating `currentLocale` or `cache`, never speculatively. */
     private static notifyListeners() {
+        // Bail when neither observable field moved: the snapshot is compared by reference, so emitting an identical one
+        // re-renders LocaleContextProvider and Expensify at the app root for nothing.
+        if (IntlStore.snapshot.locale === IntlStore.currentLocale && IntlStore.snapshot.hasAnyTranslations === IntlStore.cache.size > 0) {
+            return;
+        }
         // `hasAnyTranslations` is monotonic because the cache never shrinks, which is what the boot splash gate needs.
         IntlStore.snapshot = {locale: IntlStore.currentLocale, hasAnyTranslations: IntlStore.cache.size > 0};
         for (const listener of IntlStore.listeners) {

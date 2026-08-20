@@ -9,15 +9,15 @@ import CONST from '@src/CONST';
 describe('toLocaleDayOfMonth', () => {
     it.each([
         [CONST.LOCALES.EN, '15th'],
-        [CONST.LOCALES.ES, '15º'],
+        [CONST.LOCALES.ES, '15'],
         [CONST.LOCALES.FR, '15'],
         [CONST.LOCALES.DE, '15.'],
-        [CONST.LOCALES.EL, '15η'],
+        [CONST.LOCALES.EL, '15'],
         [CONST.LOCALES.IT, '15'],
         [CONST.LOCALES.JA, '15日'],
         [CONST.LOCALES.NL, '15e'],
-        [CONST.LOCALES.PL, '15'],
-        [CONST.LOCALES.PT_BR, '15º'],
+        [CONST.LOCALES.PL, '15.'],
+        [CONST.LOCALES.PT_BR, '15'],
         [CONST.LOCALES.ZH_HANS, '15日'],
     ])('renders day 15 for %s as %s', (locale, expected) => {
         expect(toLocaleDayOfMonth(locale, 15)).toBe(expected);
@@ -42,6 +42,9 @@ describe('toLocaleDayOfMonth', () => {
     it.each([
         [CONST.LOCALES.FR, '1er', '2'],
         [CONST.LOCALES.IT, '1º', '2'],
+        [CONST.LOCALES.ES, '1.º', '2'],
+        [CONST.LOCALES.PT_BR, '1º', '2'],
+        [CONST.LOCALES.EL, '1η', '2'],
     ])('%s takes an ordinal only on the first of the month', (locale, firstDay, secondDay) => {
         expect(toLocaleDayOfMonth(locale, 1)).toBe(firstDay);
         expect(toLocaleDayOfMonth(locale, 2)).toBe(secondDay);

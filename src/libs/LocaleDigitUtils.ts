@@ -3,6 +3,7 @@ import localeDayOfMonthMap from '@src/languages/localeDayOfMonthMap';
 import localeOrdinalMap from '@src/languages/localeOrdinalMap';
 import type Locale from '@src/types/onyx/Locale';
 
+import {registerDerivedIntlCache} from './IntlFormatterCaches';
 import memoize from './memoize';
 import {format, formatToParts} from './NumberFormatUtils';
 
@@ -74,6 +75,10 @@ function fromLocaleDigit(locale: Locale, localeDigit: string): string {
 // so the instance is cached per locale.
 const createOrdinalPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale, {type: 'ordinal'});
 const memoizedCreateOrdinalPluralRules = memoize(createOrdinalPluralRules);
+
+// `Intl.PluralRules` is polyfilled on native with only `en` data at boot, so one built before a locale's data lands
+// resolves to English and would keep selecting English ordinal categories for the session.
+registerDerivedIntlCache(() => memoizedCreateOrdinalPluralRules.cache.clear());
 
 /**
  * Formats a number into its localized ordinal representation, e.g. `1st` in English, `1.` in German

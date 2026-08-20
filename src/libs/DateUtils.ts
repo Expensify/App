@@ -44,7 +44,7 @@ import {Str} from 'expensify-common';
 import throttle from 'lodash/throttle';
 
 import {setCurrentDate} from './actions/CurrentDate';
-import {INTL_FORMAT_CACHE_MAX_SIZE, clearIntlFormatterCaches, intlDateTimeFormatCache, relativeTimeFormatCache} from './IntlFormatterCaches';
+import {INTL_FORMAT_CACHE_MAX_SIZE, clearIntlFormatterCaches, intlDateTimeFormatCache, registerDerivedIntlCache, relativeTimeFormatCache} from './IntlFormatterCaches';
 import {translate as translateLocalize} from './Localize';
 import Log from './Log';
 import memoize from './memoize';
@@ -1684,6 +1684,14 @@ function getNextNthOfMonth(nth: number) {
     // Otherwise, return the nth of next month.
     return new Date(year, month + 1, nth);
 }
+
+// These hold values computed *through* Intl, so they go stale for the same reason the formatter caches do.
+registerDerivedIntlCache(() => {
+    getWeekStartsOn.cache.clear();
+    getMonthNames.cache.clear();
+    getLocalizedDatePlaceholder.cache.clear();
+    isDayBeforeMonth.cache.clear();
+});
 
 const DateUtils = {
     formatToDayOfWeek,

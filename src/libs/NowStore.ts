@@ -54,9 +54,13 @@ function tick() {
 }
 
 function subscribe(listener: () => void): () => void {
-    // Refresh the snapshot so the new subscriber reads a current value, but do not notify: React re-reads `getSnapshot`
-    // after `subscribe` returns, and the pending tick already owns telling everyone else.
-    advanceIfStale();
+    // `advanceIfStale` consumes the minute transition, so whoever was already subscribed has to hear about it here: the
+    // pending tick will see the same minute and skip its own notify.
+    if (advanceIfStale()) {
+        for (const other of listeners) {
+            other();
+        }
+    }
     listeners.add(listener);
     scheduleNextTick();
     return () => {

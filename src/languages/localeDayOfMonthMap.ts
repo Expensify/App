@@ -32,20 +32,23 @@ const localeDayOfMonthMap: Record<Locale, DayOfMonthRenderer> = {
                 return `${day}th`;
         }
     },
-    [LOCALES.ES]: (day) => `${day}º`,
+    /** Cardinal except the first, like the other Romance locales here: `el 1.º`, then `el 2`, `el 15`. */
+    [LOCALES.ES]: (day) => (day === 1 ? '1.º' : `${day}`),
     /** Only the first of the month takes an ordinal in French: `le 1er`, then `le 2`, `le 15`. */
     [LOCALES.FR]: (day) => (day === 1 ? '1er' : `${day}`),
     /** German dates take a trailing period. */
     [LOCALES.DE]: (day) => `${day}.`,
-    [LOCALES.EL]: (day) => `${day}η`,
+    /** Cardinal except the first: `1η`, then `2`, `15`. */
+    [LOCALES.EL]: (day) => (day === 1 ? '1η' : `${day}`),
     /** Same first-of-month rule as French: `il 1º`, then `il 2`, `il 15`. A bare `15º` would be the rank, not the date. */
     [LOCALES.IT]: (day) => (day === 1 ? '1º' : `${day}`),
     /** CJK dates carry the day unit, where the ordinal would be the `第15` prefix. */
     [LOCALES.JA]: (day) => `${day}日`,
     [LOCALES.NL]: (day) => `${day}e`,
-    /** Polish dates are cardinal; the templates supply `dnia` and any period. */
-    [LOCALES.PL]: (day) => `${day}`,
-    [LOCALES.PT_BR]: (day) => `${day}º`,
+    /** Polish dates take a trailing period, as the locale's own `1. i 16. dnia każdego miesiąca` string shows. */
+    [LOCALES.PL]: (day) => `${day}.`,
+    /** Cardinal except the first: `dia 1º`, then `dia 2`, `dia 15`. */
+    [LOCALES.PT_BR]: (day) => (day === 1 ? '1º' : `${day}`),
     [LOCALES.ZH_HANS]: (day) => `${day}日`,
 };
 
