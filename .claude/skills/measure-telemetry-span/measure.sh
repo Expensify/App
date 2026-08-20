@@ -172,6 +172,7 @@ assert_flow_conditions() {
 
   local selector
   for selector in "$@"; do
+    # shellcheck disable=SC2016 # matching a literal ${ left by an unresolved @param
     if [[ "$selector" == *'${'* ]]; then
       echo "Skipping $kind check with unresolved interpolation: $selector" >&2
       continue
