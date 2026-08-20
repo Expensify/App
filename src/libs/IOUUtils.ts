@@ -621,6 +621,16 @@ function isSelfDMSoleDestination(participants: Participant[], iouType: IOUType, 
 }
 
 /**
+ * Single source of truth for whether a LOOKING_AROUND user's self-DM create routes to Spend > Expenses (Search).
+ * Suppressed offline because Search reads a server-populated snapshot that can't load offline (would render empty),
+ * so offline these users fall back to the self-DM (Personal Space) landing. Every create path calls this so the
+ * pre-mount / dismiss / final-landing decisions can't disagree.
+ */
+function isLookingAroundSearchRoutingActive(isLookingAroundUser: boolean | undefined, isOffline: boolean | undefined): boolean {
+    return !!isLookingAroundUser && !isOffline;
+}
+
+/**
  * Resolves the reportID that should be set on the transaction draft for
  * global-create flows with default participants. Returns undefined when
  * no early set is needed (non-global-create or empty participants).
@@ -657,6 +667,7 @@ export {
     getIsWorkspacesOnlyForTransaction,
     isParticipantP2P,
     isSelfDMSoleDestination,
+    isLookingAroundSearchRoutingActive,
     resolveOptimisticChatReportID,
     resolveReportForMoneyRequest,
     resolveEarlyReportID,
