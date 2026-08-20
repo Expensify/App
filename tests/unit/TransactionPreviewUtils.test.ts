@@ -13,11 +13,12 @@ import {buildOptimisticTransaction} from '@libs/TransactionUtils';
 
 import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
-import type {ReportActions, Transaction} from '@src/types/onyx';
+import type {ReportActions, Transaction, TransactionViolation} from '@src/types/onyx';
 
 import Onyx from 'react-native-onyx';
 
 import createRandomPolicy from '../utils/collections/policies';
+import createMock from '../utils/createMock';
 import {convertToDisplayString, getCurrencyDecimalsLocal} from '../utils/TestHelper';
 import waitForBatchedUpdates from '../utils/waitForBatchedUpdates';
 
@@ -53,6 +54,7 @@ const basicProps = {
     transactionDetails: {},
     isBillSplit: false,
     shouldShowRBR: false,
+    shouldShowCanceledStatus: false,
     isReportAPolicyExpenseChat: false,
     areThereDuplicates: false,
     currentUserEmail: '',
@@ -86,7 +88,30 @@ describe('TransactionPreviewUtils', () => {
             };
 
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.RBRMessage.translationPath).toContain('violations.reviewRequired');
+            // The hold is the only reason, so there is nothing for the caller to prepend to it.
+            expect(result.shouldShowHoldMessage).toBe(true);
+            expect(result.RBRMessage.text).toEqual('');
+            // The hold belongs to the RBR row only, never repeated on the supporting line.
+            expect(result.previewStatusText).toEqual([]);
+        });
+
+        it('keeps the other violation in the RBR message when the transaction is on hold and also has violations', () => {
+            const functionArgs = {
+                ...basicProps,
+                transaction: {...basicProps.transaction, comment: {hold: 'true'}},
+                violations: [
+                    {name: CONST.VIOLATIONS.HOLD, type: CONST.VIOLATION_TYPES.VIOLATION},
+                    {name: CONST.VIOLATIONS.MISSING_CATEGORY, type: CONST.VIOLATION_TYPES.VIOLATION},
+                ] as TransactionViolation[],
+                violationMessage: 'Category missing',
+                originalTransaction: undefined,
+                shouldShowRBR: true,
+            };
+
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            // The hold violation is excluded, so the real violation survives for the caller to prepend.
+            expect(result.RBRMessage.text).toEqual('Category missing');
+            expect(result.shouldShowHoldMessage).toBe(true);
         });
 
         it('returns correct receipt error message when the transaction has receipt error', () => {
@@ -116,7 +141,7 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, iouReport: undefined, transaction: undefined, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.RBRMessage.text).toEqual('');
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.cash'});
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.cash'});
             expect(result.displayAmountText.text).toEqual('$0.00');
         });
 
@@ -133,16 +158,17 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('returns missing amount message when amount is missing but merchant is present (expense report with field errors)', () => {
-            const functionArgs = {
+            const functionArgs: Parameters<typeof getTransactionPreviewTextAndTranslationPaths>[0] = {
                 ...basicProps,
                 iouReport: {...basicProps.iouReport, type: CONST.REPORT.TYPE.IOU},
                 transaction: {
                     ...basicProps.transaction,
+                    // @ts-expect-error - This scenario deliberately passes a transaction without an amount to exercise the missing-amount branch.
                     amount: undefined,
                     modifiedAmount: undefined,
                     merchant: 'Valid Merchant',
                     created: '2024-01-01',
-                } as unknown as Transaction,
+                },
                 violations: [],
                 originalTransaction: undefined,
                 shouldShowRBR: true,
@@ -151,7 +177,7 @@ describe('TransactionPreviewUtils', () => {
             expect(result.RBRMessage.translationPath).toEqual('iou.missingAmount');
         });
 
-        it('should display showCashOrCard in previewHeaderText', () => {
+        it('should display cash or card as the preview type', () => {
             const functionArgsWithCardTransaction = {
                 ...basicProps,
                 transaction: {
@@ -163,14 +189,14 @@ describe('TransactionPreviewUtils', () => {
             const cardTransaction = getTransactionPreviewTextAndTranslationPaths(functionArgsWithCardTransaction);
             const cashTransaction = getTransactionPreviewTextAndTranslationPaths({...basicProps});
 
-            expect(cardTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.card'}]));
-            expect(cashTransaction.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.cash'}]));
+            expect(cardTransaction.previewTypeText).toEqual({translationPath: 'common.card'});
+            expect(cashTransaction.previewTypeText).toEqual({translationPath: 'iou.cash'});
         });
 
         it('displays appropriate header text if the transaction is bill split', () => {
             const functionArgs = {...basicProps, isBillSplit: true, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.split'}]));
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.split'});
         });
 
         it('displays description when receipt is being scanned', () => {
@@ -181,13 +207,15 @@ describe('TransactionPreviewUtils', () => {
                 merchant: 'Expense',
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'common.receipt'}]));
+            expect(result.previewTypeText).toEqual({translationPath: 'common.receipt'});
         });
 
         it('should apply correct text when transaction is pending and not a bill split', () => {
             const functionArgs = {...basicProps, transaction: {...basicProps.transaction, status: CONST.TRANSACTION.STATUS.PENDING}, originalTransaction: undefined};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toEqual(expect.arrayContaining([{translationPath: 'iou.pending'}]));
+            // Pending is a transaction status, so it belongs to the supporting line and must not replace the expense type.
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.pending'});
+            expect(result.previewTypeText).toEqual({translationPath: 'iou.cash'});
         });
 
         it('handles currency and amount display during scanning correctly', () => {
@@ -210,7 +238,7 @@ describe('TransactionPreviewUtils', () => {
                 transactionDetails: {amount: modifiedAmount / 2, currency},
                 transaction: {...basicProps.transaction, amount: modifiedAmount / 2, currency, comment: {originalTransactionID, source: CONST.IOU.TYPE.SPLIT}},
                 isBillSplit: true,
-                originalTransaction: {
+                originalTransaction: createMock<Transaction>({
                     reportID: CONST.REPORT.SPLIT_REPORT_ID,
                     transactionID: originalTransactionID,
                     comment: {
@@ -222,19 +250,25 @@ describe('TransactionPreviewUtils', () => {
                     modifiedAmount,
                     amount: 0,
                     currency,
-                } as Transaction,
+                }),
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('shows approved message when the iouReport is canceled', () => {
-            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
+        it('does not show the canceled status inside a report preview, because the preview header already shows it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: false};
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.canceled'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
-        it('should include "Approved" in the preview when the report is approved, regardless of whether RBR is shown', () => {
+        it('shows the canceled status in a standalone preview, because nothing else on that surface reports it', () => {
+            const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined, shouldShowCanceledStatus: true};
+            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
+            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
+        });
+
+        it('does not show the approved status when the report is approved, because it is redundant with the report status badge', () => {
             const functionArgs = {
                 ...basicProps,
                 iouReport: {
@@ -249,7 +283,7 @@ describe('TransactionPreviewUtils', () => {
             };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
 
-            expect(result.previewHeaderText).toContainEqual({translationPath: 'iou.approved'});
+            expect(result.previewStatusText).toEqual([]);
         });
 
         it('should display the correct amount for a bill split transaction', () => {
@@ -471,6 +505,25 @@ describe('TransactionPreviewUtils', () => {
             const functionArgs = {...basicProps, transaction: undefined};
             const result = createTransactionPreviewConditionals(functionArgs);
             expect(result.shouldShowSkeleton).toBeTruthy();
+        });
+
+        it('should not show skeleton for an action the backend marked deleted, whose transaction will never arrive', () => {
+            // Given a money request action deleted the way the backend reports it — `deleted` timestamps on the
+            // message and the original message rather than the `isDeletedParentAction` flag — and no transaction
+            const functionArgs = {
+                ...basicProps,
+                transaction: undefined,
+                action: {
+                    ...basicProps.action,
+                    message: [{type: 'TEXT', text: '', deleted: '2026-07-30 10:31:05.644'}],
+                },
+            };
+
+            // When the preview conditionals are computed
+            const result = createTransactionPreviewConditionals(functionArgs);
+
+            // Then the preview stays out of the loading state instead of waiting for a transaction that is gone
+            expect(result.shouldShowSkeleton).toBeFalsy();
         });
 
         it('should show merchant if merchant data is valid and significant', () => {
@@ -792,35 +845,38 @@ describe('TransactionPreviewUtils', () => {
         });
 
         test('returns unique error messages from report actions', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {a: 'Error A', b: 'Error B'}},
                 2: {errors: {c: 'Error C', a: 'Error A2'}},
                 3: {errors: {a: 'Error A', d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             const expectedErrors = ['Error B', 'Error C', 'Error D'];
             expect(getUniqueActionErrorsForTransaction(actions, undefined).sort()).toEqual(expectedErrors.sort());
         });
 
         test('returns the latest error message if multiple errors exist under a single action', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
                 1: {errors: {z: 'Error Z2', a: 'Error A', f: 'Error Z'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error Z2']);
         });
 
         test('filters out non-string error messages', () => {
-            const actions = {
+            const actions = createMock<ReportActions>({
                 /* eslint-disable @typescript-eslint/naming-convention */
-                1: {errors: {a: 404, b: 'Error B'}},
+                1: {
+                    // @ts-expect-error - This deliberately malformed error value tests filtering non-string messages.
+                    errors: {a: 404, b: 'Error B'},
+                },
                 2: {errors: {c: null, d: 'Error D'}},
                 /* eslint-enable @typescript-eslint/naming-convention */
-            } as unknown as ReportActions;
+            });
 
             expect(getUniqueActionErrorsForTransaction(actions, undefined)).toEqual(['Error B', 'Error D']);
         });
@@ -948,7 +1004,7 @@ describe('TransactionPreviewUtils', () => {
         });
 
         it('should return true when there are report action errors for the transaction', () => {
-            const reportActionsWithErrors = {
+            const reportActionsWithErrors = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.IOU,
@@ -958,7 +1014,7 @@ describe('TransactionPreviewUtils', () => {
                     message: [],
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, rbrPolicy, reportActionsWithErrors)).toBe(true);
         });
 
@@ -967,7 +1023,7 @@ describe('TransactionPreviewUtils', () => {
                 ...createRandomPolicy(1),
                 approvalMode: CONST.POLICY.APPROVAL_MODE.DYNAMICEXTERNAL,
             };
-            const dewReportActions = {
+            const dewReportActions = createMock<ReportActions>({
                 action1: {
                     reportActionID: 'action1',
                     actionName: CONST.REPORT.ACTIONS.TYPE.DEW_SUBMIT_FAILED,
@@ -976,7 +1032,7 @@ describe('TransactionPreviewUtils', () => {
                     originalMessage: {message: 'Failed to submit'},
                     pendingAction: null,
                 },
-            } as unknown as ReportActions;
+            });
             expect(transactionHasRBR(basicProps.transaction, [], rbrEmail, rbrAccountID, rbrReport, undefined, dewPolicy, dewReportActions)).toBe(true);
         });
 

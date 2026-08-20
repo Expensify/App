@@ -28,6 +28,7 @@ import cleanupAfterSkipConfirmSubmit from '@libs/Navigation/helpers/cleanupAfter
 import {submitWithDismissFirst} from '@libs/Navigation/helpers/submitWithDismissFirst';
 import {rand64} from '@libs/NumberUtils';
 import {isTrackOnboardingChoice} from '@libs/OnboardingUtils';
+import {resolveCurrentTaxCode} from '@libs/PolicyUtils';
 import {isMoneyRequestReport as isMoneyRequestReportReportUtils} from '@libs/ReportUtils';
 import {cancelSpan} from '@libs/telemetry/activeSpans';
 import type {ReceiptCaptureSource} from '@libs/telemetry/ReceiptObservability';
@@ -97,6 +98,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const [transactionViolations] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_VIOLATIONS);
     const [recentWaypoints] = useOnyx(ONYXKEYS.NVP_RECENT_WAYPOINTS);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
+    const [conciergeChat] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${conciergeReportID}`);
     const reportIDToCheck = isMoneyRequestReportReportUtils(report) ? report?.chatReportID : report?.reportID;
     const [reportDraft] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_DRAFT}${reportIDToCheck}`);
     const [allTransactionDrafts] = useOnyx(ONYXKEYS.COLLECTION.TRANSACTION_DRAFT, {selector: validTransactionDraftsSelector});
@@ -132,7 +134,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
     const participantsPolicyTags = useParticipantsPolicyTags(participants);
 
     const defaultTaxCode = getDefaultTaxCode(policy, transaction);
-    const transactionTaxCode = (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '';
+    const transactionTaxCode = resolveCurrentTaxCode(policy, (transaction?.taxCode ? transaction.taxCode : defaultTaxCode) ?? '');
     const transactionTaxAmount = transaction?.taxAmount ?? 0;
     const transactionTaxValue = transaction?.taxValue ?? getTaxValue(policy, transaction, transactionTaxCode) ?? '';
 
@@ -309,6 +311,7 @@ function ScanSkipConfirmation({report, action, iouType, reportID, transactionID,
             currentUserLocalCurrency: currentUserPersonalDetails.localCurrencyCode ?? CONST.CURRENCY.USD,
             isTrackIntentUser,
             delegateAccountID,
+            conciergeChat,
             formatPhoneNumber,
         };
 

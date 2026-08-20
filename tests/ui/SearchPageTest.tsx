@@ -35,6 +35,8 @@ import {PortalProvider} from '@gorhom/portal';
 import {NavigationContainer} from '@react-navigation/native';
 import Onyx from 'react-native-onyx';
 
+import createMock from '../utils/createMock';
+
 jest.mock('@hooks/useResponsiveLayout', () => jest.fn());
 jest.mock('@hooks/useNetwork', () => jest.fn());
 const mockSearchQueryParam = jest.fn(() => 'type:chat category:abcd');
@@ -83,6 +85,7 @@ type SearchTestRootParamList = {
 const RootStack = createRootStackNavigator<SearchTestRootParamList>();
 const SearchStack = createPlatformStackNavigator<SearchFullscreenNavigatorParamList>();
 const mockUseNetwork = jest.mocked(useNetwork);
+const mockUseResponsiveLayout = jest.mocked(useResponsiveLayout);
 const mockSearch = jest.mocked(search);
 
 const FAILED_QUERY = 'type:chat category:abcd';
@@ -151,7 +154,7 @@ const renderPage = (query = SearchQueryUtils.buildSearchQueryString(failedQueryJ
 
 describe('SearchPageNarrow', () => {
     beforeAll(() => {
-        (useResponsiveLayout as jest.Mock).mockReturnValue({shouldUseNarrowLayout: true, isSmallScreenWidth: true});
+        mockUseResponsiveLayout.mockReturnValue(createMock<ReturnType<typeof useResponsiveLayout>>({shouldUseNarrowLayout: true, isSmallScreenWidth: true}));
 
         Onyx.init({
             keys: ONYXKEYS,
