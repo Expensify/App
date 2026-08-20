@@ -1,6 +1,10 @@
 import type {Mock} from 'bun:test';
-import {afterEach, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
+import {afterEach, beforeAll, beforeEach, describe, expect, it, jest, mock} from 'bun:test';
 
+import GitHubUtils from '@github/libs/GithubUtils';
+import type {InternalOctokit} from '@github/libs/GithubUtils';
+
+import {context} from '@actions/github';
 import * as childProcess from 'child_process';
 import {Str} from 'expensify-common';
 import fs from 'fs';
@@ -14,10 +18,33 @@ import createMock from '../utils/createMock';
 // Typed to the single overload Git.ts actually uses (it always passes `encoding: 'utf8'`), so the test's
 // string-returning stubs type-check against it.
 const mockExecSync = jest.fn<(command: string, options?: childProcess.ExecSyncOptions) => string>();
-await mock.module('child_process', () => ({...childProcess, execSync: mockExecSync}));
+
+// `Git.ts` wraps the callback-style `exec` in `util.promisify`. The mock carries no `util.promisify.custom`
+// symbol, so promisify resolves with whatever single value the callback is handed - hence the `{stdout, stderr}`
+// object, matching what the real `exec`'s custom promisified form returns.
+type ExecCallback = (error: Error | null, result: {stdout: string; stderr: string}) => void;
+const mockExec = jest.fn<(command: string, options: unknown, callback: ExecCallback) => void>();
+await mock.module('child_process', () => ({...childProcess, execSync: mockExecSync, exec: mockExec}));
 
 // Must be imported after the mock.module() call above so it picks up the mock.
 const {default: Git} = await import('@scripts/utils/Git');
+
+// `Git.ts` reads `process.env.CI` once at module scope, so the CI-only branch of `getChangedFilesWithStatus`
+// needs a second evaluation of the module with CI set. The query string gives Bun a distinct module cache key,
+// making `GitInCI` an independent instance from the `Git` above, which the rest of this file uses for the local
+// code paths. It is held in a variable so TypeScript treats the specifier as dynamic and does not try to resolve
+// the query string as part of a module path.
+const CI_GIT_MODULE_SPECIFIER = '@scripts/utils/Git?ci=true';
+const ORIGINAL_CI = typeof process.env.CI === 'string' ? process.env.CI : undefined;
+process.env.CI = 'true';
+// A dynamic specifier resolves to `any`, so the annotation is what gives `GitInCI` the same type as `Git`.
+// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+const {default: GitInCI}: {default: typeof Git} = await import(CI_GIT_MODULE_SPECIFIER);
+if (ORIGINAL_CI === undefined) {
+    delete process.env.CI;
+} else {
+    process.env.CI = ORIGINAL_CI;
+}
 
 // Test constants for untracked files tests
 const MOCK_COMPONENT_CONTENT = 'const Component = () => null;\n';
@@ -1367,6 +1394,98 @@ describe('Git', () => {
 
             expect(result.hasChanges).toBe(false);
             expect(result.files).toHaveLength(0);
+        });
+    });
+
+    describe('getChangedFilesWithStatus in CI', () => {
+        let internalOctokit: InternalOctokit;
+        let paginateSpy: Mock<InternalOctokit['paginate']>;
+
+        beforeAll(() => {
+            GitHubUtils.initOctokitWithToken('fake_token');
+            const initializedOctokit = GitHubUtils.internalOctokit;
+            if (!initializedOctokit) {
+                throw new Error('Expected GithubUtils to initialize an Octokit client.');
+            }
+            internalOctokit = initializedOctokit;
+        });
+
+        beforeEach(() => {
+            // The outer beforeEach calls restoreAllMocks(), so the spy has to be re-created for every test.
+            paginateSpy = jest.spyOn(internalOctokit, 'paginate');
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            context.payload = {pull_request: {number: 123}};
+        });
+
+        /** Stubs the promisified `exec` used by the fallback with a fixed `git diff --name-status` output. */
+        function mockNameStatusOutput(stdout: string) {
+            mockExec.mockImplementation((command, options, callback) => callback(null, {stdout, stderr: ''}));
+        }
+
+        it('maps the API response and requests few enough files per page for GitHub to build the diff', async () => {
+            paginateSpy.mockResolvedValue([
+                {filename: 'src/added.ts', status: 'added'},
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                {filename: 'src/new.ts', status: 'renamed', previous_filename: 'src/old.ts'},
+            ]);
+
+            const result = await GitInCI.getChangedFilesWithStatus('main');
+
+            expect(result).toEqual([
+                {filename: 'src/added.ts', status: 'added', previousFilename: undefined},
+                {filename: 'src/new.ts', status: 'renamed', previousFilename: 'src/old.ts'},
+            ]);
+            expect(paginateSpy).toHaveBeenCalledWith(
+                GitHubUtils.octokit.pulls.listFiles,
+                // eslint-disable-next-line @typescript-eslint/naming-convention
+                expect.objectContaining({per_page: 30}),
+            );
+            expect(mockExec).not.toHaveBeenCalled();
+        });
+
+        it('falls back to a local git diff when the API cannot list the changed files', async () => {
+            paginateSpy.mockRejectedValue(new Error('Sorry, this diff is taking too long to generate.'));
+            mockNameStatusOutput('A\tsrc/added.ts\nM\tsrc/modified.ts\nD\tsrc/removed.ts\nT\tsrc/retyped.ts\n');
+
+            const result = await GitInCI.getChangedFilesWithStatus('main');
+
+            expect(result).toEqual([
+                {filename: 'src/added.ts', status: 'added'},
+                {filename: 'src/modified.ts', status: 'modified'},
+                {filename: 'src/removed.ts', status: 'removed'},
+                {filename: 'src/retyped.ts', status: 'modified'},
+            ]);
+            expect(mockExec).toHaveBeenCalledWith('git diff --name-status -M main', expect.anything(), expect.any(Function));
+        });
+
+        it('reports renames and copies with the previous filename', async () => {
+            paginateSpy.mockRejectedValue(new Error('diff not available'));
+            mockNameStatusOutput('R100\tsrc/old.ts\tsrc/new.ts\nR086\tsrc/wasHere.ts\tsrc/isHere.ts\nC075\tsrc/source.ts\tsrc/copy.ts\n');
+
+            const result = await GitInCI.getChangedFilesWithStatus('main');
+
+            expect(result).toEqual([
+                {filename: 'src/new.ts', status: 'renamed', previousFilename: 'src/old.ts'},
+                {filename: 'src/isHere.ts', status: 'renamed', previousFilename: 'src/wasHere.ts'},
+                {filename: 'src/copy.ts', status: 'renamed', previousFilename: 'src/source.ts'},
+            ]);
+        });
+
+        it('diffs the two refs directly when a toRef is given, so a shallow checkout is enough', async () => {
+            paginateSpy.mockRejectedValue(new Error('diff not available'));
+            mockNameStatusOutput('M\tsrc/modified.ts\n');
+
+            const result = await GitInCI.getChangedFilesWithStatus('abc123', 'def456');
+
+            expect(result).toEqual([{filename: 'src/modified.ts', status: 'modified'}]);
+            expect(mockExec).toHaveBeenCalledWith('git diff --name-status -M abc123 def456', expect.anything(), expect.any(Function));
+        });
+
+        it('returns an empty list when the fallback diff finds no changes', async () => {
+            paginateSpy.mockRejectedValue(new Error('diff not available'));
+            mockNameStatusOutput('\n');
+
+            expect(await GitInCI.getChangedFilesWithStatus('main')).toEqual([]);
         });
     });
 });
