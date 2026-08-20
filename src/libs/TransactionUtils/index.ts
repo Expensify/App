@@ -3214,12 +3214,14 @@ function getChildTransactions(transactions: OnyxCollection<Transaction>, origina
 function createUnreportedExpenses(transactions: Array<OnyxEntry<Transaction> | undefined>): UnreportedExpenseListItemType[] {
     return transactions
         .filter((t): t is Transaction => t !== undefined)
-        .map((transaction): UnreportedExpenseListItemType => ({
-            ...transaction,
-            isDisabled: isTransactionPendingDelete(transaction),
-            keyForList: transaction.transactionID,
-            errors: transaction.errors as Errors | undefined,
-        }));
+        .map(
+            (transaction): UnreportedExpenseListItemType => ({
+                ...transaction,
+                isDisabled: isTransactionPendingDelete(transaction),
+                keyForList: transaction.transactionID,
+                errors: transaction.errors as Errors | undefined,
+            }),
+        );
 }
 
 function willFieldBeAutomaticallyFilled(transaction: OnyxEntry<Transaction>, fieldType: 'amount' | 'merchant' | 'date' | 'category'): boolean {
