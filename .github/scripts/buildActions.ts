@@ -47,7 +47,7 @@ const COMPILED_FILE_BANNER = `/**
 `;
 
 // Our bundles are real ESM (see .github/actions/javascript/package.json's "type": "module"), but several
-// dependencies (e.g. @actions/core, googleapis, lodash, semver, @babel/parser) are still CJS and call
+// dependencies (e.g. @actions/core, googleapis-common, lodash, semver, @babel/parser) are still CJS and call
 // require() on Node builtins internally. esbuild can't provide a `require` in ESM output on its own, so we
 // shim one in via createRequire, scoped to each bundle's own import.meta.url.
 const REQUIRE_SHIM_BANNER = "import {createRequire as __createRequire} from 'module'; const require = __createRequire(import.meta.url);";
