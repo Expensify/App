@@ -1654,6 +1654,7 @@ const DYNAMIC_ROUTES = {
             SCREENS.RIGHT_MODAL.EXPENSE_REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_MONEY_REQUEST_REPORT,
             SCREENS.SHARE.SUBMIT_DETAILS,
+            SCREENS.MONEY_REQUEST.SPLIT_EXPENSE_EDIT,
         ],
         getRoute: (action: IOUAction, iouType: IOUType, transactionID: string, reportID: string | undefined) => getUrlWithParams('taxRate', {action, iouType, transactionID, reportID}),
         queryParams: ['action', 'iouType', 'transactionID', 'reportID'],
