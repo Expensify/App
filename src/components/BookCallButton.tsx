@@ -1,7 +1,6 @@
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
-import useThemeStyles from '@hooks/useThemeStyles';
 
 import {openExternalLink} from '@libs/actions/Link';
 import {callFunctionIfActionIsAllowed} from '@libs/actions/Session';
@@ -12,12 +11,8 @@ import type {PersonalDetailsList} from '@src/types/onyx';
 
 import type {StyleProp, ViewStyle} from 'react-native';
 
-import React from 'react';
-import {View} from 'react-native';
-
 import Avatar from './Avatar';
 import Button from './ButtonComposed';
-import Text from './Text';
 
 type BookCallButtonProps = {
     /** The calendar link to open when the button is pressed */
@@ -35,7 +30,6 @@ type BookCallButtonProps = {
 
 function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}: BookCallButtonProps) {
     const {translate} = useLocalize();
-    const styles = useThemeStyles();
     const icons = useMemoizedLazyExpensifyIcons(['Phone']);
     const [avatarDetails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
         selector: (personalDetails: PersonalDetailsList | undefined) => (avatarAccountID ? personalDetails?.[avatarAccountID] : undefined),
@@ -66,16 +60,14 @@ function BookCallButton({calendarLink, avatarAccountID, isNested = false, style}
 
     return (
         <Button {...commonProps}>
-            <View style={[styles.flexRow, styles.alignItemsCenter, styles.justifyContentCenter, styles.gap2]}>
-                <Avatar
-                    source={avatarDetails?.avatar}
-                    avatarID={avatarAccountID}
-                    name={avatarDetails?.displayName ?? avatarDetails?.login}
-                    type={CONST.ICON_TYPE_AVATAR}
-                    size={CONST.AVATAR_SIZE.XXX_SMALL}
-                />
-                <Text style={[styles.buttonText, styles.buttonMediumText]}>{label}</Text>
-            </View>
+            <Avatar
+                source={avatarDetails?.avatar}
+                avatarID={avatarAccountID}
+                name={avatarDetails?.displayName ?? avatarDetails?.login}
+                type={CONST.ICON_TYPE_AVATAR}
+                size={CONST.AVATAR_SIZE.XXX_SMALL}
+            />
+            <Button.Text>{label}</Button.Text>
         </Button>
     );
 }
