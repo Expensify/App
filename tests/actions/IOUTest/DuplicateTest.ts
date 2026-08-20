@@ -3,7 +3,7 @@ import type {RenderAPI} from '@testing-library/react-native';
 
 import {bulkDuplicateExpenses, bulkDuplicateReports, duplicateExpenseTransaction, duplicateReport, mergeDuplicates, resolveDuplicates} from '@libs/actions/IOU/Duplicate';
 import type {BulkDuplicateReportsParams, DuplicateReportParams} from '@libs/actions/IOU/Duplicate';
-import {getReportPreviewAction} from '@libs/actions/IOU/MoneyRequestBuilder';
+import {getReportPreviewReportAction} from '@libs/actions/IOU/MoneyRequestBuilder';
 import initOnyxDerivedValues from '@libs/actions/OnyxDerived';
 import {addComment, openReport} from '@libs/actions/Report';
 import type {MergeDuplicatesParams} from '@libs/API/parameters';
@@ -681,7 +681,7 @@ describe('actions/Duplicate', () => {
             await waitForBatchedUpdates();
 
             // Then we expect the reportPreview to update with new childVisibleActionCount
-            previewAction = getReportPreviewAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
+            previewAction = getReportPreviewReportAction(chatReport?.reportID, expenseReport?.reportID) ?? undefined;
             expect(previewAction).toBeTruthy();
             expect(previewAction?.childVisibleActionCount).toEqual(0);
             expect(previewAction?.childCommenterCount).toEqual(0);
@@ -1654,6 +1654,44 @@ describe('actions/Duplicate', () => {
             writeSpy.mockRestore();
         });
 
+        it('threads the conciergeChat report through to requestMoney', () => {
+            const requestMoneySpy = jest.spyOn(require('@libs/actions/IOU/TrackExpense'), 'requestMoney');
+            const conciergeChat = {reportID: 'concierge-duplicate-1'};
+
+            duplicateExpenseTransaction({
+                conciergeChat,
+                dateFnsLocale: undefined,
+                getCurrencyDecimals: getCurrencyDecimalsLocal,
+                participantsPolicyTags: {},
+                transaction: {...mockTransaction, amount: mockTransaction.amount * -1},
+                optimisticChatReportID: mockOptimisticChatReportID,
+                optimisticIOUReportID: mockOptimisticIOUReportID,
+                isASAPSubmitBetaEnabled: mockIsASAPSubmitBetaEnabled,
+                introSelected: undefined,
+                quickAction: undefined,
+                policyRecentlyUsedCurrencies: [],
+                isSelfTourViewed: false,
+                customUnitPolicyID: '',
+                targetPolicy: mockPolicy,
+                targetPolicyCategories: fakePolicyCategories,
+                targetReport: policyExpenseChat,
+                existingTransactionDraft: undefined,
+                personalDetails: mockPersonalDetails,
+                betas: [CONST.BETAS.ALL],
+                recentWaypoints,
+                targetPolicyTags,
+                policyTagList: targetPolicyTags ?? {},
+                currentUser: {accountID: RORY_ACCOUNT_ID, email: RORY_EMAIL},
+                currentUserLocalCurrency: undefined,
+                delegateAccountID: undefined,
+                isTrackIntentUser: false,
+                formatPhoneNumber,
+            });
+
+            expect(requestMoneySpy).toHaveBeenCalledWith(expect.objectContaining({conciergeChat}));
+            requestMoneySpy.mockRestore();
+        });
+
         it('should create a duplicate expense successfully', async () => {
             const {waypoints, ...restOfComment} = mockTransaction.comment ?? {};
             const mockCashExpenseTransaction = {
@@ -1668,6 +1706,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1738,6 +1777,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1800,6 +1840,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -1855,6 +1896,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockScanExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2091,6 +2133,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2150,6 +2193,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2218,6 +2262,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTimeExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2270,6 +2315,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: undefined,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2317,6 +2363,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2367,6 +2414,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2423,6 +2471,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2494,6 +2543,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockPerDiemTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2566,6 +2616,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockTransactionWithLinkedAction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2621,6 +2672,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction without targetPolicy
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpenseTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2687,6 +2739,7 @@ describe('actions/Duplicate', () => {
             // When duplicating the transaction
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockCashExpense,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2894,6 +2947,7 @@ describe('actions/Duplicate', () => {
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
             participantsPolicyTags: {},
+            conciergeChat: undefined,
             ...overrides,
         });
 
@@ -3493,6 +3547,7 @@ describe('actions/Duplicate', () => {
 
             bulkDuplicateExpenses({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transactionIDs: ['bulk_1', 'bulk_2', 'bulk_3'],
                 allTransactions,
                 sourcePolicyIDMap: {},
@@ -3632,6 +3687,7 @@ describe('actions/Duplicate', () => {
             isTrackIntentUser: false,
             formatPhoneNumber,
             getCurrencyDecimals: getCurrencyDecimalsLocal,
+            conciergeChat: undefined,
             ...overrides,
         });
 
