@@ -175,6 +175,9 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
     const bankConnectionActionText = bankConnectionStatus?.actionKey ? translate(bankConnectionStatus.actionKey) : undefined;
     const bankBadgeIcon = !isWalletConnectionStatusBetaEnabled && (isAccountInSetupState || (isBusinessBankAccountLocked && canWritePayments)) ? expensifyIcons.DotIndicator : undefined;
     const canInteractWithBankAccountRow = canWritePayments && !isOffline && !isBankAccountPendingDelete;
+    // Only the reimburser can send the unlock request, so a locked account offers no action to anyone else rather than
+    // an Unlock button that would instead start connecting a different bank account.
+    const canPerformBankAccountAction = !isBusinessBankAccountLocked || isUserReimburser;
 
     const updateWorkspaceCurrencyPrompt = (
         <View style={[styles.renderHTML, styles.flexRow]}>
@@ -304,7 +307,7 @@ function WorkflowsPaymentsTab({policyID}: WorkflowsPaymentsTabProps) {
                                                     <ConnectionStatusMessage
                                                         message={bankConnectionMessage}
                                                         actionText={bankConnectionActionText}
-                                                        onActionPress={canWritePayments ? handleBankAccountPress : undefined}
+                                                        onActionPress={canWritePayments && canPerformBankAccountAction ? handleBankAccountPress : undefined}
                                                         isActionDisabled={!canInteractWithBankAccountRow}
                                                         statusTone="danger"
                                                         shouldIncludeHorizontalPadding={false}
