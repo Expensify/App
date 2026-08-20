@@ -405,7 +405,7 @@ function setCreateDomainAlreadyHaveAccessError() {
     });
 }
 
-/** Clears the BE error on the add domain form, which stays hidden while we hold onto the accountID. No server call is performed. */
+/** Clears the domain account ID so the hidden backend error can be displayed. No server call is performed. */
 function clearCreateDomainAccountID() {
     Onyx.merge(ONYXKEYS.FORMS.CREATE_DOMAIN_FORM, {domainAccountID: null});
 }
