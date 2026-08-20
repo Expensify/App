@@ -230,23 +230,24 @@ function MoneyRequestReportPreview({
             if (isSmallScreenWidth && iouReportID) {
                 const reportRoute = ROUTES.REPORT_WITH_ID.getRoute(iouReportID, undefined, undefined, Navigation.getActiveRoute());
                 Navigation.navigate(reportRoute);
-                setActiveTransactionIDs(openableTransactionIDs).then(() => {
-                    const release = () => {
+                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                const release = () => {
+                    seeded.then(() => {
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
                         }
                         clearActiveTransactionIDs();
-                    };
-                    const timer = setTimeout(() => {
-                        cascadeTimerRef.current = null;
-                        if (!Navigation.isActiveRoute(reportRoute)) {
-                            release();
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                    }, PRESSED_EXPENSE_CASCADE_DELAY);
-                    cascadeTimerRef.current = {timer, release};
-                });
+                    });
+                };
+                const timer = setTimeout(() => {
+                    cascadeTimerRef.current = null;
+                    if (!Navigation.isActiveRoute(reportRoute)) {
+                        release();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                }, PRESSED_EXPENSE_CASCADE_DELAY);
+                cascadeTimerRef.current = {timer, release};
                 return;
             }
 
@@ -260,25 +261,26 @@ function MoneyRequestReportPreview({
                 const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: iouReportID, backTo: Navigation.getActiveRoute()});
                 markReportRHPWidth(iouReportID, 'super-wide');
                 Navigation.navigate(reportRoute);
-                setActiveTransactionIDs(openableTransactionIDs).then(() => {
-                    markReportRHPWidth(childReportID, 'wide');
-                    const release = () => {
-                        unmarkReportRHPWidth(childReportID);
+                const seeded = setActiveTransactionIDs(openableTransactionIDs);
+                markReportRHPWidth(childReportID, 'wide');
+                const release = () => {
+                    unmarkReportRHPWidth(childReportID);
+                    seeded.then(() => {
                         if (getActiveTransactionIDs().ids !== openableTransactionIDs) {
                             return;
                         }
                         clearActiveTransactionIDs();
-                    };
-                    const timer = setTimeout(() => {
-                        cascadeTimerRef.current = null;
-                        if (!Navigation.isActiveRoute(reportRoute)) {
-                            release();
-                            return;
-                        }
-                        Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
-                    }, PRESSED_EXPENSE_CASCADE_DELAY);
-                    cascadeTimerRef.current = {timer, release};
-                });
+                    });
+                };
+                const timer = setTimeout(() => {
+                    cascadeTimerRef.current = null;
+                    if (!Navigation.isActiveRoute(reportRoute)) {
+                        release();
+                        return;
+                    }
+                    Navigation.navigate(ROUTES.SEARCH_REPORT.getRoute({reportID: childReportID, backTo: reportRoute}));
+                }, PRESSED_EXPENSE_CASCADE_DELAY);
+                cascadeTimerRef.current = {timer, release};
                 return;
             }
 

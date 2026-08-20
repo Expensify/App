@@ -10,8 +10,6 @@ import type {ValueOf} from 'type-fest';
 import React from 'react';
 import {View} from 'react-native';
 
-// The dispatcher owns no props and reads its decision from context, so drive the decision through the mocked context
-// slice and stub each branch component with a spy so we can assert which one gets rendered for a given action.
 const mockActionState: {reportPreviewAction: ValueOf<typeof CONST.REPORT.REPORT_PREVIEW_ACTIONS>; connectedIntegration: ConnectionName | undefined} = {
     reportPreviewAction: CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW,
     connectedIntegration: undefined,
@@ -80,14 +78,11 @@ jest.mock('@components/ButtonComposed', () => {
     };
 });
 
-// Marker style objects so the row layout is actually observable. With `{flex1: {}}` alone, `styles.flexRow` and
-// `styles.gap2` resolved to undefined and were silently dropped from the style array, leaving the two-button row
-// completely untested — a typo'd style key would have passed.
+// These must stay distinct objects: with `{}` values the style assertions below pass even when the styles are missing.
 const mockStyles = {flex1: {flex: 1}, flexRow: {flexDirection: 'row'}, gap2: {gap: 8}};
 jest.mock('@hooks/useThemeStyles', () => ({__esModule: true, default: () => mockStyles}));
 jest.mock('@hooks/useLocalize', () => ({__esModule: true, default: () => ({translate: (key: string) => key})}));
 
-// Reads the style array off the component's outermost View without an unsafe cast.
 function flattenContainerStyle(rendered: ReturnType<typeof render>): unknown[] {
     const container = rendered.UNSAFE_getAllByType(View).at(0);
     const style: unknown = container?.props.style;
@@ -118,8 +113,7 @@ describe('ReportPreviewActionButton', () => {
         mockActionState.connectedIntegration = CONST.POLICY.CONNECTIONS.NAME.QBO;
         render(<ReportPreviewActionButton />);
         expect(mockExport).toHaveBeenCalled();
-        // The View button now renders alongside the primary action button (here ExportActionButton) rather than
-        // instead of it, so it is expected to render too.
+        // View renders alongside the primary action, not instead of it.
         expect(mockView).toHaveBeenCalled();
     });
 
@@ -131,14 +125,11 @@ describe('ReportPreviewActionButton', () => {
         expect(mockExport).not.toHaveBeenCalled();
     });
     it('lays the primary action and View out in a row, and keeps a lone View full-width', () => {
-        // Issue #91042 adds the grey View button beside the primary action. The row is width-capped, so the layout
-        // styles are load-bearing: without flexRow/gap2 the two buttons stack instead of sitting side by side.
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.PAY;
         const withPrimary = render(<ReportPreviewActionButton />);
         expect(flattenContainerStyle(withPrimary)).toEqual(expect.arrayContaining([mockStyles.flexRow, mockStyles.gap2]));
         withPrimary.unmount();
 
-        // With no primary action the View button stands alone and must NOT be laid out as a row.
         jest.clearAllMocks();
         mockActionState.reportPreviewAction = CONST.REPORT.REPORT_PREVIEW_ACTIONS.VIEW;
         const viewOnly = render(<ReportPreviewActionButton />);

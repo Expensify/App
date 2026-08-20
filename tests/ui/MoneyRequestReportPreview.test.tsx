@@ -86,8 +86,7 @@ jest.mock('@src/hooks/useReportWithTransactionsAndViolations', () => ({
     default: (...args: Parameters<typeof mockUseReportWithTransactionsAndViolations>) => mockUseReportWithTransactionsAndViolations(...args),
 }));
 
-// Lets a single test force the narrow (mobile) layout. When left undefined every other test
-// runs the real hook unchanged, so the existing wide-layout tests keep their behavior.
+// Left undefined, every other test runs the real hook, so the wide-layout tests keep their behavior.
 let mockResponsiveLayoutOverride: ResponsiveLayoutResult | undefined;
 jest.mock('@hooks/useResponsiveLayout', () => {
     const actual = jest.requireActual<{default: () => ResponsiveLayoutResult}>('@hooks/useResponsiveLayout');
@@ -125,8 +124,6 @@ const wideResponsiveLayout: ResponsiveLayoutResult = {
     isInLandscapeMode: false,
 };
 
-// The preview reads `iouReport` from a prop (provided stable by the parent) and its transactions from the
-// scoped `useReportTransactionsCollection` hook, so the test drives those two sources directly.
 let mockIOUReportProp: OnyxEntry<Report> = mockIOUReport;
 
 const mockUseReportTransactionsCollection = jest.fn(() => toCollectionDataSet(ONYXKEYS.COLLECTION.TRANSACTION, defaultPreviewTransactions, (transaction) => transaction.transactionID));
@@ -138,9 +135,7 @@ jest.mock('@hooks/useReportTransactionsCollection', () => ({
 
 type OnHoldMenuOpen = (requestType: string, paymentType?: PaymentMethodType, canPay?: boolean, methodID?: number) => void;
 
-// Capture the onHoldMenuOpen callback the preview passes to the pay button so a held-expense payment can be triggered
-// directly with a selected bank account, mirroring a user picking an account in the dropdown for a held report.
-// The wrapper still renders the real component so these tests keep exercising it.
+// Capture onHoldMenuOpen so a held-expense payment can be triggered with a chosen bank account.
 const mockOnHoldMenuOpenHolder: {current?: OnHoldMenuOpen} = {current: undefined};
 jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewActionButton', () => {
     const actualReact = jest.requireActual<typeof React>('react');
@@ -149,7 +144,6 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
     return {
         __esModule: true,
         default: function MockReportPreviewActionButton() {
-            // ReportPreviewActionButton now reads from context instead of props; capture onHoldMenuOpen from the context.
             const {onHoldMenuOpen} = useReportPreviewActions();
             mockOnHoldMenuOpenHolder.current = onHoldMenuOpen;
             return actualReact.createElement(actualModule.default);
@@ -157,8 +151,7 @@ jest.mock('@components/ReportActionItem/MoneyRequestReportPreview/ReportPreviewA
     };
 });
 
-// The preview widens the RHP for the report it opens and narrows it back when a press is abandoned. Nothing in the
-// rendered output reflects that, so capture the calls to assert the widths are actually requested and released.
+// The RHP widths never reach the rendered output, so capture the calls to assert they are requested and released.
 const mockMarkReportRHPWidth = jest.fn();
 const mockUnmarkReportRHPWidth = jest.fn();
 jest.mock('@components/WideRHPContextProvider', () => ({
@@ -169,7 +162,6 @@ jest.mock('@components/WideRHPContextProvider', () => ({
     }),
 }));
 
-// Capture the props the preview forwards to the hold menu so the selected bank account that reaches it can be asserted.
 const mockHoldMenuPropsHolder: {current?: {isVisible?: boolean; paymentType?: PaymentMethodType; methodID?: number}} = {current: undefined};
 jest.mock('@components/ProcessMoneyReportHoldMenu', () => ({
     __esModule: true,
@@ -243,7 +235,6 @@ const getTransactionDisplayAmountAndMetadataText = (transaction: Transaction) =>
     const created = getFormattedCreated(transaction);
     const date = DateUtils.formatWithUTCTimeZone(created, DateUtils.doesDateBelongToAPastYear(created) ? CONST.DATE.MONTH_DAY_YEAR_ABBR_FORMAT : CONST.DATE.MONTH_DAY_ABBR_FORMAT, undefined);
     const isTransactionMadeWithCard = isManagedCardTransaction(transaction);
-    // The date leads the supporting line, which can also carry the category and the report status.
     const transactionSupportingText = new RegExp(`^${date}`);
     const transactionTypeText = isTransactionMadeWithCard ? TestHelper.translateLocal('iou.card') : TestHelper.translateLocal('iou.cash');
     const transactionDisplayAmount = TestHelper.convertToDisplayString(-transaction.amount, transaction.currency);
@@ -484,8 +475,7 @@ describe('MoneyRequestReportPreview', () => {
     describe('pressing a transaction in the carousel', () => {
         const navigateSpy = jest.spyOn(Navigation, 'navigate');
 
-        // Give every transaction its own thread report so the assertion proves the *pressed* card
-        // drives navigation, instead of every card sharing one parent-report handler.
+        // A distinct thread per transaction, so the assertions prove the *pressed* card drives navigation.
         const buildActionWithThread = (reportID: string | undefined, transactionID: string | undefined) => {
             if (!reportID || !transactionID) {
                 return undefined;
@@ -510,8 +500,7 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Both layouts open the report first and the pressed expense on a short timer on top of it. Let that timer
-        // run so assertions see the expense, not just the report underneath it.
+        // Both layouts open the report first and the pressed expense on a short timer; let that timer run.
         const settleCascade = async () => {
             await act(async () => {
                 jest.advanceTimersByTime(400);
@@ -520,26 +509,21 @@ describe('MoneyRequestReportPreview', () => {
             await waitForBatchedUpdatesWithAct();
         };
 
-        // Route the narrow cascade opens beneath the pressed expense.
         const narrowReportRoute = () => ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, '');
 
         beforeEach(() => {
             navigateSpy.mockImplementation(() => {});
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue('');
-            // The wide-layout cascade guards its delayed expense navigation on isActiveRoute(reportRoute); default to
-            // "still on the report" so the happy-path cascade fires.
+            // The cascade guards its delayed navigation on isActiveRoute; default to "still on the report".
             jest.spyOn(Navigation, 'isActiveRoute').mockReturnValue(true);
         });
 
         afterEach(() => {
             mockResponsiveLayoutOverride = undefined;
-            // Restore the globally-enabled fake timers in case a test opted into real timers.
             jest.useFakeTimers();
         });
 
         it('opens the report in the wide RHP and then the pressed expense on top (after a short delay) on wide layouts', async () => {
-            // The pressed expense opens on a short setTimeout so the report's wide RHP settles first. Use real
-            // timers so that delayed navigation actually fires
             jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -552,8 +536,7 @@ describe('MoneyRequestReportPreview', () => {
                 });
             });
 
-            // The report opens in the wide RHP first so it sits below, then the pressed expense opens on top
-            // of it (back returns to the report, not the Inbox).
+            // The report opens first and sits below, so back returns to it rather than the Inbox.
             const reportRoute = ROUTES.EXPENSE_REPORT_RHP.getRoute({reportID: mockIOUReport.reportID, backTo: ''});
             expect(navigateSpy).toHaveBeenCalledTimes(2);
             expect(navigateSpy).toHaveBeenNthCalledWith(1, reportRoute);
@@ -561,8 +544,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('does not reopen the pressed expense if the user leaves the report during the wide-layout cascade delay', async () => {
-            // Regression: the report opens, but if the user dismisses its wide RHP (or navigates away) before the
-            // cascade timer fires, the delayed callback must not reopen the expense over whatever screen is now active.
+            // Regression: navigating away before the timer fires must not reopen the expense over the new screen.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -582,8 +564,6 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('opens the report and then the pressed expense on top of it (after a short delay) on narrow layouts', async () => {
-            // The pressed expense opens on a short setTimeout so the report settles first. Use real timers so that
-            // delayed navigation actually fires.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -604,9 +584,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('keeps the pressed expense out of the split stack on narrow layouts', async () => {
-            // The expense must open in the RHP, never as a split-navigator screen: the flows that clean up after a
-            // thread (split-expense save, delete) assume it is not there. removeScreenByKey only filters the root
-            // navigator's routes, so a nested split screen can never be removed by it.
+            // Deploy blocker #97183: removeScreenByKey only filters the root navigator, so a nested split screen can never be removed.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -619,17 +597,13 @@ describe('MoneyRequestReportPreview', () => {
                 });
             });
 
-            // The thread must never be navigated to as a report screen, whatever backTo it would carry.
             const threadID = `thread_${mockSecondTransactionID}`;
             const threadAsReportScreen = navigateSpy.mock.calls.map(([route]) => String(route)).filter((route) => route.startsWith(`r/${threadID}`));
             expect(threadAsReportScreen).toEqual([]);
-            // ...and it did open, as the RHP route, so the assertion above is not passing merely because nothing opened.
             expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: threadID, backTo: narrowReportRoute()}));
         });
 
         it('does not open the pressed expense if the user leaves the report during the narrow cascade delay', async () => {
-            // Same guard the wide cascade has: the delayed navigation must not land on top of whatever screen the
-            // user moved to while the timer was pending.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -651,8 +625,7 @@ describe('MoneyRequestReportPreview', () => {
         it('fetches the report actions when the thread resolved only from the transaction, so the carousel can resolve siblings', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
-            // Cache-clear shape: the IOU report's actions are absent, but each transaction still carries its own
-            // transactionThreadReportID, so the press resolves a thread WITHOUT loading the report's actions.
+            // Cache-clear shape: no report actions, but each transaction still carries its own thread id.
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
@@ -669,11 +642,8 @@ describe('MoneyRequestReportPreview', () => {
             await pressSecondTransaction();
             await settleCascade();
 
-            // The expense opens straight away from the transaction's own thread id...
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
-            // ...but the report's actions must still be fetched. The prev/next carousel resolves each sibling through
-            // those actions; without them an arrow press cannot find the sibling's existing thread and mints a
-            // duplicate thread with no parent instead.
+            // The actions must still be fetched, or an arrow press mints a duplicate thread with no parent.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
         });
 
@@ -687,14 +657,12 @@ describe('MoneyRequestReportPreview', () => {
             await pressSecondTransaction();
             expect(navigateSpy).not.toHaveBeenCalled();
 
-            // The tap looked dead, so the user opens the report the other way. That is an explicit choice and must
-            // supersede the deferred press — otherwise the fetch landing yanks them into the expense.
+            // Opening the report explicitly must supersede the deferred press.
             navigateSpy.mockClear();
             fireEvent.press(screen.getByText(TestHelper.translateLocal('common.view')));
             await waitForBatchedUpdatesWithAct();
             expect(navigateSpy).toHaveBeenCalledWith(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID, undefined, undefined, ''));
-            // The app is now on the report, not the chat the press was made from. The suite pins getActiveRoute to a
-            // constant, so model the real navigation for the assertion below to mean anything.
+            // The suite pins getActiveRoute, so model the real navigation for the assertion below to mean anything.
             jest.spyOn(Navigation, 'getActiveRoute').mockReturnValue(ROUTES.REPORT_WITH_ID.getRoute(mockIOUReport.reportID) as Route);
 
             navigateSpy.mockClear();
@@ -722,14 +690,12 @@ describe('MoneyRequestReportPreview', () => {
 
             await renderAndPopulateCarousel();
 
-            // Press the first card — it defers, waiting on the report's actions.
             const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             const [firstCard] = screen.getAllByText(transactionDisplayAmount);
             fireEvent.press(firstCard);
             await waitForBatchedUpdatesWithAct();
             expect(navigateSpy).not.toHaveBeenCalled();
 
-            // Now press the second card, which opens straight away. That is the expense the user is waiting on.
             navigateSpy.mockClear();
             await pressSecondTransaction();
             await settleCascade();
@@ -755,9 +721,7 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // Online, a delete-pending row is already filtered out of `transactions` upstream, so openableTransactionIDs
-            // must equal the full visible list. This pins the filter as an offline-only refinement — it would fail if
-            // someone widened the predicate (e.g. to one that also matches pendingFields) and started dropping live rows.
+            // Online, delete-pending rows are already filtered upstream, so the seed must equal the full visible list.
             expect(setActiveTransactionIDsSpy).toHaveBeenCalledWith(defaultPreviewTransactions.map((transaction) => transaction.transactionID));
         });
 
@@ -775,8 +739,7 @@ describe('MoneyRequestReportPreview', () => {
 
             await renderAndPopulateCarousel();
 
-            // Issue #26939: deleting an expense offline must leave the preview VISIBLE (greyed out) rather than
-            // collapsing it. v2 only makes that row non-navigable — it must not disappear, so both cards still render.
+            // Issue #26939: an offline-deleted expense stays visible but non-navigable, so both cards still render.
             const {transactionDisplayAmount} = getTransactionDisplayAmountAndMetadataText(mockTransaction);
             expect(screen.getAllByText(transactionDisplayAmount).length).toBeGreaterThanOrEqual(2);
         });
@@ -786,7 +749,6 @@ describe('MoneyRequestReportPreview', () => {
             mockUseNetwork.mockReturnValue({isOffline: true});
             const setActiveTransactionIDsSpy = jest.spyOn(TransactionThreadNavigation, 'setActiveTransactionIDs');
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
-            // First row is live, second is delete-pending. Offline keeps the deleted row visible in the carousel.
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
@@ -801,8 +763,7 @@ describe('MoneyRequestReportPreview', () => {
             fireEvent.press(liveRow);
             await waitForBatchedUpdatesWithAct();
 
-            // Pressing the LIVE row must not seed the deleted sibling, otherwise the RHP's next arrow opens a thread
-            // that no longer exists and lands on "It's not here" (deploy blocker #97149, arrow path).
+            // Deploy blocker #97149: seeding a deleted sibling makes the next arrow land on "It's not here".
             expect(setActiveTransactionIDsSpy).toHaveBeenCalled();
             const seededIDs = setActiveTransactionIDsSpy.mock.calls.at(-1)?.at(0);
             expect(seededIDs).not.toContain(mockSecondTransactionID);
@@ -812,8 +773,7 @@ describe('MoneyRequestReportPreview', () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             mockUseNetwork.mockReturnValue({isOffline: true});
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
-            // Offline deletes stay in the carousel, but the thread is already gone — pressing it must not land on
-            // "It's not here" (deploy blocker #97149).
+            // Deploy blocker #97149: the thread is already gone, so pressing the row must not land on "It's not here".
             mockUseReportTransactionsCollection.mockImplementation(() =>
                 toCollectionDataSet(
                     ONYXKEYS.COLLECTION.TRANSACTION,
@@ -837,8 +797,7 @@ describe('MoneyRequestReportPreview', () => {
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // The thread already exists but may not be cached (offline / after a cache clear), so its optimistic
-            // report shell is seeded before navigating — otherwise the tap can land on a blank expense.
+            // The thread may not be cached, so its optimistic shell is seeded before navigating.
             expect(seedSpy).toHaveBeenCalledWith(`thread_${mockSecondTransactionID}`, mockIOUReport.reportID, expect.anything(), expect.anything());
         });
 
@@ -860,19 +819,16 @@ describe('MoneyRequestReportPreview', () => {
         it('fetches the report actions and opens the pressed expense once they load, instead of the parent report, after a cache clear', async () => {
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
-            // Simulate a cache clear: the IOU report's actions are not loaded yet, so the pressed expense's
-            // thread cannot be resolved at press time.
+            // Cache clear: the report's actions are not loaded, so the thread cannot resolve at press time.
             const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
 
             await renderAndPopulateCarousel();
             await pressSecondTransaction();
 
-            // The press fetches the IOU report's actions and waits, rather than falling back to the parent report.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
             expect(navigateSpy).not.toHaveBeenCalled();
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
 
-            // Once the actions arrive the thread resolves and the pressed expense opens (report placed underneath).
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
@@ -884,8 +840,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('falls back to the parent report when the re-fetch settles with no report actions at all', async () => {
-            // Same shape as the test below, but nothing is ever cached for the report, so the action count stays 0.
-            // The fallback must key off the fetch settling, not off there being actions, or the tap stays dead.
+            // Nothing is ever cached here, so the fallback must key off the fetch settling, not off there being actions.
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
@@ -909,8 +864,7 @@ describe('MoneyRequestReportPreview', () => {
         it('falls back to the parent report once the re-fetch settles when the expense has no IOU action at all', async () => {
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const openReportSpy = jest.spyOn(ReportActions, 'openReport').mockImplementation(() => {});
-            // A legacy expense: the IOU report's actions are loaded, but none of them is this expense's IOU
-            // action, and re-fetching surfaces nothing new.
+            // A legacy expense: the actions are loaded but this expense's IOU action is missing, and refetching finds nothing.
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
 
             await renderAndPopulateCarousel();
@@ -920,13 +874,10 @@ describe('MoneyRequestReportPreview', () => {
             });
             await pressSecondTransaction();
 
-            // The press defers and re-fetches the report's actions (the missing action may simply not be cached).
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
             expect(navigateSpy).not.toHaveBeenCalled();
 
-            // The fetch settles without changing the cached actions. The loading flip alone must drain the press to
-            // the parent report — regression: it used to wait for an action-count change that never came, leaving
-            // the tap permanently dead.
+            // Regression: the drain used to wait for an action-count change that never came, leaving the tap dead.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.RAM_ONLY_REPORT_LOADING_STATE}${mockIOUReport.reportID}`, {isLoadingInitialReportActions: true});
                 await waitForBatchedUpdatesWithAct();
@@ -945,29 +896,25 @@ describe('MoneyRequestReportPreview', () => {
             const getIOUActionSpy = jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockReturnValue(undefined);
 
             await renderAndPopulateCarousel();
-            // Partially seeded cache: some of the report's actions are present (e.g. from the app-wide bootstrap),
-            // but not the pressed expense's IOU action.
+            // Partially seeded cache: some actions are present, but not the pressed expense's IOU action.
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[mockAction.reportActionID]: mockAction});
                 await waitForBatchedUpdatesWithAct();
             });
             await pressSecondTransaction();
 
-            // Regression: the press used to give up immediately (parent report) because some actions were cached;
-            // it must re-fetch instead — the missing IOU action may just not have been seeded.
+            // Regression: the press used to give up immediately because some actions were cached.
             expect(openReportSpy).toHaveBeenCalledWith(expect.objectContaining({reportID: mockIOUReport.reportID}));
             expect(navigateSpy).not.toHaveBeenCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: ''}));
             expect(navigateSpy).not.toHaveBeenCalled();
 
-            // The fetch lands the missing IOU action — the pressed expense opens (report beneath), not the parent report.
             getIOUActionSpy.mockImplementation(buildActionWithThread);
             await act(async () => {
                 await Onyx.merge(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${mockIOUReport.reportID}`, {[`${mockAction.reportActionID}_loaded`]: mockAction});
                 await waitForBatchedUpdatesWithAct();
             });
 
-            // The expense must end up on top. The report opening underneath it is the cascade's base, but stopping
-            // there would mean the press fell back to the parent report instead of reaching the pressed expense.
+            // The expense must end up on top; stopping at the report would mean the press fell back to it.
             expect(navigateSpy).toHaveBeenLastCalledWith(ROUTES.SEARCH_REPORT.getRoute({reportID: `thread_${mockSecondTransactionID}`, backTo: narrowReportRoute()}));
         });
 
@@ -988,8 +935,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('falls back to the full report view, not the super-wide RHP, when the pressed expense has no thread on narrow layouts', async () => {
-            // Every other fallback assertion here runs wide. Narrow has no super-wide RHP, so the fallback has to
-            // land on the report screen itself — the route the deleted-expense and offline dead-tap paths rely on.
+            // Narrow has no super-wide RHP, so the fallback lands on the report screen itself.
             mockResponsiveLayoutOverride = narrowResponsiveLayout;
             jest.spyOn(ReportActions, 'createTransactionThreadReport').mockReturnValue(undefined);
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation((reportID, transactionID) => {
@@ -1007,8 +953,6 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('widens the RHP for the report and the pressed expense, and narrows the expense back when the press is abandoned', async () => {
-            // The widths are invisible in the rendered output, so without this the whole widen/release mechanism
-            // could be deleted and every other test here would still pass.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -1032,9 +976,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('seeds the expense view carousel in the order the cards are rendered, not collection order', async () => {
-            // The carousel sorts before rendering, so the collection order and the on-screen order can differ. The
-            // arrows walk the seeded list, so seeding collection order makes "next" on the last card jump to the
-            // first one. These two are supplied newest-first and render oldest-first.
+            // Supplied newest-first and rendered oldest-first, so the arrows must walk render order, not collection order.
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const olderTransaction = {...mockTransaction, transactionID: 'ordering_older', created: '2026-08-01 00:00:00', amount: mockTransaction.amount * 3};
             const newerTransaction = {...mockTransaction, transactionID: 'ordering_newer', created: '2026-08-20 00:00:00', amount: mockTransaction.amount * 5};
@@ -1065,8 +1007,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('does not open the pressed expense over the report when "View" is tapped during the cascade delay', async () => {
-            // Regression: "View" opens the same report route, so the cascade's own "did the user navigate away" guard
-            // does not catch it and the expense used to land on top, showing the details twice after going back.
+            // Regression: "View" opens the same report route, so the cascade's navigate-away guard does not catch it.
             jest.useRealTimers();
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             jest.spyOn(ReportActionUtils, 'getIOUActionForReportID').mockImplementation(buildActionWithThread);
@@ -1088,8 +1029,7 @@ describe('MoneyRequestReportPreview', () => {
         });
 
         it('seeds every expense into the arrows, not just the ones the carousel renders', async () => {
-            // Regression: the carousel caps how many cards it draws, and seeding that capped list left the next arrow
-            // disabled on the last drawn card even though more expenses existed after it.
+            // Regression: seeding the capped list left the next arrow disabled on the last drawn card.
             mockResponsiveLayoutOverride = wideResponsiveLayout;
             const many = Array.from({length: 14}, (_, index) => ({
                 ...mockTransaction,
