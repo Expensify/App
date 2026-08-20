@@ -49,8 +49,8 @@ function SubmitPlanWelcomeModal() {
 
     const handleConfirm = () => {
         // The user has already completed onboarding, so we skip CompleteGuidedSetup and just create the
-        // Submit workspace. autoCreateSubmitWorkspace then dismisses this modal and navigates to Spend
-        // with #admins in the side panel, which triggers the useBeforeRemove persistence above.
+        // Submit workspace. autoCreateSubmitWorkspace then dismisses this modal and navigates to Categories
+        // with #admins in the RHP, which triggers the useBeforeRemove persistence above.
         autoCreateSubmitWorkspace(firstName ?? '', lastName ?? '', false);
     };
 
