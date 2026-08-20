@@ -113,7 +113,7 @@ const waitForTransition = createTransitionBarrier();
 
 /**
  * A transition barrier that was attached to `TransitionTracker` before the write it gates exists.
- * `barrier` is passed to `writeWhenReady`; `cancel` drops the registration if the write never happens.
+ * `barrier` is passed to `writeWhenReady`. `cancel` drops the registration if the write never happens.
  */
 type ArmedTransitionBarrier = {
     barrier: WriteReadyBarrier;
@@ -134,7 +134,7 @@ type ArmedTransitionBarrier = {
  * immediately.
  *
  * The same armed barrier can gate several writes from one interaction (e.g. one write per receipt in a
- * split); they all release at the same point rather than racing separate barriers. Consumers can attach
+ * split). They all release at the same point rather than racing separate barriers. Consumers can attach
  * at different times - nothing but `cancel()` ever drops the `TransitionTracker` registration early, so
  * a write that attaches after an earlier one already hit its own safety timeout still gets the real
  * transition-completion release instead of being pushed onto its own safety timeout too.

@@ -9,7 +9,7 @@ import {SAFETY_TIMEOUT_MS} from './API/writeWhenReady';
  *
  * Search does not release its deferred writes on a navigation transition - it releases them when the
  * real list content (not the skeleton) lays out, or from focus/unmount fallbacks. So it cannot use
- * `API.createTransitionBarrier`; it owns a barrier and resolves it from those lifecycle points.
+ * `API.createTransitionBarrier`. It owns a barrier and resolves it from those lifecycle points.
  *
  * This is deliberately NOT a write registry: it never calls `write()`/`writeWhenReady()` and never
  * decides whether a write is deferred. Call sites decide, and pass `barrier` down to the action.
