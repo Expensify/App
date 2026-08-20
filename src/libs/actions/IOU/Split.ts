@@ -263,7 +263,6 @@ type SplitBillActionsParams = {
     betas: OnyxEntry<OnyxTypes.Beta[]>;
     personalDetails: OnyxEntry<OnyxTypes.PersonalDetailsList>;
     optimisticSplitChatReportID?: string;
-    shouldHandleNavigation?: boolean;
     /** Readiness barrier the API write waits on, handed down by whoever triggered the navigation. */
     writeBarrier?: WriteReadyBarrier;
     delegateAccountID: number | undefined;
@@ -305,7 +304,6 @@ function splitBill({
     betas,
     personalDetails,
     optimisticSplitChatReportID,
-    shouldHandleNavigation = true,
     writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
@@ -415,7 +413,6 @@ function splitBillAndOpenReport({
     betas,
     personalDetails,
     optimisticSplitChatReportID,
-    shouldHandleNavigation = true,
     writeBarrier,
     delegateAccountID,
     isTrackIntentUser,
