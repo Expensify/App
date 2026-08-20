@@ -11,8 +11,7 @@ import type {Policy} from '@src/types/onyx';
 
 import type {ImageSourcePropType} from 'react-native';
 import type {OnyxEntry} from 'react-native-onyx';
-
-import {ValueOf} from 'type-fest';
+import type {ValueOf} from 'type-fest';
 
 import {hasVendorFeature} from './PolicyUtils';
 
