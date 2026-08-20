@@ -6,8 +6,7 @@
  *   bun scripts/typecheck.ts              -> check every project CI gates on
  *   bun scripts/typecheck.ts evals        -> check just the named project directories
  *
- * Every project is checked even after one fails, so a single run reports every error in the repo
- * rather than stopping at the first project that breaks.
+ * Every project is checked even after one fails, so a single run reports every error in the repo.
  */
 import {$} from 'bun';
 
@@ -22,7 +21,8 @@ const tsc = `${projectRoot}/node_modules/typescript7/bin/tsc`;
 /** Project directories, relative to the repo root, that `npm run typecheck` and CI check. */
 const DEFAULT_PROJECTS = ['.', 'tests/tooling', 'server', 'server/victory-chart-renderer', 'scripts'];
 
-const projects = process.argv.slice(2).length > 0 ? process.argv.slice(2) : DEFAULT_PROJECTS;
+const args = process.argv.slice(2);
+const projects = args.length > 0 ? args : DEFAULT_PROJECTS;
 
 const failed: string[] = [];
 for (const project of projects) {
