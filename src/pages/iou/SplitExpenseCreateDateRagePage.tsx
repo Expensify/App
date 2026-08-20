@@ -49,6 +49,7 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const [draftTransaction] = useOnyx(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${transactionID}`);
     const allTransactions = useAllTransactions();
     const [allReports] = useOnyx(ONYXKEYS.COLLECTION.REPORT);
+    const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const transaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transactionID)}`];
     const originalTransaction = allTransactions?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${getNonEmptyStringOnyxID(transaction?.comment?.originalTransactionID)}`];
@@ -63,18 +64,19 @@ function SplitExpenseCreateDateRagePage({route}: SplitExpenseCreateDateRagePageP
     const {login, accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
 
     const updateDate = (value: FormOnyxValues<typeof ONYXKEYS.FORMS.SPLIT_EXPENSE_EDIT_DATES>) => {
-        resetSplitExpensesByDateRange(
+        resetSplitExpensesByDateRange({
             transaction,
             draftTransaction,
-            currentReport,
-            value[INPUT_IDS.START_DATE],
-            value[INPUT_IDS.END_DATE],
-            effectivePolicy,
-            isSelfDM(currentReport) || isSelfDM(parentReport),
-            personalPolicy?.outputCurrency,
+            transactionReport: currentReport,
+            startDate: value[INPUT_IDS.START_DATE],
+            endDate: value[INPUT_IDS.END_DATE],
+            policy: effectivePolicy,
+            isSelfDMSplit: isSelfDM(currentReport) || isSelfDM(parentReport),
+            personalPolicyOutputCurrency: personalPolicy?.outputCurrency,
             getCurrencySymbol,
             getCurrencyDecimals,
-        );
+            policies: allPolicies,
+        });
         Navigation.goBack(backTo);
     };
 
