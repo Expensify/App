@@ -286,8 +286,8 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
@@ -349,6 +349,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
         isTrackIntentUser,
         liveViolationsForSnapshotTransactions,
         conciergeChat,
+        shouldUseMarkAsDoneCopy,
     ]);
 
     const handleSelectionButtonPress = useCallback(() => {

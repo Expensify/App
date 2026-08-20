@@ -2260,12 +2260,12 @@ function useSearchBulkActions({queryJSON}: UseSearchBulkActionsParams) {
                               .filter((t): t is NonNullable<typeof t> => !!t);
 
                     if (hasOnlyPendingCardTransactions(allSelectedTransactionsList)) {
-                        showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+                        showPendingCardTransactionsBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         return;
                     }
 
                     if (hasOnlyHeldExpenses(allSelectedTransactionsList)) {
-                        showHeldExpensesBlockModal(showConfirmModal, translate);
+                        showHeldExpensesBlockModal(showConfirmModal, translate, allReportsShouldMarkAsDone);
                         return;
                     }
 

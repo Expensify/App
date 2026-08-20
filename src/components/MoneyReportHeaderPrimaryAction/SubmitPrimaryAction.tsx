@@ -147,7 +147,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         }
 
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
             return;
         }
 

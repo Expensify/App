@@ -1713,30 +1713,34 @@ function getSupersededPendingCardTransactionIDs(transactions: Array<OnyxEntry<Tr
 }
 
 /**
- * Show a confirm modal explaining that pending card transactions cannot be submitted.
+ * Show a confirm modal explaining that pending card transactions cannot be submitted. Pass isMarkAsDone
+ * when the triggering button uses the "Mark as done" copy so the modal matches it.
  */
 function showPendingCardTransactionsBlockModal(
     showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
     translate: LocaleContextProps['translate'],
+    isMarkAsDone = false,
 ) {
     showConfirmModal({
-        title: translate('iou.error.unableToSubmitReport'),
-        prompt: translate('iou.error.allTransactionsPendingDescription'),
+        title: translate(isMarkAsDone ? 'iou.error.unableToMarkAsDone' : 'iou.error.unableToSubmitReport'),
+        prompt: translate(isMarkAsDone ? 'iou.error.allTransactionsPendingMarkAsDoneDescription' : 'iou.error.allTransactionsPendingDescription'),
         confirmText: translate('common.buttonConfirm'),
         shouldShowCancelButton: false,
     });
 }
 
 /**
- * Show a confirm modal explaining that a report with only held expenses cannot be submitted.
+ * Show a confirm modal explaining that a report with only held expenses cannot be submitted. Pass isMarkAsDone
+ * when the triggering button uses the "Mark as done" copy so the modal matches it.
  */
 function showHeldExpensesBlockModal(
     showConfirmModal: (options: {title: string; prompt: string; confirmText: string; shouldShowCancelButton: boolean}) => void | Promise<unknown>,
     translate: LocaleContextProps['translate'],
+    isMarkAsDone = false,
 ) {
     showConfirmModal({
-        title: translate('iou.error.unableToSubmitReport'),
-        prompt: translate('iou.error.allExpensesOnHoldDescription'),
+        title: translate(isMarkAsDone ? 'iou.error.unableToMarkAsDone' : 'iou.error.unableToSubmitReport'),
+        prompt: translate(isMarkAsDone ? 'iou.error.allExpensesOnHoldMarkAsDoneDescription' : 'iou.error.allExpensesOnHoldDescription'),
         confirmText: translate('common.buttonConfirm'),
         shouldShowCancelButton: false,
     });

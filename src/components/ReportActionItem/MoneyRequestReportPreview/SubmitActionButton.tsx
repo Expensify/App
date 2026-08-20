@@ -98,14 +98,20 @@ function SubmitActionButtonContent() {
 
     const confirmPendingRTERAndProceed = useConfirmPendingRTERAndProceed(hasAnyPendingRTERViolation, handleMarkPendingRTERTransactionsAsCash);
 
+    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
+        isTrackIntentUser,
+        report: iouReport,
+        policy,
+    });
+
     const handleSubmit = () => {
         if (hasOnlyPendingCardTransactions(transactions)) {
-            showPendingCardTransactionsBlockModal(showConfirmModal, translate);
+            showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
             return;
         }
 
         if (hasOnlyHeldExpenses(transactions)) {
-            showHeldExpensesBlockModal(showConfirmModal, translate);
+            showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy);
             return;
         }
 
@@ -135,12 +141,6 @@ function SubmitActionButtonContent() {
             });
         });
     };
-
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        isTrackIntentUser,
-        report: iouReport,
-        policy,
-    });
 
     return (
         <AnimatedSubmitButton
