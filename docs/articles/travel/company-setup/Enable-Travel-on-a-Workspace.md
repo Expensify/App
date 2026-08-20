@@ -1,7 +1,7 @@
 ---
 title: Enable Expensify Travel on a workspace
 description: Learn how Workspace Admins can enable Expensify Travel to manage business travel bookings and expenses in one place.
-keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel]
+keywords: [Expensify Travel, enable travel, workspace admin, business travel, travel management, travel policy, book travel, company travel, default workspace, travel is not enabled]
 internalScope: Audience is Workspace Admins. Covers enabling Expensify Travel and the Add trip names to expenses setting. Does not cover booking restrictions or travel policy configuration
 ---
 
@@ -64,6 +64,20 @@ No. Any workspace can use Expensify Travel, regardless of whether the Expensify 
 If your workspace bills in a currency other than USD and hasn’t enabled Expensify Travel yet, you’ll see a **Tax ID** page asking for your **Legal entity tax ID** before you accept the travel terms and conditions. Expensify uses this to set up travel billing in your local currency.
 
 Enter your legal entity tax ID and click **Continue** to proceed to the terms and conditions. This page is skipped for USD workspaces and for workspaces that have already enabled Expensify Travel.
+
+## Why do I see “Travel is not enabled” when I try to book travel?
+
+Expensify sets up your traveler profile against your **default workspace**, even when you start booking from a different workspace. If your default workspace does not have Expensify Travel enabled, booking is blocked and a modal titled **Travel is not enabled** appears with the message: *To book, please enable travel on your default workspace or switch your default workspace to one that is travel-enabled.*
+
+To resolve this, do one of the following:
+
+- Enable Expensify Travel on your default workspace by following the steps in **How to enable Expensify Travel** above.
+- Set a travel-enabled workspace as your default workspace:
+  1. In the **navigation tabs** (on the left on web, and at the bottom on mobile), click **Workspaces**.
+  2. Next to a workspace that has Expensify Travel enabled, select the three dots **(⋮)**.
+  3. Click **Set as default workspace**.
+
+This only affects booking travel. Enabling Expensify Travel on a workspace is never blocked.
 
 ## Why can’t I turn off Travel?
 
