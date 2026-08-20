@@ -3,7 +3,7 @@ import ConnectToHRFlow from '@components/ConnectToHRFlow';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
-import SearchBar from '@components/SearchBar';
+import CompactSearchBar from '@components/SearchBar/CompactSearchBar';
 import Section from '@components/Section';
 
 import useConfirmModal from '@hooks/useConfirmModal';
@@ -126,8 +126,8 @@ function WorkspaceHRPage({
     };
 
     const maybeSearchBar = disconnectedCards.length >= CONST.STANDARD_LIST_ITEM_LIMIT && (
-        <SearchBar
-            label={translate('search.searchPlaceholder')}
+        <CompactSearchBar
+            label={translate('workspace.hr.findIntegration')}
             inputValue={inputValue}
             onChangeText={setInputValue}
             shouldShowEmptyState={!filteredDisconnectedCards.length}

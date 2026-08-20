@@ -82,10 +82,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'IntelliHR',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/IntelliHR_Square_Logo.jpg',
     },
-    'iris-cascade': {
-        displayName: 'IRIS Cascade',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/IRIS_Cascade-square.png',
-    },
+    // 'iris-cascade': {
+    //     displayName: 'IRIS Cascade',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/IRIS_Cascade-square.png',
+    // },
     jumpcloud: {
         displayName: 'JumpCloud',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Jumpcloud_square.png',
@@ -138,10 +138,10 @@ const MERGE_HR_PROVIDERS = {
         displayName: 'PeopleHR',
         iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/PeopleHR_Access_Square.png',
     },
-    rippling: {
-        displayName: 'Rippling',
-        iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Platformrippling_rR8x3bN.png',
-    },
+    // rippling: {
+    //     displayName: 'Rippling',
+    //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Platformrippling_rR8x3bN.png',
+    // },
     // 'sage-hr': {
     //     displayName: 'Sage HR',
     //     iconUrl: 'https://merge-api-public.s3.amazonaws.com/media/Sage_HR_Square_L3bw47M.png',
