@@ -9,8 +9,9 @@ import type {TranslationTargetLocale} from '@src/CONST/LOCALES';
 import en from '@src/languages/en';
 import type {TranslationPaths} from '@src/languages/types';
 
-import type {TemplateExpression} from 'typescript';
+import type {TemplateExpression} from '@typescript/typescript6';
 
+import ts from '@typescript/typescript6';
 /*
  * This script uses src/languages/en.ts as the source of truth, and leverages ChatGPT to generate translations for other languages.
  */
@@ -22,7 +23,6 @@ import fs from 'fs';
 // eslint-disable-next-line you-dont-need-lodash-underscore/get
 import get from 'lodash/get';
 import path from 'path';
-import ts from 'typescript';
 
 import type {DiffResult} from './utils/Git';
 import type Translator from './utils/Translator/Translator';

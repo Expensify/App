@@ -226,7 +226,7 @@ React Compiler auto-memoizes object literals, callbacks, JSX, and derived values
 **ALWAYS run these steps after making code changes, before committing:**
 
 1. **ESLint**: Run `npm run lint-changed` to catch lint errors early.
-2. **TypeScript**: Run `npm run typecheck-tsgo` after changes that may affect typing (types, interfaces, or function signatures). It is ~10x faster and usually stricter than tsc. CI validates with `npm run typecheck` (tsc), which remains the required merge gate.
+2. **TypeScript**: Run `npm run typecheck` after changes that may affect typing (types, interfaces, or function signatures). It runs the TypeScript 7 native compiler and is the required merge gate in CI.
 3. **React Compiler**: If you added new React components/hooks or modified existing ones, run `npm run react-compiler-compliance-check check-changed` to verify they compile with React Compiler. This applies the same rules as CI, evaluated against BOTH the Babel and OXC compilers: new components/hooks must compile, existing compiled files must not regress, and changes must not introduce new memoization divergence (one compiler memoizing a file while the other does not). See `contributingGuides/REACT_COMPILER.md` for details and common fixes.
 
 ### Testing
@@ -279,10 +279,7 @@ npm install
 # Clean build artifacts
 npm run clean
 
-# Type checking (tsgo, fast, for development only)
-npm run typecheck-tsgo
-
-# Type checking (tsc, CI production gate)
+# Type checking (TypeScript 7 native compiler, CI merge gate)
 npm run typecheck
 
 # Linting

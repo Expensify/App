@@ -27,7 +27,7 @@ Two things about the wiring are load-bearing and easy to break:
   nothing.
 
 `evals/` has its own `tsconfig.json` rather than joining the root project, because `@types/bun`'s
-globals conflict with the app's. Typecheck it with `npx tsgo --noEmit -p evals/tsconfig.json`.
+globals conflict with the app's. Typecheck it with `node node_modules/typescript7/bin/tsc --noEmit -p evals/tsconfig.json`.
 
 ## ProposalPolice
 
