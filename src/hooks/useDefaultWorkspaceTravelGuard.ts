@@ -15,9 +15,6 @@ import useThemeStyles from './useThemeStyles';
 type DefaultWorkspaceTravelGuardOptions = {
     /** Whether the default workspace must have finished travel setup, rather than only having the feature switched on */
     shouldRequireCompletedSetup?: boolean;
-
-    /** Whether the copy acknowledges that the workspace on screen is itself travel-enabled */
-    shouldMentionCurrentWorkspace?: boolean;
 };
 
 /**
@@ -27,7 +24,7 @@ type DefaultWorkspaceTravelGuardOptions = {
  * Callers that offer their own travel setup path pass shouldRequireCompletedSetup: false, so a default workspace with
  * unfinished setup reaches that path instead of a modal telling the user to enable what they already enabled.
  */
-function useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup = true, shouldMentionCurrentWorkspace = false}: DefaultWorkspaceTravelGuardOptions = {}) {
+function useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup = true}: DefaultWorkspaceTravelGuardOptions = {}) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const StyleUtils = useStyleUtils();
@@ -53,7 +50,7 @@ function useDefaultWorkspaceTravelGuard({shouldRequireCompletedSetup = true, sho
             title: translate('travel.defaultWorkspaceTravelDisabled.title'),
             titleStyles: styles.textHeadlineH1,
             titleContainerStyles: styles.mb2,
-            prompt: shouldMentionCurrentWorkspace ? translate('travel.defaultWorkspaceTravelDisabled.messageOnWorkspace') : translate('travel.defaultWorkspaceTravelDisabled.message'),
+            prompt: translate('travel.defaultWorkspaceTravelDisabled.message'),
             promptStyles: styles.mb2,
             confirmText: translate('common.buttonConfirm'),
             shouldShowCancelButton: false,

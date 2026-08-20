@@ -4529,10 +4529,8 @@ ${amount} pour ${merchant} - ${date}`,
                 'Saviez-vous que vous pouvez réserver et gérer vos trajets en train directement dans Expensify ? Et que les reçus sont automatiquement téléchargés pour vous ? La prochaine fois, réservez simplement via <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Vous ne pouvez pas encore réserver de voyage',
+            title: 'Voyage n’est pas activé',
             message: 'Pour réserver, veuillez activer les voyages sur votre espace de travail par défaut ou définir par défaut un espace de travail sur lequel les voyages sont activés.',
-            messageOnWorkspace:
-                'Vous êtes sur un espace de travail avec voyage activé, mais ce n’est pas votre espace de travail par défaut. Pour réserver, veuillez activer le voyage sur votre espace de travail par défaut ou définir comme espace de travail par défaut un espace de travail avec voyage activé.',
         },
     },
     workspace: {
