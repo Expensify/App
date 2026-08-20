@@ -52,7 +52,7 @@ function CenteredModalLayout({children, width, height, onBackdropPress, contentS
     const isInLandscapeMode = isInLandscapeModeUtil(windowWidth, windowHeight);
     const safeAreaHorizontalPadding = useSafeAreaHorizontalPadding();
     const safeAreaStyle = useBottomSafeSafeAreaPaddingStyle({
-        addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode,
+        addBottomSafeAreaPadding: addBottomSafeAreaPadding && !isInLandscapeMode && shouldDockToBottom,
         style: [shouldDockToBottom && styles.pt2, !isInLandscapeMode && styles.pb5, safeAreaHorizontalPadding, contentStyle],
     });
 
