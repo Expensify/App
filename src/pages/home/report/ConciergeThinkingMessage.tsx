@@ -198,7 +198,7 @@ function ConciergeThinkingMessageContent({accountID, reasoningHistory, statusLab
                             shouldShowTooltip
                         />
                     </View>
-                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(currentTimestamp, false, false)}</Text>
+                    <Text style={[styles.chatItemMessageHeaderTimestamp]}>{datetimeToCalendarTime(currentTimestamp, false)}</Text>
                 </View>
 
                 {/* Status Text with Optional Toggle */}

@@ -39,7 +39,7 @@ type LocaleContextProps = {
     datetimeToRelative: (datetime: string) => string;
 
     /** Formats a datetime to local date and time string */
-    datetimeToCalendarTime: (datetime: string, includeTimezone: boolean, isLowercase?: boolean) => string;
+    datetimeToCalendarTime: (datetime: string, isLowercase?: boolean) => string;
 
     /** Returns a locally converted phone number for numbers from the same region
      * and an internationally converted phone number with the country code for numbers from other regions */
@@ -47,9 +47,6 @@ type LocaleContextProps = {
 
     /** Gets the locale digit corresponding to a standard digit */
     toLocaleDigit: (digit: string) => string;
-
-    /** Formats a number into its localized ordinal representation */
-    toLocaleOrdinal: (number: number) => string;
 
     /** Formats a number into its localized ordinal representation with words */
     toLocaleOrdinalWithWords: (number: number) => string;
@@ -77,7 +74,6 @@ const LocaleContext = createContext<LocaleContextProps>({
     datetimeToCalendarTime: () => '',
     formatPhoneNumber: () => '',
     toLocaleDigit: () => '',
-    toLocaleOrdinal: () => '',
     toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: () => 0,
@@ -125,14 +121,12 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
 
     const datetimeToRelative: LocaleContextProps['datetimeToRelative'] = (datetime) => DateUtils.datetimeToRelative(currentLocale, datetime, effectiveTimezone);
 
-    const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, includeTimezone, isLowercase = false) =>
-        DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, includeTimezone, isLowercase);
+    const datetimeToCalendarTime: LocaleContextProps['datetimeToCalendarTime'] = (datetime, isLowercase = false) =>
+        DateUtils.datetimeToCalendarTime(currentLocale, datetime, effectiveTimezone, isLowercase);
 
     const formatPhoneNumber: LocaleContextProps['formatPhoneNumber'] = (phoneNumber) => formatPhoneNumberWithCountryCode(phoneNumber, countryCodeByIP);
 
     const toLocaleDigit: LocaleContextProps['toLocaleDigit'] = (digit) => toLocaleDigitLocaleDigitUtils(currentLocale, digit);
-
-    const toLocaleOrdinal: LocaleContextProps['toLocaleOrdinal'] = (number) => toLocaleOrdinalLocaleDigitUtils(currentLocale, number);
 
     const toLocaleOrdinalWithWords: LocaleContextProps['toLocaleOrdinalWithWords'] = (number) => {
         if (number >= 1 && number <= 10) {
@@ -165,7 +159,6 @@ function LocaleContextProvider({children}: LocaleContextProviderProps) {
         datetimeToCalendarTime,
         formatPhoneNumber,
         toLocaleDigit,
-        toLocaleOrdinal,
         toLocaleOrdinalWithWords,
         fromLocaleDigit,
         localeCompare,

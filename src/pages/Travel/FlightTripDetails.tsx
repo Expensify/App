@@ -46,7 +46,7 @@ function FlightTripDetails({reservation, prevReservation, personalDetails}: Flig
     const endDate = DateUtils.getFormattedTransportDateAndHour(DateUtils.toLocalDate(reservation.end.date), preferredLocale);
 
     const prevFlightEndDate = prevReservation?.end.date;
-    const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, new Date(prevFlightEndDate), DateUtils.toLocalDate(reservation.start.date));
+    const layover = prevFlightEndDate && DateUtils.getFormattedDurationBetweenDates(translate, DateUtils.toLocalDate(prevFlightEndDate), DateUtils.toLocalDate(reservation.start.date));
     const flightDuration = reservation.duration ? DateUtils.getFormattedDuration(translate, reservation.duration) : '';
     const flightRouteDescription = `${reservation.start.cityName} (${reservation.start.shortName}) ${translate('common.conjunctionTo')} ${reservation.end.cityName} (${
         reservation.end.shortName

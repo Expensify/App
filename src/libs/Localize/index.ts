@@ -1,3 +1,4 @@
+import {registerDerivedIntlCache} from '@libs/IntlFormatterCaches';
 import Log from '@libs/Log';
 import memoize from '@libs/memoize';
 import type {MessageElementBase, MessageTextElement} from '@libs/MessageElement';
@@ -39,6 +40,13 @@ const memoizedCreateConjunctionListFormat = memoize(createConjunctionListFormat)
 
 const createPluralRules = (locale: Locale): Intl.PluralRules => new Intl.PluralRules(locale);
 const memoizedCreatePluralRules = memoize(createPluralRules);
+
+// Both hold Intl instances that resolve their locale at construction, so one built before that locale's polyfill data
+// landed is stuck on English until the data arrives and drops it.
+registerDerivedIntlCache(() => {
+    memoizedCreateConjunctionListFormat.cache.clear();
+    memoizedCreatePluralRules.cache.clear();
+});
 
 /**
  * Helper function to get the translated string for given

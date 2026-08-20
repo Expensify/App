@@ -51,7 +51,6 @@ const mockLocalize: ReturnType<typeof useLocalize> = {
     datetimeToCalendarTime: () => '',
     formatPhoneNumber: (value: string) => value,
     toLocaleDigit: () => '',
-    toLocaleOrdinal: () => '',
     toLocaleOrdinalWithWords: () => '',
     fromLocaleDigit: () => '',
     localeCompare: (first: string, second: string) => first.localeCompare(second),

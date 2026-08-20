@@ -49,8 +49,12 @@ function computeDefaultPerDiemExpenseRates(customUnit: TransactionCustomUnit, cu
  */
 function getPerDiemDestination(transaction: OnyxEntry<Transaction>, merchant: string) {
     const {start, end} = transaction?.comment?.customUnit?.attributes?.dates ?? {start: '', end: ''};
-    if (start && end) {
-        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(DateUtils.toLocalDate(start), DateUtils.toLocalDate(end))}`;
+    const startDate = start ? DateUtils.toLocalDate(start) : undefined;
+    const endDate = end ? DateUtils.toLocalDate(end) : undefined;
+    // Validity checked before formatting: `getStablePerDiemMerchantDateRange` goes through date-fns, which throws on an
+    // Invalid Date, and this runs inside render with no error boundary.
+    if (startDate && endDate && !Number.isNaN(startDate.getTime()) && !Number.isNaN(endDate.getTime())) {
+        const dateRangeSuffix = `, ${DateUtils.getStablePerDiemMerchantDateRange(startDate, endDate)}`;
         if (merchant.endsWith(dateRangeSuffix)) {
             return merchant.slice(0, -dateRangeSuffix.length);
         }

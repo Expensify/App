@@ -85,7 +85,7 @@ class IntlStore {
                 : Promise.all([
                       import('./de'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.DE) && import('@formatjs/intl-numberformat/locale-data/de'), LOCALES.DE),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.DE) && import('@formatjs/intl-listformat/locale-data/de'), LOCALES.DE),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.DE) && import('@formatjs/intl-listformat/locale-data/de'), LOCALES.DE, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.DE) && import('@formatjs/intl-pluralrules/locale-data/de'), LOCALES.DE, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.DE) && import('@formatjs/intl-relativetimeformat/locale-data/de'), LOCALES.DE, true),
                   ]).then(([module]) => {
@@ -97,7 +97,7 @@ class IntlStore {
                 : Promise.all([
                       import('./el'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EL) && import('@formatjs/intl-numberformat/locale-data/el'), LOCALES.EL),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EL) && import('@formatjs/intl-listformat/locale-data/el'), LOCALES.EL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EL) && import('@formatjs/intl-listformat/locale-data/el'), LOCALES.EL, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.EL) && import('@formatjs/intl-pluralrules/locale-data/el'), LOCALES.EL, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EL) && import('@formatjs/intl-relativetimeformat/locale-data/el'), LOCALES.EL, true),
                   ]).then(([module]) => {
@@ -109,7 +109,7 @@ class IntlStore {
                 : Promise.all([
                       import('./en'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.EN) && import('@formatjs/intl-numberformat/locale-data/en'), LOCALES.EN),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EN) && import('@formatjs/intl-listformat/locale-data/en'), LOCALES.EN),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.EN) && import('@formatjs/intl-listformat/locale-data/en'), LOCALES.EN, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.EN) && import('@formatjs/intl-pluralrules/locale-data/en'), LOCALES.EN, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.EN) && import('@formatjs/intl-relativetimeformat/locale-data/en'), LOCALES.EN, true),
                   ]).then(([module]) => {
@@ -121,7 +121,7 @@ class IntlStore {
                 : Promise.all([
                       import('./es'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ES) && import('@formatjs/intl-numberformat/locale-data/es'), LOCALES.ES),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ES) && import('@formatjs/intl-listformat/locale-data/es'), LOCALES.ES),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ES) && import('@formatjs/intl-listformat/locale-data/es'), LOCALES.ES, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.ES) && import('@formatjs/intl-pluralrules/locale-data/es'), LOCALES.ES, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ES) && import('@formatjs/intl-relativetimeformat/locale-data/es'), LOCALES.ES, true),
                   ]).then(([module]) => {
@@ -133,7 +133,7 @@ class IntlStore {
                 : Promise.all([
                       import('./fr'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.FR) && import('@formatjs/intl-numberformat/locale-data/fr'), LOCALES.FR),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.FR) && import('@formatjs/intl-listformat/locale-data/fr'), LOCALES.FR),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.FR) && import('@formatjs/intl-listformat/locale-data/fr'), LOCALES.FR, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.FR) && import('@formatjs/intl-pluralrules/locale-data/fr'), LOCALES.FR, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.FR) && import('@formatjs/intl-relativetimeformat/locale-data/fr'), LOCALES.FR, true),
                   ]).then(([module]) => {
@@ -145,7 +145,7 @@ class IntlStore {
                 : Promise.all([
                       import('./it'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.IT) && import('@formatjs/intl-numberformat/locale-data/it'), LOCALES.IT),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.IT) && import('@formatjs/intl-listformat/locale-data/it'), LOCALES.IT),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.IT) && import('@formatjs/intl-listformat/locale-data/it'), LOCALES.IT, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.IT) && import('@formatjs/intl-pluralrules/locale-data/it'), LOCALES.IT, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.IT) && import('@formatjs/intl-relativetimeformat/locale-data/it'), LOCALES.IT, true),
                   ]).then(([module]) => {
@@ -157,7 +157,7 @@ class IntlStore {
                 : Promise.all([
                       import('./ja'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.JA) && import('@formatjs/intl-numberformat/locale-data/ja'), LOCALES.JA),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.JA) && import('@formatjs/intl-listformat/locale-data/ja'), LOCALES.JA),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.JA) && import('@formatjs/intl-listformat/locale-data/ja'), LOCALES.JA, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.JA) && import('@formatjs/intl-pluralrules/locale-data/ja'), LOCALES.JA, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.JA) && import('@formatjs/intl-relativetimeformat/locale-data/ja'), LOCALES.JA, true),
                   ]).then(([module]) => {
@@ -169,7 +169,7 @@ class IntlStore {
                 : Promise.all([
                       import('./nl'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.NL) && import('@formatjs/intl-numberformat/locale-data/nl'), LOCALES.NL),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.NL) && import('@formatjs/intl-listformat/locale-data/nl'), LOCALES.NL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.NL) && import('@formatjs/intl-listformat/locale-data/nl'), LOCALES.NL, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.NL) && import('@formatjs/intl-pluralrules/locale-data/nl'), LOCALES.NL, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.NL) && import('@formatjs/intl-relativetimeformat/locale-data/nl'), LOCALES.NL, true),
                   ]).then(([module]) => {
@@ -181,7 +181,7 @@ class IntlStore {
                 : Promise.all([
                       import('./pl'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PL) && import('@formatjs/intl-numberformat/locale-data/pl'), LOCALES.PL),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PL) && import('@formatjs/intl-listformat/locale-data/pl'), LOCALES.PL),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PL) && import('@formatjs/intl-listformat/locale-data/pl'), LOCALES.PL, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.PL) && import('@formatjs/intl-pluralrules/locale-data/pl'), LOCALES.PL, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PL) && import('@formatjs/intl-relativetimeformat/locale-data/pl'), LOCALES.PL, true),
                   ]).then(([module]) => {
@@ -193,7 +193,7 @@ class IntlStore {
                 : Promise.all([
                       import('./pt-BR'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.PT_BR) && import('@formatjs/intl-numberformat/locale-data/pt'), LOCALES.PT_BR),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PT_BR) && import('@formatjs/intl-listformat/locale-data/pt'), LOCALES.PT_BR),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.PT_BR) && import('@formatjs/intl-listformat/locale-data/pt'), LOCALES.PT_BR, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.PT_BR) && import('@formatjs/intl-pluralrules/locale-data/pt'), LOCALES.PT_BR, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.PT_BR) && import('@formatjs/intl-relativetimeformat/locale-data/pt'), LOCALES.PT_BR, true),
                   ]).then(([module]) => {
@@ -205,7 +205,7 @@ class IntlStore {
                 : Promise.all([
                       import('./zh-hans'),
                       loadOptionalData(shouldPolyfillNumberFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-numberformat/locale-data/zh'), LOCALES.ZH_HANS),
-                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-listformat/locale-data/zh'), LOCALES.ZH_HANS),
+                      loadOptionalData(shouldPolyfillListFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-listformat/locale-data/zh'), LOCALES.ZH_HANS, true),
                       loadOptionalData(shouldPolyfillPluralRules(LOCALES.ZH_HANS) && import('@formatjs/intl-pluralrules/locale-data/zh'), LOCALES.ZH_HANS, true),
                       loadOptionalData(shouldPolyfillRelativeTimeFormat(LOCALES.ZH_HANS) && import('@formatjs/intl-relativetimeformat/locale-data/zh'), LOCALES.ZH_HANS, true),
                   ]).then(([module]) => {

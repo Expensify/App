@@ -205,7 +205,9 @@ function getWeekEndsOn(locale: Locale): WeekDay {
  * `locale` is unused; kept on the signature for compat with LocaleContextProvider's wrapper.
  */
 function getLocalDateFromDatetime(locale: Locale, currentSelectedTimezone: string, datetime?: string | Date | number): Date {
-    if (datetime === undefined) {
+    // `''` counts as absent, as it did before the signature widened: callers pass `?? ''` for a missing field. A `0`
+    // timestamp is a real instant, which is why this is not a plain falsy check.
+    if (datetime === undefined || datetime === '') {
         return toZonedSafe(new Date(), currentSelectedTimezone);
     }
     if (datetime instanceof Date || typeof datetime === 'number') {
@@ -297,13 +299,12 @@ const fallbackToSupportedTimezone = memoize((timezoneInput: SelectedTimezone): s
  * Jan 20 at 5:30 PM          within the past year
  * Jan 20, 2019 at 5:30 PM    anything over 1 year ago
  */
-function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, includeTimeZone = false, isLowercase = false): string {
+function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelectedTimezone: SelectedTimezone, isLowercase = false): string {
     // Map once and reuse, so the isToday/isYesterday branches and the rendered string cannot resolve against different zones.
     // The backward IANA values are real tz identifiers, just outside the tighter `SelectedTimezone` union.
     // eslint-disable-next-line @typescript-eslint/no-unsafe-type-assertion
     const mappedTimezone = fallbackToSupportedTimezone(currentSelectedTimezone) as SelectedTimezone;
     const date = getLocalDateFromDatetime(locale, mappedTimezone, datetime);
-    const tz = includeTimeZone ? ' [UTC]Z' : '';
     let todayAt = translateLocalize(locale, 'common.todayAt');
     let tomorrowAt = translateLocalize(locale, 'common.tomorrowAt');
     let yesterdayAt = translateLocalize(locale, 'common.yesterdayAt');
@@ -327,20 +328,20 @@ function datetimeToCalendarTime(locale: Locale, datetime: string, currentSelecte
     }
 
     if (isToday(date, mappedTimezone)) {
-        return `${todayAt} ${time}${tz}`;
+        return `${todayAt} ${time}`;
     }
     if (isTomorrow(date, mappedTimezone)) {
-        return `${tomorrowAt} ${time}${tz}`;
+        return `${tomorrowAt} ${time}`;
     }
     if (isYesterday(date, mappedTimezone)) {
-        return `${yesterdayAt} ${time}${tz}`;
+        return `${yesterdayAt} ${time}`;
     }
     if (date >= startOfCurrentWeek && date <= endOfCurrentWeek) {
         const monthDay = formatIntl(locale, 'MONTH_DAY', date);
-        return monthDay ? `${monthDay} ${at} ${time}${tz}` : '';
+        return monthDay ? `${monthDay} ${at} ${time}` : '';
     }
     const mediumDate = formatIntl(locale, 'MEDIUM_DATE', date);
-    return mediumDate ? `${mediumDate} ${at} ${time}${tz}` : '';
+    return mediumDate ? `${mediumDate} ${at} ${time}` : '';
 }
 
 /**

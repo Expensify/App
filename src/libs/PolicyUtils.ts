@@ -2275,7 +2275,8 @@ function getIntegrationLastSuccessfulDate(
         syncSuccessfulDate = (connection as ConnectionWithLastSyncData)?.lastSync?.successfulDate;
     }
 
-    // `toISOString` throws on an Invalid Date, and these read backend timestamps that can arrive unparsable.
+    // `toISOString` throws on an Invalid Date, and these read backend timestamps that can arrive unparsable. Closes over
+    // the injected `getLocalDateFromDatetime`, so it cannot be hoisted to module scope.
     const toIsoOrEmpty = (datetime?: string) => {
         const date = getLocalDateFromDatetime(datetime);
         return Number.isNaN(date.getTime()) ? '' : date.toISOString();
