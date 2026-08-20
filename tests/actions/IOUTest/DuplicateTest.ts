@@ -1988,6 +1988,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
@@ -2066,6 +2067,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockGPSDistanceTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
