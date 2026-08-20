@@ -530,7 +530,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.SYNC_TAX_RATES,
                     ...(policy?.connections?.dualEntry?.data?.classifications?.map((classification) => `${CONST.DUALENTRY_CONFIG.FIELD_MAPPING_PREFIX}${classification.id}`) ?? []),
                 ],
-                onExportPagePress: () => null,
+                onExportPagePress: () => Navigation.navigate(ROUTES.POLICY_ACCOUNTING_DUALENTRY_EXPORT.getRoute(policyID)),
                 subscribedExportSettings: [
                     CONST.DUALENTRY_CONFIG.EXPORTER,
                     CONST.DUALENTRY_CONFIG.EXPORT_DATE,
@@ -538,6 +538,7 @@ function getAccountingIntegrationData(
                     CONST.DUALENTRY_CONFIG.NON_REIMBURSABLE,
                     CONST.DUALENTRY_CONFIG.DEFAULT_VENDORID,
                     CONST.DUALENTRY_CONFIG.CREDIT_CARD_ACCOUNT_ID,
+                    CONST.DUALENTRY_CONFIG.EXPENSIFY_CARD_ACCOUNT_ID,
                     CONST.DUALENTRY_CONFIG.EXPORT_TO_MULTIPLE_ACCOUNTS,
                     ...Object.values(cardFeeds ?? {}).map((program) => `${CONST.DUALENTRY_CONFIG.CARD_PROGRAM_ACCOUNT_PREFIX}${program.feed}`),
                 ],

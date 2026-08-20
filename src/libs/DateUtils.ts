@@ -426,11 +426,6 @@ function formatToLocalTime(datetime: string | Date, locale: Locale): string {
     return formatIntl(locale, 'SHORT_TIME', toLocalDate(datetime));
 }
 
-/** @returns Jul (en) / jul (es) */
-function formatToShortMonth(datetime: Date | string, locale: Locale): string {
-    return formatIntl(locale, 'SHORT_MONTH', toLocalDate(datetime));
-}
-
 /** @returns July (en) / julio (es) */
 function formatToLongMonth(datetime: Date | string, locale: Locale): string {
     return formatIntl(locale, 'LONG_MONTH', toLocalDate(datetime));
@@ -930,10 +925,8 @@ const getTimeValidationErrorKey = (translate: LocalizedTranslate, inputTime: Dat
 };
 
 /**
- * Format a date using the UTC timezone, for machine-readable output only (e.g. yyyy-MM-dd sent to the API or used as a
- * key). Anything a user reads must go through the locale-aware Intl helpers (`formatIntl`, `formatInUTCToMedium`,
- * `formatInUTCToShort`, `formatInUTCToLong`) so it follows their language.
- * Returns the formatted UTC string if the date is valid, otherwise an empty string.
+ * Machine-readable output only, e.g. a `yyyy-MM-dd` sent to the API or used as a key.
+ * Anything a user reads goes through the locale-aware `formatTo*` / `formatIn*` helpers instead.
  */
 function formatMachineDateWithUTCTimeZone(datetime: string, dateFormat: MachineDateFormat = CONST.DATE.FNS_FORMAT_STRING) {
     const date = toDate(datetime, {timeZone: 'UTC'});
@@ -1012,7 +1005,12 @@ const isDayBeforeMonth = memoize(
  * 3. When both dates refer to the same year: Feb 28 to Mar 1
  * 4. When the dates are from different years: Dec 28, 2023 to Jan 5, 2024
  */
+function joinRange(startPart: string, endPart: string, separator: string): string {
+    return startPart && endPart ? `${startPart}${separator}${endPart}` : '';
+}
+
 function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2: Date, locale: Locale): string {
+    const to = ` ${translate('common.to').toLocaleLowerCase(locale)} `;
     if (isSameDay(date1, date2)) {
         // Dates are from the same day
         return formatIntl(locale, 'MONTH_DAY', date1);
@@ -1021,18 +1019,14 @@ function getFormattedDateRange(translate: LocalizedTranslate, date1: Date, date2
         const isDayFirst = isDayBeforeMonth(locale);
         const startPart = isDayFirst ? formatIntl(locale, 'DAY_ONLY', date1) : formatIntl(locale, 'MONTH_DAY', date1);
         const endPart = isDayFirst ? formatIntl(locale, 'MONTH_DAY', date2) : formatIntl(locale, 'DAY_ONLY', date2);
-        return startPart && endPart ? `${startPart}-${endPart}` : '';
+        return joinRange(startPart, endPart, '-');
     }
     if (isSameYear(date1, date2)) {
         // Dates are in the same year, differ by months
-        const startPart = formatIntl(locale, 'MONTH_DAY', date1);
-        const endPart = formatIntl(locale, 'MONTH_DAY', date2);
-        return startPart && endPart ? `${startPart} ${translate('common.to').toLocaleLowerCase(locale)} ${endPart}` : '';
+        return joinRange(formatIntl(locale, 'MONTH_DAY', date1), formatIntl(locale, 'MONTH_DAY', date2), to);
     }
     // Dates differ by years, months, days
-    const startPart = formatIntl(locale, 'MEDIUM_DATE', date1);
-    const endPart = formatIntl(locale, 'MEDIUM_DATE', date2);
-    return startPart && endPart ? `${startPart} ${translate('common.to').toLocaleLowerCase(locale)} ${endPart}` : '';
+    return joinRange(formatIntl(locale, 'MEDIUM_DATE', date1), formatIntl(locale, 'MEDIUM_DATE', date2), to);
 }
 
 /**
@@ -1052,16 +1046,13 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: 
         // Dates are from the same day but not this year
         return formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date1);
     }
+    const to = ` ${translate('common.conjunctionTo')} `;
     if (isSameYear(date1, date2) && isThisYear(date1)) {
         // Dates are in the current year, differ by months
-        const startPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY', date1);
-        const endPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY', date2);
-        return startPart && endPart ? `${startPart} ${translate('common.conjunctionTo')} ${endPart}` : '';
+        return joinRange(formatIntl(locale, 'WEEKDAY_MONTH_DAY', date1), formatIntl(locale, 'WEEKDAY_MONTH_DAY', date2), to);
     }
     // Dates differ by years, months, days or only by months but the year is not current
-    const startPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date1);
-    const endPart = formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date2);
-    return startPart && endPart ? `${startPart} ${translate('common.conjunctionTo')} ${endPart}` : '';
+    return joinRange(formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date1), formatIntl(locale, 'WEEKDAY_MONTH_DAY_YEAR', date2), to);
 }
 
 /**
@@ -1071,13 +1062,11 @@ function getFormattedReservationRangeDate(translate: LocalizedTranslate, date1: 
  * 2. When the date refers not to the current year: Departs on Wednesday, Mar 17, 2023 at 8:00.
  */
 function getFormattedTransportDate(translate: LocalizedTranslate, date: Date, locale: Locale): string {
-    const time = formatIntl(locale, 'SHORT_TIME', date);
-    const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    const datePart = formatIntl(locale, dateOptions, date);
-    if (!datePart || !time) {
+    const {date: datePart, hour} = getFormattedTransportDateAndHour(date, locale);
+    if (!datePart || !hour) {
         return '';
     }
-    return `${translate('travel.departs')} ${datePart} ${translate('common.conjunctionAt')} ${time}`;
+    return `${translate('travel.departs')} ${datePart} ${translate('common.conjunctionAt')} ${hour}`;
 }
 
 /**
@@ -1086,14 +1075,14 @@ function getFormattedTransportDate(translate: LocalizedTranslate, date: Date, lo
  * 1. When the date refers to the current year: Wednesday, Mar 17 8:00 AM
  * 2. When the date refers not to the current year: Wednesday, Mar 17, 2023 8:00 AM
  */
+function formatWeekdayDateAndTime(locale: Locale, date: Date, isCurrentYear: boolean, timeZone?: string): {date: string; hour: string} | undefined {
+    const datePart = formatIntl(locale, isCurrentYear ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR', date, timeZone);
+    const hour = formatIntl(locale, 'SHORT_TIME', date, timeZone);
+    return datePart && hour ? {date: datePart, hour} : undefined;
+}
+
 function getFormattedTransportDateAndHour(date: Date, locale: Locale): {date: string; hour: string} {
-    const dateOptions: IntlFormatKey = isThisYear(date) ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    const datePart = formatIntl(locale, dateOptions, date);
-    const hour = formatIntl(locale, 'SHORT_TIME', date);
-    if (!datePart || !hour) {
-        return {date: '', hour: ''};
-    }
-    return {date: datePart, hour};
+    return formatWeekdayDateAndTime(locale, date, isThisYear(date)) ?? {date: '', hour: ''};
 }
 
 /**
@@ -1144,13 +1133,11 @@ function getFormattedCancellationDate(isoDateString: string, locale: Locale, now
     }
     // `instant` already holds the venue wall-clock, so formatting it in UTC cannot contradict `venueTimezoneLabel`.
     const nowInVenue = new Date(now.getTime() + offsetMinutes * 60_000);
-    const datePreset = instant.getUTCFullYear() === nowInVenue.getUTCFullYear() ? 'WEEKDAY_MONTH_DAY' : 'WEEKDAY_MONTH_DAY_YEAR';
-    const datePart = formatIntl(locale, datePreset, instant, 'UTC');
-    const time = formatIntl(locale, 'SHORT_TIME', instant, 'UTC');
-    if (!datePart || !time) {
+    const parts = formatWeekdayDateAndTime(locale, instant, instant.getUTCFullYear() === nowInVenue.getUTCFullYear(), 'UTC');
+    if (!parts) {
         return '';
     }
-    return `${datePart} ${time}, ${venueTimezoneLabel}`;
+    return `${parts.date} ${parts.hour}, ${venueTimezoneLabel}`;
 }
 
 /**
@@ -1588,12 +1575,7 @@ function getFormattedDateRangeForSearch(startDate: string, endDate: string, shou
     } else if (shouldOmitCurrentYear && isThisYear(start) && isThisYear(end)) {
         endFormat = 'MONTH_DAY';
     }
-    const formattedStart = formatIntl(locale, startFormat, start);
-    const formattedEnd = formatIntl(locale, endFormat, end);
-    if (!formattedStart || !formattedEnd) {
-        return '';
-    }
-    return `${formattedStart} - ${formattedEnd}`;
+    return joinRange(formatIntl(locale, startFormat, start), formatIntl(locale, endFormat, end), ' - ');
 }
 
 function getYearDateRange(year: number): {start: string; end: string} {
@@ -1663,7 +1645,6 @@ const DateUtils = {
     formatToDayOfWeek,
     formatToLongDateWithWeekday,
     formatToLocalTime,
-    formatToShortMonth,
     formatToLongMonth,
     formatToReadableString,
     formatToLongMonthYear,
@@ -1671,9 +1652,7 @@ const DateUtils = {
     formatToShortMonthDayTime,
     formatToWeekdayLongDate,
     formatToLocalizedShortDate,
-    formatToLocalDateTime,
     formatInUTCToMedium,
-    formatInUTCToShort,
     formatInUTCToLong,
     formatTransactionListDate,
     formatToShortMonthDay,

@@ -467,9 +467,11 @@ describe('DateUtils', () => {
             expect(result).toBe(expected);
         });
 
-        it.each(['en', 'es'] as const)('formatInUTCToShort renders the input calendar day in %s regardless of viewer timezone', (locale) => {
-            const result = DateUtils.formatInUTCToShort('2025-01-01', locale);
-            const expected = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', timeZone: 'UTC'}).format(new Date('2025-01-01T00:00:00Z'));
+        it.each(['en', 'es'] as const)('formatTransactionListDate renders a current-year day in %s regardless of viewer timezone', (locale) => {
+            const currentYear = new Date().getUTCFullYear();
+            const wireDate = `${currentYear}-01-01`;
+            const result = DateUtils.formatTransactionListDate(wireDate, locale);
+            const expected = new Intl.DateTimeFormat(locale, {month: 'short', day: 'numeric', timeZone: 'UTC'}).format(new Date(`${wireDate}T00:00:00Z`));
             expect(result).toBe(expected);
         });
 
@@ -482,16 +484,6 @@ describe('DateUtils', () => {
         it('parses DB wire timestamps (yyyy-MM-dd HH:mm:ss) as UTC, not local — UTC+ viewers must not see day-shift', () => {
             // `new Date('2026-01-01 00:30:00')` parses as LOCAL in V8/Hermes; in UTC+5:30 that becomes 2025-12-31 19:00Z.
             expect(DateUtils.formatInUTCToMedium('2026-01-01 00:30:00', 'en')).toMatch(/Jan\s*1\D.*2026/);
-        });
-    });
-
-    describe('formatToShortMonth', () => {
-        it.each([
-            ['en', /^Aug/],
-            ['es', /^ago/],
-            ['ja', /8月/],
-        ] as const)('renders the month in %s', (locale, expectedPattern) => {
-            expect(DateUtils.formatToShortMonth(new Date('2025-08-19T00:00:00Z'), locale)).toMatch(expectedPattern);
         });
     });
 
@@ -1008,7 +1000,7 @@ describe('DateUtils', () => {
             return observed;
         }
 
-        it.each(['formatInUTCToMedium', 'formatInUTCToShort', 'formatInUTCToLong'] as const)('%s uses timeZone: "UTC"', (fnName) => {
+        it.each(['formatInUTCToMedium', 'formatTransactionListDate', 'formatInUTCToLong'] as const)('%s uses timeZone: "UTC"', (fnName) => {
             const observed = collectDateTimeFormatOptions((fresh) => {
                 fresh[fnName]('2026-01-15', CONST.LOCALES.EN);
             });
@@ -1029,7 +1021,6 @@ describe('DateUtils', () => {
             ['formatToMediumDate', () => DateUtils.formatToMediumDate('not-a-date', CONST.LOCALES.EN)],
             ['formatToLocalizedShortDate', () => DateUtils.formatToLocalizedShortDate('not-a-date', CONST.LOCALES.EN)],
             ['formatInUTCToMedium', () => DateUtils.formatInUTCToMedium('not-a-date', CONST.LOCALES.EN)],
-            ['formatInUTCToShort', () => DateUtils.formatInUTCToShort('not-a-date', CONST.LOCALES.EN)],
             ['formatInUTCToLong', () => DateUtils.formatInUTCToLong('not-a-date', CONST.LOCALES.EN)],
             ['formatTransactionListDate', () => DateUtils.formatTransactionListDate('not-a-date', CONST.LOCALES.EN)],
             ['formatToShortMonthDay', () => DateUtils.formatToShortMonthDay('not-a-date', CONST.LOCALES.EN)],
@@ -1116,10 +1107,16 @@ describe('DateUtils', () => {
             ['formatToWeekdayLongDate' as const, CONST.LOCALES.ES, 'miércoles, 9 de julio de 2025'],
             ['formatToShortMonthDayTime' as const, CONST.LOCALES.EN, 'Jul 9, 2:30 PM'],
             ['formatToShortMonthDayTime' as const, CONST.LOCALES.ES, '9 jul, 14:30'],
-            ['formatToLocalDateTime' as const, CONST.LOCALES.EN, 'Jul 9, 2025, 2:30 PM'],
-            ['formatToLocalDateTime' as const, CONST.LOCALES.ES, '9 jul 2025, 14:30'],
         ])('%s renders %s as %s', (fnName, locale, expected) => {
             expect(DateUtils[fnName]('2025-07-09 14:30:00', locale)).toBe(expected);
+        });
+
+        it.each([
+            [CONST.LOCALES.EN, 'Jul 9, 2025, 2:30 PM'],
+            [CONST.LOCALES.ES, '9 jul 2025, 14:30'],
+        ])('getLocalizedTimePeriodDescription renders a custom status date in %s as %s', (locale, expected) => {
+            const translateFor = <TPath extends TranslationPaths>(path: TPath, ...params: TranslationParameters<TPath>) => translate(locale, path, ...params);
+            expect(DateUtils.getLocalizedTimePeriodDescription(translateFor, locale, '2025-07-09 14:30:00')).toBe(expected);
         });
 
         it('the named wrappers accept a Date as well as a wire string', () => {
