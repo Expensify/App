@@ -2231,6 +2231,7 @@ describe('actions/Duplicate', () => {
 
             duplicateExpenseTransaction({
                 dateFnsLocale: undefined,
+                conciergeChat: undefined,
                 transaction: mockUnreportedTransaction,
                 optimisticChatReportID: mockOptimisticChatReportID,
                 optimisticIOUReportID: mockOptimisticIOUReportID,
