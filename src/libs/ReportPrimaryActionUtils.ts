@@ -222,9 +222,12 @@ function isPrimaryPayAction({
         return false;
     }
     const isReportPayer = isPayer(currentUserAccountID, currentUserLogin, report, bankAccountList, policy, false);
+
+    // The admin pay path is for workspace expense reports. Personal policies should only offer Pay to the actual payer.
     const canPayReport =
         isReportPayer ||
         (canNonPayerAdminPay &&
+            isGroupPolicy(policy) &&
             policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL &&
             canMemberWrite(policy, currentUserLogin, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
     const arePaymentsEnabled = arePaymentsEnabledUtils(policy);
