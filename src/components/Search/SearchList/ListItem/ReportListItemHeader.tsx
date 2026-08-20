@@ -281,7 +281,7 @@ function ReportListItemHeaderInner<TItem extends ListItem>({
         return chatReportID ? snapshot?.data?.[`${ONYXKEYS.COLLECTION.REPORT}${chatReportID}`] : undefined;
     }, [snapshot, snapshotReport?.chatReportID, reportItem.parentReportID]);
     const [parentPolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${getNonEmptyStringOnyxID(snapshotReport?.policyID ?? reportItem.policyID)}`);
-    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(reportItem.reportID)}`);
+    const [parentReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.reportID ?? reportItem.reportID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
     const [parentChatReport] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT}${getNonEmptyStringOnyxID(snapshotReport?.chatReportID ?? reportItem.parentReportID)}`);
     const chatReport = parentChatReport ?? snapshotChatReport;
