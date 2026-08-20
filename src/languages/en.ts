@@ -6126,7 +6126,6 @@ const translations = {
             settleBalance: 'Settle balance',
             settleBalanceConfirmationTitle: 'Settle balance?',
             settleBalanceConfirmationPrompt: 'This will settle your current balance in the next business day. Once successful, the amount will be added back to your remaining limit.',
-            settleBalancePaymentQueued: (amount: string) => `Payment of ${amount} is queued and will be processed soon.`,
             cardLimit: 'Card limit',
             remaining: 'Remaining',
             remainingLimit: 'Remaining limit',

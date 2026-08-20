@@ -6051,7 +6051,6 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             settleBalanceConfirmationTitle: 'Régler le solde ?',
             settleBalanceConfirmationPrompt:
                 'Cela réglera votre solde actuel le prochain jour ouvrable. Une fois l’opération réussie, le montant sera de nouveau ajouté à votre limite restante.',
-            settleBalancePaymentQueued: (amount: string) => `Le paiement de ${amount} est en file d’attente et sera traité bientôt.`,
             cardLimit: 'Plafond de carte',
             remaining: 'Restant',
             remainingLimit: 'Plafond restant',

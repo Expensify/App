@@ -6041,7 +6041,6 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             settleBalanceConfirmationTitle: 'Saldo ausgleichen?',
             settleBalanceConfirmationPrompt:
                 'Dadurch wird dein aktueller Saldo am nächsten Werktag ausgeglichen. Nach erfolgreicher Abwicklung wird der Betrag deinem verbleibenden Limit wieder gutgeschrieben.',
-            settleBalancePaymentQueued: (amount: string) => `Die Zahlung über ${amount} ist in der Warteschlange und wird in Kürze bearbeitet.`,
             cardLimit: 'Kartenlimit',
             remaining: 'Verbleibend',
             remainingLimit: 'Verbleibendes Limit',

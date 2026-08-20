@@ -6007,7 +6007,6 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             settleBalanceConfirmationTitle: 'Saldare il saldo?',
             settleBalanceConfirmationPrompt:
                 'Questa operazione salderà il tuo saldo attuale il giorno lavorativo successivo. Una volta completata, l’importo verrà aggiunto nuovamente al tuo limite rimanente.',
-            settleBalancePaymentQueued: (amount: string) => `Il pagamento di ${amount} è in coda e verrà elaborato a breve.`,
             cardLimit: 'Limite carta',
             remaining: 'Rimanente',
             remainingLimit: 'Limite rimanente',

@@ -5806,7 +5806,6 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             settleBalance: '结清余额',
             settleBalanceConfirmationTitle: '结清余额？',
             settleBalanceConfirmationPrompt: '这将在下一个工作日结清您的当前余额。成功后，该金额将重新计入您的剩余额度。',
-            settleBalancePaymentQueued: (amount: string) => `金额为 ${amount} 的付款已排队，稍后将被处理。`,
             cardLimit: '卡片限额',
             remaining: '剩余',
             remainingLimit: '剩余额度',

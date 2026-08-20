@@ -5980,7 +5980,6 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             settleBalanceConfirmationTitle: 'Uregulować saldo?',
             settleBalanceConfirmationPrompt:
                 'Spowoduje to uregulowanie bieżącego salda w następnym dniu roboczym. Po pomyślnym zakończeniu kwota zostanie ponownie dodana do pozostałego limitu.',
-            settleBalancePaymentQueued: (amount: string) => `Płatność w wysokości ${amount} jest w kolejce i wkrótce zostanie przetworzona.`,
             cardLimit: 'Limit karty',
             remaining: 'Pozostało',
             remainingLimit: 'Pozostały limit',

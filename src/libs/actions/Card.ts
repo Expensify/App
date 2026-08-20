@@ -1697,35 +1697,13 @@ function updateSelectedExpensifyCardFeed(feed: number, policyID: string | undefi
     ]);
 }
 
-function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number, programKey?: CardProgramKey, settlementAmount?: number) {
+function queueExpensifyCardForBilling(feedCountry: string, domainAccountID: number) {
     const parameters = {
         feedCountry,
         domainAccountID,
     };
 
-    // Optimistically mark the balance as queued so the "Settle balance" button is hidden and the "payment queued" message is
-    // shown immediately (mirrors payTravelBillingSpend). The backend later returns the authoritative pendingSettlementAmount.
-    const optimisticData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = programKey
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
-                  value: {[programKey]: {pendingSettlementAmount: settlementAmount ?? 0}},
-              },
-          ]
-        : [];
-
-    const failureData: Array<OnyxUpdate<typeof ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS>> = programKey
-        ? [
-              {
-                  onyxMethod: Onyx.METHOD.MERGE,
-                  key: `${ONYXKEYS.COLLECTION.PRIVATE_EXPENSIFY_CARD_SETTINGS}${domainAccountID}`,
-                  value: {[programKey]: {pendingSettlementAmount: 0}},
-              },
-          ]
-        : [];
-
-    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters, {optimisticData, failureData});
+    API.write(WRITE_COMMANDS.QUEUE_EXPENSIFY_CARD_FOR_BILLING, parameters);
 }
 
 function setExpensifyCardRule(domainAccountID: number, cardRuleID: string, spendRuleValues: SpendRuleForm, existingRule?: ExpensifyCardRule) {

@@ -5941,7 +5941,6 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             settleBalance: '残高を清算',
             settleBalanceConfirmationTitle: '残高を清算しますか？',
             settleBalanceConfirmationPrompt: '現在の残高が翌営業日に清算されます。清算が完了すると、その金額は残りの利用限度額に戻されます。',
-            settleBalancePaymentQueued: (amount: string) => `${amount} の支払いはキューに登録されており、まもなく処理されます。`,
             cardLimit: 'カード上限',
             remaining: '残り',
             remainingLimit: '残りの上限',
