@@ -46,6 +46,8 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
   private var privacyOverlay: UIView?
+  private weak var responderBeforePrivacyOverlay: UIResponder?
+  private var selectedTextRangeBeforePrivacyOverlay: UITextRange?
 
   override func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
     // Initialize Sentry before any native telemetry (e.g. certificate pinning monitor reports).
@@ -122,7 +124,13 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
         guard privacyOverlay == nil, let window else {
             return
         }
+
+        // Store the first responder and its selected text range, then dismiss the keyboard
+        let focusedResponder = findFirstResponder(in: window)
+        responderBeforePrivacyOverlay = focusedResponder
+        selectedTextRangeBeforePrivacyOverlay = (focusedResponder as? UITextInput)?.selectedTextRange
         window.endEditing(true)
+
         guard
             let overlay = UIStoryboard(name: "BootSplash", bundle: nil)
                 .instantiateInitialViewController()?.view
@@ -138,6 +146,41 @@ class AppDelegate: ExpoAppDelegate, UNUserNotificationCenterDelegate {
     private func hidePrivacyOverlay() {
         privacyOverlay?.removeFromSuperview()
         privacyOverlay = nil
+        restoreResponderBeforePrivacyOverlay()
+    }
+
+    // Give focus (and the caret position) back to whatever showPrivacyOverlay dismissed
+    private func restoreResponderBeforePrivacyOverlay() {
+        let responder = responderBeforePrivacyOverlay
+        let selectedTextRange = selectedTextRangeBeforePrivacyOverlay
+        responderBeforePrivacyOverlay = nil
+        selectedTextRangeBeforePrivacyOverlay = nil
+
+        // The view can be gone (or detached) by the time we come back
+        guard let responder, responder.canBecomeFirstResponder else {
+            return
+        }
+        if let view = responder as? UIView, view.window == nil {
+            return
+        }
+        guard responder.becomeFirstResponder() else {
+            return
+        }
+        if let selectedTextRange, let textInput = responder as? UITextInput {
+            textInput.selectedTextRange = selectedTextRange
+        }
+    }
+
+    private func findFirstResponder(in view: UIView) -> UIResponder? {
+        if view.isFirstResponder {
+            return view
+        }
+        for subview in view.subviews {
+            if let responder = findFirstResponder(in: subview) {
+                return responder
+            }
+        }
+        return nil
     }
 
   override func applicationWillTerminate(_ application: UIApplication) {
