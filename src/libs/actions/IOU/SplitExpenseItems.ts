@@ -2,7 +2,7 @@ import type {CurrencyListActionsContextType} from '@hooks/useCurrencyList';
 
 import {convertToBackendAmount} from '@libs/CurrencyUtils';
 import DateUtils from '@libs/DateUtils';
-import {calculateAmount as calculateIOUAmount, calculateSplitTaxAmountFromAmount} from '@libs/IOUUtils';
+import {calculateAmount as calculateIOUAmount} from '@libs/IOUUtils';
 import {toLocaleDigit} from '@libs/LocaleDigitUtils';
 import {translate} from '@libs/Localize';
 import {rand64, roundToTwoDecimalPlaces} from '@libs/NumberUtils';
@@ -337,7 +337,6 @@ function redistributeSplitExpenseAmounts(
     splitExpenses: SplitExpense[],
     total: number,
     currency: string,
-    originalTaxAmount: number,
     getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
 ): SplitExpense[] {
     // Calculate sum of manually edited splits
@@ -353,14 +352,14 @@ function redistributeSplitExpenseAmounts(
     const remaining = total - editedSum;
     const lastUneditedIndex = uneditedCount - 1;
     let uneditedIndex = 0;
-
     return splitExpenses.map((split) => {
         if (split.isManuallyEdited) {
             return split;
         }
         const isLast = uneditedIndex === lastUneditedIndex;
         const newAmount = calculateIOUAmount(lastUneditedIndex, remaining, currency, isLast, true, getCurrencyDecimals);
-        const newTaxAmount = calculateSplitTaxAmountFromAmount(originalTaxAmount, newAmount, total);
+        // Not the initial split state: recalculate tax from the split's own rate applied to its new amount.
+        const newTaxAmount = convertToBackendAmount(calculateTaxAmount(split.taxValue, newAmount, getCurrencyDecimals(currency)));
 
         uneditedIndex += 1;
         return {...split, amount: newAmount, taxAmount: newTaxAmount};
@@ -436,7 +435,6 @@ function addSplitExpenseField(
     // Get total amount and currency for redistribution
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
-    const originalTaxAmount = getTransactionDetails(transaction)?.taxAmount ?? 0;
     const originalTransactionID = draftTransaction.comment?.originalTransactionID ?? transaction.transactionID;
 
     // Check if existing splits already sum to the total
@@ -449,7 +447,7 @@ function addSplitExpenseField(
     // Skip redistribution only when manual edits exist AND splits sum to total
     const shouldRedistribute = !splitsAlreadyMatchTotal || !hasManuallyEditedSplits;
     if (!isDistanceRequest && shouldRedistribute) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency, originalTaxAmount, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(updatedSplitExpenses, total, currency, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -622,7 +620,8 @@ function resetSplitExpensesByDateRange({
     // Create split expenses for each date with proportional amounts, the remainder going to the first one
     const newSplitExpenses: SplitExpense[] = dates.map((date, index) => {
         const amount = calculateIOUAmount(dates.length - 1, total, currency, index === 0, true, getCurrencyDecimals);
-        const splitTaxAmount = calculateSplitTaxAmountFromAmount(transactionDetails?.taxAmount ?? 0, amount, total);
+        // Not the initial split state: recalculate tax from the (inherited) tax rate applied to the new amount.
+        const splitTaxAmount = convertToBackendAmount(calculateTaxAmount(transactionDetails?.taxValue, amount, getCurrencyDecimals(currency)));
 
         let splitExpense = initSplitExpenseItemData(transaction, transactionReport, {
             amount,
@@ -683,8 +682,6 @@ function removeSplitExpenseField(
 
     const originalTransaction = getAllTransactions()?.[`${ONYXKEYS.COLLECTION.TRANSACTION}${originalTransactionID}`];
     const isDistanceRequest = originalTransaction && isDistanceRequestTransactionUtils(originalTransaction);
-    const originalTaxAmount = getTransactionDetails(originalTransaction)?.taxAmount ?? 0;
-
     let redistributedSplitExpenses = splitExpenses;
 
     // Auto-redistribute amounts for all splits if this is not a distance request
@@ -693,7 +690,7 @@ function removeSplitExpenseField(
         // If every remaining split is locked, temporarily unlock them so removing one split
         // still redistributes to a valid, saveable total in the split edit flow.
         const splitExpensesToRedistribute = hasAnyUneditedSplit ? splitExpenses : splitExpenses.map((item) => ({...item, isManuallyEdited: false}));
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, originalTaxAmount, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitExpensesToRedistribute, total, currency, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
@@ -818,8 +815,6 @@ function updateSplitExpenseAmountField(
     const splitExpenses = draftTransaction.comment?.splitExpenses ?? [];
     const total = getAmount(draftTransaction, undefined, undefined, true, true);
     const currency = getCurrency(draftTransaction);
-    const originalTaxAmount = getTransactionDetails(originalTransaction)?.taxAmount ?? 0;
-
     // Mark the edited split and update its amount
     const splitWithUpdatedAmount = splitExpenses.map((splitExpense) => {
         if (splitExpense.transactionID === currentItemTransactionID) {
@@ -865,7 +860,7 @@ function updateSplitExpenseAmountField(
 
     // Auto-redistribute amounts for all splits if this is not a distance request
     if (!isDistanceRequest) {
-        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency, originalTaxAmount, getCurrencyDecimals);
+        redistributedSplitExpenses = redistributeSplitExpenseAmounts(splitWithUpdatedAmount, total, currency, getCurrencyDecimals);
     }
 
     Onyx.merge(`${ONYXKEYS.COLLECTION.SPLIT_TRANSACTION_DRAFT}${originalTransactionID}`, {
