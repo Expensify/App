@@ -32,13 +32,14 @@ function hasDifferentSplitScope(currentRoute: NavigationRoute, payload: ActionPa
     const sidebarScreen = SPLIT_TO_SIDEBAR[currentRoute.name];
     const scopeParams = getParamsFromRoute(sidebarScreen);
     const sidebarRoute = currentRoute.state.routes.find((route) => route.name === sidebarScreen);
+    const currentParams: unknown = sidebarRoute?.params;
     const targetParams = payload.params?.params;
-    if (!isRecord(sidebarRoute?.params) || !isRecord(targetParams)) {
+    if (!isRecord(currentParams) || !isRecord(targetParams)) {
         return false;
     }
 
     return scopeParams.some((param) => {
-        const currentValue = sidebarRoute.params[param];
+        const currentValue = currentParams[param];
         const targetValue = targetParams[param];
         return currentValue !== undefined && targetValue !== undefined && currentValue !== targetValue;
     });
