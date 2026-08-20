@@ -299,6 +299,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             delegateEmail: undefined,
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -414,6 +415,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -537,6 +539,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -645,6 +648,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -754,6 +758,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -1076,6 +1081,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateEmail: undefined,
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -1355,6 +1361,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                                 delegateEmail: undefined,
                                 delegateAccountID: undefined,
                                 isTrackIntentUser: false,
+                                formatPhoneNumber,
                             });
                         }
                         return waitForBatchedUpdates();
@@ -1531,6 +1538,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                             delegateEmail: undefined,
                             delegateAccountID: undefined,
                             isTrackIntentUser: false,
+                            formatPhoneNumber,
                         });
                     }
                     return waitForBatchedUpdates();
@@ -1606,6 +1614,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             await waitForBatchedUpdates();
@@ -1725,6 +1734,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                     delegateEmail: undefined,
                     delegateAccountID: undefined,
                     isTrackIntentUser: false,
+                    formatPhoneNumber,
                 });
 
                 await waitForBatchedUpdates();
@@ -1789,6 +1799,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -1856,6 +1867,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -1909,6 +1921,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 submitterLogin: submitterEmail,
                 shouldExportToPDF: true,
+                formatPhoneNumber,
             });
 
             const pdfNvpKey = `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${expenseReport.reportID}`;
@@ -1964,6 +1977,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 submitterLogin: submitterEmail,
+                formatPhoneNumber,
             });
 
             const pdfNvpKey = `${ONYXKEYS.COLLECTION.NVP_EXPENSIFY_REPORT_PDF_FILENAME}${expenseReport.reportID}`;
@@ -2036,6 +2050,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2129,6 +2144,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateAccountID: undefined,
                 submitterLogin: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2222,6 +2238,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2298,6 +2315,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
             await waitForBatchedUpdates();
 
@@ -2370,6 +2388,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, parameters, onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2441,6 +2460,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -2506,6 +2526,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             expect(apiWriteSpy).toHaveBeenCalledTimes(1);
@@ -2551,6 +2572,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             const [, , onyxData] = getRequiredWriteCall(apiWriteSpy.mock.calls);
@@ -2858,6 +2880,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: DELEGATE_EMAIL,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure
@@ -2897,6 +2920,7 @@ describe('actions/IOU/ReportWorkflow', () => {
                 delegateEmail: undefined,
                 delegateAccountID: undefined,
                 isTrackIntentUser: false,
+                formatPhoneNumber,
             });
 
             // eslint-disable-next-line rulesdir/no-multiple-api-calls -- Inspecting mock call args to verify optimistic data structure

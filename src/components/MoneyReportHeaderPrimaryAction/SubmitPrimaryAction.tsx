@@ -69,7 +69,7 @@ function SubmitPrimaryAction({reportID}: SubmitPrimaryActionProps) {
 
 function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
     const {isSubmittingAnimationRunning, stopAnimation, startSubmittingAnimation} = usePaymentAnimationsContext();
-    const {translate} = useLocalize();
+    const {translate, formatPhoneNumber} = useLocalize();
     const {getCurrencyDecimals} = useCurrencyListActions();
     const {isOffline} = useNetwork();
     const {accountID, email} = useCurrentUserPersonalDetails();
@@ -195,6 +195,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
                 // Submit via PDF submits the report to the submitter (self); the backend keys off this to generate the PDF.
                 managerEmail: shouldExportToPDF ? email : undefined,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
             if (currentSearchQueryJSON && !isOffline) {
                 search({

@@ -262,6 +262,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
                 delegateAccountID,
                 submitterLogin,
                 isTrackIntentUser,
+                formatPhoneNumber,
             });
             refreshSearchAfterReportAction({
                 currentSearchQueryJSON,
