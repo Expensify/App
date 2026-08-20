@@ -22,6 +22,7 @@ import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
 import useStyleUtils from '@hooks/useStyleUtils';
 import useTheme from '@hooks/useTheme';
 import useThemeStyles from '@hooks/useThemeStyles';
@@ -31,7 +32,7 @@ import {handleActionButtonPress} from '@libs/actions/Search';
 import {syncMissingAttendeesViolation} from '@libs/AttendeeUtils';
 import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {isAttendeeTrackingEnabled} from '@libs/PolicyUtils';
-import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {getNonHeldAndFullAmount, isInvoiceReport, isOpenExpenseReport, isProcessingReport, isReportPendingDelete} from '@libs/ReportUtils';
 import {hasVisibleViolations} from '@libs/SearchUIUtils';
 import shouldBreakAccessibilityGrouping from '@libs/shouldBreakAccessibilityGrouping';
 import {isOnHold, isViolationDismissed, shouldShowViolation, showHeldExpensesBlockModal, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
@@ -122,11 +123,7 @@ function ExpenseReportListItemInner<TItem extends ListItem>({
     const [policyCategories] = originalUseOnyx(`${ONYXKEYS.COLLECTION.POLICY_CATEGORIES}${getNonEmptyStringOnyxID(reportItem.policyID)}`);
     const [submitterLogin] = originalUseOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsLoginSelector(reportItem.ownerAccountID)});
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy: parentPolicy,
-        report: parentReport,
-        isTrackIntentUser,
-    });
+    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(parentReport, parentPolicy);
 
     const searchData = currentSearchResults?.data;
 

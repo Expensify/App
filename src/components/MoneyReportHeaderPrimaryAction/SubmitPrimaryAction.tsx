@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import usePaginatedReportActions from '@hooks/usePaginatedReportActions';
 import usePermissions from '@hooks/usePermissions';
 import useSearchShouldCalculateTotals from '@hooks/useSearchShouldCalculateTotals';
+import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
 import useStrictPolicyRules from '@hooks/useStrictPolicyRules';
 import useTransactionsAndViolationsForReport from '@hooks/useTransactionsAndViolationsForReport';
 
@@ -26,7 +27,7 @@ import getNonEmptyStringOnyxID from '@libs/getNonEmptyStringOnyxID';
 import {hasDynamicExternalWorkflow, isSubmitPolicy} from '@libs/PolicyUtils';
 import {getFilteredReportActionsForReportView} from '@libs/ReportActionsUtils';
 import {isSubmitViaPDFAction} from '@libs/ReportPrimaryActionUtils';
-import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules, shouldShowMarkAsDone} from '@libs/ReportUtils';
+import {hasViolations as hasViolationsReportUtils, shouldBlockSubmitDueToPreventSelfApproval, shouldBlockSubmitDueToStrictPolicyRules} from '@libs/ReportUtils';
 import {hasAnyPendingRTERViolation as hasAnyPendingRTERViolationTransactionUtils, hasOnlyPendingCardTransactions, showPendingCardTransactionsBlockModal} from '@libs/TransactionUtils';
 
 import {retractReport, setPreferredReportSubmissionMethod, submitReport} from '@userActions/IOU/ReportWorkflow';
@@ -118,11 +119,7 @@ function SubmitPrimaryActionContent({reportID}: SubmitPrimaryActionProps) {
         transactions,
     );
     const shouldBlockSubmit = isBlockSubmitDueToStrictPolicyRules || isBlockSubmitDueToPreventSelfApproval;
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-    });
+    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(moneyRequestReport, policy);
 
     // Submit via PDF is offered for any draft report the current user submits on a Submit workspace. The PDF flow
     // submits the report to the submitter, which is what makes the backend generate it.

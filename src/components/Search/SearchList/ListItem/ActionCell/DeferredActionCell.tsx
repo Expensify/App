@@ -12,9 +12,7 @@ import type {ActionCellProps} from '.';
 import ActionCell from '.';
 import actionTranslationsMap from './actionTranslationsMap';
 
-type DeferredActionCellProps = ActionCellProps & {isMarkAsDone?: boolean};
-
-function DeferredActionCell(actionCellProps: DeferredActionCellProps) {
+function DeferredActionCell(actionCellProps: ActionCellProps) {
     const styles = useThemeStyles();
     const {translate} = useLocalize();
     const shouldRender = useDeferredValue(true, false);

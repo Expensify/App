@@ -18,7 +18,6 @@ import {
     isExported as isExportedUtils,
     isReportOwner,
     shouldBlockSubmitDueToStrictPolicyRules,
-    shouldShowMarkAsDone,
 } from '@libs/ReportUtils';
 import refreshSearchAfterReportAction from '@libs/SearchRefreshUtils';
 import showConfirmModalAfterMoreMenuDismiss from '@libs/showConfirmModalAfterMoreMenuDismiss';
@@ -54,6 +53,7 @@ import useOnyx from './useOnyx';
 import usePaginatedReportActions from './usePaginatedReportActions';
 import usePermissions from './usePermissions';
 import useSearchShouldCalculateTotals from './useSearchShouldCalculateTotals';
+import useShouldShowMarkAsDone from './useShouldShowMarkAsDone';
 import useStrictPolicyRules from './useStrictPolicyRules';
 import useThemeStyles from './useThemeStyles';
 import useTransactionsAndViolationsForReport from './useTransactionsAndViolationsForReport';
@@ -211,11 +211,7 @@ function useLifecycleActions({reportID, startApprovedAnimation, startAnimation, 
         }
     };
 
-    const shouldUseMarkAsDoneCopy = shouldShowMarkAsDone({
-        policy,
-        report: moneyRequestReport,
-        isTrackIntentUser,
-    });
+    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(moneyRequestReport, policy);
 
     const handleSubmitReport = (skipAnimation = false) => {
         if (!moneyRequestReport || shouldBlockSubmit) {

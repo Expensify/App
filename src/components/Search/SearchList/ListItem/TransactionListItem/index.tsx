@@ -18,6 +18,7 @@ import useOnyx from '@hooks/useOnyx';
 import {useReportPaymentContext} from '@hooks/usePaymentContext';
 import usePolicyForMovingExpenses from '@hooks/usePolicyForMovingExpenses';
 import useResponsiveLayout from '@hooks/useResponsiveLayout';
+import useShouldShowMarkAsDone from '@hooks/useShouldShowMarkAsDone';
 
 import type {TransactionPreviewData} from '@libs/actions/Search';
 import {handleActionButtonPress as handleActionButtonPressUtil} from '@libs/actions/Search';
@@ -176,6 +177,8 @@ function TransactionListItemInner<TItem extends ListItem>({
     const policyForViolations = parentPolicy ?? snapshotPolicy;
     const rowPolicy = parentPolicy || snapshotPolicy.id || transactionItem.policy ? {...transactionItem.policy, ...snapshotPolicy, ...parentPolicy} : undefined;
     const reportForViolations = parentReport ?? snapshotReport;
+    // Same inputs as the row's action cell, so the block modals match the button copy.
+    const shouldUseMarkAsDoneCopy = useShouldShowMarkAsDone(liveTransactionItem.report, rowPolicy ?? liveTransactionItem.policy);
 
     const onyxViolations = (transactionViolationsForRow ?? []).filter(
         (violation: TransactionViolation) =>
@@ -229,8 +232,8 @@ function TransactionListItemInner<TItem extends ListItem>({
             openReportSubmitToPopover,
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
-            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
-            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
+            onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate, shouldUseMarkAsDoneCopy),
             currentUserAccountID,
             currentUserLogin,
             introSelected,
