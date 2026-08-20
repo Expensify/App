@@ -1,5 +1,12 @@
 import type {WriteReadyBarrier} from '@libs/API';
-import {acquireSearchWriteBarrier, consumePendingSearchWrite, consumePendingSearchWriteForGeneration, getPendingSearchWriteGeneration, hasPendingSearchWrite} from '@libs/pendingSearchWrite';
+import {
+    acquireSearchWriteBarrier,
+    consumePendingSearchWrite,
+    consumePendingSearchWriteForGeneration,
+    getPendingSearchWriteGeneration,
+    hasPendingSearchWrite,
+    restartPendingSearchWriteSafetyTimeoutForGeneration,
+} from '@libs/pendingSearchWrite';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -65,6 +72,12 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
         // `finally`. Guarded so the two paths can't double-consume. Not `acquireSearchWriteBarrier`:
         // this write isn't waiting on Search's layout, so its watch key must not be published either.
         return async (signal) => {
+            // This write never actually waits on `pending.barrier` - it waits on `writeBarrier` - so
+            // `clearPending`'s release can't reach it. Restart the signal's own safety timeout from here
+            // (attach time), not mark time, so it cannot expire - dropping Search's skeleton and query
+            // suppression - before this write's own, later-starting safety timeout even gets a chance to.
+            restartPendingSearchWriteSafetyTimeoutForGeneration(searchGeneration);
+
             let hasConsumed = false;
             const consumeOnce = () => {
                 if (hasConsumed) {

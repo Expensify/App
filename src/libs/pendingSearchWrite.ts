@@ -181,6 +181,24 @@ function consumePendingSearchWriteForGeneration(generation: number) {
 }
 
 /**
+ * Restart the signal's own safety timeout from the point a write that bypasses `pending.barrier` (an
+ * explicit barrier already won) actually attaches, rather than from mark time.
+ *
+ * Without this, a write gated on its own explicit barrier is never actually waiting on `pending.barrier`
+ * - `clearPending`'s `release()` call cannot reach it - so this signal's mark-time safety timeout and
+ * that write's construction-time safety timeout race independently. If this one fires first, Search's
+ * skeleton and query suppression come down while the write is still blocked on its own barrier. A no-op
+ * if the pending signal is no longer the one identified by `generation`. See `getPendingSearchWriteGeneration`.
+ */
+function restartPendingSearchWriteSafetyTimeoutForGeneration(generation: number) {
+    if (pending?.generation !== generation) {
+        return;
+    }
+    clearTimeout(pending.safetyTimeoutID);
+    pending.safetyTimeoutID = setTimeout(() => clearPending(generation), SAFETY_TIMEOUT_MS);
+}
+
+/**
  * Release the pending writes. Called by Search when real content lays out, and from its focus/unmount
  * fallbacks.
  *
@@ -242,6 +260,7 @@ export {
     acquireSearchWriteBarrier,
     consumePendingSearchWrite,
     consumePendingSearchWriteForGeneration,
+    restartPendingSearchWriteSafetyTimeoutForGeneration,
     flushPendingSearchWrite,
     setSearchWriteWatchKey,
     getSearchWriteWatchKey,

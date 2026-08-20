@@ -96,6 +96,34 @@ describe('resolveWriteBarrier', () => {
         expect(hasPendingSearchWrite()).toBe(false);
     });
 
+    it("restarts Search's own safety timeout from the point the caller's barrier attaches", () => {
+        jest.useFakeTimers();
+        try {
+            // Given Search's signal marked, with a caller barrier that never settles on its own
+            markPendingSearchWrite();
+            const writeBarrier: WriteReadyBarrier = () => new Promise<void>(() => {});
+
+            // When the write attaches to that barrier well into the mark-time safety-timeout window
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+            const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+            barrier(new AbortController().signal);
+
+            // Then advancing past where the original mark-time timer would have fired does not clear
+            // the signal - this write never actually waits on `pending.barrier`, so without a restart at
+            // attach time the signal would come down while the write is still blocked on its own barrier
+            jest.advanceTimersByTime(SAFETY_TIMEOUT_MS - 1);
+            expect(hasPendingSearchWrite()).toBe(true);
+
+            // When the restarted window itself elapses
+            jest.advanceTimersByTime(1);
+
+            // Then the signal finally clears
+            expect(hasPendingSearchWrite()).toBe(false);
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it("consumes the pending Search signal when the caller's barrier is aborted instead of settling", () => {
         // Given Search's signal is up and the caller's barrier never settles on its own - matching the
         // default TransitionTracker barrier, which leaves its promise permanently pending once aborted
