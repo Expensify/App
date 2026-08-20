@@ -27,9 +27,6 @@ import {
     hasDynamicExternalWorkflow,
     isGroupPolicy,
     isInstantSubmitEnabled,
-    // Cancelling a payment is a paid-only gate (it mirrors the pay gate, which only applies to Collect/Control), so the billing check is intentional here.
-    // eslint-disable-next-line no-restricted-imports
-    isPaidGroupPolicy,
     isPolicyAdmin,
     isPolicyApprover,
     isPolicyMember,
@@ -418,10 +415,8 @@ function everyPayActionHasPaymentType(payActions: ReportAction[], matchesPayment
     );
 }
 
-// Cancel eligibility follows the payment that is currently in flight. A report can accumulate stale pay actions
-// (e.g. paid elsewhere, then cancelled, then re-paid via bank) because cancelling only appends a "payment cancelled"
-// action, it doesn't remove the original pay action. So we look at the most recent pay action rather than every one,
-// otherwise a superseded paid-elsewhere action could keep the Cancel button around past the bank payment's cutoff.
+// Cancelling appends a new action instead of removing the old pay action, so a report can hold stale pay actions
+// (paid elsewhere, cancelled, re-paid via bank). Use the latest pay action so a superseded one doesn't keep Cancel around.
 function getLatestPayAction(payActions: ReportAction[]): ReportAction | undefined {
     return payActions.reduce<ReportAction | undefined>((latest, action) => (!latest || action.created > latest.created ? action : latest), undefined);
 }
@@ -474,14 +469,7 @@ function isCancelPaymentAction(
         return everyPayActionHasPaymentType(payActions, (paymentType) => paymentType === CONST.IOU.PAYMENT_TYPE.EXPENSIFY);
     }
 
-    // Cancelling a payment mirrors the pay gate (canIOUBePaid.canPay), which only applies to paid group policies.
-    // Guard here so an expense report whose policy can't be resolved to a paid group can't fall through isPayer's
-    // report-manager fallback and let a plain manager cancel.
-    if (!isPaidGroupPolicy(policy)) {
-        return false;
-    }
-
-    // Mirror the pay gate (canIOUBePaid.canPay), so whoever could mark the report paid can cancel it — no admin requirement.
+    // Mirror the pay gate (canIOUBePaid.canPay): whoever could mark the report paid can cancel it, no admin requirement.
     const canCancelPayment =
         isPayer ||
         (policy?.reimbursementChoice === CONST.POLICY.REIMBURSEMENT_CHOICES.REIMBURSEMENT_MANUAL && canMemberWrite(policy, currentUserEmail, CONST.POLICY.POLICY_FEATURE.WORKFLOWS_PAYMENTS));
@@ -494,8 +482,7 @@ function isCancelPaymentAction(
     const latestPayAction = getLatestPayAction(payActions);
     const latestPaymentType = getPayActionPaymentType(latestPayAction);
 
-    // Check if the latest payment was made via bank account (not elsewhere). An undetermined payment type
-    // (no pay action) is treated as paid elsewhere below so we still surface Cancel.
+    // An undetermined payment type (no pay action) is treated as paid elsewhere below so we still surface Cancel.
     const isPaidViaBankAccount = !!latestPaymentType && latestPaymentType !== CONST.IOU.PAYMENT_TYPE.ELSEWHERE;
 
     // For reports marked as paid elsewhere or when we can't determine payment type, show cancel button
