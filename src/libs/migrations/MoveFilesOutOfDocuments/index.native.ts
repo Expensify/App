@@ -82,10 +82,10 @@ function updateAttachmentRecordPaths(): Promise<void> {
                     }
 
                     // No need to add a new action just for this migration
-                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
                     const rewrite = isEmptyObject(updates)
                         ? Promise.resolve()
-                        : Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates).then(() => {
+                        : // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                          Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates).then(() => {
                               Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
                           });
 
