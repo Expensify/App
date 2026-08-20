@@ -9,6 +9,7 @@ import type {OnyxCollection} from 'react-native-onyx';
 
 import RNFS from 'react-native-fs';
 import Onyx from 'react-native-onyx';
+import OnyxUtils from 'react-native-onyx/dist/OnyxUtils';
 
 const OLD_ATTACHMENT_DIR = `${RNFS.DocumentDirectoryPath}/attachments`;
 const NEW_ATTACHMENT_DIR = `${RNFS.CachesDirectoryPath}/attachments`;
@@ -56,39 +57,48 @@ function moveAttachmentCache(): Promise<void> {
  * their paths are rewritten to the new location. Records are rewritten even when the files
  * themselves are gone (on iOS the user can delete them via the Files app): reads verify the file
  * exists and re-cache on a miss, so a rewritten record never renders a dead path.
+ *
+ * The scan reads the whole attachment collection, so once it completes a flag is stored and
+ * later launches skip it entirely.
  */
 function updateAttachmentRecordPaths(): Promise<void> {
-    return new Promise((resolve, reject) => {
-        // connectWithoutView is appropriate here because migrations run once at startup, before anything renders
-        const connection = Onyx.connectWithoutView({
-            key: ONYXKEYS.COLLECTION.ATTACHMENT,
-            callback: (attachments: OnyxCollection<Attachment>) => {
-                Onyx.disconnect(connection);
+    return OnyxUtils.get(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED).then((hasMigrated) => {
+        if (hasMigrated) {
+            return;
+        }
+        return new Promise<void>((resolve, reject) => {
+            // connectWithoutView is appropriate here because migrations run once at startup, before anything renders
+            const connection = Onyx.connectWithoutView({
+                key: ONYXKEYS.COLLECTION.ATTACHMENT,
+                callback: (attachments: OnyxCollection<Attachment>) => {
+                    Onyx.disconnect(connection);
 
-                const updates: Record<string, Attachment> = {};
-                for (const [key, attachment] of Object.entries(attachments ?? {})) {
-                    if (!attachment?.source?.startsWith(`${OLD_ATTACHMENT_DIR}/`)) {
-                        continue;
+                    const updates: Record<string, Attachment> = {};
+                    for (const [key, attachment] of Object.entries(attachments ?? {})) {
+                        if (!attachment?.source?.startsWith(`${OLD_ATTACHMENT_DIR}/`)) {
+                            continue;
+                        }
+                        updates[key] = {...attachment, source: `${NEW_ATTACHMENT_DIR}/${attachment.source.slice(OLD_ATTACHMENT_DIR.length + 1)}`};
                     }
-                    updates[key] = {...attachment, source: `${NEW_ATTACHMENT_DIR}/${attachment.source.slice(OLD_ATTACHMENT_DIR.length + 1)}`};
-                }
 
-                if (isEmptyObject(updates)) {
-                    resolve();
-                    return;
-                }
+                    // No need to add a new action just for this migration
+                    // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                    const rewrite = isEmptyObject(updates)
+                        ? Promise.resolve()
+                        : Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates).then(() => {
+                              Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
+                          });
 
-                // No need to add a new action just for this migration
-                // eslint-disable-next-line rulesdir/prefer-actions-set-data
-                Onyx.mergeCollection(ONYXKEYS.COLLECTION.ATTACHMENT, updates)
-                    .then(() => {
-                        Log.info('[Migrate Onyx] MoveFilesOutOfDocuments updated attachment records to the new cache directory');
-                        resolve();
-                    })
-                    // The rejection must propagate so the startup fallback in the migration's
-                    // catch handler runs instead of leaving migrateOnyx() pending forever
-                    .catch(reject);
-            },
+                    rewrite
+                        // The flag is only set after a successful rewrite so a failed run retries on the next launch
+                        // eslint-disable-next-line rulesdir/prefer-actions-set-data
+                        .then(() => Onyx.set(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED, true))
+                        .then(() => resolve())
+                        // The rejection must propagate so the startup fallback in the migration's
+                        // catch handler runs instead of leaving migrateOnyx() pending forever
+                        .catch(reject);
+                },
+            });
         });
     });
 }

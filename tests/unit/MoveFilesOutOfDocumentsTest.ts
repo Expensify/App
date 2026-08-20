@@ -124,6 +124,22 @@ describe('MoveFilesOutOfDocuments migration (native)', () => {
         mergeCollectionSpy.mockRestore();
     });
 
+    it('skips the attachment record scan on later launches once it has completed', async () => {
+        await MoveFilesOutOfDocuments();
+        await waitForBatchedUpdates();
+        expect(await getOnyxValue(ONYXKEYS.ATTACHMENT_RECORD_PATHS_MIGRATED)).toBe(true);
+
+        // A record with an old-directory path written after the first run stays untouched, proving the scan no longer runs
+        await Onyx.set(`${ONYXKEYS.COLLECTION.ATTACHMENT}source1`, {attachmentID: 'source1', source: `${OLD_ATTACHMENT_DIR}/file.jpg`});
+        await waitForBatchedUpdates();
+
+        await MoveFilesOutOfDocuments();
+        await waitForBatchedUpdates();
+
+        const attachment = await getOnyxValue(`${ONYXKEYS.COLLECTION.ATTACHMENT}source1`);
+        expect(attachment).toEqual({attachmentID: 'source1', source: `${OLD_ATTACHMENT_DIR}/file.jpg`});
+    });
+
     it('removes a stale Onyx state dump left by older app versions', async () => {
         mockRNFS.exists.mockImplementation((existsPath: string) => Promise.resolve(existsPath === STALE_ONYX_DUMP));
 
