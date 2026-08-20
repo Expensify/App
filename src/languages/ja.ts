@@ -5709,7 +5709,13 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             addNewCard: {
                 other: 'その他',
                 fileImport: 'ファイルから取引をインポート',
-                createFileFeedHelpText: `<muted-text>会社カードの経費をインポートするには、この<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">ヘルプガイド</a>に従ってください。</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '次のページで、カード取引のCSVをアップロードします。アップロードする前に、',
+                    templateLink: 'テンプレートをダウンロード',
+                    instructionMiddle: 'するか、',
+                    helpGuideLink: 'ヘルプガイド',
+                    instructionEnd: 'をご確認ください。',
+                },
                 companyCardLayoutName: '法人カードレイアウト名',
                 cardLayoutNameRequired: '法人カードレイアウト名は必須です',
                 downloadTemplate: 'テンプレートをダウンロード',

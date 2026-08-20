@@ -5803,7 +5803,13 @@ _Für ausführlichere Anweisungen [besuchen Sie unsere Hilfeseite](${CONST.NETSU
             addNewCard: {
                 other: 'Sonstiges',
                 fileImport: 'Transaktionen aus Datei importieren',
-                createFileFeedHelpText: `<muted-text>Bitte folge dieser <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">Hilfsanleitung</a>, um die Ausgaben deiner Firmenkarte zu importieren!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Auf der nächsten Seite lädst du eine CSV-Datei mit deinen Kartentransaktionen hoch. ',
+                    templateLink: 'Vorlage herunterladen',
+                    instructionMiddle: ' oder sieh dir unsere ',
+                    helpGuideLink: 'Hilfsanleitung',
+                    instructionEnd: ' an, bevor du sie hochlädst.',
+                },
                 companyCardLayoutName: 'Name des Firmenkarten-Layouts',
                 cardLayoutNameRequired: 'Der Name des Firmenkarten-Layouts ist erforderlich',
                 downloadTemplate: 'Vorlage herunterladen',

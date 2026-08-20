@@ -5763,7 +5763,13 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
             addNewCard: {
                 other: 'Anders',
                 fileImport: 'Transacties uit bestand importeren',
-                createFileFeedHelpText: `<muted-text>Volg deze <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">hulpgids</a> om de uitgaven op je bedrijfskaarten te importeren!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Op de volgende pagina upload je een CSV van je kaarttransacties. ',
+                    templateLink: 'Download ons sjabloon',
+                    instructionMiddle: ' of bekijk onze ',
+                    helpGuideLink: 'hulpgids',
+                    instructionEnd: ' voordat je uploadt.',
+                },
                 companyCardLayoutName: 'Naam van lay-out van bedrijfskaart',
                 cardLayoutNameRequired: 'De naam van de lay-out van de bedrijfskaart is verplicht',
                 downloadTemplate: 'Download ons sjabloon',

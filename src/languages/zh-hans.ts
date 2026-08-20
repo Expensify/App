@@ -5575,7 +5575,13 @@ _如需更详细的说明，请[访问我们的帮助网站](${CONST.NETSUITE_IM
             addNewCard: {
                 other: '其他',
                 fileImport: '从文件导入交易',
-                createFileFeedHelpText: `<muted-text>请按照此<a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">帮助指南</a>操作，将您的公司卡费用导入！</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: '在下一页，您将上传卡交易的 CSV 文件。上传前，请先',
+                    templateLink: '下载我们的模板',
+                    instructionMiddle: '，或查看我们的',
+                    helpGuideLink: '帮助指南',
+                    instructionEnd: '。',
+                },
                 companyCardLayoutName: '公司卡片布局名称',
                 cardLayoutNameRequired: '公司卡片布局名称是必填的',
                 downloadTemplate: '下载我们的模板',

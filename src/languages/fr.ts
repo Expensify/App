@@ -5813,7 +5813,13 @@ _Pour des instructions plus détaillées, [visitez notre site d’aide](${CONST.
             addNewCard: {
                 other: 'Autre',
                 fileImport: 'Importer des transactions depuis un fichier',
-                createFileFeedHelpText: `<muted-text>Veuillez suivre ce <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guide d’aide</a> pour importer les dépenses de votre carte d’entreprise !</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Sur la page suivante, vous téléchargerez un CSV de vos transactions par carte. ',
+                    templateLink: 'Télécharger notre modèle',
+                    instructionMiddle: ' ou consultez notre ',
+                    helpGuideLink: 'guide d’aide',
+                    instructionEnd: ' avant de l’importer.',
+                },
                 companyCardLayoutName: 'Nom de la disposition de carte entreprise',
                 cardLayoutNameRequired: 'Le nom du layout de la carte entreprise est requis',
                 downloadTemplate: 'Télécharger notre modèle',

@@ -5772,7 +5772,13 @@ _Per istruzioni più dettagliate, [visita il nostro sito di assistenza](${CONST.
             addNewCard: {
                 other: 'Altro',
                 fileImport: 'Importa transazioni da file',
-                createFileFeedHelpText: `<muted-text>Segui questa <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guida di supporto</a> per importare le spese della carta aziendale!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Nella pagina successiva, caricherai un CSV delle transazioni della tua carta. ',
+                    templateLink: 'Scarica il nostro modello',
+                    instructionMiddle: ' oppure consulta la nostra ',
+                    helpGuideLink: 'guida di supporto',
+                    instructionEnd: ' prima di caricarlo.',
+                },
                 companyCardLayoutName: 'Nome layout carta aziendale',
                 cardLayoutNameRequired: 'Il nome del layout della carta aziendale è obbligatorio',
                 downloadTemplate: 'Scarica il nostro modello',

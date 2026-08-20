@@ -5764,7 +5764,13 @@ _Para instruções mais detalhadas, [visite nossa central de ajuda](${CONST.NETS
             addNewCard: {
                 other: 'Outro',
                 fileImport: 'Importar transações do arquivo',
-                createFileFeedHelpText: `<muted-text>Siga este <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">guia de ajuda</a> para importar as despesas do cartão corporativo!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Na próxima página, você enviará um CSV das transações do seu cartão. ',
+                    templateLink: 'Baixe nosso modelo',
+                    instructionMiddle: ' ou confira nosso ',
+                    helpGuideLink: 'guia de ajuda',
+                    instructionEnd: ' antes de enviar.',
+                },
                 companyCardLayoutName: 'Nome do layout do cartão corporativo',
                 cardLayoutNameRequired: 'O nome do layout do cartão corporativo é obrigatório',
                 downloadTemplate: 'Baixe nosso modelo',

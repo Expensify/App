@@ -1,6 +1,7 @@
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import type {ColumnRole} from '@components/ImportColumn';
 import ImportSpreadsheetColumns from '@components/ImportSpreadsheetColumns';
+import type {LocaleContextProps} from '@components/LocaleContextProvider';
 import ScreenWrapper from '@components/ScreenWrapper';
 
 import useCloseImportPage from '@hooks/useCloseImportPage';
@@ -35,6 +36,28 @@ import React, {useEffect, useMemo, useRef, useState} from 'react';
 
 type CompanyCardsImportedPageProps = PlatformStackScreenProps<WorkspaceSplitNavigatorParamList, typeof SCREENS.WORKSPACE.COMPANY_CARDS_IMPORTED>;
 
+/**
+ * All company card CSV mapping fields are always available (the previous "advanced fields" toggle was removed),
+ * so every role below is offered in the column-mapping dropdown for every import.
+ */
+function getCompanyCardImportColumnRoles(translate: LocaleContextProps['translate']): ColumnRole[] {
+    return [
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardName'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NAME},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalTransactionDate'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalAmount'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalCurrency'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
+        {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
+    ];
+}
+
 function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
     const {translate} = useLocalize();
     const [spreadsheet, spreadsheetMetadata] = useOnyx(ONYXKEYS.IMPORTED_SPREADSHEET);
@@ -58,21 +81,7 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 
     const columnNames = generateColumnNames(spreadsheet?.data?.length ?? 0);
 
-    const columnRoles: ColumnRole[] = [
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.ignore'), value: CONST.CSV_IMPORT_COLUMNS.IGNORE},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardNumber'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NUMBER},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.cardName'), value: CONST.CSV_IMPORT_COLUMNS.CARD_NAME},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.postedDate'), value: CONST.CSV_IMPORT_COLUMNS.POSTED_DATE, isRequired: true},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.merchant'), value: CONST.CSV_IMPORT_COLUMNS.MERCHANT, isRequired: true},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.amount'), value: CONST.CSV_IMPORT_COLUMNS.AMOUNT, isRequired: true},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.currency'), value: CONST.CSV_IMPORT_COLUMNS.CURRENCY, isRequired: true},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalTransactionDate'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_TRANSACTION_DATE},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalAmount'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_AMOUNT},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.originalCurrency'), value: CONST.CSV_IMPORT_COLUMNS.ORIGINAL_CURRENCY},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.comment'), value: CONST.CSV_IMPORT_COLUMNS.COMMENT},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.category'), value: CONST.CSV_IMPORT_COLUMNS.CATEGORY},
-        {text: translate('workspace.companyCards.addNewCard.csvColumns.tag'), value: CONST.CSV_IMPORT_COLUMNS.TAG},
-    ];
+    const columnRoles: ColumnRole[] = useMemo(() => getCompanyCardImportColumnRoles(translate), [translate]);
 
     const savedColumnMappings = Object.entries(workspaceCardFeeds?.settings?.companyCards ?? {}).find(([feedKey]) => feedKey === layoutType)?.[1]?.uploadLayoutSettings?.columnMappings;
     const hasAppliedSavedMappings = useRef(false);
@@ -250,3 +259,4 @@ function CompanyCardsImportedPage({route}: CompanyCardsImportedPageProps) {
 }
 
 export default CompanyCardsImportedPage;
+export {getCompanyCardImportColumnRoles};

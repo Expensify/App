@@ -1,9 +1,10 @@
 import Button from '@components/ButtonComposed';
 import HeaderWithBackButton from '@components/HeaderWithBackButton';
 import MenuItemWithTopDescription from '@components/MenuItemWithTopDescription';
-import RenderHTML from '@components/RenderHTML';
 import ScreenWrapper from '@components/ScreenWrapper';
 import ScrollView from '@components/ScrollView';
+import Text from '@components/Text';
+import TextLink from '@components/TextLink';
 
 import {useMemoizedLazyExpensifyIcons} from '@hooks/useLazyAsset';
 import useLocalize from '@hooks/useLocalize';
@@ -88,9 +89,13 @@ function ImportFromFileStep() {
                 contentContainerStyle={styles.flexGrow1}
                 addBottomSafeAreaPadding
             >
-                <View style={[styles.renderHTML, styles.ph5, styles.mv3, styles.textSupporting]}>
-                    <RenderHTML html={translate('workspace.companyCards.addNewCard.createFileFeedHelpText')} />
-                </View>
+                <Text style={[styles.ph5, styles.mv3, styles.textSupporting]}>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionStart')}
+                    <TextLink onPress={downloadTemplate}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.templateLink')}</TextLink>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionMiddle')}
+                    <TextLink href={CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}>{translate('workspace.companyCards.addNewCard.createFileFeedHelpText.helpGuideLink')}</TextLink>
+                    {translate('workspace.companyCards.addNewCard.createFileFeedHelpText.instructionEnd')}
+                </Text>
                 <MenuItemWithTopDescription
                     description={translate('workspace.companyCards.addNewCard.companyCardLayoutName')}
                     title={companyCardLayoutName}
@@ -125,3 +130,4 @@ function ImportFromFileStep() {
 }
 
 export default ImportFromFileStep;
+export {CSV_TEMPLATE_FILE_NAME, CSV_TEMPLATE_CONTENT};

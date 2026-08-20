@@ -5747,7 +5747,13 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
             addNewCard: {
                 other: 'Inne',
                 fileImport: 'Importuj transakcje z pliku',
-                createFileFeedHelpText: `<muted-text>Postępuj zgodnie z <a href="${CONST.COMPANY_CARDS_CREATE_FILE_FEED_HELP_URL}">tym przewodnikiem pomocy</a>, aby zaimportować wydatki z kart firmowych!</muted-text>`,
+                createFileFeedHelpText: {
+                    instructionStart: 'Na następnej stronie prześlesz plik CSV z transakcjami karty. ',
+                    templateLink: 'Pobierz nasz szablon',
+                    instructionMiddle: ' lub sprawdź nasz ',
+                    helpGuideLink: 'przewodnik pomocy',
+                    instructionEnd: ' przed przesłaniem.',
+                },
                 companyCardLayoutName: 'Nazwa układu karty firmowej',
                 cardLayoutNameRequired: 'Nazwa układu karty firmowej jest wymagana',
                 downloadTemplate: 'Pobierz nasz szablon',
