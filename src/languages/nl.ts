@@ -7186,9 +7186,10 @@ Het Control-abonnement begint bij $9 per actieve deelnemer per maand.`,
             yourWorkspace: `Je werkruimte is ingesteld op een niet-ondersteunde valuta. Bekijk de <a href="${CONST.ENABLE_GLOBAL_REIMBURSEMENT_HELP_URL}">lijst met ondersteunde valuta's</a>.`,
             chooseAnExisting: 'Kies een bestaande bankrekening om onkosten te betalen of voeg een nieuwe toe.',
             changeBankAccount: 'Bankrekening wijzigen',
-            updateCurrencyForExpensifyCard:
+            updateCurrencyForExpensifyCard: 'De Expensify Kaart kan alleen in USD worden uitgegeven. Werk deze workspace bij naar USD of gebruik een andere workspace.',
+            updateCurrencyForExpensifyCardTitle: 'Vraag de Expensify Kaart aan',
+            euUkUpdateCurrencyForExpensifyCard:
                 'De Expensify Kaart kan worden uitgegeven in USD, GBP en EUR. Werk deze werkruimte bij naar een ondersteunde valuta of gebruik een andere werkruimte.',
-            updateCurrencyForExpensifyCardTitle: 'Ontvang de Expensify Kaart',
         },
         changeOwner: {
             changeOwnerPageTitle: 'Eigenaar overdragen',
