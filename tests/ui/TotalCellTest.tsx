@@ -56,7 +56,7 @@ jest.mock('@components/Hoverable', () => ({
 // Mirrors the mock pattern used in AgentsTableRowTest.tsx to make the pencil button directly pressable.
 jest.mock('@components/Pressable/PressableWithFeedback', () => {
     const {TouchableOpacity} = jest.requireActual<typeof ReactNative>('react-native');
-    function MockPressableWithFeedback({
+    function mockPressableWithFeedback({
         children,
         onPress,
         accessibilityLabel,
@@ -76,7 +76,7 @@ jest.mock('@components/Pressable/PressableWithFeedback', () => {
             </TouchableOpacity>
         );
     }
-    return {__esModule: true, default: MockPressableWithFeedback};
+    return {__esModule: true, default: mockPressableWithFeedback};
 });
 
 const MOCK_TRANSACTION_ID = '1';
