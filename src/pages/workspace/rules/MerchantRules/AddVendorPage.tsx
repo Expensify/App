@@ -1,6 +1,7 @@
 import FullScreenLoadingIndicator from '@components/FullscreenLoadingIndicator';
 import RuleSelectionBase from '@components/Rule/RuleSelectionBase';
 
+import useLocalize from '@hooks/useLocalize';
 import useOnyx from '@hooks/useOnyx';
 import usePermissions from '@hooks/usePermissions';
 import usePolicy from '@hooks/usePolicy';
@@ -43,6 +44,7 @@ function AddVendorPage({route}: AddVendorPageProps) {
     const {policyID, ruleID} = route.params;
     const isEditing = ruleID !== ROUTES.NEW;
 
+    const {translate} = useLocalize();
     const policy = usePolicy(policyID);
     const {isBetaEnabled} = usePermissions();
     const [form] = useOnyx(ONYXKEYS.FORMS.MERCHANT_RULE_FORM);
