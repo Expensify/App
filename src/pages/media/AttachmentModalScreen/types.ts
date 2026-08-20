@@ -18,9 +18,6 @@ type AttachmentModalContainerModalProps = {
 
     /** Whether to handle navigation back */
     shouldHandleNavigationBack?: boolean;
-
-    /** Extra modals to be displayed in the modal */
-    ExtraContent?: React.ReactNode;
 };
 
 type AttachmentModalScreenType =

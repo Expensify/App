@@ -27,7 +27,7 @@ import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 
 import {delegateEmailSelector} from '@selectors/Account';
-import {hasSeenTourSelector} from '@selectors/Onboarding';
+import {guidedSetupAndTourStatusSelector} from '@selectors/Onboarding';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import TestDriveBanner from './TestDriveBanner';
@@ -54,13 +54,11 @@ function TestDriveDemo() {
     const parentReportAction = useParentReportAction(viewTourTaskReport);
     const isCurrentUserPolicyAdmin = useIsPaidPolicyAdmin();
 
-    const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
-        selector: hasSeenTourSelector,
-    });
+    const [guidedSetupAndTourStatus] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {selector: guidedSetupAndTourStatusSelector});
     const hasCalledOpenReportRef = useRef(false);
 
     useEffect(() => {
-        if (hasSeenTour) {
+        if (guidedSetupAndTourStatus?.isSelfTourViewed) {
             return;
         }
         if (!viewTourTaskReport) {
@@ -68,7 +66,15 @@ function TestDriveDemo() {
             setSelfTourViewed();
             if (conciergeReportID && !hasCalledOpenReportRef.current) {
                 hasCalledOpenReportRef.current = true;
-                openReport({reportID: conciergeReportID, introSelected, betas, hasReportActions: hasConciergeReportActions});
+                openReport({
+                    reportID: conciergeReportID,
+                    introSelected,
+                    betas,
+                    hasReportActions: hasConciergeReportActions,
+                    currentUserAccountID: currentUserPersonalDetails.accountID,
+                    isSelfTourViewed: guidedSetupAndTourStatus?.isSelfTourViewed,
+                    hasCompletedGuidedSetupFlow: guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
+                });
             }
             return;
         }
@@ -87,7 +93,8 @@ function TestDriveDemo() {
             false,
         );
     }, [
-        hasSeenTour,
+        guidedSetupAndTourStatus?.isSelfTourViewed,
+        guidedSetupAndTourStatus?.hasCompletedGuidedSetupFlow,
         hasConciergeReportActions,
         viewTourTaskReport,
         viewTourTaskParentReport,
