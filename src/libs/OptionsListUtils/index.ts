@@ -33,18 +33,10 @@ import {
     getLastVisibleAction,
     getOneTransactionThreadReportID,
     getOriginalMessage,
-    getRenamedAction,
-    getReportActionActorAccountID,
-    getReportActionMessageText,
     isActionOfType,
     isCardIssuedAction,
     isInviteOrRemovedAction,
-    isMovedTransactionAction,
-    isOldDotReportAction,
-    isPolicyCopyReportAction,
-    isRenamedAction,
     isReportActionVisibleAsLastAction,
-    isTaskAction,
 } from '@libs/ReportActionsUtils';
 import {
     getExpensifyCardFromReportAction,
@@ -56,11 +48,10 @@ import {
     getReportAlternateText,
     shouldShowLastActorDisplayName,
 } from '@libs/ReportAlternateTextUtils';
-import {deprecatedGetReportName, getReportName} from '@libs/ReportNameUtils';
+import {deprecatedGetReportName} from '@libs/ReportNameUtils';
 import type {OptionData} from '@libs/ReportUtils';
 import {
     canUserPerformWriteAction,
-    formatReportLastMessageText,
     getChatRoomSubtitle,
     getDisplayNameForParticipant,
     getEffectiveReportErrors,
@@ -72,9 +63,7 @@ import {
     getViolatingReportIDForRBRInLHN,
     hasIOUWaitingOnCurrentUserBankAccount,
     isChatThread,
-    isDeprecatedGroupDM,
     isDM,
-    isExpenseReport,
     isHiddenForCurrentUser,
     isInvoiceRoom,
     isMoneyRequest,
@@ -89,7 +78,6 @@ import {
     isPolicyExpenseChat as reportUtilsIsPolicyExpenseChat,
     isSelfDM as reportUtilsIsSelfDM,
     isTaskReport as reportUtilsIsTaskReport,
-    isThread as reportUtilsIsThread,
     shouldReportBeInOptionList,
 } from '@libs/ReportUtils';
 import {registerSessionCleanupCallback} from '@libs/SessionCleanup';
@@ -253,162 +241,6 @@ function uniqFast(items: string[]): string[] {
     }
 
     return result;
-}
-
-const POLICY_CHANGE_LOG_ACTION_NAMES = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG));
-const ROOM_CHANGE_LOG_ACTION_NAMES = new Set<string>(Object.values(CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG));
-const CUSTOM_ALTERNATE_TEXT_ACTION_NAMES = new Set<string>([
-    CONST.REPORT.ACTIONS.TYPE.INTEGRATION_SYNC_FAILED,
-    CONST.REPORT.ACTIONS.TYPE.COMPANY_CARD_CONNECTION_BROKEN,
-    CONST.REPORT.ACTIONS.TYPE.PLAID_BALANCE_FAILURE,
-    CONST.REPORT.ACTIONS.TYPE.UNREPORTED_TRANSACTION,
-    CONST.REPORT.ACTIONS.TYPE.RETRACTED,
-    CONST.REPORT.ACTIONS.TYPE.REOPENED,
-    CONST.REPORT.ACTIONS.TYPE.TRAVEL_UPDATE,
-    CONST.REPORT.ACTIONS.TYPE.TAKE_CONTROL,
-    CONST.REPORT.ACTIONS.TYPE.REROUTE,
-    CONST.REPORT.ACTIONS.TYPE.REASSIGN_APPROVER,
-    CONST.REPORT.ACTIONS.TYPE.SETTLEMENT_ACCOUNT_LOCKED,
-]);
-
-function isActionWithCustomAlternateText(lastAction: OnyxEntry<ReportAction>): boolean {
-    const actionName = lastAction?.actionName;
-    if (!lastAction || !actionName) {
-        return false;
-    }
-    return (
-        isRenamedAction(lastAction) ||
-        isTaskAction(lastAction) ||
-        isInviteOrRemovedAction(lastAction) ||
-        isCardIssuedAction(lastAction) ||
-        isOldDotReportAction(lastAction) ||
-        isPolicyCopyReportAction(lastAction) ||
-        isMovedTransactionAction(lastAction) ||
-        (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.ACTIONABLE_CARD_FRAUD_ALERT) && !!getOriginalMessage(lastAction)?.resolution) ||
-        POLICY_CHANGE_LOG_ACTION_NAMES.has(actionName) ||
-        ROOM_CHANGE_LOG_ACTION_NAMES.has(actionName) ||
-        CUSTOM_ALTERNATE_TEXT_ACTION_NAMES.has(actionName)
-    );
-}
-
-type ChatPreviewParts = {
-    actorPrefix: string;
-    customAlternateText?: string;
-};
-
-/**
- * Returns the chat preview pieces that the LHN (SidebarUtils.getOptionData) renders for the last message:
- * the `Name: ` actor prefix, plus a replacement text for the actions whose LHN alternate text embeds the actor
- * (rename, leave room, invite/remove) — excluding those from the generic prefix alone would drop the actor.
- */
-function getChatPreviewParts({
-    report,
-    personalDetails,
-    isReportArchived,
-    translate,
-    visibleReportActionsData,
-    currentUserAccountID,
-    sortedActions,
-    reportAttributesDerived,
-}: {
-    report: OnyxEntry<Report>;
-    personalDetails: OnyxEntry<PersonalDetailsList>;
-    isReportArchived: boolean | undefined;
-    translate: LocalizedTranslate;
-    visibleReportActionsData?: VisibleReportActionsDerivedValue;
-    currentUserAccountID: number | undefined;
-    sortedActions?: Record<string, ReportAction[]>;
-    reportAttributesDerived?: ReportAttributesDerivedValue['reports'];
-}): ChatPreviewParts {
-    if (!report || isReportArchived || currentUserAccountID === undefined) {
-        return {actorPrefix: ''};
-    }
-    const canUserPerformWrite = canUserPerformWriteAction(report, isReportArchived);
-    const sortedActionsForReport = sortedActions?.[report.reportID];
-    const lastAction = sortedActionsForReport
-        ? sortedActionsForReport.find((action) => isReportActionVisibleAsLastAction(action, canUserPerformWrite, visibleReportActionsData, report.reportID, currentUserAccountID))
-        : getLastVisibleAction(report.reportID, canUserPerformWrite, {}, undefined, visibleReportActionsData);
-
-    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-    const lastActorAccountID = getReportActionActorAccountID(lastAction, undefined, undefined) || report.lastActorAccountID;
-    let resolvedLastActorDetails: Partial<PersonalDetails> | null = lastActorAccountID ? (personalDetails?.[lastActorAccountID] ?? null) : null;
-    if (!resolvedLastActorDetails && lastAction?.person?.at(0)?.text) {
-        resolvedLastActorDetails = {
-            displayName: lastAction.person.at(0)?.text,
-            accountID: report.lastActorAccountID,
-        };
-    }
-    const lastActorDisplayName = getLastActorDisplayName(resolvedLastActorDetails, currentUserAccountID, translate);
-
-    const isThreadMessage =
-        reportUtilsIsThread(report) && lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ADD_COMMENT && lastAction?.pendingAction !== CONST.RED_BRICK_ROAD_PENDING_ACTION.DELETE;
-    const usesChatPrefixRules =
-        reportUtilsIsChatRoom(report) ||
-        reportUtilsIsPolicyExpenseChat(report) ||
-        isChatThread(report) ||
-        reportUtilsIsTaskReport(report) ||
-        isThreadMessage ||
-        reportUtilsIsGroupChat(report) ||
-        isDeprecatedGroupDM(report, isReportArchived);
-
-    let customAlternateText: string | undefined;
-    if (usesChatPrefixRules) {
-        if (isRenamedAction(lastAction)) {
-            customAlternateText = getRenamedAction(translate, lastAction, isExpenseReport(report), lastActorDisplayName);
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.LEAVE_ROOM) {
-            const actionMessage = getReportActionMessageText(lastAction);
-            customAlternateText = actionMessage ? `${lastActorDisplayName}: ${actionMessage}` : '';
-        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.LEAVE_ROOM) {
-            customAlternateText = translate('report.actions.type.leftTheChatWithName', lastActorDisplayName);
-        } else if (isInviteOrRemovedAction(lastAction)) {
-            let actorDetails: Partial<PersonalDetails> | undefined;
-            if (lastAction.actorAccountID) {
-                actorDetails = personalDetails?.[lastAction.actorAccountID] ?? undefined;
-            }
-            let actorDisplayName = lastAction.person?.[0]?.text;
-            if (!actorDetails && actorDisplayName && lastAction.actorAccountID) {
-                actorDetails = {
-                    displayName: actorDisplayName,
-                    accountID: lastAction.actorAccountID,
-                };
-            }
-            actorDisplayName = actorDetails ? getLastActorDisplayName(actorDetails, currentUserAccountID, translate) : undefined;
-            const lastActionOriginalMessage = getOriginalMessage(lastAction);
-            const targetAccountIDs = lastActionOriginalMessage?.targetAccountIDs ?? [];
-            const targetAccountIDsLength = targetAccountIDs.length !== 0 ? targetAccountIDs.length : (report.lastMessageHtml?.match(/<mention-user[^>]*><\/mention-user>/g)?.length ?? 0);
-            const isInvite =
-                lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.ROOM_CHANGE_LOG.INVITE_TO_ROOM || lastAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.INVITE_TO_ROOM;
-            const verb = isInvite ? translate('workspace.invite.invited') : translate('workspace.invite.removed');
-            const users = translate(targetAccountIDsLength > 1 ? 'common.members' : 'common.member')?.toLocaleLowerCase();
-            customAlternateText = formatReportLastMessageText(`${actorDisplayName ?? lastActorDisplayName}: ${verb} ${targetAccountIDsLength} ${users}`);
-            const lastActionReport = lastActionOriginalMessage?.reportID ? getReportOrDraftReport(String(lastActionOriginalMessage.reportID)) : undefined;
-            const derivedReportName = lastActionReport?.reportID ? reportAttributesDerived?.[lastActionReport.reportID]?.reportName : undefined;
-            const roomName = getReportName(lastActionReport, derivedReportName) || lastActionOriginalMessage?.roomName;
-            if (roomName) {
-                const preposition = isInvite ? ` ${translate('workspace.invite.to')}` : ` ${translate('workspace.invite.from')}`;
-                customAlternateText += `${preposition} ${roomName}`;
-            }
-        }
-    }
-
-    const shouldShowActorPrefix = usesChatPrefixRules
-        ? lastAction?.actionName !== CONST.REPORT.ACTIONS.TYPE.REPORT_PREVIEW && !!lastActorDisplayName && !isActionWithCustomAlternateText(lastAction)
-        : shouldShowLastActorDisplayName(report, resolvedLastActorDetails, lastAction, currentUserAccountID, translate);
-    if (!shouldShowActorPrefix) {
-        return {actorPrefix: '', customAlternateText};
-    }
-    const displayName =
-        getLastActorDisplayNameFromLastVisibleActions(
-            report,
-            resolvedLastActorDetails,
-            currentUserAccountID,
-            personalDetails,
-            isReportArchived,
-            translate,
-            visibleReportActionsData,
-            lastAction,
-        ) || lastActorDisplayName;
-    return {actorPrefix: displayName ? `${displayName}: ` : '', customAlternateText};
 }
 
 type GetAlternateTextConfig = {
