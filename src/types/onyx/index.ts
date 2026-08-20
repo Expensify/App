@@ -56,6 +56,7 @@ import type {CurrencyList} from './Currency';
 import type CustomStatusDraft from './CustomStatusDraft';
 import type {
     CardFeedErrorsDerivedValue,
+    GuideAccountIDsDerivedValue,
     LoginToAccountIDMapDerivedValue,
     NonPersonalAndWorkspaceCardListDerivedValue,
     OutstandingReportsByPolicyIDDerivedValue,
@@ -188,7 +189,7 @@ import type TransactionPending3DSReview from './TransactionPending3DSReview';
 import type TransactionsPending3DSReview from './TransactionsPending3DSReview';
 import type {TransactionViolation, ViolationName} from './TransactionViolation';
 import type TransactionViolations from './TransactionViolation';
-import type TravelInvoiceStatement from './TravelInvoiceStatement';
+import type TravelBillingStatement from './TravelBillingStatement';
 import type TravelProvisioning from './TravelProvisioning';
 import type {TravelSettings, WorkspaceTravelSettings} from './TravelSettings';
 import type TryNewDot from './TryNewDot';
@@ -354,7 +355,7 @@ export type {
     WalletAdditionalQuestionDetails,
     WalletOnfido,
     ExpensifyCardStatement,
-    TravelInvoiceStatement,
+    TravelBillingStatement,
     WalletStatement,
     WalletTerms,
     WalletTransfer,
@@ -418,6 +419,7 @@ export type {
     PersonalAndWorkspaceCardListDerivedValue,
     CardFeedErrorsDerivedValue,
     LoginToAccountIDMapDerivedValue,
+    GuideAccountIDsDerivedValue,
     ScheduleCallDraft,
     ValidateUserAndGetAccessiblePolicies,
     VacationDelegate,

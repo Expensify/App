@@ -42,6 +42,7 @@ import {
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
     getCreatedReportForUnapprovedTransactionsMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
@@ -1129,6 +1130,8 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(getRequiresCategoryMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
                     Clipboard.setString(getRequiresTagMessage(translate, reportAction));
+                } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
+                    Clipboard.setString(getCurrencyConversionFeeMessage(translate, reportAction));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
                     Clipboard.setString(getAutoReimbursementMessage(translate, reportAction, convertToDisplayString));
                 } else if (reportAction.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_CATEGORY_TAX_RATE) {
@@ -1235,6 +1238,12 @@ const ContextMenuActions: ContextMenuAction[] = [
                     Clipboard.setString(displayMessage);
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.TEAM_DOWNGRADE) {
                     Clipboard.setString(translate('workspaceActions.downgradedWorkspace'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE) {
+                    Clipboard.setString(translate('workspaceActions.addedRule'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE) {
+                    Clipboard.setString(translate('workspaceActions.updatedRule'));
+                } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE) {
+                    Clipboard.setString(translate('workspaceActions.removedRule'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.HOLD) {
                     Clipboard.setString(translate('iou.heldExpense'));
                 } else if (reportAction?.actionName === CONST.REPORT.ACTIONS.TYPE.UNHOLD) {

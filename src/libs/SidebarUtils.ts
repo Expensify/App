@@ -7,6 +7,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import type {
     Card,
+    GuideAccountIDsDerivedValue,
     PersonalDetails,
     PersonalDetailsList,
     PolicyTagLists,
@@ -61,6 +62,7 @@ import {
     getChangedApproverActionMessage,
     getCompanyAddressUpdateMessage,
     getCompanyCardConnectionBrokenMessage,
+    getCurrencyConversionFeeMessage,
     getCurrencyDefaultTaxUpdateMessage,
     getCustomTaxNameUpdateMessage,
     getDefaultApproverUpdateMessage,
@@ -170,6 +172,7 @@ import {
     getIcons,
     getMovedTransactionMessage,
     getParticipantsAccountIDsForDisplay,
+    getPendingDeleteMemberAccountIDs,
     getPolicyChangeLogCopyMessage,
     getPolicyName,
     getReceiptUploadErrorReason,
@@ -181,6 +184,7 @@ import {
     getUnreportedTransactionMessage,
     getViolatingReportIDForRBRInLHN,
     getWorkspaceNameUpdatedMessage,
+    hasExpensifyGuidesEmails,
     hasReportErrorsOtherThanFailedReceipt,
     isAdminRoom,
     isAnnounceRoom,
@@ -212,7 +216,6 @@ import {
     isUnread,
     isUnreadWithMention,
     isWorkspaceTaskReport,
-    resolveHasGuidesEmails,
     shouldReportBeInOptionList,
     shouldReportShowSubscript,
 } from './ReportUtils';
@@ -405,7 +408,7 @@ function getReportsToDisplayInLHN({
     reportNameValuePairs,
     reportAttributes,
     conciergeReportID,
-    guidesEmailsByReport,
+    guideAccountIDs,
 }: {
     currentReportId: string | undefined;
     reports: OnyxCollection<Report>;
@@ -419,7 +422,7 @@ function getReportsToDisplayInLHN({
     currentUserAccountID: number;
     reportNameValuePairs?: OnyxCollection<ReportNameValuePairs>;
     reportAttributes?: ReportAttributesDerivedValue['reports'];
-    guidesEmailsByReport?: Record<string, boolean>;
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 }) {
     const isInFocusMode = priorityMode === CONST.PRIORITY_MODE.GSD;
@@ -447,11 +450,7 @@ function getReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
-            hasGuidesEmails: resolveHasGuidesEmails({
-                participantAccountIDs: Object.keys(report.participants ?? {}).map(Number),
-                guidesEmailsByReport,
-                reportID: report.reportID,
-            }),
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -482,7 +481,7 @@ type UpdateReportsToDisplayInLHNProps = {
     isOffline: boolean;
     currentUserLogin: string;
     currentUserAccountID: number;
-    guidesEmailsByReport?: Record<string, boolean>;
+    guideAccountIDs?: GuideAccountIDsDerivedValue;
     conciergeReportID: string | undefined;
 };
 
@@ -502,7 +501,7 @@ function updateReportsToDisplayInLHN({
     currentUserLogin,
     currentUserAccountID,
     conciergeReportID,
-    guidesEmailsByReport,
+    guideAccountIDs,
 }: UpdateReportsToDisplayInLHNProps) {
     // Use a lazy copy to avoid creating a new object reference when no entries actually change.
     let displayedReportsCopy: ReportsToDisplayInLHN | undefined;
@@ -540,11 +539,7 @@ function updateReportsToDisplayInLHN({
             isReportArchived,
             reportAttributes,
             currentUserLogin,
-            hasGuidesEmails: resolveHasGuidesEmails({
-                participantAccountIDs: Object.keys(report.participants ?? {}).map(Number),
-                guidesEmailsByReport,
-                reportID: report.reportID,
-            }),
+            hasGuidesEmails: hasExpensifyGuidesEmails(Object.keys(report.participants ?? {}).map(Number), guideAccountIDs),
             currentUserAccountID,
             conciergeReportID,
         });
@@ -780,21 +775,33 @@ type ReasonAndReportActionThatHasRedBrickRoad = {
     reportAction?: OnyxEntry<ReportAction>;
 };
 
-// TODO: Refactor to use options object parameter to reduce parameter count
-// eslint-disable-next-line @typescript-eslint/max-params
-function getReasonAndReportActionThatHasRedBrickRoad(
-    report: Report,
-    chatReport: OnyxEntry<Report>,
-    reportActions: OnyxEntry<ReportActions>,
-    hasViolations: boolean,
-    reportErrors: Errors,
-    transactions: OnyxCollection<Transaction>,
-    isOffline: boolean,
-    currentUserAccountID: number,
-    transactionViolations?: OnyxCollection<TransactionViolation[]>,
+type GetReasonAndReportActionThatHasRedBrickRoadParams = {
+    report: Report;
+    chatReport: OnyxEntry<Report>;
+    reportActions: OnyxEntry<ReportActions>;
+    hasViolations: boolean;
+    reportErrors: Errors;
+    transactions: OnyxCollection<Transaction>;
+    isOffline: boolean;
+    currentUserAccountID: number;
+    transactionViolations?: OnyxCollection<TransactionViolation[]>;
+    isReportArchived?: boolean;
+    reports?: OnyxCollection<Report>;
+};
+
+function getReasonAndReportActionThatHasRedBrickRoad({
+    report,
+    chatReport,
+    reportActions,
+    hasViolations,
+    reportErrors,
+    transactions,
+    isOffline,
+    currentUserAccountID,
+    transactionViolations,
     isReportArchived = false,
-    reports?: OnyxCollection<Report>,
-): ReasonAndReportActionThatHasRedBrickRoad | null {
+    reports,
+}: GetReasonAndReportActionThatHasRedBrickRoadParams): ReasonAndReportActionThatHasRedBrickRoad | null {
     if (isReportArchived) {
         return null;
     }
@@ -1140,6 +1147,12 @@ function getOptionData({
             result.alternateText = translate('workspaceActions.importTags');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.DELETE_ALL_TAGS)) {
             result.alternateText = translate('workspaceActions.deletedAllTags');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.ADD_RULE)) {
+            result.alternateText = translate('workspaceActions.addedRule');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_RULE)) {
+            result.alternateText = translate('workspaceActions.updatedRule');
+        } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.REMOVE_RULE)) {
+            result.alternateText = translate('workspaceActions.removedRule');
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST)) {
             result.alternateText = getTagListUpdatedMessage(translate, lastAction);
         } else if (isActionOfType(lastAction, CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_TAG_LIST_REQUIRED)) {
@@ -1192,6 +1205,8 @@ function getOptionData({
             result.alternateText = getRequiresCategoryMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_REQUIRES_TAG) {
             result.alternateText = getRequiresTagMessage(translate, lastAction);
+        } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_GLOBAL_REIMBURSEMENTS_FX_PREFERENCE) {
+            result.alternateText = getCurrencyConversionFeeMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_PAY_APPROVED_REPORTS_ENABLED) {
             result.alternateText = getAutoPayApprovedReportsEnabledMessage(translate, lastAction);
         } else if (lastAction?.actionName === CONST.REPORT.ACTIONS.TYPE.POLICY_CHANGE_LOG.UPDATE_AUTO_REIMBURSEMENT) {
@@ -1444,6 +1459,7 @@ function getOptionData({
         policy,
         invoiceReceiverPolicy,
         isReportArchived,
+        getPendingDeleteMemberAccountIDs(reportMetadata?.pendingChatMembers),
     );
 
     // IOU icon trimming (single vs diagonal) is handled at the component level

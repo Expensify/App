@@ -333,6 +333,9 @@ const ONYXKEYS = {
     /** The end date (epoch timestamp) of the workspace owner’s grace period after the free trial ends. */
     NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END: 'nvp_private_billingGracePeriodEnd',
 
+    /** The end date (epoch timestamp) of the workspace owner’s grace period for an overdue Consolidated Travel Billing invoice. */
+    NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END: 'nvp_private_travelBillingGracePeriodEnd',
+
     /**  The NVP containing the target url to navigate to when deleting a transaction */
     NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL: 'nvp_deleteTransactionNavigateBackURL',
 
@@ -419,8 +422,8 @@ const ONYXKEYS = {
     /** Stores information about the user's saved statements */
     WALLET_STATEMENT: 'walletStatement',
 
-    /** Stores information about the user's travel invoice statements */
-    TRAVEL_INVOICE_STATEMENT: 'travelInvoiceStatement',
+    /** Stores information about the user's travel billing statements */
+    TRAVEL_BILLING_STATEMENT: 'travelInvoiceStatement',
 
     /** Stores information about the user's Expensify Card statements */
     EXPENSIFY_CARD_STATEMENT: 'expensifyCardStatement',
@@ -966,17 +969,17 @@ const ONYXKEYS = {
         /** The selected accounting integration bank account ID for card reconciliation */
         EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID: 'expensifyCard_bankAccount_',
 
-        /** Stores which connection is set up to use Travel Invoicing Continuous Reconciliation */
-        TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION: 'travelInvoicing_continuousReconciliationConnection_',
+        /** Stores which connection is set up to use Travel Billing Continuous Reconciliation */
+        TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION: 'travelInvoicing_continuousReconciliationConnection_',
 
-        /** The value that indicates whether Travel Invoicing Continuous Reconciliation should be used on the workspace */
-        TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION: 'travelInvoicing_useContinuousReconciliation_',
+        /** The value that indicates whether Travel Billing Continuous Reconciliation should be used on the workspace */
+        TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION: 'travelInvoicing_useContinuousReconciliation_',
 
-        /** Pending action for Travel Invoicing Continuous Reconciliation enabled status */
-        TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION: 'travelInvoicing_useContinuousReconciliationPendingAction_',
+        /** Pending action for Travel Billing Continuous Reconciliation enabled status */
+        TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION: 'travelInvoicing_useContinuousReconciliationPendingAction_',
 
-        /** The selected accounting integration bank account ID for Travel Invoicing reconciliation */
-        TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID: 'travelInvoicing_reconciliationBankAccount_',
+        /** The selected accounting integration bank account ID for Travel Billing reconciliation */
+        TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID: 'travelInvoicing_reconciliationBankAccount_',
 
         /** Currently displaying feed */
         LAST_SELECTED_FEED: 'lastSelectedFeed_',
@@ -1181,8 +1184,8 @@ const ONYXKEYS = {
         EDIT_EXPENSIFY_CARD_NAME_DRAFT_FORM: 'editExpensifyCardNameDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_FORM: 'editExpensifyCardLimit',
         EDIT_EXPENSIFY_CARD_LIMIT_DRAFT_FORM: 'editExpensifyCardLimitDraft',
-        EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM: 'editTravelInvoicingMonthlyLimit',
-        EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_DRAFT_FORM: 'editTravelInvoicingMonthlyLimitDraft',
+        EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM: 'editTravelInvoicingMonthlyLimit',
+        EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_DRAFT_FORM: 'editTravelInvoicingMonthlyLimitDraft',
         TRAVEL_LEGAL_ENTITY_TAX_ID_FORM: 'travelLegalEntityTaxIDForm',
         TRAVEL_LEGAL_ENTITY_TAX_ID_DRAFT_FORM: 'travelLegalEntityTaxIDFormDraft',
         EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM: 'editExpensifyCardLimitType',
@@ -1302,6 +1305,7 @@ const ONYXKEYS = {
         CARD_FEED_ERRORS: 'cardFeedErrors',
         RAM_ONLY_SORTED_REPORT_ACTIONS: 'sortedReportActions',
         LOGIN_TO_ACCOUNT_ID_MAP: 'loginToAccountIDMap',
+        GUIDE_ACCOUNT_IDS: 'guideAccountIDs',
     },
 
     /** Stores HybridApp specific state required to interoperate with OldDot */
@@ -1388,7 +1392,7 @@ type OnyxFormValuesMapping = {
     [ONYXKEYS.FORMS.COMPANY_CARD_LAYOUT_NAME_FORM]: FormTypes.CompanyCardLayoutNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_NAME_FORM]: FormTypes.EditExpensifyCardNameForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_FORM]: FormTypes.EditExpensifyCardLimitForm;
-    [ONYXKEYS.FORMS.EDIT_TRAVEL_INVOICING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelInvoicingMonthlyLimitForm;
+    [ONYXKEYS.FORMS.EDIT_TRAVEL_BILLING_MONTHLY_LIMIT_FORM]: FormTypes.EditTravelBillingMonthlyLimitForm;
     [ONYXKEYS.FORMS.TRAVEL_LEGAL_ENTITY_TAX_ID_FORM]: FormTypes.TravelLegalEntityTaxIDForm;
     [ONYXKEYS.FORMS.EDIT_EXPENSIFY_CARD_LIMIT_TYPE_FORM]: FormTypes.EditExpensifyCardLimitTypeForm;
     [ONYXKEYS.FORMS.SAGE_INTACCT_CREDENTIALS_FORM]: FormTypes.SageIntactCredentialsForm;
@@ -1515,10 +1519,10 @@ type OnyxCollectionValuesMapping = {
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION]: boolean | string;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
     [ONYXKEYS.COLLECTION.EXPENSIFY_CARD_RECONCILIATION_BANK_ACCOUNT_ID]: string;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION]: boolean;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
-    [ONYXKEYS.COLLECTION.TRAVEL_INVOICING_RECONCILIATION_BANK_ACCOUNT_ID]: string;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_CONTINUOUS_RECONCILIATION_CONNECTION]: OnyxTypes.PolicyConnectionName;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION]: boolean;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_USE_CONTINUOUS_RECONCILIATION_PENDING_ACTION]: OnyxTypes.CardContinuousReconciliation;
+    [ONYXKEYS.COLLECTION.TRAVEL_BILLING_RECONCILIATION_BANK_ACCOUNT_ID]: string;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_FEED]: OnyxTypes.CompanyCardFeedWithDomainID;
     [ONYXKEYS.COLLECTION.LAST_SELECTED_EXPENSIFY_CARD_FEED]: OnyxTypes.FundID;
     [ONYXKEYS.COLLECTION.NVP_EXPENSIFY_ON_CARD_WAITLIST]: OnyxTypes.CardOnWaitlist;
@@ -1650,7 +1654,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.CARD_SUPPORTED_COUNTRIES]: Record<string, string[]>;
     [ONYXKEYS.CARD_LIST]: OnyxTypes.CardList;
     [ONYXKEYS.WALLET_STATEMENT]: OnyxTypes.WalletStatement;
-    [ONYXKEYS.TRAVEL_INVOICE_STATEMENT]: OnyxTypes.TravelInvoiceStatement;
+    [ONYXKEYS.TRAVEL_BILLING_STATEMENT]: OnyxTypes.TravelBillingStatement;
     [ONYXKEYS.EXPENSIFY_CARD_STATEMENT]: OnyxTypes.ExpensifyCardStatement;
     [ONYXKEYS.PURCHASE_LIST]: OnyxTypes.PurchaseList;
     [ONYXKEYS.PERSONAL_BANK_ACCOUNT]: OnyxTypes.PersonalBankAccount;
@@ -1751,6 +1755,7 @@ type OnyxValuesMapping = {
     [ONYXKEYS.NVP_PRIVATE_FREEBIE_CREDITS]: number;
     [ONYXKEYS.NVP_PRIVATE_AMOUNT_OWED]: number;
     [ONYXKEYS.NVP_PRIVATE_OWNER_BILLING_GRACE_PERIOD_END]: number;
+    [ONYXKEYS.NVP_PRIVATE_OWNER_TRAVEL_BILLING_GRACE_PERIOD_END]: number;
     [ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL]: string | undefined;
     [ONYXKEYS.NVP_RECONNECT_APP_IF_FULL_RECONNECT_BEFORE]: string;
     [ONYXKEYS.NVP_PRIVATE_FIRST_POLICY_CREATED_DATE]: string;
@@ -1829,6 +1834,7 @@ type OnyxDerivedValuesMapping = {
     [ONYXKEYS.DERIVED.CARD_FEED_ERRORS]: OnyxTypes.CardFeedErrorsDerivedValue;
     [ONYXKEYS.DERIVED.RAM_ONLY_SORTED_REPORT_ACTIONS]: OnyxTypes.SortedReportActionsDerivedValue;
     [ONYXKEYS.DERIVED.LOGIN_TO_ACCOUNT_ID_MAP]: OnyxTypes.LoginToAccountIDMapDerivedValue;
+    [ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS]: OnyxTypes.GuideAccountIDsDerivedValue;
 };
 
 type OnyxValues = OnyxValuesMapping & OnyxCollectionValuesMapping & OnyxFormValuesMapping & OnyxFormDraftValuesMapping & OnyxDerivedValuesMapping;

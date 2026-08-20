@@ -1578,7 +1578,7 @@ function getReasonAndReportActionForRBRInLHNRow(
     isArchivedReport = false,
 ): RBRReasonAndReportAction | null {
     const {reason, reportAction} =
-        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad(
+        SidebarUtils.getReasonAndReportActionThatHasRedBrickRoad({
             report,
             chatReport,
             reportActions,
@@ -1588,8 +1588,8 @@ function getReasonAndReportActionForRBRInLHNRow(
             isOffline,
             currentUserAccountID,
             transactionViolations,
-            isArchivedReport,
-        ) ?? {};
+            isReportArchived: isArchivedReport,
+        }) ?? {};
 
     if (reason) {
         return {reason: `debug.reasonRBR.${reason}`, reportAction};

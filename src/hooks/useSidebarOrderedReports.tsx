@@ -10,7 +10,6 @@ import type * as OnyxTypes from '@src/types/onyx';
 
 import type {ValueOf} from 'type-fest';
 
-import {createGuidesEmailsByReportSelector} from '@selectors/PersonalDetails';
 import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef, useState} from 'react';
 
 import useCollectionDelta from './useCollectionDelta';
@@ -103,12 +102,10 @@ function SidebarOrderedReportsContextProvider({
     const [reportsDrafts] = useOnyx(ONYXKEYS.COLLECTION.REPORT_DRAFT_COMMENT);
     const reportsDraftsUpdates = useCollectionDelta(reportsDrafts);
     const [betas] = useOnyx(ONYXKEYS.BETAS);
-    const guidesEmailsByReportSelector = useMemo(() => createGuidesEmailsByReportSelector(chatReports), [chatReports]);
-    const [guidesEmailsByReport] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: guidesEmailsByReportSelector,
-    });
-    const guidesEmailsByReportKey = useMemo(() => JSON.stringify(guidesEmailsByReport ?? {}), [guidesEmailsByReport]);
-    const prevGuidesEmailsByReportKey = usePrevious(guidesEmailsByReportKey);
+    // The derived value already collapses the personal details list down to the guide accountIDs and only
+    // changes when that set does, so it can be compared by reference to detect late guide hydration.
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const prevGuideAccountIDs = usePrevious(guideAccountIDs);
     const [conciergeReportID] = useOnyx(ONYXKEYS.CONCIERGE_REPORT_ID);
     const reportAttributes = useReportAttributes();
     const [currentReportsToDisplay, setCurrentReportsToDisplay] = useState<ReportsToDisplayInLHN>({});
@@ -218,10 +215,10 @@ function SidebarOrderedReportsContextProvider({
         // reports, recheck only the already-displayed reports with the new reportAttributes.
         let effectiveUpdatedReports = updatedReports.length === 0 && hasCachedReports ? Object.keys(currentReportsToDisplay) : updatedReports;
 
-        // When guide personal details hydrate after the reports collection, guidesEmailsByReport changes but
+        // When guide personal details hydrate after the reports collection, guideAccountIDs changes but
         // getUpdatedReports() returns no report keys. Re-evaluate all reports so domain rooms previously
         // filtered out can appear in the LHN.
-        if (hasCachedReports && prevGuidesEmailsByReportKey !== undefined && guidesEmailsByReportKey !== prevGuidesEmailsByReportKey) {
+        if (hasCachedReports && prevGuideAccountIDs !== undefined && guideAccountIDs !== prevGuideAccountIDs) {
             effectiveUpdatedReports = Object.keys(chatReports ?? {});
         }
         const shouldDoIncrementalUpdate = effectiveUpdatedReports.length > 0 && hasCachedReports;
@@ -243,7 +240,7 @@ function SidebarOrderedReportsContextProvider({
                 currentUserLogin: currentUserLogin ?? '',
                 currentUserAccountID: accountID,
                 conciergeReportID,
-                guidesEmailsByReport,
+                guideAccountIDs,
             });
         } else {
             Log.info('[useSidebarOrderedReports] building reportsToDisplay from scratch');
@@ -261,7 +258,7 @@ function SidebarOrderedReportsContextProvider({
                 reportNameValuePairs,
                 reportAttributes,
                 conciergeReportID,
-                guidesEmailsByReport,
+                guideAccountIDs,
             });
         }
 
@@ -283,9 +280,8 @@ function SidebarOrderedReportsContextProvider({
         currentUserLogin,
         accountID,
         conciergeReportID,
-        guidesEmailsByReport,
-        guidesEmailsByReportKey,
-        prevGuidesEmailsByReportKey,
+        guideAccountIDs,
+        prevGuideAccountIDs,
     ]);
 
     // Derive a stable boolean map indicating which reports have drafts.

@@ -7,7 +7,7 @@ import useReportIsArchived from '@hooks/useReportIsArchived';
 import {openReport} from '@libs/actions/Report';
 import getComponentDisplayName from '@libs/getComponentDisplayName';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
-import {canAccessReport} from '@libs/ReportUtils';
+import {canAccessReport, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import type {
     ParticipantsNavigatorParamList,
@@ -31,8 +31,7 @@ import type {ComponentType} from 'react';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {useIsFocused} from '@react-navigation/native';
-import {hasExpensifyGuidesEmailsSelector} from '@selectors/PersonalDetails';
-import React, {useEffect, useMemo} from 'react';
+import React, {useEffect} from 'react';
 
 type WithReportOrNotFoundOnyxProps = {
     /** The report currently being looked at */
@@ -95,13 +94,8 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
             const [introSelected] = useOnyx(ONYXKEYS.NVP_INTRO_SELECTED);
             const [deleteTransactionNavigateBackUrl] = useOnyx(ONYXKEYS.NVP_DELETE_TRANSACTION_NAVIGATE_BACK_URL);
             const {accountID: currentUserAccountID} = useCurrentUserPersonalDetails();
-            // This component does not compile with React Compiler (the `contentShown` ref is read during
-            // render), so the selector has to be memoized manually to keep its identity stable.
-            const participantAccountIDs = useMemo(() => Object.keys(report?.participants ?? {}).map(Number), [report?.participants]);
-            const guidesEmailsSelector = useMemo(() => hasExpensifyGuidesEmailsSelector(participantAccountIDs), [participantAccountIDs]);
-            const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-                selector: guidesEmailsSelector,
-            });
+            const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+            const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
             const isFocused = useIsFocused();
             const contentShown = React.useRef(false);
             const isReportIdInRoute = !!reportID?.length;
@@ -124,7 +118,7 @@ export default function (shouldRequireReportID = true): <TProps extends WithRepo
 
             if (shouldRequireReportID || isReportIdInRoute) {
                 const shouldShowFullScreenLoadingIndicator = !isReportLoaded && (isLoadingReportData !== false || shouldFetchReport);
-                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, hasGuidesEmails ?? false, isReportArchived);
+                const shouldShowNotFoundPage = !isReportLoaded || !canAccessReport(report, betas, hasGuidesEmails, isReportArchived);
 
                 // If the content was shown, but it's not anymore, that means the report was deleted, and we are probably navigating out of this screen.
                 // Return null for this case to avoid rendering FullScreenLoadingIndicator or NotFoundPage when animating transition.

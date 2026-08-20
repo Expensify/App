@@ -56,7 +56,7 @@ function getReportIDAfterOnboarding(
         return undefined;
     }
 
-    // TODO: Pass guidesEmailsByReport map once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
+    // TODO: Pass guideAccountIDs once callers are fully migrated — PR 33 (https://github.com/Expensify/App/issues/66413); findLastAccessedReport falls back to hasExpensifyGuidesEmails → allPersonalDetails
     const lastAccessedReport = findLastAccessedReport(!canUseDefaultRooms, undefined, shouldOpenOnAdminRoom() && !shouldPreventOpenAdminRoom, undefined, reportNameValuePairs);
     const lastAccessedReportID = lastAccessedReport?.reportID;
 

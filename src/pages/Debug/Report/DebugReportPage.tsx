@@ -21,7 +21,7 @@ import DebugTabNavigator from '@libs/Navigation/DebugTabNavigator';
 import Navigation from '@libs/Navigation/Navigation';
 import type {PlatformStackScreenProps} from '@libs/Navigation/PlatformStackNavigation/types';
 import type {DebugParamList} from '@libs/Navigation/types';
-import {getViolatingReportIDForRBRInLHN} from '@libs/ReportUtils';
+import {getViolatingReportIDForRBRInLHN, hasExpensifyGuidesEmails} from '@libs/ReportUtils';
 
 import DebugDetails from '@pages/Debug/DebugDetails';
 import DebugJSON from '@pages/Debug/DebugJSON';
@@ -38,7 +38,7 @@ import type {ReportAttributesDerivedValue} from '@src/types/onyx';
 import type {OnyxEntry} from 'react-native-onyx';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
-import {conciergePersonalDetailSelector, hasExpensifyGuidesEmailsSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
+import {conciergePersonalDetailSelector, personalDetailsSelector} from '@selectors/PersonalDetails';
 import React, {useCallback, useMemo} from 'react';
 import {View} from 'react-native';
 
@@ -88,10 +88,8 @@ function DebugReportPage({
     const [reportOwnerPersonalDetail] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {selector: personalDetailsSelector(report?.ownerAccountID)});
     const transactionID = DebugUtils.getTransactionID(report, reportActions);
     const isReportArchived = useReportIsArchived(reportID);
-    const participantAccountIDs = Object.keys(report?.participants ?? {}).map(Number);
-    const [hasGuidesEmails] = useOnyx(ONYXKEYS.PERSONAL_DETAILS_LIST, {
-        selector: hasExpensifyGuidesEmailsSelector(participantAccountIDs),
-    });
+    const [guideAccountIDs] = useOnyx(ONYXKEYS.DERIVED.GUIDE_ACCOUNT_IDS);
+    const hasGuidesEmails = hasExpensifyGuidesEmails(Object.keys(report?.participants ?? {}).map(Number), guideAccountIDs);
 
     const metadata = useMemo<Metadata[]>(() => {
         if (!report) {
@@ -129,7 +127,7 @@ function DebugReportPage({
             currentUserLogin: currentUserLogin ?? '',
             currentUserAccountID,
             conciergeReportID,
-            hasGuidesEmails: hasGuidesEmails ?? false,
+            hasGuidesEmails,
         });
 
         return [
