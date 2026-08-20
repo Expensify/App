@@ -159,11 +159,19 @@ describe('actions/PolicyRules', () => {
 
                 const snapshot = await createRuleAndCaptureInFlightRequest(fakePolicy.id, agentRuleID, prompt);
 
-                // The first attempt created the rule server-side, so the rule is clean before the replay.
+                // Exactly one send so far, and the rule is clean because that send really created it.
+                TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 1);
                 expect((await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID]?.errors).toBeFalsy();
 
                 // Auth answers the duplicate with a success, so the replay takes the normal successData path.
                 await replay(snapshot);
+
+                // The replay actually reached the wire, and it carried the same client-generated agentRuleID as
+                // the first send. Without these two assertions the test would still pass if replay() no-opped,
+                // because the rule would already be clean from the first send.
+                TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 2);
+                TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 0, {policyID: fakePolicy.id, agentRuleID, prompt});
+                TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 1, {policyID: fakePolicy.id, agentRuleID, prompt});
 
                 const rule = (await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID];
                 expect(rule?.prompt).toBe(prompt);
@@ -185,6 +193,10 @@ describe('actions/PolicyRules', () => {
 
                 mockFetch?.fail?.();
                 await replay(snapshot);
+
+                // Same guard as above: prove the replay went out before asserting on its outcome.
+                TestHelper.expectAPICommandToHaveBeenCalled(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 2);
+                TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.ADD_POLICY_AGENT_RULE, 1, {policyID: fakePolicy.id, agentRuleID, prompt});
 
                 const rule = (await getPolicy(fakePolicy.id))?.rules?.agentRules?.[agentRuleID];
                 expect(rule?.pendingAction).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.ADD);
