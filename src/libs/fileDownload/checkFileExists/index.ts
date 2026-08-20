@@ -28,7 +28,7 @@ function checkFileExists(path: string | undefined): Promise<boolean> {
         return false;
     };
 
-    return statIsFile(decodedPath).catch((error: unknown) => (decodedPath === rawPath ? statFailed(error) : statIsFile(rawPath).catch(statFailed)));
+    return statIsFile(decodedPath).catch((error: unknown) => (decodedPath === rawPath ? statFailed(error) : statIsFile(rawPath).catch(() => statFailed(error))));
 }
 
 export default checkFileExists;

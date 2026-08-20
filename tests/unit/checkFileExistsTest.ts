@@ -115,6 +115,25 @@ describe('checkFileExists', () => {
         logInfoSpy.mockRestore();
     });
 
+    it('should log the locked-device code, not the raw-path fallback code', async () => {
+        // Given an encoded path whose decoded file is locked, and whose raw form does not exist
+        const logInfoSpy = jest.spyOn(Log, 'info').mockImplementation(() => {});
+        const decodedPath = '/var/mobile/Containers/sharedFiles/Receipt #42.pdf';
+        mockStat.mockImplementation((candidate: string) =>
+            Promise.reject(candidate === decodedPath ? Object.assign(new Error('Operation not permitted'), {code: 'EPERM'}) : Object.assign(new Error('File not found'), {code: 'ENOENT'})),
+        );
+
+        // When the file is checked
+        const result = await checkFileExists('file:///var/mobile/Containers/sharedFiles/Receipt%20%2342.pdf');
+
+        // Then telemetry carries the decoded-path error, because the raw fallback never existed
+        expect(result).toBe(false);
+        expect(logInfoSpy).toHaveBeenCalledTimes(1);
+        expect(logInfoSpy).toHaveBeenCalledWith(expect.stringContaining('stat failed'), false, {event: 'statFailed', code: 'EPERM'});
+
+        logInfoSpy.mockRestore();
+    });
+
     it('should return false when path is a directory', async () => {
         mockStat.mockResolvedValue(buildStatResult(false));
         const result = await checkFileExists('/var/mobile/Containers/');
