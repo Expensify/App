@@ -255,25 +255,8 @@ describe('TransactionPreviewUtils', () => {
             expect(result.displayAmountText.text).toEqual(convertAmountToDisplayString(modifiedAmount, currency));
         });
 
-        it('shows the canceled status when the report does not already read as approved', () => {
+        it('does not show the canceled status, because it is reported at the report level instead', () => {
             const functionArgs = {...basicProps, iouReport: {...basicProps.iouReport, isCancelledIOU: true}, originalTransaction: undefined};
-            const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
-            expect(result.previewStatusText).toContainEqual({translationPath: 'iou.canceled'});
-        });
-
-        it('does not show the canceled status on an approved, unsettled expense report, because it reads as approved instead', () => {
-            const functionArgs = {
-                ...basicProps,
-                iouReport: {
-                    ...basicProps.iouReport,
-                    type: CONST.REPORT.TYPE.EXPENSE,
-                    stateNum: CONST.REPORT.STATE_NUM.APPROVED,
-                    statusNum: CONST.REPORT.STATUS_NUM.APPROVED,
-                    isCancelledIOU: true,
-                },
-                policy: createRandomPolicy(1, CONST.POLICY.TYPE.CORPORATE),
-                originalTransaction: undefined,
-            };
             const result = getTransactionPreviewTextAndTranslationPaths(functionArgs);
             expect(result.previewStatusText).toEqual([]);
         });
