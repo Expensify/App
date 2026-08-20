@@ -17,7 +17,7 @@ import {mergeCardListWithWorkspaceFeeds} from '@libs/CardUtils';
 import Navigation from '@libs/Navigation/Navigation';
 import {getAllTaxRates} from '@libs/PolicyUtils';
 import type {SavedSearchMenuItem} from '@libs/SearchUIUtils';
-import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil} from '@libs/SearchUIUtils';
+import {createBaseSavedSearchMenuItem, getOverflowMenu as getOverflowMenuUtil, getSavedSearchIconName, SAVED_SEARCH_TYPE_ICON_NAMES} from '@libs/SearchUIUtils';
 
 import variables from '@styles/variables';
 
@@ -25,6 +25,7 @@ import CONST from '@src/CONST';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
 import type {SaveSearchItem} from '@src/types/onyx/SaveSearch';
+import type IconAsset from '@src/types/utils/IconAsset';
 
 import {accountIDSelector} from '@selectors/Session';
 import React from 'react';
@@ -46,14 +47,16 @@ type SavedSearchMenuItemBuilderParams = {
     getOverflowMenu: (itemName: string, itemHash: number, itemQuery: string) => ReturnType<typeof getOverflowMenuUtil>;
     itemStyle: SavedSearchMenuItem['style'];
     isCopied: boolean;
+    icon: IconAsset;
 };
 
-function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
+function buildSavedSearchMenuItem({item, key, index, hash, title, getOverflowMenu, itemStyle, isCopied, icon}: SavedSearchMenuItemBuilderParams): SavedSearchMenuItem {
     const isItemFocused = Number(key) === hash;
     const baseMenuItem: SavedSearchMenuItem = createBaseSavedSearchMenuItem(item, key, index, title, isItemFocused);
 
     return {
         ...baseMenuItem,
+        icon,
         role: CONST.ROLE.TAB,
         sentryLabel: CONST.SENTRY_LABEL.SEARCH.SAVED_SEARCH_MENU_ITEM,
         onPress: () => {
@@ -91,7 +94,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
 
     const {showDeleteModal} = useDeleteSavedSearch();
 
-    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
+    const expensifyIcons = useMemoizedLazyExpensifyIcons(['Bookmark', ...SAVED_SEARCH_TYPE_ICON_NAMES, 'Pencil', 'Trashcan', 'LinkCopy', 'Checkmark']);
     const {copiedHash, handleShare} = useShareSavedSearch();
 
     const taxRates = getAllTaxRates(allPolicies);
@@ -133,6 +136,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
                       getOverflowMenu,
                       itemStyle,
                       isCopied: copiedHash === Number(key),
+                      icon: expensifyIcons[getSavedSearchIconName(item.query)],
                   }),
               )
               .sort((a, b) => localeCompare(a.title ?? '', b.title ?? ''))
@@ -143,7 +147,7 @@ function SavedSearchList({hash}: SavedSearchListProps) {
             <SearchTypeMenuItem
                 key={item.key}
                 title={item.title ?? ''}
-                icon={expensifyIcons.Bookmark}
+                icon={expensifyIcons[getSavedSearchIconName(item.query)]}
                 focused={item.focused}
                 onPress={(event) => {
                     if (item.disabled || !item.onPress || !event) {

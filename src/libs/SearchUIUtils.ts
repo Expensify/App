@@ -5041,6 +5041,32 @@ function createTypeMenuSections(params: TypeMenuSectionsParams): SearchTypeMenuS
     return typeMenuSections;
 }
 
+/**
+ * Icons used for each saved-search data type. Each asset already has the bookmark subscript baked in,
+ * so it can be rendered directly with the standard Expensicons component.
+ */
+const SAVED_SEARCH_TYPE_ICON_NAMES = ['ReceiptBookmark', 'DocumentBookmark', 'CommentBubbleBookmark', 'InvoiceBookmark', 'LuggageBookmark', 'TaskBookmark'] as const satisfies readonly ExpensifyIconName[];
+
+const SAVED_SEARCH_TYPE_TO_ICON_NAME = {
+    [CONST.SEARCH.DATA_TYPES.EXPENSE]: 'ReceiptBookmark',
+    [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT]: 'DocumentBookmark',
+    [CONST.SEARCH.DATA_TYPES.CHAT]: 'CommentBubbleBookmark',
+    [CONST.SEARCH.DATA_TYPES.INVOICE]: 'InvoiceBookmark',
+    [CONST.SEARCH.DATA_TYPES.TRIP]: 'LuggageBookmark',
+    [CONST.SEARCH.DATA_TYPES.TASK]: 'TaskBookmark',
+} as const satisfies Record<SearchDataTypes, ExpensifyIconName>;
+
+type SavedSearchIconName = TupleToUnion<typeof SAVED_SEARCH_TYPE_ICON_NAMES> | 'Bookmark';
+
+/**
+ * Resolves the icon name for a saved search from its query type, falling back to the generic bookmark
+ * icon for queries that can't be parsed into a known data type.
+ */
+function getSavedSearchIconName(query: string): SavedSearchIconName {
+    const type = buildSearchQueryJSON(query)?.type;
+    return type ? SAVED_SEARCH_TYPE_TO_ICON_NAME[type] : 'Bookmark';
+}
+
 function createBaseSavedSearchMenuItem(item: SaveSearchItem, key: string, index: number, title: string, isFocused: boolean): SavedSearchMenuItem {
     return {
         key,
@@ -6937,6 +6963,8 @@ export {
     getSectionBadgeText,
     getItemBadgeText,
     createBaseSavedSearchMenuItem,
+    getSavedSearchIconName,
+    SAVED_SEARCH_TYPE_ICON_NAMES,
     shouldShowEmptyState,
     compareValues,
     isSearchDataLoaded,

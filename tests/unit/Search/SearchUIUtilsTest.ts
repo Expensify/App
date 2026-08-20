@@ -32,6 +32,7 @@ import type {CardFeedForDisplay} from '@src/libs/CardFeedUtils';
 import {getCardDescriptionForSearchTable} from '@src/libs/CardUtils';
 import DateUtils from '@src/libs/DateUtils';
 import {buildSearchQueryJSON, getDateRangeForPreset, getQueryHashes, getUserFriendlyValue} from '@src/libs/SearchQueryUtils';
+import * as SearchQueryUtils from '@src/libs/SearchQueryUtils';
 import * as SearchUIUtils from '@src/libs/SearchUIUtils';
 import ONYXKEYS from '@src/ONYXKEYS';
 import ROUTES from '@src/ROUTES';
@@ -12780,5 +12781,24 @@ describe('splitGroupsIntoPairs', () => {
         const {splitData, stickyHeaderIndices} = SearchUIUtils.splitGroupsIntoPairs([leaf]);
         expect(splitData).toEqual([leaf]);
         expect(stickyHeaderIndices).toEqual([]);
+    });
+});
+
+describe('getSavedSearchIconName', () => {
+    it.each([
+        [CONST.SEARCH.DATA_TYPES.EXPENSE, 'type:expense', 'ReceiptBookmark'],
+        [CONST.SEARCH.DATA_TYPES.EXPENSE_REPORT, 'type:expense-report', 'DocumentBookmark'],
+        [CONST.SEARCH.DATA_TYPES.CHAT, 'type:chat', 'CommentBubbleBookmark'],
+        [CONST.SEARCH.DATA_TYPES.INVOICE, 'type:invoice', 'InvoiceBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TRIP, 'type:trip', 'LuggageBookmark'],
+        [CONST.SEARCH.DATA_TYPES.TASK, 'type:task', 'TaskBookmark'],
+    ])('returns the type-specific icon for %s saved searches', (_type, query, expectedIcon) => {
+        expect(SearchUIUtils.getSavedSearchIconName(query)).toBe(expectedIcon);
+    });
+
+    it('falls back to the bookmark icon when the query cannot be parsed into a type', () => {
+        const spy = jest.spyOn(SearchQueryUtils, 'buildSearchQueryJSON').mockReturnValue(undefined);
+        expect(SearchUIUtils.getSavedSearchIconName('an-unparseable-query')).toBe('Bookmark');
+        spy.mockRestore();
     });
 });
