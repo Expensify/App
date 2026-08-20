@@ -7243,7 +7243,7 @@ ${reportName}`,
         exportDifferentCompaniesModal: {
             title: 'Cuidado!',
             description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
-                `Os relatórios selecionados estão conectados a empresas ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]} diferentes, portanto não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
+                `Os relatórios selecionados estão conectados a diferentes empresas ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, então não podem ser exportados juntos. Selecione relatórios conectados à mesma empresa e tente novamente.`,
             confirmText: 'Entendi',
         },
         exportPartialModal: {
@@ -7252,10 +7252,10 @@ ${reportName}`,
             description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Somente os relatórios conectados a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
+                    reasons.push(`Somente relatórios conectados a ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} serão exportados.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Somente os relatórios elegíveis para exportação serão exportados.`);
+                    reasons.push(`Somente relatórios que forem elegíveis para exportação serão exportados.`);
                 }
                 return `${reasons.join('\n\n')}\n\nOs seguintes relatórios serão exportados:`;
             },

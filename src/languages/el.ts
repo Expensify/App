@@ -7547,7 +7547,7 @@ ${reportName}`,
         exportDifferentCompaniesModal: {
             title: 'Προσοχή!',
             description: (connectionName, connectionNameFriendly) =>
-                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν μπορούν να εξαχθούν μαζί. Επιλέξτε αναφορές που είναι συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
+                `Οι επιλεγμένες αναφορές είναι συνδεδεμένες με διαφορετικές εταιρείες ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, επομένως δεν γίνεται να εξαχθούν μαζί. Επιλέξτε αναφορές συνδεδεμένες με την ίδια εταιρεία και δοκιμάστε ξανά.`,
             confirmText: 'Το κατάλαβα',
         },
         exportPartialModal: {
@@ -7556,12 +7556,12 @@ ${reportName}`,
             description: (integration, hasReportsOnOtherIntegrations, hasIneligibleReports, connectionNameFriendly) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι συνδεδεμένες στο ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]}.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι συνδεδεμένες με το ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} θα εξαχθούν.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Θα εξαχθούν μόνο οι αναφορές που είναι επιλέξιμες για εξαγωγή.`);
+                    reasons.push(`Μόνο οι αναφορές που είναι κατάλληλες για εξαγωγή θα εξαχθούν.`);
                 }
-                return `${reasons.join('\n\n')}\n\nΘα εξαχθούν οι παρακάτω αναφορές:`;
+                return `${reasons.join('\n\n')}\n\nΟι ακόλουθες αναφορές θα εξαχθούν:`;
             },
             confirmText: () => ({
                 one: `Εξαγωγή 1 αναφοράς`,

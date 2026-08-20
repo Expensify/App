@@ -7312,21 +7312,21 @@ ${reportName}`,
         exportDifferentCompaniesModal: {
             title: 'Attention !',
             description: (connectionName: ConnectionName, connectionNameFriendly?: string) =>
-                `Les notes de frais sélectionnées sont connectées à différentes entreprises ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais connectées à la même entreprise, puis réessayez.`,
+                `Les notes de frais sélectionnées sont liées à différentes sociétés ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[connectionName]}, elles ne peuvent donc pas être exportées ensemble. Sélectionnez des notes de frais liées à la même société et réessayez.`,
             confirmText: 'Compris',
         },
         exportPartialModal: {
             title: (exportableCount: number, selectedCount: number, integration: ConnectionName, connectionNameFriendly?: string) =>
-                `Exporter ${exportableCount}/${selectedCount} rapports vers ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
+                `Exporter ${exportableCount}/${selectedCount} notes de frais vers ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} ?`,
             description: (integration: ConnectionName, hasReportsOnOtherIntegrations: boolean, hasIneligibleReports: boolean, connectionNameFriendly?: string) => {
                 const reasons: string[] = [];
                 if (hasReportsOnOtherIntegrations) {
-                    reasons.push(`Seuls les rapports connectés à ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportés.`);
+                    reasons.push(`Seules les notes de frais liées à ${connectionNameFriendly ?? CONST.POLICY.CONNECTIONS.NAME_USER_FRIENDLY[integration]} seront exportées.`);
                 }
                 if (hasIneligibleReports) {
-                    reasons.push(`Seuls les rapports éligibles à l’exportation seront exportés.`);
+                    reasons.push(`Seules les notes de frais pouvant être exportées seront exportées.`);
                 }
-                return `${reasons.join('\n\n')}\n\nLes rapports suivants seront exportés :`;
+                return `${reasons.join('\n\n')}\n\nLes notes de frais suivantes seront exportées :`;
             },
             confirmText: () => ({
                 one: `Exporter 1 rapport`,
