@@ -132,20 +132,20 @@ describe('SearchBulkActionsButton all-matching label', () => {
         mockIsOffline = false;
     });
 
-    it('keeps the production loading state while totals are requested', () => {
+    it('falls back to the selected count and keeps loading while the server count is missing', () => {
         mockSearchIsLoading = true;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
-    it('keeps the all-matching label when the server count arrives and there are no exclusions', () => {
+    it('shows the server count when it arrives and there are no exclusions', () => {
         mockSearchCount = 172;
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: false});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:172', isLoading: false});
     });
 
     it('shows the exact count after an item is excluded', () => {
@@ -163,7 +163,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={queryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:1', isLoading: true});
     });
 
     it('shows the loaded selected count when an expense is excluded offline before the server count is available', () => {
@@ -180,7 +180,7 @@ describe('SearchBulkActionsButton all-matching label', () => {
 
         render(<SearchBulkActionsButton queryJSON={reportQueryJSON} />);
 
-        expect(getButtonProps()).toEqual({customText: 'search.exportAll.allMatchingItemsSelected', isLoading: true});
+        expect(getButtonProps()).toEqual({customText: 'workspace.common.selected:0', isLoading: true});
     });
 
     it('uses the unmodified server count for expense reports', () => {
