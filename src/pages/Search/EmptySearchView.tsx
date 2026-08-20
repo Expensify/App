@@ -81,14 +81,13 @@ type EmptySearchViewItem = {
 function EmptySearchView({similarSearchHash, type, hasResults, queryJSON, violationSnapshotStartedAt, onScroll, contentContainerStyle}: EmptySearchViewProps) {
     const currentUserPersonalDetails = useCurrentUserPersonalDetails();
     const {typeMenuSections} = useSearchTypeMenuSections();
-    const {isBetaEnabled} = usePermissions();
 
     const [allPolicies] = useOnyx(ONYXKEYS.COLLECTION.POLICY);
 
     const [activePolicyID] = useOnyx(ONYXKEYS.NVP_ACTIVE_POLICY_ID);
     const [activePolicy] = useOnyx(`${ONYXKEYS.COLLECTION.POLICY}${activePolicyID}`);
 
-    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies, isBetaEnabled(CONST.BETAS.SUBMIT_2026));
+    const groupPoliciesWithChatEnabled = getGroupPoliciesWhereReportCanBeCreated(allPolicies);
 
     const [hasSeenTour = false] = useOnyx(ONYXKEYS.NVP_ONBOARDING, {
         selector: hasSeenTourSelector,
@@ -136,7 +135,7 @@ function EmptySearchViewContent({
     onScroll,
     contentContainerStyle,
 }: EmptySearchViewContentProps) {
-    const {translate} = useLocalize();
+    const {translate, dateFnsLocale} = useLocalize();
     const timezone = useCurrentTimezone();
     const styles = useThemeStyles();
     const isInLandscapeMode = useIsInLandscapeMode();
@@ -220,7 +219,10 @@ function EmptySearchViewContent({
         content = {
             ...defaultViewItemHeader.folder,
             title: translate('search.searchResults.emptyStatementsResults.title'),
-            subtitle: translate('search.searchResults.emptyViolationSnapshotResults.subtitle', DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone)),
+            subtitle: translate(
+                'search.searchResults.emptyViolationSnapshotResults.subtitle',
+                DateUtils.formatViolationSnapshotStartedAtDate(violationSnapshotStartedAt, timezone, dateFnsLocale),
+            ),
         };
     }
 
