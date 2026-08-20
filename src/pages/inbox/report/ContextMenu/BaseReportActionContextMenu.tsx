@@ -285,6 +285,7 @@ function BaseReportActionContextMenu({
             contextAction.shouldShow({
                 type,
                 reportAction,
+                reportActions,
                 childReportActions,
                 isArchivedRoom,
                 betas,

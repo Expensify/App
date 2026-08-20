@@ -104,6 +104,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
     const [resolvedParentReportAction] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`, {
         selector: parentReportActionSelector,
     });
+    const [parentReportActions] = useOnyx(`${ONYXKEYS.COLLECTION.REPORT_ACTIONS}${getNonEmptyStringOnyxID(effectiveParentReportID)}`);
     const parentReportAction = resolvedParentReportAction ?? linkedReportAction;
 
     const transactionThreadReportID = linkedReportAction?.childReportID ?? parentReportAction?.childReportID ?? transaction?.transactionThreadReportID;
@@ -160,6 +161,7 @@ function useTransactionInlineEdit({transactionID, hash, linkedReportAction}: Use
         transaction,
         parentReportAction,
         parentReport: effectiveParentReport,
+        parentReportActions,
         policy: completePolicy ?? policy,
         transactionThreadReport,
         policyCategories,
