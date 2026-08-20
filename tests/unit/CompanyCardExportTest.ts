@@ -12,6 +12,7 @@ import SCREENS from '@src/SCREENS';
 import type {Card, CompanyCardFeedWithDomainID, Policy} from '@src/types/onyx';
 
 import {getCompanyCardDetailsBackPath, getExportMenuItem} from '../../src/pages/workspace/companyCards/utils';
+import createMock from '../utils/createMock';
 import {translateLocal} from '../utils/TestHelper';
 
 const MOCK_POLICY_ID = 'ABC123';
@@ -47,7 +48,7 @@ const QBD_CREDIT_CARD_ACCOUNTS = [
 ];
 
 function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '80000103-1746639410'): Policy {
-    return {
+    return createMock<Policy>({
         id: MOCK_POLICY_ID,
         name: 'Test Policy',
         type: CONST.POLICY.TYPE.TEAM,
@@ -66,7 +67,6 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
                         reimbursableAccount: '',
                         exportDate: CONST.QUICKBOOKS_EXPORT_DATE.LAST_EXPENSE,
                         nonReimbursableBillDefaultVendor: '',
-                        accountingMethod: 'accrual',
                     },
                 },
                 data: {
@@ -75,16 +75,16 @@ function createQBDPolicy(overrides?: Partial<Policy>, nonReimbursableAccount = '
             },
         },
         ...overrides,
-    } as Policy;
+    });
 }
 
 function createCard(nvpExportAccount?: string): Card {
-    const nameValuePairs: Record<string, string> = {};
+    const nameValuePairs: Partial<NonNullable<Card['nameValuePairs']>> = {};
     if (nvpExportAccount !== undefined) {
         nameValuePairs.quickbooks_desktop_export_account_credit = nvpExportAccount;
     }
 
-    return {
+    return createMock<Card>({
         cardID: 1001,
         state: CONST.EXPENSIFY_CARD.STATE.OPEN,
         bank: CONST.COMPANY_CARD.FEED_BANK_NAME.VISA,
@@ -92,17 +92,18 @@ function createCard(nvpExportAccount?: string): Card {
         fraud: 'none',
         lastUpdated: '',
         nameValuePairs,
-    } as unknown as Card;
+    });
 }
 
 describe('getExportMenuItem - QBD credit card account resolution', () => {
-    const translate = translateLocal as unknown as LocaleContextProps['translate'];
+    const translate: LocaleContextProps['translate'] = translateLocal;
+    const themeStyles = createMock<ThemeStyles>({});
 
     it('resolves account by ID when NVP contains a QBD ListID (Classic-saved)', () => {
         const policy = createQBDPolicy();
         const card = createCard('80000103-1746639410');
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
         expect(result?.title).toBe('American Express (91000)');
@@ -117,7 +118,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy();
         const card = createCard('American Express (91000)');
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
         expect(result?.title).toBe('American Express (91000)');
@@ -131,7 +132,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy();
         const card = createCard();
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
 
@@ -147,7 +148,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy();
         const card = createCard(CONST.COMPANY_CARDS.DEFAULT_EXPORT_TYPE);
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
 
@@ -159,7 +160,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy(undefined, '');
         const card = createCard();
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
 
@@ -174,7 +175,7 @@ describe('getExportMenuItem - QBD credit card account resolution', () => {
         const policy = createQBDPolicy();
         const card = createCard('80000103-1746639410');
 
-        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, {} as ThemeStyles, policy, card);
+        const result = getExportMenuItem(CONST.POLICY.CONNECTIONS.NAME.QBD, MOCK_POLICY_ID, translate, themeStyles, policy, card);
 
         expect(result).toBeDefined();
 
