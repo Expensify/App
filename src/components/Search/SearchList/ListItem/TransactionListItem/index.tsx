@@ -31,6 +31,7 @@ import {
     mergeProhibitedViolations,
     shouldShowAttendees,
     shouldShowViolation,
+    showHeldExpensesBlockModal,
     showPendingCardTransactionsBlockModal,
 } from '@libs/TransactionUtils';
 
@@ -229,6 +230,7 @@ function TransactionListItemInner<TItem extends ListItem>({
             shouldDisableSearchSubmitPress,
             consumeIgnoreNextSearchSubmitPress,
             onPendingCardTransactionsBlock: () => showPendingCardTransactionsBlockModal(showConfirmModal, translate),
+            onAllHeldExpensesBlock: () => showHeldExpensesBlockModal(showConfirmModal, translate),
             currentUserAccountID,
             currentUserLogin,
             introSelected,

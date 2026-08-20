@@ -5305,6 +5305,29 @@ describe('actions/Report', () => {
         });
     });
 
+    describe('openReport with participants', () => {
+        it('should send passed participants as emailList/accountIDList so the server can resolve a stale optimistic reportID', async () => {
+            global.fetch = TestHelper.createGlobalFetchMock();
+            const REPORT_ID = 'dm1';
+
+            Report.openReport({
+                reportID: REPORT_ID,
+                introSelected: undefined,
+                betas: undefined,
+                hasReportActions: true,
+                currentUserAccountID: 1,
+                participants: [{login: 'other@test.com', accountID: 2}],
+            });
+            await waitForBatchedUpdates();
+
+            TestHelper.expectAPICommandToHaveBeenCalledWith(WRITE_COMMANDS.OPEN_REPORT, 0, {
+                reportID: REPORT_ID,
+                emailList: 'other@test.com',
+                accountIDList: '2',
+            });
+        });
+    });
+
     describe('setOptimisticTransactionThread', () => {
         it('should set optimistic transaction thread data with the provided parameters', async () => {
             const reportID = 'report12';
