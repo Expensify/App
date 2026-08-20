@@ -44,21 +44,42 @@ function resolveWriteBarrier({writeBarrier, optimisticWatchKey, isRetry = false}
     if (writeBarrier) {
         addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
 
-        // The explicit barrier wins over Search's, but the signal Search raised is still up. Count this
-        // write as the consumer it was waiting for - otherwise `flushPendingSearchWrite` keeps the
-        // signal pending for a consumer that will never arrive, and Search sits on its skeleton until
-        // its own safety timeout instead of releasing immediately. Not `acquireSearchWriteBarrier`: this
-        // write isn't waiting on Search's layout, so its watch key must not be published either.
-        if (hasPendingSearchWrite()) {
-            consumePendingSearchWrite();
+        if (!hasPendingSearchWrite()) {
+            return writeBarrier;
         }
 
-        return writeBarrier;
+        // The explicit barrier wins over Search's, but the signal Search raised is still up. This write
+        // still has to count as the consumer it was waiting for - otherwise `flushPendingSearchWrite`
+        // keeps the signal pending for a consumer that will never arrive, and Search sits on its
+        // skeleton until its own safety timeout instead of releasing immediately.
+        //
+        // Consumption is tied to `writeBarrier` actually settling, not to this call - counting it too
+        // early would let a flush that arrives while `writeBarrier` is still pending clear Search's
+        // signal (and skeleton) before this write's optimistic data has actually landed. Not
+        // `acquireSearchWriteBarrier`: this write isn't waiting on Search's layout, so its watch key
+        // must not be published either.
+        return async (signal) => {
+            try {
+                return await writeBarrier(signal);
+            } finally {
+                if (hasPendingSearchWrite()) {
+                    consumePendingSearchWrite();
+                }
+            }
+        };
     }
 
     // Search raises its signal when the submission starts, which can be several screens earlier than
     // this call - so an action that was given no barrier still has to check for it.
-    if (!isRetry && hasPendingSearchWrite()) {
+    if (hasPendingSearchWrite()) {
+        if (isRetry) {
+            // Still consume the signal even though the retry bypasses it - otherwise a retry that is the
+            // only write associated with a pending signal leaves `flushPendingSearchWrite` waiting for a
+            // consumer that will never arrive.
+            consumePendingSearchWrite();
+            return IMMEDIATE;
+        }
+
         addOptimization(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
         return acquireSearchWriteBarrier(optimisticWatchKey);
     }

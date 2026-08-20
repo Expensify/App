@@ -1,6 +1,6 @@
 import resolveWriteBarrier, {IMMEDIATE} from '@libs/actions/IOU/resolveWriteBarrier';
 import type {WriteReadyBarrier} from '@libs/API';
-import {flushPendingSearchWrite, getSearchWriteWatchKey, markPendingSearchWrite, resetForTesting} from '@libs/pendingSearchWrite';
+import {flushPendingSearchWrite, getSearchWriteWatchKey, hasPendingSearchWrite, markPendingSearchWrite, resetForTesting} from '@libs/pendingSearchWrite';
 import {addOptimization} from '@libs/telemetry/submitFollowUpAction';
 
 import CONST from '@src/CONST';
@@ -40,19 +40,59 @@ describe('resolveWriteBarrier', () => {
     });
 
     it("prefers the caller's barrier over Search's", async () => {
-        // Given Search's signal is up and the caller also hands down its own barrier
+        // Given Search's signal is up and the caller also hands down its own barrier, unresolved
         markPendingSearchWrite();
-        const writeBarrier: WriteReadyBarrier = () => new Promise<void>(() => {});
+        let releaseWriteBarrier: () => void = () => {};
+        const writeBarrier: WriteReadyBarrier = () =>
+            new Promise<void>((resolve) => {
+                releaseWriteBarrier = resolve;
+            });
 
         // When a write barrier is resolved with both available
         const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const isSettled = settled(barrier);
+        await Promise.resolve();
 
-        // Then the caller's barrier wins, because the view that handed it down knows which transition
-        // this write is actually racing - and Search's watch key stays unpublished since the write is
-        // not gated on Search's layout
-        expect(barrier).toBe(writeBarrier);
+        // Then the caller's barrier wins - the resolved barrier still waits on it, not on Search - and
+        // Search's watch key stays unpublished since the write is not gated on Search's layout
+        expect(isSettled()).toBe(false);
         expect(getSearchWriteWatchKey()).toBeUndefined();
         expect(addOptimization).toHaveBeenCalledWith(CONST.TELEMETRY.SUBMIT_OPTIMIZATION.DEFERRED_WRITE);
+
+        // When the caller's barrier releases
+        releaseWriteBarrier();
+        await Promise.resolve();
+        await Promise.resolve();
+
+        // Then the write goes out
+        expect(isSettled()).toBe(true);
+    });
+
+    it("keeps Search's signal up until the caller's barrier releases, even if Search flushes first", async () => {
+        // Given Search's signal is up and the caller's own barrier has not released yet
+        markPendingSearchWrite();
+        let releaseWriteBarrier: () => void = () => {};
+        const writeBarrier: WriteReadyBarrier = () =>
+            new Promise<void>((resolve) => {
+                releaseWriteBarrier = resolve;
+            });
+
+        const barrier = resolveWriteBarrier({writeBarrier, optimisticWatchKey: WATCH_KEY});
+        const barrierSettled = Promise.resolve(barrier(new AbortController().signal));
+
+        // When Search flushes before the caller's barrier has released
+        flushPendingSearchWrite();
+
+        // Then Search's signal stays up - clearing it here would let Search issue a query before this
+        // write's optimistic data actually exists, since the write is still gated on writeBarrier
+        expect(hasPendingSearchWrite()).toBe(true);
+
+        // When the caller's barrier then releases
+        releaseWriteBarrier();
+        await barrierSettled;
+
+        // Then Search's signal comes down too, now that this write is actually going out
+        expect(hasPendingSearchWrite()).toBe(false);
     });
 
     it("waits on Search's signal when no barrier was handed down", async () => {
@@ -93,6 +133,21 @@ describe('resolveWriteBarrier', () => {
         expect(isSettled()).toBe(true);
         expect(getSearchWriteWatchKey()).toBeUndefined();
         expect(addOptimization).not.toHaveBeenCalled();
+    });
+
+    it('still consumes the pending Search signal on a retry, despite bypassing it', () => {
+        // Given Search's signal is up
+        markPendingSearchWrite();
+
+        // When a retry resolves a write barrier, bypassing Search
+        resolveWriteBarrier({isRetry: true, optimisticWatchKey: WATCH_KEY});
+
+        // When Search then flushes the signal
+        flushPendingSearchWrite();
+
+        // Then the signal clears right away - the retry already counted as the consumer it was waiting
+        // for, so it does not sit around holding the skeleton up for a consumer that will never arrive
+        expect(hasPendingSearchWrite()).toBe(false);
     });
 
     it("still honours a caller's barrier on a retry", () => {
