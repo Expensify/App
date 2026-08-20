@@ -1,6 +1,5 @@
 import {useRowSelection} from '@components/Search/SearchSelectionProvider';
 import BaseListItem from '@components/SelectionList/ListItem/BaseListItem';
-import {useListItemHighlight} from '@components/SelectionList/ListItemComposed';
 import type {ListItem} from '@components/SelectionList/types';
 
 import useOnyx from '@hooks/useOnyx';
@@ -18,6 +17,7 @@ import React from 'react';
 
 import type {TaskListItemProps, TaskListItemType} from './types';
 
+import useSearchTableItemHighlight from './hooks/useSearchTableItemHighlight';
 import TaskListItemRow from './TaskListItemRow';
 
 /**
@@ -50,10 +50,9 @@ function TaskListItem<TItem extends ListItem>({
     const {isLargeScreenWidth} = useResponsiveLayout();
     const {isSelected} = useRowSelection(item.keyForList);
 
-    const {pressableStyle, pressableWrapperStyle} = useListItemHighlight({
+    const {pressableStyle, pressableWrapperStyle} = useSearchTableItemHighlight({
         shouldHighlight: item?.shouldAnimateInHighlight ?? false,
         isSelected,
-        variant: 'searchTable',
         isLastItem: !!isLastItem,
     });
 
