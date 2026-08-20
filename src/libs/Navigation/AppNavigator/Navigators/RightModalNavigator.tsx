@@ -201,10 +201,7 @@ function RightModalNavigator({navigation, route}: RightModalNavigatorProps) {
     // its left edge would be pushed off-screen once the Side Panel opens. Subtract the Side Panel offset
     // from the super wide width only (progress === 2) so the sheet's left edge stays put while the Side
     // Panel animates open/closed. See https://github.com/Expensify/App/issues/99035
-    const superWideRHPSidePanelOffset = Animated.multiply(
-        expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}),
-        sidePanelOffset.current,
-    );
+    const superWideRHPSidePanelOffset = Animated.multiply(expandedRHPProgress.interpolate({inputRange: [0, 1, 2], outputRange: [0, 0, 1], extrapolate: 'clamp'}), sidePanelOffset.current);
 
     const animatedWidth = Animated.subtract(
         expandedRHPProgress.interpolate({

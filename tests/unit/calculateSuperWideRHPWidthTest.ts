@@ -1,6 +1,19 @@
-import calculateSuperWideRHPWidth from '../../src/libs/Navigation/helpers/calculateSuperWideRHPWidth';
-import calculateReceiptPaneRHPWidth from '../../src/libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
-import variables from '../../src/styles/variables';
+import calculateReceiptPaneRHPWidth from '@libs/Navigation/helpers/calculateReceiptPaneRHPWidth';
+import calculateSuperWideRHPWidth from '@libs/Navigation/helpers/calculateSuperWideRHPWidth';
+
+import variables from '@styles/variables';
+
+// jest-expo resolves `.native` files by default (defaultPlatform 'ios'), but the super wide RHP is a
+// web/desktop-only layout whose native stubs are intentional no-ops. Force the web `index.ts` so these
+// tests exercise the real width math (same pattern as resetOnboardingStackToRootTest).
+jest.mock('@libs/Navigation/helpers/calculateSuperWideRHPWidth', () =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    jest.requireActual('@libs/Navigation/helpers/calculateSuperWideRHPWidth/index.ts'),
+);
+jest.mock('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth', () =>
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+    jest.requireActual('@libs/Navigation/helpers/calculateReceiptPaneRHPWidth/index.ts'),
+);
 
 describe('calculateSuperWideRHPWidth', () => {
     it('leaves the configured left margin on a wide window', () => {
