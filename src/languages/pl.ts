@@ -6215,6 +6215,8 @@ _Aby uzyskać bardziej szczegółowe instrukcje, [odwiedź naszą stronę pomocy
                         spend: 'Kontrola wydatków i niestandardowe limity',
                     },
                     ctaTitle: 'Wydaj nową kartę',
+                    existingFeedTitle: 'Zarządzaj swoimi Kartami Expensify',
+                    viewCards: 'Zobacz karty',
                 },
             },
             companyCards: {

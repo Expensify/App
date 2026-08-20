@@ -6234,6 +6234,8 @@ _Voor meer gedetailleerde instructies, [bezoek onze help-site](${CONST.NETSUITE_
                         spend: 'Bestedingslimieten en aangepaste limieten',
                     },
                     ctaTitle: 'Nieuwe kaart uitgeven',
+                    existingFeedTitle: 'Beheer je Expensify Kaarten',
+                    viewCards: 'Kaarten bekijken',
                 },
             },
             companyCards: {

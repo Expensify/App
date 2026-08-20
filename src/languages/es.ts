@@ -6152,6 +6152,8 @@ ${amount} para ${merchant} - ${date}`,
                         spend: 'Controles de gastos y límites personalizados',
                     },
                     ctaTitle: 'Emitir nueva tarjeta',
+                    existingFeedTitle: 'Gestiona tus Tarjetas Expensify',
+                    viewCards: 'Ver tarjetas',
                 },
             },
             companyCards: {
