@@ -29,6 +29,7 @@ import useResponsiveLayout from './useResponsiveLayout';
 type CompleteOnboardingParams = {
     featuresMap: OnboardingFeatureMapItem[];
     userReportedIntegration?: OnboardingAccounting;
+    userReportedIntegrationName?: string;
 };
 
 function useCompleteOnboarding() {
@@ -60,7 +61,7 @@ function useCompleteOnboarding() {
 
     const groupPolicy = Object.values(allPolicies ?? {}).find((policy) => isGroupPolicy(policy) && isPolicyAdmin(policy, session?.email));
 
-    const completeOnboardingFlow = async ({featuresMap, userReportedIntegration}: CompleteOnboardingParams) => {
+    const completeOnboardingFlow = async ({featuresMap, userReportedIntegration, userReportedIntegrationName}: CompleteOnboardingParams) => {
         if (!onboardingPurposeSelected || !onboardingCompanySize) {
             return;
         }
@@ -71,6 +72,7 @@ function useCompleteOnboarding() {
             const shouldCreateWorkspace = !onboardingPolicyID && !groupPolicy;
             const isAccountingEnabled = featuresMap.some((feature) => feature.id === CONST.POLICY.MORE_FEATURES.ARE_CONNECTIONS_ENABLED && feature.enabled);
             const resolvedIntegration = isAccountingEnabled ? userReportedIntegration : undefined;
+            const resolvedIntegrationName = resolvedIntegration === 'other' ? userReportedIntegrationName : undefined;
             const email = currentUserPersonalDetails.email ?? '';
 
             const {adminsChatReportID, policyID} = shouldCreateWorkspace
@@ -85,6 +87,7 @@ function useCompleteOnboarding() {
                       shouldAddOnboardingTasks: false,
                       companySize: onboardingCompanySize,
                       userReportedIntegration: resolvedIntegration,
+                      userReportedIntegrationName: resolvedIntegrationName,
                       featuresMap,
                       introSelected,
                       activePolicy,
@@ -110,6 +113,7 @@ function useCompleteOnboarding() {
                 onboardingPolicyID: policyID,
                 companySize: onboardingCompanySize,
                 userReportedIntegration: resolvedIntegration,
+                userReportedIntegrationName: resolvedIntegrationName,
                 firstName: currentUserPersonalDetails?.firstName,
                 lastName: currentUserPersonalDetails?.lastName,
                 selectedInterestedFeatures: featuresMap.filter((feature) => feature.enabled).map((feature) => feature.id),
