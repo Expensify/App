@@ -7054,6 +7054,8 @@ Il piano Control parte da 9 $ al mese per ogni membro attivo.`,
                     `Assicurati che questo conto corrisponda al conto di regolamento della tua Consolidated Travel Billing (che termina con ${lastFourPAN}) affinché il Riconcilio Continuo funzioni correttamente.`,
             },
             syncTravelInvoicingSettlements: 'Sincronizza i regolamenti di fatturazione viaggio consolidata',
+            syncTravelInvoicingSettlementsNoAccountTooltip: 'Imposta un conto per le tue esportazioni per sbloccare.',
+            syncTravelInvoicingSettlementsNoAutoSyncTooltip: 'Abilita la sincronizzazione automatica per sbloccare.',
         },
         export: {
             notReadyHeading: 'Non pronto per l’esportazione',

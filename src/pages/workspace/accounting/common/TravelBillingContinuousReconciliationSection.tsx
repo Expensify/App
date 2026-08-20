@@ -29,9 +29,10 @@ type TravelBillingContinuousReconciliationSectionProps = {
     policy: OnyxEntry<Policy>;
     connectionName: ConnectionName;
     isAutoSyncEnabled: boolean;
+    isPayableAccountSet: boolean;
 };
 
-function TravelBillingContinuousReconciliationSection({policy, connectionName, isAutoSyncEnabled}: TravelBillingContinuousReconciliationSectionProps) {
+function TravelBillingContinuousReconciliationSection({policy, connectionName, isAutoSyncEnabled, isPayableAccountSet}: TravelBillingContinuousReconciliationSectionProps) {
     const {translate} = useLocalize();
     const styles = useThemeStyles();
     const workspaceAccountID = policy?.policyAccountID ?? CONST.DEFAULT_NUMBER_ID;
@@ -46,6 +47,8 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
     const travelBillingReconciliationBankAccount = getConnectionBankAccountsForReconciliation(policy?.connections, connectionName).find(
         (account) => account.id === travelBillingReconciliationBankAccountID,
     );
+
+    const isToggleDisabled = !isPayableAccountSet || !isAutoSyncEnabled;
 
     const navigateToTravelBillingReconciliationAccountSettings = () => {
         Navigation.navigate(
@@ -67,7 +70,13 @@ function TravelBillingContinuousReconciliationSection({policy, connectionName, i
                 title={translate('workspace.accounting.syncTravelInvoicingSettlements')}
                 isActive={!!travelBillingContinuousReconciliation}
                 switchAccessibilityLabel={translate('workspace.accounting.syncTravelInvoicingSettlements')}
-                disabled={!isAutoSyncEnabled}
+                disabled={isToggleDisabled}
+                showLockIcon={isToggleDisabled}
+                disabledText={
+                    isPayableAccountSet
+                        ? translate('workspace.accounting.syncTravelInvoicingSettlementsNoAutoSyncTooltip')
+                        : translate('workspace.accounting.syncTravelInvoicingSettlementsNoAccountTooltip')
+                }
                 onToggle={(isEnabled) => {
                     toggleTravelBillingContinuousReconciliation(workspaceAccountID, isEnabled, connectionName, travelBillingContinuousReconciliationConnection);
                     if (isEnabled) {

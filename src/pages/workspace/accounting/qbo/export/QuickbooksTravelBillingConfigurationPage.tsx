@@ -71,6 +71,7 @@ function QuickbooksTravelBillingConfigurationPage({policy}: WithPolicyConnection
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.QBO}
                 isAutoSyncEnabled={!!qboConfig?.autoSync?.enabled}
+                isPayableAccountSet={!!qboConfig?.travelInvoicingPayableAccountID}
             />
         </ConnectionLayout>
     );

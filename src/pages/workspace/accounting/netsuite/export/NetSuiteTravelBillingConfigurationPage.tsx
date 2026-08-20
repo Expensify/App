@@ -114,6 +114,7 @@ function NetSuiteTravelBillingConfigurationPage({policy}: WithPolicyConnectionsP
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.NETSUITE}
                 isAutoSyncEnabled={!!policy?.connections?.netsuite?.config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.travelInvoicingPayableAccountID}
             />
         </ConnectionLayout>
     );

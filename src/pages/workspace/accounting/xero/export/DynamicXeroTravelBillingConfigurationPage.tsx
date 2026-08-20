@@ -74,6 +74,7 @@ function DynamicXeroTravelBillingConfigurationPage({policy}: WithPolicyConnectio
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.XERO}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />
         </ConnectionLayout>
     );

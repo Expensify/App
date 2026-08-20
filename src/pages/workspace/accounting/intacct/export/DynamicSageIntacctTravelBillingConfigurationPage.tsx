@@ -65,6 +65,7 @@ function DynamicSageIntacctTravelBillingConfigurationPage({policy}: WithPolicyCo
                 policy={policy}
                 connectionName={CONST.POLICY.CONNECTIONS.NAME.SAGE_INTACCT}
                 isAutoSyncEnabled={!!config?.autoSync?.enabled}
+                isPayableAccountSet={!!config?.export?.travelInvoicingPayableAccountID}
             />
         </ConnectionLayout>
     );
