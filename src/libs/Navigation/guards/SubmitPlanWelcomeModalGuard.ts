@@ -220,8 +220,8 @@ Onyx.connectWithoutView({
     },
 });
 
-// Only isPolicyCreationRestricted reads these cached values, during the guard's `evaluate` and the proactive check, and both run outside any React render.
-// useOnyx() works only during render, so this file subscribes with connectWithoutView() instead.
+// Only isPolicyCreationRestricted reads this cached collection, during the guard's `evaluate` and the proactive check, and both run outside any React render.
+// useOnyx() works only during render, so this subscription uses connectWithoutView() instead.
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SHARED_NVP_SECURITY_GROUP,
     callback: (value) => {
@@ -229,6 +229,7 @@ Onyx.connectWithoutView({
     },
 });
 
+// The backend also writes the security group to this legacy collection, which isPolicyCreationRestricted reads as a fallback. That read happens outside any React render too, where useOnyx() does not work, so this subscription also uses connectWithoutView().
 Onyx.connectWithoutView({
     key: ONYXKEYS.COLLECTION.SECURITY_GROUP,
     callback: (value) => {
