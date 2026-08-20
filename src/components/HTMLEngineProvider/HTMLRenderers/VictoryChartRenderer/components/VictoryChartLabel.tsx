@@ -6,9 +6,9 @@ import getSkiaLineMetrics from '@components/HTMLEngineProvider/HTMLRenderers/Vic
 import {getLocalizedVictoryChartLabelText} from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/localizeVictoryChartLabelText';
 import resolveChartThemeColor from '@components/HTMLEngineProvider/HTMLRenderers/VictoryChartRenderer/utils/resolveChartThemeColor';
 
-import useLocalize from '@hooks/useLocalize';
 import useTheme from '@hooks/useTheme';
 
+import IntlStore from '@src/languages/IntlStore';
 import type {SelectedTimezone} from '@src/types/onyx/PersonalDetails';
 
 import type {Color, SkFont} from '@shopify/react-native-skia';
@@ -34,10 +34,9 @@ type ProcessedLine = {
  * Intended for use inside CartesianChart's `renderOutside` callback.
  */
 function VictoryChartLabel({x, y, text, color, fontSize, fontWeight, fontFamily, fontStyle, lineHeight, textAnchor = 'start', verticalAnchor = 'middle', timezone}: VictoryChartLabelsProps) {
-    const {preferredLocale} = useLocalize();
     const typefaces = useChartTypefaces();
     const theme = useTheme();
-    const displayText = getLocalizedVictoryChartLabelText(text, timezone, preferredLocale);
+    const displayText = getLocalizedVictoryChartLabelText(text, timezone, IntlStore.getCurrentLocale());
     const processedLines = displayText.split('\n').reduce(
         (acc, line, index) => {
             const lineColor = resolveChartThemeColor(color?.[index], theme);
