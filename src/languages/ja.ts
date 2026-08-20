@@ -1518,6 +1518,7 @@ const translations: TranslationDeepObject<typeof en> = {
             dateRangeExceedsMaxDays: `日付範囲は${CONST.IOU.SPLITS_LIMIT}日を超えることはできません。`,
             unableToSubmitReport: 'レポートを送信できません',
             allTransactionsPendingDescription: 'すべての取引が保留中のため、このレポートは提出できません。反映されるまでに数日かかる場合があります。',
+            allExpensesOnHoldDescription: 'すべての経費が保留中のため、このレポートを送信できません。送信するには、保留を解除してください。',
             stitchOdometerImagesFailed: '走行距離計の画像を結合できませんでした。後でもう一度お試しください。',
             failedToSaveOdometerDraft: 'オドメーターの下書きを保存できませんでした。もう一度お試しください。',
         },
@@ -2040,6 +2041,8 @@ const translations: TranslationDeepObject<typeof en> = {
         profileAvatar: 'プロフィールアバター',
         customInstructions: 'カスタム指示',
         copilotIntoAccount: 'アカウントにCopilot',
+        viewUserHistory: 'ユーザー履歴を表示',
+        viewAgentHistory: 'エージェント履歴を表示',
         publicSection: {
             title: '公開',
             subtitle: 'これらの詳細はあなたの公開プロフィールに表示され、誰でも閲覧できます。',
@@ -4450,6 +4453,10 @@ ${integrationName === CONST.ONBOARDING_ACCOUNTING_MAPPING.other ? 'あなたの'
             railCard:
                 'Expensify で電車の予約や管理ができることをご存じでしたか？しかも領収書も自動でアップロードされます。次回からは、ぜひ <a href="https://travel.expensify.com">Expensify Travel</a> から予約してください 🚂',
         },
+        defaultWorkspaceTravelDisabled: {
+            title: '出張機能は有効になっていません',
+            message: '予約するには、デフォルトのワークスペースで出張機能を有効にするか、出張機能が有効になっているワークスペースをデフォルトとして設定してください。',
+        },
     },
     workspace: {
         common: {
@@ -5634,8 +5641,8 @@ _詳しい手順については、[ヘルプサイトをご覧ください](${CO
             billPaymentAccount: {label: '請求支払用口座', description: '請求書の支払い元を選択すると、Rillet 内に支払いを作成します。'},
             syncExpensifyCardSettlements: 'Expensify カードの清算を同期する',
             settlementAccount: {label: 'Expensify カードの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
-            syncTravelInvoicingSettlements: '出張請求の精算を同期',
-            travelInvoicingSettlementAccount: {label: '出張請求の精算口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
+            syncTravelInvoicingSettlements: '統合トラベル請求の精算を同期',
+            travelInvoicingSettlementAccount: {label: 'コンソリデーテッド・トラベル・ビリングの決済口座', description: '精算用の口座を選択すると、Rillet で支払いを作成します。'},
             exportToMultipleAccounts: '複数アカウントへのエクスポートを設定',
             cardProgramAccount: {
                 label: 'カードプログラム口座',
@@ -7519,8 +7526,7 @@ ${reportName}`,
                 alwaysNonReimbursable: '常に精算対象外',
                 alwaysNonReimbursableDescription: '経費は従業員に精算されません',
                 billableDefault: '請求可能のデフォルト',
-                billableDefaultDescription: (tagsPageLink: string) =>
-                    `<muted-text>現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。請求可能な経費は、<a href="${tagsPageLink}">タグ</a>で有効または無効にできます。</muted-text>`,
+                billableDefaultDescription: '現金およびクレジットカード経費をデフォルトで請求可能にするかどうかを選択してください。',
                 billable: '請求可能',
                 billableDescription: '経費は多くの場合、クライアントに再請求されます',
                 nonBillable: '請求不可',
@@ -7808,6 +7814,7 @@ ${reportName}`,
                 restrictMerchantsBlockSubtitle: '承認される支出は、許可された通貨で上限金額を超えないもの、または加盟店または加盟店の種類が条件に一致するものです。',
                 summaryCurrencies: ({currencies, hiddenCount, shownCount}: {currencies: string; hiddenCount: number; shownCount: number}) =>
                     `許可された ${shownCount > 1 ? '通貨' : '通貨'}：${currencies}${hiddenCount > 0 ? `、ほか +${hiddenCount} 件` : ''}`,
+                defaultRulesCannotBeDeleted: '既定のルールは削除できません',
             },
             agentRules: {
                 title: 'エージェントルール',
@@ -8629,6 +8636,9 @@ ${reportName}`,
                 title ? `エージェントルール「${title}」を次の内容に更新しました：${prompt}` : `エージェントルールを次の内容に更新しました：${prompt}`,
             deleted: ({title}: {title: string}) => (title ? `エージェントルール「${title}」を削除しました` : 'エージェントルールを削除しました'),
         },
+        addedRule: 'ルールを追加しました',
+        updatedRule: 'ルールを更新しました',
+        removedRule: 'ルールを削除しました',
         expensifyCardRule: {
             actionVerb: {block: 'ブロック済み', allow: '許可済み'},
             amountOperator: {
@@ -8741,6 +8751,7 @@ ${reportName}`,
         },
         updatedRequiresCategory: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} 経費の分類要件`,
         updatedRequiresTag: ({enabled}: {enabled: boolean}) => `${enabled ? '有効' : '無効'} の経費タグ付け要件`,
+        updatedCurrencyConversionFee: ({preferenceLabel}: {preferenceLabel: string}) => `通貨換算手数料の設定を「${preferenceLabel}」に更新しました`,
         updateAreAttendeesRequired: (categoryName: string, newValue: boolean) => {
             return `「${categoryName}」カテゴリの出席者を${newValue ? '必須' : '必須ではありません'}に変更しました（以前は${newValue ? '必須ではありません' : '必須'}）`;
         },
@@ -9889,6 +9900,11 @@ ${reportName}`,
                 onboardingChatTitle: (discountType: number) => `期間限定オファー：初年度が${discountType}%オフ！`,
                 subtitle: (days: number, hours: number, minutes: number, seconds: number) => `${days > 0 ? `${days}日：` : ''}${hours}時間以内に請求：${minutes}分：${seconds}秒`,
             },
+            travelInvoiceOverdue: {title: '出張請求書のお支払い期限が過ぎています', subtitle: (date: string) => `${date}までに旅行の請求書を支払って、旅行の予約を続けてください。`},
+            travelInvoiceOverdueLocked: {
+                title: '出張予約は一時停止されています',
+                subtitle: '旅行の請求書のお支払い期限が過ぎています。お支払いを完了して、再度旅行の予約を開始してください。',
+            },
         },
         cardSection: {
             title: '支払い',
@@ -10227,8 +10243,13 @@ ${reportName}`,
     productMarketingWindow: {
         roleTypes: {
             admin: {
-                heading: '管理者向けの新しいロールタイプ',
-                body: '新しいカード、メンバー、支払いの各管理者ロールで、チームにより細かな権限を付与できます。',
+                heading: '拡張されたベンダー対応付け',
+                body: '主要な会計ソフトへのスムーズなマッピングのために、取引先とカスタムルールを作成できます。',
+                cta: '試してみる',
+            },
+            member: {
+                heading: 'あらかじめ作成されたエージェントをご用意しました',
+                body: 'あらかじめ用意されたエージェントやカスタムエージェントを使って、経費を自動的にコード化・分割・提出できます。',
                 cta: '試してみる',
             },
         },
