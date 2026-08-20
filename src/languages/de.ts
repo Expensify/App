@@ -4519,8 +4519,9 @@ ${amount} für ${merchant} – ${date}`,
                 'Wussten Sie, dass Sie Zugfahrten direkt in Expensify buchen und verwalten können? Und dass Belege dabei automatisch für Sie hochgeladen werden? Buchen Sie das nächste Mal einfach über <a href="https://travel.expensify.com">Expensify Travel</a> 🚂',
         },
         defaultWorkspaceTravelDisabled: {
-            title: 'Reisen ist nicht aktiviert',
-            message: 'Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Arbeitsbereich oder wechseln Sie Ihren Standard-Arbeitsbereich zu einem, in dem Reisen aktiviert ist.',
+            title: 'Sie können noch keine Reisen buchen',
+            message:
+                'Sie befinden sich in einem reiseaktivierten Workspace, aber es ist nicht Ihr Standard-Workspace. Um zu buchen, aktivieren Sie bitte Reisen in Ihrem Standard-Workspace oder legen Sie einen reiseaktivierten Workspace als Standard fest.',
         },
     },
     workspace: {
