@@ -208,10 +208,8 @@ function useParticipantSubmission({
         const iouConfirmationPageRoute = ROUTES.MONEY_REQUEST_STEP_CONFIRMATION.getRoute(action, CONST.IOU.TYPE.TRACK, initialTransactionID, dmReportID);
         KeyboardUtils.dismissKeyboardAndExecute(() => {
             // We wrap navigation in setNavigationActionToMicrotaskQueue so that data loading in Onyx and navigation do not occur simultaneously, which resets the amount to 0.
-            // More information can be found here: https://github.com/Expensify/App/issues/73728
             Navigation.setNavigationActionToMicrotaskQueue(() => {
                 // `goBack` replaces the current route when the confirmation screen isn't on the stack.
-                // Params are not compared because we just changed the participants.
                 Navigation.goBack(iouConfirmationPageRoute, {compareParams: false});
             });
         });

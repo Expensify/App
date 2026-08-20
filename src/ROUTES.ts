@@ -456,7 +456,6 @@ const DYNAMIC_ROUTES = {
             SCREENS.MONEY_REQUEST.CREATE,
             SCREENS.MONEY_REQUEST.DYNAMIC_STEP_ACCOUNTANT,
             SCREENS.SHARE.SUBMIT_DETAILS,
-            // An incomplete split bill still renders the editable confirmation fields for its original actor.
             SCREENS.SPLIT_DETAILS.DYNAMIC_ROOT,
             SCREENS.REPORT,
             SCREENS.RIGHT_MODAL.SEARCH_REPORT,
