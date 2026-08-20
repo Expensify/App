@@ -42,7 +42,9 @@ type ForwardedLogPrefix = TupleToUnion<typeof FORWARDED_LOG_PREFIXES>;
  * receipt keys tied to the receipt logs instead of widening the global whitelist.
  */
 const PREFIX_SCOPED_PARAMETERS_WHITELIST = new Map<ForwardedLogPrefix, ReadonlyArray<string | RegExp>>([
-    ['[Receipt]', ['receiptTraceId', 'transactionID', 'event', 'captureSource']],
+    // statErrorCode is an opaque errno, so it is safe to send and tells a deleted receipt from an unreadable one.
+    // statError, source, fileName, and fileSizeBytes are left out on purpose — they carry paths and filenames.
+    ['[Receipt]', ['receiptTraceId', 'transactionID', 'event', 'captureSource', 'statErrorCode', 'errorMessage']],
     ['[PDFStall]', ['reportID']],
     ['[OpenReportStall]', ['reportID']],
 ]);
