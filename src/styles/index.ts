@@ -3462,12 +3462,9 @@ const staticStyles = (theme: ThemeColors) =>
             marginBottom: 0,
         },
 
-        // textMicroBold with a tighter line height, so the from/to cells line up with the rest of the expense preview metadata
         moneyRequestPreviewParticipantsText: {
+            ...textVariants.microStrong,
             color: theme.text,
-            ...FontUtils.fontFamily.platform.EXP_NEUE_BOLD,
-            fontSize: variables.fontSizeSmall,
-            lineHeight: 14,
         },
 
         moneyRequestLoadingHeight: {
