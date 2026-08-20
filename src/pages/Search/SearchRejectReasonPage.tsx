@@ -63,19 +63,19 @@ function SearchRejectReasonPage({route}: SearchRejectReasonPageProps) {
                 return;
             }
 
-            const urlToNavigateBack = rejectMoneyRequestsOnSearch(
-                currentSearchHash,
-                selectedTransactionsForReject,
+            const urlToNavigateBack = rejectMoneyRequestsOnSearch({
+                hash: currentSearchHash,
+                selectedTransactions: selectedTransactionsForReject,
                 comment,
                 allPolicies,
                 allReports,
-                currentSearchResults?.data,
-                currentUserAccountID,
-                currentUserLogin ?? '',
+                searchData: currentSearchResults?.data,
+                currentUserAccountIDParam: currentUserAccountID,
+                currentUserLogin: currentUserLogin ?? '',
                 betas,
                 delegateAccountID,
                 getCurrencyDecimals,
-            );
+            });
             if (route.name === SCREENS.SEARCH.MONEY_REQUEST_REPORT_REJECT_TRANSACTIONS) {
                 clearSelectedTransactions(true);
             } else {

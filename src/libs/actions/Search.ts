@@ -1671,19 +1671,33 @@ type TransactionReportInfo = {
     reportID?: string;
 };
 
-function rejectMoneyRequestsOnSearch(
-    hash: number,
-    selectedTransactions: Record<string, TransactionReportInfo>,
-    comment: string,
-    allPolicies: OnyxCollection<Policy>,
-    allReports: OnyxCollection<Report>,
-    searchData: SearchResultDataType | undefined,
-    currentUserAccountIDParam: number,
-    currentUserLogin: string,
-    betas: OnyxEntry<Beta[]>,
-    delegateAccountID: number | undefined,
-    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'],
-) {
+type RejectMoneyRequestsOnSearchParams = {
+    hash: number;
+    selectedTransactions: Record<string, TransactionReportInfo>;
+    comment: string;
+    allPolicies: OnyxCollection<Policy>;
+    allReports: OnyxCollection<Report>;
+    searchData: SearchResultDataType | undefined;
+    currentUserAccountIDParam: number;
+    currentUserLogin: string;
+    betas: OnyxEntry<Beta[]>;
+    delegateAccountID: number | undefined;
+    getCurrencyDecimals: CurrencyListActionsContextType['getCurrencyDecimals'];
+};
+
+function rejectMoneyRequestsOnSearch({
+    hash,
+    selectedTransactions,
+    comment,
+    allPolicies,
+    allReports,
+    searchData,
+    currentUserAccountIDParam,
+    currentUserLogin,
+    betas,
+    delegateAccountID,
+    getCurrencyDecimals,
+}: RejectMoneyRequestsOnSearchParams) {
     const transactionIDs = Object.keys(selectedTransactions);
 
     const transactionsByReport = transactionIDs.reduce<Record<string, string[]>>((acc, transactionID) => {
