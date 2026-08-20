@@ -59,6 +59,13 @@ type TabSelectorBaseItem<K extends string = string> = WithSentryLabel & {
 
     /** Optional ref forwarded to this tab's pressable element, e.g. to anchor a popover to this specific tab. */
     tabRef?: Ref<View | HTMLDivElement>;
+
+    /**
+     * Whether this tab should respond to a long-press (touch) / right-click (web) via `onLongTabPress`.
+     * Opt-in per tab so tabs that don't need it keep their native browser context menu on web
+     * (a wired secondary interaction suppresses the native `contextmenu` event).
+     */
+    shouldEnableLongPress?: boolean;
 };
 
 type TabSelectorBaseProps<K extends string = string> = {

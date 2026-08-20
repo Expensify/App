@@ -89,6 +89,9 @@ function InboxTabSelector() {
             isBadgeCondensed: true,
             badgeStyles: styles.tabSelectorBadge,
             tabRef: unreadTabRef,
+            // Only the Unread tab opens the "Mark all as read" menu on long-press / right-click, so it's the
+            // only tab that wires the secondary interaction. All/To-dos keep the native browser context menu.
+            shouldEnableLongPress: true,
         },
         {
             key: CONST.INBOX_TAB.TODO,
