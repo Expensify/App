@@ -25,6 +25,7 @@ const mockUseIsFocused = jest.mocked(NativeNavigation.useIsFocused);
 
 type RootProps = {
     value?: string;
+    allowNegative?: boolean;
     errorText?: string;
     onBlur?: jest.Mock;
     onInputChange?: jest.Mock;
@@ -192,6 +193,25 @@ describe('NumberForm.SymbolInput', () => {
         expect(screen.getByDisplayValue('12.50')).toBeOnTheScreen();
     });
 
+    it('renders a signed value without its minus in the native input and preserves the sign on edits', async () => {
+        const onInputChange = jest.fn();
+
+        // Given a signed value and negative input enabled
+        renderSymbolInput({symbol: '$', position: 'prefix', decimals: 2}, {value: '-12.50', allowNegative: true, onInputChange});
+        await waitForBatchedUpdatesWithAct();
+
+        // Then the minus is rendered separately from the native input value
+        expect(screen.getByText('-')).toBeOnTheScreen();
+        expect(screen.getByDisplayValue('12.50')).toBeOnTheScreen();
+
+        // When the magnitude changes, the canonical signed value is notified
+        fireEvent.changeText(screen.getByDisplayValue('12.50'), '13.50');
+        await waitForBatchedUpdatesWithAct();
+
+        expect(onInputChange).toHaveBeenLastCalledWith('-13.50');
+        expect(screen.getByDisplayValue('13.50')).toBeOnTheScreen();
+    });
+
     it('uses maxLength for integer validation without forwarding it to the native input', async () => {
         // Given a SymbolInput with maxLength set for integer validation
         renderSymbolInput({symbol: '$', decimals: 2, maxLength: 8}, {value: '12345678.99'});
@@ -233,10 +253,10 @@ describe('NumberForm.SymbolInput', () => {
         expect(screen.getByDisplayValue('12')).toBeOnTheScreen();
     });
 
-    it('rejects negative values when negative mode is none', async () => {
+    it('rejects negative values when negative input is disabled', async () => {
         const onInputChange = jest.fn();
 
-        // Given a SymbolInput with negative mode "none" and value "12"
+        // Given a SymbolInput with negative input disabled and value "12"
         renderSymbolInput({decimals: 2}, {value: '12', onInputChange});
         await waitForBatchedUpdatesWithAct();
 

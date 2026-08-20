@@ -10,12 +10,12 @@ import React from 'react';
 import {View} from 'react-native';
 
 function ContextReadout() {
-    const {value, negativeMode, errorText, setValue, onBlur} = useNumberFormContext();
+    const {value, allowNegative, errorText, setValue, onBlur} = useNumberFormContext();
 
     return (
         <View>
             <Text testID="ctx-value">{value}</Text>
-            <Text testID="ctx-negativeMode">{negativeMode}</Text>
+            <Text testID="ctx-allowNegative">{String(allowNegative)}</Text>
             <Text testID="ctx-errorText">{errorText ?? ''}</Text>
             <Text testID="ctx-hasOnBlur">{String(!!onBlur)}</Text>
             <PressableWithFeedback
@@ -92,24 +92,24 @@ describe('NumberForm', () => {
             // Given a NumberForm with no value or mode props
             renderNumberForm();
 
-            // Then the context exposes empty value, none negative mode, no error, and no onBlur
+            // Then the context exposes an empty value, negative input disabled, no error, and no onBlur
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('');
-            expect(screen.getByTestId('ctx-negativeMode')).toHaveTextContent('none');
+            expect(screen.getByTestId('ctx-allowNegative')).toHaveTextContent('false');
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('');
             expect(screen.getByTestId('ctx-hasOnBlur')).toHaveTextContent('false');
         });
 
-        it('propagates value, negativeMode, and errorText from props', () => {
-            // Given a NumberForm with value, negativeMode, and errorText props
+        it('propagates value, allowNegative, and errorText from props', () => {
+            // Given a NumberForm with value, allowNegative, and errorText props
             renderNumberForm({
                 value: '12.50',
-                negativeMode: 'external',
+                allowNegative: true,
                 errorText: 'Required',
             });
 
             // Then the context reflects those props
             expect(screen.getByTestId('ctx-value')).toHaveTextContent('12.50');
-            expect(screen.getByTestId('ctx-negativeMode')).toHaveTextContent('external');
+            expect(screen.getByTestId('ctx-allowNegative')).toHaveTextContent('true');
             expect(screen.getByTestId('ctx-errorText')).toHaveTextContent('Required');
         });
 

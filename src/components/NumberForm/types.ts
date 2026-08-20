@@ -3,7 +3,6 @@ import type {BaseTextInputProps, BaseTextInputRef} from '@components/TextInput/B
 import type {ForwardedRef, ReactNode} from 'react';
 import type {StyleProp, TextStyle, ViewStyle} from 'react-native';
 
-type NumberFormNegativeMode = 'none' | 'external' | 'inValue';
 type NumberFormInputPosition = 'prefix' | 'suffix';
 
 type NumberFormRef = {
@@ -34,15 +33,6 @@ type NumberFormInputBaseProps = {
 
     /** Whether the symbol should be hidden. */
     hideSymbol?: boolean;
-
-    /** Whether the value is negative when the sign is managed outside the value. */
-    isNegative?: boolean;
-
-    /** Toggle the external negative state. */
-    toggleNegative?: () => void;
-
-    /** Clear the external negative state when backspace is pressed on an empty value. */
-    clearNegative?: () => void;
 
     /** Style applied to the number input. */
     style?: StyleProp<TextStyle>;
@@ -108,8 +98,8 @@ type NumberFormProps = {
     /** Called when a composed primitive changes the canonical value. */
     onInputChange?: (value: string) => void;
 
-    /** Describes whether the negative sign is stored in the value or managed externally. */
-    negativeMode?: NumberFormNegativeMode;
+    /** Whether negative values are allowed. The canonical value always stores its sign. */
+    allowNegative?: boolean;
 
     /** Error supplied by FormProvider. */
     errorText?: string;
@@ -129,4 +119,4 @@ type NumberFormProps = {
     children: ReactNode;
 };
 
-export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormNegativeMode, NumberFormProps, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};
+export type {NumberFormInputBaseProps, NumberFormInputKeyPressEvent, NumberFormProps, NumberFormRef, NumberFormSymbolInputProps, NumberFormTextInputProps};
