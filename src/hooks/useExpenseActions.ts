@@ -21,7 +21,6 @@ import {
     canUserPerformWriteAction as canUserPerformWriteActionReportUtils,
     generateReportID,
     getAddExpenseDropdownOptions,
-    getPolicyExpenseChat,
     isDM,
     isOpenReport,
     isSelfDM,
@@ -55,6 +54,7 @@ import type {ValueOf} from 'type-fest';
 
 import {hasSeenTourSelector} from '@selectors/Onboarding';
 import passthroughPolicyTagListSelector from '@selectors/PolicyTagList';
+import {policyExpenseChatSelector} from '@selectors/Report';
 import {validTransactionDraftsSelector} from '@selectors/TransactionDraft';
 import {useRef} from 'react';
 
@@ -175,7 +175,7 @@ function useExpenseActions({reportID, isReportInSearch = false, backTo, onDuplic
 
     // Default expense policy / chat
     const defaultExpensePolicy = useDefaultExpensePolicy();
-    const activePolicyExpenseChat = getPolicyExpenseChat(accountID, defaultExpensePolicy?.id);
+    const [activePolicyExpenseChat] = useOnyx(ONYXKEYS.COLLECTION.REPORT, {selector: policyExpenseChatSelector(accountID, defaultExpensePolicy?.id)});
 
     // Duplicate detection
     const {duplicateTransactions, duplicateTransactionViolations} = useDuplicateTransactionsAndViolations(transactions.map((t) => t.transactionID));
