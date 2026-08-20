@@ -1,3 +1,4 @@
+import Log from '@libs/Log';
 import {config, normalizedConfigs, screensWithOnyxTabNavigator} from '@libs/Navigation/linkingConfig/config';
 import type {State} from '@libs/Navigation/types';
 
@@ -170,11 +171,15 @@ function getPathFromState(state: State): string {
     const focusedRoute = findFocusedRouteWithOnyxTabGuard(state);
     const screenName = focusedRoute?.name ?? '';
 
-    if (isDynamicRouteScreen(screenName as Screen)) {
-        return getPathFromStateWithDynamicRoute(state);
-    }
+    const rawPath = isDynamicRouteScreen(screenName as Screen) ? getPathFromStateWithDynamicRoute(state) : RNGetPathFromState(state, config);
 
-    return RNGetPathFromState(state, config);
+    const [pathOnly, query] = splitPathAndQuery(rawPath);
+    // Exactly one leading slash and no internal `//`, so the browser never parses a segment as a host.
+    const normalizedPath = `/${pathOnly}`.replaceAll(/\/{2,}/g, '/');
+    if (normalizedPath !== pathOnly) {
+        Log.alert('[Navigation] getPathFromState produced a malformed path', {screenName, rawPath});
+    }
+    return `${normalizedPath}${query ? `?${query}` : ''}`;
 }
 
 export default getPathFromState;
