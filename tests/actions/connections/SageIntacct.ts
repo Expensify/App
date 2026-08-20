@@ -1,4 +1,4 @@
-import {updateSageIntacctTravelBillingPayableAccount} from '@libs/actions/connections/SageIntacct';
+import {updateSageIntacctFxExpenseAccount, updateSageIntacctTravelBillingPayableAccount} from '@libs/actions/connections/SageIntacct';
 import * as API from '@libs/API';
 import type {WriteCommand} from '@libs/API/types';
 import {WRITE_COMMANDS} from '@libs/API/types';
@@ -128,6 +128,50 @@ describe('actions/connections/SageIntacct', () => {
                     expect(update.key).toBe(`${ONYXKEYS.COLLECTION.POLICY}${MOCK_POLICY_ID}`);
                 }
             }
+        });
+    });
+
+    describe('updateSageIntacctFxExpenseAccount', () => {
+        beforeEach(() => {
+            writeSpy.mockClear();
+        });
+
+        it('writes the UpdateSageIntacctFxExpenseAccount command with the selected account', () => {
+            updateSageIntacctFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {command} = getFirstWriteCall();
+            expect(command).toBe(WRITE_COMMANDS.UPDATE_SAGE_INTACCT_FX_EXPENSE_ACCOUNT);
+
+            const call = writeSpy.mock.calls.at(0);
+            expect(call?.[1]).toMatchObject({policyID: MOCK_POLICY_ID, settingValue: JSON.stringify('account-123')});
+        });
+
+        it('updates fxExpenseAccount optimistically, sets pending field, and clears error field', () => {
+            updateSageIntacctFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const configUpdate = getRequiredSageIntacctConfig(onyxData?.optimisticData?.at(0));
+
+            expect(configUpdate[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBe('account-123');
+            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBe(CONST.RED_BRICK_ROAD_PENDING_ACTION.UPDATE);
+            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBeNull();
+        });
+
+        it('reverts to the old account and sets an error in failure data', () => {
+            updateSageIntacctFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'old-account');
+
+            const {onyxData} = getFirstWriteCall();
+            const configUpdate = getRequiredSageIntacctConfig(onyxData?.failureData?.at(0));
+
+            expect(configUpdate[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBe('old-account');
+            expect(configUpdate.pendingFields?.[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBeNull();
+            expect(configUpdate.errorFields?.[CONST.SAGE_INTACCT_CONFIG.FX_EXPENSE_ACCOUNT]).toBe(MOCK_ONYX_ERROR);
+        });
+
+        it('does not write when the account did not change', () => {
+            updateSageIntacctFxExpenseAccount(MOCK_POLICY_ID, 'account-123', 'account-123');
+
+            expect(writeSpy).not.toHaveBeenCalled();
         });
     });
 });
